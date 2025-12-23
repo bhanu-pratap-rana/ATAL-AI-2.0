@@ -3,6 +3,7 @@ import { createClient, getCurrentUser } from '@/lib/supabase-server'
 import { authLogger } from '@/lib/auth-logger'
 import { CreateClassDialog } from '@/components/teacher/CreateClassDialog'
 import { ClassCard } from '@/components/teacher/ClassCard'
+import { ProfileButton } from '@/components/teacher/ProfileButton'
 import { SignOutButton } from '@/components/teacher/SignOutButton'
 
 interface Class {
@@ -15,20 +16,12 @@ interface Class {
 }
 
 interface TeacherData {
-  teacherName: string
   classes: Class[]
 }
 
 async function getTeacherData(userId: string): Promise<TeacherData> {
   try {
     const supabase = await createClient()
-
-    // Fetch teacher profile
-    const { data: teacherProfile } = await supabase
-      .from('teacher_profiles')
-      .select('name, subject')
-      .eq('user_id', userId)
-      .single()
 
     // Fetch classes
     const { data: classes, error } = await supabase
@@ -42,13 +35,11 @@ async function getTeacherData(userId: string): Promise<TeacherData> {
     }
 
     return {
-      teacherName: teacherProfile?.name || 'Teacher',
       classes: classes || [],
     }
   } catch (error) {
     authLogger.error('[getTeacherData] Unexpected error', error)
     return {
-      teacherName: 'Teacher',
       classes: [],
     }
   }
@@ -58,47 +49,48 @@ export default async function TeacherClassesPage() {
   const user = await getCurrentUser()
 
   if (!user) {
-    redirect('/login')
+    redirect('/teacher/start')
   }
 
-  const { teacherName, classes } = await getTeacherData(user.id)
+  const { classes } = await getTeacherData(user.id)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-green-50 p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-pink-500 via-orange-500 to-yellow-500 bg-clip-text text-transparent">
+    <div className="min-h-screen bg-gradient-to-br from-cream via-surface to-cyan-lightest page-layout">
+      <div className="container-responsive max-w-7xl">
+        {/* Header - Mobile Responsive */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-responsive">
+          <div className="text-center sm:text-left">
+            <h1 className="heading-1 bg-gradient-to-r from-primary via-primary-dark to-cyan bg-clip-text text-transparent">
               My Classes
             </h1>
-            <p className="text-gray-600 mt-2">
+            <p className="text-text-secondary mt-2 text-sm md:text-base">
               Manage your classes and students
             </p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-center sm:justify-end gap-3 sm:gap-4">
             <CreateClassDialog />
+            <ProfileButton />
             <SignOutButton />
           </div>
         </div>
 
         {/* Classes Grid */}
         {classes.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-5xl">📚</span>
+          <div className="text-center py-12 md:py-16 px-4">
+            <div className="w-20 h-20 md:w-24 md:h-24 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-4xl md:text-5xl">📚</span>
             </div>
-            <h2 className="text-2xl font-semibold text-gray-700 mb-2">
+            <h2 className="heading-2 text-text-primary mb-2">
               No classes yet
             </h2>
-            <p className="text-gray-500 mb-6">
+            <p className="text-text-secondary mb-6 text-sm md:text-base">
               Create your first class to get started
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-responsive">
             {classes.map((classItem: Class) => (
-              <ClassCard key={classItem.id} classData={classItem} teacherName={teacherName} />
+              <ClassCard key={classItem.id} classData={classItem} />
             ))}
           </div>
         )}

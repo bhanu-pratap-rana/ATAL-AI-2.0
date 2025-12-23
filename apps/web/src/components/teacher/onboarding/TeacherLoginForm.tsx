@@ -34,7 +34,7 @@ export function TeacherLoginForm({
     <AuthCard title="Login to Your Account" description="Enter your credentials">
       <form onSubmit={onSubmit} className="space-y-4">
         {error && (
-          <div className="bg-error-light border border-error/30 rounded-[12px] p-3">
+          <div className="bg-error-light border border-error/30 rounded-md p-3">
             <p className="text-sm text-error">{error}</p>
           </div>
         )}
@@ -86,7 +86,7 @@ export function TeacherLoginForm({
             type="button"
             onClick={onForgotPassword}
             disabled={loading}
-            className="text-sm text-primary hover:text-primary-dark hover:underline disabled:text-gray-400 transition-colors"
+            className="text-sm text-primary hover:text-primary-dark hover:underline disabled:text-text-tertiary transition-colors"
           >
             Forgot your password?
           </button>

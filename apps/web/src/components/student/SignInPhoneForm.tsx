@@ -14,12 +14,12 @@ import type { UsePhoneInputReturn } from '@/hooks/usePhoneInput'
 
 /**
  * ATAL AI Student Sign In (Phone) - Jyoti Theme
- * 
+ *
  * Design Rules Applied:
  * - Primary button
- * - Error text: #EF4444
- * - Muted text: #78716C
- * - Links: #FF7E33 primary, #57534E secondary
+ * - Error text: text-error
+ * - Muted text: text-text-muted
+ * - Links: text-primary and text-text-secondary
  */
 
 interface SignInPhoneFormProps {
@@ -82,9 +82,9 @@ export function SignInPhoneForm({
   return (
     <form onSubmit={handleSignInPhone} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="signin-phone" className="text-[#2D2A26]">Phone Number</Label>
-        <div className="flex items-center border-2 border-border rounded-[12px] overflow-hidden focus-within:border-primary focus-within:ring-3 focus-within:ring-primary-light transition-all">
-          <span className="px-3 text-[#57534E] font-medium bg-[#F3F0ED] h-full py-3">+91</span>
+        <Label htmlFor="signin-phone" className="text-text">Phone Number</Label>
+        <div className="flex items-center border-2 border-border rounded-md overflow-hidden focus-within:border-primary focus-within:ring-3 focus-within:ring-primary-light transition-all">
+          <span className="px-3 text-text-secondary font-medium bg-muted h-full py-3">+91</span>
           <Input
             id="signin-phone"
             type="tel"
@@ -97,11 +97,11 @@ export function SignInPhoneForm({
             maxLength={12}
           />
         </div>
-        <p className="text-xs text-[#78716C]">Enter your 10-digit phone number</p>
+        <p className="text-xs text-text-muted">Enter your 10-digit phone number</p>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="signin-phone-password" className="text-[#2D2A26]">Password</Label>
+        <Label htmlFor="signin-phone-password" className="text-text">Password</Label>
         <Input
           id="signin-phone-password"
           type="password"
@@ -112,7 +112,7 @@ export function SignInPhoneForm({
           disabled={isLoading}
         />
         {state.signinPhoneError && (
-          <p className="text-sm text-[#EF4444]">{state.signinPhoneError}</p>
+          <p className="text-sm text-error">{state.signinPhoneError}</p>
         )}
       </div>
 

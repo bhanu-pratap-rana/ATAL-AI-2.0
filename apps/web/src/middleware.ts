@@ -9,6 +9,36 @@ export async function middleware(request: NextRequest) {
     },
   })
 
+  // Skip middleware logic for server actions (they have their own auth checks)
+  // Server actions are POST requests with specific content types
+  const isServerAction = request.method === 'POST' && (
+    request.headers.get('content-type')?.includes('application/x-www-form-urlencoded') ||
+    request.headers.get('next-action') !== null
+  )
+
+  if (isServerAction) {
+    // Still need to refresh auth token for server actions
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll()
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              request.cookies.set(name, value)
+              response.cookies.set(name, value, options)
+            })
+          },
+        },
+      }
+    )
+    await supabase.auth.getUser()
+    return response
+  }
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -50,7 +80,8 @@ export async function middleware(request: NextRequest) {
 
   // If already authenticated and trying to access auth pages, redirect to dashboard
   // BUT allow teacher onboarding and join pages (they handle their own logic)
-  if (isAuthRoute && user && !isTeacherAuth && !isJoinRoute) {
+  // Also allow student/start for users completing their profile after signup (page handles its own redirect)
+  if (isAuthRoute && user && !isTeacherAuth && !isJoinRoute && !isStudentAuth) {
     return NextResponse.redirect(new URL('/app/dashboard', request.url))
   }
 

@@ -1,47 +1,76 @@
 @import "tailwindcss";
 
 /* ============================================
-   ATAL AI - Jyoti (ज्योति) Design System
-   
-   Theme: "Light of Learning"
-   Version: 2.0 - Consistent Color System
-   
+   ATAL AI - Jyoti Theme (Light of Learning)
+
+   Version: 4.0 - Mobile-First Responsive Design System
+
+   Architecture:
+   - Single Source of Truth: All values defined in :root
+   - Mobile-First: Base styles for mobile, enhanced for larger screens
+   - PWA Optimized: Touch-friendly, offline-ready
+
    Color Philosophy:
-   - PRIMARY (Saffron): Energy, wisdom, learning
-   - SECONDARY (Charcoal): Stability, professionalism
-   - ACCENT (Gold): Achievement, celebration
+   - PRIMARY (Orange #F98819): Energy, CTAs, active states
+   - SECONDARY (Cyan #24B0D7): Info, secondary actions, progress
    - Semantic colors ONLY for status indicators
+
+   Breakpoints (Mobile-First):
+   - Base: < 640px (Mobile)
+   - sm: ≥ 640px (Large Mobile / Small Tablet)
+   - md: ≥ 768px (Tablet)
+   - lg: ≥ 1024px (Desktop)
+   - xl: ≥ 1280px (Large Desktop)
+   - 2xl: ≥ 1536px (Extra Large)
    ============================================ */
 
 :root {
   /* ==========================================
-     PRIMARY COLOR SYSTEM - Orange-Yellow (#FF8C42)
-     Use for: ALL buttons, progress, active states,
-     icon backgrounds, focus states, badges
+     PRIMARY COLOR SYSTEM - Orange (#F98819)
+     Use for: ALL primary buttons, progress, active states,
+     icon backgrounds, focus states, badges, links
      ========================================== */
-  --color-primary: #FF8C42;
-  --color-primary-dark: #E67A30;
-  --color-primary-light: #FFEBD9;
-  --color-primary-lighter: #FFF7F0;
+  --color-primary: #F98819;
+  --color-primary-dark: #E07510;
+  --color-primary-darker: #C66610;
+  --color-primary-darkest: #8B4A0B;
+  --color-primary-light: #FFCFA3;
+  --color-primary-lighter: #FFE4CC;
+  --color-primary-lightest: #FFF5EB;
 
   /* Primary Gradients */
-  --gradient-primary: linear-gradient(135deg, #FF8C42 0%, #FFAB6A 100%);
-  --gradient-primary-hover: linear-gradient(135deg, #E67A30 0%, #FF8C42 100%);
-  --gradient-primary-vertical: linear-gradient(180deg, #FF8C42 0%, #FFAB6A 100%);
+  --gradient-primary: linear-gradient(135deg, #F98819 0%, #FFAB4A 100%);
+  --gradient-primary-hover: linear-gradient(135deg, #E07510 0%, #F98819 100%);
+  --gradient-primary-vertical: linear-gradient(180deg, #F98819 0%, #FFAB4A 100%);
+  --gradient-header: linear-gradient(135deg, #F98819 0%, #FFAB4A 100%);
 
   /* Primary Shadows */
-  --shadow-primary: 0 4px 14px rgba(255, 140, 66, 0.25);
-  --shadow-primary-hover: 0 6px 20px rgba(255, 140, 66, 0.35);
-  
+  --shadow-primary: 0 8px 24px rgba(249, 136, 25, 0.3);
+  --shadow-primary-sm: 0 4px 12px rgba(249, 136, 25, 0.2);
+  --shadow-primary-hover: 0 6px 20px rgba(249, 136, 25, 0.35);
+
   /* ==========================================
-     SECONDARY COLOR - Charcoal (#2D2A26)
-     Use for: Secondary buttons, headings, 
-     admin backgrounds, professional elements
+     SECONDARY COLOR - Cyan (#24B0D7)
+     Use for: Secondary actions, info, teacher UI,
+     progress indicators, hints
      ========================================== */
+  --color-cyan: #24B0D7;
+  --color-cyan-dark: #1E95B6;
+  --color-cyan-darker: #187A96;
+  --color-cyan-darkest: #0F4F61;
+  --color-cyan-light: #7DD4EC;
+  --color-cyan-lighter: #C5EBF5;
+  --color-cyan-lightest: #E8F7FB;
+
+  /* Cyan Shadows */
+  --shadow-cyan: 0 8px 24px rgba(36, 176, 215, 0.3);
+  --shadow-cyan-sm: 0 4px 12px rgba(36, 176, 215, 0.2);
+
+  /* Legacy secondary (charcoal) - for admin/professional elements */
   --color-secondary: #2D2A26;
   --color-secondary-light: #4A4640;
   --color-secondary-lighter: #6B6560;
-  
+
   /* ==========================================
      ACCENT COLOR - Gold (#FFD54F)
      Use ONLY for: Achievements, rewards, streaks,
@@ -50,7 +79,15 @@
   --color-accent: #FFD54F;
   --color-accent-dark: #FFC107;
   --color-accent-light: #FFF8E1;
-  
+
+  /* ==========================================
+     BRAND COLORS - Third-party brand colors
+     Use ONLY for brand-specific integrations
+     ========================================== */
+  --color-whatsapp: #25D366;
+  --color-whatsapp-dark: #20BA5A;
+  --color-whatsapp-light: #E8FBF0;
+
   /* ==========================================
      SEMANTIC COLORS - Status Indicators ONLY
      Never use for decorative purposes
@@ -59,21 +96,21 @@
   --color-success: #22C55E;
   --color-success-light: #DCFCE7;
   --color-success-dark: #16A34A;
-  
+
   /* Warning - Timer, pending, coming soon */
   --color-warning: #F59E0B;
   --color-warning-light: #FEF3C7;
   --color-warning-dark: #D97706;
-  
+
   /* Error - Failed, inactive, errors */
   --color-error: #EF4444;
   --color-error-light: #FEE2E2;
   --color-error-dark: #DC2626;
-  
-  /* Info - Tips, hints, information */
-  --color-info: #3B82F6;
-  --color-info-light: #DBEAFE;
-  --color-info-dark: #2563EB;
+
+  /* Info - Tips, hints, information (uses cyan) */
+  --color-info: #24B0D7;
+  --color-info-light: #E8F7FB;
+  --color-info-dark: #1E95B6;
   
   /* ==========================================
      NEUTRAL COLORS - Backgrounds, borders, text
@@ -82,6 +119,7 @@
   --color-cream: #FFFBF7;
   --color-background: #FFFFFF;
   --color-surface: #FFFBF7;
+  --color-surface-dark: #F5F5F4; /* Slightly darker surface for contrast */
   
   /* Gray Scale */
   --color-gray-50: #FAFAF9;
@@ -107,6 +145,16 @@
   --color-border: #E8E4E0;
   --color-border-light: #F3F0ED;
   --color-border-focus: #FF7E33;
+
+  /* ==========================================
+     DARK THEME COLORS - Admin Dashboard
+     Use for: Dark mode admin interfaces
+     ========================================== */
+  --color-dark-bg: #1C1917;
+  --color-dark-surface: #292524;
+  --color-dark-border: #44403C;
+  --color-dark-text: #FFFFFF;
+  --color-dark-text-muted: #A8A29E;
   
   /* ==========================================
      TYPOGRAPHY - Font Families
@@ -225,67 +273,139 @@
   --logo-md: 5rem;             /* 80px */
   --logo-lg: 6.25rem;          /* 100px */
   --logo-xl: 8rem;             /* 128px */
-  
+
+  /* ==========================================
+     ASSESSMENT COMPONENT COLORS
+     Status indicators for question navigation
+     ========================================== */
+  --assessment-current: var(--color-info);       /* Blue - current question */
+  --assessment-answered: var(--color-success);   /* Green - answered */
+  --assessment-skipped: var(--color-warning);    /* Amber - skipped */
+  --assessment-unanswered: var(--color-border);  /* Gray - not attempted */
+
+  /* Assessment Category Colors */
+  --category-devices: var(--color-info);
+  --category-internet: var(--color-cyan);
+  --category-content: var(--color-primary);
+  --category-problem: var(--color-warning);
+  --category-application: var(--color-success);
+
+  /* Assessment Result Colors */
+  --result-excellent: var(--color-success);      /* ≥80% */
+  --result-good: var(--color-warning);           /* ≥60% */
+  --result-needs-improvement: var(--color-error); /* <60% */
+
   /* ==========================================
      LEGACY SUPPORT (for existing components)
      ========================================== */
   --primary: var(--color-primary);
-  --primary-light: #FF9F5A;
+  --primary-light: var(--color-primary-light);
+  --primary-lightest: var(--color-primary-lightest);
+  --primary-lighter: var(--color-primary-lighter);
+  --primary-dark: var(--color-primary-dark);
+  --primary-darkest: var(--color-primary-darkest);
+  --cyan: var(--color-cyan);
+  --cyan-light: var(--color-cyan-light);
+  --cyan-lightest: var(--color-cyan-lightest);
+  --cyan-lighter: var(--color-cyan-lighter);
+  --cyan-dark: var(--color-cyan-dark);
+  --cyan-darkest: var(--color-cyan-darkest);
   --background: var(--color-background);
   --surface: var(--color-surface);
   --foreground: var(--color-text-primary);
   --text-primary: var(--color-text-primary);
   --text-secondary: var(--color-text-secondary);
   --text-tertiary: var(--color-text-tertiary);
+  --text-muted: var(--color-text-muted);
   --border: var(--color-border);
+  --border-light: var(--color-border-light);
+  --cream: var(--color-cream);
 }
 
 /* ==========================================
    TAILWIND THEME CONFIGURATION
    ========================================== */
 @theme inline {
-  /* Brand Colors */
+  /* Primary Colors (Orange) */
   --color-primary: var(--color-primary);
   --color-primary-dark: var(--color-primary-dark);
+  --color-primary-darker: var(--color-primary-darker);
+  --color-primary-darkest: var(--color-primary-darkest);
   --color-primary-light: var(--color-primary-light);
   --color-primary-lighter: var(--color-primary-lighter);
-  
-  /* Secondary */
+  --color-primary-lightest: var(--color-primary-lightest);
+
+  /* Cyan Colors (Secondary) */
+  --color-cyan: var(--color-cyan);
+  --color-cyan-dark: var(--color-cyan-dark);
+  --color-cyan-darker: var(--color-cyan-darker);
+  --color-cyan-darkest: var(--color-cyan-darkest);
+  --color-cyan-light: var(--color-cyan-light);
+  --color-cyan-lighter: var(--color-cyan-lighter);
+  --color-cyan-lightest: var(--color-cyan-lightest);
+
+  /* Legacy Secondary */
   --color-secondary: var(--color-secondary);
   --color-secondary-light: var(--color-secondary-light);
-  
+
   /* Accent */
   --color-accent: var(--color-accent);
   --color-accent-light: var(--color-accent-light);
-  
+
+  /* Brand Colors */
+  --color-whatsapp: var(--color-whatsapp);
+  --color-whatsapp-dark: var(--color-whatsapp-dark);
+  --color-whatsapp-light: var(--color-whatsapp-light);
+
   /* Semantic */
   --color-success: var(--color-success);
   --color-success-light: var(--color-success-light);
+  --color-success-dark: var(--color-success-dark);
   --color-warning: var(--color-warning);
   --color-warning-light: var(--color-warning-light);
+  --color-warning-dark: var(--color-warning-dark);
   --color-error: var(--color-error);
   --color-error-light: var(--color-error-light);
+  --color-error-dark: var(--color-error-dark);
   --color-info: var(--color-info);
   --color-info-light: var(--color-info-light);
-  
+  --color-info-dark: var(--color-info-dark);
+
   /* Neutrals */
   --color-background: var(--color-background);
   --color-surface: var(--color-surface);
+  --color-surface-dark: var(--color-surface-dark);
   --color-cream: var(--color-cream);
-  
+
   /* Text */
   --color-text-primary: var(--color-text-primary);
   --color-text-secondary: var(--color-text-secondary);
   --color-text-tertiary: var(--color-text-tertiary);
+  --color-text-muted: var(--color-text-muted);
   --color-text-on-primary: var(--color-text-on-primary);
-  
+
   /* Borders */
   --color-border: var(--color-border);
   --color-border-light: var(--color-border-light);
-  
+
+  /* Dark Theme Colors */
+  --color-dark-bg: var(--color-dark-bg);
+  --color-dark-surface: var(--color-dark-surface);
+  --color-dark-border: var(--color-dark-border);
+  --color-dark-text: var(--color-dark-text);
+  --color-dark-text-muted: var(--color-dark-text-muted);
+
   /* Legacy */
   --color-foreground: var(--foreground);
-  
+
+  /* Shadows */
+  --shadow-primary: var(--shadow-primary);
+  --shadow-primary-sm: var(--shadow-primary-sm);
+  --shadow-cyan: var(--shadow-cyan);
+  --shadow-cyan-sm: var(--shadow-cyan-sm);
+  --shadow-card: var(--shadow-md);
+  --shadow-card-hover: var(--shadow-lg);
+
   /* Fonts */
   --font-sans: var(--font-body);
   --font-display: var(--font-display);
@@ -359,6 +479,37 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* ==========================================
+   SHADOW UTILITIES
+   ========================================== */
+.shadow-primary {
+  box-shadow: var(--shadow-primary);
+}
+
+.shadow-primary-sm {
+  box-shadow: var(--shadow-primary-sm);
+}
+
+.shadow-primary-md {
+  box-shadow: var(--shadow-primary-md);
+}
+
+.shadow-primary-lg {
+  box-shadow: var(--shadow-primary-lg);
+}
+
+.shadow-primary-hover {
+  box-shadow: var(--shadow-primary-hover);
+}
+
+.shadow-cyan {
+  box-shadow: var(--shadow-cyan);
+}
+
+.shadow-cyan-sm {
+  box-shadow: var(--shadow-cyan-sm);
 }
 
 /* ==========================================
@@ -470,6 +621,57 @@ body {
 .btn-ghost:hover {
   background: var(--color-gray-100);
   color: var(--color-text-primary);
+}
+
+/* Cyan Button (Secondary Actions) */
+.btn-cyan {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: var(--btn-height-md);
+  padding: 0 var(--btn-padding-x);
+  background: var(--color-cyan);
+  color: var(--color-text-on-primary);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  border-radius: var(--radius-md);
+  border: none;
+  box-shadow: var(--shadow-cyan-sm);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.btn-cyan:hover {
+  background: var(--color-cyan-dark);
+  box-shadow: var(--shadow-cyan);
+  transform: translateY(-1px);
+}
+
+.btn-cyan:active {
+  transform: translateY(0);
+}
+
+/* Cyan Outline Button */
+.btn-cyan-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: var(--btn-height-md);
+  padding: 0 calc(var(--btn-padding-x) - 2px);
+  background: transparent;
+  color: var(--color-cyan);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  border-radius: var(--radius-md);
+  border: 2px solid var(--color-cyan);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.btn-cyan-outline:hover {
+  background: var(--color-cyan-lightest);
 }
 
 /* Button Sizes */
@@ -589,6 +791,14 @@ body {
   border-radius: var(--radius-lg);
 }
 
+.icon-box-cyan {
+  background: var(--color-cyan-lightest);
+}
+
+.icon-box-gradient {
+  background: var(--gradient-primary);
+}
+
 /* ==========================================
    BADGE COMPONENT STYLES
    ========================================== */
@@ -623,6 +833,11 @@ body {
   color: var(--color-info);
 }
 
+.badge-cyan {
+  background: var(--color-cyan-lightest);
+  color: var(--color-cyan-darkest);
+}
+
 .badge-accent {
   background: var(--color-accent-light);
   color: var(--color-accent-dark);
@@ -648,6 +863,10 @@ body {
 
 .progress-sm {
   height: var(--progress-height-sm);
+}
+
+.progress-bar-cyan {
+  background: var(--color-cyan);
 }
 
 /* ==========================================
@@ -938,18 +1157,532 @@ body {
 }
 
 /* ==========================================
-   RESPONSIVE UTILITIES
+   RESPONSIVE DESIGN SYSTEM (Mobile-First)
+
+   Strategy: Base styles for mobile, then enhance for larger screens
+   Touch Target: Minimum 44px for all interactive elements (PWA Best Practice)
    ========================================== */
-@media (max-width: 640px) {
+
+/* --------------------------------------------
+   RESPONSIVE SPACING TOKENS
+   Mobile base, then scale up for larger screens
+   -------------------------------------------- */
+:root {
+  /* Page Container Padding */
+  --page-padding-x: 1rem;           /* Mobile: 16px */
+  --page-padding-y: 1.5rem;         /* Mobile: 24px */
+
+  /* Section Spacing */
+  --section-gap: 1.5rem;            /* Mobile: 24px */
+
+  /* Container Max Widths */
+  --container-sm: 640px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1280px;
+  --container-2xl: 1536px;
+
+  /* Touch Target (PWA Requirement) */
+  --touch-target-min: 2.75rem;      /* 44px - minimum for accessibility */
+
+  /* Responsive Typography */
+  --text-heading-1: 1.875rem;       /* Mobile: 30px */
+  --text-heading-2: 1.5rem;         /* Mobile: 24px */
+  --text-heading-3: 1.25rem;        /* Mobile: 20px */
+  --text-heading-4: 1.125rem;       /* Mobile: 18px */
+
+  /* Responsive Card */
+  --card-padding-responsive: 1rem;  /* Mobile: 16px */
+  --card-gap: 1rem;                 /* Mobile: 16px */
+
+  /* Grid Columns */
+  --grid-cols: 1;                   /* Mobile: single column */
+}
+
+/* Tablet (sm: 640px+) */
+@media (min-width: 640px) {
   :root {
-    --card-padding: 1rem;
-    --btn-padding-x: 1rem;
+    --page-padding-x: 1.5rem;       /* 24px */
+    --page-padding-y: 2rem;         /* 32px */
+    --section-gap: 2rem;            /* 32px */
+    --text-heading-1: 2.25rem;      /* 36px */
+    --text-heading-2: 1.875rem;     /* 30px */
+    --card-padding-responsive: 1.25rem;
+    --card-gap: 1.25rem;
+    --grid-cols: 2;
   }
-  
+}
+
+/* Tablet Landscape / Small Desktop (md: 768px+) */
+@media (min-width: 768px) {
+  :root {
+    --page-padding-x: 2rem;         /* 32px */
+    --page-padding-y: 2.5rem;       /* 40px */
+    --section-gap: 2.5rem;          /* 40px */
+    --text-heading-1: 2.5rem;       /* 40px */
+    --card-padding-responsive: 1.5rem;
+    --card-gap: 1.5rem;
+  }
+}
+
+/* Desktop (lg: 1024px+) */
+@media (min-width: 1024px) {
+  :root {
+    --page-padding-x: 2.5rem;       /* 40px */
+    --section-gap: 3rem;            /* 48px */
+    --text-heading-1: 3rem;         /* 48px */
+    --text-heading-2: 2.25rem;      /* 36px */
+    --grid-cols: 3;
+  }
+}
+
+/* Large Desktop (xl: 1280px+) */
+@media (min-width: 1280px) {
+  :root {
+    --page-padding-x: 3rem;         /* 48px */
+    --grid-cols: 4;
+  }
+}
+
+/* --------------------------------------------
+   RESPONSIVE CONTAINER
+   -------------------------------------------- */
+.container-responsive {
+  width: 100%;
+  max-width: var(--container-xl);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--page-padding-x);
+  padding-right: var(--page-padding-x);
+}
+
+/* --------------------------------------------
+   RESPONSIVE PAGE LAYOUT
+   -------------------------------------------- */
+.page-layout {
+  min-height: 100vh;
+  padding: var(--page-padding-y) var(--page-padding-x);
+}
+
+.page-header {
+  margin-bottom: var(--section-gap);
+}
+
+.page-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--section-gap);
+}
+
+/* --------------------------------------------
+   RESPONSIVE GRID SYSTEM
+   -------------------------------------------- */
+.grid-responsive {
+  display: grid;
+  gap: var(--card-gap);
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 640px) {
+  .grid-responsive-2,
+  .grid-responsive-3,
+  .grid-responsive-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid-responsive-3,
+  .grid-responsive-4 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .grid-responsive-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Auto-fit Grid (flexible columns) */
+.grid-auto-fit {
+  display: grid;
+  gap: var(--card-gap);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.grid-auto-fit-sm {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.grid-auto-fit-lg {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+/* --------------------------------------------
+   RESPONSIVE TYPOGRAPHY
+   -------------------------------------------- */
+.heading-1 {
+  font-family: var(--font-display);
+  font-size: var(--text-heading-1);
+  font-weight: 700;
+  line-height: var(--leading-tight);
+}
+
+.heading-2 {
+  font-family: var(--font-display);
+  font-size: var(--text-heading-2);
+  font-weight: 700;
+  line-height: var(--leading-tight);
+}
+
+.heading-3 {
+  font-family: var(--font-display);
+  font-size: var(--text-heading-3);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+}
+
+.heading-4 {
+  font-size: var(--text-heading-4);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+}
+
+/* Text size clamp for fluid typography */
+.text-fluid-lg {
+  font-size: clamp(1.125rem, 2.5vw, 1.5rem);
+}
+
+.text-fluid-xl {
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
+}
+
+.text-fluid-2xl {
+  font-size: clamp(1.875rem, 5vw, 3rem);
+}
+
+/* --------------------------------------------
+   RESPONSIVE CARD SYSTEM
+   -------------------------------------------- */
+.card-responsive {
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border-light);
+  padding: var(--card-padding-responsive);
+}
+
+@media (min-width: 768px) {
+  .card-responsive {
+    border-radius: var(--radius-xl);
+  }
+}
+
+/* --------------------------------------------
+   TOUCH-FRIENDLY INTERACTIVE ELEMENTS
+   Ensures all buttons/inputs meet 44px minimum
+   -------------------------------------------- */
+.touch-target {
+  min-height: var(--touch-target-min);
+  min-width: var(--touch-target-min);
+}
+
+/* Ensure form elements are touch-friendly */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+input[type="number"],
+input[type="search"],
+textarea,
+select,
+button {
+  min-height: var(--touch-target-min);
+}
+
+/* Mobile-optimized button group */
+.btn-group-mobile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .btn-group-mobile {
+    flex-direction: row;
+    width: auto;
+  }
+
+  .btn-group-mobile > button,
+  .btn-group-mobile > a {
+    width: auto;
+  }
+}
+
+/* Stack buttons on mobile, inline on desktop */
+.btn-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .btn-stack {
+    flex-direction: row;
+  }
+}
+
+/* Full-width button on mobile only */
+.btn-mobile-full {
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .btn-mobile-full {
+    width: auto;
+  }
+}
+
+/* --------------------------------------------
+   RESPONSIVE FLEX UTILITIES
+   -------------------------------------------- */
+.flex-col-mobile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--card-gap);
+}
+
+@media (min-width: 640px) {
+  .flex-col-mobile {
+    flex-direction: row;
+  }
+}
+
+.flex-col-tablet {
+  display: flex;
+  flex-direction: column;
+  gap: var(--card-gap);
+}
+
+@media (min-width: 768px) {
+  .flex-col-tablet {
+    flex-direction: row;
+  }
+}
+
+/* Center content on mobile, left-align on desktop */
+.text-center-mobile {
+  text-align: center;
+}
+
+@media (min-width: 640px) {
+  .text-center-mobile {
+    text-align: left;
+  }
+}
+
+/* --------------------------------------------
+   RESPONSIVE SPACING UTILITIES
+   -------------------------------------------- */
+.gap-responsive {
+  gap: var(--card-gap);
+}
+
+.p-responsive {
+  padding: var(--card-padding-responsive);
+}
+
+.px-responsive {
+  padding-left: var(--page-padding-x);
+  padding-right: var(--page-padding-x);
+}
+
+.py-responsive {
+  padding-top: var(--page-padding-y);
+  padding-bottom: var(--page-padding-y);
+}
+
+.mb-responsive {
+  margin-bottom: var(--section-gap);
+}
+
+/* --------------------------------------------
+   MOBILE VISIBILITY UTILITIES
+   -------------------------------------------- */
+.hide-mobile {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .hide-mobile {
+    display: block;
+  }
+
+  .show-mobile-only {
+    display: none;
+  }
+}
+
+.hide-tablet {
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .hide-tablet {
+    display: none;
+  }
+}
+
+.show-tablet-up {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .show-tablet-up {
+    display: block;
+  }
+}
+
+/* --------------------------------------------
+   SAFE AREA INSETS (PWA/Notch Support)
+   -------------------------------------------- */
+.safe-area-inset {
+  padding-left: env(safe-area-inset-left, 0);
+  padding-right: env(safe-area-inset-right, 0);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+/* Fixed bottom navigation safe area */
+.fixed-bottom-safe {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* --------------------------------------------
+   RESPONSIVE IMAGES & MEDIA
+   -------------------------------------------- */
+.img-responsive {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.aspect-video {
+  aspect-ratio: 16 / 9;
+}
+
+.aspect-square {
+  aspect-ratio: 1 / 1;
+}
+
+/* QR Code responsive container */
+.qr-container {
+  width: 100%;
+  max-width: 256px;
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .qr-container {
+    margin: 0;
+  }
+}
+
+/* --------------------------------------------
+   SCROLLBAR CUSTOMIZATION
+   -------------------------------------------- */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-gray-100);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-gray-300);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gray-400);
+}
+
+/* Hide scrollbar on mobile for cleaner look */
+@media (max-width: 640px) {
+  .scrollbar-hide-mobile::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hide-mobile {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* --------------------------------------------
+   HORIZONTAL SCROLL ON MOBILE
+   -------------------------------------------- */
+.scroll-x-mobile {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+}
+
+.scroll-x-mobile > * {
+  scroll-snap-align: start;
+}
+
+/* --------------------------------------------
+   LEGACY RESPONSIVE SUPPORT
+   (For existing components not yet updated)
+   -------------------------------------------- */
+@media (max-width: 639px) {
+  /* Ensure existing buttons are full-width on mobile */
   .btn-primary,
   .btn-secondary,
-  .btn-outline {
+  .btn-outline,
+  .btn-cyan,
+  .btn-cyan-outline {
     width: 100%;
+  }
+
+  /* Reduce card padding on mobile */
+  .card {
+    padding: var(--card-padding-responsive);
+    border-radius: var(--radius-lg);
+  }
+
+  /* Stack stat cards vertically */
+  .stat-card {
+    flex-direction: column;
+    text-align: center;
+    padding: var(--card-padding-responsive);
+  }
+
+  .stat-card .icon-box {
+    margin-bottom: 0.5rem;
+  }
+
+  /* Smaller welcome banner on mobile */
+  .welcome-banner {
+    padding: var(--space-4);
+    border-radius: var(--radius-lg);
+  }
+
+  .welcome-banner h2 {
+    font-size: var(--text-xl);
   }
 }
 

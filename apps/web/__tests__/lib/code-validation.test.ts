@@ -104,7 +104,8 @@ describe('Class Code Validation', () => {
     })
 
     it('should reject null or undefined input', () => {
-      const result = validateClassCode(null as any)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = validateClassCode(null as unknown as string)
       expect(result.valid).toBe(false)
     })
 
@@ -215,7 +216,8 @@ describe('PIN Validation', () => {
     })
 
     it('should reject null or undefined input', () => {
-      const result = validatePIN(null as any)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = validatePIN(null as unknown as string)
       expect(result.valid).toBe(false)
       expect(result.error).toBeDefined()
     })
@@ -364,7 +366,8 @@ describe('OTP Validation', () => {
     })
 
     it('should reject null or undefined input', () => {
-      const result = validateOTP(null as any)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = validateOTP(null as unknown as string)
       expect(result.valid).toBe(false)
     })
 

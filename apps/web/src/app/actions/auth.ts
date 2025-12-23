@@ -1,94 +1,101 @@
 'use server'
 
-import { createClient } from '@/lib/supabase-server'
+import { createClient, createAdminClient, getCurrentUser } from '@/lib/supabase-server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { BLOCKED_EMAIL_DOMAINS, VALID_EMAIL_PROVIDERS, EMAIL_REGEX } from '@/lib/auth-constants'
+import { BLOCKED_EMAIL_DOMAINS, COMMON_DOMAIN_TYPOS, EMAIL_REGEX } from '@/lib/auth-constants'
 import { authLogger } from '@/lib/auth-logger'
-import { checkOtpRateLimit, checkPasswordResetRateLimit } from '@/lib/rate-limiter'
-
-// Check if email domain is valid
-function isValidEmailDomain(email: string): boolean {
-  const domain = email.split('@')[1]?.toLowerCase()
-  if (!domain) return false
-
-  // Check if it's a known provider
-  if (VALID_EMAIL_PROVIDERS.some(provider => domain === provider || domain.endsWith('.' + provider))) {
-    return true
-  }
-
-  // Check if domain has valid TLD and proper structure
-  const domainParts = domain.split('.')
-  if (domainParts.length < 2) return false
-
-  const tld = domainParts[domainParts.length - 1]
-  // Valid TLDs (common ones)
-  const validTLDs = ['com', 'org', 'net', 'edu', 'gov', 'mil', 'int', 'co', 'in', 'uk', 'us', 'ca', 'au', 'de', 'fr', 'jp', 'cn', 'io', 'ai']
-
-  return validTLDs.includes(tld) && domainParts.every(part => part.length > 0)
-}
+import { checkOtpRateLimit, checkPasswordResetRateLimit } from '@/lib/rate-limiter-distributed'
+import { isValidEmailDomain } from '@/lib/email-validation'
 
 /**
- * Check if email exists in database or Supabase auth
- * Used to prevent duplicate accounts across teacher and student accounts
+ * Check if email exists in the system and determine role
  *
- * Uses a public Postgres function (check_email_exists) that:
- * - Works with unauthenticated clients (no service role key needed)
- * - Uses SECURITY DEFINER to bypass RLS safely
- * - Returns only email existence and role (no sensitive data)
+ * Role hierarchy:
+ * - Student: Can only be student (cannot become teacher/admin)
+ * - Teacher: Can be teacher, can be promoted to admin
+ * - Admin: Teacher with admin privileges
+ * - Super Admin: Only Atal AI (system account)
  *
- * Checks both the users table and Supabase auth records
+ * Rules:
+ * - Student email cannot be used for teacher/admin signup
+ * - Teacher email cannot be used for student signup
+ * - Existing auth users must login, not create new account
  */
 export async function checkEmailExistsInAuth(email: string): Promise<{
   exists: boolean
-  role?: string
+  role?: 'student' | 'teacher' | 'admin' | 'super_admin' | 'unknown'
+  hasStudentProfile?: boolean
+  hasTeacherProfile?: boolean
 }> {
   try {
     const trimmedEmail = email.trim().toLowerCase()
 
-    // Use regular client - works even during unauthenticated signup
-    // The check_email_exists() function handles RLS bypass safely via SECURITY DEFINER
-    const supabase = await createClient()
+    // Use admin client to check auth.users (bypasses RLS)
+    const adminClient = await createAdminClient()
 
-    // Call the public Postgres function to check email existence
-    // This function is public and works without authentication
-    const { data, error } = await supabase.rpc('check_email_exists', {
-      p_email: trimmedEmail
-    })
+    // Check if user exists in Supabase auth
+    const { data: authData, error: authError } = await adminClient.auth.admin.listUsers()
 
-    if (error) {
-      authLogger.error('[checkEmailExistsInAuth] Error calling check_email_exists function', error)
+    if (authError) {
+      authLogger.error('[checkEmailExistsInAuth] Error listing auth users', authError)
       return { exists: false }
     }
 
-    if (data && data.length > 0) {
-      const result = data[0]
-      if (result.email_exists) {
-        authLogger.warn('[checkEmailExistsInAuth] Email already exists in users table', { role: result.user_role })
-        return { exists: true, role: result.user_role }
-      }
+    const existingAuthUser = authData?.users?.find(u => u.email?.toLowerCase() === trimmedEmail)
+
+    if (!existingAuthUser) {
+      authLogger.debug('[checkEmailExistsInAuth] Email not found in auth.users')
+      return { exists: false }
     }
 
-    // Also check in Supabase auth users to catch all duplicate emails
-    // This prevents the same email being used for multiple accounts
-    try {
-      const { data: authData, error: authError } = await supabase.auth.admin.listUsers()
+    // User exists in auth - check their profiles
+    const userId = existingAuthUser.id
 
-      if (!authError && authData?.users) {
-        const existingUser = authData.users.find(u => u.email?.toLowerCase() === trimmedEmail)
-        if (existingUser) {
-          const userRole = existingUser.user_metadata?.role || 'user'
-          authLogger.warn('[checkEmailExistsInAuth] Email already exists in Supabase auth', { role: userRole })
-          return { exists: true, role: userRole }
-        }
-      }
-    } catch (authCheckError) {
-      // If auth check fails, continue - the RPC call may have succeeded
-      authLogger.warn('[checkEmailExistsInAuth] Could not check Supabase auth users', authCheckError as Error)
+    // Check student_profiles
+    const { data: studentProfile } = await adminClient
+      .from('student_profiles')
+      .select('user_id')
+      .eq('user_id', userId)
+      .maybeSingle()
+
+    // Check teacher_profiles
+    const { data: teacherProfile } = await adminClient
+      .from('teacher_profiles')
+      .select('user_id')
+      .eq('user_id', userId)
+      .maybeSingle()
+
+    const hasStudentProfile = !!studentProfile
+    const hasTeacherProfile = !!teacherProfile
+
+    // Determine role based on profiles and app_metadata
+    let role: 'student' | 'teacher' | 'admin' | 'super_admin' | 'unknown' = 'unknown'
+    const appRole = existingAuthUser.app_metadata?.role
+
+    if (appRole === 'super_admin') {
+      role = 'super_admin'
+    } else if (appRole === 'admin') {
+      role = 'admin'
+    } else if (hasTeacherProfile || appRole === 'teacher') {
+      role = 'teacher'
+    } else if (hasStudentProfile) {
+      role = 'student'
     }
 
-    authLogger.debug('[checkEmailExistsInAuth] Email not found in system')
-    return { exists: false }
+    authLogger.info('[checkEmailExistsInAuth] Email exists', {
+      role,
+      hasStudentProfile,
+      hasTeacherProfile,
+      appRole
+    })
+
+    return {
+      exists: true,
+      role,
+      hasStudentProfile,
+      hasTeacherProfile
+    }
   } catch (error) {
     authLogger.error('[checkEmailExistsInAuth] Unexpected error', error)
     return { exists: false }
@@ -111,7 +118,8 @@ export async function requestOtp(email: string) {
     }
 
     // Validate email domain
-    if (!isValidEmailDomain(trimmedEmail)) {
+    const emailDomain = trimmedEmail.split('@')[1]
+    if (!emailDomain || !isValidEmailDomain(emailDomain)) {
       authLogger.debug('[requestOtp] Invalid email domain')
       return {
         success: false,
@@ -120,7 +128,7 @@ export async function requestOtp(email: string) {
     }
 
     // Check rate limit - prevent brute force attacks
-    if (!checkOtpRateLimit(trimmedEmail)) {
+    if (!(await checkOtpRateLimit(trimmedEmail))) {
       authLogger.warn('[requestOtp] Rate limit exceeded', { type: 'otp_limit' })
       return {
         success: false,
@@ -131,12 +139,21 @@ export async function requestOtp(email: string) {
     // Check if email already exists in the system
     const emailCheck = await checkEmailExistsInAuth(trimmedEmail)
     if (emailCheck.exists) {
-      // Security: Log role internally for debugging, but don't expose to user (prevents account enumeration)
       authLogger.info('[requestOtp] Email already registered', { role: emailCheck.role })
+
+      // Provide role-specific error messages
+      let errorMessage = 'This email is already registered. Please login instead.'
+      if (emailCheck.role === 'teacher' || emailCheck.role === 'admin' || emailCheck.role === 'super_admin') {
+        errorMessage = 'This email is registered as a teacher account. Please use the teacher login page.'
+      } else if (emailCheck.role === 'student') {
+        errorMessage = 'This email is already registered. Please login instead.'
+      }
+
       return {
         success: false,
-        error: 'This email is already registered. Please login instead.',
+        error: errorMessage,
         exists: true,
+        role: emailCheck.role,
       }
     }
 
@@ -145,112 +162,9 @@ export async function requestOtp(email: string) {
     if (domain && BLOCKED_EMAIL_DOMAINS.has(domain.toLowerCase())) {
       authLogger.debug('[requestOtp] Blocked domain detected')
 
-      // Check if it's a typo and suggest correction
-      const commonTypos: Record<string, string> = {
-        // Gmail typos → gmail.com
-        'gail.com': 'gmail.com',
-        'gamil.com': 'gmail.com',
-        'gmial.com': 'gmail.com',
-        'gmai.com': 'gmail.com',
-        'gmil.com': 'gmail.com',
-        'gmaill.com': 'gmail.com',
-        'gnail.com': 'gmail.com',
-        'gmeil.com': 'gmail.com',
-        'gmsil.com': 'gmail.com',
-        'gimail.com': 'gmail.com',
-        'gmaqil.com': 'gmail.com',
-        'gmaiil.com': 'gmail.com',
-        'gmali.com': 'gmail.com',
-        'gmal.com': 'gmail.com',
-        'gmaio.com': 'gmail.com',
-        'gmaul.com': 'gmail.com',
-
-        // Yahoo typos → yahoo.com
-        'yahooo.com': 'yahoo.com',
-        'yaho.com': 'yahoo.com',
-        'yhoo.com': 'yahoo.com',
-        'yahoooo.com': 'yahoo.com',
-        'yahou.com': 'yahoo.com',
-        'yaboo.com': 'yahoo.com',
-        'yahho.com': 'yahoo.com',
-        'yajoo.com': 'yahoo.com',
-        'yahol.com': 'yahoo.com',
-        'yaoo.com': 'yahoo.com',
-        'yhaoo.com': 'yahoo.com',
-        'yahoou.com': 'yahoo.com',
-        'yahpp.com': 'yahoo.com',
-        'yahuu.com': 'yahoo.com',
-
-        // Outlook typos → outlook.com
-        'outlok.com': 'outlook.com',
-        'outlock.com': 'outlook.com',
-        'outloo.com': 'outlook.com',
-        'outlookk.com': 'outlook.com',
-        'outloook.com': 'outlook.com',
-        'ooutlook.com': 'outlook.com',
-        'putlook.com': 'outlook.com',
-        'outlook.co': 'outlook.com',
-        'outlool.com': 'outlook.com',
-        'outlookl.com': 'outlook.com',
-        'iutlook.com': 'outlook.com',
-        'outtlook.com': 'outlook.com',
-        'otlook.com': 'outlook.com',
-
-        // Hotmail typos → hotmail.com
-        'hotmial.com': 'hotmail.com',
-        'hotmil.com': 'hotmail.com',
-        'hotmai.com': 'hotmail.com',
-        'hotmaill.com': 'hotmail.com',
-        'hotmaii.com': 'hotmail.com',
-        'hotmal.com': 'hotmail.com',
-        'hotmeil.com': 'hotmail.com',
-        'htomail.com': 'hotmail.com',
-        'hotmaol.com': 'hotmail.com',
-        'hotmsil.com': 'hotmail.com',
-        'hotmaiil.com': 'hotmail.com',
-        'hotmali.com': 'hotmail.com',
-        'hotmain.com': 'hotmail.com',
-        'hptmail.com': 'hotmail.com',
-        'hotnail.com': 'hotmail.com',
-        'hormail.com': 'hotmail.com',
-        'hotail.com': 'hotmail.com',
-
-        // iCloud typos → icloud.com
-        'iclou.com': 'icloud.com',
-        'icloud.co': 'icloud.com',
-        'icloude.com': 'icloud.com',
-        'iclaud.com': 'icloud.com',
-        'icloyd.com': 'icloud.com',
-        'iclooud.com': 'icloud.com',
-        'iclod.com': 'icloud.com',
-        'iclound.com': 'icloud.com',
-
-        // ProtonMail typos → protonmail.com
-        'protonmial.com': 'protonmail.com',
-        'protonmail.co': 'protonmail.com',
-        'protonmeil.com': 'protonmail.com',
-        'protonmal.com': 'protonmail.com',
-        'protonmali.com': 'protonmail.com',
-        'protomail.com': 'protonmail.com',
-        'protoonmail.com': 'protonmail.com',
-
-        // AOL typos → aol.com
-        'aol.co': 'aol.com',
-        'aoll.com': 'aol.com',
-        'ao.com': 'aol.com',
-        'ail.com': 'aol.com',
-        'aol.con': 'aol.com',
-
-        // Live.com typos → live.com
-        'live.co': 'live.com',
-        'livee.com': 'live.com',
-        'liv.com': 'live.com',
-        'lve.com': 'live.com',
-        'lice.com': 'live.com',
-      }
-
-      if (commonTypos[domain]) {
-        const suggestedEmail = trimmedEmail.replace(domain, commonTypos[domain])
+      // Check if it's a typo and suggest correction using centralized constant
+      if (COMMON_DOMAIN_TYPOS[domain]) {
+        const suggestedEmail = trimmedEmail.replace(domain, COMMON_DOMAIN_TYPOS[domain])
         authLogger.warn('[requestOtp] Possible typo detected in email domain')
         return {
           success: false,
@@ -274,16 +188,14 @@ export async function requestOtp(email: string) {
       }
     }
 
-    const origin = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-
     authLogger.debug('[requestOtp] Starting OTP request')
 
     const supabase = await createClient()
 
+    // Note: Using manual OTP entry (not magic link), so emailRedirectTo is not needed
     const { data, error } = await supabase.auth.signInWithOtp({
       email: trimmedEmail,
       options: {
-        emailRedirectTo: `${origin}/verify`,
         shouldCreateUser: true, // Auto-create user if doesn't exist
       },
     })
@@ -337,8 +249,9 @@ export async function verifyOtp(email: string, token: string) {
       return { success: false, error: error.message }
     }
 
-    // Check both app_metadata (set by admin/system) and user_metadata for role
-    const role = data.user?.app_metadata?.role || data.user?.user_metadata?.role || 'student'
+    // SECURITY: Only trust app_metadata.role (server-side set, immutable by client)
+    // Never fall back to user_metadata.role as it can be client-modified
+    const role = data.user?.app_metadata?.role || 'student'
     authLogger.success('[verifyOtp] OTP verified successfully', { role })
 
     // Session is now created - check user role and redirect
@@ -347,8 +260,8 @@ export async function verifyOtp(email: string, token: string) {
 
     authLogger.debug('[verifyOtp] Redirecting user', { role })
 
-    // Redirect based on role
-    if (role === 'teacher') {
+    // Redirect based on role - teachers, admins, and super_admins go to teacher classes
+    if (role === 'teacher' || role === 'admin' || role === 'super_admin') {
       redirect('/app/teacher/classes')
     } else {
       redirect('/app/dashboard')
@@ -385,7 +298,7 @@ export async function sendForgotPasswordOtp(email: string) {
     }
 
     // Check rate limit - prevent password reset spam/abuse
-    if (!checkPasswordResetRateLimit(trimmedEmail)) {
+    if (!(await checkPasswordResetRateLimit(trimmedEmail))) {
       authLogger.warn('[sendForgotPasswordOtp] Rate limit exceeded', { type: 'password_reset_limit' })
       return {
         success: false,
@@ -393,16 +306,14 @@ export async function sendForgotPasswordOtp(email: string) {
       }
     }
 
-    const origin = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-
     authLogger.debug('[sendForgotPasswordOtp] Sending recovery OTP')
 
     const supabase = await createClient()
 
+    // Note: Using manual OTP entry (not magic link), so emailRedirectTo is not needed
     const { error } = await supabase.auth.signInWithOtp({
       email: trimmedEmail,
       options: {
-        emailRedirectTo: `${origin}/reset-password`,
         shouldCreateUser: false, // Don't create user if doesn't exist
       },
     })
@@ -436,6 +347,69 @@ export async function sendForgotPasswordOtp(email: string) {
  * Reset password after OTP verification
  * Used for both teacher and student password recovery
  */
+/**
+ * Check if authenticated user is a teacher (has teacher_profiles record)
+ * Used to enforce role-based login restrictions
+ */
+export async function checkUserIsTeacher(): Promise<{
+  isTeacher: boolean
+  userId?: string
+  error?: string
+}> {
+  try {
+    // Get current user using consistent pattern
+    const user = await getCurrentUser()
+
+    if (!user) {
+      return { isTeacher: false, error: 'Not authenticated' }
+    }
+
+    const supabase = await createClient()
+
+    // Check if user has a teacher_profiles record
+    // Use .maybeSingle() - user may not be a teacher
+    const { data: teacherProfile, error: profileError } = await supabase
+      .from('teacher_profiles')
+      .select('user_id')
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    if (profileError) {
+      authLogger.error('[checkUserIsTeacher] Error checking teacher profile', profileError)
+    }
+
+    const isTeacher = !!teacherProfile
+    authLogger.debug('[checkUserIsTeacher] User role checked', { userId: user.id, isTeacher })
+
+    return { isTeacher, userId: user.id }
+  } catch (error) {
+    authLogger.error('[checkUserIsTeacher] Unexpected error', error)
+    return { isTeacher: false, error: 'Failed to check user role' }
+  }
+}
+
+/**
+ * Sign out the current user
+ * Used when user tries to login via wrong role page
+ */
+export async function signOutUser(): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = await createClient()
+    const { error } = await supabase.auth.signOut()
+
+    if (error) {
+      authLogger.error('[signOutUser] Sign out failed', error)
+      return { success: false, error: error.message }
+    }
+
+    revalidatePath('/', 'layout')
+    return { success: true }
+  } catch (error) {
+    authLogger.error('[signOutUser] Unexpected error', error)
+    return { success: false, error: 'Failed to sign out' }
+  }
+}
+
 export async function resetPasswordWithOtp(email: string, token: string, newPassword: string) {
   try {
     authLogger.debug('[resetPasswordWithOtp] Starting password reset')
@@ -484,6 +458,22 @@ export async function resetPasswordWithOtp(email: string, token: string, newPass
       }
     }
 
+    // SECURITY: Invalidate all OTHER sessions after password reset
+    // This prevents any compromised sessions from remaining active
+    // Use 'others' scope to keep the current (just-authenticated) session active
+    try {
+      const { error: signOutError } = await supabase.auth.signOut({ scope: 'others' })
+      if (signOutError) {
+        // Log but don't fail - password was successfully reset
+        authLogger.warn('[resetPasswordWithOtp] Failed to revoke other sessions', signOutError)
+      } else {
+        authLogger.debug('[resetPasswordWithOtp] Other sessions revoked successfully')
+      }
+    } catch (signOutErr) {
+      // Don't fail the password reset if session revocation fails
+      authLogger.warn('[resetPasswordWithOtp] Exception revoking other sessions', signOutErr instanceof Error ? signOutErr : { error: signOutErr })
+    }
+
     authLogger.success('[resetPasswordWithOtp] Password reset successfully')
     revalidatePath('/', 'layout')
 
@@ -493,6 +483,281 @@ export async function resetPasswordWithOtp(email: string, token: string, newPass
     return {
       success: false,
       error: error instanceof Error ? error.message : 'An unexpected error occurred'
+    }
+  }
+}
+
+// ========================================
+// USERNAME-BASED AUTHENTICATION
+// ========================================
+
+/**
+ * Validate username format
+ * Rules:
+ * - 3-20 characters
+ * - Alphanumeric and underscores only
+ * - Must start with a letter
+ * - Case insensitive (stored lowercase)
+ */
+function validateUsername(username: string): { valid: boolean; error?: string } {
+  const trimmed = username.trim()
+
+  if (!trimmed) {
+    return { valid: false, error: 'Username is required' }
+  }
+
+  if (trimmed.length < 3) {
+    return { valid: false, error: 'Username must be at least 3 characters' }
+  }
+
+  if (trimmed.length > 20) {
+    return { valid: false, error: 'Username must be at most 20 characters' }
+  }
+
+  if (!/^[a-zA-Z]/.test(trimmed)) {
+    return { valid: false, error: 'Username must start with a letter' }
+  }
+
+  if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(trimmed)) {
+    return { valid: false, error: 'Username can only contain letters, numbers, and underscores' }
+  }
+
+  return { valid: true }
+}
+
+/**
+ * Check if username is available
+ */
+export async function checkUsernameAvailable(username: string): Promise<{
+  available: boolean
+  error?: string
+}> {
+  try {
+    const validation = validateUsername(username)
+    if (!validation.valid) {
+      return { available: false, error: validation.error }
+    }
+
+    const adminClient = await createAdminClient()
+
+    // Check if username exists in usernames table
+    const { data, error } = await adminClient
+      .from('usernames')
+      .select('username')
+      .ilike('username', username.trim().toLowerCase())
+      .maybeSingle()
+
+    if (error) {
+      authLogger.error('[checkUsernameAvailable] Error checking username', error)
+      return { available: false, error: 'Failed to check username availability' }
+    }
+
+    return { available: !data }
+  } catch (error) {
+    authLogger.error('[checkUsernameAvailable] Unexpected error', error)
+    return { available: false, error: 'An unexpected error occurred' }
+  }
+}
+
+/**
+ * Register a new student with username and password
+ * Creates a Supabase user with an internal email and stores the username mapping
+ */
+export async function registerWithUsername(
+  username: string,
+  password: string
+): Promise<{
+  success: boolean
+  error?: string
+  userId?: string
+}> {
+  try {
+    // Validate username
+    const usernameValidation = validateUsername(username)
+    if (!usernameValidation.valid) {
+      return { success: false, error: usernameValidation.error }
+    }
+
+    // Validate password (at least 8 characters)
+    if (!password || password.length < 8) {
+      return { success: false, error: 'Password must be at least 8 characters' }
+    }
+
+    const trimmedUsername = username.trim().toLowerCase()
+
+    // Rate limit check
+    if (!(await checkOtpRateLimit(`username:${trimmedUsername}`))) {
+      authLogger.warn('[registerWithUsername] Rate limit exceeded', { username: trimmedUsername })
+      return {
+        success: false,
+        error: 'Too many registration attempts. Please wait before trying again.',
+      }
+    }
+
+    const adminClient = await createAdminClient()
+
+    // Check if username is already taken
+    const { data: existingUsername } = await adminClient
+      .from('usernames')
+      .select('username')
+      .ilike('username', trimmedUsername)
+      .maybeSingle()
+
+    if (existingUsername) {
+      authLogger.debug('[registerWithUsername] Username already taken', { username: trimmedUsername })
+      return { success: false, error: 'This username is already taken. Please choose another.' }
+    }
+
+    // Generate internal email for Supabase auth
+    // Format: username_randomsuffix@student.atal.internal
+    const randomSuffix = Math.random().toString(36).substring(2, 8)
+    const internalEmail = `${trimmedUsername}_${randomSuffix}@student.atal.internal`
+
+    // Create user with admin API
+    const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
+      email: internalEmail,
+      password: password,
+      email_confirm: true, // Auto-confirm since no real email
+      user_metadata: {
+        username: trimmedUsername,
+        auth_type: 'username',
+      },
+    })
+
+    if (authError) {
+      authLogger.error('[registerWithUsername] Failed to create user', authError)
+      return { success: false, error: 'Failed to create account. Please try again.' }
+    }
+
+    if (!authData.user) {
+      return { success: false, error: 'Failed to create account' }
+    }
+
+    // Store username mapping
+    const { error: insertError } = await adminClient
+      .from('usernames')
+      .insert({
+        user_id: authData.user.id,
+        username: trimmedUsername,
+      })
+
+    if (insertError) {
+      // Rollback: delete the created user
+      authLogger.error('[registerWithUsername] Failed to store username, rolling back', insertError)
+      await adminClient.auth.admin.deleteUser(authData.user.id)
+      return { success: false, error: 'Failed to register username. Please try again.' }
+    }
+
+    authLogger.success('[registerWithUsername] User registered successfully', {
+      userId: authData.user.id,
+      username: trimmedUsername,
+    })
+
+    return { success: true, userId: authData.user.id }
+  } catch (error) {
+    authLogger.error('[registerWithUsername] Unexpected error', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'An unexpected error occurred',
+    }
+  }
+}
+
+/**
+ * Sign in with username and password
+ * Looks up the internal email from username and authenticates
+ */
+export async function signInWithUsername(
+  username: string,
+  password: string
+): Promise<{
+  success: boolean
+  error?: string
+}> {
+  try {
+    const trimmedUsername = username.trim().toLowerCase()
+
+    if (!trimmedUsername) {
+      return { success: false, error: 'Username is required' }
+    }
+
+    if (!password) {
+      return { success: false, error: 'Password is required' }
+    }
+
+    // Rate limit check
+    if (!(await checkOtpRateLimit(`signin:${trimmedUsername}`))) {
+      authLogger.warn('[signInWithUsername] Rate limit exceeded', { username: trimmedUsername })
+      return {
+        success: false,
+        error: 'Too many login attempts. Please wait before trying again.',
+      }
+    }
+
+    const adminClient = await createAdminClient()
+
+    // Look up username to get user_id
+    const { data: usernameData, error: lookupError } = await adminClient
+      .from('usernames')
+      .select('user_id')
+      .ilike('username', trimmedUsername)
+      .maybeSingle()
+
+    if (lookupError) {
+      authLogger.error('[signInWithUsername] Error looking up username', lookupError)
+      return { success: false, error: 'Login failed. Please try again.' }
+    }
+
+    if (!usernameData) {
+      authLogger.debug('[signInWithUsername] Username not found', { username: trimmedUsername })
+      return { success: false, error: 'Invalid username or password' }
+    }
+
+    // Get the user's email from auth.users
+    const { data: userData, error: userError } = await adminClient.auth.admin.getUserById(
+      usernameData.user_id
+    )
+
+    if (userError || !userData.user?.email) {
+      authLogger.error('[signInWithUsername] Error getting user', userError)
+      return { success: false, error: 'Login failed. Please try again.' }
+    }
+
+    // Now sign in with the internal email and password using regular client
+    const supabase = await createClient()
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email: userData.user.email,
+      password: password,
+    })
+
+    if (signInError) {
+      authLogger.debug('[signInWithUsername] Invalid password', { username: trimmedUsername })
+      return { success: false, error: 'Invalid username or password' }
+    }
+
+    if (!signInData.user) {
+      return { success: false, error: 'Login failed' }
+    }
+
+    // Check if this is a teacher/admin account (shouldn't be possible with username auth, but check anyway)
+    const appRole = signInData.user.app_metadata?.role
+    if (appRole === 'teacher' || appRole === 'admin' || appRole === 'super_admin') {
+      await supabase.auth.signOut()
+      return { success: false, error: 'This account cannot use username login' }
+    }
+
+    authLogger.success('[signInWithUsername] User signed in successfully', {
+      userId: signInData.user.id,
+      username: trimmedUsername,
+    })
+
+    revalidatePath('/', 'layout')
+    return { success: true }
+  } catch (error) {
+    authLogger.error('[signInWithUsername] Unexpected error', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'An unexpected error occurred',
     }
   }
 }

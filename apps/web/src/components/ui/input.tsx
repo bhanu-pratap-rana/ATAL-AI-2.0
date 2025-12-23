@@ -22,8 +22,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           )}
           animate={{
             boxShadow: isFocused
-              ? "0 4px 12px rgba(255, 140, 66, 0.2)"
-              : "0 0 0 rgba(255, 140, 66, 0)"
+              ? "var(--shadow-primary-sm)"
+              : "0 0 0 transparent"
           }}
         >
           <input
@@ -34,7 +34,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               "focus-visible:outline-none",
               "disabled:cursor-not-allowed disabled:opacity-50",
               isFocused ? "bg-white" : "border border-border",
-              error && "border-red-500 focus-visible:ring-red-500",
+              error && "border-error focus-visible:ring-error",
               className
             )}
             ref={ref}
@@ -51,7 +51,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         </motion.div>
         {error && (
           <motion.p
-            className="mt-1.5 text-xs text-red-500"
+            className="mt-1.5 text-xs text-error"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}

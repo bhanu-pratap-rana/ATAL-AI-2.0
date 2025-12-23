@@ -3,17 +3,20 @@
 import { ReactNode } from 'react'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase-browser'
 import type { AdminRole } from '@/app/actions/admin-roles'
+import { clientLogger } from '@/lib/client-logger'
 
 interface RoleGuardProps {
   children: ReactNode
-  requiredRole: 'super_admin' | 'admin'
+  requiredRole: 'super_admin' | 'admin' | 'teacher'
   fallback?: ReactNode
 }
 
 /**
  * RoleGuard component - Protects pages/features based on user role
  * Checks authentication and authorization before rendering children
+ * Uses Supabase client directly to read app_metadata.role from the current user
  */
 export function RoleGuard({ children, requiredRole, fallback }: RoleGuardProps) {
   const router = useRouter()
@@ -23,39 +26,43 @@ export function RoleGuard({ children, requiredRole, fallback }: RoleGuardProps) 
   useEffect(() => {
     const checkAuthorization = async () => {
       try {
-        // Get user from session
-        const response = await fetch('/api/auth/session')
-        if (!response.ok) {
+        const supabase = createClient()
+
+        // Get current session from Supabase
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+
+        if (sessionError || !session?.user) {
+          clientLogger.debug('[RoleGuard] No session, redirecting to login')
           router.push('/admin/login')
           return
         }
 
-        const session = await response.json()
-        if (!session?.user?.email) {
-          router.push('/admin/login')
-          return
+        // Get role from app_metadata (set by admin user creation)
+        const role = (session.user.app_metadata?.role as AdminRole) || 'user'
+
+        clientLogger.debug('[RoleGuard] User role check', {
+          email: session.user.email,
+          role,
+          requiredRole
+        })
+
+        // Verify required role using role hierarchy: student < teacher < admin < super_admin
+        let isAuthorizedForRole = false
+
+        if (requiredRole === 'super_admin') {
+          // Only super_admin can access
+          isAuthorizedForRole = role === 'super_admin'
+        } else if (requiredRole === 'admin') {
+          // admin or super_admin can access
+          isAuthorizedForRole = role === 'admin' || role === 'super_admin'
+        } else if (requiredRole === 'teacher') {
+          // teacher, admin, or super_admin can access
+          isAuthorizedForRole = role === 'teacher' || role === 'admin' || role === 'super_admin'
         }
 
-        // Check role
-        const roleResponse = await fetch(`/api/admin/role?email=${encodeURIComponent(session.user.email)}`)
-        const { role } = await roleResponse.json()
-
-        // Verify required role
-        if (requiredRole === 'super_admin' && role !== 'super_admin') {
-          setIsAuthorized(false)
-          setIsLoading(false)
-          return
-        }
-
-        if (requiredRole === 'admin' && (role !== 'admin' && role !== 'super_admin')) {
-          setIsAuthorized(false)
-          setIsLoading(false)
-          return
-        }
-
-        setIsAuthorized(true)
+        setIsAuthorized(isAuthorizedForRole)
       } catch (error) {
-        console.error('Authorization check failed:', error)
+        clientLogger.error('[RoleGuard] Authorization check failed', error instanceof Error ? error : { error })
         router.push('/admin/login')
       } finally {
         setIsLoading(false)
@@ -99,7 +106,7 @@ function UnauthorizedFallback({ requiredRole }: { requiredRole: string }) {
         </p>
         <button
           onClick={() => router.push('/admin/login')}
-          className="inline-block px-6 py-2 bg-primary text-white rounded-lg hover:bg-orange-600 transition"
+          className="inline-block px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition"
         >
           Back to Login
         </button>

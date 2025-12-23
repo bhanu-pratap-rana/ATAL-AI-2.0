@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { AlertCircle, CheckCircle, Loader2, Eye, EyeOff, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { FORM_TIMING } from '@/lib/constants/ui-timings'
 
 type Step = 'delete' | 'create'
 
@@ -49,11 +50,11 @@ export default function AdminManagePage() {
         })
         toast.success('User deleted successfully')
 
-        // Move to next step after 2 seconds
+        // Move to next step after brief delay
         setTimeout(() => {
           setStep('create')
           setMessage(null)
-        }, 2000)
+        }, FORM_TIMING.nextStepsDelay)
       } else {
         setMessage({ type: 'error', text: result.error || 'Failed to delete user' })
         toast.error(result.error || 'Failed to delete user')
@@ -95,9 +96,10 @@ export default function AdminManagePage() {
       const result = await createAdminUser(email.trim().toLowerCase(), password)
 
       if (result.success) {
+        // SECURITY: Never display passwords in messages - recommend password manager
         setMessage({
           type: 'success',
-          text: `✓ Admin account created!\n\nEmail: ${email}\nPassword: ${password}\n\nYou can now login at /admin/login`,
+          text: `✓ Admin account created!\n\nEmail: ${email}\n\nTip: Use a password manager to securely store your credentials. Login at /admin/login`,
         })
         toast.success(`Admin account created for ${email}`)
 
@@ -127,7 +129,7 @@ export default function AdminManagePage() {
           onClick={() => (window.location.href = '/admin/login')}
           variant="outline"
           size="sm"
-          className="text-sm border-primary text-primary hover:bg-orange-50"
+          className="text-sm border-primary text-primary hover:bg-primary/10"
         >
           ← Back
         </Button>
@@ -144,7 +146,7 @@ export default function AdminManagePage() {
               className={`flex-1 p-3 rounded-lg text-center cursor-pointer transition ${
                 step === 'delete'
                   ? 'bg-primary text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-surface text-text-secondary hover:bg-surface-dark'
               }`}
               onClick={() => !completed && setStep('delete')}
             >
@@ -154,7 +156,7 @@ export default function AdminManagePage() {
               className={`flex-1 p-3 rounded-lg text-center cursor-pointer transition ${
                 step === 'create'
                   ? 'bg-primary text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-surface text-text-secondary hover:bg-surface-dark'
               }`}
               onClick={() => setStep('create')}
             >
@@ -166,8 +168,8 @@ export default function AdminManagePage() {
           {step === 'delete' && (
             <>
               {/* Warning Box */}
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <p className="text-sm text-red-900">
+              <div className="bg-error-light border border-error/30 rounded-lg p-4">
+                <p className="text-sm text-error">
                   <strong>⚠️ Warning:</strong>
                   <br />
                   <span className="text-xs">
@@ -201,16 +203,16 @@ export default function AdminManagePage() {
                 <div
                   className={`flex gap-3 p-4 rounded-lg border ${
                     message.type === 'success'
-                      ? 'bg-green-50 border-green-200'
-                      : 'bg-red-50 border-red-200'
+                      ? 'bg-success-light border-success/30'
+                      : 'bg-error-light border-error/30'
                   }`}
                 >
                   {message.type === 'success' ? (
-                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
                   ) : (
-                    <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                    <AlertCircle className="w-5 h-5 text-error flex-shrink-0 mt-0.5" />
                   )}
-                  <span className={message.type === 'success' ? 'text-green-600' : 'text-red-600'}>
+                  <span className={message.type === 'success' ? 'text-success' : 'text-error'}>
                     {message.text}
                   </span>
                 </div>
@@ -220,7 +222,7 @@ export default function AdminManagePage() {
               <Button
                 onClick={handleDeleteUser}
                 disabled={isLoading || !email.trim()}
-                className="w-full bg-red-600 hover:bg-red-700"
+                className="w-full bg-error hover:bg-error/90"
               >
                 {isLoading ? (
                   <>
@@ -242,10 +244,10 @@ export default function AdminManagePage() {
             <>
               {/* Success Badge */}
               {completed && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="bg-success-light border border-success/30 rounded-lg p-4">
                   <div className="flex gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <p className="text-sm text-green-900">
+                    <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-success">
                       <strong>✓ Account Created Successfully!</strong>
                       <br />
                       <span className="text-xs">You can now login with these credentials.</span>
@@ -319,18 +321,18 @@ export default function AdminManagePage() {
                 <div
                   className={`flex gap-3 p-4 rounded-lg border whitespace-pre-wrap ${
                     message.type === 'success'
-                      ? 'bg-green-50 border-green-200'
-                      : 'bg-red-50 border-red-200'
+                      ? 'bg-success-light border-success/30'
+                      : 'bg-error-light border-error/30'
                   }`}
                 >
                   {message.type === 'success' ? (
-                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
                   ) : (
-                    <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                    <AlertCircle className="w-5 h-5 text-error flex-shrink-0 mt-0.5" />
                   )}
                   <span
                     className={`text-sm ${
-                      message.type === 'success' ? 'text-green-600' : 'text-red-600'
+                      message.type === 'success' ? 'text-success' : 'text-error'
                     }`}
                   >
                     {message.text}
@@ -343,7 +345,7 @@ export default function AdminManagePage() {
                 <Button
                   onClick={handleCreateAdmin}
                   disabled={isLoading || !email.trim() || !password || !confirmPassword}
-                  className="w-full bg-gradient-to-r from-primary to-orange-500 hover:from-orange-600 hover:to-orange-600"
+                  className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary"
                 >
                   {isLoading ? (
                     <>
@@ -357,15 +359,15 @@ export default function AdminManagePage() {
               ) : (
                 <Button
                   onClick={() => (window.location.href = '/admin/login')}
-                  className="w-full bg-green-600 hover:bg-green-700"
+                  className="w-full bg-success hover:bg-success/90"
                 >
                   Go to Login Page
                 </Button>
               )}
 
               {/* Security Notice */}
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                <p className="text-xs text-orange-900">
+              <div className="bg-warning-light border border-warning/30 rounded-lg p-4">
+                <p className="text-xs text-warning-dark">
                   <strong>🔒 Security:</strong> Store your admin password securely. You&apos;ll need it
                   to login to the admin panel.
                 </p>
@@ -374,9 +376,9 @@ export default function AdminManagePage() {
           )}
 
           {/* Instructions Box */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm text-blue-900 font-semibold mb-2">📋 How It Works:</p>
-            <ol className="text-xs text-blue-800 space-y-1 list-decimal list-inside">
+          <div className="bg-cyan-lightest border border-cyan/30 rounded-lg p-4">
+            <p className="text-sm text-cyan-darkest font-semibold mb-2">📋 How It Works:</p>
+            <ol className="text-xs text-cyan-dark space-y-1 list-decimal list-inside">
               <li>Delete the old admin user account</li>
               <li>Create a new admin account with email and password</li>
               <li>Go to /admin/login and login with your new credentials</li>

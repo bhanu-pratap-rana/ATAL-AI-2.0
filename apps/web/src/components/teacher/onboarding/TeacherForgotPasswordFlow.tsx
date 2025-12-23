@@ -71,7 +71,7 @@ export function TeacherForgotPasswordFlow({
             onClick={onBack}
             disabled={loading}
             variant="ghost"
-            className="w-full text-gray-600 hover:text-gray-900"
+            className="w-full text-text-secondary hover:text-text-primary"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Login
@@ -97,7 +97,7 @@ export function TeacherForgotPasswordFlow({
             maxLength={6}
             required
           />
-          <p className="text-xs text-gray-500">Check your email for the recovery code</p>
+          <p className="text-xs text-text-secondary">Check your email for the recovery code</p>
         </div>
 
         {/* New Password Input */}
@@ -113,7 +113,7 @@ export function TeacherForgotPasswordFlow({
             autoComplete="new-password"
             required
           />
-          <p className="text-xs text-gray-500">At least 8 characters with uppercase, lowercase, number, and symbol</p>
+          <p className="text-xs text-text-secondary">At least 8 characters with uppercase, lowercase, number, and symbol</p>
         </div>
 
         {/* Confirm Password Input */}
@@ -148,7 +148,7 @@ export function TeacherForgotPasswordFlow({
           onClick={onBack}
           disabled={loading}
           variant="ghost"
-          className="w-full text-gray-600 hover:text-gray-900"
+          className="w-full text-text-secondary hover:text-text-primary"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Login

@@ -14,14 +14,19 @@ import {
 } from '@/components/ui/table'
 import { removeStudent } from '@/app/actions/teacher'
 
+interface StudentInfo {
+  user_id: string
+  name: string | null
+  phone: string | null
+  roll_number: string | null
+  class_name: string | null
+}
+
 interface Enrollment {
   id: string
   created_at: string
-  student: {
-    id: string
-    email: string
-    role: string
-  }
+  student_id: string
+  student: StudentInfo | null
 }
 
 interface RosterTableProps {
@@ -33,8 +38,8 @@ export function RosterTable({ enrollments, classId }: RosterTableProps) {
   const router = useRouter()
   const [removingId, setRemovingId] = useState<string | null>(null)
 
-  async function handleRemove(studentId: string, studentEmail: string) {
-    if (!confirm(`Remove ${studentEmail} from this class?`)) {
+  async function handleRemove(studentId: string, studentName: string) {
+    if (!confirm(`Remove ${studentName} from this class?`)) {
       return
     }
 
@@ -56,14 +61,30 @@ export function RosterTable({ enrollments, classId }: RosterTableProps) {
     }
   }
 
+  // Helper to get display name for student
+  function getStudentDisplayName(enrollment: Enrollment): string {
+    return enrollment.student?.name || `Student ${enrollment.student_id.slice(0, 8)}`
+  }
+
+  // Helper to get student initial
+  function getStudentInitial(enrollment: Enrollment): string {
+    const name = enrollment.student?.name
+    if (name) {
+      return name[0].toUpperCase()
+    }
+    return 'S'
+  }
+
   return (
     <div className="overflow-hidden rounded-md border">
       <Table role="table" aria-label="Class roster with student enrollment information">
         <TableHeader>
           <TableRow>
             <TableHead scope="col">Student</TableHead>
-            <TableHead scope="col" className="hidden md:table-cell">Email</TableHead>
-            <TableHead scope="col" className="hidden lg:table-cell">Enrolled</TableHead>
+            <TableHead scope="col" className="hidden sm:table-cell">Roll No.</TableHead>
+            <TableHead scope="col" className="hidden md:table-cell">Class</TableHead>
+            <TableHead scope="col" className="hidden lg:table-cell">Phone</TableHead>
+            <TableHead scope="col" className="hidden xl:table-cell">Enrolled</TableHead>
             <TableHead scope="col" className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -74,45 +95,59 @@ export function RosterTable({ enrollments, classId }: RosterTableProps) {
               day: 'numeric',
               year: 'numeric',
             })
+            const displayName = getStudentDisplayName(enrollment)
+            const initial = getStudentInitial(enrollment)
 
             return (
               <TableRow key={enrollment.id}>
                 <TableCell>
                   <div className="flex flex-col gap-1 md:flex-row md:items-center md:gap-2">
                     <div className="flex items-center gap-2">
-                      <div className="size-8 shrink-0 bg-gradient-to-br from-orange-400 to-yellow-400 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                        {enrollment.student.email[0].toUpperCase()}
+                      <div className="size-8 shrink-0 bg-gradient-to-br from-primary to-primary-light rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                        {initial}
                       </div>
-                      <div className="flex flex-col md:flex-row md:items-center md:gap-2">
+                      <div className="flex flex-col">
                         <span className="font-medium text-sm md:text-base">
-                          {enrollment.student.email.split('@')[0]}
+                          {displayName}
                         </span>
-                        <span className="text-xs text-muted-foreground md:hidden">
-                          {enrollment.student.email}
-                        </span>
+                        {/* Mobile-only: Show roll number and class inline */}
+                        <div className="flex gap-2 text-xs text-muted-foreground sm:hidden">
+                          {enrollment.student?.roll_number && (
+                            <span>#{enrollment.student.roll_number}</span>
+                          )}
+                          {enrollment.student?.class_name && (
+                            <span>{enrollment.student.class_name}</span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    <span className="text-xs text-muted-foreground lg:hidden ml-10 md:ml-0">
+                    <span className="text-xs text-muted-foreground xl:hidden ml-10 md:ml-0">
                       {enrolledDate}
                     </span>
                   </div>
                 </TableCell>
+                <TableCell className="hidden sm:table-cell text-muted-foreground">
+                  {enrollment.student?.roll_number || '-'}
+                </TableCell>
                 <TableCell className="hidden md:table-cell text-muted-foreground">
-                  {enrollment.student.email}
+                  {enrollment.student?.class_name || '-'}
                 </TableCell>
                 <TableCell className="hidden lg:table-cell text-muted-foreground">
+                  {enrollment.student?.phone || '-'}
+                </TableCell>
+                <TableCell className="hidden xl:table-cell text-muted-foreground">
                   {enrolledDate}
                 </TableCell>
                 <TableCell className="text-right">
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleRemove(enrollment.student.id, enrollment.student.email)}
-                    disabled={removingId === enrollment.student.id}
+                    onClick={() => handleRemove(enrollment.student_id, displayName)}
+                    disabled={removingId === enrollment.student_id}
                     className="h-9 px-3"
-                    aria-label={`Remove ${enrollment.student.email} from class`}
+                    aria-label={`Remove ${displayName} from class`}
                   >
-                    {removingId === enrollment.student.id ? 'Removing...' : 'Remove'}
+                    {removingId === enrollment.student_id ? 'Removing...' : 'Remove'}
                   </Button>
                 </TableCell>
               </TableRow>

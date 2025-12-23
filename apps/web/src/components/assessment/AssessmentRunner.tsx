@@ -3,24 +3,55 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { submitAssessment } from '@/app/actions/assessment'
-import { shuffleArray } from '@/data/assessment-questions'
+import { submitAssessment, calculateIRTScore, updateAbilityEstimate } from '@/app/actions/assessment'
+import { ASSESSMENT_TIMING } from '@/lib/constants/ui-timings'
+import { QuestionNavigation } from './QuestionNavigation'
+import { QuestionPagination, PaginationLegend, type QuestionStatus } from './QuestionPagination'
+import { CompactTimer } from './AssessmentTimer'
+import { clientLogger } from '@/lib/client-logger'
 
 /**
- * ATAL AI Assessment Runner - Jyoti Theme
+ * ATAL AI Assessment Runner - IRT-Enhanced Adaptive Testing
  *
  * Rule.md Compliant: Uses CSS variable classes from globals.css
  * NO hardcoded hex values - all colors via design tokens
+ *
+ * Features:
+ * - Real-time IRT ability estimation (theta updates after each answer)
+ * - Question history (never loses data)
+ * - Previous/Next/Skip navigation
+ * - Visual pagination with status colors
+ * - Timer display
+ * - Adaptive feedback based on performance
+ *
+ * IRT Implementation based on:
+ * - 3PL model (difficulty, discrimination, guessing)
+ * - Newton-Raphson MLE for theta estimation
+ * - a-Stratified Maximum Fisher Information item selection
  */
 
 interface Question {
   id: string
-  module: string
-  question: string
-  options: string[]
-  correctAnswer: number
+  itemCode: string
+  category: string
+  questionNumber: number
+  questionText: string
+  options: { id: string; text: string }[]
+  _correctIndex: number
+  _difficulty: number
+  _discrimination: number
+  _guessing: number
+}
+
+// Fisher-Yates shuffle for option randomization
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[shuffled[i], shuffled[j]] = [shuffled[j]!, shuffled[i]!]
+  }
+  return shuffled
 }
 
 interface AssessmentRunnerProps {
@@ -38,33 +69,81 @@ interface ResponseData {
   chosenOption: string
 }
 
+interface QuestionHistoryItem {
+  question: Question
+  shuffledOptions: { id: string; text: string }[]
+  shuffleMap: number[]
+  selectedAnswer: number | null
+  isCorrect: boolean | null
+  hasBeenAnswered: boolean
+  skipped: boolean
+  rtMs: number
+  thetaBefore?: number
+  thetaAfter?: number
+}
+
+// IRT State for real-time ability tracking
+interface IRTState {
+  theta: number          // Current ability estimate
+  se: number             // Standard error
+  answeredCount: number  // Number of answered questions
+  correctCount: number   // Number of correct answers
+}
+
 export function AssessmentRunner({
   sessionId,
   questions,
   language,
 }: AssessmentRunnerProps) {
   const router = useRouter()
+
+  // Question history - stores ALL questions user has seen (NEVER shrinks)
+  const [questionHistory, setQuestionHistory] = useState<QuestionHistoryItem[]>([])
+  // -1 means we're on a new question (beyond history)
+  // >= 0 means we're reviewing a question in history
+  const [currentHistoryIndex, setCurrentHistoryIndex] = useState<number>(-1)
+
+  // Current question index (0-based, corresponds to questions array)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [responses, setResponses] = useState<ResponseData[]>([])
   const [selectedOption, setSelectedOption] = useState<number | null>(null)
-  const [startTime, setStartTime] = useState<number>(Date.now())
   const [focusBlurCount, setFocusBlurCount] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showRapidWarning, setShowRapidWarning] = useState(false)
+  const [totalElapsedSeconds, setTotalElapsedSeconds] = useState(0)
 
-  // Refs for accessibility
+  // IRT State for real-time adaptive tracking
+  const [irtState, setIrtState] = useState<IRTState>({
+    theta: 0,      // Initial ability at average
+    se: 1.0,       // High initial uncertainty
+    answeredCount: 0,
+    correctCount: 0,
+  })
+
+  // Refs
   const questionRef = useRef<HTMLHeadingElement>(null)
-  const optionsContainerRef = useRef<HTMLDivElement>(null)
-  const prevIndexRef = useRef(currentIndex)
+  const questionStartTimeRef = useRef<number>(Date.now())
 
+  // Derived state
+  const isReviewingHistory = currentHistoryIndex >= 0
   const currentQuestion = questions[currentIndex]
   const progress = ((currentIndex + 1) / questions.length) * 100
 
   // Language-specific font classes
   const fontClass = language === 'hi' ? 'font-devanagari' : language === 'as' ? 'font-bengali' : ''
 
-  // Memoized shuffle to prevent unnecessary recalculations
+  // Get current question data (from history if reviewing, else generate fresh)
   const { shuffledOptions, shuffleMap } = useMemo(() => {
+    // If reviewing history, use stored shuffle
+    if (isReviewingHistory && questionHistory[currentHistoryIndex]) {
+      const historyItem = questionHistory[currentHistoryIndex]
+      return {
+        shuffledOptions: historyItem.shuffledOptions,
+        shuffleMap: historyItem.shuffleMap,
+      }
+    }
+
+    // Generate new shuffle for current question
     if (!currentQuestion) return { shuffledOptions: [], shuffleMap: [] }
 
     const indices = currentQuestion.options.map((_, i) => i)
@@ -72,23 +151,50 @@ export function AssessmentRunner({
     const shuffledOpts = shuffledIndices.map((i) => currentQuestion.options[i])
 
     return { shuffledOptions: shuffledOpts, shuffleMap: shuffledIndices }
-  }, [currentQuestion])
+  }, [currentQuestion, isReviewingHistory, currentHistoryIndex, questionHistory])
 
-  // Reset state when question changes - only when index actually changes
-  useEffect(() => {
-    if (prevIndexRef.current !== currentIndex) {
-      prevIndexRef.current = currentIndex
-      // Reset state for new question
-      setSelectedOption(null)
-      setStartTime(Date.now())
-      setShowRapidWarning(false)
+  // Calculate question statuses for pagination
+  const questionStatuses: QuestionStatus[] = useMemo(() => {
+    return questions.map((_, index) => {
+      if (index === currentIndex) return 'current'
 
-      // Focus management
-      if (questionRef.current) {
-        questionRef.current.focus()
+      const historyItem = questionHistory.find(
+        (h) => questions.indexOf(h.question) === index
+      )
+
+      if (historyItem) {
+        if (historyItem.hasBeenAnswered) return 'answered'
+        if (historyItem.skipped) return 'skipped'
       }
+
+      return 'unanswered'
+    })
+  }, [questions, currentIndex, questionHistory])
+
+  // Focus management when question changes
+  useEffect(() => {
+    questionStartTimeRef.current = Date.now()
+    if (questionRef.current) {
+      questionRef.current.focus()
     }
-  }, [currentIndex])
+  }, [currentIndex, currentHistoryIndex])
+
+  // Load selected answer when reviewing history
+  useEffect(() => {
+    if (isReviewingHistory && questionHistory[currentHistoryIndex]) {
+      setSelectedOption(questionHistory[currentHistoryIndex].selectedAnswer)
+    }
+  }, [isReviewingHistory, currentHistoryIndex, questionHistory])
+
+  // Track focus/blur events
+  useEffect(() => {
+    const handleBlur = () => {
+      setFocusBlurCount((prev) => prev + 1)
+    }
+
+    window.addEventListener('blur', handleBlur)
+    return () => window.removeEventListener('blur', handleBlur)
+  }, [])
 
   // Submit assessment data
   const submitAssessmentData = useCallback(async (finalResponses: ResponseData[]) => {
@@ -104,7 +210,8 @@ export function AssessmentRunner({
         toast.error(result.error || 'Failed to submit assessment')
         setIsSubmitting(false)
       }
-    } catch {
+    } catch (error) {
+      clientLogger.error('Assessment submission failed', error instanceof Error ? error : undefined)
       toast.error('An unexpected error occurred')
       setIsSubmitting(false)
     }
@@ -115,49 +222,197 @@ export function AssessmentRunner({
     setSelectedOption(optionIndex)
   }, [])
 
+  // Clear selected answer
+  const handleClear = useCallback(() => {
+    setSelectedOption(null)
+  }, [])
+
+  // Handle Previous navigation
+  const handlePrevious = useCallback(() => {
+    if (isReviewingHistory && currentHistoryIndex > 0) {
+      // Move back in history
+      setCurrentHistoryIndex(currentHistoryIndex - 1)
+      setCurrentIndex(questions.indexOf(questionHistory[currentHistoryIndex - 1].question))
+    } else if (!isReviewingHistory && questionHistory.length > 0) {
+      // Enter history mode at the last item
+      const lastIndex = questionHistory.length - 1
+      setCurrentHistoryIndex(lastIndex)
+      setCurrentIndex(questions.indexOf(questionHistory[lastIndex].question))
+    }
+    setSelectedOption(null)
+  }, [isReviewingHistory, currentHistoryIndex, questionHistory, questions])
+
+  // Handle Skip
+  const handleSkip = useCallback(() => {
+    if (isReviewingHistory) return // Can't skip when reviewing
+
+    const rtMs = Date.now() - questionStartTimeRef.current
+
+    // Add to history as skipped
+    const historyItem: QuestionHistoryItem = {
+      question: currentQuestion,
+      shuffledOptions,
+      shuffleMap,
+      selectedAnswer: null,
+      isCorrect: null,
+      hasBeenAnswered: false,
+      skipped: true,
+      rtMs,
+    }
+
+    setQuestionHistory([...questionHistory, historyItem])
+    setSelectedOption(null)
+    setFocusBlurCount(0)
+
+    // Move to next question
+    if (currentIndex < questions.length - 1) {
+      setCurrentIndex(currentIndex + 1)
+    }
+  }, [isReviewingHistory, currentQuestion, shuffledOptions, shuffleMap, questionHistory, currentIndex, questions.length])
+
+  // Handle Next/Submit
   const handleNext = useCallback(() => {
+    const rtMs = Date.now() - questionStartTimeRef.current
+
+    // Show rapid tap warning if too fast
+    if (rtMs < ASSESSMENT_TIMING.rapidResponseThreshold && selectedOption !== null) {
+      setShowRapidWarning(true)
+      setTimeout(() => setShowRapidWarning(false), ASSESSMENT_TIMING.rapidWarningDuration)
+    }
+
+    // If reviewing history
+    if (isReviewingHistory) {
+      // Update the history item if answer changed
+      if (selectedOption !== null) {
+        const originalOptionIndex = shuffleMap[selectedOption]
+        // _correctIndex is 1-based from database, convert to 0-based
+        const isCorrect = originalOptionIndex === currentQuestion._correctIndex - 1
+
+        const updatedHistory = [...questionHistory]
+        updatedHistory[currentHistoryIndex] = {
+          ...updatedHistory[currentHistoryIndex],
+          selectedAnswer: selectedOption,
+          isCorrect,
+          hasBeenAnswered: true,
+          skipped: false,
+        }
+        setQuestionHistory(updatedHistory)
+      }
+
+      // Navigate forward
+      if (currentHistoryIndex < questionHistory.length - 1) {
+        // More history ahead
+        setCurrentHistoryIndex(currentHistoryIndex + 1)
+        setCurrentIndex(questions.indexOf(questionHistory[currentHistoryIndex + 1].question))
+      } else {
+        // Exit history mode, continue with new questions
+        setCurrentHistoryIndex(-1)
+        const nextIndex = questions.indexOf(questionHistory[questionHistory.length - 1].question) + 1
+        if (nextIndex < questions.length) {
+          setCurrentIndex(nextIndex)
+        }
+      }
+      setSelectedOption(null)
+      return
+    }
+
+    // Not reviewing - handle normally
     if (selectedOption === null) {
       toast.error('Please select an answer')
       return
     }
 
-    const rtMs = startTime ? Date.now() - startTime : 0
     const originalOptionIndex = shuffleMap[selectedOption]
-    const isCorrect = originalOptionIndex === currentQuestion.correctAnswer
+    // _correctIndex is 1-based from database, convert to 0-based
+    const isCorrect = originalOptionIndex === currentQuestion._correctIndex - 1
 
-    if (rtMs < 5000) {
-      setShowRapidWarning(true)
-      setTimeout(() => setShowRapidWarning(false), 3000)
+    // Add to history
+    const historyItem: QuestionHistoryItem = {
+      question: currentQuestion,
+      shuffledOptions,
+      shuffleMap,
+      selectedAnswer: selectedOption,
+      isCorrect,
+      hasBeenAnswered: true,
+      skipped: false,
+      rtMs,
     }
+    setQuestionHistory([...questionHistory, historyItem])
 
+    // Record response
     const response: ResponseData = {
       itemId: currentQuestion.id,
-      module: currentQuestion.module,
+      module: currentQuestion.category,
       isCorrect,
       rtMs,
       focusBlurCount,
-      chosenOption: shuffledOptions[selectedOption],
+      chosenOption: shuffledOptions[selectedOption]?.text || '',
     }
 
-    setResponses([...responses, response])
+    // Update IRT ability estimate (theta) after each answer
+    const updatedResponses = [...responses, response]
+    const irtResponses = updatedResponses.map((r, i) => {
+      const q = questions.find(q => q.id === r.itemId)
+      return {
+        difficulty: q?._difficulty || 0,
+        discrimination: q?._discrimination || 1.0,
+        guessing: q?._guessing || 0.2,
+        isCorrect: r.isCorrect,
+      }
+    })
+
+    // Update theta asynchronously
+    updateAbilityEstimate(irtResponses, irtState.theta).then(result => {
+      setIrtState({
+        theta: result.theta,
+        se: result.se,
+        answeredCount: updatedResponses.length,
+        correctCount: updatedResponses.filter(r => r.isCorrect).length,
+      })
+    }).catch(err => {
+      clientLogger.error('Failed to update IRT ability estimate', err)
+    })
+
+    setSelectedOption(null)
+    setResponses(updatedResponses)
     setFocusBlurCount(0)
 
+    // Move to next or submit
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(currentIndex + 1)
     } else {
-      submitAssessmentData([...responses, response])
+      // Last question - compile all responses and submit
+      const allResponses = [...responses, response]
+      submitAssessmentData(allResponses)
     }
-  }, [selectedOption, shuffleMap, currentQuestion, startTime, focusBlurCount, setShowRapidWarning, setResponses, setFocusBlurCount, setCurrentIndex, currentIndex, questions.length, responses, submitAssessmentData, shuffledOptions])
+  }, [
+    isReviewingHistory,
+    selectedOption,
+    shuffleMap,
+    currentQuestion,
+    questionHistory,
+    currentHistoryIndex,
+    shuffledOptions,
+    responses,
+    focusBlurCount,
+    currentIndex,
+    questions,
+    submitAssessmentData,
+  ])
 
-  // Track focus/blur events
-  useEffect(() => {
-    const handleBlur = () => {
-      setFocusBlurCount((prev) => prev + 1)
+  // Jump to specific question (from pagination)
+  const handleJumpTo = useCallback((index: number) => {
+    // Can only jump within history
+    const historyIndex = questionHistory.findIndex(
+      (h) => questions.indexOf(h.question) === index
+    )
+
+    if (historyIndex >= 0) {
+      setCurrentHistoryIndex(historyIndex)
+      setCurrentIndex(index)
+      setSelectedOption(questionHistory[historyIndex].selectedAnswer)
     }
-
-    window.addEventListener('blur', handleBlur)
-    return () => window.removeEventListener('blur', handleBlur)
-  }, [])
+  }, [questionHistory, questions])
 
   // Keyboard navigation
   useEffect(() => {
@@ -193,7 +448,7 @@ export function AssessmentRunner({
     return (
       <div className="flex items-center justify-center min-h-screen bg-cream">
         <div className="text-center">
-          <div className="w-12 h-12 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-12 h-12 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-text-tertiary">Loading assessment...</p>
         </div>
       </div>
@@ -203,15 +458,16 @@ export function AssessmentRunner({
   return (
     <div className="min-h-screen bg-cream p-4 md:p-8">
       <div className="max-w-3xl mx-auto">
-        {/* Progress Bar */}
-        <div className="mb-6" role="status" aria-live="polite">
+        {/* Progress Header */}
+        <div className="mb-4" role="status" aria-live="polite">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-text-primary" id="progress-text">
               Question {currentIndex + 1} of {questions.length}
             </span>
-            <span className="text-sm font-medium text-text-primary">
-              {Math.round(progress)}%
-            </span>
+            <CompactTimer
+              onTimeUpdate={setTotalElapsedSeconds}
+              isPaused={isSubmitting}
+            />
           </div>
           <Progress
             value={progress}
@@ -224,29 +480,41 @@ export function AssessmentRunner({
           />
         </div>
 
-        {/* Rapid Tap Warning - Warning Semantic Color */}
+        {/* Question Pagination */}
+        <div className="mb-4">
+          <QuestionPagination
+            totalQuestions={questions.length}
+            currentIndex={currentIndex}
+            questionStatuses={questionStatuses}
+            historyLength={questionHistory.length}
+            onJumpTo={handleJumpTo}
+          />
+          <PaginationLegend />
+        </div>
+
+        {/* Rapid Tap Warning */}
         {showRapidWarning && (
           <div
-            className="mb-4 bg-warning-light border-l-4 border-warning p-4 rounded-[12px]"
+            className="mb-4 bg-warning-light border-l-4 border-warning p-4 rounded-md"
             role="alert"
             aria-live="polite"
           >
             <p className="text-sm text-warning-dark">
-              ⏱️ Take your time! Reading the question carefully helps you learn better.
+              Take your time! Reading the question carefully helps you learn better.
             </p>
           </div>
         )}
 
-        {/* Question Card with Gradient Border */}
+        {/* Question Card */}
         <div className="card-gradient">
-          <div className="bg-white rounded-[17px] p-6 md:p-8">
-            {/* Module Badge - Primary Light */}
+          <div className="bg-white rounded-xl p-6 md:p-8">
+            {/* Category Badge */}
             <div className="mb-6">
               <span
                 className="inline-block px-3 py-1 text-xs font-semibold text-primary bg-primary-light rounded-full mb-4"
-                aria-label={`Module: ${currentQuestion.module.replace(/-/g, ' ')}`}
+                aria-label={`Category: ${currentQuestion.category.replace(/_/g, ' ')}`}
               >
-                {currentQuestion.module.replace(/-/g, ' ').toUpperCase()}
+                {currentQuestion.category.replace(/_/g, ' ').toUpperCase()}
               </span>
               <h2
                 ref={questionRef}
@@ -254,25 +522,24 @@ export function AssessmentRunner({
                 className={`text-xl md:text-2xl font-bold text-text-primary ${fontClass}`}
                 tabIndex={-1}
               >
-                {currentQuestion.question}
+                {currentQuestion.questionText}
               </h2>
             </div>
 
-            {/* Options - MCQ Style */}
+            {/* Options */}
             <div
-              ref={optionsContainerRef}
               role="radiogroup"
               aria-labelledby="question-text"
               className="space-y-3"
             >
-              {shuffledOptions.map((option: string, index: number) => (
+              {shuffledOptions.map((option: { id: string; text: string }, index: number) => (
                 <button
-                  key={index}
+                  key={option.id}
                   role="radio"
                   aria-checked={selectedOption === index}
-                  aria-label={`Option ${index + 1}: ${option}`}
+                  aria-label={`Option ${option.id}: ${option.text}`}
                   onClick={() => handleOptionSelect(index)}
-                  className={`w-full text-left p-4 rounded-[12px] border-2 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+                  className={`w-full text-left p-4 rounded-md border-2 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
                     selectedOption === index
                       ? 'border-primary bg-primary-light shadow-primary-sm'
                       : 'border-border bg-white hover:border-primary/30 hover:bg-primary-lighter'
@@ -281,53 +548,50 @@ export function AssessmentRunner({
                   tabIndex={0}
                 >
                   <div className="flex items-start gap-3">
-                    {/* Radio Circle */}
                     <div
                       aria-hidden="true"
                       className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
                         selectedOption === index
                           ? 'border-primary bg-primary'
-                          : 'border-stone-300 bg-white'
+                          : 'border-border bg-white'
                       }`}
                     >
                       {selectedOption === index && (
                         <div className="w-3 h-3 bg-white rounded-full" />
                       )}
                     </div>
-                    <span className={`text-base text-text-primary ${fontClass}`} id={`option-${index}`}>
-                      {option}
+                    <span className={`text-base text-text-primary ${fontClass}`}>
+                      <span className="font-semibold mr-2">{option.id}.</span>
+                      {option.text}
                     </span>
                   </div>
                 </button>
               ))}
             </div>
 
-            {/* Navigation Buttons */}
-            <div className="mt-6 flex justify-end">
-              <Button
-                onClick={handleNext}
-                disabled={selectedOption === null || isSubmitting}
-                loading={isSubmitting}
-                size="lg"
-                className="min-w-[120px]"
-              >
-                {isSubmitting
-                  ? 'Submitting...'
-                  : currentIndex < questions.length - 1
-                  ? 'Next'
-                  : 'Submit'}
-              </Button>
-            </div>
+            {/* Navigation */}
+            <QuestionNavigation
+              currentIndex={currentIndex}
+              totalQuestions={questions.length}
+              hasSelectedAnswer={selectedOption !== null}
+              isSubmitting={isSubmitting}
+              canGoBack={questionHistory.length > 0}
+              isReviewingHistory={isReviewingHistory}
+              onPrevious={handlePrevious}
+              onSkip={handleSkip}
+              onClear={handleClear}
+              onNext={handleNext}
+            />
           </div>
         </div>
 
         {/* Helper Text */}
         <div className="mt-4 space-y-2">
           <p className="text-sm text-text-secondary text-center">
-            💡 Tip: Take your time to read each question carefully
+            Take your time to read each question carefully
           </p>
           <p className="text-xs text-text-tertiary text-center">
-            ⌨️ Use arrow keys to navigate, Enter/Space to submit, or 1-4 for quick selection
+            Use arrow keys to navigate options, Enter/Space to submit, or 1-4 for quick selection
           </p>
         </div>
       </div>

@@ -65,7 +65,6 @@ export function GuestJoinForm({ state, actions, isLoading, onSuccess }: GuestJoi
       // Then join class
       const result = await joinClass({
         classCode: state.guestClassCode.toUpperCase().trim(),
-        rollNumber: state.guestRollNumber.trim(),
         pin: state.guestPin.trim(),
       })
 
@@ -106,20 +105,6 @@ export function GuestJoinForm({ state, actions, isLoading, onSuccess }: GuestJoi
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="guest-roll-number" className="text-text-primary">Roll Number</Label>
-        <Input
-          id="guest-roll-number"
-          type="text"
-          placeholder="e.g., 101, ST2024001"
-          value={state.guestRollNumber}
-          onChange={(e) => actions.setGuestRollNumber(e.target.value)}
-          required
-          disabled={isLoading}
-        />
-        <p className="text-xs text-text-tertiary">Your student roll number or ID</p>
-      </div>
-
-      <div className="space-y-2">
         <Label htmlFor="guest-pin" className="text-text-primary">Class PIN</Label>
         <Input
           id="guest-pin"
@@ -136,10 +121,10 @@ export function GuestJoinForm({ state, actions, isLoading, onSuccess }: GuestJoi
       </div>
 
       {/* Info Box - Primary Light */}
-      <div className="bg-primary-light border border-primary/20 rounded-[12px] p-4">
+      <div className="bg-primary-light border border-primary/20 rounded-md p-4">
         <p className="text-xs text-primary-dark">
-          <strong>📌 Note:</strong> Your teacher will verify your enrollment. Make sure to use
-          the correct roll number.
+          <strong>📌 Note:</strong> You can add your roll number and profile details later
+          in the Settings page.
         </p>
       </div>
 
@@ -149,7 +134,7 @@ export function GuestJoinForm({ state, actions, isLoading, onSuccess }: GuestJoi
         type="submit"
         className="w-full text-[17px]"
         disabled={
-          isLoading || !state.guestClassCode || !state.guestRollNumber || state.guestPin.length !== PIN_LENGTH
+          isLoading || !state.guestClassCode || state.guestPin.length !== PIN_LENGTH
         }
         loading={isLoading}
       >

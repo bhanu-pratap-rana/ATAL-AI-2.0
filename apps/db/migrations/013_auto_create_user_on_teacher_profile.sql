@@ -18,7 +18,7 @@ BEGIN
 
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 
 -- Drop the trigger if it already exists
 DROP TRIGGER IF EXISTS teacher_profile_create_user ON public.teacher_profiles;

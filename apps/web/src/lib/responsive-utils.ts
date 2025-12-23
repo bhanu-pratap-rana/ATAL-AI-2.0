@@ -167,7 +167,7 @@ export const RESPONSIVE_CLASSES = {
   container: 'w-full sm:max-w-sm md:max-w-md lg:max-w-lg mx-auto',
 
   // Card-like container
-  card: 'rounded-lg sm:rounded-xl md:rounded-2xl bg-white border border-gray-200 p-4 sm:p-6 md:p-8',
+  card: 'rounded-lg sm:rounded-xl md:rounded-2xl bg-white border border-border p-4 sm:p-6 md:p-8',
 
   // Form container
   formContainer: 'space-y-3 sm:space-y-4 md:space-y-5',
@@ -176,7 +176,7 @@ export const RESPONSIVE_CLASSES = {
   buttonPrimary: 'w-full px-4 py-2.5 sm:py-3 md:py-3 rounded-lg text-sm sm:text-base',
 
   // Input sizing
-  inputField: 'w-full px-3 py-2.5 sm:px-4 sm:py-3 md:py-3 rounded-lg text-sm sm:text-base border border-gray-300',
+  inputField: 'w-full px-3 py-2.5 sm:px-4 sm:py-3 md:py-3 rounded-lg text-sm sm:text-base border border-border',
 
   // Grid layout
   gridResponsive: 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6',
@@ -191,15 +191,6 @@ export const RESPONSIVE_CLASSES = {
   marginResponsive: 'mb-3 sm:mb-4 md:mb-6',
   paddingResponsive: 'px-4 sm:px-6 md:px-8 py-3 sm:py-4 md:py-6',
 } as const
-
-/**
- * Get responsive class based on current screen size
- * Usage: className={getResponsiveClass('padding')}
- * Returns appropriate Tailwind classes for mobile-first approach
- */
-export function getResponsiveClass(property: keyof typeof RESPONSIVE_CLASSES): string {
-  return RESPONSIVE_CLASSES[property]
-}
 
 /**
  * Responsive image sizing
@@ -219,17 +210,6 @@ export const RESPONSIVE_IMAGE = {
     desktop: 'h-64',
   },
 } as const
-
-/**
- * Hook to get current screen size (for JavaScript-based logic)
- * @returns Current screen size category
- * Usage: const screen = useScreenSize()
- */
-export function getScreenSize(width: number): ScreenSize {
-  if (width < BREAKPOINTS.md) return 'mobile'
-  if (width < BREAKPOINTS.lg) return 'tablet'
-  return 'desktop'
-}
 
 /**
  * Mobile-first Tailwind utility classes for common patterns
@@ -271,7 +251,7 @@ export const RESPONSIVE_PATTERNS = {
     text-sm
     sm:text-base
     border
-    border-gray-300
+    border-border
     focus:outline-none
     focus:ring-2
     focus:ring-primary
@@ -284,7 +264,7 @@ export const RESPONSIVE_PATTERNS = {
     md:rounded-2xl
     bg-white
     border
-    border-gray-200
+    border-border
     p-4
     sm:p-6
     md:p-8

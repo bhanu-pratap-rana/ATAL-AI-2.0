@@ -30,6 +30,14 @@ export default function AdminsPage() {
           router.push('/admin/login')
           return
         }
+
+        // SECURITY: Only super_admin can access admin management page
+        const role = user.app_metadata?.role as string
+        if (role !== 'super_admin') {
+          // Regular admins and other users redirected to PIN management
+          router.push('/admin/pins')
+          return
+        }
       } catch {
         router.push('/admin/login')
       } finally {
@@ -54,14 +62,14 @@ export default function AdminsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      <header className="bg-white shadow-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button
               onClick={() => router.push('/admin/dashboard')}
               variant="outline"
               size="sm"
-              className="text-primary border-primary hover:bg-orange-50"
+              className="text-primary border-primary hover:bg-primary/10"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Dashboard
@@ -72,7 +80,7 @@ export default function AdminsPage() {
           {!showCreateForm && (
             <Button
               onClick={() => setShowCreateForm(true)}
-              className="bg-primary hover:bg-orange-600"
+              className="bg-primary hover:bg-primary-dark"
             >
               <Plus className="w-4 h-4 mr-2" />
               Create Admin
@@ -85,7 +93,7 @@ export default function AdminsPage() {
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Create Form Section */}
         {showCreateForm && (
-          <section className="mb-8 bg-white rounded-lg shadow p-6 border border-gray-100">
+          <section className="mb-8 bg-white rounded-lg shadow p-6 border border-border">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-text">Create New Admin Account</h2>
               <Button
@@ -107,8 +115,8 @@ export default function AdminsPage() {
         )}
 
         {/* Admin List Section */}
-        <section className="bg-white rounded-lg shadow border border-gray-100">
-          <div className="border-b border-gray-200 p-6">
+        <section className="bg-white rounded-lg shadow border border-border">
+          <div className="border-b border-border p-6">
             <div className="flex items-center gap-3 mb-2">
               <Users className="w-6 h-6 text-primary" />
               <h2 className="text-xl font-bold text-text">All Admin Accounts</h2>
@@ -132,7 +140,7 @@ export default function AdminsPage() {
             {/* Super Admin Info */}
             <div className="bg-accent-light border border-accent/30 rounded-lg p-6">
               <h3 className="font-semibold text-accent-dark mb-2">👑 Super Admin Role</h3>
-              <ul className="text-sm text-secondary space-y-2 list-disc list-inside">
+              <ul className="text-sm text-text-secondary space-y-2 list-disc list-inside">
                 <li>Full system access and management</li>
                 <li>Can create and delete admin accounts</li>
                 <li>Can reset admin passwords</li>
@@ -144,7 +152,7 @@ export default function AdminsPage() {
             {/* Regular Admin Info */}
             <div className="bg-primary-lighter border border-primary/30 rounded-lg p-6">
               <h3 className="font-semibold text-primary-dark mb-2">👤 Regular Admin Role</h3>
-              <ul className="text-sm text-secondary space-y-2 list-disc list-inside">
+              <ul className="text-sm text-text-secondary space-y-2 list-disc list-inside">
                 <li>Limited to PIN management only</li>
                 <li>Can create and rotate school PINs</li>
                 <li>Can reset own password only</li>

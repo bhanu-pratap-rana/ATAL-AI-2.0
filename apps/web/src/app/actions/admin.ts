@@ -1,6 +1,6 @@
 'use server'
 
-import { createAdminClient } from '@/lib/supabase-server'
+import { createAdminClient, getCurrentUser } from '@/lib/supabase-server'
 import { authLogger } from '@/lib/auth-logger'
 
 export interface SetAdminRoleResult {
@@ -11,11 +11,34 @@ export interface SetAdminRoleResult {
 
 /**
  * Set admin role for a user by email
- * This is an admin operation that requires service role key
+ * SECURITY: Requires super_admin role - only super admins can create other admins
  * Used to grant admin access to accounts
  */
 export async function setAdminRole(email: string): Promise<SetAdminRoleResult> {
   try {
+    // SECURITY: Verify caller is authenticated and authorized
+    const currentUser = await getCurrentUser()
+    if (!currentUser) {
+      authLogger.warn('[setAdminRole] Unauthorized: No authenticated user')
+      return {
+        success: false,
+        error: 'Authentication required',
+      }
+    }
+
+    // SECURITY: Only super_admin can grant admin roles
+    const currentRole = currentUser.app_metadata?.role
+    if (currentRole !== 'super_admin') {
+      authLogger.warn('[setAdminRole] Forbidden: User lacks super_admin role', {
+        userId: currentUser.id,
+        role: currentRole,
+      })
+      return {
+        success: false,
+        error: 'Only super admins can grant admin access',
+      }
+    }
+
     const adminClient = await createAdminClient()
 
     // 1. Find user by email
@@ -92,7 +115,8 @@ export async function checkAdminRoleByEmail(email: string): Promise<{
       return { hasAdminRole: false, error: 'User not found' }
     }
 
-    const isAdmin = user.app_metadata?.role === 'admin'
+    const role = user.app_metadata?.role
+    const isAdmin = role === 'admin' || role === 'super_admin'
     return { hasAdminRole: isAdmin }
   } catch (error) {
     authLogger.error('[checkAdminRoleByEmail] Error', error)

@@ -24,12 +24,12 @@ export function UnauthorizedMessage({
 
   return (
     <div className="w-full max-w-md mx-auto p-6">
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+      <div className="bg-error-light border border-error/30 rounded-lg p-6">
         <div className="flex gap-4">
-          <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+          <AlertCircle className="w-6 h-6 text-error flex-shrink-0 mt-0.5" />
           <div className="flex-1">
-            <h3 className="font-semibold text-red-900 mb-2">{title}</h3>
-            <p className="text-sm text-red-800 mb-4">{message}</p>
+            <h3 className="font-semibold text-error mb-2">{title}</h3>
+            <p className="text-sm text-error/80 mb-4">{message}</p>
 
             <div className="flex gap-2">
               {showLoginButton && (
@@ -37,7 +37,7 @@ export function UnauthorizedMessage({
                   onClick={() => router.push('/admin/login')}
                   variant="outline"
                   size="sm"
-                  className="border-red-200 text-red-600 hover:bg-red-100"
+                  className="border-error/30 text-error hover:bg-error-light"
                 >
                   Back to Login
                 </Button>
@@ -47,7 +47,7 @@ export function UnauthorizedMessage({
                   onClick={onDismiss}
                   variant="outline"
                   size="sm"
-                  className="border-red-200 text-red-600 hover:bg-red-100"
+                  className="border-error/30 text-error hover:bg-error-light"
                 >
                   Dismiss
                 </Button>

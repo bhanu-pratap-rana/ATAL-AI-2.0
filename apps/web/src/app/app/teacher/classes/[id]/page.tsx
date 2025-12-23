@@ -10,10 +10,12 @@ import { InvitePanel } from '@/components/teacher/InvitePanel'
 import { AnalyticsTiles } from '@/components/teacher/AnalyticsTiles'
 import { getClassAnalytics } from '@/app/actions/teacher'
 
-interface User {
-  id: string
-  email: string
-  role: string
+interface StudentInfo {
+  user_id: string
+  name: string | null
+  phone: string | null
+  roll_number: string | null
+  class_name: string | null
 }
 
 interface EnrollmentRow {
@@ -23,7 +25,17 @@ interface EnrollmentRow {
 }
 
 interface Enrollment extends EnrollmentRow {
-  student: User
+  student: StudentInfo | null
+}
+
+interface RosterRow {
+  enrollment_id: string
+  student_id: string
+  student_name: string | null
+  student_phone: string | null
+  roll_number: string | null
+  class_name: string | null
+  enrolled_at: string
 }
 
 interface ClassWithRoster {
@@ -43,46 +55,74 @@ async function getClassWithRoster(classId: string, userId: string): Promise<Clas
   try {
     const supabase = await createClient()
 
-    // Fetch class details
+    // Fetch class details - use .maybeSingle() since class may not exist
     const { data: classData, error: classError } = await supabase
       .from('classes')
       .select('*')
       .eq('id', classId)
       .eq('teacher_id', userId)
-      .single()
+      .maybeSingle()
 
-    if (classError || !classData) {
+    if (classError) {
       authLogger.error('[getClassWithRoster] Error fetching class', classError)
       return null
     }
 
-    // Fetch enrollments
-    const { data: enrollmentsData, error: enrollmentsError } = await supabase
-      .from('enrollments')
-      .select('id, created_at, student_id')
-      .eq('class_id', classId)
-
-    if (enrollmentsError) {
-      authLogger.error('[getClassWithRoster] Error fetching enrollments', enrollmentsError)
+    if (!classData) {
+      return null
     }
 
-    // Fetch student details for each enrollment
-    let enrollmentsWithStudents: Enrollment[] = []
-    if (enrollmentsData && enrollmentsData.length > 0) {
-      const studentIds = enrollmentsData.map((e: EnrollmentRow) => e.student_id)
-      const { data: students } = await supabase
-        .from('users')
-        .select('id, email, role')
-        .in('id', studentIds)
+    // Use SECURITY DEFINER function to get roster with student profiles
+    // This bypasses RLS restrictions that would otherwise block teacher access to student_profiles
+    const { data: rosterData, error: rosterError } = await supabase
+      .rpc('get_class_roster', { p_class_id: classId })
 
-      if (students) {
-        const studentMap = new Map(students.map((s: User) => [s.id, s]))
+    if (rosterError) {
+      authLogger.error('[getClassWithRoster] Error fetching roster via RPC', rosterError)
+
+      // Fallback to direct query if RPC fails (e.g., function not yet deployed)
+      const { data: enrollmentsData, error: enrollmentsError } = await supabase
+        .from('enrollments')
+        .select('id, created_at, student_id')
+        .eq('class_id', classId)
+
+      if (enrollmentsError) {
+        authLogger.error('[getClassWithRoster] Fallback error fetching enrollments', enrollmentsError)
+        return { class: classData, enrollments: [] }
+      }
+
+      // Try to get student profiles (may fail due to RLS)
+      let enrollmentsWithStudents: Enrollment[] = []
+      if (enrollmentsData && enrollmentsData.length > 0) {
+        const studentIds = enrollmentsData.map((e: EnrollmentRow) => e.student_id)
+        const { data: students } = await supabase
+          .from('student_profiles')
+          .select('user_id, name, phone, roll_number, class_name')
+          .in('user_id', studentIds)
+
+        const studentMap = new Map((students || []).map((s: StudentInfo) => [s.user_id, s]))
         enrollmentsWithStudents = enrollmentsData.map((enrollment) => ({
           ...enrollment,
-          student: studentMap.get(enrollment.student_id) as User,
+          student: studentMap.get(enrollment.student_id) || null,
         }))
       }
+
+      return { class: classData, enrollments: enrollmentsWithStudents }
     }
+
+    // Transform RPC result to Enrollment format
+    const enrollmentsWithStudents: Enrollment[] = (rosterData || []).map((row: RosterRow) => ({
+      id: row.enrollment_id,
+      created_at: row.enrolled_at,
+      student_id: row.student_id,
+      student: {
+        user_id: row.student_id,
+        name: row.student_name,
+        phone: row.student_phone,
+        roll_number: row.roll_number,
+        class_name: row.class_name,
+      },
+    }))
 
     return {
       class: classData,
@@ -103,7 +143,7 @@ export default async function ClassDetailPage({
   const user = await getCurrentUser()
 
   if (!user) {
-    redirect('/login')
+    redirect('/teacher/start')
   }
 
   const data = await getClassWithRoster(id, user.id)
@@ -123,23 +163,23 @@ export default async function ClassDetailPage({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-green-50 p-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-cream via-surface to-cyan-lightest page-layout">
+      <div className="container-responsive max-w-6xl">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-responsive">
           <Link href="/app/teacher/classes">
-            <Button variant="ghost" className="mb-4">
+            <Button variant="ghost" className="mb-4 touch-target">
               ← Back to Classes
             </Button>
           </Link>
 
-          <Card>
+          <Card className="card-responsive">
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2 text-3xl">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="text-center sm:text-left">
+                  <CardTitle className="flex items-center justify-center sm:justify-start gap-2 text-xl md:text-3xl">
                     <span>📚</span>
-                    <span className="bg-gradient-to-r from-pink-500 via-orange-500 to-yellow-500 bg-clip-text text-transparent">
+                    <span className="bg-gradient-to-r from-primary via-primary-dark to-cyan bg-clip-text text-transparent">
                       {classData.name}
                     </span>
                   </CardTitle>
@@ -155,7 +195,7 @@ export default async function ClassDetailPage({
 
         {/* Analytics Tiles */}
         {enrollments.length > 0 && (
-          <div className="mb-8">
+          <div className="mb-responsive">
             <AnalyticsTiles
               activeThisWeek={analytics?.activeThisWeek || 0}
               avgMinutesPerDay={analytics?.avgMinutesPerDay || 0}
@@ -165,7 +205,7 @@ export default async function ClassDetailPage({
         )}
 
         {/* Invite Panel with QR Code */}
-        <div className="mb-8">
+        <div className="mb-responsive">
           <InvitePanel
             classCode={classData.class_code}
             joinPin={classData.join_pin || ''}
@@ -174,23 +214,23 @@ export default async function ClassDetailPage({
         </div>
 
         {/* Roster */}
-        <Card>
+        <Card className="card-responsive">
           <CardHeader>
-            <CardTitle>Class Roster</CardTitle>
+            <CardTitle className="text-lg md:text-xl">Class Roster</CardTitle>
             <CardDescription>
               View and manage students enrolled in this class
             </CardDescription>
           </CardHeader>
           <CardContent>
             {enrollments.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-4xl">👥</span>
+              <div className="text-center py-8 md:py-12">
+                <div className="w-16 h-16 md:w-20 md:h-20 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-3xl md:text-4xl">👥</span>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                <h3 className="heading-3 text-text-primary mb-2">
                   No students enrolled yet
                 </h3>
-                <p className="text-gray-500">
+                <p className="text-text-secondary text-sm md:text-base px-4">
                   Use the Invite Student button above or share the class details from the invitation section
                 </p>
               </div>

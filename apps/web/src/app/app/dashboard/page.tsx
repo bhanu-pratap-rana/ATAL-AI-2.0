@@ -8,15 +8,8 @@ import { createClient } from '@/lib/supabase-browser'
 import { Button } from '@/components/ui/button'
 import { authLogger } from '@/lib/auth-logger'
 import type { User } from '@supabase/supabase-js'
-import { 
-  BookOpen, 
-  Users, 
-  BarChart3, 
-  Bot, 
-  FileText, 
-  Settings,
-  LogOut
-} from 'lucide-react'
+import { LogOut } from 'lucide-react'
+import { getDashboardStats, type DashboardStats } from '@/app/actions/dashboard-stats'
 
 // Animation variants
 const containerVariants = {
@@ -39,43 +32,37 @@ const getFeatureCards = (isTeacher: boolean) => [
   {
     title: 'Curriculum',
     description: 'Access digital literacy curriculum and educational resources.',
-    icon: BookOpen,
     emoji: '📚',
     href: '/app/curriculum'
   },
   {
     title: 'Classes',
     description: 'Manage your classes and student enrollments.',
-    icon: Users,
     emoji: '👥',
     href: isTeacher ? '/app/teacher/classes' : '/app/student/classes'
   },
   {
     title: 'Progress',
     description: 'Track student progress and performance metrics.',
-    icon: BarChart3,
     emoji: '📊',
     href: '/app/progress'
   },
   {
     title: 'AI Tools',
     description: 'Leverage AI-powered tools for personalized learning.',
-    icon: Bot,
     emoji: '🤖',
     href: '/app/ai-tools'
   },
   {
     title: 'Assessments',
     description: 'Create and manage assessments and quizzes.',
-    icon: FileText,
     emoji: '📝',
     href: isTeacher ? '/app/teacher/assessments' : '/app/student/assessments'
   },
   {
-    title: 'Settings',
-    description: 'Manage your account and application preferences.',
-    icon: Settings,
-    emoji: '⚙️',
+    title: 'Profile',
+    description: 'View and manage your profile information.',
+    emoji: '👤',
     href: '/app/settings'
   }
 ]
@@ -85,46 +72,46 @@ function StatCard({ icon, value, label }: { icon: string; value: string | number
   return (
     <motion.div
       variants={itemVariants}
-      className="bg-white rounded-[20px] p-5 shadow-[0_4px_12px_rgba(0,0,0,0.08)] border border-gray-100 flex items-center gap-4"
+      className="bg-white rounded-2xl p-5 shadow-[var(--shadow-md)] border border-border-light flex items-center gap-4"
     >
-      <div className="w-12 h-12 bg-primary-light rounded-[12px] flex items-center justify-center text-2xl flex-shrink-0">
+      <div className="w-12 h-12 bg-primary-lightest rounded-xl flex items-center justify-center text-2xl flex-shrink-0">
         {icon}
       </div>
       <div>
-        <p className="text-2xl font-bold text-gray-800">{value}</p>
-        <p className="text-sm text-gray-500">{label}</p>
+        <p className="text-2xl font-bold text-text-primary">{value}</p>
+        <p className="text-sm text-text-secondary">{label}</p>
       </div>
     </motion.div>
   )
 }
 
 // Feature Card Component
-function FeatureCard({ 
-  title, 
-  description, 
-  emoji, 
-  onClick 
-}: { 
+function FeatureCard({
+  title,
+  description,
+  emoji,
+  onClick
+}: {
   title: string
   description: string
   emoji: string
-  onClick: () => void 
+  onClick: () => void
 }) {
   return (
     <motion.div
       variants={itemVariants}
-      whileHover={{ y: -4, boxShadow: '0 8px 24px rgba(255, 126, 51, 0.3)' }}
-      className="p-[3px] rounded-[20px] bg-gradient-primary shadow-primary-md cursor-pointer"
+      whileHover={{ y: -4, boxShadow: 'var(--shadow-primary)' }}
+      className="p-[3px] rounded-2xl bg-gradient-primary shadow-[var(--shadow-primary-sm)] cursor-pointer"
       onClick={onClick}
     >
-      <div className="bg-white rounded-[17px] p-5 h-full">
+      <div className="bg-white rounded-xl p-5 h-full">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 bg-primary-light rounded-[10px] flex items-center justify-center text-xl">
+          <div className="w-10 h-10 bg-primary-lightest rounded-lg flex items-center justify-center text-xl">
             {emoji}
           </div>
-          <h3 className="text-lg font-bold text-gray-800">{title}</h3>
+          <h3 className="text-lg font-bold text-text-primary">{title}</h3>
         </div>
-        <p className="text-sm text-gray-500 leading-relaxed">
+        <p className="text-sm text-text-secondary leading-relaxed">
           {description}
         </p>
       </div>
@@ -135,20 +122,63 @@ function FeatureCard({
 export default function DashboardPage() {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
+  const [profileName, setProfileName] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState<DashboardStats | null>(null)
   const supabase = createClient()
 
-  // Check both app_metadata (set by admin) and user_metadata for role
-  const isTeacher = user?.app_metadata?.role === 'teacher' || user?.user_metadata?.role === 'teacher'
-  const userName = user?.user_metadata?.full_name || user?.app_metadata?.full_name || user?.email?.split('@')[0] || 'User'
+  // Check app_metadata.role (set during teacher registration via admin API)
+  // This is reliable as it's set server-side and cannot be modified by client
+  const appRole = user?.app_metadata?.role
+  const isTeacherOrAdmin = appRole === 'teacher' || appRole === 'admin' || appRole === 'super_admin'
+
+  // Use profile name if available, otherwise fall back to user metadata or email
+  const userName = profileName || user?.user_metadata?.full_name || user?.app_metadata?.full_name || user?.email?.split('@')[0] || 'User'
 
   useEffect(() => {
-    async function getUser() {
+    async function getUserAndProfile() {
       const { data: { user } } = await supabase.auth.getUser()
       setUser(user)
+
+      if (user) {
+        const role = user.app_metadata?.role
+        // Check for teacher, admin, AND super_admin roles
+        const isTeacher = role === 'teacher' || role === 'admin' || role === 'super_admin'
+
+        if (isTeacher) {
+          // Fetch teacher profile name
+          const { data: teacherProfile } = await supabase
+            .from('teacher_profiles')
+            .select('name')
+            .eq('user_id', user.id)
+            .maybeSingle()
+
+          if (teacherProfile?.name) {
+            setProfileName(teacherProfile.name)
+          }
+        } else {
+          // Fetch student profile name
+          const { data: studentProfile } = await supabase
+            .from('student_profiles')
+            .select('name')
+            .eq('user_id', user.id)
+            .maybeSingle()
+
+          if (studentProfile?.name) {
+            setProfileName(studentProfile.name)
+          }
+        }
+
+        // Fetch real dashboard stats
+        const statsResult = await getDashboardStats()
+        if (statsResult.success && statsResult.data) {
+          setStats(statsResult.data)
+        }
+      }
+
       setLoading(false)
     }
-    getUser()
+    getUserAndProfile()
   }, [])
 
   async function handleSignOut() {
@@ -166,18 +196,18 @@ export default function DashboardPage() {
       <div className="min-h-screen flex items-center justify-center bg-cream">
         <div className="text-center">
           <div className="w-12 h-12 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading...</p>
+          <p className="text-text-secondary">Loading...</p>
         </div>
       </div>
     )
   }
 
-  const featureCards = getFeatureCards(isTeacher)
+  const featureCards = getFeatureCards(isTeacherOrAdmin)
 
   return (
     <div className="min-h-screen bg-cream">
       {/* Header */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
+      <header className="bg-white border-b border-border-light sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 md:px-8 py-4">
           <div className="flex items-center justify-between">
             {/* Logo & Title */}
@@ -193,17 +223,17 @@ export default function DashboardPage() {
                     boxShadow: `
                       0 0 0 2px white,
                       0 0 0 3px var(--color-primary),
-                      0 2px 8px rgba(255, 126, 51, 0.25)
+                      0 2px 8px var(--shadow-primary-sm)
                     `
                   }}
                   priority
                 />
               </div>
               <div>
-                <h1 className="text-xl md:text-2xl font-bold text-gray-800">
+                <h1 className="text-xl md:text-2xl font-bold text-text-primary">
                   ATAL AI Tutorial
                 </h1>
-                <p className="text-xs md:text-sm text-gray-500">Smart Learning Platform</p>
+                <p className="text-xs md:text-sm text-text-secondary">Smart Learning Platform</p>
               </div>
             </div>
 
@@ -231,24 +261,24 @@ export default function DashboardPage() {
           {/* Welcome Banner */}
           <motion.div
             variants={itemVariants}
-            className="bg-gradient-primary rounded-[20px] p-6 md:p-8 mb-8 text-white shadow-primary-lg"
+            className="gradient-primary rounded-2xl p-6 md:p-8 mb-8 shadow-[var(--shadow-primary)]"
           >
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
-                <h2 className="text-2xl md:text-3xl font-bold mb-1">
-                  Welcome back, {userName}! 🎉
+                <h2 className="text-2xl md:text-3xl font-bold mb-1 text-white drop-shadow-sm">
+                  {isTeacherOrAdmin ? `Welcome, ${userName}!` : `Hello, ${userName}!`}
                 </h2>
-                <p className="text-white/90 text-sm md:text-base">
-                  {isTeacher 
+                <p className="text-sm md:text-base text-white/90">
+                  {isTeacherOrAdmin
                     ? 'Manage your classes and track student progress from your dashboard.'
-                    : 'Continue your learning journey and track your progress.'}
+                    : 'Explore your classes and start your learning journey.'}
                 </p>
               </div>
-              {isTeacher && (
+              {isTeacherOrAdmin && (
                 <Button
                   onClick={() => router.push('/app/teacher/classes')}
                   variant="secondary"
-                  className="bg-white text-primary hover:bg-gray-50 shrink-0"
+                  className="bg-white text-primary hover:bg-surface shrink-0"
                 >
                   Create Class
                 </Button>
@@ -256,17 +286,56 @@ export default function DashboardPage() {
             </div>
           </motion.div>
 
-          {/* Stats Grid */}
+          {/* Stats Grid - Real Data with Empty States */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <StatCard icon="📚" value={isTeacher ? 3 : 2} label="Classes" />
-            <StatCard icon="📝" value={isTeacher ? 12 : 8} label="Assessments" />
-            <StatCard icon="🏆" value={5} label="Achievements" />
-            <StatCard icon="🔥" value={7} label="Day Streak" />
+            <StatCard
+              icon="📚"
+              value={stats?.classesCount ?? 0}
+              label={isTeacherOrAdmin ? "Classes Created" : "Classes Joined"}
+            />
+            <StatCard
+              icon="📝"
+              value={stats?.assessmentsCount ?? 0}
+              label="Assessments"
+            />
+            <StatCard
+              icon="🎯"
+              value={stats?.averageScore != null ? `${stats.averageScore}%` : '--'}
+              label="Avg Score"
+            />
+            <StatCard
+              icon="🔥"
+              value={stats?.streakDays ?? 0}
+              label="Day Streak"
+            />
           </div>
+
+          {/* Empty State Message for New Users */}
+          {stats && stats.classesCount === 0 && stats.assessmentsCount === 0 && (
+            <motion.div
+              variants={itemVariants}
+              className="bg-info-light border border-info/30 rounded-xl p-6 mb-8 text-center"
+            >
+              <p className="text-lg font-medium text-info-dark mb-2">
+                {isTeacherOrAdmin ? "🎉 Welcome! Let's get started" : "👋 Welcome to ATAL AI!"}
+              </p>
+              <p className="text-sm text-text-secondary mb-4">
+                {isTeacherOrAdmin
+                  ? "Create your first class to start inviting students and tracking their progress."
+                  : "Join a class or take an assessment to begin your learning journey."}
+              </p>
+              <Button
+                onClick={() => router.push(isTeacherOrAdmin ? '/app/teacher/classes' : '/app/assessment/start')}
+                variant="default"
+              >
+                {isTeacherOrAdmin ? "Create Your First Class" : "Start an Assessment"}
+              </Button>
+            </motion.div>
+          )}
 
           {/* Feature Cards Grid */}
           <div className="mb-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-4">Quick Actions</h3>
+            <h3 className="text-lg font-bold text-text-primary mb-4">Quick Actions</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {featureCards.map((card) => (
                 <FeatureCard

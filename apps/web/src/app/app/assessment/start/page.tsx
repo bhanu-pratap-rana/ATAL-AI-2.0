@@ -7,8 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { AssessmentRunner } from '@/components/assessment/AssessmentRunner'
 import { AssessmentSkeleton } from '@/components/assessment/AssessmentSkeleton'
-import { startAssessment } from '@/app/actions/assessment'
-import { getQuestionsByLanguage } from '@/data/assessment-questions'
+import { startAssessment, getAdaptiveQuestions } from '@/app/actions/assessment'
 
 /**
  * ATAL AI Assessment Start Page - Jyoti Theme
@@ -19,10 +18,15 @@ import { getQuestionsByLanguage } from '@/data/assessment-questions'
 
 interface Question {
   id: string
-  module: string
-  question: string
-  options: string[]
-  correctAnswer: number
+  itemCode: string
+  category: string
+  questionNumber: number
+  questionText: string
+  options: { id: string; text: string }[]
+  _correctIndex: number
+  _difficulty: number
+  _discrimination: number
+  _guessing: number
 }
 
 function AssessmentStartContent() {
@@ -39,16 +43,26 @@ function AssessmentStartContent() {
     setLoading(true)
 
     try {
-      const result = await startAssessment(classId || undefined)
+      // Start session and fetch adaptive questions in parallel
+      const [sessionResult, questionsResult] = await Promise.all([
+        startAssessment(classId || undefined),
+        getAdaptiveQuestions(selectedLanguage),
+      ])
 
-      if (result.success && result.sessionId) {
-        setSessionId(result.sessionId)
-        const questionData = getQuestionsByLanguage(selectedLanguage)
-        setQuestions(questionData)
-      } else {
-        toast.error(result.error || 'Failed to start assessment')
+      if (!sessionResult.success || !sessionResult.sessionId) {
+        toast.error(sessionResult.error || 'Failed to start assessment')
         setLoading(false)
+        return
       }
+
+      if (!questionsResult.success || questionsResult.questions.length === 0) {
+        toast.error(questionsResult.error || 'Failed to load questions')
+        setLoading(false)
+        return
+      }
+
+      setSessionId(sessionResult.sessionId)
+      setQuestions(questionsResult.questions as Question[])
     } catch (error) {
       toast.error('An unexpected error occurred')
       setLoading(false)
@@ -72,11 +86,11 @@ function AssessmentStartContent() {
       {/* Card with Gradient Border */}
       <div className="max-w-2xl w-full">
         <div className="card-gradient">
-          <div className="bg-white rounded-[17px] p-6 md:p-8">
+          <div className="bg-white rounded-xl p-6 md:p-8">
             {/* Header */}
             <div className="text-center mb-8">
               {/* Icon Box - Primary Light */}
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-light rounded-[16px] mb-4">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-light rounded-lg mb-4">
                 <span className="text-3xl">📝</span>
               </div>
               <h1 className="text-3xl font-bold text-text-primary mb-2">
@@ -88,7 +102,7 @@ function AssessmentStartContent() {
             </div>
 
             {/* Assessment Info - Info Alert */}
-            <div className="bg-info-light border-l-4 border-info p-4 rounded-[12px] mb-6">
+            <div className="bg-info-light border-l-4 border-info p-4 rounded-md mb-6">
               <div className="flex items-start gap-3">
                 <span className="text-2xl">ℹ️</span>
                 <div>
@@ -112,7 +126,7 @@ function AssessmentStartContent() {
                 {/* English */}
                 <button
                   onClick={() => setSelectedLanguage('en')}
-                  className={`p-4 rounded-[12px] border-2 transition-all duration-200 ${
+                  className={`p-4 rounded-md border-2 transition-all duration-200 ${
                     selectedLanguage === 'en'
                       ? 'border-primary bg-primary-light shadow-primary-sm'
                       : 'border-border bg-white hover:border-primary/30 hover:bg-primary-lighter'
@@ -127,7 +141,7 @@ function AssessmentStartContent() {
                 {/* Hindi */}
                 <button
                   onClick={() => setSelectedLanguage('hi')}
-                  className={`p-4 rounded-[12px] border-2 transition-all duration-200 ${
+                  className={`p-4 rounded-md border-2 transition-all duration-200 ${
                     selectedLanguage === 'hi'
                       ? 'border-primary bg-primary-light shadow-primary-sm'
                       : 'border-border bg-white hover:border-primary/30 hover:bg-primary-lighter'
@@ -142,7 +156,7 @@ function AssessmentStartContent() {
                 {/* Assamese */}
                 <button
                   onClick={() => setSelectedLanguage('as')}
-                  className={`p-4 rounded-[12px] border-2 transition-all duration-200 ${
+                  className={`p-4 rounded-md border-2 transition-all duration-200 ${
                     selectedLanguage === 'as'
                       ? 'border-primary bg-primary-light shadow-primary-sm'
                       : 'border-border bg-white hover:border-primary/30 hover:bg-primary-lighter'

@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils'
 type InfoBoxVariant = 'default' | 'info' | 'warning' | 'success' | 'error'
 
 const variantStyles: Record<InfoBoxVariant, string> = {
-  default: 'bg-primary-light border-l-4 border-primary text-secondary',
+  default: 'bg-primary-light border-l-4 border-primary text-primary-dark',
   info: 'bg-info-light border-l-4 border-info text-info-dark',
   warning: 'bg-warning-light border-l-4 border-warning text-warning-dark',
   success: 'bg-success-light border-l-4 border-success text-success-dark',

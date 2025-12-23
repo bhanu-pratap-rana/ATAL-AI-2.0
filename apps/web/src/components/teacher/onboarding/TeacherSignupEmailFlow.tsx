@@ -38,27 +38,38 @@ export function TeacherSignupEmailFlow({
   onSuggestionAccept,
   onBack,
 }: TeacherSignupEmailFlowProps) {
-  const [resendCooldown, setResendCooldown] = useState(0)
+  // Initialize cooldown based on otpSent prop (lazy initializer for pure render)
+  const [resendCooldown, setResendCooldown] = useState(() =>
+    otpSent ? RESEND_COOLDOWN_SECONDS : 0
+  )
   const [isResending, setIsResending] = useState(false)
 
-  // Start cooldown timer when OTP is sent - only on initial OTP send
-  const otpSentRef = useRef(false)
-  useEffect(() => {
-    if (otpSent && !otpSentRef.current) {
-      otpSentRef.current = true
-      setResendCooldown(RESEND_COOLDOWN_SECONDS)
-    }
-  }, [otpSent])
+  // Track previous otpSent state to detect transitions
+  const prevOtpSentRef = useRef(otpSent)
 
-  // Countdown timer
+  // Combined effect: detect otpSent transition and run countdown
+  // All setState calls happen in timer callbacks (asynchronously), which is the proper pattern
   useEffect(() => {
+    // Detect otpSent transitioning from false to true
+    const justSentOtp = otpSent && !prevOtpSentRef.current
+    prevOtpSentRef.current = otpSent
+
+    // Start fresh countdown when OTP is just sent - use setTimeout to avoid synchronous setState
+    if (justSentOtp) {
+      const restartTimer = setTimeout(() => {
+        setResendCooldown(RESEND_COOLDOWN_SECONDS)
+      }, 0)
+      return () => clearTimeout(restartTimer)
+    }
+
+    // Continue countdown if already in progress
     if (resendCooldown > 0) {
       const timer = setTimeout(() => {
-        setResendCooldown(resendCooldown - 1)
+        setResendCooldown((prev) => prev - 1)
       }, 1000)
       return () => clearTimeout(timer)
     }
-  }, [resendCooldown])
+  }, [resendCooldown, otpSent])
 
   const handleResendOtp = useCallback(async (e: FormEvent) => {
     e.preventDefault()
@@ -81,7 +92,7 @@ export function TeacherSignupEmailFlow({
       <AuthCard title="Sign Up with Email" description="Step 1 of 4: Verify your email">
         <form onSubmit={onSendOtp} className="space-y-4">
           {emailError && (
-            <div className="bg-error-light border border-error/30 rounded-[12px] p-3">
+            <div className="bg-error-light border border-error/30 rounded-md p-3">
               <p className="text-sm text-error font-semibold">{emailError}</p>
 
               {emailSuggestion && (
@@ -108,7 +119,7 @@ export function TeacherSignupEmailFlow({
               autoComplete="email"
               required
             />
-            <p className="text-xs text-gray-500">We'll send you a verification code</p>
+            <p className="text-xs text-text-secondary">We&apos;ll send you a verification code</p>
           </div>
 
           <Button
@@ -140,12 +151,12 @@ export function TeacherSignupEmailFlow({
   return (
     <AuthCard title="Verify Your Email" description="Enter the verification code we sent">
       <form onSubmit={onVerifyOtp} className="space-y-4">
-        <div className="bg-success-light border border-success/30 rounded-[12px] p-3">
+        <div className="bg-success-light border border-success/30 rounded-md p-3">
           <div className="flex items-start gap-2">
             <CheckCircle className="h-5 w-5 text-success mt-0.5 flex-shrink-0" />
             <div>
               <p className="text-sm font-semibold text-success">Code Sent</p>
-              <p className="text-xs text-green-700">Check your email for the 6-digit code</p>
+              <p className="text-xs text-success-dark">Check your email for the 6-digit code</p>
             </div>
           </div>
         </div>
@@ -163,7 +174,7 @@ export function TeacherSignupEmailFlow({
             autoComplete="off"
             required
           />
-          <p className="text-xs text-gray-500">From: {email}</p>
+          <p className="text-xs text-text-secondary">From: {email}</p>
         </div>
 
         <Button

@@ -12,80 +12,27 @@
  * Production: Logs only essential information with masked data
  */
 
-interface LogContext {
-  [key: string]: unknown
-}
+import { maskSensitiveData, type LogContext } from './masking-utils'
 
-function maskEmail(email?: string): string {
-  if (!email) return 'unknown'
-  const [local, domain] = email.split('@')
-  if (!local || !domain) return '***@***'
-  return `${local.substring(0, 2)}***@${domain}`
-}
+const isDevelopment = process.env.NODE_ENV === 'development'
 
-function maskPhone(phone?: string): string {
-  if (!phone) return 'unknown'
-  // Keep only country code and last 2 digits
-  const cleaned = phone.replace(/\D/g, '')
-  if (cleaned.length < 4) return '****'
-  return `***${cleaned.slice(-2)}`
-}
-
-function maskUserId(id?: string): string {
-  if (!id) return 'unknown'
-  return `${id.substring(0, 8)}...`
-}
-
-function maskToken(token?: string): string {
-  if (!token) return 'unknown'
-  return `${token.substring(0, 20)}...`
+/**
+ * Sentry type definition for window object
+ */
+interface WindowWithSentry extends Window {
+  Sentry?: {
+    captureMessage: (message: string, level: string) => void
+    captureException: (error: Error, options?: { level?: string; tags?: Record<string, string> }) => void
+  }
 }
 
 /**
- * Recursively mask sensitive data in an object
- * Reserved for structured logging service integration (Sentry, DataDog, etc.)
- * @param data - The data object to mask
- * @param depth - Current recursion depth (max 3 to prevent deep recursion)
- * @returns Masked copy of the data
+ * Get Sentry instance from window (client-side only)
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function maskSensitiveData(data: unknown, depth = 0): unknown {
-  if (depth > 3 || !data || typeof data !== 'object') {
-    return data
-  }
-
-  if (Array.isArray(data)) {
-    return data.map(item => maskSensitiveData(item, depth + 1))
-  }
-
-  const masked: LogContext = {}
-
-  for (const [key, value] of Object.entries(data)) {
-    const lowerKey = key.toLowerCase()
-
-    // Mask sensitive fields
-    if (lowerKey.includes('email')) {
-      masked[key] = maskEmail(value as string)
-    } else if (lowerKey.includes('phone')) {
-      masked[key] = maskPhone(value as string)
-    } else if (lowerKey.includes('password') || lowerKey.includes('pwd')) {
-      masked[key] = '***'
-    } else if (lowerKey.includes('token') || lowerKey.includes('otp')) {
-      masked[key] = maskToken(value as string)
-    } else if (lowerKey === 'id' || lowerKey.includes('user_id')) {
-      masked[key] = maskUserId(value as string)
-    } else if (typeof value === 'object') {
-      masked[key] = maskSensitiveData(value, depth + 1)
-    } else {
-      masked[key] = value
-    }
-  }
-
-  return masked
+function getSentry(): WindowWithSentry['Sentry'] | undefined {
+  if (typeof window === 'undefined') return undefined
+  return (window as WindowWithSentry).Sentry
 }
-
-const isDevelopment = process.env.NODE_ENV === 'development'
-const isProduction = process.env.NODE_ENV === 'production'
 
 /**
  * Auth-specific logger with sensitive data masking and console output
@@ -114,8 +61,9 @@ export const authLogger = {
       console.info(`[AUTH:INFO] ${message}`, maskedContext)
     } else {
       // In production, log via structured logging service (Sentry, DataDog, etc.)
-      if (typeof window !== 'undefined' && (window as any).Sentry) {
-        (window as any).Sentry.captureMessage(message, 'info')
+      const sentry = getSentry()
+      if (sentry) {
+        sentry.captureMessage(message, 'info')
       }
     }
   },
@@ -131,8 +79,9 @@ export const authLogger = {
         console.warn(`[AUTH:WARN] ${message}`, errorOrContext)
       } else {
         // In production, log via structured logging service with masked data
-        if (typeof window !== 'undefined' && (window as any).Sentry) {
-          (window as any).Sentry.captureException(errorOrContext, { level: 'warning' })
+        const sentry = getSentry()
+        if (sentry) {
+          sentry.captureException(errorOrContext, { level: 'warning' })
         }
       }
     } else {
@@ -141,8 +90,9 @@ export const authLogger = {
         console.warn(`[AUTH:WARN] ${message}`, maskedContext)
       } else {
         // In production, suppress detailed context - use structured logging only
-        if (typeof window !== 'undefined' && (window as any).Sentry) {
-          (window as any).Sentry.captureMessage(message, 'warning')
+        const sentry = getSentry()
+        if (sentry) {
+          sentry.captureMessage(message, 'warning')
         }
       }
     }
@@ -161,8 +111,9 @@ export const authLogger = {
       console.error(`[AUTH:ERROR] ${message}`, error, maskedContext)
     } else {
       // In production, only log message via structured logging service, suppress stack traces
-      if (typeof window !== 'undefined' && (window as any).Sentry) {
-        (window as any).Sentry.captureException(
+      const sentry = getSentry()
+      if (sentry) {
+        sentry.captureException(
           error instanceof Error ? error : new Error(message),
           { tags: { source: 'auth' } }
         )
@@ -181,8 +132,9 @@ export const authLogger = {
     console.error(`[AUTH:CRITICAL] ${message}`, error)
 
     // Always send to production error tracking service
-    if (typeof window !== 'undefined' && (window as any).Sentry) {
-      (window as any).Sentry.captureException(
+    const sentry = getSentry()
+    if (sentry) {
+      sentry.captureException(
         error instanceof Error ? error : new Error(message),
         { level: 'fatal', tags: { source: 'auth' } }
       )
@@ -202,28 +154,3 @@ export const authLogger = {
   },
 }
 
-/**
- * Helper function to mask sensitive data for external use
- * Can be used in error messages shown to users
- */
-export function getSafeErrorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    const message = error.message
-
-    // Don't expose internal error details to users
-    if (message.includes('rate limit')) {
-      return 'Too many requests. Please wait a few minutes and try again.'
-    }
-    if (message.includes('invalid') || message.includes('failed')) {
-      return 'Authentication failed. Please check your credentials and try again.'
-    }
-    if (message.includes('email') || message.includes('phone')) {
-      return 'There was an issue with your email or phone number. Please try again.'
-    }
-
-    // Don't expose the actual error message to users
-    return 'An authentication error occurred. Please try again.'
-  }
-
-  return 'An unexpected error occurred. Please try again.'
-}

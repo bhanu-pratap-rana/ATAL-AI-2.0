@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { AlertCircle, CheckCircle, Loader2, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
+import { FORM_TIMING } from '@/lib/constants/ui-timings'
 
 export default function CreateAdminPage() {
   const [email, setEmail] = useState('atal.app.ai@gmail.com')
@@ -56,13 +57,14 @@ export default function CreateAdminPage() {
         setPassword('')
         setConfirmPassword('')
 
-        // Show next steps message after 2 seconds
+        // Show next steps message after brief delay
+        // SECURITY: Never display passwords in messages - recommend password manager
         setTimeout(() => {
           setMessage({
             type: 'success',
-            text: `✓ You can now login at /admin/login with:\nEmail: ${email}\nPassword: ${password}`,
+            text: `✓ You can now login at /admin/login with:\nEmail: ${email}\n\nTip: Use a password manager to securely store your credentials.`,
           })
-        }, 2000)
+        }, FORM_TIMING.nextStepsDelay)
       } else {
         setMessage({ type: 'error', text: result.error || 'Failed to create admin account' })
         toast.error(result.error || 'Failed to create admin account')
@@ -83,7 +85,7 @@ export default function CreateAdminPage() {
           onClick={() => (window.location.href = '/admin/login')}
           variant="outline"
           size="sm"
-          className="text-sm border-primary text-primary hover:bg-orange-50"
+          className="text-sm border-primary text-primary hover:bg-primary/10"
         >
           ← Back to Login
         </Button>
@@ -95,8 +97,8 @@ export default function CreateAdminPage() {
       >
         <div className="space-y-6">
           {/* Info Box */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm text-blue-900">
+          <div className="bg-cyan-lightest border border-cyan/30 rounded-lg p-4">
+            <p className="text-sm text-cyan-darkest">
               <strong>ℹ️ First Time Setup:</strong>
               <br />
               <span className="text-xs">
@@ -172,18 +174,18 @@ export default function CreateAdminPage() {
             <div
               className={`flex gap-3 p-4 rounded-lg border whitespace-pre-wrap ${
                 message.type === 'success'
-                  ? 'bg-green-50 border-green-200'
-                  : 'bg-red-50 border-red-200'
+                  ? 'bg-success-light border-success/30'
+                  : 'bg-error-light border-error/30'
               }`}
             >
               {message.type === 'success' ? (
-                <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
               ) : (
-                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-error flex-shrink-0 mt-0.5" />
               )}
               <span
                 className={`text-sm ${
-                  message.type === 'success' ? 'text-green-600' : 'text-red-600'
+                  message.type === 'success' ? 'text-success' : 'text-error'
                 }`}
               >
                 {message.text}
@@ -195,7 +197,7 @@ export default function CreateAdminPage() {
           <Button
             onClick={handleCreateAdmin}
             disabled={isLoading || !email.trim() || !password || !confirmPassword}
-            className="w-full bg-gradient-to-r from-primary to-orange-500 hover:from-orange-600 hover:to-orange-600"
+            className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary"
           >
             {isLoading ? (
               <>
@@ -208,17 +210,17 @@ export default function CreateAdminPage() {
           </Button>
 
           {/* Security Notice */}
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-            <p className="text-xs text-orange-900">
+          <div className="bg-warning-light border border-warning/30 rounded-lg p-4">
+            <p className="text-xs text-warning-dark">
               <strong>🔒 Security:</strong> Store your admin password securely. You&apos;ll need it to
               login to the admin panel.
             </p>
           </div>
 
           {/* Instructions Box */}
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <p className="text-sm text-gray-900 font-semibold mb-2">📋 Next Steps:</p>
-            <ol className="text-xs text-gray-700 space-y-1 list-decimal list-inside">
+          <div className="bg-surface border border-border rounded-lg p-4">
+            <p className="text-sm text-text-primary font-semibold mb-2">📋 Next Steps:</p>
+            <ol className="text-xs text-text-secondary space-y-1 list-decimal list-inside">
               <li>Create admin account with email and password</li>
               <li>Go to /admin/login</li>
               <li>Enter the email and password you just created</li>

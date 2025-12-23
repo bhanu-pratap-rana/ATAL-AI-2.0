@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
+import { CLIPBOARD_TIMING } from '@/lib/constants/ui-timings'
 import {
   rotateStaffPin,
   searchSchools,
@@ -136,7 +137,7 @@ function SchoolFinderModal({
           <select
             value={selectedDistrict}
             onChange={(e) => setSelectedDistrict(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg p-2 text-sm"
+            className="w-full border border-border rounded-lg p-2 text-sm"
             disabled={loading}
           >
             <option value="">-- Select District --</option>
@@ -151,11 +152,11 @@ function SchoolFinderModal({
         {/* Block Selection */}
         {selectedDistrict && (
           <div className="mb-4">
-            <Label className="text-sm font-semibold mb-2 block">Block (Optional)</Label>
+            <Label className="text-sm font-semibold mb-2 block">Block</Label>
             <select
               value={selectedBlock}
               onChange={(e) => setSelectedBlock(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg p-2 text-sm"
+              className="w-full border border-border rounded-lg p-2 text-sm"
               disabled={loading}
             >
               <option value="">-- All Blocks --</option>
@@ -170,7 +171,7 @@ function SchoolFinderModal({
 
         {/* Schools List */}
         {schools.length > 0 && (
-          <div className="border border-gray-300 rounded-lg divide-y max-h-64 overflow-y-auto">
+          <div className="border border-border rounded-lg divide-y max-h-64 overflow-y-auto">
             {schools.map((school) => (
               <button
                 key={school.id}
@@ -181,18 +182,18 @@ function SchoolFinderModal({
                     onClose()
                   }
                 }}
-                className="w-full text-left p-3 hover:bg-gray-50 transition-colors"
+                className="w-full text-left p-3 hover:bg-surface transition-colors"
                 disabled={loading}
               >
                 <div className="font-semibold text-sm text-foreground">
                   {school.school_name}
                 </div>
-                <div className="text-xs text-gray-600 mt-1">
+                <div className="text-xs text-text-secondary mt-1">
                   <strong>Code:</strong> {school.school_code} • <strong>Block:</strong>{' '}
                   {school.block || 'N/A'}
                 </div>
                 {school.address && (
-                  <div className="text-xs text-gray-500 mt-1">{school.address}</div>
+                  <div className="text-xs text-text-tertiary mt-1">{school.address}</div>
                 )}
               </button>
             ))}
@@ -200,7 +201,7 @@ function SchoolFinderModal({
         )}
 
         {selectedDistrict && schools.length === 0 && !loading && (
-          <div className="text-center py-4 text-gray-500 text-sm">
+          <div className="text-center py-4 text-text-tertiary text-sm">
             No schools found in {selectedBlock ? `${selectedBlock} block` : 'this district'}
           </div>
         )}
@@ -227,7 +228,7 @@ function CopyButton({ text }: { text: string }) {
     navigator.clipboard.writeText(text)
     setCopied(true)
     toast.success('Code copied to clipboard')
-    setTimeout(() => setCopied(false), 2000)
+    setTimeout(() => setCopied(false), CLIPBOARD_TIMING.successFeedback)
   }
 
   return (
@@ -235,8 +236,8 @@ function CopyButton({ text }: { text: string }) {
       onClick={handleCopy}
       className={`p-2 rounded transition-all ${
         copied
-          ? 'bg-green-100 text-green-700'
-          : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+          ? 'bg-success-light text-success'
+          : 'bg-surface hover:bg-surface-dark text-text-secondary'
       }`}
       title="Copy to clipboard"
     >
@@ -406,7 +407,7 @@ export default function AdminSchoolsPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface p-6 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-600">Verifying authorization...</p>
+          <p className="text-text-secondary">Verifying authorization...</p>
         </div>
       </div>
     )
@@ -417,7 +418,7 @@ export default function AdminSchoolsPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface p-6 flex items-center justify-center">
         <div className="max-w-md mx-auto text-center">
-          <Shield className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <Shield className="h-12 w-12 text-error mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-foreground mb-2">Access Denied</h1>
           <p className="text-text-secondary mb-6">
             {authError || 'You do not have permission to access this page. Admin access required.'}
@@ -491,7 +492,7 @@ export default function AdminSchoolsPage() {
                   disabled={loading}
                   loading={loading}
                   size="sm"
-                  className="shadow-[0_4px_12px_rgba(255,126,51,0.25)]"
+                  className="shadow-[var(--shadow-primary-sm)]"
                 >
                   <Search className="h-4 w-4" />
                 </Button>
@@ -515,7 +516,7 @@ export default function AdminSchoolsPage() {
                         {school.school_code} • {school.district}
                       </div>
                     </div>
-                    <Copy className="h-4 w-4 text-gray-400" />
+                    <Copy className="h-4 w-4 text-text-tertiary" />
                   </button>
                 ))}
               </div>
@@ -535,14 +536,14 @@ export default function AdminSchoolsPage() {
 
           {/* Selected School Display */}
           {selectedSchool && (
-            <div className="mt-4 bg-green-50 border-l-4 border-green-500 p-4 rounded">
+            <div className="mt-4 bg-success-light border-l-4 border-success p-4 rounded">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-xs text-green-900 font-semibold">✓ Selected School</p>
-                  <p className="text-sm text-green-900 font-semibold mt-1">
+                  <p className="text-xs text-success font-semibold">✓ Selected School</p>
+                  <p className="text-sm text-success font-semibold mt-1">
                     {selectedSchool.name}
                   </p>
-                  <p className="text-xs text-green-700 font-mono mt-1">
+                  <p className="text-xs text-success font-mono mt-1">
                     Code: {selectedSchool.code}
                   </p>
                 </div>
@@ -571,31 +572,31 @@ export default function AdminSchoolsPage() {
                   Check PIN Status
                 </Button>
               ) : pinStatus.exists ? (
-                <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-                  <p className="text-xs text-blue-900 font-semibold">✓ PIN Exists</p>
-                  <p className="text-sm text-blue-900 mt-2">
+                <div className="bg-cyan-lightest border-l-4 border-cyan p-4 rounded">
+                  <p className="text-xs text-cyan-darkest font-semibold">✓ PIN Exists</p>
+                  <p className="text-sm text-cyan-darkest mt-2">
                     <strong>Created:</strong>{' '}
                     {pinStatus.createdAt
                       ? new Date(pinStatus.createdAt).toLocaleDateString()
                       : 'N/A'}
                   </p>
                   {pinStatus.lastRotatedAt && (
-                    <p className="text-sm text-blue-900">
+                    <p className="text-sm text-cyan-darkest">
                       <strong>Last Rotated:</strong>{' '}
                       {new Date(pinStatus.lastRotatedAt).toLocaleDateString()}
                     </p>
                   )}
-                  <p className="text-xs text-blue-700 mt-3 font-semibold">
+                  <p className="text-xs text-cyan-dark mt-3 font-semibold">
                     👇 Scroll down to Step 3 to rotate the PIN
                   </p>
                 </div>
               ) : (
-                <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded">
-                  <p className="text-xs text-yellow-900 font-semibold">⚠ No PIN Found</p>
-                  <p className="text-sm text-yellow-900 mt-2">
+                <div className="bg-warning-light border-l-4 border-warning p-4 rounded">
+                  <p className="text-xs text-warning-dark font-semibold">⚠ No PIN Found</p>
+                  <p className="text-sm text-warning-dark mt-2">
                     This school doesn&apos;t have a PIN yet. Create one in Step 3.
                   </p>
-                  <p className="text-xs text-yellow-700 mt-3 font-semibold">
+                  <p className="text-xs text-warning mt-3 font-semibold">
                     👇 Scroll down to Step 3 to create the PIN
                   </p>
                 </div>
@@ -622,7 +623,7 @@ export default function AdminSchoolsPage() {
                   type="text"
                   value={schoolCode}
                   disabled
-                  className="bg-gray-50 uppercase font-mono text-sm"
+                  className="bg-surface uppercase font-mono text-sm"
                 />
               </div>
 
@@ -663,7 +664,7 @@ export default function AdminSchoolsPage() {
                 />
               </div>
 
-              <div className="bg-orange-50 border-l-4 border-primary p-3 rounded text-xs text-orange-900">
+              <div className="bg-warning/10 border-l-4 border-warning p-3 rounded text-xs text-warning-dark">
                 <p>
                   <strong>⚠️ Security Notice</strong>
                 </p>
@@ -677,7 +678,7 @@ export default function AdminSchoolsPage() {
 
               <Button
                 type="submit"
-                className="w-full shadow-[0_8px_20px_rgba(255,126,51,0.35)]"
+                className="w-full shadow-primary-hover"
                 disabled={loading || newPin !== confirmPin || newPin.length < 4}
                 loading={loading}
                 size="lg"
@@ -688,7 +689,7 @@ export default function AdminSchoolsPage() {
             </form>
 
             {/* Help */}
-            <div className="mt-6 bg-gradient-to-r from-orange-50 to-yellow-50 border border-primary/20 p-4 rounded-lg">
+            <div className="mt-6 bg-gradient-to-r from-cream to-surface border border-primary/20 p-4 rounded-lg">
               <h3 className="font-semibold text-foreground text-sm mb-2">📋 Quick Guide</h3>
               <ul className="text-sm text-text-secondary space-y-2">
                 <li>

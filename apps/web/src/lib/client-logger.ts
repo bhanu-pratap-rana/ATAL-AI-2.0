@@ -12,75 +12,21 @@
  * Production: Logs to Sentry (when configured)
  */
 
+import { maskSensitiveData, type LogContext } from './masking-utils'
+
 const isDevelopment = process.env.NODE_ENV === 'development'
 
-interface LogContext {
-  [key: string]: unknown
-}
-
-function maskEmail(email?: string): string {
-  if (!email) return 'unknown'
-  const [local, domain] = email.split('@')
-  if (!local || !domain) return '***@***'
-  return `${local.substring(0, 2)}***@${domain}`
-}
-
-function maskPhone(phone?: string): string {
-  if (!phone) return 'unknown'
-  const cleaned = phone.replace(/\D/g, '')
-  if (cleaned.length < 4) return '****'
-  return `***${cleaned.slice(-2)}`
-}
-
-function maskUserId(id?: string): string {
-  if (!id) return 'unknown'
-  return `${id.substring(0, 8)}...`
-}
-
-function maskToken(token?: string): string {
-  if (!token) return 'unknown'
-  return `${token.substring(0, 20)}...`
-}
-
-/**
- * Recursively mask sensitive data in an object
- * @param data - The data object to mask
- * @param depth - Current recursion depth (max 3 to prevent deep recursion)
- * @returns Masked copy of the data
- */
-function maskSensitiveData(data: unknown, depth = 0): unknown {
-  if (depth > 3 || !data || typeof data !== 'object') {
-    return data
+// Type for window with optional Sentry
+interface WindowWithSentry extends Window {
+  Sentry?: {
+    captureMessage: (message: string, level: string) => void
+    captureException: (error: Error, options?: { level: string }) => void
   }
+}
 
-  if (Array.isArray(data)) {
-    return data.map(item => maskSensitiveData(item, depth + 1))
-  }
-
-  const masked: LogContext = {}
-
-  for (const [key, value] of Object.entries(data)) {
-    const lowerKey = key.toLowerCase()
-
-    // Mask sensitive fields
-    if (lowerKey.includes('email')) {
-      masked[key] = maskEmail(value as string)
-    } else if (lowerKey.includes('phone')) {
-      masked[key] = maskPhone(value as string)
-    } else if (lowerKey.includes('password') || lowerKey.includes('pwd')) {
-      masked[key] = '***'
-    } else if (lowerKey.includes('token') || lowerKey.includes('otp')) {
-      masked[key] = maskToken(value as string)
-    } else if (lowerKey === 'id' || lowerKey.includes('user_id')) {
-      masked[key] = maskUserId(value as string)
-    } else if (typeof value === 'object') {
-      masked[key] = maskSensitiveData(value, depth + 1)
-    } else {
-      masked[key] = value
-    }
-  }
-
-  return masked
+function getSentry(): WindowWithSentry['Sentry'] | undefined {
+  if (typeof window === 'undefined') return undefined
+  return (window as WindowWithSentry).Sentry
 }
 
 /**
@@ -115,10 +61,11 @@ export const clientLogger = {
     console.warn(`[WARN] ${message}`, maskedContext)
 
     // In production, send to Sentry (when configured)
-    if (!isDevelopment && typeof window !== 'undefined') {
+    if (!isDevelopment) {
       try {
-        if ((window as any).Sentry) {
-          (window as any).Sentry.captureMessage(message, 'warning')
+        const sentry = getSentry()
+        if (sentry) {
+          sentry.captureMessage(message, 'warning')
         }
       } catch {
         // Silently fail if Sentry not available
@@ -134,10 +81,11 @@ export const clientLogger = {
     console.error(`[ERROR] ${message}`, maskedContext)
 
     // In production, send to Sentry (when configured)
-    if (!isDevelopment && typeof window !== 'undefined') {
+    if (!isDevelopment) {
       try {
-        if ((window as any).Sentry) {
-          (window as any).Sentry.captureException(context instanceof Error ? context : new Error(message))
+        const sentry = getSentry()
+        if (sentry) {
+          sentry.captureException(context instanceof Error ? context : new Error(message))
         }
       } catch {
         // Silently fail if Sentry not available
@@ -153,17 +101,16 @@ export const clientLogger = {
     console.error(`[CRITICAL] ${message}`, maskedContext)
 
     // Always send critical errors to Sentry
-    if (typeof window !== 'undefined') {
-      try {
-        if ((window as any).Sentry) {
-          (window as any).Sentry.captureException(
-            context instanceof Error ? context : new Error(message),
-            { level: 'fatal' }
-          )
-        }
-      } catch {
-        // Silently fail if Sentry not available
+    try {
+      const sentry = getSentry()
+      if (sentry) {
+        sentry.captureException(
+          context instanceof Error ? context : new Error(message),
+          { level: 'fatal' }
+        )
       }
+    } catch {
+      // Silently fail if Sentry not available
     }
   },
 

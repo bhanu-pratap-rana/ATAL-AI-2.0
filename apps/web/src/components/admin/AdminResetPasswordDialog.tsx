@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { AlertCircle, CheckCircle, Loader2, X, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
+import { FORM_TIMING } from '@/lib/constants/ui-timings'
 
 interface AdminResetPasswordDialogProps {
   adminId: string
@@ -69,7 +70,7 @@ export function AdminResetPasswordDialog({
           if (onSuccess) {
             onSuccess()
           }
-        }, 1500)
+        }, FORM_TIMING.successCallback)
       } else {
         setMessage({ type: 'error', text: result.error || 'Failed to reset password' })
         toast.error(result.error || 'Failed to reset password')
@@ -163,15 +164,15 @@ export function AdminResetPasswordDialog({
         {message && (
           <div
             className={`flex gap-3 p-3 rounded-lg border mb-4 ${
-              message.type === 'success' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+              message.type === 'success' ? 'bg-success-light border-success/30' : 'bg-error-light border-error/30'
             }`}
           >
             {message.type === 'success' ? (
-              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
             ) : (
-              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-error flex-shrink-0 mt-0.5" />
             )}
-            <span className={`text-sm ${message.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+            <span className={`text-sm ${message.type === 'success' ? 'text-success' : 'text-error'}`}>
               {message.text}
             </span>
           </div>
@@ -190,7 +191,7 @@ export function AdminResetPasswordDialog({
           <Button
             onClick={handleResetPassword}
             disabled={isLoading || !newPassword || !confirmPassword}
-            className="flex-1 bg-gradient-to-r from-primary to-orange-500 hover:from-orange-600 hover:to-orange-600"
+            className="flex-1 bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary"
           >
             {isLoading ? (
               <>

@@ -32,23 +32,3 @@ export function PageTransition({ children, className }: PageTransitionProps) {
     </AnimatePresence>
   )
 }
-
-// Reduced motion variant for accessibility
-export function ReducedMotionPageTransition({ children, className }: PageTransitionProps) {
-  const pathname = usePathname()
-
-  return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={pathname}
-        className={className}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.01 }}
-      >
-        {children}
-      </motion.div>
-    </AnimatePresence>
-  )
-}

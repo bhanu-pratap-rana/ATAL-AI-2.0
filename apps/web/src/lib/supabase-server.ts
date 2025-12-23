@@ -78,6 +78,42 @@ export async function getCurrentUser() {
  * Note: Uses @supabase/supabase-js directly (not SSR) to properly bypass RLS
  * The SSR client with cookies doesn't reliably bypass RLS even with service role
  */
+/**
+ * Verify that the current user has admin or super_admin role
+ * Used by admin server actions for authorization
+ *
+ * @param functionName - Name of the calling function for logging
+ * @returns Object with authorized flag and optional error
+ */
+export async function verifyAdminAuth(functionName: string): Promise<{
+  authorized: boolean
+  user?: Awaited<ReturnType<typeof getCurrentUser>>
+  error?: { success: false; error: string }
+}> {
+  const currentUser = await getCurrentUser()
+  if (!currentUser) {
+    authLogger.warn(`[${functionName}] Unauthorized: No authenticated user`)
+    return {
+      authorized: false,
+      error: { success: false, error: 'Authentication required' },
+    }
+  }
+
+  const role = currentUser.app_metadata?.role
+  if (role !== 'admin' && role !== 'super_admin') {
+    authLogger.warn(`[${functionName}] Forbidden: User lacks admin role`, {
+      userId: currentUser.id,
+      role,
+    })
+    return {
+      authorized: false,
+      error: { success: false, error: 'Admin access required' },
+    }
+  }
+
+  return { authorized: true, user: currentUser }
+}
+
 export async function createAdminClient() {
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL

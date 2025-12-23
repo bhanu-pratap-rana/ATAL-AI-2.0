@@ -146,14 +146,14 @@ export default function AdminLoginPage() {
         <form onSubmit={handleAdminLogin} className="space-y-6">
           {/* Admin Icon - Primary Light Background */}
           <div className="flex justify-center">
-            <div className="bg-primary-light p-4 rounded-[16px] border-2 border-primary/20">
+            <div className="bg-primary-light p-4 rounded-xl border-2 border-primary/20">
               <ShieldAlert className="w-8 h-8 text-primary" />
             </div>
           </div>
 
           {/* Non-Admin Session Warning */}
           {hasNonAdminSession && (
-            <div className="bg-warning-light border border-warning rounded-[12px] p-4">
+            <div className="bg-warning-light border border-warning rounded-xl p-4">
               <p className="text-warning-dark text-sm mb-2">
                 <strong>Already logged in as teacher/student</strong>
               </p>
@@ -175,7 +175,7 @@ export default function AdminLoginPage() {
 
           {/* Error Message - Error Semantic Color */}
           {error && (
-            <div className="bg-error-light border border-error rounded-[12px] p-4">
+            <div className="bg-error-light border border-error rounded-xl p-4">
               <span className="text-error-dark text-sm">{error}</span>
             </div>
           )}
@@ -230,7 +230,7 @@ export default function AdminLoginPage() {
           </Button>
 
           {/* Security Notice - Warning Style with Primary */}
-          <div className="bg-primary-light border-l-4 border-primary p-4 rounded-[12px]">
+          <div className="bg-primary-light border-l-4 border-primary p-4 rounded-xl">
             <p className="text-sm text-primary-dark">
               <strong>🔒 Security Notice</strong>
               <br />
@@ -241,7 +241,7 @@ export default function AdminLoginPage() {
           </div>
 
           {/* Info Box - Info Semantic Color */}
-          <div className="bg-info-light border border-info rounded-[12px] p-4">
+          <div className="bg-info-light border border-info rounded-xl p-4">
             <p className="text-sm text-info-dark">
               <strong>👤 Default Admin:</strong>
               <br />

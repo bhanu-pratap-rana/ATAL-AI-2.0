@@ -1,458 +1,1589 @@
-# 🧠 SUPER-AGENT BEHAVIOR PROTOCOLS & RULES
+# 🧠 ATAL AI - COMPLETE CODEBASE ANALYSIS RULES
 
-# (Authorized MCPs: Context7, Supabase, Git, Filesystem, Memory, Sequential-Thinking, Playwright, Brave)
-
-## 1. 🛑 NO PATCHWORK & ROOT CAUSE FIRST (CRITICAL)
-
-* **Zero Patchwork Policy:** You are FORBIDDEN from suggesting "band-aid" fixes (e.g., wrapping code in `try/catch` or adding `if (data)` checks) without understanding *why* the error occurred.
-* **Root Cause Protocol:**
-
-  1. Identify the error.
-  2. Use `sequential-thinking` to trace the data flow.
-  3. Explain the *exact* reason for the failure.
-* **Ask Before Guessing:** If you lack information (e.g., you don't know the shape of an API response or an environment variable value), you MUST STOP and ASK the user for that information. **DO NOT ASSUME or HALLUCINATE data.**
-
-## 2. 📂 STRICT FILE HYGIENE & NO DUPLICATION
-
-* **No Unnecessary Files:** Do not create new files (e.g., `UserHelper.ts`, `DateUtils.ts`) if a file with similar responsibilities already exists. This causes file sprawl and confusion.
-* **Mandatory Filesystem Scan:** Before proposing a new file or function:
-
-  1. Use the `filesystem` MCP to scan the project for existing utilities or components.
-  2. If a similar logic exists, you MUST refactor or import it.
-  3. **Goal:** Zero redundancy. Logic should exist in exactly one place.
-
-## 3. 🏗️ ARCHITECTURAL INTEGRITY
-
-* **Regression Check (Git):** Before fixing a bug, use the `git` MCP to check `git diff` or history. specific code changes often cause bugs; verify if recent changes broke the logic.
-* **Schema Truth (Supabase):** Never write SQL or Supabase client code based on memory. You MUST use the `supabase` MCP to verify table columns and relationships before writing queries.
-* **Memory Usage:** Check the `memory` tool for established patterns before coding. If we established a pattern (e.g., "Use React Query for fetching"), follow it.
-
-## 4. 🧪 VERIFICATION & SELF-CORRECTION
-
-* **Test Your Work:** After implementing logic, ask: "Shall I use Playwright to verify this works?" or "Should we run a quick validation script?"
-* **Sequential Thinking:** Use the `sequential-thinking` tool to critique your own plan *before* writing code. Look for edge cases where your logic might fail.
-
-## 5. 📚 DOCUMENTATION & KNOWLEDGE
-
-* **External Docs:** If using a library (Supabase, Stripe, etc.), use `context7` to fetch the LATEST docs. Do not rely on internal training data which may be outdated.
-* **Search:** Use `brave_search` for error codes or architectural patterns, not for basic syntax guessing.
-
-## 6. 📝 CODING STANDARDS
-
-* **Strict TypeScript:** No `any`.
-* **Comments:** Explain the "Why" (business logic), not the "What" (syntax).
-* **Clean Code:** Delete unused imports and dead code immediately. Do not leave commented-out code blocks.
+> **When this file is marked, perform FULL codebase analysis using all available tools**
+> **After finding issues, ALWAYS ask user permission before making any changes**
 
 ---
 
-# Additional Project-Specific Rules for ATAL AI
+# 🚨 CRITICAL RULES
 
-These extend the general super-agent rules above and tailor them to the ATAL AI project requirements and constraints.
+## 1. ZERO PATCHWORK POLICY
+- **NEVER** apply band-aid fixes (e.g., wrapping in try/catch without understanding why)
+- **NEVER** add `if (data)` checks without understanding root cause
+- **ALWAYS** trace the data flow to find the actual problem
+- **ALWAYS** fix the root cause, not the symptom
+- **ALWAYS** follow industry best practices in all solutions
+- **ASK** the user if you don't have enough information - NEVER guess or assume
 
-## A. ✅ Authentication & Security
+### Root Cause Analysis Template:
+```
+ERROR: [What went wrong?]
+SYMPTOM: [What does user observe?]
+DATA FLOW:
+  1. User action →
+  2. Code path (file:line) →
+  3. External call →
+  4. Response →
+  5. Where it fails
+ROOT CAUSE: [Why it actually happened]
+FIX: [Solution addressing root cause]
+```
 
-1. **Auth Truth Source:** Always check Supabase `auth.users` and `public.teacher_profiles` for user role/status before granting any UI-level capabilities.
-2. **Role Elevation:** Role changes (student → teacher) must be executed only via server actions that use the `SUPABASE_SERVICE_ROLE_KEY` and must update `app_metadata.role` on the user record. Never allow the client to write `app_metadata`.
-3. **Staff PINs:** Staff PIN verification MUST happen on the server and compare against `school_staff_credentials.pin_hash` using bcrypt. Client must never receive or be able to query PIN hashes.
-4. **RLS First:** Before adding any server action that will read or modify sensitive tables, confirm RLS policies are present and tested. Use `supabase` MCP to list policies if uncertain.
+## 2. ASK BEFORE FIXING
+After identifying issues, you MUST:
+1. Present a complete list of all issues found
+2. Propose a detailed plan with specific changes
+3. **WAIT FOR USER APPROVAL** before making any changes
+4. Only proceed after explicit permission
 
-## B. ✅ Data & Schema Practices
+## 3. NO UNNECESSARY FILES
+- **NEVER** create new files unless absolutely required
+- **ALWAYS** prefer editing existing files
+- **ALWAYS** check if similar logic already exists before creating
+- **NEVER** create documentation files unless explicitly asked
+- Keep project structure clean and minimal
 
-1. **Migrations Only:** All schema changes must be expressed as migrations and committed under `apps/db/migrations/` with clear semantic names (e.g., `007_add_teacher_profiles.sql`).
-2. **No Ad-Hoc SQL:** Never modify production schema via the Supabase SQL editor without creating a matching migration file in the repo first.
-3. **Indexes:** If you add a new query that scans tables, add an index migration in the same PR.
-4. **DATABASE.md Sync:** After any database change, update `DATABASE.md` in the root directory to reflect new tables, columns, RLS policies, or functions.
+## 4. CLEAN PROJECT STRUCTURE
+```
+apps/web/src/
+├── app/
+│   ├── (public)/     → Public routes (auth pages)
+│   ├── app/          → Protected routes (dashboard)
+│   └── actions/      → Server actions ONLY
+├── components/       → Reusable UI components
+├── lib/             → Utilities, clients, helpers
+└── hooks/           → Custom React hooks
 
-## B2. ✅ DATABASE COMPLIANCE CHECK (CRITICAL)
+apps/db/migrations/   → Database migrations ONLY
+```
 
-> **Reference:** Always consult `DATABASE.md` in the root directory for current schema, RLS policies, and functions.
+## 5. BEST PRACTICES IN SOLUTIONS
+When fixing issues, ALWAYS apply these best practices:
 
-### Before Writing ANY Database-Related Code:
+### Security Best Practices (OWASP Top 10 Aligned):
+- **A01 - Broken Access Control**: Implement deny-by-default, validate permissions server-side
+- **A02 - Cryptographic Failures**: Use bcrypt (12+ rounds), encrypt sensitive data at rest/transit
+- **A03 - Injection**: Use parameterized queries, never string concatenation for SQL
+- **A04 - Insecure Design**: Use secure design patterns, threat modeling
+- **A05 - Security Misconfiguration**: Harden systems, disable unused features
+- **A06 - Vulnerable Components**: Keep dependencies updated, monitor for vulnerabilities
+- **A07 - Auth Failures**: Implement MFA, secure password policies, protect against brute force
+- **A08 - Data Integrity Failures**: Verify software integrity, use signed updates
+- **A09 - Logging Failures**: Implement comprehensive logging with structured loggers
+- **A10 - SSRF**: Validate user-supplied URLs, use allowlists
 
-1. **Table & Column Verification:**
-   - [ ] Verify table exists in `DATABASE.md`
-   - [ ] Verify ALL column names match exactly (case-sensitive)
-   - [ ] Verify column types match (uuid, text, timestamptz, etc.)
-   - [ ] Verify nullable constraints (required vs optional fields)
-   - [ ] Verify foreign key relationships
+### Additional Security Requirements:
+- Validate ALL inputs with Zod schemas
+- Use constant-time comparison for secrets
+- Mask sensitive data in logs (emails, tokens, passwords)
+- Rate limit ALL public endpoints (fail-closed on error)
+- Never expose service role keys client-side
 
-2. **RLS Policy Compliance:**
-   - [ ] Check which RLS policies apply to your operation (SELECT/INSERT/UPDATE/DELETE)
-   - [ ] Verify your code respects the policy conditions
-   - [ ] For SELECT: User can only see data they're authorized to see
-   - [ ] For INSERT: User can only insert data with their own user_id
-   - [ ] For UPDATE/DELETE: User can only modify their own data or data they manage
+### Code Quality Best Practices:
+- Keep functions small and focused (single responsibility)
+- Use descriptive variable/function names
+- Handle all error cases explicitly
+- Use TypeScript strict mode (`strict: true` in tsconfig)
+- Prefer composition over inheritance
+- DRY (Don't Repeat Yourself) - but avoid premature abstraction
+- No `any` types - use proper typing or `unknown`
 
-3. **User Type Restrictions:**
-   | User Type | Can Access |
-   |-----------|------------|
-   | Anonymous Student | Own profile, enrolled classes, own assessments |
-   | Email Student | Own profile, enrolled classes, own assessments |
-   | Teacher (with profile) | Own profile, own classes, enrolled students' data |
-   | Service Role | school_staff_credentials (server-side only) |
+### Database Best Practices (Supabase/PostgreSQL):
+- Use transactions for multi-step operations
+- Add indexes for frequently queried columns (especially FK columns)
+- Use `.maybeSingle()` for SELECT (not `.single()`)
+- Use RLS policies for row-level security
+- Use SECURITY DEFINER functions for complex auth logic
+- **Always enable RLS on ALL tables** - even "safe" tables
+- Use `(SELECT auth.uid())` pattern in RLS for performance (InitPlan caching)
+- Create separate policies for SELECT, INSERT, UPDATE, DELETE (not ALL)
+- Place SECURITY DEFINER functions in private schemas
 
-4. **Function Usage:**
-   - [ ] Use `verify_staff_pin()` for PIN verification (service_role only)
-   - [ ] Use `rotate_staff_pin()` for PIN rotation (service_role only)
-   - [ ] Use `check_email_exists()` for email validation
-   - [ ] Never call SECURITY DEFINER functions from client
+### React/Next.js Best Practices:
+- Use Server Components where possible
+- Handle loading and error states
+- Use proper form validation with `useActionState`
+- Implement proper cleanup in useEffect
+- Use proper key props in lists
+- Extract common patterns into custom hooks
+- Components and Hooks must be pure
+- Never call component functions directly
 
-### Database Tables Quick Reference:
+### Next.js Server Actions Security:
+- Treat Server Actions as PUBLIC HTTP endpoints
+- **Always** validate and sanitize all inputs
+- **Always** verify authentication inside each action
+- Use Zod `safeParse` for validation (return early on failure)
+- Return serializable error objects (not thrown exceptions)
+- Be careful with closure data (sensitive values can be exposed)
+- Use `allowedOrigins` config to prevent CSRF attacks
 
-| Table | Primary Key | Key Foreign Keys | RLS |
-|-------|-------------|------------------|-----|
-| `users` | `id` | - | ✅ |
-| `student_profiles` | `user_id` | → auth.users, → schools | ✅ |
-| `teacher_profiles` | `user_id` | → auth.users, → schools | ✅ |
-| `schools` | `id` | - | ✅ |
-| `school_staff_credentials` | `id` | → schools | ✅ (service_role only) |
-| `classes` | `id` | → users (teacher_id) | ✅ |
-| `enrollments` | `id` | → classes, → users | ✅ |
-| `assessment_sessions` | `id` | → users, → classes | ✅ |
-| `assessment_responses` | `id` | → assessment_sessions | ✅ |
+### PWA (Progressive Web App) Best Practices:
+- **Manifest**: Include all required fields (`name`, `short_name`, `icons`, `start_url`, `display`)
+- **Icons**: Provide 192x192 and 512x512 icons (both regular and maskable)
+- **Service Worker**: Register for offline functionality and caching
+- **Offline-first**: Design for offline by default, sync when online
+- **App Shell**: Cache static UI shell for instant loading
+- **Responsive**: Support all screen sizes and orientations
+- **HTTPS**: PWA requires secure context (HTTPS in production)
+- **Installability**: Meet Chrome's installability criteria
 
-### Common RLS Violations to Avoid:
+### Offline-First Design Principles:
+- Cache API responses for offline access
+- Queue mutations when offline, sync when online
+- Show clear offline/online status indicators
+- Use optimistic UI updates with rollback on failure
+- Store critical data in IndexedDB for persistence
+- Handle network timeouts gracefully (don't block UI)
 
+### Service Worker Guidelines:
+- Use `next-pwa` for automatic service worker generation
+- Configure precaching for app shell and static assets
+- Use runtime caching for API responses
+- Implement cache-first for static assets, network-first for API
+- Handle service worker updates with user notification
+- Test offline functionality before deployment
+
+### Responsive Design Best Practices (Mobile-First):
+- **Mobile-First Approach**: Base styles for mobile, enhance for larger screens using `min-width` media queries
+- **Breakpoints**: Use Tailwind's consistent breakpoints (sm: 640px, md: 768px, lg: 1024px, xl: 1280px, 2xl: 1536px)
+- **Touch Targets**: Minimum 44px (2.75rem) for all interactive elements (WCAG 2.5.5)
+- **Fluid Typography**: Use `clamp()` for responsive font sizes that scale with viewport
+- **Container Queries**: Use `@container` for component-level responsiveness (not just viewport)
+- **Safe Areas**: Support notched devices with `env(safe-area-inset-*)`
+- **Viewport Units**: Use `dvh` (dynamic viewport height) for mobile, not `vh`
+- **No Horizontal Scroll**: Content must fit within viewport width at all breakpoints
+- **Art Direction**: Use `<picture>` with `getImageProps()` for different images per breakpoint
+- **Test on Real Devices**: Don't rely solely on browser dev tools - test 320px to 1920px
+
+### Responsive Layout Patterns:
+```css
+/* ✅ CORRECT: Mobile-first with clamp() */
+padding: clamp(1rem, 5vw, 2rem);
+font-size: clamp(0.875rem, 2.5vw, 1rem);
+max-width: min(400px, 90vw);
+
+/* ✅ CORRECT: CSS Grid responsive */
+grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+
+/* ✅ CORRECT: Flex wrap for responsive */
+display: flex;
+flex-wrap: wrap;
+gap: var(--card-gap);
+
+/* ❌ WRONG: Fixed widths */
+width: 400px;  /* Use max-width instead */
+
+/* ❌ WRONG: Pixel font sizes */
+font-size: 16px;  /* Use rem or clamp() */
+```
+
+### Container Queries (Component-Level Responsive):
+```html
+<!-- ✅ CORRECT: Container queries for reusable components -->
+<div class="@container">
+  <div class="grid grid-cols-1 @md:grid-cols-2 @lg:grid-cols-3 gap-4">
+    <!-- Responds to PARENT container size, not viewport -->
+  </div>
+</div>
+
+<!-- ✅ CORRECT: Named containers for nested scenarios -->
+<div class="@container/sidebar">
+  <nav class="@container/nav">
+    <div class="@lg/sidebar:w-64 @md/nav:flex">
+      <!-- Targets specific named container -->
+    </div>
+  </nav>
+</div>
+
+<!-- ✅ CORRECT: Arbitrary container breakpoints -->
+<div class="@container">
+  <div class="hidden @[450px]:block @[800px]:flex">
+    <!-- Custom breakpoint values -->
+  </div>
+</div>
+```
+
+### Responsive Images (Next.js):
 ```typescript
-// ❌ WRONG: Trying to read other users' data
-const { data } = await supabase
-  .from('student_profiles')
-  .select('*')  // Will fail - can only see own profile or enrolled students
+// ✅ CORRECT: Responsive image with sizes prop
+import Image from 'next/image'
 
-// ✅ CORRECT: Reading own profile
+<Image
+  src={imageSrc}
+  alt="Description"
+  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+  style={{ width: '100%', height: 'auto' }}
+  fill
+/>
+
+// ✅ CORRECT: Art direction with different images per breakpoint
+import { getImageProps } from 'next/image'
+
+const { props: { srcSet: desktop } } = getImageProps({
+  width: 1440, height: 875, quality: 80, src: '/desktop.jpg'
+})
+const { props: { srcSet: mobile, ...rest } } = getImageProps({
+  width: 750, height: 1334, quality: 70, src: '/mobile.jpg'
+})
+
+<picture>
+  <source media="(min-width: 1000px)" srcSet={desktop} />
+  <source media="(min-width: 500px)" srcSet={mobile} />
+  <img {...rest} style={{ width: '100%', height: 'auto' }} />
+</picture>
+```
+
+### Fluid Typography with Tailwind:
+```typescript
+// ✅ CORRECT: Tailwind responsive text classes (mobile-first)
+<p className="text-sm md:text-base lg:text-lg">
+  Scales from small on mobile to large on desktop
+</p>
+
+// ✅ CORRECT: Typography plugin with responsive modifiers
+<article className="prose md:prose-lg lg:prose-xl">
+  {markdownContent}
+</article>
+
+// ✅ CORRECT: Custom clamp() for precise control
+<h1 style={{ fontSize: 'clamp(1.5rem, 4vw + 1rem, 3rem)' }}>
+  Fluid heading
+</h1>
+```
+
+### Touch Target Requirements:
+```typescript
+// ✅ CORRECT: 44px minimum touch target
+<button className="min-h-[2.75rem] min-w-[2.75rem]">
+  Click me
+</button>
+
+// ✅ CORRECT: Use touch-target utility class
+<Button className="touch-target">Submit</Button>
+
+// ❌ WRONG: Too small for touch
+<button className="h-8 w-8">×</button>  /* Only 32px */
+```
+
+### Safe Area Support (Notched Devices):
+```css
+/* ✅ CORRECT: Respect safe areas */
+padding-top: max(env(safe-area-inset-top, 0px), 1rem);
+padding-bottom: max(env(safe-area-inset-bottom, 0px), 1rem);
+padding-left: max(env(safe-area-inset-left, 0px), 1rem);
+padding-right: max(env(safe-area-inset-right, 0px), 1rem);
+
+/* ✅ CORRECT: Fixed bottom navigation */
+.fixed-bottom {
+  bottom: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+```
+
+### Device-Specific Considerations:
+| Device | Screen Width | Considerations |
+|--------|--------------|----------------|
+| **Phone** | < 640px | Single column, stacked buttons, 16px padding |
+| **Tablet Portrait** | 640-768px | 2 columns, side margins, 24px padding |
+| **Tablet Landscape** | 768-1024px | 2-3 columns, larger touch targets |
+| **Laptop** | 1024-1280px | 3-4 columns, hover states, 32px padding |
+| **Desktop** | > 1280px | Max-width container, full nav, 48px padding |
+
+### Responsive Component Patterns:
+```typescript
+// ✅ CORRECT: Responsive component with clamp
+export function ResponsiveCard({ children }: Props) {
+  return (
+    <div
+      style={{
+        padding: 'clamp(1rem, 4vw, 2rem)',
+        maxWidth: 'min(500px, 95vw)',
+        borderRadius: 'var(--radius-lg)',
+      }}
+    >
+      {children}
+    </div>
+  )
+}
+
+// ✅ CORRECT: Tailwind responsive classes (mobile-first)
+<div className="px-4 sm:px-6 md:px-8 lg:px-12">
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {items.map(item => <Card key={item.id} />)}
+  </div>
+</div>
+
+// ✅ CORRECT: Breakpoint range targeting
+<div className="md:max-xl:flex">
+  {/* Only applies between md (768px) and xl (1280px) */}
+</div>
+
+// ✅ CORRECT: Single breakpoint targeting
+<div className="md:max-lg:hidden">
+  {/* Hidden ONLY on md breakpoint (768px-1024px) */}
+</div>
+
+// ✅ CORRECT: Container query component
+<div className="@container bg-surface rounded-lg p-4">
+  <div className="flex flex-col @sm:flex-row @lg:gap-6 gap-2">
+    <div className="@md:w-1/3">Sidebar content</div>
+    <div className="@md:w-2/3">Main content</div>
+  </div>
+</div>
+```
+
+### Tailwind Responsive Modifiers Reference:
+| Modifier | Min-Width | CSS |
+|----------|-----------|-----|
+| `sm:` | 640px | `@media (min-width: 640px)` |
+| `md:` | 768px | `@media (min-width: 768px)` |
+| `lg:` | 1024px | `@media (min-width: 1024px)` |
+| `xl:` | 1280px | `@media (min-width: 1280px)` |
+| `2xl:` | 1536px | `@media (min-width: 1536px)` |
+| `max-sm:` | < 640px | `@media (max-width: 639px)` |
+| `max-md:` | < 768px | `@media (max-width: 767px)` |
+| `@sm:` | Container 24rem | `@container (min-width: 24rem)` |
+| `@md:` | Container 28rem | `@container (min-width: 28rem)` |
+| `@lg:` | Container 32rem | `@container (min-width: 32rem)` |
+
+---
+
+# 🚀 ANALYSIS INSTRUCTIONS
+
+When this file is marked, perform complete codebase audit:
+
+## 🔍 MULTI-LENS ANALYSIS APPROACH
+Apply these specialized perspectives for comprehensive analysis:
+
+| Lens | Focus Area | Key Questions |
+|------|------------|---------------|
+| **Architectural** | Design patterns, modularity | Is code organized? Are concerns separated? |
+| **Security** | Vulnerabilities, auth, data protection | Could this be exploited? Is data safe? |
+| **Performance** | Bottlenecks, optimization | Is this efficient? Any N+1 queries? |
+| **Business Logic** | Correctness, edge cases | Does this do what user expects? |
+| **Code Quality** | Readability, maintainability | Can others understand this? |
+| **Accessibility** | ARIA, keyboard nav, screen readers | Can everyone use this? |
+| **PWA/Offline** | Service worker, caching, installability | Does it work offline? Is it installable? |
+
+---
+
+## 1. 🗄️ DATABASE ANALYSIS
+
+### Tools to Use:
+```
+mcp__supabase__list_projects        → Get active project
+mcp__supabase__list_tables          → List all tables
+mcp__supabase__list_migrations      → Check migrations (expect 31+)
+mcp__supabase__execute_sql          → Run verification queries
+mcp__supabase__get_advisors         → Check security & performance
+Read DATABASE.md                    → Compare with actual state
+```
+
+### Verify:
+- [ ] All migrations applied
+- [ ] All 9 SECURITY DEFINER functions exist
+- [ ] All RLS policies active
+- [ ] FK indexes exist
+- [ ] DATABASE.md matches Supabase
+- [ ] Column names match exactly in code
+- [ ] Use `user_id` for profiles (not `id`)
+
+### Verification Query:
+```sql
+SELECT proname FROM pg_proc WHERE proname IN (
+  'is_teacher', 'get_teacher_student_ids', 'is_class_teacher',
+  'is_enrolled_in_class', 'get_user_enrolled_class_ids',
+  'get_teacher_class_ids', 'verify_staff_pin', 'rotate_staff_pin',
+  'check_email_exists'
+);
+-- Expected: 9 rows
+```
+
+---
+
+## 2. 🔒 SECURITY ANALYSIS
+
+### Search Patterns:
+```
+Grep: "password" → No exposure in logs/messages
+Grep: "catch\s*\(\s*\)\s*\{" → No bare catches (must log)
+Grep: "console\.(log|error)" → Use logger instead
+Grep: "SUPABASE.*KEY" → No secrets in code
+```
+
+### Verify:
+- [ ] No passwords in success/error messages
+- [ ] Rate limiting on ALL server actions
+- [ ] Rate limiter = fail-closed (deny on error)
+- [ ] Admin checks include `admin` AND `super_admin`
+- [ ] Role checks in BOTH `app_metadata` and `user_metadata`
+- [ ] Service role only via `createAdminClient()`
+
+---
+
+## 3. 🎨 THEME & STYLING CONSISTENCY
+
+### Search Patterns:
+```
+Grep: "text-purple|text-blue|text-green" → No hardcoded colors
+Grep: "#[0-9a-fA-F]{3,6}" → No hex colors
+Grep: "style=\{\{.*color" → No inline color styles
+```
+
+### Verify:
+- [ ] Uses CSS variables (`text-primary`, `bg-background`)
+- [ ] Consistent button/card/input styling
+- [ ] No hardcoded color values
+- [ ] Theme tokens used throughout
+
+---
+
+## 4. 🔧 CODE QUALITY
+
+### Commands:
+```bash
+npm run build  → Must pass with 0 errors
+```
+
+### Search Patterns:
+```
+Grep: ": any" → No any types
+Grep: "// TODO" → Incomplete work
+Grep: "console\.(log|warn|error)" → Use logger
+Grep: "catch\s*\(\s*\)\s*\{" → No bare catches
+```
+
+### Verify:
+- [ ] Build passes (0 TypeScript errors)
+- [ ] No `any` types
+- [ ] No bare catch blocks
+- [ ] No console.log in production
+- [ ] Files < 500 lines
+- [ ] No duplicate logic
+- [ ] No commented-out code
+- [ ] All imports resolve correctly
+- [ ] No unused imports/exports
+- [ ] No circular dependencies
+
+### Import/Export Patterns:
+```typescript
+// ✅ CORRECT: Named exports for utilities
+export { functionA, functionB } from './utils'
+
+// ✅ CORRECT: Default export for components
+export default function MyComponent() {}
+
+// ❌ WRONG: Importing from index when direct import is better
+import { util } from '@/lib'  // Avoid barrel exports for large modules
+
+// ❌ WRONG: Unused imports
+import { unusedFunction } from './utils'  // Remove if not used
+```
+
+---
+
+## 4.5. 🧹 DEAD CODE, DUPLICATE CODE & CODE HYGIENE
+
+### Search Patterns for Dead/Unused Code:
+```
+Grep: "^export (const|function|class|type|interface)" → Find all exports
+Grep: "// TODO|// FIXME|// HACK|// XXX" → Incomplete work markers
+Grep: "console\.(log|warn|error|debug)" → Debug statements (use logger)
+Grep: "debugger" → Debugger statements (remove before production)
+Grep: "^\s*//" followed by code → Commented-out code blocks
+Grep: "export.*\{[^}]*\}" → Check if all named exports are used
+```
+
+### Search Patterns for Duplicate Code:
+```
+Grep: Similar function signatures across files
+Grep: "async function (create|update|delete|get|fetch)" → CRUD patterns
+Grep: "useState.*useState.*useState" → Repeated state patterns (extract hook)
+Grep: "className=\".*bg-.*rounded.*p-" → Repeated Tailwind patterns (extract component)
+Grep: "if \(error\).*return.*error" → Repeated error handling (extract utility)
+```
+
+### Dead Code Detection Checklist:
+- [ ] No unused imports (TypeScript compiler catches these)
+- [ ] No unused exports (manually verify or use ts-prune)
+- [ ] No unreachable code after return/throw/break
+- [ ] No unused variables or parameters
+- [ ] No commented-out code blocks
+- [ ] No TODO/FIXME comments without tickets
+- [ ] No debugger statements
+- [ ] No console.log (use structured logger)
+- [ ] No unused CSS classes or Tailwind utilities
+- [ ] No orphaned files (files not imported anywhere)
+
+### Duplicate Code Detection Checklist:
+- [ ] No copy-pasted functions (extract to shared utility)
+- [ ] No repeated validation logic (use Zod schemas)
+- [ ] No repeated error handling (use error boundary/utility)
+- [ ] No repeated form patterns (extract form component)
+- [ ] No repeated API call patterns (extract custom hook)
+- [ ] No repeated Tailwind class combinations (extract to CSS/component)
+- [ ] No repeated type definitions (share types)
+- [ ] No similar components with minor variations (make configurable)
+
+### Code Smell Patterns to Detect:
+```typescript
+// ❌ SMELL: God component (>300 lines)
+// FIX: Break into smaller focused components
+
+// ❌ SMELL: Prop drilling (passing props >3 levels)
+// FIX: Use context or composition
+
+// ❌ SMELL: Repeated try/catch with same pattern
+// FIX: Extract error handling utility
+try { ... } catch (e) { console.error(e); return { error: 'Failed' } }
+
+// ❌ SMELL: Magic numbers/strings
+const timeout = 5000  // What is 5000?
+// FIX: Use named constants
+const AUTH_TIMEOUT_MS = 5000
+
+// ❌ SMELL: Nested ternaries
+const result = a ? (b ? c : d) : (e ? f : g)
+// FIX: Use if/else or extract to function
+
+// ❌ SMELL: Long parameter lists (>4 params)
+function doSomething(a, b, c, d, e, f) {}
+// FIX: Use options object
+function doSomething(options: DoSomethingOptions) {}
+
+// ❌ SMELL: Boolean parameters
+function fetchData(includeDeleted: boolean) {}
+// FIX: Use options object or separate functions
+function fetchData(options: { includeDeleted?: boolean }) {}
+function fetchDataWithDeleted() {}
+```
+
+### Refactoring Opportunities to Find:
+```
+Pattern: Multiple files with similar structure
+Action: Extract shared base component/hook
+
+Pattern: Repeated Supabase query patterns
+Action: Extract to shared data access layer
+
+Pattern: Similar validation across forms
+Action: Create shared Zod schemas
+
+Pattern: Repeated auth checks
+Action: Use middleware or HOC
+
+Pattern: Similar error messages
+Action: Create error constants/utility
+
+Pattern: Copy-pasted component with slight variations
+Action: Make component configurable with props
+```
+
+### Commands for Code Analysis:
+```bash
+# Find large files (potential god objects)
+find apps/web/src -name "*.tsx" -o -name "*.ts" | xargs wc -l | sort -n | tail -20
+
+# Find files with many imports (potential high coupling)
+grep -l "^import" apps/web/src/**/*.ts* | xargs -I {} sh -c 'echo "$(grep -c "^import" {}) {}"' | sort -n | tail -20
+
+# Find unused exports (requires ts-prune or manual review)
+# npx ts-prune --project tsconfig.json
+
+# Find duplicate strings (potential constants)
+grep -roh '"[^"]\{20,\}"' apps/web/src | sort | uniq -c | sort -rn | head -20
+
+# Find similar function names (potential duplicates)
+grep -roh 'function [a-zA-Z]*' apps/web/src | sort | uniq -c | sort -rn | head -20
+
+# Check for console statements
+grep -rn "console\." apps/web/src --include="*.ts" --include="*.tsx" | grep -v "logger"
+
+# Find TODO/FIXME comments
+grep -rn "TODO\|FIXME\|HACK\|XXX" apps/web/src --include="*.ts" --include="*.tsx"
+```
+
+### TypeScript Config for Dead Code Detection:
+```json
+{
+  "compilerOptions": {
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "strictNullChecks": true,
+    "strict": true
+  }
+}
+```
+
+### ESLint Rules for Code Hygiene:
+```json
+{
+  "rules": {
+    "no-unused-vars": "error",
+    "no-unreachable": "error",
+    "no-console": "warn",
+    "no-debugger": "error",
+    "no-duplicate-imports": "error",
+    "no-else-return": "warn",
+    "no-empty": "error",
+    "no-extra-boolean-cast": "error",
+    "prefer-const": "error",
+    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }]
+  }
+}
+```
+
+### Common Refactoring Actions:
+| Code Smell | Detection | Refactoring |
+|------------|-----------|-------------|
+| Duplicate validation | Same Zod schema in multiple files | Extract to `@/lib/schemas` |
+| Duplicate error handling | Same try/catch pattern | Create `withErrorHandling()` utility |
+| Duplicate form logic | Similar useForm patterns | Extract custom hook |
+| Duplicate API calls | Same Supabase queries | Create data access functions |
+| Duplicate components | Copy-pasted with variations | Make configurable with props |
+| Magic strings | Hardcoded strings repeated | Create constants file |
+| God component | >300 lines, many responsibilities | Split into focused components |
+| Prop drilling | Props passed >3 levels deep | Use React Context |
+| Callback hell | Nested .then() chains | Convert to async/await |
+
+### When to Extract vs When to Keep Inline:
+```
+EXTRACT when:
+- Logic is used in 3+ places
+- Logic is complex (>10 lines)
+- Logic has clear single responsibility
+- Logic requires testing independently
+- Logic changes together across usages
+
+KEEP INLINE when:
+- Used only 1-2 times
+- Very simple (1-3 lines)
+- Context-specific (won't be reused)
+- Extracting adds more complexity
+```
+
+---
+
+## 5. 📊 LOGIC & FUNCTIONALITY
+
+### Verify:
+- [ ] `.maybeSingle()` for SELECT queries
+- [ ] `.single()` ONLY for INSERT operations
+- [ ] Proper null/undefined handling
+- [ ] Error messages user-friendly
+- [ ] Loading states handled
+- [ ] Edge cases covered
+
+### Common Mistakes:
+```typescript
+// WRONG
+.from('table').select().single()  // Throws if no rows
+
+// CORRECT
+.from('table').select().maybeSingle()  // Returns null if no rows
+```
+
+---
+
+## 6. 🔄 DATA FLOW & SYNCHRONIZATION ANALYSIS
+
+### Critical Data Flow Patterns to Verify:
+
+**For ALL User Roles, verify data flows correctly:**
+
+| Role | Data Source | Expected Result |
+|------|-------------|-----------------|
+| **Student** | enrollments → classes → teacher_profiles | See enrolled classes with teacher name/email |
+| **Student** | student_profiles | See own profile data |
+| **Teacher** | classes → enrollments → student_profiles | See enrolled students with name, roll, class |
+| **Teacher** | teacher_profiles | See own profile and school info |
+| **Admin** | schools, teacher_profiles, student_profiles, enrollments | See aggregate counts and metrics |
+| **Super Admin** | admin_users, all above | Full access to all data + admin management |
+
+### Search Patterns for Data Flow Issues:
+```
+Grep: "Bearer.*apiKey|Bearer.*anon" → Raw REST API calls (should use Supabase client)
+Grep: "fetch\(.*rest/v1" → Direct REST calls bypassing Supabase client
+Grep: "Authorization.*Bearer" → Check if using user token vs anon key
+Grep: "\.from\('enrollments'\)" → Enrollment queries (verify RLS works)
+Grep: "\.from\('student_profiles'\)" → Student profile queries
+Grep: "\.from\('teacher_profiles'\)" → Teacher profile queries
+```
+
+### Verify API Authentication Pattern:
+```typescript
+// ❌ WRONG: Uses anon key - RLS sees anonymous user
+const response = await fetch(
+  `${baseUrl}/rest/v1/enrollments?student_id=eq.${userId}`,
+  { headers: { 'Authorization': `Bearer ${apiKey}` } }  // apiKey is anon key!
+)
+
+// ✅ CORRECT: Uses Supabase client with user session
+const supabase = await createClient()  // Has user's JWT token
 const { data } = await supabase
-  .from('student_profiles')
+  .from('enrollments')
   .select('*')
-  .eq('user_id', userId)  // Must match auth.uid()
-
-// ❌ WRONG: Client trying to access staff credentials
-const { data } = await supabase
-  .from('school_staff_credentials')
-  .select('*')  // Will return 0 rows - service_role only
-
-// ✅ CORRECT: Use server action with service role
-const adminClient = createAdminClient()
-const { data } = await adminClient
-  .from('school_staff_credentials')
-  .select('*')
-
-// ❌ WRONG: Anonymous user trying to create a class
-const { data } = await supabase
-  .from('classes')
-  .insert({ name: 'My Class', teacher_id: userId })
-  // Will fail - requires teacher_profiles existence
-
-// ✅ CORRECT: Only teachers with profiles can create classes
-// First ensure user has teacher_profile, then create class
+  .eq('student_id', userId)
 ```
 
-### Profile Field Requirements:
+### Data Flow Checklist by User Role:
 
-**student_profiles (Required for all students):**
-- `user_id` (required) - From auth.uid()
-- `name` (required) - Student's full name
-- `gender` (required) - 'male' or 'female'
-- `phone` (optional) - For records only
-- `roll_number` (optional)
-- `school_id` OR `school_name` (optional)
-- `class_name` (optional) - e.g., "Class 5"
-- `village` (optional)
+**Student Data Flow:**
+- [ ] Student sees list of enrolled classes
+- [ ] Each class shows teacher name (not just email)
+- [ ] Each class shows subject if available
+- [ ] Student can join class with code + PIN
+- [ ] Student cannot join same class twice
+- [ ] After joining, class appears immediately
+- [ ] Student profile shows correct school, class, roll number
 
-**teacher_profiles (Required for teachers):**
-- `user_id` (required) - From auth.uid()
-- `name` (required)
-- `school_id` (required) - Must reference valid school
-- `school_code` (required)
-- `phone` (optional)
-- `subject` (optional)
-- `gender` (optional) - 'male' or 'female'
-- `village` (optional)
+**Teacher Data Flow:**
+- [ ] Teacher sees list of their classes
+- [ ] Each class shows enrolled student count
+- [ ] Class detail shows roster with student names
+- [ ] Roster shows roll number column
+- [ ] Roster shows class/grade column
+- [ ] Teacher can invite students
+- [ ] New enrollments appear immediately
+- [ ] Teacher profile shows correct school info
 
-## C. ✅ UI & UX Consistency
+**Admin Data Flow:**
+- [ ] Dashboard shows total schools count
+- [ ] Dashboard shows total teachers count
+- [ ] Dashboard shows total students count
+- [ ] Dashboard shows active/inactive PIN stats
+- [ ] PIN management shows all schools
+- [ ] Admin list shows all admins
+- [ ] Can create/delete admins (super_admin only)
 
-1. **Design Tokens:** Use the shared `COLORS` and `GRADIENTS` object stored in `packages/ui/theme.ts` (if present). If not present, add to `packages/ui` and reuse across components.
-2. **Accessibility:** All new components must support keyboard navigation, `aria-*` attributes, and `prefers-reduced-motion`.
-3. **Animations:** Use Framer Motion for page and key interactions. Respect reduced-motion users.
+**Super Admin Data Flow:**
+- [ ] All admin capabilities plus:
+- [ ] Can manage other admins
+- [ ] Can see system-wide metrics
+- [ ] Full access to admin management
 
-## D. ✅ Testing & CI
+### Common Data Flow Issues:
 
-1. **Playwright First:** For any critical user path (login, create class, join class, take assessment), add at least one Playwright E2E test.
-2. **Unit Coverage:** New server actions require unit-style tests (integration via test database), even if brief.
-3. **Pre-merge Checks:** PRs must pass `npm run lint`, `npm run test`, and `npm run build` before merge.
+| Issue | Symptom | Root Cause | Fix |
+|-------|---------|------------|-----|
+| Empty list despite data exists | "No items" when DB has rows | Wrong auth token (anon vs user) | Use Supabase client |
+| RLS blocking query | Query returns empty array | Policy condition fails | Check `auth.uid()` matches |
+| Duplicate records | Same item appears twice | Missing unique check or RLS blocks check | Use SECURITY DEFINER function |
+| Stale data | Old data shows after update | Missing `revalidatePath()` | Add revalidation |
+| Missing related data | Class shows but no teacher name | Wrong JOIN or FK not fetched | Fix SELECT query |
+| Partial data | Some fields null | RLS blocks related table | Add cross-table RLS policy |
 
-## E. ✅ Cursor Agent Behavior
-
-1. **Agent Role Mapping:** When issuing tasks to specific agents (Claude Code, Cursor DB, Codex), include:
-
-   * Goal: one-sentence outcome
-   * Input: exact file paths or DB names
-   * Expected output: file created / migration applied / PR opened
-   * Validation: Playwright test name or SQL query to verify
-2. **Idempotency:** Agents must write idempotent code. If a function writes DB seed data, it must be safe to re-run.
-
----
-
-# Operational Procedures
-
-## 1. Branch & PR Workflow
-
-* Branch naming: `feature/<short-desc>` or `fix/<short-desc>`.
-* PR title: `Type: Short description` (e.g., `Add: Teacher registration flow`).
-* PR body must include: what changed, why, how to test locally (commands), and risk assessment.
-* Always request at least one reviewer before merging.
-
-## 2. Database Migration Process
-
-1. Create SQL migration in `apps/db/migrations/` with timestamp prefix.
-2. Run `supabase db diff` locally and `supabase db push` to staging.
-3. Add migration to PR and include `psql` snippet for rollback.
-4. After merge, run migration in production during a maintenance window.
-
-## 3. Secrets & Env
-
-* `.env.example` in repo must list required env vars without values.
-* Never store `SUPABASE_SERVICE_ROLE_KEY` in `.env` committed to Git. Use Vercel/Netlify env UI.
-* If a secret is rotated, update the `.env.example` comment and notify the team via Slack.
-
-## 4. Incident Response
-
-* If production RLS or auth breaks, follow these steps:
-
-  1. Immediately open a PR with the rollback migration.
-  2. Notify stakeholders (Slack/Email) with incident tag.
-  3. Run Playwright smoke tests after rollback.
-
----
-
-# Sequential Thinking Checklist (Pre-change)
-
-**REQUIRED BEFORE EVERY COMMIT** - Expected time: 10-15 minutes
-
-## Phase 1: Understand the Problem (Root Cause)
-
-Before writing ANY code:
-
-1. **Root Cause Analysis** - Use this template for EVERY change:
-   ```
-   ERROR: [What went wrong?]
-   SYMPTOM: [What does user observe?]
-   DATA FLOW TRACE:
-     1. User action: [What did they do?]
-     2. Code path: [src/file.ts → Function → Line #]
-     3. External dependency: [API call/DB query/etc]
-     4. Response: [What was returned?]
-     5. Where it failed: [Exact location]
-   ROOT CAUSE: [Why it actually happened - NOT just what]
-   FIX: [Solution addressing root cause, not symptom]
-   TEST: [How to verify fix works]
-   ```
-
-2. **Problem Verification**
-   - [ ] Reproduced the issue locally
-   - [ ] Traced the data flow end-to-end
-   - [ ] Identified exact line of code causing issue
-   - [ ] Confirmed this is ROOT CAUSE, not a symptom
-   - [ ] Checked if similar issues exist elsewhere
-
-## Phase 2: Code Review Before Writing
-
-3. **Similarity Check**
-   ```bash
-   grep -r "similar_pattern" src/ --include="*.ts" --include="*.tsx"
-   ```
-   - [ ] Searched for existing logic
-   - [ ] Found existing patterns to follow
-   - [ ] Confirmed can't reuse existing code
-   - [ ] Documented why reuse wouldn't work
-
-4. **Architecture Check**
-   - [ ] Does this fit existing architecture?
-   - [ ] Are there existing utilities I should use?
-   - [ ] Does this require changes to multiple files?
-   - [ ] Am I following established patterns?
-
-5. **For Auth/RLS Changes - SPECIAL REQUIREMENTS**
-   - [ ] `git log --oneline -- src/lib/auth* src/app/actions/auth* | head -10`
-   - [ ] Check Supabase dashboard for current RLS policies
-   - [ ] Review auth-constants.ts for all constants
-   - [ ] Draft Playwright test BEFORE writing code
-   - [ ] Verify backward compatibility
-   - [ ] Test with Supabase (not mocks)
-
-6. **For Database Changes - MIGRATIONS REQUIRED**
-   - [ ] Created migration file (NOT ad-hoc SQL)
-   - [ ] Migration includes UP and DOWN (rollback)
-   - [ ] Tested migration rollback locally: `supabase db reset`
-   - [ ] No data loss from migration
-   - [ ] Indexed new filter columns
-   - [ ] RLS policies exist on new tables
-   - [ ] Updated `DATABASE.md` with new schema/policies
-
-7. **DATABASE COMPLIANCE CHECK (For ALL DB-related code)**
-   - [ ] Read `DATABASE.md` before writing any query
-   - [ ] Verified table name exists exactly as documented
-   - [ ] Verified ALL column names match (no typos)
-   - [ ] Verified column types match expected values
-   - [ ] Checked RLS policies for the operation type (SELECT/INSERT/UPDATE/DELETE)
-   - [ ] Confirmed user type can perform this operation
-   - [ ] For teachers: Verified teacher_profiles existence check
-   - [ ] For students: Verified enrollment or self-ownership check
-   - [ ] For service operations: Using createAdminClient()
-   - [ ] No hardcoded IDs or UUIDs
-   - [ ] Foreign key references are valid
-
-## Phase 3: Validation & Error Handling
-
-8. **Input Validation**
-   - [ ] All user inputs validated
-   - [ ] Email: format + domain + typo detection + disposable check
-   - [ ] Password: length + character variety + no patterns
-   - [ ] Phone: format + country code validation
-   - [ ] Used validation functions (not inline checks)
-
-9. **Error Handling**
-   - [ ] No bare try/catch blocks
-   - [ ] All errors logged with context
-   - [ ] User-facing errors are friendly
-   - [ ] Error messages are actionable (tell user what to do)
-
-## Phase 4: Testing Requirements
-
-10. **Unit Tests**
-   ```bash
-   npm run test
-   ```
-   - [ ] Tests for happy path
-   - [ ] Tests for edge cases (null, undefined, empty, 0, false)
-   - [ ] Tests for errors and boundary values
-   - [ ] Min coverage: normal + error + edge case
-
-11. **Integration/E2E Tests**
-    - [ ] For critical flows (signup, login, join class): Playwright test
-    - [ ] Test full user journey
-    - [ ] Test error scenarios
-    - [ ] Test mobile viewport
-
-12. **Manual Testing**
-    - [ ] Tested in browser (Chrome, Firefox, Safari)
-    - [ ] Tested on mobile (iOS + Android)
-    - [ ] Tested with real Supabase (not mocks)
-
-## Phase 5: Security Checklist
-
-13. **Authentication & Authorization**
-    - [ ] No passwords logged/exposed
-    - [ ] No sensitive data in URL
-    - [ ] Session tokens refreshed properly
-    - [ ] RLS policies match auth flow
-    - [ ] Users can't access others' data
-
-14. **Secrets & Env**
-    - [ ] No secrets in code
-    - [ ] No secrets in git history
-    - [ ] `.env` file in `.gitignore`
-    - [ ] Service role key only in Vercel (not .env)
-
-## Phase 6: Code Quality
-
-15. **Linting & Types**
-    ```bash
-    npm run lint          # 0 errors
-    npm run type-check    # 0 errors
-    npm run test          # All pass
-    npm run build         # 0 errors
-    ```
-    - [ ] No ESLint errors
-    - [ ] No implicit `any` types
-    - [ ] No unused imports
-    - [ ] No console.log in production
-
-16. **Code Style**
-    - [ ] Follows existing patterns
-    - [ ] Clear variable names
-    - [ ] Comments explain WHY not WHAT
-    - [ ] Functions < 50 lines
-    - [ ] Files < 500 lines
-
-## Phase 7: Git & Deployment
-
-17. **Pre-push Verification**
-    ```bash
-    git status
-    git diff --cached
-    npm run lint && npm run test && npm run build
-    ```
-    - [ ] Only intended files staged
-    - [ ] No debug code committed
-    - [ ] No .env files committed
-    - [ ] Commit message clear and descriptive
-
-18. **Commit Message Format**
-    ```
-    [type]: [description]
-
-    [detailed explanation]
-
-    Fixes: #[issue-number]
-    Testing: [how to test]
-    ```
-    Types: feat, fix, refactor, test, docs, chore, perf
-
-19. **Core MCPs Required Before Commit**
-    - [ ] `git log --oneline` — find related commits
-    - [ ] `filesystem` search for existing utilities to reuse
-    - [ ] `supabase` MCP: verify schema and RLS policies
-    - [ ] `memory` MCP: check established patterns
-    - [ ] Draft Playwright smoke test for critical paths
-    - [ ] **DATABASE.md compliance check** — verify code matches documented schema
-
-20. **DATABASE.md Sync Check**
-    - [ ] If schema changed: Updated `DATABASE.md` tables section
-    - [ ] If RLS changed: Updated `DATABASE.md` policies section
-    - [ ] If functions changed: Updated `DATABASE.md` functions section
-    - [ ] If migration added: Updated `DATABASE.md` migration history
-
-# Example Agent Prompt Template (for Cursor)
-
+### Data Flow Debug Steps:
 ```
-Agent: Claude Code
-Goal: Implement server action `verifyTeacher()`
-Input:
- - File: apps/web/src/app/actions/teacher-onboard.ts
- - DB tables: public.schools, public.school_staff_credentials
- - Supabase Admin client: use createAdminClient()
-Expected Output:
- - server action that verifies school code, verifies bcrypt PIN, creates teacher_profile, sets app_metadata.role='teacher'
- - returns structured result { success: boolean, error?: string }
-Validation:
- - Playwright test `teacher-registration.spec.ts` should pass
+1. Identify the query location (file:line)
+2. Check if using Supabase client vs raw fetch
+3. Verify RLS policy allows the operation
+4. Check if auth.uid() returns expected user
+5. Verify foreign key relationships work
+6. Check if SECURITY DEFINER function needed
+7. Verify revalidatePath() called after mutations
+```
+
+### SECURITY DEFINER Functions for Data Flow:
+
+Use SECURITY DEFINER when:
+- Teacher needs to read enrolled students (cross-table RLS)
+- Checking for duplicate enrollment before insert
+- Aggregating counts across tables
+- Any query that needs to bypass RLS for legitimate reasons
+
+```sql
+-- Example: Safe enrollment with duplicate check
+CREATE FUNCTION safe_enroll_student(p_class_id uuid, p_student_id uuid)
+RETURNS jsonb
+SECURITY DEFINER
+SET search_path = public
+LANGUAGE plpgsql AS $$
+BEGIN
+  -- Check exists (bypasses RLS)
+  IF EXISTS (SELECT 1 FROM enrollments WHERE class_id = p_class_id AND student_id = p_student_id) THEN
+    RETURN jsonb_build_object('success', false, 'error', 'Already enrolled');
+  END IF;
+
+  -- Insert new enrollment
+  INSERT INTO enrollments (class_id, student_id) VALUES (p_class_id, p_student_id);
+
+  RETURN jsonb_build_object('success', true);
+END;
+$$;
 ```
 
 ---
 
-# Naming & Style Conventions
+## 7. 🔀 BROKEN LOGIC, INCONSISTENCIES & FLOW ANALYSIS
 
-* TypeScript files: `kebab-case` under `src/` for components and `snake_case` for server SQL files.
-* Server actions: `apps/web/src/app/actions/*.ts`.
-* UI components: `apps/web/src/components/*`.
-* Exports: default export only for React components, named exports for utilities.
-* No `console.log` in production; use structured logging via `logger.debug/info/error`.
+### Search Patterns for Broken Routes/Redirects:
+```
+Grep: "redirect\('[^']+'\)" → Check all redirect targets exist
+Grep: "href=\"/[^\"]+\"" → Check all Link hrefs exist
+Grep: "router\.push\(" → Check all programmatic navigation targets
+Grep: "Link.*href=" → Verify Link component destinations
+```
+
+### Verify Redirect Consistency:
+- [ ] All `redirect()` targets exist as actual routes
+- [ ] Student pages redirect to `/student/start` (not `/login`)
+- [ ] Teacher pages redirect to `/teacher/start` (not `/login`)
+- [ ] Admin pages redirect to `/admin/login` (not `/login`)
+- [ ] No redirects to non-existent routes like `/login`
+
+### Search Patterns for Role Check Consistency:
+```
+Grep: "app_metadata\?\.role" → Role checks via app_metadata
+Grep: "user_metadata\?\.role" → Role checks via user_metadata (legacy)
+Grep: "role === 'admin'" → Check includes super_admin too
+Grep: "isTeacher|isAdmin|isSuperAdmin" → Role boolean patterns
+```
+
+### Verify Role Access Patterns:
+- [ ] All role checks use `app_metadata?.role` (primary source)
+- [ ] Admin checks include BOTH `admin` AND `super_admin`
+- [ ] Teacher pages allow `teacher`, `admin`, and `super_admin`
+- [ ] Consistent pattern across all protected pages
+- [ ] No pages checking only `user_metadata` for roles
+
+### Common Role Check Patterns:
+```typescript
+// ✅ CORRECT: Check app_metadata for all admin-level roles
+const role = user.app_metadata?.role
+const isTeacherOrAdmin = role === 'teacher' || role === 'admin' || role === 'super_admin'
+
+// ✅ CORRECT: Admin-only check
+const isAdmin = role === 'admin' || role === 'super_admin'
+
+// ❌ WRONG: Missing super_admin
+const isAdmin = role === 'admin'  // Misses super_admin!
+
+// ❌ WRONG: Using user_metadata instead of app_metadata
+const role = user.user_metadata?.role  // Not authoritative!
+```
+
+### Search Patterns for Flow Issues:
+```
+Grep: "getCurrentUser|getUser" → Auth flow entry points
+Grep: "if \(!user\)" → Auth guards
+Grep: "\.then\(.*\.then\(" → Nested promises (should be async/await)
+Grep: "await.*await.*await" → Sequential awaits (can parallelize?)
+```
+
+### Verify Authentication Flow:
+- [ ] All protected pages check `user` before rendering
+- [ ] Consistent auth check pattern (`if (!user) redirect(...)`)
+- [ ] No pages with missing auth guards
+- [ ] Auth redirects go to appropriate login pages by user type
+
+### Search Patterns for Data Flow Issues:
+```
+Grep: "useState.*null" → Check for proper null handling
+Grep: "data\?" → Optional chaining (verify data can be null)
+Grep: "error\s*\|\|" → Error fallback patterns
+Grep: "success.*false.*error" → Action error responses
+```
+
+### Verify Data Consistency:
+- [ ] Server actions return consistent `{ success, data?, error? }` shape
+- [ ] Error messages are user-friendly (no technical jargon)
+- [ ] Loading states handled before data available
+- [ ] No assumptions about data existence without checks
+
+### Search Patterns for Import/Export Issues:
+```
+Grep: "import.*from.*'" → Check imports resolve
+Grep: "export (default |async )?function" → Exported functions
+Bash: npm run build → Catches unresolved imports
+```
+
+### Verify Import Consistency:
+- [ ] No unused imports (run build to catch)
+- [ ] No circular dependencies
+- [ ] Consistent import paths (`@/` alias used)
+- [ ] No imports from deleted/moved files
+
+### Flow Analysis Checklist:
+```
+User Journey: Student Sign-In
+1. /student/start → Sign in form
+2. Success → /app/dashboard
+3. Failure → Error message, stay on page
+4. Already auth'd → Redirect to dashboard
+
+User Journey: Teacher Sign-In
+1. /teacher/start → Sign in form
+2. Success → /app/teacher/classes
+3. Failure → Error message, stay on page
+4. Already auth'd → Redirect to classes
+
+User Journey: Protected Page Access
+1. /app/* without auth → Redirect to /student/start or /teacher/start
+2. /app/teacher/* without teacher role → Redirect to /app/dashboard
+3. /admin/* without admin role → Redirect to /admin/login
+```
+
+### Common Flow Issues to Check:
+| Issue | Symptom | Fix |
+|-------|---------|-----|
+| Redirect to `/login` | 404 error | Use `/student/start` or `/teacher/start` |
+| Missing role check | Unauthorized access | Add `app_metadata.role` check |
+| Inconsistent role check | Some admins blocked | Include `admin` AND `super_admin` |
+| Wrong redirect target | User confusion | Match redirect to user type |
+| Missing auth guard | Data leak | Add `if (!user) redirect()` |
+| Stale imports | Build failure | Remove unused imports |
 
 ---
 
-# Approval & Governance
+## 7. ♿ ACCESSIBILITY
 
-* Major architectural changes need 2 approvals (1 dev lead + 1 security lead).
-* Changes to authentication/RLS require an explicit security review and a staging deploy with smoke tests.
+### Search Patterns:
+```
+Grep: "<button" → Should have text or aria-label
+Grep: "<input" → Should have associated label
+```
+
+### Verify:
+- [ ] All buttons have aria-label or text
+- [ ] All inputs have labels
+- [ ] Keyboard navigation works
+- [ ] Focus states visible
 
 ---
 
-# Extension Hooks (for future automation)
+## 8. 📱 RESPONSIVE DESIGN ANALYSIS
 
-1. **Auto-checker:** Add a CI job that runs `supabase` MCP queries to ensure critical RLS policies exist.
-2. **Agent Linter:** Build a quick script that validates agent prompts for the required fields (Goal/Input/Expected/Validation) before running.
-3. **Migration Linter:** CI job that checks for `-- TODO` or commented-out SQL in migration files.
-4. **DATABASE.md Validator:** CI job that compares `DATABASE.md` against actual Supabase schema and fails if out of sync.
-5. **RLS Policy Checker:** Pre-commit hook that verifies new queries comply with documented RLS policies in `DATABASE.md`.
+### Search Patterns:
+```
+Grep: "width:\s*\d+px" → Fixed pixel widths (should be responsive)
+Grep: "height:\s*\d+px" → Fixed pixel heights (check if necessary)
+Grep: "font-size:\s*\d+px" → Pixel font sizes (use rem or clamp)
+Grep: "h-\d(?!\d)" → Small fixed heights (check touch targets)
+```
+
+### Verify:
+- [ ] All buttons/inputs have min 44px touch targets
+- [ ] Uses CSS variables for spacing (`var(--page-padding-x)`)
+- [ ] Uses `clamp()` for fluid typography
+- [ ] No fixed widths that break on mobile
+- [ ] Grid/flex layouts are responsive
+- [ ] Safe area insets for notched devices
+- [ ] Test on 320px width (smallest phone)
+- [ ] Test on 1920px width (desktop)
+
+### Responsive Breakpoint Verification:
+```
+Phone (< 640px):
+- [ ] Single column layouts
+- [ ] Full-width buttons
+- [ ] Stacked form fields
+- [ ] 16px base padding
+
+Tablet (640-1024px):
+- [ ] 2-column grids where appropriate
+- [ ] Side-by-side buttons
+- [ ] 24px base padding
+
+Desktop (> 1024px):
+- [ ] 3-4 column grids
+- [ ] Max-width containers
+- [ ] Hover states visible
+- [ ] 32-48px base padding
+```
 
 ---
+
+## 9. 📱 PWA ANALYSIS
+
+### Files to Check:
+```
+apps/web/public/manifest.json  → PWA manifest
+apps/web/next.config.ts        → next-pwa configuration
+apps/web/public/*.png          → App icons
+```
+
+### Verify Manifest:
+- [ ] `name` and `short_name` defined
+- [ ] `start_url` set to "/"
+- [ ] `display` set to "standalone"
+- [ ] Icons: 192x192, 512x512 (both regular and maskable)
+- [ ] `theme_color` and `background_color` match app theme
+- [ ] `shortcuts` configured for quick actions
+
+### Verify Service Worker:
+- [ ] Service worker registered on app load
+- [ ] Precaching configured for app shell
+- [ ] Runtime caching for API endpoints
+- [ ] Offline fallback page exists
+- [ ] Cache versioning strategy in place
+
+### Verify Offline Functionality:
+- [ ] App shell loads when offline
+- [ ] Cached data displays when offline
+- [ ] Clear offline indicator shown to user
+- [ ] Forms queue submissions when offline
+- [ ] Graceful error handling for failed requests
+
+### Verify Installability:
+- [ ] Manifest link in HTML head
+- [ ] Valid manifest.json (test with Lighthouse)
+- [ ] All icons present and correct size
+- [ ] HTTPS enabled (production)
+- [ ] Service worker registered
+
+### PWA Commands:
+```bash
+# Test with Lighthouse
+npx lighthouse http://localhost:3000 --view --preset=desktop
+
+# Check manifest
+curl http://localhost:3000/manifest.json | jq .
+```
+
+---
+
+## 10. 📁 FILE STRUCTURE
+
+### Verify:
+- [ ] No duplicate utility functions
+- [ ] No orphaned/unused files
+- [ ] Server actions in actions/ only
+- [ ] Components properly organized
+- [ ] No unnecessary new files created
+
+---
+
+## 11. 📄 DOCUMENTATION SYNC
+
+### Verify:
+- [ ] DATABASE.md matches Supabase
+- [ ] PROJECT_STATUS_REPORT.md current
+- [ ] MANUAL_TESTING_GUIDE.md current
+- [ ] Migration count correct
+
+---
+
+# 📋 ISSUE PRIORITIES
+
+| Priority | Category | Examples |
+|----------|----------|----------|
+| P0-CRITICAL | Security | Password exposure, missing auth |
+| P0-CRITICAL | Breaking | Build fails, crashes |
+| P1-HIGH | Logic | Wrong behavior, broken flows |
+| P1-HIGH | Flow Issues | Broken redirects, missing auth guards |
+| P1-HIGH | Database | Missing columns, wrong queries |
+| P1-HIGH | Dead Code | Unreachable code, broken imports |
+| P2-MEDIUM | Role Consistency | Missing super_admin checks |
+| P2-MEDIUM | Code Quality | Any types, bare catches |
+| P2-MEDIUM | Duplicate Code | Copy-pasted logic, repeated patterns |
+| P2-MEDIUM | Code Smells | God components, magic numbers |
+| P2-MEDIUM | Theme | Hardcoded colors |
+| P2-MEDIUM | Accessibility | Missing aria labels |
+| P3-LOW | Unused Code | Unused exports, orphaned files |
+| P3-LOW | Documentation | Outdated docs |
+
+---
+
+# ✅ OUTPUT FORMAT
+
+After analysis, provide:
+
+## 1. Issue Summary Table
+```
+| # | Issue | Category | Priority | File |
+|---|-------|----------|----------|------|
+| 1 | ... | Security | P0 | path/to/file.ts |
+```
+
+## 2. Root Cause Analysis (for each issue)
+```
+ERROR: [Description]
+ROOT CAUSE: [Why this happened]
+FIX: [Solution addressing root cause - NOT a patch]
+```
+
+## 3. Proposed Fix Plan
+For each issue, explain:
+- What's wrong
+- WHY it's wrong (root cause)
+- How to fix it properly
+- Which file(s) to modify
+
+## 4. Ask for Permission
+```
+🔔 I found X issues. Here's my proposed plan:
+
+1. [Fix description - addressing root cause]
+2. [Fix description - addressing root cause]
+...
+
+Do you want me to proceed with these fixes?
+```
+
+## 5. Wait for User Response
+**DO NOT** make any changes until user says yes.
+
+## 6. After Fixes Applied
+- Run `npm run build` to verify 0 errors
+- Update documentation if schema/behavior changed
+- Report what was fixed and verify success
+
+---
+
+# 🔧 ESTABLISHED PATTERNS
+
+## Supabase Queries:
+```typescript
+// ✅ CORRECT: SELECT with maybeSingle
+.from('profiles').select().eq('user_id', id).maybeSingle()
+
+// ✅ CORRECT: INSERT with single
+.from('classes').insert({...}).select().single()
+
+// ❌ WRONG: SELECT with single (throws on no rows)
+.from('profiles').select().single()
+```
+
+## Supabase Error Handling:
+```typescript
+// ✅ CORRECT: Check error object before using data
+const { data, error } = await supabase.from('table').select()
+
+if (error) {
+  serverLogger.error('Query failed', { error: error.message, code: error.code })
+  return { success: false, error: 'Failed to fetch data' }
+}
+
+// Now safe to use data
+return { success: true, data }
+```
+
+## Server Action Pattern:
+```typescript
+'use server'
+
+import { z } from 'zod'
+
+const Schema = z.object({
+  email: z.string().email('Invalid email'),
+  name: z.string().min(1, 'Name required'),
+})
+
+export async function createUser(formData: FormData) {
+  // 1. Validate inputs with Zod
+  const validatedFields = Schema.safeParse({
+    email: formData.get('email'),
+    name: formData.get('name'),
+  })
+
+  // 2. Return early if validation fails
+  if (!validatedFields.success) {
+    return {
+      success: false,
+      errors: validatedFields.error.flatten().fieldErrors,
+    }
+  }
+
+  // 3. Check authentication
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, error: 'Not authenticated' }
+  }
+
+  // 4. Perform action with validated data
+  const { data, error } = await supabase
+    .from('users')
+    .insert(validatedFields.data)
+    .select()
+    .single()
+
+  if (error) {
+    serverLogger.error('Insert failed', error)
+    return { success: false, error: 'Failed to create user' }
+  }
+
+  return { success: true, data }
+}
+```
+
+## Client Form with useActionState:
+```typescript
+'use client'
+
+import { useActionState } from 'react'
+import { createUser } from '@/app/actions'
+
+const initialState = { message: '', errors: {} }
+
+export function SignupForm() {
+  const [state, formAction, pending] = useActionState(createUser, initialState)
+
+  return (
+    <form action={formAction}>
+      <input type="email" name="email" required />
+      {state?.errors?.email && (
+        <p className="text-destructive">{state.errors.email}</p>
+      )}
+      <button disabled={pending}>
+        {pending ? 'Submitting...' : 'Sign up'}
+      </button>
+      {state?.message && <p aria-live="polite">{state.message}</p>}
+    </form>
+  )
+}
+```
+
+## Error Handling:
+```typescript
+// ✅ CORRECT
+} catch (error) {
+  clientLogger.error('Context', error instanceof Error ? error : { error })
+  return { success: false, error: 'User-friendly message' }
+}
+
+// ❌ WRONG: Bare catch (patchwork)
+} catch (error) {
+  return { error: 'Failed' }
+}
+```
+
+## Role Checking:
+```typescript
+// ✅ CORRECT: Check both locations
+const isAdmin =
+  user?.app_metadata?.role === 'admin' ||
+  user?.app_metadata?.role === 'super_admin'
+
+// ❌ WRONG: Only check one
+const isAdmin = user?.app_metadata?.role === 'admin'
+```
+
+## Theme/Styling:
+```typescript
+// ✅ CORRECT
+className="text-primary bg-background"
+
+// ❌ WRONG
+className="text-purple-500"
+style={{ color: '#8b5cf6' }}
+```
+
+## RLS Policy Patterns (PostgreSQL):
+```sql
+-- ✅ CORRECT: Use (SELECT auth.uid()) for performance (InitPlan caching)
+CREATE POLICY "users_own_data" ON profiles
+FOR SELECT USING ((SELECT auth.uid()) = user_id);
+
+-- ❌ WRONG: Direct function call (evaluated for each row)
+CREATE POLICY "users_own_data" ON profiles
+FOR SELECT USING (auth.uid() = user_id);
+
+-- ✅ CORRECT: SECURITY DEFINER function for complex auth
+CREATE FUNCTION private.has_role(role_name text)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM roles_table
+    WHERE (SELECT auth.uid()) = user_id AND role = role_name
+  );
+END;
+$$;
+
+-- Use in policy
+CREATE POLICY "admin_access" ON sensitive_data
+FOR ALL USING ((SELECT private.has_role('admin')));
+```
+
+## TypeScript Strict Mode Config:
+```json
+{
+  "compilerOptions": {
+    "strict": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true
+  }
+}
+```
+
+---
+
+# 🛠️ MCP TOOLS REFERENCE
+
+| Tool | Use For |
+|------|---------|
+| `mcp__supabase__*` | Database verification |
+| `mcp__context7__*` | Library docs lookup |
+| `Glob` | Find files by pattern |
+| `Grep` | Search code content |
+| `Read` | Read file contents |
+| `Bash` | Run build/test commands |
+| `Task(Explore)` | Explore codebase |
+| `WebSearch` | Find solutions, best practices |
+
+## 🎯 CONTEXT-AWARE ANALYSIS
+When analyzing code:
+1. **Understand the full context** - Don't just look at the diff, understand dependencies
+2. **Trace impact** - How does this change affect other parts of the codebase?
+3. **Check usage patterns** - How is this function/component used elsewhere?
+4. **Verify conventions** - Does it follow existing patterns in this codebase?
+
+---
+
+# 📊 CURRENT PROJECT STATUS
+
+| Metric | Current |
+|--------|---------|
+| Migrations | 34 |
+| DB Functions | 11/11 |
+| RLS Tables | 9/9 |
+| Build | PASSING |
+| TypeScript Errors | 0 |
+| Compliance | 95% |
+
+---
+
+# ❌ ANTI-PATTERNS TO AVOID
+
+| Anti-Pattern | Why It's Bad | What To Do Instead |
+|--------------|--------------|-------------------|
+| `catch (e) { return { error: 'Failed' } }` | Hides real error, no logging | Log error, return specific message |
+| `if (data) { ... }` without context | Band-aid, doesn't fix root cause | Trace why data is undefined |
+| `.single()` on SELECT queries | Throws error if no rows | Use `.maybeSingle()` |
+| `console.log()` in production | Exposes info, not structured | Use `clientLogger` or `serverLogger` |
+| Hardcoded colors `text-purple-500` | Breaks theme consistency | Use CSS vars `text-primary` |
+| `role === 'admin'` only | Misses super_admin role | Check both `admin` AND `super_admin` |
+| Creating new utility file | Duplicates existing logic | Search first, extend existing |
+| Guessing parameter values | Leads to wrong fixes | Ask user if unclear |
+| `auth.uid()` directly in RLS | Evaluated per row, slow | Use `(SELECT auth.uid())` |
+| RLS with `USING (true)` | Exposes all data | Add proper conditions |
+| Server Action without auth check | Public endpoint abuse | Always verify user inside action |
+| `type: any` in TypeScript | Defeats type safety | Use proper types or `unknown` |
+| Forgetting to enable RLS | Full table access to anon | Always enable RLS on all tables |
+| Service role key in client | Full database access exposed | Only use in server-side code |
+| Fixed `width: 400px` | Breaks on mobile devices | Use `max-width` or `min()` |
+| Pixel font sizes `16px` | Not accessible, not responsive | Use `rem` or `clamp()` |
+| Small touch targets `h-8` | Hard to tap on mobile | Minimum 44px (2.75rem) |
+| No safe area support | Content hidden behind notch | Use `env(safe-area-inset-*)` |
+| Horizontal scroll on mobile | Poor UX, content unreachable | Ensure content fits viewport |
+| Copy-pasting code | Creates maintenance nightmare | Extract to shared utility/component |
+| Commented-out code | Clutters codebase, confuses readers | Delete it (git has history) |
+| `// TODO` without ticket | Never gets done, forgotten | Create issue/ticket or fix now |
+| Unused imports | Build warnings, dead code | Remove immediately |
+| Magic numbers `5000` | Unclear meaning, hard to maintain | Use named constants `TIMEOUT_MS` |
+| God component (>300 lines) | Hard to test, maintain, understand | Split into focused components |
+| Nested ternaries | Unreadable, error-prone | Use if/else or extract function |
+| Long parameter lists (>4) | Hard to use, error-prone | Use options object pattern |
+| Prop drilling (>3 levels) | Tight coupling, fragile | Use Context or composition |
+| Redirect to `/login` | Route doesn't exist | Use `/student/start` or `/teacher/start` |
+| `debugger` statement | Breaks production | Remove before commit |
+| Orphaned files | Dead code, wasted space | Delete unused files |
+
+---
+
+# 🔐 COMMON SECURITY PITFALLS
+
+## Supabase RLS Pitfalls:
+| Pitfall | Risk | Prevention |
+|---------|------|------------|
+| RLS disabled on table | All data publicly accessible via API | Enable RLS on ALL tables, even "safe" ones |
+| `USING (true)` policy | All rows visible to everyone | Add proper auth conditions |
+| Missing anon role policy | Anonymous users can access data | Explicitly deny or restrict anon access |
+| Foreign key data leaks | JOINs may expose related data | Add RLS to all joined tables |
+| Service role in client | Bypasses all RLS policies | Only use `createAdminClient()` server-side |
+| `SECURITY DEFINER` in public schema | Function accessible via API | Use private schemas for security functions |
+
+## Next.js Server Actions Pitfalls:
+| Pitfall | Risk | Prevention |
+|---------|------|------------|
+| No input validation | Injection attacks, crashes | Use Zod `safeParse` on ALL inputs |
+| No auth check in action | Unauthorized access | Verify user at start of every action |
+| Trusting closure data | Sensitive data exposure | Closures are encrypted but don't rely solely on this |
+| Throwing errors | Exposes stack traces | Return serializable error objects |
+| Missing rate limiting | DoS, brute force attacks | Rate limit all public actions |
+
+## React Hooks Pitfalls:
+| Pitfall | Risk | Prevention |
+|---------|------|------------|
+| Missing cleanup in useEffect | Memory leaks | Always return cleanup function |
+| Direct component function calls | Breaks React internals | Let React call your components |
+| Mutating hooks dynamically | Unpredictable behavior | Hooks must be called in same order |
+| Missing dependency arrays | Stale closures or infinite loops | Use exhaustive-deps ESLint rule |
+
+---
+
+# 💡 PROMPTING TIPS FOR SPECIFIC ANALYSIS
+
+Use these focused prompts when needed:
+
+| Analysis Type | Think Like... | Focus On |
+|---------------|---------------|----------|
+| Security Review | Security engineer | Injection, auth bypass, data leaks |
+| Performance | Performance engineer | N+1 queries, memory leaks, render cycles |
+| Architecture | Senior architect | Separation of concerns, coupling, SOLID |
+| Accessibility | Screen reader user | ARIA, keyboard nav, contrast |
+| Business Logic | End user | Edge cases, error states, UX flows |
+
+---
+
+# 🚫 NEVER DO THESE
+
+- ❌ Never generate or guess URLs
+- ❌ Never hardcode secrets or credentials
+- ❌ Never ignore error return values
+- ❌ Never use `eval()` or dynamic code execution
+- ❌ Never trust user input without validation
+- ❌ Never commit without running build first
+- ❌ Never make changes without user approval
+- ❌ Never delete code without understanding its purpose
+- ❌ Never copy-paste code without checking for existing utilities
+- ❌ Never leave commented-out code in commits
+- ❌ Never leave TODO/FIXME without creating a ticket
+- ❌ Never leave unused imports or variables
+- ❌ Never redirect to non-existent routes like `/login`
+- ❌ Never use magic numbers without named constants
+- ❌ Never leave `debugger` or `console.log` statements
+
+---
+
+# ⚠️ REMEMBER
+
+1. **ZERO PATCHWORK** - Fix root cause, not symptoms
+2. **ASK FIRST** - Always get permission before changes
+3. **NO NEW FILES** - Prefer editing existing files
+4. **TRACE DATA FLOW** - Understand why before fixing
+5. **CLEAN STRUCTURE** - Keep project organized
+6. **WAIT FOR APPROVAL** - Never proceed without user consent
+7. **BEST PRACTICES** - Always apply industry standards
+8. **VERIFY FIXES** - Run build after changes
+9. **CONTEXT MATTERS** - Understand full impact before changing
+10. **INCREMENTAL CHANGES** - Small, testable commits
+11. **DRY PRINCIPLE** - Don't Repeat Yourself, extract shared logic
+12. **CLEAN CODE** - Remove dead code, unused imports, commented code
+
+---
+
+# 🚀 PRODUCTION CHECKLIST
+
+## Pre-Deployment Security:
+- [ ] All RLS policies enabled and tested
+- [ ] No service role keys exposed client-side
+- [ ] All Server Actions validate inputs with Zod
+- [ ] All Server Actions verify authentication
+- [ ] Rate limiting configured on public endpoints
+- [ ] Environment variables in `.env.local` (not committed)
+- [ ] `NEXT_PUBLIC_` prefix only for public vars
+- [ ] Sensitive data masked in all logs
+- [ ] CSP headers configured
+
+## Pre-Deployment Quality:
+- [ ] `npm run build` passes with 0 errors
+- [ ] TypeScript strict mode enabled
+- [ ] No `any` types in production code
+- [ ] All error states handled with user-friendly messages
+- [ ] Loading states implemented
+- [ ] Form validation on client AND server
+
+## Database Readiness:
+- [ ] All migrations applied to production
+- [ ] Indexes on foreign key columns
+- [ ] RLS policies tested with different user roles
+- [ ] SECURITY DEFINER functions in private schemas
+- [ ] DATABASE.md updated and accurate
+
+## Monitoring & Logging:
+- [ ] Structured logging (serverLogger, clientLogger)
+- [ ] Error tracking configured (Sentry or similar)
+- [ ] Performance monitoring enabled
+- [ ] Audit logs for sensitive operations
+
+## PWA Readiness:
+- [ ] Valid manifest.json with all required fields
+- [ ] Icons: 192x192, 512x512, maskable variants, apple-touch-icon
+- [ ] Service worker registered and functional
+- [ ] Offline fallback page works
+- [ ] App passes Lighthouse PWA audit (90+ score)
+- [ ] Install prompt appears on supported browsers
+- [ ] App works in standalone mode
+- [ ] Push notifications configured (if applicable)
+
+## Responsive Design Readiness:
+- [ ] Tested on 320px width (iPhone SE)
+- [ ] Tested on 375px width (iPhone 12/13)
+- [ ] Tested on 768px width (iPad portrait)
+- [ ] Tested on 1024px width (iPad landscape)
+- [ ] Tested on 1440px width (laptop)
+- [ ] Tested on 1920px width (desktop)
+- [ ] All touch targets are 44px minimum
+- [ ] No horizontal scrolling on any device
+- [ ] Safe area insets work on notched devices
+- [ ] Text is readable without zooming
+- [ ] Forms are usable on mobile keyboard
+- [ ] Modals/dialogs fit on mobile screens
+
+## Code Hygiene & Quality:
+- [ ] No unused imports or exports
+- [ ] No commented-out code blocks
+- [ ] No TODO/FIXME comments (all converted to tickets)
+- [ ] No `console.log` or `debugger` statements
+- [ ] No `any` types in TypeScript
+- [ ] No duplicate code (extracted to utilities)
+- [ ] No magic numbers (all use named constants)
+- [ ] No god components (all <300 lines)
+- [ ] No orphaned files (all files imported somewhere)
+- [ ] All redirects point to existing routes
+- [ ] All role checks include both `admin` AND `super_admin`
+- [ ] Build passes with 0 errors and 0 warnings
+
+## Flow & Logic Consistency:
+- [ ] All protected pages have auth guards
+- [ ] Student pages redirect to `/student/start`
+- [ ] Teacher pages redirect to `/teacher/start`
+- [ ] Admin pages redirect to `/admin/login`
+- [ ] All `.maybeSingle()` for SELECT queries
+- [ ] All `.single()` only for INSERT operations
+- [ ] Consistent error response shapes `{ success, data?, error? }`
+- [ ] No broken imports or missing dependencies
+
+## Data Flow & Synchronization:
+- [ ] All API calls use authenticated Supabase client (NOT raw REST with anon key)
+- [ ] Student can see enrolled classes with teacher details
+- [ ] Teacher can see enrolled students with name, roll number, class
+- [ ] No duplicate enrollments possible (database + action layer prevention)
+- [ ] Admin can see all metrics (schools, teachers, students, PINs)
+- [ ] Super Admin has access to all admin features
+- [ ] Data displayed matches database state exactly
+
+---
+
+# 📚 REFERENCE DOCUMENTATION
+
+| Resource | Purpose |
+|----------|---------|
+| [OWASP Top 10](https://owasp.org/www-project-top-ten/) | Web security vulnerabilities |
+| [Next.js Security](https://nextjs.org/docs/app/guides/data-security) | Server Actions & data security |
+| [Supabase RLS Guide](https://supabase.com/docs/guides/auth/row-level-security) | Row Level Security best practices |
+| [React Rules](https://react.dev/reference/rules) | Components & Hooks rules |
+| [TypeScript Strict Mode](https://www.typescriptlang.org/tsconfig#strict) | Type safety configuration |
+| [Web.dev PWA](https://web.dev/progressive-web-apps/) | PWA best practices & checklist |
+| [Workbox](https://developer.chrome.com/docs/workbox/) | Service worker strategies |
+| [next-pwa](https://github.com/shadowwalker/next-pwa) | Next.js PWA plugin docs |
+| [Tailwind CSS Responsive](https://tailwindcss.com/docs/responsive-design) | Mobile-first responsive utilities |
+| [Tailwind Container Queries](https://github.com/tailwindlabs/tailwindcss-container-queries) | Component-level responsiveness |
+| [Next.js Image Optimization](https://nextjs.org/docs/app/building-your-application/optimizing/images) | Responsive images & art direction |
+| [WCAG Touch Target Size](https://www.w3.org/WAI/WCAG21/Understanding/target-size.html) | Accessibility touch target guidelines |
+
+---
+
+*Execute full analysis when this file is marked. Present findings with root cause analysis and wait for approval before fixing.*
