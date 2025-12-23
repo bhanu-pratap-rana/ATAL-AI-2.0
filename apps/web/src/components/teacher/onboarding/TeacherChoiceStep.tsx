@@ -37,10 +37,10 @@ export function TeacherChoiceStep({ loading, onChoice }: TeacherChoiceStepProps)
         {/* Divider */}
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-[#E8E4E0]"></div>
+            <div className="w-full border-t border-border"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-[#78716C]">OR</span>
+            <span className="px-2 bg-white text-text-muted">OR</span>
           </div>
         </div>
 
@@ -57,7 +57,7 @@ export function TeacherChoiceStep({ loading, onChoice }: TeacherChoiceStepProps)
         </Button>
 
         {/* Info Box - Primary Light Background */}
-        <div className="bg-primary-light border border-primary/20 rounded-[12px] p-4 mt-6">
+        <div className="bg-primary-light border border-primary/20 rounded-md p-4 mt-6">
           <p className="text-sm text-primary-dark">
             <span className="font-semibold">New teacher?</span> Create an account to access your dashboard and manage your classes.
           </p>

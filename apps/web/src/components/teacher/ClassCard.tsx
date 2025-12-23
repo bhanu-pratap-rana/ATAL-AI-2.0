@@ -26,10 +26,9 @@ interface ClassCardProps {
     class_code?: string
     join_pin?: string
   }
-  teacherName?: string
 }
 
-export function ClassCard({ classData, teacherName: _teacherName }: ClassCardProps) {
+export function ClassCard({ classData }: ClassCardProps) {
   const router = useRouter()
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -131,7 +130,7 @@ export function ClassCard({ classData, teacherName: _teacherName }: ClassCardPro
                 </div>
 
                 <div className="space-y-1">
-                  <Label htmlFor="edit-subject" className="text-xs">Subject (Optional)</Label>
+                  <Label htmlFor="edit-subject" className="text-xs">Subject</Label>
                   <Input
                     id="edit-subject"
                     placeholder="e.g., Mathematics, English, Science"

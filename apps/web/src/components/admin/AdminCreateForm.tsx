@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { AlertCircle, CheckCircle, Loader2, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
+import { FORM_TIMING } from '@/lib/constants/ui-timings'
 
 interface AdminCreateFormProps {
   onSuccess?: () => void
@@ -64,9 +65,9 @@ export function AdminCreateForm({ onSuccess, adminRole = 'admin' }: AdminCreateF
         setPassword('')
         setConfirmPassword('')
 
-        // Call success callback
+        // Call success callback after brief delay for user feedback
         if (onSuccess) {
-          setTimeout(onSuccess, 1500)
+          setTimeout(onSuccess, FORM_TIMING.successCallback)
         }
       } else {
         setMessage({ type: 'error', text: result.error || 'Failed to create admin account' })
@@ -145,15 +146,15 @@ export function AdminCreateForm({ onSuccess, adminRole = 'admin' }: AdminCreateF
       {message && (
         <div
           className={`flex gap-3 p-4 rounded-lg border ${
-            message.type === 'success' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+            message.type === 'success' ? 'bg-success-light border-success/30' : 'bg-error-light border-error/30'
           }`}
         >
           {message.type === 'success' ? (
-            <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+            <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
           ) : (
-            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-error flex-shrink-0 mt-0.5" />
           )}
-          <span className={message.type === 'success' ? 'text-green-600 text-sm' : 'text-red-600 text-sm'}>
+          <span className={message.type === 'success' ? 'text-success text-sm' : 'text-error text-sm'}>
             {message.text}
           </span>
         </div>
@@ -163,7 +164,7 @@ export function AdminCreateForm({ onSuccess, adminRole = 'admin' }: AdminCreateF
       <Button
         onClick={handleCreateAdmin}
         disabled={isLoading || !email.trim() || !password || !confirmPassword}
-        className="w-full bg-gradient-to-r from-primary to-orange-500 hover:from-orange-600 hover:to-orange-600"
+        className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary"
       >
         {isLoading ? (
           <>

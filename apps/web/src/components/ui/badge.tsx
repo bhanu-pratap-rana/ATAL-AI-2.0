@@ -14,8 +14,8 @@ const variants: Record<BadgeVariant, string> = {
   warning: 'bg-warning-light text-warning',
   error: 'bg-error-light text-error',
   info: 'bg-info-light text-info',
-  accent: 'bg-accent-light text-[#B8860B]',
-  secondary: 'bg-secondary-light text-white',
+  accent: 'bg-accent-light text-accent-dark',
+  secondary: 'bg-surface-dark text-text-primary',
 }
 
 export function Badge({ children, variant = 'default', className }: BadgeProps) {

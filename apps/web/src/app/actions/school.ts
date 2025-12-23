@@ -4,28 +4,18 @@ import { z } from 'zod'
 import { createClient, createAdminClient, getCurrentUser } from '@/lib/supabase-server'
 import { authLogger } from '@/lib/auth-logger'
 import { checkRateLimit } from '@/lib/rate-limiter-distributed'
+import { RATE_LIMITS } from '@/lib/constants/rate-limits'
+import {
+  SearchQuerySchema,
+  SchoolCodeSchema,
+  StaffPinSchema,
+  TeacherNameSchema,
+  PhoneSchema,
+} from '@/lib/validation-schemas'
 
-const SearchQuerySchema = z
-  .string()
-  .min(1, 'Search query required')
-  .max(100, 'Search query too long')
-  .regex(/^[a-zA-Z0-9\s\-.']+$/, 'Search query contains invalid characters')
-const SchoolCodeSchema = z.string().min(1, 'School code required').max(20, 'Invalid school code format')
-const StaffPinSchema = z.string().regex(/^\d{4,8}$/, 'PIN must be 4-8 digits')
-const TeacherNameSchema = z.string().min(1, 'Name required').max(100, 'Name too long').regex(/^[a-zA-Z\s'-]+$/, 'Name contains invalid characters')
-const PhoneSchema = z.string().regex(/^\+?[0-9\-\s()]{10,}$/, 'Invalid phone number format').optional()
-
-const SEARCH_RATE_LIMIT = {
-  maxTokens: 30,
-  refillRate: 30 / 3600, // 30 requests per hour
-  refillInterval: 1000,
-}
-
-const VERIFY_TEACHER_RATE_LIMIT = {
-  maxTokens: 5,
-  refillRate: 5 / 3600, // 5 attempts per hour per IP
-  refillInterval: 1000,
-}
+// Use centralized rate limits from constants
+const SEARCH_RATE_LIMIT = RATE_LIMITS.schoolSearch
+const VERIFY_TEACHER_RATE_LIMIT = RATE_LIMITS.teacherVerification
 
 export interface VerifyTeacherParams {
   schoolCode: string
@@ -54,7 +44,8 @@ export async function checkAdminAuth() {
       return { authorized: false, error: 'Not authenticated' }
     }
 
-    const isAdmin = user.app_metadata?.role === 'admin'
+    const role = user.app_metadata?.role
+    const isAdmin = role === 'admin' || role === 'super_admin'
     if (!isAdmin) {
       return { authorized: false, error: 'Admin access required' }
     }
@@ -85,16 +76,13 @@ export async function verifyTeacher({
     }
     if (phone) phone = PhoneSchema.parse(phone)
 
-    const supabase = await createClient()
+    const user = await getCurrentUser()
 
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
-
-    if (userError || !user) {
+    if (!user) {
       return { success: false, error: 'Not authenticated' }
     }
+
+    const supabase = await createClient()
 
     const isAllowed = await checkRateLimit(`verify-teacher:${user.id}`, VERIFY_TEACHER_RATE_LIMIT)
     if (!isAllowed) {
@@ -132,14 +120,23 @@ export async function verifyTeacher({
     }
 
     // Get school by code using admin client
+    // Use .maybeSingle() - school code may not exist
     const { data: school, error: schoolError } = await adminClient
       .from('schools')
       .select('id, school_code, school_name')
       .eq('school_code', schoolCode.toUpperCase().trim())
-      .single()
+      .maybeSingle()
 
-    if (schoolError || !school) {
-      authLogger.debug('[verifyTeacher] School code not found', { schoolCode, error: schoolError?.message })
+    if (schoolError) {
+      authLogger.error('[verifyTeacher] Error looking up school', schoolError)
+      return {
+        success: false,
+        error: 'Failed to lookup school. Please try again.',
+      }
+    }
+
+    if (!school) {
+      authLogger.debug('[verifyTeacher] School code not found', { schoolCode })
       return {
         success: false,
         error: 'Invalid school code. Please verify and try again.',
@@ -289,14 +286,20 @@ export async function getSchoolByCode(schoolCode: string) {
   try {
     const supabase = await createClient()
 
+    // Use .maybeSingle() - school code may not exist
     const { data, error } = await supabase
       .from('schools')
       .select('*')
       .eq('school_code', schoolCode.toUpperCase().trim())
-      .single()
+      .maybeSingle()
 
-    if (error || !data) {
-      authLogger.debug('[getSchoolByCode] School lookup failed', { schoolCode })
+    if (error) {
+      authLogger.error('[getSchoolByCode] School lookup error', error)
+      return { success: false, error: 'Failed to lookup school. Please try again.' }
+    }
+
+    if (!data) {
+      authLogger.debug('[getSchoolByCode] School not found', { schoolCode })
       return { success: false, error: 'Unable to find school. Please verify your school code and try again.' }
     }
 
@@ -320,28 +323,30 @@ export async function rotateStaffPin(schoolCode: string, newPin: string) {
     schoolCode = SchoolCodeSchema.parse(schoolCode)
     newPin = StaffPinSchema.parse(newPin)
 
-    const supabase = await createClient()
+    const user = await getCurrentUser()
 
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
-
-    if (userError || !user) {
+    if (!user) {
       authLogger.warn('[rotateStaffPin] Unauthenticated access attempt')
       return { success: false, error: 'Not authenticated' }
     }
 
+    const supabase = await createClient()
     const userRole = user.app_metadata?.role
 
     let isAuthorized = userRole === 'admin' || userRole === 'teacher'
 
     if (!isAuthorized && !userRole) {
-      const { data: teacherProfile } = await supabase
+      // Use .maybeSingle() - user may not have a teacher profile
+      const { data: teacherProfile, error: profileError } = await supabase
         .from('teacher_profiles')
         .select('user_id, school_id')
         .eq('user_id', user.id)
-        .single()
+        .maybeSingle()
+
+      if (profileError) {
+        authLogger.error('[rotateStaffPin] Error checking teacher profile', profileError)
+        return { success: false, error: 'Failed to verify authorization' }
+      }
 
       isAuthorized = !!teacherProfile
     }
@@ -361,21 +366,33 @@ export async function rotateStaffPin(schoolCode: string, newPin: string) {
     let school = null
     let isAuthorizedForSchool = false
 
+    // Use .maybeSingle() - school code may not exist
     const { data: schoolData, error: schoolError } = await supabase
       .from('schools')
       .select('id, school_code, school_name')
       .eq('school_code', schoolCode.toUpperCase().trim())
-      .single()
+      .maybeSingle()
 
-    if (!schoolError && schoolData) {
+    if (schoolError) {
+      authLogger.error('[rotateStaffPin] Error looking up school', schoolError)
+      return { success: false, error: 'Failed to lookup school' }
+    }
+
+    if (schoolData) {
       school = schoolData
 
       if (userRole !== 'admin') {
-        const { data: teacherProfile } = await supabase
+        // Use .maybeSingle() - user may not have a teacher profile
+        const { data: teacherProfile, error: teacherError } = await supabase
           .from('teacher_profiles')
           .select('school_id')
           .eq('user_id', user.id)
-          .single()
+          .maybeSingle()
+
+        if (teacherError) {
+          authLogger.error('[rotateStaffPin] Error checking teacher school authorization', teacherError)
+          return { success: false, error: 'Failed to verify school authorization' }
+        }
 
         isAuthorizedForSchool = !!(teacherProfile && school.id === teacherProfile.school_id)
       } else {
@@ -447,34 +464,43 @@ export async function rotateStaffPin(schoolCode: string, newPin: string) {
  */
 export async function getStaffPinRotationInfo(schoolCode: string) {
   try {
-    const supabase = await createClient()
+    const user = await getCurrentUser()
 
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
-
-    if (userError || !user) {
+    if (!user) {
       return { success: false, error: 'Not authenticated' }
     }
 
+    const supabase = await createClient()
+
+    // Use .maybeSingle() - school code may not exist
     const { data: school, error: schoolError } = await supabase
       .from('schools')
       .select('id, school_code, school_name')
       .eq('school_code', schoolCode.toUpperCase().trim())
-      .single()
+      .maybeSingle()
 
-    if (schoolError || !school) {
+    if (schoolError) {
+      authLogger.error('[getStaffPinRotationInfo] Error finding school', schoolError)
+      return { success: false, error: 'Failed to lookup school' }
+    }
+
+    if (!school) {
       return { success: false, error: 'School not found' }
     }
 
+    // Use .maybeSingle() - PIN credentials may not exist
     const { data: credentials, error: credError } = await supabase
       .from('school_staff_credentials')
       .select('rotated_at, created_at')
       .eq('school_id', school.id)
-      .single()
+      .maybeSingle()
 
-    if (credError || !credentials) {
+    if (credError) {
+      authLogger.error('[getStaffPinRotationInfo] Error checking credentials', credError)
+      return { success: false, error: 'Failed to check PIN status' }
+    }
+
+    if (!credentials) {
       return {
         success: true,
         schoolCode: school.school_code,
@@ -497,79 +523,5 @@ export async function getStaffPinRotationInfo(schoolCode: string) {
   }
 }
 
-/**
- * Create admin user account (Admin only)
- * Creates a new Supabase auth user and sets app_metadata.role to 'admin'
- *
- * @param email - Admin email address
- * @param password - Admin password (will be hashed by Supabase)
- * @returns Success status with created user ID
- */
-export async function createAdminUser(email: string, password: string) {
-  try {
-    const trimmedEmail = email.trim().toLowerCase()
-
-    const EmailSchema = z.string().email().max(255, 'Email too long')
-    const PasswordSchema = z.string().min(8, 'Password must be at least 8 characters').max(128, 'Password too long')
-
-    const validatedEmail = EmailSchema.parse(trimmedEmail)
-    const validatedPassword = PasswordSchema.parse(password)
-
-    const user = await getCurrentUser()
-    if (!user) {
-      authLogger.warn('[createAdminUser] Unauthenticated access attempt')
-      return { success: false, error: 'Not authenticated' }
-    }
-
-    const isAdmin = user.app_metadata?.role === 'admin'
-    if (!isAdmin) {
-      authLogger.warn('[createAdminUser] Non-admin user attempted to create admin', { userId: user.id })
-      return { success: false, error: 'Admin access required to create admin users' }
-    }
-
-    const adminClient = await createAdminClient()
-
-    const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
-      email: validatedEmail,
-      password: validatedPassword,
-      email_confirm: true, // Auto-confirm email to skip OTP
-      app_metadata: {
-        role: 'admin',
-      },
-    })
-
-    if (createError || !newUser) {
-      authLogger.error('[createAdminUser] Failed to create admin user', createError)
-      return {
-        success: false,
-        error: 'Failed to create admin user. Email may already be registered.',
-      }
-    }
-
-    authLogger.success('[createAdminUser] Admin user created successfully', {
-      userId: newUser.user.id,
-      email: validatedEmail,
-    })
-
-    return {
-      success: true,
-      userId: newUser.user.id,
-      email: validatedEmail,
-      message: 'Admin user created successfully',
-    }
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      const firstIssue = error.issues[0]
-      authLogger.warn('[createAdminUser] Validation error', { path: firstIssue?.path, message: firstIssue?.message })
-      return {
-        success: false,
-        error: firstIssue?.message || 'Invalid input',
-      }
-    }
-    authLogger.error('[createAdminUser] Unexpected error', error)
-    return {
-      success: false,
-      error: 'An unexpected error occurred. Please try again.',
-    }
-  }
-}
+// NOTE: createAdminUser has been moved to admin-auth.ts to avoid duplication
+// Import from '@/app/actions/admin-auth' instead

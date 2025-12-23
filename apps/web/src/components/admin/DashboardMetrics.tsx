@@ -186,7 +186,7 @@ export function DashboardMetrics() {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         {[...Array(5)].map((_, i) => (
-          <div key={i} className="bg-border-light rounded-[16px] p-4 h-24 animate-pulse"></div>
+          <div key={i} className="bg-border-light rounded-lg p-4 h-24 animate-pulse"></div>
         ))}
       </div>
     )
@@ -194,7 +194,7 @@ export function DashboardMetrics() {
 
   if (error) {
     return (
-      <div className="bg-error-light border border-error rounded-[12px] p-4">
+      <div className="bg-error-light border border-error rounded-md p-4">
         <p className="text-sm text-error-dark">{error}</p>
       </div>
     )
@@ -261,7 +261,7 @@ export function DashboardMetrics() {
             <button
               key={card.title}
               onClick={() => openModal(card.modalType)}
-              className={`${card.color} rounded-[16px] p-6 border border-border text-left ${card.hoverColor} hover:shadow-md transition cursor-pointer`}
+              className={`${card.color} rounded-lg p-6 border border-border text-left ${card.hoverColor} hover:shadow-md transition cursor-pointer`}
             >
               <div className="flex items-center gap-3 mb-3">
                 <Icon className={`w-5 h-5 ${card.iconColor}`} />
@@ -277,9 +277,9 @@ export function DashboardMetrics() {
       {/* Universal Modal */}
       {activeModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-[20px] shadow-xl max-w-3xl w-full max-h-[85vh] overflow-hidden">
+          <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[85vh] overflow-hidden">
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-border bg-stone-50">
+            <div className="flex items-center justify-between p-6 border-b border-border bg-surface">
               <h2 className="text-xl font-bold text-text-primary">
                 {activeModal === 'schools' && `All Schools (${filteredSchools.length})`}
                 {activeModal === 'teachers' && `All Teachers (${filteredTeachers.length})`}
@@ -319,7 +319,7 @@ export function DashboardMetrics() {
                     ) : (
                       <div className="space-y-3">
                         {filteredSchools.map((school) => (
-                          <div key={school.id} className="bg-stone-50 rounded-[12px] p-4 border border-border">
+                          <div key={school.id} className="bg-surface rounded-md p-4 border border-border">
                             <div className="flex items-center justify-between">
                               <div>
                                 <p className="font-semibold text-text-primary">{school.schoolName}</p>
@@ -352,7 +352,7 @@ export function DashboardMetrics() {
                     ) : (
                       <div className="space-y-3">
                         {filteredTeachers.map((teacher) => (
-                          <div key={teacher.id} className="bg-stone-50 rounded-[12px] p-4 border border-border">
+                          <div key={teacher.id} className="bg-surface rounded-md p-4 border border-border">
                             <div className="flex items-center justify-between">
                               <div>
                                 <p className="font-semibold text-text-primary">{teacher.name}</p>
@@ -386,7 +386,7 @@ export function DashboardMetrics() {
                     ) : (
                       <div className="space-y-3">
                         {filteredStudents.map((student) => (
-                          <div key={student.id} className="bg-stone-50 rounded-[12px] p-4 border border-border">
+                          <div key={student.id} className="bg-surface rounded-md p-4 border border-border">
                             <div className="flex items-center justify-between">
                               <div>
                                 <p className="font-semibold text-text-primary">{student.email || 'No email'}</p>
@@ -418,7 +418,7 @@ export function DashboardMetrics() {
                     ) : (
                       <div className="space-y-3">
                         {filteredActivePINs.map((school) => (
-                          <div key={school.schoolId} className="bg-stone-50 rounded-[12px] p-4 border border-border">
+                          <div key={school.schoolId} className="bg-surface rounded-md p-4 border border-border">
                             <div className="flex items-center justify-between">
                               <div>
                                 <p className="font-semibold text-text-primary">{school.schoolName}</p>
@@ -446,7 +446,7 @@ export function DashboardMetrics() {
                     ) : (
                       <div className="space-y-3">
                         {filteredInactivePINs.map((school) => (
-                          <div key={school.id} className="bg-stone-50 rounded-[12px] p-4 border border-border">
+                          <div key={school.id} className="bg-surface rounded-md p-4 border border-border">
                             <div className="flex items-center justify-between">
                               <div>
                                 <p className="font-semibold text-text-primary">{school.schoolName}</p>
@@ -467,7 +467,7 @@ export function DashboardMetrics() {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 border-t border-border bg-stone-50">
+            <div className="p-4 border-t border-border bg-surface">
               <Button onClick={closeModal} className="w-full" variant="outline">
                 Close
               </Button>

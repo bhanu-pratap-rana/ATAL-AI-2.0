@@ -31,8 +31,10 @@ export const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
 export const CLASS_CODE_LENGTH = 6
 
 // Rate limiting
-export const OTP_REQUEST_RATE_LIMIT_SECONDS = 60
-export const OTP_REQUEST_MAX_ATTEMPTS = 5
+// NOTE: Rate limit values are defined in constants/rate-limits.ts
+// OTP_LIMITS.requestCooldownSeconds = 60
+// OTP_LIMITS.maxAttempts = 5
+// Import from '@/lib/constants/rate-limits' for rate limiting logic
 
 // Valid email providers (whitelist legitimate domains)
 export const VALID_EMAIL_PROVIDERS = [
@@ -170,37 +172,3 @@ export const SUCCESS_MESSAGES = {
   CLASS_JOINED: 'Successfully joined class! 🎉',
 }
 
-// UI Constants
-export const FORM_LABELS = {
-  EMAIL: 'Email Address',
-  PHONE: 'Phone Number',
-  PASSWORD: 'Password',
-  PASSWORD_CONFIRM: 'Confirm Password',
-  OTP: 'One-Time Password',
-  PIN: 'Class PIN',
-  ROLL_NUMBER: 'Roll Number',
-  CLASS_CODE: 'Class Code',
-}
-
-export const FORM_PLACEHOLDERS = {
-  EMAIL: 'your.email@example.com',
-  PHONE: '9876543210',
-  PASSWORD: 'Enter your password',
-  PASSWORD_CONFIRM: 'Confirm your password',
-  OTP: '123456',
-  PIN: '••••',
-  ROLL_NUMBER: 'e.g., 101, ST2024001',
-  CLASS_CODE: 'A3F7E2',
-}
-
-export const FORM_HINTS = {
-  EMAIL: 'We will send a verification link to this email',
-  PHONE: 'Enter your 10-digit phone number (India only)',
-  PASSWORD: `Minimum ${PASSWORD_MIN_LENGTH} characters`,
-  PASSWORD_CONFIRM: 'Must match your password',
-  OTP: 'Enter the 6-digit code sent to your email',
-  OTP_PHONE: 'Enter the 6-digit code sent to your phone',
-  PIN: '4-digit PIN provided by your teacher',
-  ROLL_NUMBER: 'Your student roll number or ID',
-  CLASS_CODE: '6-character code provided by your teacher',
-}

@@ -1,8 +1,9 @@
 'use server'
 
-import { createClient, createAdminClient } from '@/lib/supabase-server'
+import { createClient, createAdminClient, getCurrentUser } from '@/lib/supabase-server'
 import { authLogger } from '@/lib/auth-logger'
 import { checkEmailExistsInAuth } from '@/app/actions/auth'
+import { checkOtpRateLimit } from '@/lib/rate-limiter-distributed'
 
 // Types
 export interface SendEmailOtpResult {
@@ -24,10 +25,20 @@ export interface SetPasswordResult {
 
 export interface SaveTeacherProfileParams {
   name: string
+  gender: 'male' | 'female'
   phone?: string
   subject?: string
+  village?: string
   schoolId: string
   schoolCode: string
+}
+
+export interface UpdateTeacherProfileParams {
+  name: string
+  gender: 'male' | 'female'
+  phone?: string
+  subject?: string
+  village?: string
 }
 
 export interface SaveTeacherProfileResult {
@@ -44,6 +55,15 @@ export async function sendEmailOtp(email: string): Promise<SendEmailOtpResult> {
   try {
     const trimmedEmail = email.trim().toLowerCase()
     const supabase = await createClient()
+
+    // Rate limit check - prevent OTP spam
+    if (!(await checkOtpRateLimit(trimmedEmail))) {
+      authLogger.warn('[sendEmailOtp] Rate limit exceeded', { email: trimmedEmail })
+      return {
+        success: false,
+        error: 'Too many OTP requests. Please wait an hour before requesting again.',
+      }
+    }
 
     // First check if email already exists using the reliable auth check
     // This works without service role key by checking the users table with RLS
@@ -141,17 +161,14 @@ export async function verifyEmailOtp({
  */
 export async function setPassword(password: string): Promise<SetPasswordResult> {
   try {
-    const supabase = await createClient()
-
     // 1. Verify user is authenticated
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
+    const user = await getCurrentUser()
 
-    if (userError || !user) {
+    if (!user) {
       return { success: false, error: 'Not authenticated. Please sign in again.' }
     }
+
+    const supabase = await createClient()
 
     // 2. Validate password (min 8 chars)
     if (!password || password.length < 8) {
@@ -187,30 +204,38 @@ export async function setPassword(password: string): Promise<SetPasswordResult> 
  */
 export async function saveTeacherProfile({
   name,
+  gender,
   phone,
   subject,
+  village,
   schoolId,
   schoolCode,
 }: SaveTeacherProfileParams): Promise<SaveTeacherProfileResult> {
   try {
-    const supabase = await createClient()
-
     // 1. Get current user
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
+    const user = await getCurrentUser()
 
-    if (userError || !user) {
+    if (!user) {
       return { success: false, error: 'Not authenticated' }
     }
 
+    const supabase = await createClient()
+
     // 2. Check if profile already exists
-    const { data: existingProfile } = await supabase
+    // Use .maybeSingle() instead of .single() - .single() throws PGRST116 when no rows found
+    const { data: existingProfile, error: profileCheckError } = await supabase
       .from('teacher_profiles')
-      .select('*')
+      .select('user_id')
       .eq('user_id', user.id)
-      .single()
+      .maybeSingle()
+
+    if (profileCheckError) {
+      authLogger.error('[Save Profile] Error checking existing profile', profileCheckError)
+      return {
+        success: false,
+        error: 'Failed to verify profile status. Please try again.',
+      }
+    }
 
     if (existingProfile) {
       return {
@@ -224,8 +249,10 @@ export async function saveTeacherProfile({
       user_id: user.id,
       school_id: schoolId,
       name: name.trim(),
+      gender: gender,
       phone: phone?.trim() || null,
       subject: subject?.trim() || null,
+      village: village?.trim() || null,
       school_code: schoolCode.toUpperCase().trim(),
     })
 
@@ -267,6 +294,104 @@ export async function saveTeacherProfile({
     return {
       success: false,
       error: 'An unexpected error occurred. Please try again.',
+    }
+  }
+}
+
+/**
+ * Update existing teacher profile
+ * Used in settings page to update profile details
+ */
+export async function updateTeacherProfile({
+  name,
+  gender,
+  phone,
+  subject,
+  village,
+}: UpdateTeacherProfileParams): Promise<SaveTeacherProfileResult> {
+  try {
+    // 1. Get current user
+    const user = await getCurrentUser()
+
+    if (!user) {
+      return { success: false, error: 'Not authenticated' }
+    }
+
+    const supabase = await createClient()
+
+    // 2. Validate required fields
+    if (!name?.trim()) {
+      return { success: false, error: 'Name is required' }
+    }
+
+    if (!gender) {
+      return { success: false, error: 'Gender is required' }
+    }
+
+    // 3. Update teacher profile
+    const { error: updateError } = await supabase
+      .from('teacher_profiles')
+      .update({
+        name: name.trim(),
+        gender: gender,
+        phone: phone?.trim() || null,
+        subject: subject?.trim() || null,
+        village: village?.trim() || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('user_id', user.id)
+
+    if (updateError) {
+      authLogger.error('[Update Profile] Failed to update teacher profile', updateError)
+      return {
+        success: false,
+        error: 'Failed to update profile. Please try again.',
+      }
+    }
+
+    authLogger.success('[Update Profile] Teacher profile updated successfully')
+    return { success: true }
+  } catch (error) {
+    authLogger.error('[Update Profile] Unexpected error', error)
+    return {
+      success: false,
+      error: 'An unexpected error occurred. Please try again.',
+    }
+  }
+}
+
+/**
+ * Get current user's teacher profile
+ */
+export async function getTeacherProfile() {
+  try {
+    const user = await getCurrentUser()
+
+    if (!user) {
+      return { success: false, error: 'Not authenticated', profile: null }
+    }
+
+    const supabase = await createClient()
+
+    // Use .maybeSingle() for cleaner handling - returns null if no profile exists
+    const { data: profile, error } = await supabase
+      .from('teacher_profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    if (error) {
+      authLogger.error('[getTeacherProfile] Error fetching profile', error)
+      return { success: false, error: 'Failed to fetch profile', profile: null }
+    }
+
+    return { success: true, profile }
+  } catch (error) {
+    authLogger.error('[getTeacherProfile] Unexpected error', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'An unexpected error occurred',
+      profile: null,
     }
   }
 }

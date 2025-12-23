@@ -1,292 +1,174 @@
 import { test, expect } from '@playwright/test'
 
+/**
+ * Authentication Flow Tests
+ *
+ * Tests the actual authentication routes in ATAL AI:
+ * - /student/start - Student authentication
+ * - /teacher/start - Teacher authentication
+ * - /admin/login - Admin authentication
+ *
+ * Note: The app does NOT have a unified /login or /verify route.
+ */
+
 test.describe('Authentication Flow', () => {
   test.describe('Unauthenticated Access', () => {
-    test('should redirect to /login when accessing protected /app/dashboard route', async ({ page }) => {
+    test('should redirect protected /app/dashboard to student start', async ({ page }) => {
       // Attempt to access protected dashboard without authentication
       await page.goto('/app/dashboard')
+      await page.waitForLoadState('networkidle')
 
-      // Should be redirected to login page
-      await expect(page).toHaveURL('/login')
-
-      // Verify login page elements are visible
-      await expect(page.getByRole('heading', { name: /Welcome Back/i })).toBeVisible()
-      await expect(page.getByRole('textbox', { name: /email/i })).toBeVisible()
-      await expect(page.getByRole('button', { name: /Send Verification Code/i })).toBeVisible()
+      // Should be redirected to student start (or home)
+      await expect(page).not.toHaveURL('/app/dashboard')
     })
 
-    test('should show login form on /login route', async ({ page }) => {
-      await page.goto('/login')
+    test('should show student login form on /student/start', async ({ page }) => {
+      await page.goto('/student/start')
 
-      // Verify we're on the login page
-      await expect(page).toHaveURL('/login')
+      // Verify we're on the student start page
+      await expect(page).toHaveURL(/student\/start/)
 
-      // Check for ATAL AI branding
-      await expect(page.getByText('ATAL AI')).toBeVisible()
-      await expect(page.getByText('Digital Empowerment Platform')).toBeVisible()
-
-      // Check for form elements
-      await expect(page.getByLabel('Email Address')).toBeVisible()
-      await expect(page.getByRole('button', { name: /Send Verification Code/i })).toBeVisible()
-    })
-  })
-
-  test.describe('OTP Authentication Flow', () => {
-    test('should handle OTP request and redirect to verify page', async ({ page }) => {
-      // Mock the Supabase signInWithOtp API call
-      await page.route('**/auth/v1/otp', async (route) => {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({ success: true }),
-        })
-      })
-
-      // Navigate to login page
-      await page.goto('/login')
-
-      // Fill in email
-      const emailInput = page.getByLabel('Email Address')
-      await emailInput.fill('test@atalai.com')
-
-      // Click send verification code
-      await page.getByRole('button', { name: /Send Verification Code/i }).click()
-
-      // Should redirect to verify page
-      await expect(page).toHaveURL('/verify')
-
-      // Verify page should show verification form
-      await expect(page.getByRole('heading', { name: /Verify Your Email/i })).toBeVisible()
-      await expect(page.getByLabel('Verification Code')).toBeVisible()
+      // Check for page elements
+      await expect(page.getByText('Welcome, Student!')).toBeVisible()
+      await expect(page.getByRole('button', { name: /Create Account/i })).toBeVisible()
+      await expect(page.getByRole('button', { name: /Login/i })).toBeVisible()
     })
 
-    test('should show error toast on OTP request failure', async ({ page }) => {
-      // Mock failed OTP request
-      await page.route('**/auth/v1/otp', async (route) => {
-        await route.fulfill({
-          status: 400,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            error: 'Invalid email address',
-            error_description: 'The email address provided is invalid'
-          }),
-        })
-      })
+    test('should show teacher login form on /teacher/start', async ({ page }) => {
+      await page.goto('/teacher/start')
 
-      await page.goto('/login')
+      // Verify we're on the teacher start page
+      await expect(page).toHaveURL(/teacher\/start/)
 
-      // Fill invalid email
-      await page.getByLabel('Email Address').fill('invalid-email')
-      await page.getByRole('button', { name: /Send Verification Code/i }).click()
-
-      // Should show error toast (Sonner toast notification)
-      await expect(page.getByRole('status')).toContainText(/Failed to send OTP|error/i, { timeout: 5000 })
+      // Check for page elements
+      await expect(page.getByText('Teacher Portal')).toBeVisible()
     })
 
-    test('should handle OTP verification and redirect to dashboard', async ({ page }) => {
-      // Mock successful OTP verification
-      await page.route('**/auth/v1/verify', async (route) => {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            access_token: 'mock-access-token',
-            token_type: 'bearer',
-            expires_in: 3600,
-            user: {
-              id: '123',
-              email: 'test@atalai.com',
-            },
-          }),
-        })
-      })
+    test('should show admin login form on /admin/login', async ({ page }) => {
+      await page.goto('/admin/login')
 
-      // Mock getUser to return authenticated state
-      await page.route('**/auth/v1/user', async (route) => {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            id: '123',
-            email: 'test@atalai.com',
-          }),
-        })
-      })
+      // Verify we're on the admin login page
+      await expect(page).toHaveURL(/admin\/login/)
 
-      // Go to verify page (simulating redirect from login)
-      await page.goto('/verify')
-
-      // Fill in email and token
-      await page.getByLabel('Email Address').fill('test@atalai.com')
-      await page.getByLabel('Verification Code').fill('123456')
-
-      // Click verify
-      await page.getByRole('button', { name: /Verify Code/i }).click()
-
-      // Should show success toast
-      await expect(page.getByRole('status')).toContainText(/verified successfully/i, { timeout: 5000 })
-
-      // Should redirect to dashboard
-      await expect(page).toHaveURL('/app/dashboard', { timeout: 10000 })
-
-      // Verify dashboard elements
-      await expect(page.getByRole('heading', { name: /Welcome to ATAL AI/i })).toBeVisible()
-    })
-
-    test('should show error on invalid OTP code', async ({ page }) => {
-      // Mock failed verification
-      await page.route('**/auth/v1/verify', async (route) => {
-        await route.fulfill({
-          status: 400,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            error: 'invalid_grant',
-            error_description: 'Invalid OTP code'
-          }),
-        })
-      })
-
-      await page.goto('/verify')
-
-      // Fill in email and invalid token
-      await page.getByLabel('Email Address').fill('test@atalai.com')
-      await page.getByLabel('Verification Code').fill('000000')
-
-      // Click verify
-      await page.getByRole('button', { name: /Verify Code/i }).click()
-
-      // Should show error toast
-      await expect(page.getByRole('status')).toContainText(/Invalid verification code|error/i, { timeout: 5000 })
-
-      // Should still be on verify page
-      await expect(page).toHaveURL('/verify')
-    })
-
-    test('should handle resend OTP functionality', async ({ page }) => {
-      // Mock resend OTP request
-      await page.route('**/auth/v1/otp', async (route) => {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({ success: true }),
-        })
-      })
-
-      await page.goto('/verify')
-
-      // Fill email
-      await page.getByLabel('Email Address').fill('test@atalai.com')
-
-      // Click resend button
-      await page.getByRole('button', { name: /resend/i }).click()
-
-      // Should show success toast
-      await expect(page.getByRole('status')).toContainText(/New code sent/i, { timeout: 5000 })
+      // Check for admin login elements
+      await expect(page.getByText('Admin Login')).toBeVisible()
     })
   })
 
-  test.describe('Authenticated Access', () => {
-    test('should allow access to dashboard when authenticated', async ({ page, context }) => {
-      // Mock authenticated state by setting cookies
-      await context.addCookies([
-        {
-          name: 'sb-access-token',
-          value: 'mock-access-token',
-          domain: 'localhost',
-          path: '/',
-        },
-      ])
+  test.describe('Student Authentication UI', () => {
+    test('should show email/phone/username tabs when Login clicked', async ({ page }) => {
+      await page.goto('/student/start')
+      await page.getByRole('button', { name: /Login/i }).click()
 
-      // Mock getUser to return authenticated user
-      await page.route('**/auth/v1/user', async (route) => {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            id: '123',
-            email: 'test@atalai.com',
-          }),
-        })
-      })
-
-      // Access dashboard
-      await page.goto('/app/dashboard')
-
-      // Should stay on dashboard (not redirected to login)
-      await expect(page).toHaveURL('/app/dashboard')
-
-      // Verify dashboard content
-      await expect(page.getByRole('heading', { name: /Welcome to ATAL AI/i })).toBeVisible()
-      await expect(page.getByText(/test@atalai.com/i)).toBeVisible()
+      // Should show auth tabs with emoji icons
+      await expect(page.getByText('📧 Email')).toBeVisible()
+      await expect(page.getByText('📱 Phone')).toBeVisible()
+      await expect(page.getByText('👤 Username')).toBeVisible()
     })
 
-    test('should redirect to dashboard when accessing login while authenticated', async ({ page, context }) => {
-      // Mock authenticated state
-      await context.addCookies([
-        {
-          name: 'sb-access-token',
-          value: 'mock-access-token',
-          domain: 'localhost',
-          path: '/',
-        },
-      ])
+    test('should show email input when email tab selected', async ({ page }) => {
+      await page.goto('/student/start')
+      await page.getByRole('button', { name: /Login/i }).click()
 
-      // Try to access login page
-      await page.goto('/login')
+      // Email tab is selected by default
+      await expect(page.getByLabel(/Email Address/i)).toBeVisible()
+      await expect(page.getByLabel(/Password/i)).toBeVisible()
+    })
 
-      // Should redirect to dashboard
-      await expect(page).toHaveURL('/app/dashboard')
+    test('should show phone input when phone tab selected', async ({ page }) => {
+      await page.goto('/student/start')
+      await page.getByRole('button', { name: /Login/i }).click()
+      await page.getByText('📱 Phone').click()
+
+      // Should show phone input
+      await expect(page.getByPlaceholder('9876543210')).toBeVisible()
+    })
+
+    test('should show username input when username tab selected', async ({ page }) => {
+      await page.goto('/student/start')
+      await page.getByRole('button', { name: /Login/i }).click()
+      await page.getByText('👤 Username').click()
+
+      // Should show username input
+      await expect(page.getByLabel(/Username/i)).toBeVisible()
+    })
+
+    test('should validate email format on submission', async ({ page }) => {
+      await page.goto('/student/start')
+      await page.getByRole('button', { name: /Login/i }).click()
+
+      const emailInput = page.getByLabel(/Email Address/i)
+      await emailInput.fill('invalid-email')
+
+      const passwordInput = page.getByLabel(/Password/i)
+      await passwordInput.fill('somepassword123')
+
+      await page.getByRole('button', { name: /Sign In/i }).click()
+
+      // Should stay on page (validation prevents submission)
+      await expect(page).toHaveURL(/student\/start/)
     })
   })
 
-  test.describe('UI Components', () => {
-    test('should disable submit button when email is empty', async ({ page }) => {
-      await page.goto('/login')
+  test.describe('Student Sign Up UI', () => {
+    test('should show signup options when Create Account clicked', async ({ page }) => {
+      await page.goto('/student/start')
+      await page.getByRole('button', { name: /Create Account/i }).click()
 
-      const submitButton = page.getByRole('button', { name: /Send Verification Code/i })
-
-      // Button should be disabled when email is empty
-      await expect(submitButton).toBeDisabled()
-
-      // Fill email
-      await page.getByLabel('Email Address').fill('test@example.com')
-
-      // Button should now be enabled
-      await expect(submitButton).toBeEnabled()
+      // Should show signup tabs with emoji icons
+      await expect(page.getByText('📧 Email')).toBeVisible()
+      await expect(page.getByText('📱 Phone')).toBeVisible()
+      await expect(page.getByText('⚡ Quick Start')).toBeVisible()
     })
 
-    test('should only accept 6-digit code in verification input', async ({ page }) => {
-      await page.goto('/verify')
+    test('should show Quick Start for username-based signup', async ({ page }) => {
+      await page.goto('/student/start')
+      await page.getByRole('button', { name: /Create Account/i }).click()
+      await page.getByText('⚡ Quick Start').click()
 
-      const codeInput = page.getByLabel('Verification Code')
+      // Should show username input
+      await expect(page.getByLabel(/Username/i)).toBeVisible()
+    })
+  })
 
-      // Type more than 6 digits
-      await codeInput.fill('12345678')
+  test.describe('Teacher Authentication UI', () => {
+    test('should show login and signup options', async ({ page }) => {
+      await page.goto('/teacher/start')
 
-      // Input should truncate to 6 digits
-      await expect(codeInput).toHaveValue('123456')
+      await expect(page.getByText(/Create New Account/i)).toBeVisible()
+      await expect(page.getByText(/Login to Account/i)).toBeVisible()
     })
 
-    test('should show loading state during OTP request', async ({ page }) => {
-      // Delay the API response
-      await page.route('**/auth/v1/otp', async (route) => {
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({ success: true }),
-        })
-      })
+    test('should show login form when Login clicked', async ({ page }) => {
+      await page.goto('/teacher/start')
+      await page.getByText(/Login to Account/i).click()
 
-      await page.goto('/login')
+      // Should show email and password inputs
+      await expect(page.getByLabel(/Email/i)).toBeVisible()
+      await expect(page.getByLabel(/Password/i)).toBeVisible()
+    })
+  })
 
-      await page.getByLabel('Email Address').fill('test@atalai.com')
+  test.describe('Protected Routes', () => {
+    test('should redirect /app/settings without auth', async ({ page }) => {
+      await page.goto('/app/settings')
+      await page.waitForLoadState('networkidle')
 
-      const submitButton = page.getByRole('button', { name: /Send Verification Code/i })
-      await submitButton.click()
+      await expect(page).not.toHaveURL('/app/settings')
+    })
 
-      // Button should show loading state
-      await expect(page.getByRole('button', { name: /Sending/i })).toBeVisible()
+    test('should redirect /app/teacher/classes without auth', async ({ page }) => {
+      await page.goto('/app/teacher/classes')
+      await page.waitForLoadState('networkidle')
+
+      await expect(page).not.toHaveURL('/app/teacher/classes')
+    })
+
+    test('should redirect /app/student/classes without auth', async ({ page }) => {
+      await page.goto('/app/student/classes')
+      await page.waitForLoadState('networkidle')
+
+      await expect(page).not.toHaveURL('/app/student/classes')
     })
   })
 })

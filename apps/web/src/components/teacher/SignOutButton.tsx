@@ -33,7 +33,7 @@ export function SignOutButton() {
       onClick={handleSignOut}
       variant="outline"
       size="sm"
-      className="gap-2 border-orange-200 text-orange-600 hover:bg-orange-50 hover:text-orange-700"
+      className="gap-2 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary-dark"
     >
       <LogOut className="w-4 h-4" />
       Sign Out

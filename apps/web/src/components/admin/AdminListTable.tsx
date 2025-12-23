@@ -128,9 +128,9 @@ export function AdminListTable({ refreshTrigger = 0, onAdminDeleted }: AdminList
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex gap-3">
-        <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-        <p className="text-sm text-red-600">{error}</p>
+      <div className="bg-error-light border border-error/30 rounded-lg p-4 flex gap-3">
+        <AlertCircle className="w-5 h-5 text-error flex-shrink-0 mt-0.5" />
+        <p className="text-sm text-error">{error}</p>
       </div>
     )
   }
@@ -148,7 +148,7 @@ export function AdminListTable({ refreshTrigger = 0, onAdminDeleted }: AdminList
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-200 bg-gray-50">
+            <tr className="border-b border-border bg-surface">
               <th className="px-4 py-3 text-left font-semibold text-text">Email</th>
               <th className="px-4 py-3 text-left font-semibold text-text">Role</th>
               <th className="px-4 py-3 text-left font-semibold text-text">Created</th>
@@ -158,7 +158,7 @@ export function AdminListTable({ refreshTrigger = 0, onAdminDeleted }: AdminList
           </thead>
           <tbody>
             {admins.map((admin) => (
-              <tr key={admin.id} className="border-b border-gray-100 hover:bg-gray-50">
+              <tr key={admin.id} className="border-b border-border hover:bg-surface">
                 <td className="px-4 py-3 text-text">{admin.email}</td>
                 <td className="px-4 py-3">
                   <span
@@ -202,7 +202,7 @@ export function AdminListTable({ refreshTrigger = 0, onAdminDeleted }: AdminList
                         disabled={deletingId === admin.id}
                         size="sm"
                         variant="outline"
-                        className="text-xs text-red-600 border-red-200 hover:bg-red-50"
+                        className="text-xs text-error border-error/30 hover:bg-error-light"
                         title="Delete Admin"
                       >
                         {deletingId === admin.id ? (
@@ -230,11 +230,11 @@ export function AdminListTable({ refreshTrigger = 0, onAdminDeleted }: AdminList
       {showResetModal && resetAdmin && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between p-6 border-b border-border">
               <h2 className="text-xl font-bold text-text">Reset Password</h2>
               <button
                 onClick={closeResetModal}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-text-tertiary hover:text-text-primary"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -257,18 +257,18 @@ export function AdminListTable({ refreshTrigger = 0, onAdminDeleted }: AdminList
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-primary"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
 
               {resetError && (
-                <p className="text-sm text-red-600">{resetError}</p>
+                <p className="text-sm text-error">{resetError}</p>
               )}
             </div>
 
-            <div className="p-4 border-t border-gray-200 bg-gray-50 flex gap-3">
+            <div className="p-4 border-t border-border bg-surface flex gap-3">
               <Button
                 onClick={closeResetModal}
                 variant="outline"
@@ -279,7 +279,7 @@ export function AdminListTable({ refreshTrigger = 0, onAdminDeleted }: AdminList
               <Button
                 onClick={handleResetPassword}
                 disabled={resetingId === resetAdmin.id}
-                className="flex-1 bg-primary hover:bg-orange-600"
+                className="flex-1 bg-primary hover:bg-primary-dark"
               >
                 {resetingId === resetAdmin.id ? 'Resetting...' : 'Reset Password'}
               </Button>

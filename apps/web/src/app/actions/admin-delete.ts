@@ -1,6 +1,6 @@
 'use server'
 
-import { createAdminClient } from '@/lib/supabase-server'
+import { createAdminClient, getCurrentUser } from '@/lib/supabase-server'
 import { authLogger } from '@/lib/auth-logger'
 
 export interface DeleteUserResult {
@@ -12,9 +12,33 @@ export interface DeleteUserResult {
 /**
  * Delete a user by email
  * WARNING: This is destructive and cannot be undone
+ * SECURITY: Requires super_admin role
  */
 export async function deleteUserByEmail(email: string): Promise<DeleteUserResult> {
   try {
+    // SECURITY: Verify caller is authenticated and authorized
+    const currentUser = await getCurrentUser()
+    if (!currentUser) {
+      authLogger.warn('[deleteUserByEmail] Unauthorized: No authenticated user')
+      return {
+        success: false,
+        error: 'Authentication required',
+      }
+    }
+
+    // SECURITY: Only super_admin can delete users
+    const currentRole = currentUser.app_metadata?.role
+    if (currentRole !== 'super_admin') {
+      authLogger.warn('[deleteUserByEmail] Forbidden: User lacks super_admin role', {
+        userId: currentUser.id,
+        role: currentRole,
+      })
+      return {
+        success: false,
+        error: 'Only super admins can delete users',
+      }
+    }
+
     const adminClient = await createAdminClient()
 
     // 1. Find user by email

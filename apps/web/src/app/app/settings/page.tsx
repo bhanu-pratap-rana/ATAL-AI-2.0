@@ -1,6 +1,9 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { StudentProfileEditor } from '@/components/settings/StudentProfileEditor'
+import { TeacherProfileEditor } from '@/components/settings/TeacherProfileEditor'
+import { DeleteAccountButton } from '@/components/settings/DeleteAccountButton'
 import Link from 'next/link'
 
 export default async function SettingsPage() {
@@ -8,83 +11,164 @@ export default async function SettingsPage() {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect('/login')
+    redirect('/student/start')
+  }
+
+  // Check app_metadata.role (set during teacher registration via admin API)
+  // This is reliable as it's set server-side and cannot be modified by client
+  const appRole = user.app_metadata?.role
+  const isTeacherOrAdmin = appRole === 'teacher' || appRole === 'admin' || appRole === 'super_admin'
+
+  // Check if user signed up with username (Quick Start)
+  const authType = user.user_metadata?.auth_type
+  const isUsernameAuth = authType === 'username'
+  const username = user.user_metadata?.username as string | undefined
+
+  // Determine display role - teachers promoted to admin show both roles
+  // Super admin is unique (only atal.app.ai@gmail.com)
+  let userRole = 'Student'
+  if (appRole === 'super_admin') {
+    userRole = 'Super Admin'
+  } else if (appRole === 'admin') {
+    // Admin promoted from teacher shows combined role
+    userRole = 'Teacher, Admin'
+  } else if (appRole === 'teacher') {
+    userRole = 'Teacher'
+  }
+
+  // Fetch student profile if user is a student
+  let studentProfile = null
+  if (!isTeacherOrAdmin) {
+    const { data: profile } = await supabase
+      .from('student_profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    studentProfile = profile
+  }
+
+  // Fetch teacher profile if user is a teacher/admin
+  let teacherProfile = null
+  if (isTeacherOrAdmin) {
+    const { data: profile } = await supabase
+      .from('teacher_profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    teacherProfile = profile
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 p-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-cream page-layout">
+      <div className="container-responsive max-w-4xl">
         {/* Header */}
-        <div className="mb-8">
-          <Link href="/app/dashboard" className="text-orange-600 hover:text-orange-700 mb-4 inline-block">
-            ← Back to Dashboard
+        <div className="mb-responsive">
+          <Link
+            href={isTeacherOrAdmin ? '/app/teacher/classes' : '/app/dashboard'}
+            className="text-primary hover:text-primary-dark mb-4 inline-flex items-center gap-1 text-sm md:text-base touch-target"
+          >
+            ← {isTeacherOrAdmin ? 'Back to Classes' : 'Back to Dashboard'}
           </Link>
-          <h1 className="text-4xl font-bold text-orange-600 mb-2">⚙️ Settings</h1>
-          <p className="text-gray-600">Manage your account and application preferences</p>
+          <h1 className="heading-1 text-primary mb-2">Profile</h1>
+          <p className="text-text-secondary text-sm md:text-base">View and manage your profile information</p>
         </div>
 
         {/* Account Info */}
-        <Card className="mb-6">
+        <Card className="mb-4 md:mb-6 card-responsive">
           <CardHeader>
-            <CardTitle>Account Information</CardTitle>
+            <CardTitle className="text-lg md:text-xl">Account Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Show Username for Quick Start users, Email for others */}
+            {isUsernameAuth ? (
+              <div>
+                <label className="text-sm font-medium text-text-secondary">Username</label>
+                <p className="text-text-primary font-mono">{username || 'Not set'}</p>
+              </div>
+            ) : (
+              <div>
+                <label className="text-sm font-medium text-text-secondary">Email</label>
+                <p className="text-text-primary break-all">{user.email || 'Not set'}</p>
+              </div>
+            )}
             <div>
-              <label className="text-sm font-medium text-gray-600">Email</label>
-              <p className="text-gray-900">{user.email}</p>
+              <label className="text-sm font-medium text-text-secondary">User ID</label>
+              <p className="text-text-primary font-mono text-xs md:text-sm break-all">{user.id}</p>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-600">User ID</label>
-              <p className="text-gray-900 font-mono text-sm">{user.id}</p>
+              <label className="text-sm font-medium text-text-secondary">Role</label>
+              <p className="text-text-primary">{userRole}</p>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-600">Role</label>
-              <p className="text-gray-900 capitalize">{user.user_metadata?.role || 'student'}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-600">Account Created</label>
-              <p className="text-gray-900">{new Date(user.created_at || '').toLocaleDateString()}</p>
+              <label className="text-sm font-medium text-text-secondary">Account Created</label>
+              <p className="text-text-primary">{new Date(user.created_at || '').toLocaleDateString()}</p>
             </div>
           </CardContent>
         </Card>
 
-        {/* Preferences */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Preferences</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Email Notifications</p>
-                  <p className="text-sm text-gray-600">Receive email updates about your progress</p>
+        {/* Student Profile Section - Only show for students */}
+        {!isTeacherOrAdmin && (
+          <StudentProfileEditor
+            profile={studentProfile}
+            userEmail={user.email || ''}
+            isUsernameAuth={isUsernameAuth}
+            username={username}
+          />
+        )}
+
+        {/* Teacher Profile Section - Only show for teachers/admins */}
+        {isTeacherOrAdmin && teacherProfile && (
+          <TeacherProfileEditor
+            profile={teacherProfile}
+            userEmail={user.email || ''}
+          />
+        )}
+
+        {/* Preferences - Only show for students */}
+        {!isTeacherOrAdmin && (
+          <Card className="mb-4 md:mb-6 card-responsive">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+                Preferences
+                <span className="px-2 py-0.5 bg-warning-light text-warning-dark rounded-full text-xs">Coming Soon</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 opacity-60">
+                  <div>
+                    <p className="font-medium text-text-primary">Language Preference</p>
+                    <p className="text-sm text-text-secondary">Choose your preferred language for assessments</p>
+                  </div>
+                  <span className="px-3 py-1 bg-surface-dark text-text-tertiary rounded-full text-sm w-fit">English</span>
                 </div>
-                <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">Enabled</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Assessment Reminders</p>
-                  <p className="text-sm text-gray-600">Get reminders for upcoming assessments</p>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 opacity-60">
+                  <div>
+                    <p className="font-medium text-text-primary">Assessment Reminders</p>
+                    <p className="text-sm text-text-secondary">Get reminders for upcoming assessments</p>
+                  </div>
+                  <span className="px-3 py-1 bg-surface-dark text-text-tertiary rounded-full text-sm w-fit">Not Set</span>
                 </div>
-                <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">Enabled</span>
+                <p className="text-xs text-text-tertiary pt-2">
+                  Preference settings will be available in a future update.
+                </p>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Danger Zone */}
-        <Card className="border-red-200 bg-red-50">
+        <Card className="border-error/30 bg-error-light/50 card-responsive">
           <CardHeader>
-            <CardTitle className="text-red-700">Danger Zone</CardTitle>
+            <CardTitle className="text-error-dark text-lg md:text-xl">Danger Zone</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-text-secondary mb-4">
               Once you delete your account, there is no going back. Please be certain.
             </p>
-            <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-              Delete Account
-            </button>
+            <DeleteAccountButton userEmail={user.email || 'your account'} />
           </CardContent>
         </Card>
       </div>

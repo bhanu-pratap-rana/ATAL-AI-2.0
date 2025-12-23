@@ -19,12 +19,12 @@ import type { AuthState, AuthActions } from '@/hooks/useAuthState'
 
 /**
  * ATAL AI Student Sign Up (Phone) - Jyoti Theme
- * 
+ *
  * Design Rules Applied:
  * - Primary button
  * - Info box: primary-light bg with primary-dark text
- * - Error text: #EF4444
- * - Muted text: #78716C
+ * - Error text: text-error
+ * - Muted text: text-text-muted
  */
 
 interface SignUpPhoneFlowProps {
@@ -84,8 +84,9 @@ export function SignUpPhoneFlow({
 
   async function handleSignUpPhoneVerifyOtp(e: React.FormEvent) {
     e.preventDefault()
+    actions.setSignupPhoneError(null)
 
-    // Validate password
+    // Validate password before showing loading state
     const passwordValidation = validatePassword(state.signupPhonePassword)
     if (!passwordValidation.valid) {
       actions.setSignupPhoneError(passwordValidation.errors.join(', ') || 'Invalid password')
@@ -101,8 +102,8 @@ export function SignUpPhoneFlow({
       return
     }
 
+    // Only set loading after validation passes
     actions.setIsLoading(true)
-    actions.setSignupPhoneError(null)
 
     try {
       authLogger.debug('[SignUp Phone] Verifying OTP')
@@ -153,8 +154,8 @@ export function SignUpPhoneFlow({
     return (
       <form onSubmit={handleSignUpPhoneSendOtp} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="signup-phone" className="text-[#2D2A26]">Phone Number</Label>
-          <div className="flex items-center border-2 border-border rounded-[12px] overflow-hidden focus-within:border-primary focus-within:ring-3 focus-within:ring-primary-light transition-all">
+          <Label htmlFor="signup-phone" className="text-text">Phone Number</Label>
+          <div className="flex items-center border-2 border-border rounded-md overflow-hidden focus-within:border-primary focus-within:ring-3 focus-within:ring-primary-light transition-all">
             <span className="px-3 text-text-secondary font-medium bg-border-light h-full py-3">+91</span>
             <Input
               id="signup-phone"
@@ -168,11 +169,11 @@ export function SignUpPhoneFlow({
               maxLength={12}
             />
           </div>
-          <p className="text-xs text-[#78716C]">Enter your 10-digit phone number</p>
+          <p className="text-xs text-text-muted">Enter your 10-digit phone number</p>
         </div>
 
         {/* Info Box - Primary Light */}
-        <div className="bg-primary-light border-l-4 border-primary p-3 rounded-[12px]">
+        <div className="bg-primary-light border-l-4 border-primary p-3 rounded-md">
           <p className="text-xs text-primary-dark">
             <strong>📱 SMS Verification:</strong> You&apos;ll receive a 6-digit code via SMS.
             Standard rates may apply.
@@ -196,7 +197,7 @@ export function SignUpPhoneFlow({
   return (
     <form onSubmit={handleSignUpPhoneVerifyOtp} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="signup-phone-otp" className="text-[#2D2A26]">Verification Code</Label>
+        <Label htmlFor="signup-phone-otp" className="text-text">Verification Code</Label>
         <Input
           id="signup-phone-otp"
           type="text"
@@ -208,11 +209,11 @@ export function SignUpPhoneFlow({
           maxLength={OTP_LENGTH}
           className="text-center text-2xl font-mono tracking-widest"
         />
-        <p className="text-xs text-[#78716C]">Enter the 6-digit code sent to your phone</p>
+        <p className="text-xs text-text-muted">Enter the 6-digit code sent to your phone</p>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="signup-phone-password" className="text-[#2D2A26]">Password</Label>
+        <Label htmlFor="signup-phone-password" className="text-text">Password</Label>
         <Input
           id="signup-phone-password"
           type="password"
@@ -225,7 +226,7 @@ export function SignUpPhoneFlow({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="signup-phone-password-confirm" className="text-[#2D2A26]">Confirm Password</Label>
+        <Label htmlFor="signup-phone-password-confirm" className="text-text">Confirm Password</Label>
         <Input
           id="signup-phone-password-confirm"
           type="password"
@@ -236,7 +237,7 @@ export function SignUpPhoneFlow({
           disabled={isLoading}
         />
         {state.signupPhoneError && (
-          <p className="text-sm text-[#EF4444]">{state.signupPhoneError}</p>
+          <p className="text-sm text-error">{state.signupPhoneError}</p>
         )}
       </div>
 
@@ -255,14 +256,24 @@ export function SignUpPhoneFlow({
         <span className="ml-2">→</span>
       </Button>
 
-      <button
-        type="button"
-        onClick={() => actions.setSignupPhoneOtpStep('phone')}
-        className="text-sm text-text-secondary hover:text-primary hover:underline block w-full text-center transition-colors"
-        disabled={isLoading}
-      >
-        Change phone number
-      </button>
+      <div className="flex flex-col items-center gap-2">
+        <button
+          type="button"
+          onClick={handleSignUpPhoneSendOtp}
+          className="text-sm text-primary hover:text-primary-dark hover:underline"
+          disabled={isLoading}
+        >
+          Resend OTP
+        </button>
+        <button
+          type="button"
+          onClick={() => actions.setSignupPhoneOtpStep('phone')}
+          className="text-sm text-text-secondary hover:text-primary hover:underline transition-colors"
+          disabled={isLoading}
+        >
+          Change phone number
+        </button>
+      </div>
     </form>
   )
 }

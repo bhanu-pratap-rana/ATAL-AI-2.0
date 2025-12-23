@@ -66,19 +66,19 @@ export default function AdminDashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-stone-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-text-muted">Loading dashboard...</p>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <p className="mt-4 text-text-secondary">Loading dashboard...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-stone-900">
+    <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface">
       {/* Header */}
-      <header className="bg-stone-800 border-b border-stone-700">
+      <header className="bg-white shadow-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             {/* Logo */}
@@ -88,19 +88,19 @@ export default function AdminDashboardPage() {
                 alt="ATAL AI Logo"
                 width={48}
                 height={48}
-                className="w-full h-full object-contain rounded-full ring-2 ring-stone-800 ring-offset-2 ring-offset-primary shadow-primary-md"
+                className="w-full h-full object-contain rounded-full ring-2 ring-white ring-offset-2 ring-offset-primary shadow-primary-md"
                 priority
               />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
+                <h1 className="text-2xl font-bold text-text">Admin Dashboard</h1>
                 {/* Super Admin Crown - Gold Accent */}
                 <div className="bg-accent-light p-1.5 rounded-lg">
                   <Crown className="w-4 h-4 text-accent-dark" />
                 </div>
               </div>
-              <p className="text-sm text-text-muted mt-1">Welcome back, {userEmail}</p>
+              <p className="text-sm text-text-secondary mt-1">Welcome back, {userEmail}</p>
             </div>
           </div>
 
@@ -119,22 +119,22 @@ export default function AdminDashboardPage() {
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Metrics Section */}
         <section className="mb-8">
-          <h2 className="text-xl font-bold text-white mb-4">System Overview</h2>
+          <h2 className="text-xl font-bold text-text mb-4">System Overview</h2>
           <DashboardMetrics />
         </section>
 
         {/* Quick Actions */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Admin Management Card */}
-          <div className="bg-stone-800 rounded-[20px] p-6 border border-stone-700">
+          <div className="bg-white rounded-lg shadow p-6 border border-border">
             <div className="flex items-center gap-3 mb-4">
-              {/* Icon Box - Primary Light (consistent even in dark mode) */}
-              <div className="w-12 h-12 bg-primary-light rounded-[12px] flex items-center justify-center">
+              {/* Icon Box - Primary Light */}
+              <div className="w-12 h-12 bg-primary-lighter rounded-lg flex items-center justify-center">
                 <Users className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="text-lg font-bold text-white">Admin Management</h3>
+              <h3 className="text-lg font-bold text-text">Admin Management</h3>
             </div>
-            <p className="text-sm text-text-muted mb-4">
+            <p className="text-sm text-text-secondary mb-4">
               Create new admin accounts, reset passwords, and manage admin access to the system.
             </p>
             <Button
@@ -146,15 +146,15 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* PIN Management Card */}
-          <div className="bg-stone-800 rounded-[20px] p-6 border border-stone-700">
+          <div className="bg-white rounded-lg shadow p-6 border border-border">
             <div className="flex items-center gap-3 mb-4">
               {/* Icon Box - Primary Light */}
-              <div className="w-12 h-12 bg-primary-light rounded-[12px] flex items-center justify-center">
+              <div className="w-12 h-12 bg-primary-lighter rounded-lg flex items-center justify-center">
                 <Lock className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="text-lg font-bold text-white">School PIN Management</h3>
+              <h3 className="text-lg font-bold text-text">School PIN Management</h3>
             </div>
-            <p className="text-sm text-text-muted mb-4">
+            <p className="text-sm text-text-secondary mb-4">
               Manage school PIN creation and rotation. Monitor PIN activity and security status.
             </p>
             <Button
@@ -169,9 +169,9 @@ export default function AdminDashboardPage() {
 
         {/* Info Section */}
         <section className="mt-8">
-          <div className="bg-info/10 border border-info/30 rounded-[16px] p-6">
-            <h3 className="font-semibold text-info mb-2">ℹ️ Admin Dashboard Information</h3>
-            <ul className="text-sm text-info/80 space-y-2 list-disc list-inside">
+          <div className="bg-cyan-lightest border border-cyan/30 rounded-lg p-6">
+            <h3 className="font-semibold text-cyan-darkest mb-2">ℹ️ Admin Dashboard Information</h3>
+            <ul className="text-sm text-cyan-dark space-y-2 list-disc list-inside">
               <li>Monitor system-wide metrics for schools, teachers, and students</li>
               <li>Create and manage admin accounts with different role levels</li>
               <li>Reset admin passwords when needed</li>

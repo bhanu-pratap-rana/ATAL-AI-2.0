@@ -141,7 +141,7 @@ export function InviteStudentDialog({ classId }: InviteStudentDialogProps) {
                   {searching ? '...' : 'Search'}
                 </Button>
               </div>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-text-secondary">
                 Enter student email or user ID to find them
               </p>
             </div>
@@ -166,11 +166,11 @@ export function InviteStudentDialog({ classId }: InviteStudentDialogProps) {
                           setSearchResults([])
                           setSearchInput('')
                         }}
-                        className="w-full text-left px-3 py-2 hover:bg-orange-50 border-b last:border-b-0 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-400"
+                        className="w-full text-left px-3 py-2 hover:bg-primary/10 border-b last:border-b-0 transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
                         aria-label={`Select student: ${student.email} (ID: ${student.id})`}
                       >
                         <p className="font-medium text-sm">{student.email}</p>
-                        <p className="text-xs text-gray-500">{student.id}</p>
+                        <p className="text-xs text-text-secondary">{student.id}</p>
                       </button>
                     </li>
                   ))}
@@ -180,10 +180,10 @@ export function InviteStudentDialog({ classId }: InviteStudentDialogProps) {
 
             {/* Selected Student Info */}
             {selectedStudent && (
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm font-medium text-blue-900">Selected Student:</p>
-                <p className="text-sm text-blue-800">{selectedStudent.email}</p>
-                <p className="text-xs text-blue-600 mt-1">{selectedStudent.id}</p>
+              <div className="p-3 bg-cyan-lightest border border-cyan/30 rounded-lg">
+                <p className="text-sm font-medium text-cyan-darkest">Selected Student:</p>
+                <p className="text-sm text-cyan-darkest">{selectedStudent.email}</p>
+                <p className="text-xs text-cyan-dark mt-1">{selectedStudent.id}</p>
               </div>
             )}
 

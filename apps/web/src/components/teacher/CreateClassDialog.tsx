@@ -38,7 +38,7 @@ export function CreateClassDialog() {
       if (result.success && result.data) {
         setCreatedClass({
           classCode: result.data.class_code,
-          joinPin: result.data.join_pin,
+          joinPin: result.data.join_pin || '',
         })
         toast.success('Class created successfully!')
         // Don't close dialog yet - show codes first
@@ -92,7 +92,7 @@ export function CreateClassDialog() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="subject">Subject (Optional)</Label>
+                <Label htmlFor="subject">Subject</Label>
                 <Input
                   id="subject"
                   placeholder="e.g., Mathematics, English, Science"
@@ -130,12 +130,12 @@ export function CreateClassDialog() {
               {/* Class Code */}
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Class Code</Label>
-                <div className="bg-gradient-to-br from-orange-50 to-yellow-50 border-2 border-orange-300 rounded-lg p-3 md:p-4">
-                  <p className="text-2xl md:text-3xl font-mono font-bold text-center text-orange-600 tracking-widest break-all">
+                <div className="bg-gradient-to-br from-primary/10 to-primary/5 border-2 border-primary/30 rounded-lg p-3 md:p-4">
+                  <p className="text-2xl md:text-3xl font-mono font-bold text-center text-primary tracking-widest break-all">
                     {createdClass.classCode}
                   </p>
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-text-secondary">
                   Students will enter this 6-character code
                 </p>
               </div>
@@ -143,18 +143,18 @@ export function CreateClassDialog() {
               {/* Join PIN */}
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Join PIN</Label>
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-lg p-3 md:p-4">
-                  <p className="text-2xl md:text-3xl font-mono font-bold text-center text-blue-600 tracking-widest">
+                <div className="bg-gradient-to-br from-cyan-lightest to-cyan/10 border-2 border-cyan/30 rounded-lg p-3 md:p-4">
+                  <p className="text-2xl md:text-3xl font-mono font-bold text-center text-cyan-dark tracking-widest">
                     {createdClass.joinPin}
                   </p>
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-text-secondary">
                   4-digit PIN for class security
                 </p>
               </div>
 
-              <div className="bg-amber-50 border-l-4 border-amber-400 p-3 rounded">
-                <p className="text-sm text-amber-800">
+              <div className="bg-warning-light border-l-4 border-warning p-3 rounded">
+                <p className="text-sm text-warning-dark">
                   <strong>📋 Keep these codes safe!</strong> Students need both the class code and PIN to join.
                   You can view these codes anytime in the class details.
                 </p>

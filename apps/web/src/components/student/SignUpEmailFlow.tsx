@@ -21,12 +21,12 @@ import type { AuthState, AuthActions } from '@/hooks/useAuthState'
 
 /**
  * ATAL AI Student Sign Up (Email) - Jyoti Theme
- * 
+ *
  * Design Rules Applied:
  * - Primary button with correct shadows
- * - Error text: #EF4444
- * - Links: #FF7E33
- * - Muted text: #78716C
+ * - Error text: text-error
+ * - Links: text-primary
+ * - Muted text: text-text-muted
  */
 
 const RESEND_COOLDOWN_SECONDS = 60
@@ -208,7 +208,7 @@ export function SignUpEmailFlow({
     return (
       <form onSubmit={handleSignUpEmailSendOtp} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="signup-email" className="text-[#2D2A26]">Email Address</Label>
+          <Label htmlFor="signup-email" className="text-text">Email Address</Label>
           <Input
             id="signup-email"
             type="email"
@@ -219,7 +219,7 @@ export function SignUpEmailFlow({
             disabled={isLoading}
           />
           {state.signupEmailError && (
-            <p className="text-sm text-[#EF4444]">{state.signupEmailError}</p>
+            <p className="text-sm text-error">{state.signupEmailError}</p>
           )}
         </div>
 
@@ -240,7 +240,7 @@ export function SignUpEmailFlow({
   return (
     <form onSubmit={handleSignUpEmailVerifyAndCreate} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="signup-email-otp" className="text-[#2D2A26]">Verification Code</Label>
+        <Label htmlFor="signup-email-otp" className="text-text">Verification Code</Label>
         <Input
           id="signup-email-otp"
           type="text"
@@ -252,11 +252,11 @@ export function SignUpEmailFlow({
           maxLength={OTP_LENGTH}
           className="text-center text-2xl font-mono tracking-widest"
         />
-        <p className="text-xs text-[#78716C]">Enter the 6-digit code sent to your email</p>
+        <p className="text-xs text-text-muted">Enter the 6-digit code sent to your email</p>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="signup-email-password" className="text-[#2D2A26]">Password</Label>
+        <Label htmlFor="signup-email-password" className="text-text">Password</Label>
         <Input
           id="signup-email-password"
           type="password"
@@ -269,7 +269,7 @@ export function SignUpEmailFlow({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="signup-email-password-confirm" className="text-[#2D2A26]">Confirm Password</Label>
+        <Label htmlFor="signup-email-password-confirm" className="text-text">Confirm Password</Label>
         <Input
           id="signup-email-password-confirm"
           type="password"
@@ -280,7 +280,7 @@ export function SignUpEmailFlow({
           disabled={isLoading}
         />
         {state.signupEmailError && (
-          <p className="text-sm text-[#EF4444]">{state.signupEmailError}</p>
+          <p className="text-sm text-error">{state.signupEmailError}</p>
         )}
       </div>
 

@@ -9,10 +9,14 @@ import type { SchoolPINInfo, SchoolListItem, PINStatistics } from '@/app/actions
 import { ArrowLeft, Search, RefreshCw, Eye, EyeOff, LogOut, Wand2, Copy, Check } from 'lucide-react'
 import { toast } from 'sonner'
 import { createBrowserClient } from '@supabase/ssr'
+import { clientLogger } from '@/lib/client-logger'
+import { CLIPBOARD_TIMING } from '@/lib/constants/ui-timings'
+import { PIN_LIMITS } from '@/lib/constants/validation-limits'
 
-// Generate a random 4-digit PIN
+// Generate a random 4-digit PIN using centralized constants
 function generateRandomPIN(): string {
-  return Math.floor(1000 + Math.random() * 9000).toString()
+  const range = PIN_LIMITS.max - PIN_LIMITS.min + 1
+  return Math.floor(PIN_LIMITS.min + Math.random() * range).toString()
 }
 
 export default function AdminSchoolPINsPage() {
@@ -74,7 +78,7 @@ export default function AdminSchoolPINsPage() {
           setStats(statsResult.data as PINStatistics)
         }
       } catch (error) {
-        console.error('Error loading data:', error)
+        clientLogger.error('[AdminPINsPage] Error loading data', error instanceof Error ? error : { error })
         router.push('/admin/login')
       } finally {
         setIsLoading(false)
@@ -117,7 +121,8 @@ export default function AdminSchoolPINsPage() {
       } else {
         toast.error(result.error || 'Failed to load school PIN info')
       }
-    } catch {
+    } catch (error) {
+      clientLogger.error('[AdminPINsPage] Failed to load school details', error instanceof Error ? error : { error })
       toast.error('An error occurred')
     } finally {
       setLoadingSchoolDetails(false)
@@ -158,7 +163,8 @@ export default function AdminSchoolPINsPage() {
       } else {
         toast.error(result.error || 'Failed to generate PIN')
       }
-    } catch {
+    } catch (error) {
+      clientLogger.error('[AdminPINsPage] Failed to rotate PIN', error instanceof Error ? error : { error })
       toast.error('An error occurred')
     } finally {
       setRotatingId(null)
@@ -175,7 +181,8 @@ export default function AdminSchoolPINsPage() {
         await supabaseRef.current.auth.signOut()
       }
       router.push('/admin/login')
-    } catch {
+    } catch (error) {
+      clientLogger.error('[AdminPINsPage] Failed to sign out', error instanceof Error ? error : { error })
       toast.error('Failed to sign out')
     }
   }
@@ -185,7 +192,7 @@ export default function AdminSchoolPINsPage() {
       navigator.clipboard.writeText(newPin)
       setCopied(true)
       toast.success('PIN copied to clipboard!')
-      setTimeout(() => setCopied(false), 2000)
+      setTimeout(() => setCopied(false), CLIPBOARD_TIMING.successFeedback)
     }
   }
 
@@ -203,7 +210,7 @@ export default function AdminSchoolPINsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      <header className="bg-white shadow-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             {/* Only show Back to Dashboard for super admin */}
@@ -212,7 +219,7 @@ export default function AdminSchoolPINsPage() {
                 onClick={() => router.push('/admin/dashboard')}
                 variant="outline"
                 size="sm"
-                className="text-primary border-primary hover:bg-orange-50"
+                className="text-primary border-primary hover:bg-primary/10"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Dashboard
@@ -224,7 +231,7 @@ export default function AdminSchoolPINsPage() {
             onClick={handleSignOut}
             variant="outline"
             size="sm"
-            className="text-red-600 border-red-200 hover:bg-red-50"
+            className="text-error border-error/30 hover:bg-error-light"
           >
             <LogOut className="w-4 h-4 mr-2" />
             Sign Out
@@ -237,17 +244,17 @@ export default function AdminSchoolPINsPage() {
         {/* Statistics */}
         {stats && (
           <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div className="bg-white rounded-lg shadow p-6 border border-gray-100">
+            <div className="bg-white rounded-lg shadow p-6 border border-border">
               <p className="text-sm text-text-secondary">Total Schools</p>
               <p className="text-3xl font-bold text-text">{stats.totalSchools}</p>
             </div>
-            <div className="bg-white rounded-lg shadow p-6 border border-gray-100">
+            <div className="bg-white rounded-lg shadow p-6 border border-border">
               <p className="text-sm text-text-secondary">Schools with PIN</p>
-              <p className="text-3xl font-bold text-green-600">{stats.schoolsWithPINs}</p>
+              <p className="text-3xl font-bold text-success">{stats.schoolsWithPINs}</p>
             </div>
-            <div className="bg-white rounded-lg shadow p-6 border border-gray-100">
+            <div className="bg-white rounded-lg shadow p-6 border border-border">
               <p className="text-sm text-text-secondary">Without PIN</p>
-              <p className="text-3xl font-bold text-orange-600">{stats.schoolsWithoutPINs}</p>
+              <p className="text-3xl font-bold text-warning">{stats.schoolsWithoutPINs}</p>
             </div>
           </section>
         )}
@@ -255,8 +262,8 @@ export default function AdminSchoolPINsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left: Search and School List */}
           <div className="lg:col-span-2">
-            <section className="bg-white rounded-lg shadow border border-gray-100">
-              <div className="border-b border-gray-200 p-6">
+            <section className="bg-white rounded-lg shadow border border-border">
+              <div className="border-b border-border p-6">
                 <h2 className="text-xl font-bold text-text mb-4">🔍 Step 1: Find School</h2>
                 <div className="relative">
                   <div className="flex gap-2">
@@ -270,37 +277,37 @@ export default function AdminSchoolPINsPage() {
                         onFocus={() => searchQuery && setShowSuggestions(true)}
                         className="w-full pr-10"
                       />
-                      <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary" />
                     </div>
                   </div>
 
                   {/* Suggestions dropdown */}
                   {showSuggestions && filteredSchools.length > 0 && (
-                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-border rounded-lg shadow-lg max-h-64 overflow-y-auto">
                       {filteredSchools.slice(0, 10).map((school) => (
                         <button
                           key={school.schoolId}
                           onClick={() => handleSelectSchool(school)}
-                          className="w-full p-3 text-left hover:bg-orange-50 border-b border-gray-100 last:border-b-0 transition"
+                          className="w-full p-3 text-left hover:bg-primary/10 border-b border-border last:border-b-0 transition"
                         >
                           <div className="flex items-center justify-between">
                             <span className="font-medium text-text">{school.schoolName}</span>
-                            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-mono">
+                            <span className="text-xs bg-surface text-text-secondary px-2 py-1 rounded font-mono">
                               {school.schoolCode}
                             </span>
                           </div>
                           <div className="flex items-center justify-between mt-1">
                             <span className="text-xs text-text-secondary">{school.districtName}</span>
                             {school.hasPIN ? (
-                              <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">Has PIN</span>
+                              <span className="text-xs bg-success-light text-success px-2 py-0.5 rounded">Has PIN</span>
                             ) : (
-                              <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded">No PIN</span>
+                              <span className="text-xs bg-warning-light text-warning-dark px-2 py-0.5 rounded">No PIN</span>
                             )}
                           </div>
                         </button>
                       ))}
                       {filteredSchools.length > 10 && (
-                        <p className="p-2 text-xs text-center text-text-secondary bg-gray-50">
+                        <p className="p-2 text-xs text-center text-text-secondary bg-surface">
                           +{filteredSchools.length - 10} more results...
                         </p>
                       )}
@@ -314,7 +321,7 @@ export default function AdminSchoolPINsPage() {
 
               {/* Loading School Details */}
               {loadingSchoolDetails && (
-                <div className="p-6 border-b border-gray-200 flex items-center gap-3">
+                <div className="p-6 border-b border-border flex items-center gap-3">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
                   <p className="text-text-secondary">Loading school details...</p>
                 </div>
@@ -322,21 +329,21 @@ export default function AdminSchoolPINsPage() {
 
               {/* Selected School Info */}
               {selectedSchool && !loadingSchoolDetails && (
-                <div className="p-6 border-b border-gray-200 bg-green-50">
+                <div className="p-6 border-b border-border bg-success-light">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-green-700 font-medium">✓ Selected School</p>
-                      <p className="text-lg font-bold text-green-900">{selectedSchool.schoolName}</p>
-                      <p className="text-sm text-green-700">Code: {selectedSchool.schoolCode}</p>
+                      <p className="text-xs text-success font-medium">✓ Selected School</p>
+                      <p className="text-lg font-bold text-success">{selectedSchool.schoolName}</p>
+                      <p className="text-sm text-success">Code: {selectedSchool.schoolCode}</p>
                     </div>
                     <button
                       onClick={() => {
                         navigator.clipboard.writeText(selectedSchool.schoolCode)
                         toast.success('School code copied!')
                       }}
-                      className="p-2 hover:bg-green-100 rounded transition"
+                      className="p-2 hover:bg-success/10 rounded transition"
                     >
-                      <Copy className="w-4 h-4 text-green-600" />
+                      <Copy className="w-4 h-4 text-success" />
                     </button>
                   </div>
                 </div>
@@ -344,25 +351,25 @@ export default function AdminSchoolPINsPage() {
 
               {/* PIN Status */}
               {selectedSchool && (
-                <div className="p-6 border-b border-gray-200">
+                <div className="p-6 border-b border-border">
                   <h3 className="text-lg font-bold text-text mb-4">📋 Step 2: PIN Status</h3>
                   {selectedSchool.lastRotatedAt ? (
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                      <p className="text-sm font-medium text-green-800">✓ PIN Exists</p>
-                      <p className="text-sm text-green-700 mt-1">
+                    <div className="bg-success-light border border-success/30 rounded-lg p-4">
+                      <p className="text-sm font-medium text-success">✓ PIN Exists</p>
+                      <p className="text-sm text-success/80 mt-1">
                         <strong>Created:</strong> {new Date(selectedSchool.lastRotatedAt).toLocaleDateString()}
                       </p>
-                      <p className="text-sm text-green-700">
+                      <p className="text-sm text-success/80">
                         <strong>Last Rotated:</strong> {new Date(selectedSchool.lastRotatedAt).toLocaleDateString()}
                       </p>
-                      <p className="text-xs text-green-600 mt-2">
+                      <p className="text-xs text-success mt-2">
                         👇 Scroll down to Step 3 to rotate the PIN
                       </p>
                     </div>
                   ) : (
-                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                      <p className="text-sm font-medium text-orange-800">⚠️ No PIN Set</p>
-                      <p className="text-sm text-orange-700 mt-1">
+                    <div className="bg-warning-light border border-warning/30 rounded-lg p-4">
+                      <p className="text-sm font-medium text-warning-dark">⚠️ No PIN Set</p>
+                      <p className="text-sm text-warning mt-1">
                         This school doesn&apos;t have a PIN yet. Generate one below.
                       </p>
                     </div>
@@ -385,36 +392,36 @@ export default function AdminSchoolPINsPage() {
                         type="text"
                         value={selectedSchool.schoolCode}
                         disabled
-                        className="bg-gray-100"
+                        className="bg-surface"
                       />
                     </div>
 
                     {/* Generated PIN Display */}
                     {newPin && showNewPin && (
-                      <div className="bg-green-50 border-2 border-green-300 rounded-lg p-4">
+                      <div className="bg-success-light border-2 border-success/50 rounded-lg p-4">
                         <div className="flex items-center justify-between mb-2">
-                          <p className="text-sm font-semibold text-green-800">✓ New PIN Generated</p>
+                          <p className="text-sm font-semibold text-success">✓ New PIN Generated</p>
                           <div className="flex gap-2">
                             <button
                               onClick={() => setShowNewPin(!showNewPin)}
-                              className="text-green-600 hover:text-green-700 p-1"
+                              className="text-success hover:text-success/80 p-1"
                               title={showNewPin ? 'Hide PIN' : 'Show PIN'}
                             >
                               {showNewPin ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                             </button>
                             <button
                               onClick={copyPinToClipboard}
-                              className="text-green-600 hover:text-green-700 p-1"
+                              className="text-success hover:text-success/80 p-1"
                               title="Copy PIN"
                             >
                               {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                             </button>
                           </div>
                         </div>
-                        <p className="text-4xl font-mono font-bold text-green-700 text-center py-2">
+                        <p className="text-4xl font-mono font-bold text-success text-center py-2">
                           {newPin}
                         </p>
-                        <p className="text-xs text-green-600 text-center mt-2">
+                        <p className="text-xs text-success text-center mt-2">
                           Share this PIN securely with the school staff
                         </p>
                       </div>
@@ -424,7 +431,7 @@ export default function AdminSchoolPINsPage() {
                     <Button
                       onClick={handleGenerateRandomPin}
                       disabled={rotatingId === selectedSchool.schoolId}
-                      className="w-full h-12 bg-gradient-to-r from-primary to-orange-500 hover:from-orange-600 hover:to-orange-600 text-lg"
+                      className="w-full h-12 bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary text-lg"
                     >
                       {rotatingId === selectedSchool.schoolId ? (
                         <>
@@ -440,8 +447,8 @@ export default function AdminSchoolPINsPage() {
                     </Button>
 
                     {/* Security Notice */}
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                      <p className="text-xs text-yellow-800">
+                    <div className="bg-warning-light border border-warning/30 rounded-lg p-3">
+                      <p className="text-xs text-warning-dark">
                         <strong>⚠️ Security Notice</strong>
                         <br />
                         PIN will be bcrypt hashed. Old PIN becomes invalid immediately.
@@ -454,9 +461,9 @@ export default function AdminSchoolPINsPage() {
               {/* Quick Guide when no school selected */}
               {!selectedSchool && (
                 <div className="p-6">
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <h3 className="font-semibold text-blue-900 mb-2">📖 Quick Guide</h3>
-                    <ul className="text-sm text-blue-800 space-y-1">
+                  <div className="bg-cyan-lightest border border-cyan/30 rounded-lg p-4">
+                    <h3 className="font-semibold text-cyan-darkest mb-2">📖 Quick Guide</h3>
+                    <ul className="text-sm text-cyan-dark space-y-1">
                       <li><strong>Step 1:</strong> Search schools or browse by district/block</li>
                       <li><strong>Step 2:</strong> Click school → Code auto-fills → Check PIN status</li>
                       <li><strong>Step 3:</strong> Generate or Rotate PIN for teachers</li>
@@ -470,8 +477,8 @@ export default function AdminSchoolPINsPage() {
 
           {/* Right: All Schools List */}
           <div>
-            <section className="bg-white rounded-lg shadow border border-gray-100">
-              <div className="p-4 border-b border-gray-200">
+            <section className="bg-white rounded-lg shadow border border-border">
+              <div className="p-4 border-b border-border">
                 <h3 className="font-semibold text-text">All Schools ({allSchools.length})</h3>
               </div>
               <div className="max-h-[600px] overflow-y-auto">
@@ -479,16 +486,16 @@ export default function AdminSchoolPINsPage() {
                   <button
                     key={school.schoolId}
                     onClick={() => handleSelectSchool(school)}
-                    className={`w-full p-3 text-left border-b border-gray-100 hover:bg-orange-50 transition ${
-                      selectedSchool?.schoolId === school.schoolId ? 'bg-orange-50' : ''
+                    className={`w-full p-3 text-left border-b border-border hover:bg-primary/10 transition ${
+                      selectedSchool?.schoolId === school.schoolId ? 'bg-primary/10' : ''
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <p className="font-medium text-text text-sm truncate pr-2">{school.schoolName}</p>
                       {school.hasPIN ? (
-                        <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded shrink-0">PIN</span>
+                        <span className="text-xs bg-success-light text-success px-1.5 py-0.5 rounded shrink-0">PIN</span>
                       ) : (
-                        <span className="text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded shrink-0">No PIN</span>
+                        <span className="text-xs bg-surface text-text-tertiary px-1.5 py-0.5 rounded shrink-0">No PIN</span>
                       )}
                     </div>
                     <p className="text-xs text-text-secondary mt-0.5">{school.schoolCode}</p>

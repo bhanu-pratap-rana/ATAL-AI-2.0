@@ -1,7 +1,8 @@
 'use server'
 
-import { createClient, createAdminClient } from '@/lib/supabase-server'
+import { createClient, createAdminClient, verifyAdminAuth } from '@/lib/supabase-server'
 import { authLogger } from '@/lib/auth-logger'
+import { PIN_LIMITS } from '@/lib/constants/validation-limits'
 
 export interface SchoolPINInfo {
   schoolId: string
@@ -59,65 +60,17 @@ interface PINCredentialRow {
 }
 
 /**
- * Search schools by name
- */
-export async function searchSchools(searchQuery: string): Promise<AdminPINActionResult> {
-  try {
-    if (!searchQuery.trim()) {
-      return {
-        success: false,
-        error: 'Please enter a school name to search',
-      }
-    }
-
-    const supabase = await createClient()
-    const normalizedQuery = `%${searchQuery.toLowerCase()}%`
-
-    const { data, error } = await supabase
-      .from('schools')
-      .select(`
-        id,
-        school_name,
-        school_code,
-        district
-      `)
-      .ilike('school_name', normalizedQuery)
-      .limit(20)
-
-    if (error) {
-      authLogger.error('[searchSchools] Failed to search schools', error)
-      return {
-        success: false,
-        error: 'Failed to search schools',
-      }
-    }
-
-    const results = (data || []).map((row: SchoolRow) => ({
-      schoolId: row.id,
-      schoolName: row.school_name,
-      schoolCode: row.school_code || 'N/A',
-      districtName: row.district || 'Unknown District',
-    }))
-
-    authLogger.info('[searchSchools] Search completed', { query: searchQuery, resultCount: results.length })
-    return {
-      success: true,
-      data: results,
-    }
-  } catch (error) {
-    authLogger.error('[searchSchools] Unexpected error', error)
-    return {
-      success: false,
-      error: 'An unexpected error occurred',
-    }
-  }
-}
-
-/**
  * Get school PIN information (if exists)
+ * SECURITY: Requires admin or super_admin role
  */
 export async function getSchoolPINInfo(schoolId: string): Promise<AdminPINActionResult> {
   try {
+    // SECURITY: Verify admin authorization
+    const authCheck = await verifyAdminAuth('getSchoolPINInfo')
+    if (!authCheck.authorized) {
+      return authCheck.error!
+    }
+
     if (!schoolId) {
       return {
         success: false,
@@ -129,7 +82,7 @@ export async function getSchoolPINInfo(schoolId: string): Promise<AdminPINAction
     // Use admin client for school_staff_credentials (RLS restricts to service_role only)
     const adminClient = await createAdminClient()
 
-    // Get school info
+    // Get school info - use .maybeSingle() since school may not exist
     const { data: schoolData, error: schoolError } = await supabase
       .from('schools')
       .select(`
@@ -139,10 +92,17 @@ export async function getSchoolPINInfo(schoolId: string): Promise<AdminPINAction
         district
       `)
       .eq('id', schoolId)
-      .single()
+      .maybeSingle()
 
     if (schoolError) {
-      authLogger.error('[getSchoolPINInfo] School not found', schoolError)
+      authLogger.error('[getSchoolPINInfo] Error looking up school', schoolError)
+      return {
+        success: false,
+        error: 'Failed to lookup school',
+      }
+    }
+
+    if (!schoolData) {
       return {
         success: false,
         error: 'School not found',
@@ -150,11 +110,17 @@ export async function getSchoolPINInfo(schoolId: string): Promise<AdminPINAction
     }
 
     // Get PIN info from school_staff_credentials (requires service_role to access)
-    const { data: pinData } = await adminClient
+    // Use .maybeSingle() - PIN credentials may not exist for this school yet
+    const { data: pinData, error: pinError } = await adminClient
       .from('school_staff_credentials')
       .select('created_at, rotated_at, updated_at')
       .eq('school_id', schoolId)
-      .single()
+      .maybeSingle()
+
+    if (pinError) {
+      authLogger.error('[getSchoolPINInfo] Error fetching PIN data', pinError)
+      // Don't fail - just means no PIN exists yet
+    }
 
     // Build PIN history from rotated_at timestamps
     const pinHistory: PinHistoryEntry[] = []
@@ -192,9 +158,16 @@ export async function getSchoolPINInfo(schoolId: string): Promise<AdminPINAction
 
 /**
  * Rotate school PIN - generates new PIN or uses provided PIN
+ * SECURITY: Requires admin or super_admin role
  */
 export async function rotateSchoolPIN(schoolId: string, customPIN?: string): Promise<AdminPINActionResult> {
   try {
+    // SECURITY: Verify admin authorization
+    const authCheck = await verifyAdminAuth('rotateSchoolPIN')
+    if (!authCheck.authorized) {
+      return authCheck.error!
+    }
+
     if (!schoolId) {
       return {
         success: false,
@@ -216,8 +189,8 @@ export async function rotateSchoolPIN(schoolId: string, customPIN?: string): Pro
     // The rotate_staff_pin function requires service_role to execute
     const supabase = await createAdminClient()
 
-    // Use custom PIN or generate new PIN (4-digit random)
-    const newPIN = customPIN || Math.floor(1000 + Math.random() * 9000).toString()
+    // Use custom PIN or generate new PIN using centralized constants
+    const newPIN = customPIN || Math.floor(PIN_LIMITS.min + Math.random() * (PIN_LIMITS.max - PIN_LIMITS.min + 1)).toString()
 
     // Call the rotate_staff_pin function via RPC
     const { data, error } = await supabase.rpc('rotate_staff_pin', {
@@ -260,9 +233,16 @@ export async function rotateSchoolPIN(schoolId: string, customPIN?: string): Pro
 
 /**
  * Get all schools with PIN information
+ * SECURITY: Requires admin or super_admin role
  */
 export async function getAllSchoolsWithPINs(): Promise<AdminPINActionResult> {
   try {
+    // SECURITY: Verify admin authorization
+    const authCheck = await verifyAdminAuth('getAllSchoolsWithPINs')
+    if (!authCheck.authorized) {
+      return authCheck.error!
+    }
+
     const supabase = await createClient()
     // Use admin client for school_staff_credentials (RLS restricts to service_role only)
     const adminClient = await createAdminClient()
@@ -324,9 +304,16 @@ export async function getAllSchoolsWithPINs(): Promise<AdminPINActionResult> {
 
 /**
  * Get PIN statistics
+ * SECURITY: Requires admin or super_admin role
  */
 export async function getPINStatistics(): Promise<AdminPINActionResult> {
   try {
+    // SECURITY: Verify admin authorization
+    const authCheck = await verifyAdminAuth('getPINStatistics')
+    if (!authCheck.authorized) {
+      return authCheck.error!
+    }
+
     const supabase = await createClient()
     // Use admin client for school_staff_credentials (RLS restricts to service_role only)
     const adminClient = await createAdminClient()

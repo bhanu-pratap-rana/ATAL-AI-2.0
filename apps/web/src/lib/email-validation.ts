@@ -155,9 +155,6 @@ export function normalizeEmail(email: string): string {
 
 /**
  * Mask email for logging
+ * Re-exported from masking-utils.ts for single source of truth
  */
-export function maskEmail(email: string): string {
-  const [local, domain] = email.split('@')
-  if (!local || !domain) return '***@***'
-  return `${local[0]}***@${domain}`
-}
+export { maskEmail } from './masking-utils'

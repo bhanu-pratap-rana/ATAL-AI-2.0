@@ -13,13 +13,15 @@
  * Follows rule.md: NO DUPLICATION, ARCHITECTURAL CONSISTENCY
  */
 
-import { SupabaseClient, User } from '@supabase/supabase-js'
+import { SupabaseClient, User, AuthError } from '@supabase/supabase-js'
 import { validateEmail, validatePhone, validatePassword } from './validation-utils'
-import { checkOtpRateLimit } from './rate-limiter'
+import { checkOtpRateLimit } from './rate-limiter-distributed'
 import { authLogger } from './auth-logger'
+import type { SignInResult as BaseSignInResult } from '@/types/auth'
 
 /**
- * Generic signin result type
+ * Extended signin result type for internal use
+ * Extends the base type with additional fields needed by handlers
  */
 export interface SignInResult {
   success: boolean
@@ -27,6 +29,9 @@ export interface SignInResult {
   user?: User
   requiresProfileCheck?: boolean
 }
+
+// Re-export for consumers who need the base type
+export type { BaseSignInResult }
 
 /**
  * Generic OTP result type
@@ -121,7 +126,7 @@ export async function handleSignIn(
         .from(options.profileTable)
         .select('*')
         .eq('user_id', data.user.id)
-        .single()
+        .maybeSingle()
 
       if (profileError || !profile) {
         authLogger.warn('[handleSignIn] Profile not found', {
@@ -187,7 +192,7 @@ export async function handleSendOTP(
       }
 
       // Check rate limit for OTP requests
-      if (!options?.skipRateLimit && !checkOtpRateLimit(identifier)) {
+      if (!options?.skipRateLimit && !(await checkOtpRateLimit(identifier))) {
         authLogger.warn('[handleSendOTP] Rate limit exceeded', { identifier })
         return {
           success: false,
@@ -204,7 +209,7 @@ export async function handleSendOTP(
         return { success: false, error: validation.error || 'Invalid phone' }
       }
 
-      if (!options?.skipRateLimit && !checkOtpRateLimit(identifier)) {
+      if (!options?.skipRateLimit && !(await checkOtpRateLimit(identifier))) {
         authLogger.warn('[handleSendOTP] Rate limit exceeded', { identifier })
         return {
           success: false,
@@ -218,8 +223,7 @@ export async function handleSendOTP(
     }
 
     // Call Supabase OTP send
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let error: any
+    let error: AuthError | null = null
 
     if (channel === 'email') {
       const result = await supabase.auth.signInWithOtp({
@@ -294,10 +298,8 @@ export async function handleVerifyOTP(
     authLogger.debug('[handleVerifyOTP] Verifying OTP', { channel })
 
     // Call Supabase OTP verification
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let data: any
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let error: any
+    let data: { user: User | null; session: unknown } | null = null
+    let error: AuthError | null = null
 
     if (identifier.email) {
       const result = await supabase.auth.verifyOtp({

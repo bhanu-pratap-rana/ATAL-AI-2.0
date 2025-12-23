@@ -20,7 +20,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { authLogger } from '@/lib/auth-logger'
-import { validateEmail } from '@/lib/validation-utils'
+import { validateEmail, validatePassword, validatePasswordMatch, validateOptionalPhone, sanitizeProfilePhone } from '@/lib/validation-utils'
+import { FORM_TIMING } from '@/lib/constants/ui-timings'
 import zxcvbn from 'zxcvbn'
 
 // Type for SendEmailOtpResult
@@ -78,12 +79,22 @@ export default function TeacherStartPage() {
 
   // Step 3: Teacher Profile
   const [teacherName, setTeacherName] = useState('')
+  const [teacherGender, setTeacherGender] = useState<'male' | 'female' | ''>('')
   const [phone, setPhone] = useState('')
-  const [subject, setSubject] = useState('')
+  const [village, setVillage] = useState('')
+
+  // Track if auth check has been performed to prevent duplicate toasts
+  const [authChecked, setAuthChecked] = useState(false)
 
   // Check if already authenticated and has completed registration
+  // Only runs on initial mount (choice step)
   useEffect(() => {
+    // Skip if already checked or not on choice step (prevents duplicate toasts)
+    if (authChecked || step !== 'choice') return
+
     async function checkAuth() {
+      setAuthChecked(true) // Set immediately to prevent race conditions
+
       const {
         data: { session },
       } = await supabase.auth.getSession()
@@ -94,21 +105,21 @@ export default function TeacherStartPage() {
           .from('teacher_profiles')
           .select('*')
           .eq('user_id', session.user.id)
-          .single()
+          .maybeSingle()
 
         if (profile) {
           // Already registered, redirect to dashboard
           toast.success('You are already registered!')
           router.push('/app/teacher/classes')
         } else {
-          // Has session but no profile - sign them out to start fresh
+          // Has session but no profile - could be a student account
+          // Sign them out silently (no toast needed - they can proceed with signup)
           await supabase.auth.signOut()
-          toast.info('Please complete the registration process')
         }
       }
     }
     checkAuth()
-  }, [supabase, router])
+  }, [supabase, router, authChecked, step])
 
   // LOGIN: Email & Password Authentication
   async function handleTeacherLogin(e: React.FormEvent) {
@@ -128,8 +139,15 @@ export default function TeacherStartPage() {
 
       if (error) {
         authLogger.error('[Teacher Login] Authentication failed', error)
-        setLoginError(error.message || 'Invalid email or password')
-        toast.error('Login failed: ' + (error.message || 'Invalid credentials'))
+        // Provide more helpful error message
+        let errorMsg = 'Invalid email or password'
+        if (error.message?.includes('Invalid login credentials')) {
+          errorMsg = 'Invalid email or password. Please check your credentials and try again.'
+        } else if (error.message) {
+          errorMsg = error.message
+        }
+        setLoginError(errorMsg)
+        toast.error(errorMsg)
       } else if (data.user) {
         authLogger.debug('[Teacher Login] User authenticated')
 
@@ -139,11 +157,11 @@ export default function TeacherStartPage() {
             .from('teacher_profiles')
             .select('*')
             .eq('user_id', data.user.id)
-            .single()
+            .maybeSingle()
 
           authLogger.debug('[Teacher Login] Profile fetch complete')
 
-          if (profileError && profileError.code !== 'PGRST116') {
+          if (profileError) {
             authLogger.error('[Teacher Login] Profile fetch error', profileError)
             toast.error('Error checking profile: ' + profileError.message)
             await supabase.auth.signOut()
@@ -152,8 +170,22 @@ export default function TeacherStartPage() {
             toast.success('Login successful!')
             router.push('/app/teacher/classes')
           } else {
-            authLogger.error('[Teacher Login] Profile not found')
-            toast.error('Teacher profile not found. Please complete registration.')
+            // Check if this is a student account
+            const { data: studentProfile } = await supabase
+              .from('student_profiles')
+              .select('user_id')
+              .eq('user_id', data.user.id)
+              .maybeSingle()
+
+            if (studentProfile) {
+              authLogger.error('[Teacher Login] This is a student account')
+              setLoginError('This email is registered as a student account. Please use the student login page.')
+              toast.error('This is a student account. Please use the student login page.')
+            } else {
+              authLogger.error('[Teacher Login] Profile not found - incomplete registration')
+              setLoginError('No teacher profile found. Please complete your registration first.')
+              toast.error('No teacher profile found. Please complete registration.')
+            }
             await supabase.auth.signOut()
           }
         } catch (profileErr) {
@@ -196,13 +228,16 @@ export default function TeacherStartPage() {
   async function handleResetPassword(e: React.FormEvent) {
     e.preventDefault()
 
-    if (forgotNewPassword !== forgotConfirmPassword) {
-      toast.error('Passwords do not match')
+    // Validate password using shared validation (same as students)
+    const passwordValidation = validatePassword(forgotNewPassword)
+    if (!passwordValidation.valid) {
+      toast.error(passwordValidation.errors.join(', ') || 'Invalid password')
       return
     }
 
-    if (forgotNewPassword.length < 8) {
-      toast.error('Password must be at least 8 characters long')
+    const matchValidation = validatePasswordMatch(forgotNewPassword, forgotConfirmPassword)
+    if (!matchValidation.valid) {
+      toast.error(matchValidation.error || 'Passwords do not match')
       return
     }
 
@@ -313,15 +348,17 @@ export default function TeacherStartPage() {
     setLoading(true)
 
     try {
-      // Validate password
-      if (password.length < 8) {
-        toast.error('Password must be at least 8 characters long')
+      // Validate password using shared validation (same as students)
+      const passwordValidation = validatePassword(password)
+      if (!passwordValidation.valid) {
+        toast.error(passwordValidation.errors.join(', ') || 'Invalid password')
         setLoading(false)
         return
       }
 
-      if (password !== passwordConfirm) {
-        toast.error('Passwords do not match')
+      const matchValidation = validatePasswordMatch(password, passwordConfirm)
+      if (!matchValidation.valid) {
+        toast.error(matchValidation.error || 'Passwords do not match')
         setLoading(false)
         return
       }
@@ -364,7 +401,6 @@ export default function TeacherStartPage() {
         staffPin: staffPin.trim(),
         teacherName: '', // Will be filled in next step
         phone: '',
-        subject: '',
       })
 
       if (result.success && result.schoolId && result.schoolName) {
@@ -388,12 +424,29 @@ export default function TeacherStartPage() {
     e.preventDefault()
     setLoading(true)
 
+    // Validate required fields
+    if (!teacherGender) {
+      toast.error('Please select your gender')
+      setLoading(false)
+      return
+    }
+
+    // Validate optional phone number (if provided, must be exactly 10 digits)
+    const phoneValidation = validateOptionalPhone(phone)
+    if (!phoneValidation.valid) {
+      toast.error(phoneValidation.error || 'Invalid phone number')
+      setLoading(false)
+      return
+    }
+
     try {
       // Save teacher profile with verified school info
+      // Note: Subject is not collected here - it's set per-class when creating classes
       const result = await saveTeacherProfile({
         name: teacherName.trim(),
+        gender: teacherGender as 'male' | 'female',
         phone: phone.trim() || undefined,
-        subject: subject.trim() || undefined,
+        village: village.trim() || undefined,
         schoolId: verifiedSchoolId,
         schoolCode: schoolCode.toUpperCase().trim(),
       })
@@ -401,9 +454,21 @@ export default function TeacherStartPage() {
       if (result.success) {
         toast.success('Teacher registration complete! 🎉')
         setStep('complete')
+
+        // CRITICAL: Refresh session to get updated JWT with teacher role
+        // The server updated app_metadata.role = 'teacher', but client JWT is stale
+        try {
+          const { error: refreshError } = await supabase.auth.refreshSession()
+          if (refreshError) {
+            authLogger.warn('[Teacher Registration] Session refresh failed, user may need to re-login', refreshError)
+          }
+        } catch (refreshErr) {
+          authLogger.warn('[Teacher Registration] Session refresh exception', refreshErr instanceof Error ? refreshErr : { error: refreshErr })
+        }
+
         setTimeout(() => {
           router.push('/app/teacher/classes')
-        }, 2000)
+        }, FORM_TIMING.nextStepsDelay)
       } else {
         toast.error(result.error || 'Profile creation failed')
       }
@@ -417,7 +482,7 @@ export default function TeacherStartPage() {
   // Render based on current step
   if (step === 'choice') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
+      <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
         <AuthCard
           title="Teacher Portal"
           description="Are you a new or existing teacher?"
@@ -426,7 +491,7 @@ export default function TeacherStartPage() {
             {/* Create Account Button */}
             <Button
               onClick={() => setStep('auth')}
-              className="w-full h-14 text-base shadow-[0_8px_20px_rgba(255,140,66,0.35)] hover:shadow-[0_12px_28px_rgba(255,140,66,0.45)] hover:-translate-y-0.5 transition-all"
+              className="w-full h-14 text-base shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5 transition-all"
               variant="default"
             >
               <span className="text-xl mr-3">✨</span>
@@ -441,7 +506,7 @@ export default function TeacherStartPage() {
             {/* Login Button */}
             <Button
               onClick={() => setStep('login')}
-              className="w-full h-14 text-base border-2 hover:border-primary hover:shadow-[0_4px_12px_rgba(255,140,66,0.15)] hover:-translate-y-0.5 transition-all"
+              className="w-full h-14 text-base border-2 hover:border-primary hover:shadow-[var(--shadow-primary-sm)] hover:-translate-y-0.5 transition-all"
               variant="outline"
             >
               <span className="text-xl mr-3">🔓</span>
@@ -453,10 +518,10 @@ export default function TeacherStartPage() {
               </div>
             </Button>
 
-            {/* Info Box */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 p-4 rounded-lg">
-              <p className="text-sm text-blue-900">
-                <strong>ℹ️ Choose your option:</strong>
+            {/* Info Box - Cyan themed */}
+            <div className="bg-cyan-lightest border-l-4 border-cyan p-4 rounded-xl">
+              <p className="text-sm text-cyan-darkest">
+                <strong>💡 Choose your option:</strong>
                 <br />
                 <span className="text-xs">
                   New teachers need school verification. Existing teachers can login with email & password.
@@ -481,7 +546,7 @@ export default function TeacherStartPage() {
 
   if (step === 'login') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
+      <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
         <AuthCard
           title="Teacher Login"
           description="Sign in with your registered email and password"
@@ -515,13 +580,13 @@ export default function TeacherStartPage() {
                 disabled={loading}
               />
               {loginError && (
-                <p className="text-sm text-red-600">{loginError}</p>
+                <p className="text-sm text-error">{loginError}</p>
               )}
             </div>
 
             <Button
               type="submit"
-              className="w-full shadow-[0_8px_20px_rgba(255,140,66,0.35)]"
+              className="w-full shadow-[var(--shadow-primary)]"
               disabled={loading || !loginEmail || !loginPassword}
               loading={loading}
             >
@@ -535,7 +600,7 @@ export default function TeacherStartPage() {
                   setForgotEmail(loginEmail)
                   setStep('forgot-password')
                 }}
-                className="text-sm text-orange-600 hover:text-orange-700 hover:underline w-full text-center"
+                className="text-sm text-primary hover:text-primary-dark hover:underline w-full text-center"
                 disabled={loading}
               >
                 Forgot your password?
@@ -565,7 +630,7 @@ export default function TeacherStartPage() {
 
   if (step === 'auth') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
+      <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
         <AuthCard
           title="Teacher Registration"
           description="Step 1 of 4: Choose your verification method"
@@ -623,12 +688,12 @@ export default function TeacherStartPage() {
                       />
                       {emailError && (
                         <div className="space-y-2">
-                          <p className="text-sm text-red-600">{emailError}</p>
+                          <p className="text-sm text-error">{emailError}</p>
                           {emailSuggestion && (
                             <button
                               type="button"
                               onClick={() => setEmail(emailSuggestion)}
-                              className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
+                              className="text-sm text-cyan hover:text-cyan-dark hover:underline"
                               disabled={loading}
                             >
                               ✓ Use suggested: {emailSuggestion}
@@ -643,7 +708,7 @@ export default function TeacherStartPage() {
 
                     <Button
                       type="submit"
-                      className="w-full shadow-[0_8px_20px_rgba(255,140,66,0.35)]"
+                      className="w-full shadow-[var(--shadow-primary)]"
                       disabled={loading || !email}
                       loading={loading}
                     >
@@ -674,24 +739,34 @@ export default function TeacherStartPage() {
 
                     <Button
                       type="submit"
-                      className="w-full shadow-[0_8px_20px_rgba(255,140,66,0.35)]"
+                      className="w-full shadow-[var(--shadow-primary)]"
                       disabled={loading || otp.length !== 6}
                       loading={loading}
                     >
                       Verify & Continue
                     </Button>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setOtpSent(false)
-                        setOtp('')
-                      }}
-                      className="text-sm text-primary hover:underline block w-full text-center"
-                      disabled={loading}
-                    >
-                      Use different email
-                    </button>
+                    <div className="flex flex-col items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleSendOTP}
+                        className="text-sm text-primary hover:text-primary-dark hover:underline"
+                        disabled={loading}
+                      >
+                        Resend OTP
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOtpSent(false)
+                          setOtp('')
+                        }}
+                        className="text-sm text-primary hover:underline"
+                        disabled={loading}
+                      >
+                        Use different email
+                      </button>
+                    </div>
                   </form>
                 )}
               </>
@@ -700,8 +775,8 @@ export default function TeacherStartPage() {
             {/* Phone Method */}
             {signupMethod === 'phone' && (
               <div className="space-y-4">
-                <div className="bg-blue-50 border-l-4 border-blue-500 p-3 rounded">
-                  <p className="text-xs text-blue-900">
+                <div className="bg-cyan-lightest border-l-4 border-cyan p-3 rounded-xl">
+                  <p className="text-xs text-cyan-darkest">
                     <strong>📱 Phone Verification</strong>
                     <br />
                     Enter your 10-digit phone number. We&apos;ll send a verification code via OTP.
@@ -730,7 +805,7 @@ export default function TeacherStartPage() {
                       />
                     </div>
                     {phoneError && (
-                      <p className="text-sm text-red-600">{phoneError}</p>
+                      <p className="text-sm text-error">{phoneError}</p>
                     )}
                     <p className="text-xs text-text-secondary">
                       10-digit Indian phone number
@@ -748,7 +823,7 @@ export default function TeacherStartPage() {
                         toast.success('OTP sent to your phone!')
                       }
                     }}
-                    className="w-full shadow-[0_8px_20px_rgba(255,140,66,0.35)]"
+                    className="w-full shadow-[var(--shadow-primary)]"
                     disabled={loading || phoneNumber.length !== 10}
                     loading={loading}
                   >
@@ -789,7 +864,7 @@ export default function TeacherStartPage() {
                           setStep('set-password')
                         }
                       }}
-                      className="w-full shadow-[0_8px_20px_rgba(255,140,66,0.35)]"
+                      className="w-full shadow-[var(--shadow-primary)]"
                       disabled={loading || phoneOtp.length !== 6}
                       loading={loading}
                     >
@@ -837,17 +912,17 @@ export default function TeacherStartPage() {
 
     const getPasswordStrengthColor = () => {
       const colors = [
-        'bg-red-500',
-        'bg-orange-500',
-        'bg-yellow-500',
-        'bg-blue-500',
-        'bg-green-500',
+        'bg-error',
+        'bg-warning',
+        'bg-warning',
+        'bg-cyan',
+        'bg-success',
       ]
-      return colors[passwordStrength] || 'bg-gray-300'
+      return colors[passwordStrength] || 'bg-surface-dark'
     }
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
+      <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
         <AuthCard
           title="Create Password"
           description="Step 2 of 4: Secure your account"
@@ -874,7 +949,7 @@ export default function TeacherStartPage() {
                         className={`h-1 flex-1 rounded ${
                           i <= passwordStrength
                             ? getPasswordStrengthColor()
-                            : 'bg-gray-200'
+                            : 'bg-surface-dark'
                         }`}
                       />
                     ))}
@@ -882,6 +957,18 @@ export default function TeacherStartPage() {
                   <p className="text-xs text-text-secondary">
                     Strength: {getPasswordStrengthLabel()}
                   </p>
+                  {/* Show validation errors */}
+                  {(() => {
+                    const validation = validatePassword(password)
+                    if (!validation.valid && validation.errors.length > 0) {
+                      return (
+                        <p className="text-xs text-error">
+                          {validation.errors.join(', ')}
+                        </p>
+                      )
+                    }
+                    return null
+                  })()}
                 </div>
               )}
             </div>
@@ -900,8 +987,8 @@ export default function TeacherStartPage() {
               />
             </div>
 
-            <div className="bg-blue-50 border-l-4 border-blue-500 p-3 rounded">
-              <p className="text-xs text-blue-900">
+            <div className="bg-cyan-lightest border-l-4 border-cyan p-3 rounded-xl">
+              <p className="text-xs text-cyan-darkest">
                 <strong>🔒 Why a password?</strong>
                 <br />
                 A password enables account recovery and allows you to access your
@@ -911,12 +998,11 @@ export default function TeacherStartPage() {
 
             <Button
               type="submit"
-              className="w-full shadow-[0_8px_20px_rgba(255,140,66,0.35)]"
+              className="w-full shadow-[var(--shadow-primary)]"
               disabled={
                 loading ||
-                password.length < 8 ||
-                password !== passwordConfirm ||
-                passwordStrength < 2
+                !validatePassword(password).valid ||
+                password !== passwordConfirm
               }
               loading={loading}
             >
@@ -930,7 +1016,7 @@ export default function TeacherStartPage() {
 
   if (step === 'verify-school') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
+      <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
         <AuthCard
           title="School Verification"
           description="Step 3 of 4: Verify your school credentials"
@@ -971,8 +1057,8 @@ export default function TeacherStartPage() {
               </p>
             </div>
 
-            <div className="bg-orange-50 border-l-4 border-primary p-3 rounded">
-              <p className="text-xs text-orange-900">
+            <div className="bg-cyan-lightest border-l-4 border-cyan p-3 rounded-xl">
+              <p className="text-xs text-cyan-darkest">
                 <strong>🔒 Secure Verification</strong>
                 <br />
                 Your credentials are verified using bcrypt encryption. Staff PINs
@@ -982,7 +1068,7 @@ export default function TeacherStartPage() {
 
             <Button
               type="submit"
-              className="w-full shadow-[0_8px_20px_rgba(255,140,66,0.35)]"
+              className="w-full shadow-[var(--shadow-primary)]"
               disabled={loading}
               loading={loading}
             >
@@ -996,7 +1082,7 @@ export default function TeacherStartPage() {
 
   if (step === 'profile') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
+      <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
         <AuthCard
           title="Teacher Profile"
           description="Step 4 of 4: Complete your profile"
@@ -1004,8 +1090,8 @@ export default function TeacherStartPage() {
           <form onSubmit={handleProfileSubmit} className="space-y-4">
             {/* Display verified school info */}
             {verifiedSchoolName && (
-              <div className="bg-green-50 border-l-4 border-green-500 p-3 rounded">
-                <p className="text-sm text-green-900">
+              <div className="bg-success-light border-l-4 border-success p-3 rounded">
+                <p className="text-sm text-success">
                   <strong>✓ School Verified</strong>
                   <br />
                   <span className="text-xs">
@@ -1028,34 +1114,72 @@ export default function TeacherStartPage() {
               />
             </div>
 
+            {/* Gender - Required */}
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number (Optional)</Label>
-              <Input
-                id="phone"
-                type="tel"
-                placeholder="+91 98765 43210"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                disabled={loading}
-              />
+              <Label>Gender *</Label>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="teacher-gender"
+                    value="male"
+                    checked={teacherGender === 'male'}
+                    onChange={() => setTeacherGender('male')}
+                    disabled={loading}
+                    className="w-4 h-4 text-primary"
+                  />
+                  <span className="text-sm">Male</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="teacher-gender"
+                    value="female"
+                    checked={teacherGender === 'female'}
+                    onChange={() => setTeacherGender('female')}
+                    disabled={loading}
+                    className="w-4 h-4 text-primary"
+                  />
+                  <span className="text-sm">Female</span>
+                </label>
+              </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="subject">Subject (Optional)</Label>
+              <Label htmlFor="phone">Phone Number</Label>
               <Input
-                id="subject"
+                id="phone"
+                type="tel"
+                placeholder="10-digit mobile number"
+                value={phone}
+                onChange={(e) => setPhone(sanitizeProfilePhone(e.target.value))}
+                disabled={loading}
+                maxLength={10}
+              />
+              <p className="text-xs text-text-secondary">
+                Enter 10-digit Indian mobile number (e.g., 9876543210)
+              </p>
+              {phone && phone.length > 0 && phone.length < 10 && (
+                <p className="text-xs text-warning">{10 - phone.length} more digits needed</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="village">Village/Location</Label>
+              <Input
+                id="village"
                 type="text"
-                placeholder="Mathematics"
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
+                placeholder="Enter your village or location"
+                value={village}
+                onChange={(e) => setVillage(e.target.value)}
                 disabled={loading}
               />
             </div>
 
             <Button
               type="submit"
-              className="w-full shadow-[0_8px_20px_rgba(255,140,66,0.35)]"
-              disabled={loading}
+              className="w-full shadow-[var(--shadow-primary)]"
+              disabled={loading || !teacherName || !teacherGender}
               loading={loading}
             >
               Complete Registration
@@ -1069,7 +1193,7 @@ export default function TeacherStartPage() {
   // Forgot Password: Request OTP
   if (step === 'forgot-password' && !forgotOtpSent) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
+      <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
         <AuthCard
           title="Reset Password"
           description="Enter your email to receive a recovery code"
@@ -1093,7 +1217,7 @@ export default function TeacherStartPage() {
 
             <Button
               type="submit"
-              className="w-full shadow-[0_8px_20px_rgba(255,140,66,0.35)]"
+              className="w-full shadow-[var(--shadow-primary)]"
               disabled={loading || !forgotEmail}
               loading={loading}
             >
@@ -1123,7 +1247,7 @@ export default function TeacherStartPage() {
   // Forgot Password: Verify OTP and Reset
   if (step === 'forgot-password' && forgotOtpSent) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
+      <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
         <AuthCard
           title="Reset Password"
           description={`Enter the code sent to ${forgotEmail}`}
@@ -1159,6 +1283,18 @@ export default function TeacherStartPage() {
                 disabled={loading}
                 minLength={8}
               />
+              {/* Show validation errors for forgot password */}
+              {forgotNewPassword.length > 0 && (() => {
+                const validation = validatePassword(forgotNewPassword)
+                if (!validation.valid && validation.errors.length > 0) {
+                  return (
+                    <p className="text-xs text-error">
+                      {validation.errors.join(', ')}
+                    </p>
+                  )
+                }
+                return null
+              })()}
             </div>
 
             <div className="space-y-2">
@@ -1177,14 +1313,22 @@ export default function TeacherStartPage() {
 
             <Button
               type="submit"
-              className="w-full shadow-[0_8px_20px_rgba(255,140,66,0.35)]"
-              disabled={loading || forgotOtp.length !== 6 || !forgotNewPassword || !forgotConfirmPassword}
+              className="w-full shadow-[var(--shadow-primary)]"
+              disabled={loading || forgotOtp.length !== 6 || !validatePassword(forgotNewPassword).valid || forgotNewPassword !== forgotConfirmPassword}
               loading={loading}
             >
               {loading ? 'Resetting...' : 'Reset Password'}
             </Button>
 
             <div className="space-y-2 pt-2">
+              <button
+                type="button"
+                onClick={handleForgotPasswordOtp}
+                className="text-sm text-primary hover:text-primary-dark hover:underline w-full text-center"
+                disabled={loading}
+              >
+                Resend Recovery Code
+              </button>
               <button
                 type="button"
                 onClick={() => {
@@ -1220,7 +1364,7 @@ export default function TeacherStartPage() {
 
   if (step === 'complete') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
+      <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
         <AuthCard title="Registration Complete!" description="Welcome to ATAL AI">
           <div className="text-center space-y-4">
             <div className="text-6xl">🎉</div>

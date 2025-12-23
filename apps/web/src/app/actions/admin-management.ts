@@ -1,13 +1,13 @@
 'use server'
 
-import { createAdminClient } from '@/lib/supabase-server'
+import { createAdminClient, getCurrentUser } from '@/lib/supabase-server'
 import { authLogger } from '@/lib/auth-logger'
+import { RATE_LIMITS } from '@/lib/constants/rate-limits'
+import { checkRateLimit as checkDistributedRateLimit } from '@/lib/rate-limiter-distributed'
+import { EMAIL_REGEX } from '@/lib/auth-constants'
 
-const RATE_LIMIT_WINDOW = 60 * 1000 // 1 minute
-const RATE_LIMIT_MAX_REQUESTS = 10
-
-// In-memory rate limiting (in production, use Redis)
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>()
+// Use centralized rate limit config for admin operations
+const ADMIN_RATE_LIMIT = RATE_LIMITS.adminOperations
 
 export interface AdminUser {
   id: string
@@ -26,20 +26,17 @@ export interface AdminActionResult {
 
 /**
  * Check if current user is super admin
+ * SECURITY: Uses getCurrentUser() to get authenticated user from session
  */
 export async function isSuperAdmin(): Promise<boolean> {
   try {
-    const adminClient = await createAdminClient()
-    const { data: userData } = await adminClient.auth.admin.listUsers()
-
-    if (!userData?.users) {
+    const currentUser = await getCurrentUser()
+    if (!currentUser) {
       return false
     }
 
-    // Get current auth context from request headers
-    // In a real app, you'd get the current user from the session
-    // For now, this is a helper that can be used server-side
-    return true
+    const role = currentUser.app_metadata?.role
+    return role === 'super_admin'
   } catch (error) {
     authLogger.error('[isSuperAdmin] Error checking super admin status', error)
     return false
@@ -48,18 +45,19 @@ export async function isSuperAdmin(): Promise<boolean> {
 
 /**
  * Get current user's admin role
+ * SECURITY: Uses getCurrentUser() to get authenticated user from session
  */
 export async function getCurrentAdminRole(): Promise<'super_admin' | 'admin' | null> {
   try {
-    const adminClient = await createAdminClient()
-    const { data: userData } = await adminClient.auth.admin.listUsers()
-
-    if (!userData?.users) {
+    const currentUser = await getCurrentUser()
+    if (!currentUser) {
       return null
     }
 
-    // In a real implementation, you'd check the actual current user
-    // This is a helper function
+    const role = currentUser.app_metadata?.role
+    if (role === 'super_admin' || role === 'admin') {
+      return role
+    }
     return null
   } catch (error) {
     authLogger.error('[getCurrentAdminRole] Error getting admin role', error)
@@ -69,7 +67,7 @@ export async function getCurrentAdminRole(): Promise<'super_admin' | 'admin' | n
 
 /**
  * Create a new admin account
- * Only super admin can create new admins
+ * SECURITY: Only super_admin can create new admins
  */
 export async function createAdminAccount(
   email: string,
@@ -77,9 +75,33 @@ export async function createAdminAccount(
   role: 'admin' | 'super_admin' = 'admin'
 ): Promise<AdminActionResult> {
   try {
-    // Rate limiting
-    const rateLimitKey = `create_admin:${email}`
-    if (!checkRateLimit(rateLimitKey)) {
+    // SECURITY: Verify caller is authenticated and authorized
+    const currentUser = await getCurrentUser()
+    if (!currentUser) {
+      authLogger.warn('[createAdminAccount] Unauthorized: No authenticated user')
+      return {
+        success: false,
+        error: 'Authentication required',
+      }
+    }
+
+    // SECURITY: Only super_admin can create admin accounts
+    const currentRole = currentUser.app_metadata?.role
+    if (currentRole !== 'super_admin') {
+      authLogger.warn('[createAdminAccount] Forbidden: User lacks super_admin role', {
+        userId: currentUser.id,
+        role: currentRole,
+      })
+      return {
+        success: false,
+        error: 'Only super admins can create admin accounts',
+      }
+    }
+
+    // Rate limiting using distributed rate limiter
+    const rateLimitKey = `admin:create:${email}`
+    const isAllowed = await checkDistributedRateLimit(rateLimitKey, ADMIN_RATE_LIMIT)
+    if (!isAllowed) {
       return {
         success: false,
         error: 'Too many requests. Please try again later.',
@@ -89,11 +111,11 @@ export async function createAdminAccount(
     const adminClient = await createAdminClient()
     const normalizedEmail = email.toLowerCase().trim()
 
-    // Validate email
-    if (!normalizedEmail.includes('@')) {
+    // Validate email using centralized regex
+    if (!EMAIL_REGEX.test(normalizedEmail)) {
       return {
         success: false,
-        error: 'Invalid email address',
+        error: 'Please enter a valid email address',
       }
     }
 
@@ -119,7 +141,33 @@ export async function createAdminAccount(
         }
       }
 
-      // Promote existing user to admin (e.g., a teacher becoming admin)
+      // SECURITY: Check if user is a student - students cannot be promoted to admin
+      // Only teachers can be promoted to admin role
+      const { data: studentProfile } = await adminClient
+        .from('student_profiles')
+        .select('user_id')
+        .eq('user_id', existingUser.id)
+        .maybeSingle()
+
+      const { data: teacherProfile } = await adminClient
+        .from('teacher_profiles')
+        .select('user_id')
+        .eq('user_id', existingUser.id)
+        .maybeSingle()
+
+      // Block: Student email cannot become admin (has student profile but no teacher profile)
+      if (studentProfile && !teacherProfile) {
+        authLogger.warn('[createAdminAccount] Blocked: Cannot promote student to admin', {
+          email: normalizedEmail,
+          userId: existingUser.id,
+        })
+        return {
+          success: false,
+          error: 'This email is registered as a student account. Only teachers can be promoted to admin.',
+        }
+      }
+
+      // Promote existing user to admin (teacher becoming admin)
       const { error: updateError } = await adminClient.auth.admin.updateUserById(existingUser.id, {
         app_metadata: {
           ...existingUser.app_metadata,
@@ -190,10 +238,33 @@ export async function createAdminAccount(
 
 /**
  * List all admin accounts
- * Only super admin can see this list
+ * SECURITY: Only super_admin can see this list
  */
 export async function listAdminAccounts(): Promise<AdminActionResult> {
   try {
+    // SECURITY: Verify caller is authenticated and authorized
+    const currentUser = await getCurrentUser()
+    if (!currentUser) {
+      authLogger.warn('[listAdminAccounts] Unauthorized: No authenticated user')
+      return {
+        success: false,
+        error: 'Authentication required',
+      }
+    }
+
+    // SECURITY: Only super_admin can list admin accounts
+    const currentRole = currentUser.app_metadata?.role
+    if (currentRole !== 'super_admin') {
+      authLogger.warn('[listAdminAccounts] Forbidden: User lacks super_admin role', {
+        userId: currentUser.id,
+        role: currentRole,
+      })
+      return {
+        success: false,
+        error: 'Only super admins can view admin accounts',
+      }
+    }
+
     const adminClient = await createAdminClient()
     const { data: userData, error } = await adminClient.auth.admin.listUsers()
 
@@ -241,12 +312,47 @@ export async function listAdminAccounts(): Promise<AdminActionResult> {
 
 /**
  * Delete an admin account
- * Only super admin can delete, and cannot delete themselves or other super admins
+ * SECURITY: Only super_admin can delete, cannot delete themselves or other super admins
  */
 export async function deleteAdminAccount(adminId: string): Promise<AdminActionResult> {
   try {
-    // Rate limiting
-    if (!checkRateLimit(`delete_admin:${adminId}`)) {
+    // SECURITY: Verify caller is authenticated and authorized
+    const currentUser = await getCurrentUser()
+    if (!currentUser) {
+      authLogger.warn('[deleteAdminAccount] Unauthorized: No authenticated user')
+      return {
+        success: false,
+        error: 'Authentication required',
+      }
+    }
+
+    // SECURITY: Only super_admin can delete admin accounts
+    const currentRole = currentUser.app_metadata?.role
+    if (currentRole !== 'super_admin') {
+      authLogger.warn('[deleteAdminAccount] Forbidden: User lacks super_admin role', {
+        userId: currentUser.id,
+        role: currentRole,
+      })
+      return {
+        success: false,
+        error: 'Only super admins can delete admin accounts',
+      }
+    }
+
+    // SECURITY: Prevent self-deletion
+    if (adminId === currentUser.id) {
+      authLogger.warn('[deleteAdminAccount] Forbidden: Cannot delete own account', {
+        userId: currentUser.id,
+      })
+      return {
+        success: false,
+        error: 'Cannot delete your own account',
+      }
+    }
+
+    // Rate limiting using distributed rate limiter
+    const isAllowed = await checkDistributedRateLimit(`admin:delete:${adminId}`, ADMIN_RATE_LIMIT)
+    if (!isAllowed) {
       return {
         success: false,
         error: 'Too many requests. Please try again later.',
@@ -303,13 +409,50 @@ export async function deleteAdminAccount(adminId: string): Promise<AdminActionRe
 
 /**
  * Reset admin password
- * Super admin can reset any admin's password
- * Regular admins can only reset their own
+ * SECURITY: Super_admin can reset any admin's password, regular admins only their own
  */
 export async function resetAdminPassword(adminId: string, newPassword: string): Promise<AdminActionResult> {
   try {
-    // Rate limiting
-    if (!checkRateLimit(`reset_password:${adminId}`)) {
+    // SECURITY: Verify caller is authenticated
+    const currentUser = await getCurrentUser()
+    if (!currentUser) {
+      authLogger.warn('[resetAdminPassword] Unauthorized: No authenticated user')
+      return {
+        success: false,
+        error: 'Authentication required',
+      }
+    }
+
+    // SECURITY: Check authorization - super_admin can reset any, others only own
+    const currentRole = currentUser.app_metadata?.role
+    const isAdmin = currentRole === 'admin' || currentRole === 'super_admin'
+
+    if (!isAdmin) {
+      authLogger.warn('[resetAdminPassword] Forbidden: User is not an admin', {
+        userId: currentUser.id,
+        role: currentRole,
+      })
+      return {
+        success: false,
+        error: 'Only admins can reset passwords',
+      }
+    }
+
+    // Regular admins can only reset their own password
+    if (currentRole === 'admin' && adminId !== currentUser.id) {
+      authLogger.warn('[resetAdminPassword] Forbidden: Admin cannot reset other passwords', {
+        userId: currentUser.id,
+        targetId: adminId,
+      })
+      return {
+        success: false,
+        error: 'You can only reset your own password',
+      }
+    }
+
+    // Rate limiting using distributed rate limiter
+    const isAllowed = await checkDistributedRateLimit(`admin:reset:${adminId}`, ADMIN_RATE_LIMIT)
+    if (!isAllowed) {
       return {
         success: false,
         error: 'Too many password reset attempts. Please try again later.',
@@ -380,9 +523,33 @@ export async function isSuperAdminEmail(email: string): Promise<boolean> {
 
 /**
  * Get admin details by ID
+ * SECURITY: Requires super_admin role
  */
 export async function getAdminById(adminId: string): Promise<AdminActionResult> {
   try {
+    // SECURITY: Verify caller is authenticated and authorized
+    const currentUser = await getCurrentUser()
+    if (!currentUser) {
+      authLogger.warn('[getAdminById] Unauthorized: No authenticated user')
+      return {
+        success: false,
+        error: 'Authentication required',
+      }
+    }
+
+    // SECURITY: Only super_admin can view admin details
+    const currentRole = currentUser.app_metadata?.role
+    if (currentRole !== 'super_admin') {
+      authLogger.warn('[getAdminById] Forbidden: User lacks super_admin role', {
+        userId: currentUser.id,
+        role: currentRole,
+      })
+      return {
+        success: false,
+        error: 'Only super admins can view admin details',
+      }
+    }
+
     const adminClient = await createAdminClient()
     const { data: users } = await adminClient.auth.admin.listUsers()
 
@@ -415,22 +582,4 @@ export async function getAdminById(adminId: string): Promise<AdminActionResult> 
   }
 }
 
-/**
- * Check rate limit
- */
-function checkRateLimit(key: string): boolean {
-  const now = Date.now()
-  const record = rateLimitMap.get(key)
 
-  if (!record || now > record.resetTime) {
-    rateLimitMap.set(key, { count: 1, resetTime: now + RATE_LIMIT_WINDOW })
-    return true
-  }
-
-  if (record.count >= RATE_LIMIT_MAX_REQUESTS) {
-    return false
-  }
-
-  record.count++
-  return true
-}

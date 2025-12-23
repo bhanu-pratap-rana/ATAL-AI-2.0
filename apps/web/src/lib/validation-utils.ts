@@ -45,13 +45,14 @@ export {
   sanitizePhone,
   validatePhone,
   maskPhoneNumber,
+  validateOptionalPhone,
+  sanitizeProfilePhone,
 } from './phone-validation'
 
 export {
   validateSchoolCode,
   validateClassCode,
   sanitizeClassCode,
-  validatePin,
   validatePIN,
   sanitizePIN,
   sanitizeOTP,
@@ -77,24 +78,3 @@ export {
   validateJoinClassForm,
   formatValidationErrors,
 } from './form-validation'
-
-/**
- * General utility function for equality checks
- * @param a - First value
- * @param b - Second value
- * @param caseInsensitive - Whether to compare case-insensitively
- * @returns boolean - True if equal
- */
-export function isEqual(
-  a: string | number | boolean,
-  b: string | number | boolean,
-  caseInsensitive = false
-): boolean {
-  if (typeof a !== typeof b) return false
-
-  if (typeof a === 'string' && caseInsensitive) {
-    return a.toLowerCase() === (b as string).toLowerCase()
-  }
-
-  return a === b
-}

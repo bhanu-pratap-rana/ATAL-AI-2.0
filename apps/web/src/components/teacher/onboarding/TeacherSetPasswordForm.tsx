@@ -32,7 +32,7 @@ function getPasswordStrengthColor(strength: number): string {
     'bg-primary',    // Good - Primary Orange
     'bg-success',    // Strong - Green
   ]
-  return colors[strength] || 'bg-gray-300'
+  return colors[strength] || 'bg-surface-dark'
 }
 
 export function TeacherSetPasswordForm({
@@ -72,12 +72,12 @@ export function TeacherSetPasswordForm({
                     className={`h-1.5 flex-1 rounded-full transition-colors ${
                       i <= passwordStrength
                         ? getPasswordStrengthColor(passwordStrength)
-                        : 'bg-gray-200'
+                        : 'bg-surface-dark'
                     }`}
                   />
                 ))}
               </div>
-              <p className="text-xs text-gray-600">
+              <p className="text-xs text-text-secondary">
                 Strength: {getPasswordStrengthLabel(passwordStrength)}
               </p>
             </div>
@@ -100,8 +100,8 @@ export function TeacherSetPasswordForm({
         </div>
 
         {/* Info Box - Uses primary-light */}
-        <div className="bg-primary-light border-l-4 border-primary p-3 rounded-[12px]">
-          <p className="text-xs text-gray-700">
+        <div className="bg-primary-light border-l-4 border-primary p-3 rounded-md">
+          <p className="text-xs text-text-primary">
             <strong className="text-primary">🔒 Why a password?</strong>
             <br />
             A password enables account recovery and allows you to access your account from multiple devices securely.

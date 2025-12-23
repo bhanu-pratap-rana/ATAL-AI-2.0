@@ -17,12 +17,12 @@ import type { UseOTPInputReturn } from '@/hooks/useOTPInput'
 
 /**
  * ATAL AI Forgot Password Flow - Jyoti Theme
- * 
+ *
  * Design Rules Applied:
  * - Primary button with correct shadows
- * - Error text: #EF4444
- * - Muted text: #78716C
- * - Links: #57534E (secondary text)
+ * - Error text: text-error
+ * - Muted text: text-text-muted
+ * - Links: text-text-secondary
  */
 
 interface ForgotPasswordFlowProps {
@@ -123,7 +123,7 @@ export function ForgotPasswordFlow({
     return (
       <form onSubmit={handleForgotPasswordOtp} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="forgot-email" className="text-[#2D2A26]">Email Address</Label>
+          <Label htmlFor="forgot-email" className="text-text">Email Address</Label>
           <Input
             id="forgot-email"
             type="email"
@@ -161,7 +161,7 @@ export function ForgotPasswordFlow({
   return (
     <form onSubmit={handleResetPassword} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="forgot-otp" className="text-[#2D2A26]">Recovery Code</Label>
+        <Label htmlFor="forgot-otp" className="text-text">Recovery Code</Label>
         <Input
           id="forgot-otp"
           type="text"
@@ -173,11 +173,11 @@ export function ForgotPasswordFlow({
           maxLength={OTP_LENGTH}
           className="text-center text-2xl font-mono tracking-widest"
         />
-        <p className="text-xs text-[#78716C]">Enter the 6-digit code sent to your email</p>
+        <p className="text-xs text-text-muted">Enter the 6-digit code sent to your email</p>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="forgot-new-password" className="text-[#2D2A26]">New Password</Label>
+        <Label htmlFor="forgot-new-password" className="text-text">New Password</Label>
         <Input
           id="forgot-new-password"
           type="password"
@@ -190,7 +190,7 @@ export function ForgotPasswordFlow({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="forgot-confirm-password" className="text-[#2D2A26]">Confirm Password</Label>
+        <Label htmlFor="forgot-confirm-password" className="text-text">Confirm Password</Label>
         <Input
           id="forgot-confirm-password"
           type="password"
@@ -201,7 +201,7 @@ export function ForgotPasswordFlow({
           disabled={isLoading}
         />
         {state.forgotPasswordError && (
-          <p className="text-sm text-[#EF4444]">{state.forgotPasswordError}</p>
+          <p className="text-sm text-error">{state.forgotPasswordError}</p>
         )}
       </div>
 

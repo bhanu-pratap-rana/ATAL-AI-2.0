@@ -193,10 +193,16 @@ class RedisRateLimiter implements IRateLimiter {
       await this.redisClient.expire(redisKey, ttl)
 
       return false
-    } catch (_error) {
-      // Fail open - allow request if Redis is down
+    } catch (error) {
+      // SECURITY: Fail closed - deny request if Redis is down
+      // This prevents bypass of rate limiting during Redis outages
       // Error tracking: Integration point for monitoring service (Sentry, DataDog, etc.)
-      return true
+      // Note: Using console.error here intentionally as authLogger may not be available
+      // in all contexts where rate limiter is used. Error is masked and non-sensitive.
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[RedisRateLimiter] Redis error - failing closed:', error)
+      }
+      return false
     }
   }
 
@@ -209,7 +215,7 @@ class RedisRateLimiter implements IRateLimiter {
 
       const entry: RateLimitEntry = JSON.parse(data)
       return Math.floor(entry.tokens)
-    } catch (_error) {
+    } catch {
       // Error tracking: Integration point for monitoring service
       return this.config.maxTokens
     }
@@ -220,7 +226,7 @@ class RedisRateLimiter implements IRateLimiter {
 
     try {
       await this.redisClient.del(redisKey)
-    } catch (_error) {
+    } catch {
       // Error tracking: Integration point for monitoring service
     }
   }
@@ -233,7 +239,7 @@ class RedisRateLimiter implements IRateLimiter {
       if (keys.length > 0) {
         await this.redisClient.del(...keys)
       }
-    } catch (_error) {
+    } catch {
       // Error tracking: Integration point for monitoring service
     }
   }
@@ -243,7 +249,7 @@ class RedisRateLimiter implements IRateLimiter {
       const pattern = `${this.prefix}*`
       const keys = await this.redisClient.keys(pattern)
       return keys.length
-    } catch (_error) {
+    } catch {
       // Error tracking: Integration point for monitoring service
       return 0
     }
@@ -256,7 +262,7 @@ class RedisRateLimiter implements IRateLimiter {
       const data = await this.redisClient.get(redisKey)
       if (!data) return null
       return JSON.parse(data)
-    } catch (_error) {
+    } catch {
       // Error tracking: Integration point for monitoring service
       return null
     }
@@ -381,4 +387,110 @@ export async function resetRateLimit(
   config: RateLimitConfig
 ): Promise<void> {
   return defaultRateLimitManager.reset('default', key, config)
+}
+
+// ============================================================================
+// CONVENIENCE FUNCTIONS FOR OTP & PASSWORD RESET RATE LIMITING
+// These use centralized configurations from constants/rate-limits.ts
+// ============================================================================
+
+import { RATE_LIMITS } from './constants/rate-limits'
+
+// Create dedicated limiter instances for auth operations
+const otpLimiter = createRateLimiter(RATE_LIMITS.otpRequest)
+const passwordResetLimiter = createRateLimiter(RATE_LIMITS.passwordReset)
+const ipLimiter = createRateLimiter(RATE_LIMITS.ipBased)
+
+/**
+ * Check if an OTP request is allowed for an email/phone
+ * Uses centralized RATE_LIMITS.otpRequest configuration
+ * @param identifier - Email or phone number
+ * @returns Promise<boolean> - true if allowed, false if rate limited
+ */
+export async function checkOtpRateLimit(identifier: string): Promise<boolean> {
+  const key = `otp:${identifier.toLowerCase()}`
+  return otpLimiter.isAllowed(key)
+}
+
+/**
+ * Check if a password reset request is allowed for an email
+ * Uses centralized RATE_LIMITS.passwordReset configuration
+ * @param email - Email address
+ * @returns Promise<boolean> - true if allowed, false if rate limited
+ */
+export async function checkPasswordResetRateLimit(email: string): Promise<boolean> {
+  const key = `reset:${email.toLowerCase()}`
+  return passwordResetLimiter.isAllowed(key)
+}
+
+/**
+ * Check if a general auth request is allowed from an IP
+ * Uses centralized RATE_LIMITS.ipBased configuration
+ * @param ip - IP address
+ * @returns Promise<boolean> - true if allowed, false if rate limited
+ */
+export async function checkIpRateLimit(ip: string): Promise<boolean> {
+  const key = `ip:${ip}`
+  return ipLimiter.isAllowed(key)
+}
+
+/**
+ * Get remaining OTP requests for an identifier
+ * @param identifier - Email or phone number
+ * @returns Promise<number> - Number of remaining requests
+ */
+export async function getOtpRateLimitRemaining(identifier: string): Promise<number> {
+  const key = `otp:${identifier.toLowerCase()}`
+  return otpLimiter.getRemaining(key)
+}
+
+/**
+ * Reset OTP rate limit for an identifier (admin operation)
+ * @param identifier - Email or phone number
+ */
+export async function resetOtpRateLimit(identifier: string): Promise<void> {
+  const key = `otp:${identifier.toLowerCase()}`
+  return otpLimiter.reset(key)
+}
+
+/**
+ * Reset password reset rate limit for an email (admin operation)
+ * @param email - Email address
+ */
+export async function resetPasswordResetRateLimit(email: string): Promise<void> {
+  const key = `reset:${email.toLowerCase()}`
+  return passwordResetLimiter.reset(key)
+}
+
+/**
+ * Reset IP rate limit (admin operation)
+ * @param ip - IP address
+ */
+export async function resetIpRateLimit(ip: string): Promise<void> {
+  const key = `ip:${ip}`
+  return ipLimiter.reset(key)
+}
+
+/**
+ * Get monitoring stats for rate limiters
+ */
+export async function getRateLimiterStats(): Promise<{
+  otp: { entries: number; config: string }
+  passwordReset: { entries: number; config: string }
+  ip: { entries: number; config: string }
+}> {
+  return {
+    otp: {
+      entries: await otpLimiter.getSize(),
+      config: `Max ${RATE_LIMITS.otpRequest.maxTokens} requests per hour per email/phone`,
+    },
+    passwordReset: {
+      entries: await passwordResetLimiter.getSize(),
+      config: `Max ${RATE_LIMITS.passwordReset.maxTokens} requests per hour per email`,
+    },
+    ip: {
+      entries: await ipLimiter.getSize(),
+      config: `Max ${RATE_LIMITS.ipBased.maxTokens} requests per minute per IP`,
+    },
+  }
 }

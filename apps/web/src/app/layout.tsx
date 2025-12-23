@@ -62,8 +62,11 @@ export const metadata: Metadata = {
   authors: [{ name: "ATAL AI Team" }],
 };
 
+// Viewport configuration for PWA
+// NOTE: themeColor requires a static hex value (CSS variables not supported by PWA spec)
+// This value must match --color-primary in globals.css
 export const viewport = {
-  themeColor: "#FF7E33", // Jyoti theme primary color (saffron)
+  themeColor: "#F98819", // Must match --color-primary (#F98819) - PWA requirement
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,

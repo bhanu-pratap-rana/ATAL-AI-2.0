@@ -140,14 +140,23 @@ export async function getSchoolPinStatus(schoolCode: string) {
   try {
     const supabase = await createClient()
 
-    // Find school
+    // Find school - use .maybeSingle() as school code may not exist
     const { data: school, error: schoolError } = await supabase
       .from('schools')
       .select('id')
       .eq('school_code', schoolCode.toUpperCase().trim())
-      .single()
+      .maybeSingle()
 
-    if (schoolError || !school) {
+    if (schoolError) {
+      authLogger.error('[getSchoolPinStatus] Error finding school', schoolError)
+      return {
+        success: false,
+        error: 'Failed to lookup school',
+        exists: false,
+      }
+    }
+
+    if (!school) {
       return {
         success: false,
         error: 'School not found',
@@ -155,12 +164,21 @@ export async function getSchoolPinStatus(schoolCode: string) {
       }
     }
 
-    // Check if PIN exists
-    const { data: credentials } = await supabase
+    // Check if PIN exists - use .maybeSingle() as PIN may not exist
+    const { data: credentials, error: credError } = await supabase
       .from('school_staff_credentials')
       .select('id, rotated_at, created_at')
       .eq('school_id', school.id)
-      .single()
+      .maybeSingle()
+
+    if (credError) {
+      authLogger.error('[getSchoolPinStatus] Error checking PIN status', credError)
+      return {
+        success: false,
+        error: 'Failed to check PIN status',
+        exists: false,
+      }
+    }
 
     return {
       success: true,

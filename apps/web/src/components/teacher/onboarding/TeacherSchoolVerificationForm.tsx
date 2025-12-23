@@ -44,7 +44,7 @@ export function TeacherSchoolVerificationForm({
             required
             autoComplete="off"
           />
-          <p className="text-xs text-gray-500">You can get this from your school administrator</p>
+          <p className="text-xs text-text-secondary">You can get this from your school administrator</p>
         </div>
 
         {/* Staff PIN Input */}
@@ -61,12 +61,12 @@ export function TeacherSchoolVerificationForm({
             required
             autoComplete="off"
           />
-          <p className="text-xs text-gray-500">This is provided by your school administrator</p>
+          <p className="text-xs text-text-secondary">This is provided by your school administrator</p>
         </div>
 
         {/* Security Info Box - Uses success colors */}
-        <div className="bg-success-light border border-success/30 rounded-[12px] p-3">
-          <p className="text-xs text-green-800">
+        <div className="bg-success-light border border-success/30 rounded-md p-3">
+          <p className="text-xs text-success-dark">
             <Shield className="inline-block h-3 w-3 mr-1 text-success" />
             <strong className="text-success">Secure Verification</strong>
             <br />

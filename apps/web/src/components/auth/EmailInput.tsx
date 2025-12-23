@@ -47,7 +47,7 @@ export function EmailInput({
         aria-describedby={error ? `${id}-error` : helperText ? `${id}-helper` : undefined}
       />
       {error ? (
-        <p id={`${id}-error`} className="text-sm text-red-600" role="alert">
+        <p id={`${id}-error`} className="text-sm text-error" role="alert">
           {error}
         </p>
       ) : helperText ? (

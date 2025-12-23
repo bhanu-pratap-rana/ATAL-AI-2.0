@@ -37,24 +37,24 @@ export function TeacherSignupPhoneFlow({
       <AuthCard title="Sign Up with Phone" description="Step 1 of 4: Verify your phone number">
         <form onSubmit={onSendOtp} className="space-y-4">
           {phoneError && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <p className="text-sm text-red-800">{phoneError}</p>
+            <div className="bg-error-light border border-error/30 rounded-md p-3">
+              <p className="text-sm text-error-dark">{phoneError}</p>
             </div>
           )}
 
           {/* Coming Soon Notice */}
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 flex gap-2">
-            <AlertCircle className="h-5 w-5 text-yellow-700 flex-shrink-0 mt-0.5" />
+          <div className="bg-warning-light border border-warning/30 rounded-md p-3 flex gap-2">
+            <AlertCircle className="h-5 w-5 text-warning-dark flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-xs font-semibold text-yellow-900">Phone signup coming soon!</p>
-              <p className="text-xs text-yellow-800">Please use email signup for now</p>
+              <p className="text-xs font-semibold text-warning-dark">Phone signup coming soon!</p>
+              <p className="text-xs text-warning-dark/80">Please use email signup for now</p>
             </div>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="signup-phone">Phone Number (India)</Label>
             <div className="relative">
-              <span className="absolute left-3 top-3 text-gray-600 text-sm font-medium">+91</span>
+              <span className="absolute left-3 top-3 text-text-secondary text-sm font-medium">+91</span>
               <Input
                 id="signup-phone"
                 type="tel"
@@ -67,7 +67,7 @@ export function TeacherSignupPhoneFlow({
                 autoComplete="tel"
               />
             </div>
-            <p className="text-xs text-gray-500">We&apos;ll send you an SMS verification code</p>
+            <p className="text-xs text-text-secondary">We&apos;ll send you an SMS verification code</p>
           </div>
 
           <Button
@@ -85,7 +85,7 @@ export function TeacherSignupPhoneFlow({
             onClick={onBack}
             disabled={loading}
             variant="ghost"
-            className="w-full text-gray-600 hover:text-gray-900"
+            className="w-full text-text-secondary hover:text-text-primary"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
@@ -98,12 +98,12 @@ export function TeacherSignupPhoneFlow({
   return (
     <AuthCard title="Verify Your Phone" description="Enter the OTP we sent">
       <form onSubmit={onVerifyOtp} className="space-y-4">
-        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+        <div className="bg-success-light border border-success/30 rounded-md p-3">
           <div className="flex items-start gap-2">
-            <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+            <CheckCircle className="h-5 w-5 text-success mt-0.5 flex-shrink-0" />
             <div>
-              <p className="text-sm font-semibold text-green-900">SMS Sent</p>
-              <p className="text-xs text-green-700">Check your phone for the 6-digit code</p>
+              <p className="text-sm font-semibold text-success">SMS Sent</p>
+              <p className="text-xs text-success-dark">Check your phone for the 6-digit code</p>
             </div>
           </div>
         </div>
@@ -120,7 +120,7 @@ export function TeacherSignupPhoneFlow({
             maxLength={6}
             autoComplete="off"
           />
-          <p className="text-xs text-gray-500">From: +91 {phoneNumber}</p>
+          <p className="text-xs text-text-secondary">From: +91 {phoneNumber}</p>
         </div>
 
         <Button
@@ -137,7 +137,7 @@ export function TeacherSignupPhoneFlow({
           onClick={onBack}
           disabled={loading}
           variant="ghost"
-          className="w-full text-gray-600 hover:text-gray-900"
+          className="w-full text-text-secondary hover:text-text-primary"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Phone

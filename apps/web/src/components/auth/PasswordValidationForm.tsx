@@ -88,7 +88,7 @@ export function PasswordValidationForm({
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-primary"
             aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
             {showPassword ? (
@@ -99,7 +99,7 @@ export function PasswordValidationForm({
           </button>
         </div>
         {showValidation && (
-          <p className="text-xs text-gray-600">
+          <p className="text-xs text-text-secondary">
             Minimum 8 characters, must include uppercase, lowercase, number, and special character (!@#$%^&*)
           </p>
         )}
@@ -120,7 +120,7 @@ export function PasswordValidationForm({
           <button
             type="button"
             onClick={() => setShowConfirm(!showConfirm)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-primary"
             aria-label={showConfirm ? 'Hide password' : 'Show password'}
           >
             {showConfirm ? (
@@ -133,7 +133,7 @@ export function PasswordValidationForm({
       </div>
 
       {error && (
-        <p id="password-error" className="text-sm text-red-600" role="alert">
+        <p id="password-error" className="text-sm text-error" role="alert">
           {error}
         </p>
       )}

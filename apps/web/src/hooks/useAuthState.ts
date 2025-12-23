@@ -6,9 +6,9 @@
 
 import { useState, useCallback } from 'react'
 
-export type AuthStep = 'signin' | 'signup' | 'forgot-password'
-export type SignInTab = 'email' | 'phone'
-export type SignUpTab = 'email' | 'phone' | 'guest'
+export type AuthStep = 'choice' | 'signin' | 'signup' | 'forgot-password' | 'profile' | 'join-class'
+export type SignInTab = 'email' | 'phone' | 'username'
+export type SignUpTab = 'email' | 'phone' | 'guest' | 'username'
 export type PhoneOtpStep = 'phone' | 'verify'
 
 export interface AuthState {
@@ -53,6 +53,18 @@ export interface AuthState {
   guestPin: string
   guestError: string | null
 
+  // Sign Up - Username
+  signupUsername: string
+  signupUsernamePassword: string
+  signupUsernamePasswordConfirm: string
+  signupUsernameError: string | null
+  signupUsernameStep: 'username' | 'profile'
+
+  // Sign In - Username
+  signinUsername: string
+  signinUsernamePassword: string
+  signinUsernameError: string | null
+
   // Forgot Password
   forgotPasswordEmail: string
   forgotPasswordOtp: string
@@ -60,6 +72,21 @@ export interface AuthState {
   forgotPasswordNewPasswordConfirm: string
   forgotPasswordStep: 'email' | 'otp' | 'reset'
   forgotPasswordError: string | null
+
+  // Student Profile (collected after signup)
+  profileName: string
+  profileGender: 'male' | 'female' | ''
+  profileRollNumber: string
+  profilePhone: string
+  profileSchoolName: string
+  profileClassName: string
+  profileVillage: string
+  profileError: string | null
+
+  // Join Class
+  joinClassCode: string
+  joinClassPin: string
+  joinClassError: string | null
 
   // Global loading state
   isLoading: boolean
@@ -112,6 +139,20 @@ export interface AuthActions {
   setGuestError: (error: string | null) => void
   resetGuest: () => void
 
+  // Sign Up - Username
+  setSignupUsername: (value: string) => void
+  setSignupUsernamePassword: (value: string) => void
+  setSignupUsernamePasswordConfirm: (value: string) => void
+  setSignupUsernameError: (error: string | null) => void
+  setSignupUsernameStep: (step: 'username' | 'profile') => void
+  resetSignupUsername: () => void
+
+  // Sign In - Username
+  setSigninUsername: (value: string) => void
+  setSigninUsernamePassword: (value: string) => void
+  setSigninUsernameError: (error: string | null) => void
+  resetSigninUsername: () => void
+
   // Forgot Password
   setForgotPasswordEmail: (value: string) => void
   setForgotPasswordOtp: (value: string) => void
@@ -121,13 +162,30 @@ export interface AuthActions {
   setForgotPasswordError: (error: string | null) => void
   resetForgotPassword: () => void
 
+  // Student Profile
+  setProfileName: (value: string) => void
+  setProfileGender: (value: 'male' | 'female' | '') => void
+  setProfileRollNumber: (value: string) => void
+  setProfilePhone: (value: string) => void
+  setProfileSchoolName: (value: string) => void
+  setProfileClassName: (value: string) => void
+  setProfileVillage: (value: string) => void
+  setProfileError: (error: string | null) => void
+  resetProfile: () => void
+
+  // Join Class
+  setJoinClassCode: (value: string) => void
+  setJoinClassPin: (value: string) => void
+  setJoinClassError: (error: string | null) => void
+  resetJoinClass: () => void
+
   // Global
   setIsLoading: (loading: boolean) => void
   resetAll: () => void
 }
 
 const initialState: AuthState = {
-  mainStep: 'signin',
+  mainStep: 'choice',
   signinTab: 'email',
   signupTab: 'email',
 
@@ -161,12 +219,39 @@ const initialState: AuthState = {
   guestPin: '',
   guestError: null,
 
+  // Sign Up - Username
+  signupUsername: '',
+  signupUsernamePassword: '',
+  signupUsernamePasswordConfirm: '',
+  signupUsernameError: null,
+  signupUsernameStep: 'username',
+
+  // Sign In - Username
+  signinUsername: '',
+  signinUsernamePassword: '',
+  signinUsernameError: null,
+
   forgotPasswordEmail: '',
   forgotPasswordOtp: '',
   forgotPasswordNewPassword: '',
   forgotPasswordNewPasswordConfirm: '',
   forgotPasswordStep: 'email',
   forgotPasswordError: null,
+
+  // Student Profile
+  profileName: '',
+  profileGender: '',
+  profileRollNumber: '',
+  profilePhone: '',
+  profileSchoolName: '',
+  profileClassName: '',
+  profileVillage: '',
+  profileError: null,
+
+  // Join Class
+  joinClassCode: '',
+  joinClassPin: '',
+  joinClassError: null,
 
   isLoading: false,
 }
@@ -346,6 +431,60 @@ export function useAuthState(): { state: AuthState; actions: AuthActions } {
     }))
   }, [])
 
+  // Sign Up - Username
+  const setSignupUsername = useCallback((value: string) => {
+    setState((prev) => ({ ...prev, signupUsername: value }))
+  }, [])
+
+  const setSignupUsernamePassword = useCallback((value: string) => {
+    setState((prev) => ({ ...prev, signupUsernamePassword: value }))
+  }, [])
+
+  const setSignupUsernamePasswordConfirm = useCallback((value: string) => {
+    setState((prev) => ({ ...prev, signupUsernamePasswordConfirm: value }))
+  }, [])
+
+  const setSignupUsernameError = useCallback((error: string | null) => {
+    setState((prev) => ({ ...prev, signupUsernameError: error }))
+  }, [])
+
+  const setSignupUsernameStep = useCallback((step: 'username' | 'profile') => {
+    setState((prev) => ({ ...prev, signupUsernameStep: step }))
+  }, [])
+
+  const resetSignupUsername = useCallback(() => {
+    setState((prev) => ({
+      ...prev,
+      signupUsername: '',
+      signupUsernamePassword: '',
+      signupUsernamePasswordConfirm: '',
+      signupUsernameError: null,
+      signupUsernameStep: 'username',
+    }))
+  }, [])
+
+  // Sign In - Username
+  const setSigninUsername = useCallback((value: string) => {
+    setState((prev) => ({ ...prev, signinUsername: value }))
+  }, [])
+
+  const setSigninUsernamePassword = useCallback((value: string) => {
+    setState((prev) => ({ ...prev, signinUsernamePassword: value }))
+  }, [])
+
+  const setSigninUsernameError = useCallback((error: string | null) => {
+    setState((prev) => ({ ...prev, signinUsernameError: error }))
+  }, [])
+
+  const resetSigninUsername = useCallback(() => {
+    setState((prev) => ({
+      ...prev,
+      signinUsername: '',
+      signinUsernamePassword: '',
+      signinUsernameError: null,
+    }))
+  }, [])
+
   // Forgot Password
   const setForgotPasswordEmail = useCallback((value: string) => {
     setState((prev) => ({ ...prev, forgotPasswordEmail: value }))
@@ -380,6 +519,75 @@ export function useAuthState(): { state: AuthState; actions: AuthActions } {
       forgotPasswordNewPasswordConfirm: '',
       forgotPasswordStep: 'email',
       forgotPasswordError: null,
+    }))
+  }, [])
+
+  // Student Profile
+  const setProfileName = useCallback((value: string) => {
+    setState((prev) => ({ ...prev, profileName: value }))
+  }, [])
+
+  const setProfileGender = useCallback((value: 'male' | 'female' | '') => {
+    setState((prev) => ({ ...prev, profileGender: value }))
+  }, [])
+
+  const setProfileRollNumber = useCallback((value: string) => {
+    setState((prev) => ({ ...prev, profileRollNumber: value }))
+  }, [])
+
+  const setProfilePhone = useCallback((value: string) => {
+    setState((prev) => ({ ...prev, profilePhone: value }))
+  }, [])
+
+  const setProfileSchoolName = useCallback((value: string) => {
+    setState((prev) => ({ ...prev, profileSchoolName: value }))
+  }, [])
+
+  const setProfileClassName = useCallback((value: string) => {
+    setState((prev) => ({ ...prev, profileClassName: value }))
+  }, [])
+
+  const setProfileVillage = useCallback((value: string) => {
+    setState((prev) => ({ ...prev, profileVillage: value }))
+  }, [])
+
+  const setProfileError = useCallback((error: string | null) => {
+    setState((prev) => ({ ...prev, profileError: error }))
+  }, [])
+
+  const resetProfile = useCallback(() => {
+    setState((prev) => ({
+      ...prev,
+      profileName: '',
+      profileGender: '',
+      profileRollNumber: '',
+      profilePhone: '',
+      profileSchoolName: '',
+      profileClassName: '',
+      profileVillage: '',
+      profileError: null,
+    }))
+  }, [])
+
+  // Join Class
+  const setJoinClassCode = useCallback((value: string) => {
+    setState((prev) => ({ ...prev, joinClassCode: value }))
+  }, [])
+
+  const setJoinClassPin = useCallback((value: string) => {
+    setState((prev) => ({ ...prev, joinClassPin: value }))
+  }, [])
+
+  const setJoinClassError = useCallback((error: string | null) => {
+    setState((prev) => ({ ...prev, joinClassError: error }))
+  }, [])
+
+  const resetJoinClass = useCallback(() => {
+    setState((prev) => ({
+      ...prev,
+      joinClassCode: '',
+      joinClassPin: '',
+      joinClassError: null,
     }))
   }, [])
 
@@ -425,6 +633,16 @@ export function useAuthState(): { state: AuthState; actions: AuthActions } {
     setGuestPin,
     setGuestError,
     resetGuest,
+    setSignupUsername,
+    setSignupUsernamePassword,
+    setSignupUsernamePasswordConfirm,
+    setSignupUsernameError,
+    setSignupUsernameStep,
+    resetSignupUsername,
+    setSigninUsername,
+    setSigninUsernamePassword,
+    setSigninUsernameError,
+    resetSigninUsername,
     setForgotPasswordEmail,
     setForgotPasswordOtp,
     setForgotPasswordNewPassword,
@@ -432,6 +650,19 @@ export function useAuthState(): { state: AuthState; actions: AuthActions } {
     setForgotPasswordStep,
     setForgotPasswordError,
     resetForgotPassword,
+    setProfileName,
+    setProfileGender,
+    setProfileRollNumber,
+    setProfilePhone,
+    setProfileSchoolName,
+    setProfileClassName,
+    setProfileVillage,
+    setProfileError,
+    resetProfile,
+    setJoinClassCode,
+    setJoinClassPin,
+    setJoinClassError,
+    resetJoinClass,
     setIsLoading,
     resetAll,
   }

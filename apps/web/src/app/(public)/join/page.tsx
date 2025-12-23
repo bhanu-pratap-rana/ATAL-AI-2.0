@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase-browser'
 import { usePhoneInput } from '@/hooks/usePhoneInput'
 import { useOTPInput } from '@/hooks/useOTPInput'
 import { OTP_LENGTH, PHONE_DIGIT_LENGTH } from '@/lib/auth-constants'
+import { clientLogger } from '@/lib/client-logger'
 import {
   handleSendOTP as sendOTPHandler,
   handleVerifyOTP as verifyOTPHandler,
@@ -15,7 +16,7 @@ import { AuthCard } from '@/components/auth/AuthCard'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { joinClass } from '@/app/actions/student'
+import { joinClass, previewClass } from '@/app/actions/student'
 
 // ========================================
 // STEP 1: AUTH SELECTION
@@ -38,7 +39,7 @@ function AuthSelectionStep({
 
         <Button
           onClick={onPhoneAuth}
-          className="w-full h-14 text-base text-[17px] shadow-[0_8px_20px_rgba(255,126,51,0.35)] hover:shadow-[0_12px_28px_rgba(255,126,51,0.45)] hover:-translate-y-0.5 transition-all"
+          className="w-full h-14 text-base text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5 transition-all"
           variant="default"
         >
           <span className="text-xl mr-2">📱</span>
@@ -47,16 +48,16 @@ function AuthSelectionStep({
 
         <Button
           onClick={onAnonymousAuth}
-          className="w-full h-14 text-base text-[17px] border-2 hover:border-primary hover:shadow-[0_4px_12px_rgba(255,126,51,0.15)] hover:-translate-y-0.5 transition-all"
+          className="w-full h-14 text-base text-[17px] border-2 hover:border-primary hover:shadow-[var(--shadow-primary-sm)] hover:-translate-y-0.5 transition-all"
           variant="outline"
         >
           <span className="text-xl mr-2">👤</span>
           Continue as Guest
         </Button>
 
-        <div className="bg-orange-50 border-l-4 border-primary p-3 rounded">
-          <p className="text-xs text-orange-800">
-            <strong>📌 Guest Access:</strong> You can join as a guest and upgrade your account later
+        <div className="bg-cyan-lightest border-l-4 border-cyan p-3 rounded-xl">
+          <p className="text-xs text-cyan-darkest">
+            <strong>💡 Guest Access:</strong> You can join as a guest and upgrade your account later
             by adding a phone number or email.
           </p>
         </div>
@@ -103,6 +104,7 @@ function PhoneOTPStep({
         setStep('verify')
       }
     } catch (error) {
+      clientLogger.error('[JoinClass] Failed to send OTP', error instanceof Error ? error : { error })
       toast.error('Failed to send OTP')
     } finally {
       setStepLoading(false)
@@ -128,6 +130,7 @@ function PhoneOTPStep({
         onComplete()
       }
     } catch (error) {
+      clientLogger.error('[JoinClass] Failed to verify OTP', error instanceof Error ? error : { error })
       toast.error('Failed to verify OTP')
     } finally {
       setStepLoading(false)
@@ -161,7 +164,7 @@ function PhoneOTPStep({
 
           <Button
             type="submit"
-            className="w-full text-[17px] shadow-[0_8px_20px_rgba(255,126,51,0.35)] hover:shadow-[0_12px_28px_rgba(255,126,51,0.45)] hover:-translate-y-0.5"
+            className="w-full text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5"
             disabled={stepLoading || loading || otpInput.value.length !== OTP_LENGTH}
             loading={stepLoading || loading}
           >
@@ -172,13 +175,20 @@ function PhoneOTPStep({
           <div className="text-center space-y-2">
             <button
               type="button"
+              onClick={handleSendOTPClick}
+              className="text-sm text-primary hover:text-primary-dark hover:underline block w-full"
+              disabled={stepLoading || loading}
+            >
+              Resend OTP
+            </button>
+            <button
+              type="button"
               onClick={() => setStep('phone')}
               className="text-sm text-primary hover:underline block w-full"
               disabled={stepLoading || loading}
             >
               Change phone number
             </button>
-            <br />
             <button
               type="button"
               onClick={onBack}
@@ -220,8 +230,8 @@ function PhoneOTPStep({
           </p>
         </div>
 
-        <div className="bg-orange-50 border-l-4 border-primary p-3 rounded">
-          <p className="text-xs text-orange-800">
+        <div className="bg-cyan-lightest border-l-4 border-cyan p-3 rounded-xl">
+          <p className="text-xs text-cyan-darkest">
             <strong>📱 SMS Verification:</strong> You&apos;ll receive a 6-digit code via SMS.
             Standard rates may apply.
           </p>
@@ -229,7 +239,7 @@ function PhoneOTPStep({
 
         <Button
           type="submit"
-          className="w-full text-[17px] shadow-[0_8px_20px_rgba(255,126,51,0.35)] hover:shadow-[0_12px_28px_rgba(255,126,51,0.45)] hover:-translate-y-0.5"
+          className="w-full text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5"
           disabled={stepLoading || loading || phoneInput.displayValue.length < PHONE_DIGIT_LENGTH}
           loading={stepLoading || loading}
         >
@@ -253,7 +263,17 @@ function PhoneOTPStep({
 }
 
 // ========================================
-// STEP 3: JOIN CLASS FORM
+// CLASS PREVIEW INTERFACE
+// ========================================
+interface ClassPreviewData {
+  className: string
+  teacherName: string
+  subject: string | null
+  studentCount: number
+}
+
+// ========================================
+// STEP 3: JOIN CLASS FORM (WITH PREVIEW)
 // ========================================
 function JoinClassForm({
   initialCode,
@@ -264,28 +284,73 @@ function JoinClassForm({
 }) {
   const router = useRouter()
   const [classCode, setClassCode] = useState(initialCode || '')
-  const [rollNumber, setRollNumber] = useState('')
   const [pin, setPin] = useState(initialPin || '')
   const [loading, setLoading] = useState(false)
+  const [previewLoading, setPreviewLoading] = useState(false)
+  const [preview, setPreview] = useState<ClassPreviewData | null>(null)
+  const [previewError, setPreviewError] = useState<string | null>(null)
+  const [showConfirm, setShowConfirm] = useState(false)
+
+  // Preview class when code is complete (6 characters)
+  async function handlePreviewClass() {
+    if (classCode.length !== 6) return
+
+    setPreviewLoading(true)
+    setPreviewError(null)
+    setPreview(null)
+
+    try {
+      const result = await previewClass(classCode.toUpperCase().trim())
+
+      if (result.success && result.data) {
+        setPreview(result.data)
+      } else {
+        setPreviewError(result.error || 'Class not found')
+      }
+    } catch (error) {
+      clientLogger.error('[JoinClass] Failed to preview class', error instanceof Error ? error : { error })
+      setPreviewError('Failed to lookup class')
+    } finally {
+      setPreviewLoading(false)
+    }
+  }
+
+  // Auto-preview when code changes and becomes complete
+  useEffect(() => {
+    if (classCode.length === 6) {
+      handlePreviewClass()
+    } else {
+      setPreview(null)
+      setPreviewError(null)
+      setShowConfirm(false)
+    }
+  }, [classCode])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+
+    // If we have a preview but haven't confirmed yet, show confirmation
+    if (preview && !showConfirm) {
+      setShowConfirm(true)
+      return
+    }
+
     setLoading(true)
 
     try {
       const result = await joinClass({
         classCode: classCode.toUpperCase().trim(),
-        rollNumber: rollNumber.trim(),
         pin: pin.trim(),
       })
 
       if (result.success) {
-        toast.success('Successfully joined class! 🎉')
+        toast.success('Successfully joined class!')
         router.push('/app/student/classes')
       } else {
         toast.error(result.error || 'Failed to join class')
       }
     } catch (error) {
+      clientLogger.error('[JoinClass] Failed to join class', error instanceof Error ? error : { error })
       toast.error('An unexpected error occurred')
     } finally {
       setLoading(false)
@@ -305,7 +370,10 @@ function JoinClassForm({
             type="text"
             placeholder="A3F7E2"
             value={classCode}
-            onChange={(e) => setClassCode(e.target.value.toUpperCase())}
+            onChange={(e) => {
+              setClassCode(e.target.value.toUpperCase())
+              setShowConfirm(false)
+            }}
             required
             disabled={loading}
             maxLength={6}
@@ -316,21 +384,50 @@ function JoinClassForm({
           </p>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="roll-number">Roll Number</Label>
-          <Input
-            id="roll-number"
-            type="text"
-            placeholder="e.g., 101, ST2024001"
-            value={rollNumber}
-            onChange={(e) => setRollNumber(e.target.value)}
-            required
-            disabled={loading}
-          />
-          <p className="text-xs text-text-secondary">
-            Your student roll number or ID
-          </p>
-        </div>
+        {/* Class Preview Section */}
+        {previewLoading && (
+          <div className="bg-surface border border-border rounded-lg p-4">
+            <div className="flex items-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+              <span className="text-sm text-text-secondary">Looking up class...</span>
+            </div>
+          </div>
+        )}
+
+        {previewError && (
+          <div className="bg-error-light border-l-4 border-error p-3 rounded">
+            <p className="text-sm text-error-dark">{previewError}</p>
+          </div>
+        )}
+
+        {preview && (
+          <div className="bg-success-light border border-success/30 rounded-lg p-4 space-y-2">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-success text-lg">✓</span>
+              <span className="font-medium text-success-dark">Class Found!</span>
+            </div>
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between">
+                <span className="text-text-secondary">Class Name:</span>
+                <span className="font-medium text-text-primary">{preview.className}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-text-secondary">Teacher:</span>
+                <span className="font-medium text-text-primary">{preview.teacherName}</span>
+              </div>
+              {preview.subject && (
+                <div className="flex justify-between">
+                  <span className="text-text-secondary">Subject:</span>
+                  <span className="font-medium text-text-primary">{preview.subject}</span>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span className="text-text-secondary">Students:</span>
+                <span className="font-medium text-text-primary">{preview.studentCount} enrolled</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-2">
           <Label htmlFor="pin">Class PIN</Label>
@@ -339,7 +436,10 @@ function JoinClassForm({
             type="password"
             placeholder="••••"
             value={pin}
-            onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+            onChange={(e) => {
+              setPin(e.target.value.replace(/\D/g, '').slice(0, 4))
+              setShowConfirm(false)
+            }}
             required
             disabled={loading}
             maxLength={4}
@@ -350,20 +450,29 @@ function JoinClassForm({
           </p>
         </div>
 
+        {/* Confirmation Message */}
+        {showConfirm && preview && (
+          <div className="bg-primary/10 border border-primary/30 rounded-lg p-3">
+            <p className="text-sm text-primary-dark text-center">
+              Ready to join <strong>{preview.className}</strong> with {preview.teacherName}?
+            </p>
+          </div>
+        )}
+
         <div className="bg-info-light border-l-4 border-info p-3 rounded">
           <p className="text-xs text-info-dark">
-            <strong>📌 Note:</strong> Your teacher will verify your enrollment.
-            Make sure to use the correct roll number.
+            <strong>Note:</strong> Your roll number from your profile will be
+            used to identify you in the class roster.
           </p>
         </div>
 
         <Button
           type="submit"
-          className="w-full text-[17px] shadow-[0_8px_20px_rgba(255,126,51,0.35)] hover:shadow-[0_12px_28px_rgba(255,126,51,0.45)] hover:-translate-y-0.5"
-          disabled={loading || !classCode || !rollNumber || pin.length !== 4}
+          className="w-full text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5"
+          disabled={loading || !classCode || classCode.length !== 6 || pin.length !== 4 || !preview}
           loading={loading}
         >
-          Join Class
+          {showConfirm ? 'Confirm & Join Class' : 'Join Class'}
           <span className="ml-2">→</span>
         </Button>
       </form>
@@ -424,6 +533,7 @@ function JoinPageContent() {
         setAuthState('authenticated')
       }
     } catch (error) {
+      clientLogger.error('[JoinClass] Failed to sign in as guest', error instanceof Error ? error : { error })
       toast.error('Failed to sign in as guest')
     } finally {
       setLoading(false)

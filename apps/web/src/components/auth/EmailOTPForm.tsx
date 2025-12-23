@@ -80,11 +80,11 @@ export function EmailOTPForm({
           aria-describedby={error ? 'email-error' : 'email-helper'}
         />
         {error ? (
-          <p id="email-error" className="text-sm text-red-600" role="alert">
+          <p id="email-error" className="text-sm text-error" role="alert">
             {error}
           </p>
         ) : (
-          <p id="email-helper" className="text-xs text-gray-600">
+          <p id="email-helper" className="text-xs text-text-secondary">
             {helperText}
           </p>
         )}

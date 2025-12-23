@@ -8,7 +8,7 @@ interface AuthCardProps {
 
 export function AuthCard({ children, title, description }: AuthCardProps) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-surface via-background to-surface px-4 py-8 sm:px-6 md:px-8 md:py-12">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-cream px-4 py-8 sm:px-6 md:px-8 md:py-12">
       {/* Header with Logo - Responsive sizing */}
       <div className="text-center mb-8 sm:mb-10 md:mb-12 w-full">
         {/* Logo - 32px on mobile, 40px on tablet, 44px on desktop */}
@@ -25,10 +25,10 @@ export function AuthCard({ children, title, description }: AuthCardProps) {
             style={{
               boxShadow: `
                 0 0 0 2px white,
-                0 0 0 4px rgba(255, 140, 66, 1),
+                0 0 0 4px var(--color-primary),
                 0 0 0 6px white,
-                0 0 0 8px rgba(255, 140, 66, 0.3),
-                0 4px 16px rgba(255, 140, 66, 0.25)
+                0 0 0 8px var(--color-primary-light),
+                var(--shadow-primary-sm)
               `
             }}
             priority
@@ -36,29 +36,29 @@ export function AuthCard({ children, title, description }: AuthCardProps) {
           />
         </div>
         {/* Title - scales from 24px to 40px */}
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#333] mb-1.5">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-text-primary mb-1.5">
           ATAL AI Tutorial
         </h1>
         {/* Subtitle - responsive text size */}
-        <p className="text-xs sm:text-sm md:text-base text-[#666]">
+        <p className="text-xs sm:text-sm md:text-base text-text-secondary">
           Smart Learning Platform
         </p>
       </div>
 
       {/* Login Card with Gradient Border - Responsive container */}
       <div className="w-full sm:max-w-sm md:max-w-md lg:max-w-lg">
-        <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-primary to-primary-light p-[2px] sm:p-[3px] shadow-[0_8px_20px_rgba(255,126,51,0.15)] sm:shadow-[0_12px_32px_rgba(255,126,51,0.2)] mb-6">
+        <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-primary to-primary-light p-[2px] sm:p-[3px] shadow-[var(--shadow-primary-sm)] sm:shadow-[var(--shadow-primary)] mb-6">
           {/* Inner white card - responsive padding */}
-          <div className="bg-white rounded-2xl sm:rounded-[21px] p-5 sm:p-6 md:p-8">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-8">
             {/* Card header - responsive spacing */}
             <div className="mb-5 sm:mb-6 md:mb-7">
               {/* Card title - responsive sizing */}
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#333] mb-1.5">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-text-primary mb-1.5">
                 {title}
               </h2>
               {/* Card description - responsive text size */}
               {description && (
-                <p className="text-xs sm:text-sm text-[#666]">
+                <p className="text-xs sm:text-sm text-text-secondary">
                   {description}
                 </p>
               )}

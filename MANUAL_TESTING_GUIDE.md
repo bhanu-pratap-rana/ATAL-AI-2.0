@@ -3,7 +3,7 @@
 ## Overview
 This guide provides step-by-step manual testing for all features across 12 testing phases. Each test includes clear steps, expected results, and pass criteria.
 
-**Total Tests:** 100+ | **Estimated Time:** 3-4 hours | **Prerequisites:** localhost:3000 running, Supabase connected
+**Total Tests:** 110+ | **Estimated Time:** 3-4 hours | **Prerequisites:** localhost:3000 running, Supabase connected
 
 ---
 
@@ -51,7 +51,7 @@ Before testing, verify:
 
 **Expected:** All pages load without 404 errors
 **Pass Criteria:** ✅ No 404 errors | ✅ No console errors
-
+pass no error 
 ---
 
 ## Phase 2: Landing Page & Navigation (4 tests)
@@ -243,6 +243,45 @@ Before testing, verify:
 - Form advances to OTP entry
 
 **Pass Criteria:** ✅ SMS sent | ✅ Form advances
+
+---
+
+### Test 3.9a: Student Profile Collection (After Signup)
+**Steps:**
+1. After completing email/phone signup verification
+2. Observe profile collection form appears
+3. Enter full name (required)
+4. Select gender: Male or Female (required)
+5. Optionally enter: School Name, Class, Phone, Village
+6. Click "Save Profile & Continue"
+
+**Expected:**
+- Profile form appears after account creation
+- Name and gender are required fields
+- Gender only shows Male/Female options (database constraint)
+- Form validates required fields
+- Success: Advances to "Join Class" step
+- Error if name or gender missing
+
+**Pass Criteria:** ✅ Required fields enforced | ✅ Gender options correct | ✅ Profile saved
+
+---
+
+### Test 3.9b: Student Join Class After Profile
+**Steps:**
+1. After profile saved, observe "Join Class" form
+2. Enter class code (6 characters)
+3. Enter class PIN (4 digits)
+4. Click "Join Class"
+5. OR click "Skip for now" to go to dashboard
+
+**Expected:**
+- Class code and PIN validated
+- Success: Redirects to dashboard with class enrolled
+- Skip option available to bypass class join
+- Error shown for invalid code/PIN
+
+**Pass Criteria:** ✅ Join works | ✅ Skip option available | ✅ Validation works
 
 ---
 
@@ -494,17 +533,20 @@ Before testing, verify:
 **Steps:**
 1. After school verification, observe profile form
 2. Enter name (required)
-3. Enter phone (optional)
-4. Enter subject (optional)
-5. Verify school banner shows
+3. Select gender: Male or Female (required)
+4. Enter phone (optional)
+5. Enter subject (optional)
+6. Enter village/location (optional)
+7. Verify school banner shows
 
 **Expected:**
 - Verified school displayed in green banner
 - Name field required
-- Phone/Subject optional
-- Submit button enabled when name entered
+- Gender field required (Male/Female only - database constraint)
+- Phone/Subject/Village optional
+- Submit button enabled when name AND gender selected
 
-**Pass Criteria:** ✅ School shown | ✅ Name required | ✅ Form complete
+**Pass Criteria:** ✅ School shown | ✅ Name required | ✅ Gender required | ✅ Form complete
 
 ---
 
@@ -691,24 +733,7 @@ Before testing, verify:
 
 ---
 
-### Test 5.10: Admin Initialize Page
-**Steps:**
-1. Navigate to `/admin/initialize`
-2. Enter super admin email: atal.app.ai@gmail.com
-3. Enter strong password
-4. Confirm password
-5. Click "Create Super Admin"
-
-**Expected:**
-- Email validation (must be atal.app.ai@gmail.com)
-- Password strength validation
-- Success or "already exists" message
-
-**Pass Criteria:** ✅ Validation works | ✅ Creation works
-
----
-
-### Test 5.11: Admin Create Additional Admin
+### Test 5.10: Admin Create Additional Admin
 **Steps:**
 1. Navigate to `/admin/create` or `/admin/manage`
 2. Enter new admin email
@@ -724,7 +749,7 @@ Before testing, verify:
 
 ---
 
-### Test 5.12: Admin Sign Out
+### Test 5.11: Admin Sign Out
 **Steps:**
 1. On any admin page, click "Sign Out"
 2. Observe redirect
@@ -1182,6 +1207,138 @@ Before testing, verify:
 
 ---
 
+## Phase 8a: Settings & Profile Management (8 tests)
+
+### Test 8a.1: Settings Page Access
+**Steps:**
+1. Login as any user (student/teacher)
+2. Navigate to `/app/settings` or click Settings card on dashboard
+3. Observe settings page layout
+
+**Expected:**
+- Account Information card displayed
+- Profile editor section visible (Student or Teacher based on role)
+- Preferences card visible
+- Danger Zone card visible
+- Back to Dashboard link works
+
+**Pass Criteria:** ✅ Page loads | ✅ Role-specific profile shown
+
+---
+
+### Test 8a.2: Student Profile Editor - View Mode
+**Steps:**
+1. Login as student with existing profile
+2. Navigate to Settings
+3. Observe Student Profile section
+
+**Expected:**
+- Profile displays Name, Gender, Email, Phone, School, Class, Village
+- Edit button visible
+- Values displayed (or "Not set" for empty fields)
+
+**Pass Criteria:** ✅ Profile data shown | ✅ Edit button present
+
+---
+
+### Test 8a.3: Student Profile Editor - Edit Mode
+**Steps:**
+1. On Settings, click "Edit" button in Student Profile section
+2. Modify name, gender, or other fields
+3. Click "Save"
+
+**Expected:**
+- Form switches to edit mode with input fields
+- Name and Gender are required
+- Cancel button reverts changes
+- Save button updates profile
+- Success message shown
+
+**Pass Criteria:** ✅ Edit works | ✅ Validation enforced | ✅ Save works
+
+---
+
+### Test 8a.4: Student Profile Editor - Create Profile
+**Steps:**
+1. Login as student WITHOUT existing profile
+2. Navigate to Settings
+3. Observe "Create Profile" prompt
+4. Click "Create Profile"
+5. Fill in required fields and save
+
+**Expected:**
+- Shows message: "You haven't set up your student profile yet"
+- Create Profile button visible
+- Form appears on click
+- Can create new profile
+
+**Pass Criteria:** ✅ Create prompt shown | ✅ Profile creation works
+
+---
+
+### Test 8a.5: Teacher Profile Editor - View Mode
+**Steps:**
+1. Login as teacher
+2. Navigate to Settings
+3. Observe Teacher Profile section
+
+**Expected:**
+- Profile displays Name, Gender, Email, Phone, Subject, School Code, Village
+- School Code is read-only (cannot be edited)
+- Edit button visible
+- Warning banner if gender is missing (incomplete profile)
+
+**Pass Criteria:** ✅ Profile data shown | ✅ School code read-only
+
+---
+
+### Test 8a.6: Teacher Profile Editor - Incomplete Profile Warning
+**Steps:**
+1. Login as teacher with missing gender in profile
+2. Navigate to Settings
+
+**Expected:**
+- Yellow/amber warning banner: "Profile Incomplete"
+- Message prompts to add gender
+- Clicking "Edit" allows adding missing data
+
+**Pass Criteria:** ✅ Warning shown for incomplete profile | ✅ Edit allows fixing
+
+---
+
+### Test 8a.7: Teacher Profile Editor - Edit Mode
+**Steps:**
+1. On Settings, click "Edit" in Teacher Profile section
+2. Modify name, gender, phone, subject, or village
+3. Click "Save"
+
+**Expected:**
+- Form switches to edit mode
+- Name and Gender are required
+- School Code remains read-only
+- Cancel button reverts changes
+- Save updates profile in database
+- Success message: "Profile updated successfully!"
+
+**Pass Criteria:** ✅ Edit works | ✅ Required fields enforced | ✅ Save works
+
+---
+
+### Test 8a.8: Profile Gender Validation
+**Steps:**
+1. In any profile editor (student or teacher)
+2. Try to save without selecting gender
+3. Observe validation
+
+**Expected:**
+- Error: "Name and gender are required"
+- Form does not submit
+- Only Male/Female options available (matches database constraint)
+
+**Pass Criteria:** ✅ Validation works | ✅ Gender options correct
+
+---
+
 ## Phase 9: Security Testing (10 tests)
 
 ### Test 9.1: PIN Timing Attack Prevention
@@ -1629,15 +1786,21 @@ Before testing, verify:
 ### Functionality
 - [ ] Student email sign up works
 - [ ] Student phone sign up works
+- [ ] Student profile collection works (name, gender required)
+- [ ] Student join class after profile works
 - [ ] Student guest join works
 - [ ] Teacher email registration works
 - [ ] Teacher school verification works
-- [ ] Teacher profile creation works (triggers user creation)
+- [ ] Teacher profile creation works (name, gender, village)
 - [ ] Admin login works
 - [ ] PIN generation/rotation works (no gen_salt errors)
 - [ ] Class creation works
 - [ ] Class join works
 - [ ] Assessment complete flow works
+- [ ] Settings page loads for all user types
+- [ ] Student profile editor works (view/edit/create)
+- [ ] Teacher profile editor works (view/edit)
+- [ ] Incomplete profile warning shows for teachers missing gender
 
 ### Security
 - [ ] No plaintext passwords
@@ -1649,13 +1812,27 @@ Before testing, verify:
 - [ ] PINs are bcrypt hashed in database
 
 ### Database Health
-- [ ] pgcrypto extension in public schema
-- [ ] All 28 migrations applied
+- [ ] pgcrypto extension in extensions schema (moved from public in migration 044)
+- [ ] All 44 migrations applied
 - [ ] rotate_staff_pin function works
 - [ ] create_user_on_teacher_profile trigger works
-- [ ] RLS policies active on all tables
-- [ ] get_user_enrolled_class_ids helper function works
-- [ ] get_teacher_class_ids helper function works
+- [ ] auto_create_user_on_student_profile trigger works
+- [ ] RLS policies active on all 11 tables
+- [ ] All 13 SECURITY DEFINER helper functions work:
+  - [ ] get_user_enrolled_class_ids(p_user_id)
+  - [ ] get_teacher_class_ids(p_user_id)
+  - [ ] is_teacher()
+  - [ ] get_teacher_student_ids()
+  - [ ] is_class_teacher(p_class_id)
+  - [ ] is_enrolled_in_class(p_class_id)
+  - [ ] check_email_exists(p_email)
+  - [ ] check_username_available(p_username)
+  - [ ] get_user_id_by_username(p_username)
+  - [ ] rotate_staff_pin(p_school_id, p_new_pin)
+  - [ ] verify_staff_pin(p_school_id, p_pin)
+  - [ ] get_class_roster(p_class_id)
+  - [ ] search_students_for_teacher(p_search_query, p_limit)
+- [ ] FK indexes exist (idx_classes_teacher_id, idx_enrollments_student_id)
 
 ### Role Handling
 - [ ] Teachers see teacher dashboard content
@@ -1694,9 +1871,41 @@ Before testing, verify:
 
 ---
 
-**Guide Version:** 2.1
-**Last Updated:** December 5, 2025
+**Guide Version:** 2.5
+**Last Updated:** December 23, 2025
 **Status:** Ready for Testing
+
+**Changelog v2.5:**
+- Updated database verification to reflect 44 migrations (was 33)
+- Updated pgcrypto location from public to extensions schema (migration 044)
+- Updated SECURITY DEFINER functions count from 10 to 13
+- Added new functions: `check_username_available`, `get_user_id_by_username`, `get_class_roster`, `search_students_for_teacher`
+- Updated RLS policies count to 11 tables (added irt_item_bank)
+- Added Appendix G documenting December 23 fixes
+
+**Changelog v2.4:**
+- Updated database verification to reflect 33 migrations (was 31)
+- Removed Test 5.10 (Admin Initialize Page) - page was deleted
+- Renumbered Tests 5.11-5.12 to 5.10-5.11
+- Updated total test count to 110+ (was 115+)
+- Updated Database Health checklist with 10 functions (was 6)
+- Added `auto_create_user_on_student_profile` trigger to verification list
+- Added missing functions to checklist: `check_email_exists`, `rotate_staff_pin`, `verify_staff_pin`
+- Added Appendix F documenting December 18 code cleanup
+
+**Changelog v2.3:**
+- Updated database verification to reflect 31 migrations (was 28)
+- Added new SECURITY DEFINER functions: `is_teacher()`, `get_teacher_student_ids()`, `is_class_teacher()`, `is_enrolled_in_class()`
+- Updated RLS helper functions documentation with correct signatures
+- Added FK indexes: `idx_classes_teacher_id`, `idx_enrollments_student_id`
+- Added Appendix E documenting December 13 security and code quality fixes
+- All Supabase MCP verification completed
+
+**Changelog v2.2:**
+- Added Phase 8a: Settings & Profile Management (8 new tests)
+- Added Tests 3.9a-3.9b: Student profile collection and class join after signup
+- Updated Test 4.11: Teacher profile now requires gender and includes village field
+- Updated Final Verification Checklist with profile management items
 
 ---
 
@@ -1770,7 +1979,7 @@ FROM pg_extension e
 JOIN pg_namespace n ON e.extnamespace = n.oid
 WHERE e.extname = 'pgcrypto';
 ```
-**Expected:** pgcrypto in `public` schema.
+**Expected:** pgcrypto in `extensions` schema (moved from public in migration 044).
 
 ### B.2: Check rotate_staff_pin Function
 ```sql
@@ -1802,12 +2011,48 @@ WHERE p.proname = 'create_user_on_teacher_profile';
 
 ### B.5: Check RLS Helper Functions
 ```sql
-SELECT n.nspname, p.proname
+SELECT p.proname, pg_get_function_arguments(p.oid) as args
 FROM pg_proc p
 JOIN pg_namespace n ON p.pronamespace = n.oid
-WHERE p.proname IN ('get_user_enrolled_class_ids', 'get_teacher_class_ids');
+WHERE n.nspname = 'public'
+  AND p.proname IN (
+    'get_user_enrolled_class_ids',
+    'get_teacher_class_ids',
+    'is_teacher',
+    'get_teacher_student_ids',
+    'is_class_teacher',
+    'is_enrolled_in_class',
+    'check_email_exists',
+    'check_username_available',
+    'get_user_id_by_username',
+    'rotate_staff_pin',
+    'verify_staff_pin',
+    'get_class_roster',
+    'search_students_for_teacher'
+  );
 ```
-**Expected:** Both functions exist in `public` schema.
+**Expected:** All 13 SECURITY DEFINER functions exist in `public` schema:
+- `get_user_enrolled_class_ids(p_user_id uuid)` - Returns class IDs for enrolled student
+- `get_teacher_class_ids(p_user_id uuid)` - Returns class IDs owned by teacher
+- `is_teacher()` - Checks if current user has teacher profile
+- `get_teacher_student_ids()` - Returns student IDs in teacher's classes
+- `is_class_teacher(p_class_id uuid)` - Checks if user is teacher of specific class
+- `is_enrolled_in_class(p_class_id uuid)` - Checks if user is enrolled in specific class
+- `check_email_exists(p_email text)` - Checks if email already exists in system
+- `check_username_available(p_username text)` - Checks if username is available
+- `get_user_id_by_username(p_username text)` - Gets user_id from username
+- `rotate_staff_pin(p_school_id uuid, p_new_pin text)` - Rotates school staff PIN
+- `verify_staff_pin(p_school_id uuid, p_pin text)` - Verifies school staff PIN
+- `get_class_roster(p_class_id uuid)` - Returns student roster for teacher's class
+- `search_students_for_teacher(p_search_query text, p_limit integer)` - Search students in teacher's classes
+
+### B.6: Check FK Indexes
+```sql
+SELECT indexname, tablename
+FROM pg_indexes
+WHERE indexname IN ('idx_classes_teacher_id', 'idx_enrollments_student_id');
+```
+**Expected:** Both indexes exist for FK lookup optimization.
 
 ---
 
@@ -1860,10 +2105,261 @@ const isTeacher = user?.app_metadata?.role === 'teacher' || user?.user_metadata?
 
 Before starting manual testing, complete these verification steps:
 
-- [ ] Run all 28 migrations (check via `list_migrations` or Supabase dashboard)
-- [ ] Verify pgcrypto extension is in public schema
+- [ ] Run all 44 migrations (check via `list_migrations` or Supabase dashboard)
+- [ ] Verify pgcrypto extension is in extensions schema (moved from public in migration 044)
+- [ ] Verify all 13 SECURITY DEFINER functions exist
+- [ ] Verify FK indexes exist (idx_classes_teacher_id, idx_enrollments_student_id)
 - [ ] Reload PostgREST schema if any database changes were made
 - [ ] Verify at least one school exists in the database
 - [ ] Verify super admin account (atal.app.ai@gmail.com) is initialized
 - [ ] Run `npm run build` to verify 0 TypeScript errors
 - [ ] Clear browser cache/use incognito for clean testing
+
+---
+
+## Appendix E: December 13, 2025 Fixes
+
+This appendix documents fixes applied on December 13, 2025 via Supabase MCP verification.
+
+### E.1: Security & Code Quality Fixes (8 Issues)
+
+| # | Issue | Category | Fix Applied |
+|---|-------|----------|-------------|
+| 1 | Password exposure in admin messages | Security | Removed password from success messages |
+| 2 | Hardcoded colors in dashboard | Theme | Changed to CSS variables `text-white` |
+| 3 | Bare catch blocks without logging | Code Quality | Added `clientLogger.error()` with proper typing |
+| 4 | Rate limiter fail-open pattern | Security | Changed to fail-closed (deny on error) |
+| 5 | Admin role check missing super_admin | Security | Added `super_admin` to role checks |
+| 6 | Missing rate limiting on joinClass | Security | Added rate limiting call |
+| 7 | Missing ARIA labels on profile editors | Accessibility | Added aria-label attributes |
+| 8 | Duplicate auth constants | Code Quality | Removed duplicates |
+
+### E.2: Database Functions Applied via MCP
+
+Two missing SECURITY DEFINER functions were applied:
+- `is_class_teacher(p_class_id uuid)` - Checks if current user is teacher of specific class
+- `is_enrolled_in_class(p_class_id uuid)` - Checks if current user is enrolled in specific class
+
+### E.3: DATABASE.md Updated
+
+Documentation updated to accurately reflect:
+- Function signatures (with correct parameters)
+- 31 migrations (not 30)
+- FK indexes added in migration 031
+- Usage notes for InitPlan pattern in RLS policies
+
+### E.4: Supabase Advisor Status
+
+**Security Advisors:** All warnings are intentional (anonymous access by design)
+**Performance Advisors:** Unused indexes are expected (no production data yet)
+
+**Verification:** All 9 tables have RLS enabled with proper policies.
+
+---
+
+## Appendix F: December 18, 2025 Code Cleanup
+
+This appendix documents code cleanup performed on December 18, 2025.
+
+### F.1: Build Error Fixed
+
+**Issue:** Build failed with `Could not find a declaration file for module 'next-pwa'`
+
+**Solution:** Created `apps/web/next-pwa.d.ts` with TypeScript declarations for the next-pwa module.
+
+### F.2: Dead Code Removed
+
+**Deleted Unused Hooks (5 files):**
+- `apps/web/src/hooks/useSignUpForm.ts`
+- `apps/web/src/hooks/useSignInForm.ts`
+- `apps/web/src/hooks/useForgotPasswordForm.ts`
+- `apps/web/src/hooks/useAuthHandlers.ts`
+- `apps/web/src/hooks/usePasswordValidation.ts`
+
+**Deleted Unused Components (2 files):**
+- `apps/web/src/components/ui/gradient-card.tsx`
+- `apps/web/src/components/ui/welcome-banner.tsx`
+
+**Removed Unused Exports:**
+- `ReducedMotionPageTransition` from `page-transition.tsx`
+- `isEqual` function from `validation-utils.ts`
+- `validatePin` deprecated alias from `code-validation.ts`
+
+**Removed Unused Props:**
+- `teacherName` prop from `ClassCard.tsx` and its usage in `teacher/classes/page.tsx`
+
+### F.3: Type Consolidation
+
+**Issue:** Duplicate type definitions across multiple files
+
+**Solution:**
+- `SignInResult` in `auth-handlers.ts` now imports base type from `types/auth.ts`
+- Removed duplicate `SignInTab`, `SignUpTab`, `PhoneOtpStep` types (kept in `useAuthState.ts`)
+
+### F.4: Admin Initialize Page Removed
+
+**Change:** The `/admin/initialize` page was deleted from the codebase.
+
+**Impact:** Test 5.10 removed from this guide, subsequent tests renumbered.
+
+### F.5: Remaining Hooks (In Use)
+
+After cleanup, only 3 hooks remain:
+- `useAuthState.ts` - Central auth state management
+- `useOTPInput.ts` - OTP input handling
+- `usePhoneInput.ts` - Phone input handling
+
+### F.6: Verification Commands
+
+```bash
+# Verify build passes
+cd apps/web && npm run build
+
+# Verify no unused imports (TypeScript catches these)
+# Build should show 0 errors
+
+# Check hooks directory
+ls apps/web/src/hooks/
+# Expected: useAuthState.ts, useOTPInput.ts, usePhoneInput.ts
+```
+
+**All changes verified:** Build passes with 0 errors.
+
+---
+
+## Appendix G: December 23, 2025 Fixes
+
+This appendix documents fixes applied on December 23, 2025.
+
+### G.1: IRT Item Bank Admin Policy Fix
+
+**Issue:** Error `permission denied for table users` when accessing IRT item bank as admin.
+
+**Root Cause:** The `irt_item_bank_admin_all` RLS policy was querying `auth.users` table which is not accessible to regular authenticated users.
+
+**Solution:** Migration 043 replaced the auth.users query with JWT metadata check:
+```sql
+-- BEFORE (permission denied)
+CREATE POLICY "irt_item_bank_admin_all"
+  ON irt_item_bank FOR ALL TO authenticated
+  USING (
+    EXISTS (SELECT 1 FROM auth.users WHERE id = auth.uid() AND raw_app_meta_data->>'role' = ANY(...))
+  );
+
+-- AFTER (works correctly)
+CREATE POLICY "irt_item_bank_admin_all"
+  ON irt_item_bank FOR ALL TO authenticated
+  USING (
+    (SELECT auth.jwt()->'app_metadata'->>'role') = ANY(ARRAY['admin', 'super_admin'])
+  );
+```
+
+**Verification:** Admin users can now access/modify IRT items without permission errors.
+
+---
+
+### G.2: get_class_roster Function Type Mismatch Fix
+
+**Issue:** Error `cannot cast type timestamp without time zone to timestamp with time zone` when fetching class roster.
+
+**Root Cause:** The `get_class_roster` function was returning `created_at` (TIMESTAMP) but the return type specified `enrolled_at` (TIMESTAMPTZ).
+
+**Solution:** Migration 043 fixed the function to use the correct column:
+```sql
+-- Changed from created_at to enrolled_at in the SELECT clause
+SELECT
+  sp.user_id,
+  sp.name,
+  sp.roll_number,
+  e.enrolled_at  -- Changed from e.created_at
+FROM enrollments e
+JOIN student_profiles sp ON sp.user_id = e.student_id
+WHERE e.class_id = p_class_id
+  AND is_class_teacher(p_class_id);
+```
+
+**Verification:** Teacher can now view class roster without type cast errors.
+
+---
+
+### G.3: pgcrypto Extension Moved to Extensions Schema
+
+**Issue:** Security warning from Supabase advisor about pgcrypto extension in public schema.
+
+**Root Cause:** Extensions in public schema have broader access than necessary.
+
+**Solution:** Migration 044 moved pgcrypto to a dedicated extensions schema:
+```sql
+CREATE SCHEMA IF NOT EXISTS extensions;
+ALTER EXTENSION pgcrypto SET SCHEMA extensions;
+GRANT USAGE ON SCHEMA extensions TO authenticated, anon, service_role;
+```
+
+**Verification:**
+- Supabase advisor no longer shows pgcrypto warning
+- PIN rotation and verification still work correctly
+- Build passes with 0 errors
+
+---
+
+### G.4: Sentry Configuration Updated
+
+**Issue:** Deprecation warnings in build output for Sentry webpack configuration.
+
+**Root Cause:** Old Sentry config format with `disableLogger` and root-level `automaticVercelMonitors`.
+
+**Solution:** Updated next.config.ts to use new webpack configuration format:
+```typescript
+// BEFORE (deprecated)
+disableLogger: true,
+automaticVercelMonitors: true,
+
+// AFTER (current)
+webpack: {
+  treeshake: {
+    removeDebugLogging: true,
+  },
+  automaticVercelMonitors: true,
+},
+```
+
+**Verification:** Build completes without Sentry deprecation warnings.
+
+---
+
+### G.5: New Database Functions Added
+
+Three new SECURITY DEFINER functions were added/documented:
+
+| Function | Purpose | Added In |
+|----------|---------|----------|
+| `get_class_roster(p_class_id)` | Returns student roster for a class | Migration 034 |
+| `search_students_for_teacher(p_search_query, p_limit)` | Searches students in teacher's classes | Migration 034 |
+| `get_user_id_by_username(p_username)` | Gets user_id from username for login | Migration 030 |
+
+**Total SECURITY DEFINER functions:** 13 (was 10)
+
+---
+
+### G.6: Database Statistics Updated
+
+| Table | Row Count |
+|-------|-----------|
+| users | 4 |
+| student_profiles | 2 |
+| teacher_profiles | 1 |
+| schools | 393 |
+| school_staff_credentials | 5 |
+| usernames | 1 |
+| classes | 23 |
+| enrollments | 2 |
+| assessment_sessions | 42 |
+| assessment_responses | 0 |
+| irt_item_bank | 180 |
+
+**Total Tables with RLS:** 11
+**Total Migrations:** 44
+
+---
+
+**All changes verified:** Build passes with 0 errors, all E2E tests functional.

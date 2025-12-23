@@ -85,7 +85,7 @@ export default function AdminSetupPage() {
           onClick={() => (window.location.href = '/admin/login')}
           variant="outline"
           size="sm"
-          className="text-sm border-primary text-primary hover:bg-orange-50"
+          className="text-sm border-primary text-primary hover:bg-primary/10"
         >
           ← Back to Login
         </Button>
@@ -132,16 +132,16 @@ export default function AdminSetupPage() {
             <div
               className={`flex gap-3 p-4 rounded-lg border ${
                 message.type === 'success'
-                  ? 'bg-green-50 border-green-200'
-                  : 'bg-red-50 border-red-200'
+                  ? 'bg-success-light border-success/30'
+                  : 'bg-error-light border-error/30'
               }`}
             >
               {message.type === 'success' ? (
-                <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
               ) : (
-                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-error flex-shrink-0 mt-0.5" />
               )}
-              <span className={message.type === 'success' ? 'text-green-600' : 'text-red-600'}>
+              <span className={message.type === 'success' ? 'text-success' : 'text-error'}>
                 {message.text}
               </span>
             </div>
@@ -152,14 +152,14 @@ export default function AdminSetupPage() {
             <div
               className={`flex gap-3 p-4 rounded-lg border ${
                 checkResult.isAdmin
-                  ? 'bg-green-50 border-green-200'
-                  : 'bg-yellow-50 border-yellow-200'
+                  ? 'bg-success-light border-success/30'
+                  : 'bg-warning-light border-warning/30'
               }`}
             >
               {checkResult.isAdmin ? (
                 <>
-                  <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                  <div className="text-sm text-green-900">
+                  <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-success">
                     <strong>Ready to Login!</strong>
                     <br />
                     <span className="text-xs">
@@ -169,8 +169,8 @@ export default function AdminSetupPage() {
                 </>
               ) : (
                 <>
-                  <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-                  <div className="text-sm text-yellow-900">
+                  <AlertCircle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-warning-dark">
                     <strong>Not Admin Yet</strong>
                     <br />
                     <span className="text-xs">
@@ -202,7 +202,7 @@ export default function AdminSetupPage() {
             <Button
               onClick={handleSetAdminRole}
               disabled={isLoading || !email.trim()}
-              className="flex-1 bg-gradient-to-r from-primary to-orange-500 hover:from-orange-600 hover:to-orange-600"
+              className="flex-1 bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary"
             >
               {isLoading ? (
                 <>
@@ -216,9 +216,9 @@ export default function AdminSetupPage() {
           </div>
 
           {/* Instructions Box */}
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-            <p className="text-sm text-orange-900 font-semibold mb-2">📋 How to use:</p>
-            <ol className="text-xs text-orange-800 space-y-1 list-decimal list-inside">
+          <div className="bg-cyan-lightest border border-cyan/30 rounded-lg p-4">
+            <p className="text-sm text-cyan-darkest font-semibold mb-2">📋 How to use:</p>
+            <ol className="text-xs text-cyan-dark space-y-1 list-decimal list-inside">
               <li>Make sure the user account exists in Supabase (check Users in dashboard)</li>
               <li>Enter the user&apos;s email address above</li>
               <li>Click &quot;Check Status&quot; to verify current role</li>
@@ -229,9 +229,9 @@ export default function AdminSetupPage() {
           </div>
 
           {/* Troubleshooting Box */}
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <p className="text-sm text-gray-900 font-semibold mb-2">🔧 Troubleshooting:</p>
-            <ul className="text-xs text-gray-700 space-y-1">
+          <div className="bg-surface border border-border rounded-lg p-4">
+            <p className="text-sm text-text-primary font-semibold mb-2">🔧 Troubleshooting:</p>
+            <ul className="text-xs text-text-secondary space-y-1">
               <li>
                 <strong>User not found:</strong> Make sure the user exists in Supabase Users list
               </li>

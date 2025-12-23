@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
  * 
  * STRICT RULES:
  * - Active tab: PRIMARY background with white text
- * - Inactive tab: gray-100 background with text-secondary
+ * - Inactive tab: surface background with text-secondary
  */
 
 interface Tab {
@@ -39,10 +39,17 @@ export function TabNavigation({
   }
 
   return (
-    <div className="flex gap-2 p-1 bg-gray-100 rounded-xl">
+    <div
+      className="flex gap-2 p-1 bg-surface rounded-xl"
+      role="tablist"
+      aria-label="Navigation tabs"
+    >
       {tabs.map((tab) => (
         <button
           key={tab.id}
+          role="tab"
+          aria-selected={activeTab === tab.id}
+          aria-disabled={disabled || tab.disabled}
           onClick={() => !tab.disabled && onTabChange(tab.id)}
           className={cn(
             "flex-1 rounded-lg font-medium transition-all duration-200",
@@ -54,7 +61,7 @@ export function TabNavigation({
           )}
           disabled={disabled || tab.disabled}
         >
-          {tab.icon && <span className="mr-1.5">{tab.icon}</span>}
+          {tab.icon && <span className="mr-1.5" aria-hidden="true">{tab.icon}</span>}
           {tab.label}
         </button>
       ))}

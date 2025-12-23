@@ -64,24 +64,8 @@ export function sanitizeClassCode(input: string): string {
 }
 
 /**
- * Validate PIN format (4 digits)
- */
-export function validatePin(pin: string): {
-  valid: boolean
-  error?: string
-} {
-  if (!/^\d{4}$/.test(pin)) {
-    return {
-      valid: false,
-      error: 'PIN must be exactly 4 digits',
-    }
-  }
-
-  return { valid: true }
-}
-
-/**
  * Validates PIN format with constants
+ * Primary implementation - handles null/undefined and uses centralized constants
  */
 export function validatePIN(pin: string): { valid: boolean; error?: string } {
   if (!pin || typeof pin !== 'string') {
@@ -98,6 +82,12 @@ export function validatePIN(pin: string): { valid: boolean; error?: string } {
 
   return { valid: true }
 }
+
+/**
+ * Alias for validatePIN (lowercase for backward compatibility with tests)
+ */
+export const validatePin = validatePIN
+
 
 /**
  * Sanitizes PIN input
