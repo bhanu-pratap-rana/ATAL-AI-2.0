@@ -1,13 +1,31 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { createClient, getCurrentUser } from '@/lib/supabase-server'
+import { z } from 'zod'
+import { createClient, verifyTeacherAuth, verifyClassOwnership } from '@/lib/supabase-server'
 import {
   ANALYTICS_WINDOW_DAYS,
   RAPID_RESPONSE_THRESHOLD_MS,
   AT_RISK_RAPID_PERCENTAGE,
 } from '@/lib/constants/analytics'
-import { CreateClassSchema } from '@/lib/validation-schemas'
+import {
+  CreateClassSchema,
+  UpdateClassSchema,
+  EnrollmentSchema,
+  ClassIdSchema,
+} from '@/lib/validation-schemas'
+import { authLogger } from '@/lib/auth-logger'
+
+/**
+ * Type guard to safely validate student profile structure from Supabase
+ */
+function isValidStudentProfile(data: unknown): data is { name: string; roll_number: string | null } {
+  if (typeof data !== 'object' || data === null) {
+    return false
+  }
+  const obj = data as Record<string, unknown>
+  return typeof obj.name === 'string' && (obj.roll_number === null || typeof obj.roll_number === 'string')
+}
 
 export async function createClass(name: string, subject?: string) {
   try {
@@ -16,36 +34,20 @@ export async function createClass(name: string, subject?: string) {
     name = validatedInput.name
     subject = validatedInput.subject
 
-    const user = await getCurrentUser()
-
-    if (!user) {
-      return { success: false, error: 'Not authenticated' }
+    // SECURITY: Verify caller is authenticated and is a teacher
+    const auth = await verifyTeacherAuth('createClass')
+    if (!auth.authorized) {
+      return auth.error!
     }
 
     const supabase = await createClient()
-
-    // Verify user is a teacher (teacher_profiles uses user_id as primary key, not id)
-    // Use .maybeSingle() instead of .single() - .single() throws PGRST116 when no rows found
-    const { data: teacherProfile, error: profileError } = await supabase
-      .from('teacher_profiles')
-      .select('user_id')
-      .eq('user_id', user.id)
-      .maybeSingle()
-
-    if (profileError) {
-      return { success: false, error: 'Failed to verify teacher status' }
-    }
-
-    if (!teacherProfile) {
-      return { success: false, error: 'Only teachers can create classes' }
-    }
 
     const { data, error } = await supabase
       .from('classes')
       .insert({
         name,
         subject: subject || null,
-        teacher_id: user.id,
+        teacher_id: auth.user!.id,
       })
       .select()
       .single()
@@ -57,6 +59,7 @@ export async function createClass(name: string, subject?: string) {
     revalidatePath('/app/teacher/classes')
     return { success: true, data }
   } catch (error) {
+    authLogger.error('[createClass] Unexpected error', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'An unexpected error occurred',
@@ -66,52 +69,24 @@ export async function createClass(name: string, subject?: string) {
 
 export async function updateClass(classId: string, name: string, subject?: string) {
   try {
-    const user = await getCurrentUser()
+    // Validate inputs
+    const validatedInput = UpdateClassSchema.parse({ classId, name, subject })
 
-    if (!user) {
-      return { success: false, error: 'Not authenticated' }
+    // SECURITY: Verify caller is authenticated and owns this class
+    const auth = await verifyClassOwnership('updateClass', validatedInput.classId)
+    if (!auth.authorized) {
+      return auth.error!
     }
 
     const supabase = await createClient()
 
-    // Verify user is a teacher (teacher_profiles uses user_id as primary key, not id)
-    // Use .maybeSingle() instead of .single() - .single() throws PGRST116 when no rows found
-    const { data: teacherProfile, error: profileError } = await supabase
-      .from('teacher_profiles')
-      .select('user_id')
-      .eq('user_id', user.id)
-      .maybeSingle()
-
-    if (profileError) {
-      return { success: false, error: 'Failed to verify teacher status' }
-    }
-
-    if (!teacherProfile) {
-      return { success: false, error: 'Only teachers can update classes' }
-    }
-
-    // Verify the teacher owns this class
-    const { data: classData, error: classError } = await supabase
-      .from('classes')
-      .select('teacher_id')
-      .eq('id', classId)
-      .maybeSingle()
-
-    if (classError) {
-      return { success: false, error: 'Failed to verify class ownership' }
-    }
-
-    if (!classData || classData.teacher_id !== user.id) {
-      return { success: false, error: 'Unauthorized' }
-    }
-
     const { data, error } = await supabase
       .from('classes')
       .update({
-        name,
-        subject: subject || null,
+        name: validatedInput.name,
+        subject: validatedInput.subject || null,
       })
-      .eq('id', classId)
+      .eq('id', validatedInput.classId)
       .select()
       .single()
 
@@ -122,6 +97,11 @@ export async function updateClass(classId: string, name: string, subject?: strin
     revalidatePath('/app/teacher/classes')
     return { success: true, data }
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      const firstError = error.issues[0]
+      return { success: false, error: firstError?.message || 'Invalid input' }
+    }
+    authLogger.error('[updateClass] Unexpected error', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'An unexpected error occurred',
@@ -131,49 +111,21 @@ export async function updateClass(classId: string, name: string, subject?: strin
 
 export async function deleteClass(classId: string) {
   try {
-    const user = await getCurrentUser()
+    // Validate input
+    const validatedClassId = ClassIdSchema.parse(classId)
 
-    if (!user) {
-      return { success: false, error: 'Not authenticated' }
+    // SECURITY: Verify caller is authenticated and owns this class
+    const auth = await verifyClassOwnership('deleteClass', validatedClassId)
+    if (!auth.authorized) {
+      return auth.error!
     }
 
     const supabase = await createClient()
 
-    // Verify user is a teacher (teacher_profiles uses user_id as primary key, not id)
-    // Use .maybeSingle() instead of .single() - .single() throws PGRST116 when no rows found
-    const { data: teacherProfile, error: profileError } = await supabase
-      .from('teacher_profiles')
-      .select('user_id')
-      .eq('user_id', user.id)
-      .maybeSingle()
-
-    if (profileError) {
-      return { success: false, error: 'Failed to verify teacher status' }
-    }
-
-    if (!teacherProfile) {
-      return { success: false, error: 'Only teachers can delete classes' }
-    }
-
-    // Verify the teacher owns this class
-    const { data: classData, error: classError } = await supabase
-      .from('classes')
-      .select('teacher_id')
-      .eq('id', classId)
-      .maybeSingle()
-
-    if (classError) {
-      return { success: false, error: 'Failed to verify class ownership' }
-    }
-
-    if (!classData || classData.teacher_id !== user.id) {
-      return { success: false, error: 'Unauthorized' }
-    }
-
     const { error } = await supabase
       .from('classes')
       .delete()
-      .eq('id', classId)
+      .eq('id', validatedClassId)
 
     if (error) {
       return { success: false, error: error.message }
@@ -182,6 +134,11 @@ export async function deleteClass(classId: string) {
     revalidatePath('/app/teacher/classes')
     return { success: true }
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      const firstError = error.issues[0]
+      return { success: false, error: firstError?.message || 'Invalid input' }
+    }
+    authLogger.error('[deleteClass] Unexpected error', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'An unexpected error occurred',
@@ -191,35 +148,22 @@ export async function deleteClass(classId: string) {
 
 export async function enrollStudent(classId: string, studentId: string) {
   try {
-    const user = await getCurrentUser()
+    // Validate inputs
+    const validatedInput = EnrollmentSchema.parse({ classId, studentId })
 
-    if (!user) {
-      return { success: false, error: 'Not authenticated' }
+    // SECURITY: Verify caller is authenticated and owns this class
+    const auth = await verifyClassOwnership('enrollStudent', validatedInput.classId)
+    if (!auth.authorized) {
+      return auth.error!
     }
 
     const supabase = await createClient()
 
-    // Verify the teacher owns this class
-    // Use .maybeSingle() instead of .single() - .single() throws PGRST116 when no rows found
-    const { data: classData, error: classError } = await supabase
-      .from('classes')
-      .select('teacher_id')
-      .eq('id', classId)
-      .maybeSingle()
-
-    if (classError) {
-      return { success: false, error: 'Failed to verify class ownership' }
-    }
-
-    if (!classData || classData.teacher_id !== user.id) {
-      return { success: false, error: 'Unauthorized' }
-    }
-
     const { data, error } = await supabase
       .from('enrollments')
       .insert({
-        class_id: classId,
-        student_id: studentId,
+        class_id: validatedInput.classId,
+        student_id: validatedInput.studentId,
       })
       .select()
       .single()
@@ -232,9 +176,14 @@ export async function enrollStudent(classId: string, studentId: string) {
       return { success: false, error: error.message }
     }
 
-    revalidatePath(`/app/teacher/classes/${classId}`)
+    revalidatePath(`/app/teacher/classes/${validatedInput.classId}`)
     return { success: true, data }
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      const firstError = error.issues[0]
+      return { success: false, error: firstError?.message || 'Invalid input' }
+    }
+    authLogger.error('[enrollStudent] Unexpected error', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'An unexpected error occurred',
@@ -244,43 +193,35 @@ export async function enrollStudent(classId: string, studentId: string) {
 
 export async function removeStudent(classId: string, studentId: string) {
   try {
-    const user = await getCurrentUser()
+    // Validate inputs
+    const validatedInput = EnrollmentSchema.parse({ classId, studentId })
 
-    if (!user) {
-      return { success: false, error: 'Not authenticated' }
+    // SECURITY: Verify caller is authenticated and owns this class
+    const auth = await verifyClassOwnership('removeStudent', validatedInput.classId)
+    if (!auth.authorized) {
+      return auth.error!
     }
 
     const supabase = await createClient()
 
-    // Verify the teacher owns this class
-    // Use .maybeSingle() instead of .single() - .single() throws PGRST116 when no rows found
-    const { data: classData, error: classError } = await supabase
-      .from('classes')
-      .select('teacher_id')
-      .eq('id', classId)
-      .maybeSingle()
-
-    if (classError) {
-      return { success: false, error: 'Failed to verify class ownership' }
-    }
-
-    if (!classData || classData.teacher_id !== user.id) {
-      return { success: false, error: 'Unauthorized' }
-    }
-
     const { error } = await supabase
       .from('enrollments')
       .delete()
-      .eq('class_id', classId)
-      .eq('student_id', studentId)
+      .eq('class_id', validatedInput.classId)
+      .eq('student_id', validatedInput.studentId)
 
     if (error) {
       return { success: false, error: error.message }
     }
 
-    revalidatePath(`/app/teacher/classes/${classId}`)
+    revalidatePath(`/app/teacher/classes/${validatedInput.classId}`)
     return { success: true }
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      const firstError = error.issues[0]
+      return { success: false, error: firstError?.message || 'Invalid input' }
+    }
+    authLogger.error('[removeStudent] Unexpected error', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'An unexpected error occurred',
@@ -318,28 +259,16 @@ export async function getClassAssessmentResults(classId: string): Promise<{
   error?: string
 }> {
   try {
-    const user = await getCurrentUser()
+    // Validate input
+    const validatedClassId = ClassIdSchema.parse(classId)
 
-    if (!user) {
-      return { success: false, error: 'Not authenticated' }
+    // SECURITY: Verify caller is authenticated and owns this class
+    const auth = await verifyClassOwnership('getClassAssessmentResults', validatedClassId)
+    if (!auth.authorized) {
+      return auth.error!
     }
 
     const supabase = await createClient()
-
-    // Verify the teacher owns this class
-    const { data: classData, error: classError } = await supabase
-      .from('classes')
-      .select('id, name, teacher_id')
-      .eq('id', classId)
-      .maybeSingle()
-
-    if (classError) {
-      return { success: false, error: 'Failed to verify class ownership' }
-    }
-
-    if (!classData || classData.teacher_id !== user.id) {
-      return { success: false, error: 'Unauthorized' }
-    }
 
     // Get all enrolled students
     const { data: enrollments, error: enrollmentError } = await supabase
@@ -351,7 +280,7 @@ export async function getClassAssessmentResults(classId: string): Promise<{
           roll_number
         )
       `)
-      .eq('class_id', classId)
+      .eq('class_id', validatedClassId)
 
     if (enrollmentError) {
       return { success: false, error: 'Failed to fetch enrolled students' }
@@ -361,15 +290,21 @@ export async function getClassAssessmentResults(classId: string): Promise<{
 
     // For each enrolled student, get their assessment data
     for (const enrollment of enrollments || []) {
-      // Supabase returns the joined record as an object when using !inner
-      const studentProfile = enrollment.student_profiles as unknown as { name: string; roll_number: string | null }
+      // Validate student profile structure from Supabase
+      if (!isValidStudentProfile(enrollment.student_profiles)) {
+        authLogger.warn('[getClassAssessmentResults] Invalid student profile structure', {
+          enrollment_id: enrollment.student_id
+        })
+        continue
+      }
+      const studentProfile = enrollment.student_profiles
 
       // Get assessment sessions for this student in this class
       const { data: sessions } = await supabase
         .from('assessment_sessions')
         .select('id, submitted_at')
         .eq('user_id', enrollment.student_id)
-        .eq('class_id', classId)
+        .eq('class_id', validatedClassId)
         .not('submitted_at', 'is', null)
         .order('submitted_at', { ascending: false })
 
@@ -392,7 +327,10 @@ export async function getClassAssessmentResults(classId: string): Promise<{
         if (responses && responses.length > 0) {
           totalQuestions = responses.length
           correctAnswers = responses.filter(r => r.is_correct).length
-          averageScore = Math.round((correctAnswers / totalQuestions) * 100)
+          // Prevent division by zero (should never happen since we check length > 0)
+          if (totalQuestions > 0) {
+            averageScore = Math.round((correctAnswers / totalQuestions) * 100)
+          }
         }
       }
 
@@ -414,11 +352,17 @@ export async function getClassAssessmentResults(classId: string): Promise<{
       ? Math.round(studentsWithScores.reduce((sum, r) => sum + (r.averageScore || 0), 0) / studentsWithScores.length)
       : null
 
+    // Verify classData exists before accessing it
+    if (!auth.classData) {
+      authLogger.error('[getClassAssessmentResults] Missing classData in auth after authorization', new Error('classData undefined'))
+      return { success: false, error: 'Class data not found' }
+    }
+
     return {
       success: true,
       data: {
-        classId,
-        className: classData.name,
+        classId: validatedClassId,
+        className: auth.classData.name,
         totalStudents: enrollments?.length || 0,
         studentsWithAssessments: studentsWithScores.length,
         classAverageScore,
@@ -432,6 +376,11 @@ export async function getClassAssessmentResults(classId: string): Promise<{
       }
     }
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      const firstError = error.issues[0]
+      return { success: false, error: firstError?.message || 'Invalid input' }
+    }
+    authLogger.error('[getClassAssessmentResults] Unexpected error', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'An unexpected error occurred',
@@ -459,10 +408,10 @@ export async function getTeacherAssessmentOverview(): Promise<{
   error?: string
 }> {
   try {
-    const user = await getCurrentUser()
-
-    if (!user) {
-      return { success: false, error: 'Not authenticated' }
+    // SECURITY: Verify caller is authenticated and is a teacher
+    const auth = await verifyTeacherAuth('getTeacherAssessmentOverview')
+    if (!auth.authorized) {
+      return auth.error!
     }
 
     const supabase = await createClient()
@@ -471,7 +420,7 @@ export async function getTeacherAssessmentOverview(): Promise<{
     const { data: classes, error: classesError } = await supabase
       .from('classes')
       .select('id, name, subject')
-      .eq('teacher_id', user.id)
+      .eq('teacher_id', auth.user!.id)
       .order('created_at', { ascending: false })
 
     if (classesError) {
@@ -540,6 +489,7 @@ export async function getTeacherAssessmentOverview(): Promise<{
       }
     }
   } catch (error) {
+    authLogger.error('[getTeacherAssessmentOverview] Unexpected error', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'An unexpected error occurred',
@@ -549,29 +499,16 @@ export async function getTeacherAssessmentOverview(): Promise<{
 
 export async function getClassAnalytics(classId: string) {
   try {
-    const user = await getCurrentUser()
+    // Validate input
+    const validatedClassId = ClassIdSchema.parse(classId)
 
-    if (!user) {
-      return { success: false, error: 'Not authenticated' }
+    // SECURITY: Verify caller is authenticated and owns this class
+    const auth = await verifyClassOwnership('getClassAnalytics', validatedClassId)
+    if (!auth.authorized) {
+      return auth.error!
     }
 
     const supabase = await createClient()
-
-    // Verify the teacher owns this class
-    // Use .maybeSingle() instead of .single() - .single() throws PGRST116 when no rows found
-    const { data: classData, error: classError } = await supabase
-      .from('classes')
-      .select('teacher_id')
-      .eq('id', classId)
-      .maybeSingle()
-
-    if (classError) {
-      return { success: false, error: 'Failed to verify class ownership' }
-    }
-
-    if (!classData || classData.teacher_id !== user.id) {
-      return { success: false, error: 'Unauthorized' }
-    }
 
     // Use UTC for consistent timezone handling across all regions
     const sevenDaysAgo = new Date()
@@ -581,7 +518,7 @@ export async function getClassAnalytics(classId: string) {
     const { data: activeSessions, error: activeSessionsError } = await supabase
       .from('assessment_sessions')
       .select('user_id')
-      .eq('class_id', classId)
+      .eq('class_id', validatedClassId)
       .gte('started_at', sevenDaysAgo.toISOString())
 
     if (activeSessionsError) {
@@ -594,7 +531,7 @@ export async function getClassAnalytics(classId: string) {
     const { data: userSessions, error: userSessionsError } = await supabase
       .from('assessment_sessions')
       .select('id, user_id, started_at')
-      .eq('class_id', classId)
+      .eq('class_id', validatedClassId)
       .gte('started_at', sevenDaysAgo.toISOString())
       .not('submitted_at', 'is', null)
 
@@ -640,7 +577,7 @@ export async function getClassAnalytics(classId: string) {
     const { data: recentSessions, error: recentSessionsError } = await supabase
       .from('assessment_sessions')
       .select('id, user_id')
-      .eq('class_id', classId)
+      .eq('class_id', validatedClassId)
       .not('submitted_at', 'is', null)
       .order('submitted_at', { ascending: false })
 
@@ -707,9 +644,185 @@ export async function getClassAnalytics(classId: string) {
       },
     }
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      const firstError = error.issues[0]
+      return { success: false, error: firstError?.message || 'Invalid input' }
+    }
+    authLogger.error('[getClassAnalytics] Unexpected error', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'An unexpected error occurred',
+    }
+  }
+}
+
+/**
+ * Export student progress data for a class
+ * Returns: Student name, progress percentage, mastery score, last activity
+ */
+export async function exportStudentProgress(classId: string) {
+  'use server'
+
+  try {
+    const auth = await verifyTeacherAuth('exportStudentProgress')
+    if (auth.error) {
+      return auth.error
+    }
+
+    const supabase = await createClient()
+
+    // Verify teacher has access to this class
+    const { data: classData, error: classError } = await supabase
+      .from('classes')
+      .select('teacher_id')
+      .eq('id', classId)
+      .maybeSingle()
+
+    if (classError || !classData) {
+      return { success: false, error: 'Class not found' }
+    }
+
+    if (classData.teacher_id !== auth.user!.id) {
+      return { success: false, error: 'Unauthorized' }
+    }
+
+    // Get enrolled students with progress
+    const { data: students, error: studentError } = await supabase
+      .from('enrollments')
+      .select(
+        `
+        student_id,
+        student:auth_users_view(id, raw_user_meta_data),
+        student_knowledge_state!inner(
+          topics_mastered,
+          total_topics,
+          average_mastery,
+          last_attempt_at
+        )
+      `
+      )
+      .eq('class_id', classId)
+
+    if (studentError) {
+      return { success: false, error: 'Failed to fetch student data' }
+    }
+
+    // Format for export
+    const exportData = (students || []).map(enrollment => {
+      const profile = enrollment.student as any
+      const state = Array.isArray(enrollment.student_knowledge_state)
+        ? enrollment.student_knowledge_state[0]
+        : enrollment.student_knowledge_state
+
+      return {
+        name: profile?.raw_user_meta_data?.full_name || 'Unknown',
+        email: profile?.id || '',
+        progress_percentage: state ? Math.round((state.topics_mastered / state.total_topics) * 100) : 0,
+        mastery_score: state?.average_mastery || 0,
+        last_active: state?.last_attempt_at || 'Never',
+      }
+    })
+
+    return {
+      success: true,
+      data: exportData,
+    }
+  } catch (error) {
+    authLogger.error('[exportStudentProgress] Error', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to export data',
+    }
+  }
+}
+
+/**
+ * Export AI tutor interactions for a class
+ * Returns: Student, topic, message content, role, language, timestamp
+ */
+export async function exportAIInteractions(classId: string, limit: number = 500) {
+  'use server'
+
+  try {
+    const auth = await verifyTeacherAuth('exportAIInteractions')
+    if (auth.error) {
+      return auth.error
+    }
+
+    const supabase = await createClient()
+
+    // Verify teacher has access to this class
+    const { data: classData, error: classError } = await supabase
+      .from('classes')
+      .select('teacher_id')
+      .eq('id', classId)
+      .maybeSingle()
+
+    if (classError || !classData) {
+      return { success: false, error: 'Class not found' }
+    }
+
+    if (classData.teacher_id !== auth.user!.id) {
+      return { success: false, error: 'Unauthorized' }
+    }
+
+    // Get student IDs for this class
+    const { data: enrollments, error: enrollError } = await supabase
+      .from('enrollments')
+      .select('student_id')
+      .eq('class_id', classId)
+
+    if (enrollError) {
+      return { success: false, error: 'Failed to fetch enrollments' }
+    }
+
+    const studentIds = (enrollments || []).map(e => e.student_id)
+
+    if (studentIds.length === 0) {
+      return { success: true, data: [] }
+    }
+
+    // Get AI interactions for enrolled students
+    const { data: interactions, error: interactionError } = await supabase
+      .from('ai_tutor_interactions')
+      .select(
+        `
+        *,
+        student:student_id(raw_user_meta_data)
+      `
+      )
+      .in('student_id', studentIds)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (interactionError) {
+      return { success: false, error: 'Failed to fetch interactions' }
+    }
+
+    // Format for export
+    const exportData = (interactions || []).map(interaction => {
+      const student = interaction.student as any
+      return {
+        student_name: student?.raw_user_meta_data?.full_name || 'Unknown',
+        topic_id: interaction.topic_id || '',
+        message: (interaction as any).message_content || '',
+        role: (interaction as any).message_role || 'user',
+        language: interaction.language || 'en',
+        input_mode: (interaction as any).input_mode || 'text',
+        created_at: interaction.created_at || '',
+        tokens_used: (interaction as any).tokens_used || 0,
+      }
+    })
+
+    return {
+      success: true,
+      data: exportData,
+    }
+  } catch (error) {
+    authLogger.error('[exportAIInteractions] Error', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to export data',
     }
   }
 }

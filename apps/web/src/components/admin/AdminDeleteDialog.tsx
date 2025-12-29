@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { AlertCircle, CheckCircle, Loader2, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { FORM_TIMING } from '@/lib/constants/ui-timings'
+import { clientLogger } from '@/lib/client-logger'
 
 interface AdminDeleteDialogProps {
   adminId: string
@@ -59,6 +60,7 @@ export function AdminDeleteDialog({ adminId, adminEmail, isOpen, onClose, onSucc
         toast.error(result.error || 'Failed to delete admin account')
       }
     } catch (error) {
+      clientLogger.error('[AdminDeleteDialog] Error deleting admin', error instanceof Error ? error : { error: String(error) })
       const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred'
       setMessage({ type: 'error', text: errorMsg })
       toast.error(errorMsg)

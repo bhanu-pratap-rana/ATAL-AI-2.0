@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { AlertCircle, CheckCircle, Loader2, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
 import { FORM_TIMING } from '@/lib/constants/ui-timings'
+import { clientLogger } from '@/lib/client-logger'
 
 interface AdminCreateFormProps {
   onSuccess?: () => void
@@ -74,6 +75,7 @@ export function AdminCreateForm({ onSuccess, adminRole = 'admin' }: AdminCreateF
         toast.error(result.error || 'Failed to create admin account')
       }
     } catch (error) {
+      clientLogger.error('[AdminCreateForm] Error creating admin', error instanceof Error ? error : { error: String(error) })
       const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred'
       setMessage({ type: 'error', text: errorMsg })
       toast.error(errorMsg)

@@ -1,21 +1,49 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { deleteUserByEmail } from '@/app/actions/admin-delete'
-import { createAdminUser } from '@/app/actions/admin-auth'
+import { createAdminUser, checkAdminExists } from '@/app/actions/admin-auth'
+import { createClient } from '@/lib/supabase-browser'
 import { AuthCard } from '@/components/auth/AuthCard'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { AlertCircle, CheckCircle, Loader2, Eye, EyeOff, Trash2 } from 'lucide-react'
+import { AlertCircle, CheckCircle, Loader2, Eye, EyeOff, Trash2, ShieldAlert } from 'lucide-react'
 import { toast } from 'sonner'
 import { FORM_TIMING } from '@/lib/constants/ui-timings'
 
 type Step = 'delete' | 'create'
+type AuthStatus = 'checking' | 'authorized' | 'unauthorized'
 
 export default function AdminManagePage() {
+  const [authStatus, setAuthStatus] = useState<AuthStatus>('checking')
   const [step, setStep] = useState<Step>('delete')
   const [email, setEmail] = useState('atal.app.ai@gmail.com')
+
+  // Check if user is super admin on mount
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) {
+          setAuthStatus('unauthorized')
+          return
+        }
+
+        const role = user.app_metadata?.role
+        if (role === 'super_admin') {
+          setAuthStatus('authorized')
+        } else {
+          setAuthStatus('unauthorized')
+        }
+      } catch {
+        setAuthStatus('unauthorized')
+      }
+    }
+    checkAuth()
+  }, [])
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -120,6 +148,71 @@ export default function AdminManagePage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  // Show loading while checking auth status
+  if (authStatus === 'checking') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface flex items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-text-secondary">Verifying authorization...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show access denied if not super admin
+  if (authStatus === 'unauthorized') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface flex items-center justify-center p-4">
+        <div className="absolute top-4 left-4">
+          <Button
+            onClick={() => (window.location.href = '/admin/login')}
+            variant="outline"
+            size="sm"
+            className="text-sm border-primary text-primary hover:bg-primary/10"
+          >
+            ← Back to Login
+          </Button>
+        </div>
+
+        <AuthCard
+          title="Access Denied"
+          description="Super admin access required"
+        >
+          <div className="space-y-6">
+            <div className="bg-error-light border border-error/30 rounded-lg p-4">
+              <div className="flex gap-3">
+                <ShieldAlert className="w-6 h-6 text-error flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold text-error">Unauthorized Access</p>
+                  <p className="text-xs text-error/80 mt-1">
+                    This page requires super admin privileges. Only super admins can delete
+                    users and manage admin accounts.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-surface border border-border rounded-lg p-4">
+              <p className="text-sm text-text-primary font-semibold mb-2">What to do:</p>
+              <ul className="text-xs text-text-secondary space-y-1 list-disc list-inside">
+                <li>Sign in with a super admin account at <strong>/admin/login</strong></li>
+                <li>Contact your system administrator for access</li>
+              </ul>
+            </div>
+
+            <Button
+              onClick={() => (window.location.href = '/admin/login')}
+              className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary"
+            >
+              Go to Admin Login
+            </Button>
+          </div>
+        </AuthCard>
+      </div>
+    )
   }
 
   return (

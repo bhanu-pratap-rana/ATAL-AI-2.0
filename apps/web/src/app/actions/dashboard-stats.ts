@@ -2,6 +2,8 @@
 
 import { createClient, getCurrentUser } from '@/lib/supabase-server'
 import { authLogger } from '@/lib/auth-logger'
+import { checkRateLimit } from '@/lib/rate-limiter-distributed'
+import { RATE_LIMITS } from '@/lib/constants/rate-limits'
 
 /**
  * Dashboard statistics for students and teachers
@@ -63,6 +65,14 @@ export async function getDashboardStats(): Promise<{
 
     if (!user) {
       return { success: false, error: 'Not authenticated' }
+    }
+
+    // SECURITY: Rate limit dashboard stats to prevent abuse
+    const rateLimitKey = `dashboard-stats:${user.id}`
+    const isAllowed = await checkRateLimit(rateLimitKey, RATE_LIMITS.dashboardStats)
+    if (!isAllowed) {
+      authLogger.warn('[getDashboardStats] Rate limit exceeded', { userId: user.id })
+      return { success: false, error: 'Too many requests. Please wait before trying again.' }
     }
 
     const supabase = await createClient()
@@ -139,6 +149,14 @@ export async function getProgressStats(): Promise<{
 
     if (!user) {
       return { success: false, error: 'Not authenticated' }
+    }
+
+    // SECURITY: Rate limit progress stats to prevent abuse
+    const rateLimitKey = `progress-stats:${user.id}`
+    const isAllowed = await checkRateLimit(rateLimitKey, RATE_LIMITS.dashboardStats)
+    if (!isAllowed) {
+      authLogger.warn('[getProgressStats] Rate limit exceeded', { userId: user.id })
+      return { success: false, error: 'Too many requests. Please wait before trying again.' }
     }
 
     const supabase = await createClient()
@@ -269,7 +287,8 @@ async function calculateStreak(supabase: Awaited<ReturnType<typeof createClient>
     }
 
     return streak
-  } catch {
+  } catch (error) {
+    authLogger.error('[calculateStreak] Error calculating streak', error)
     return 0
   }
 }
@@ -350,7 +369,8 @@ async function getRecentActivity(
     activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
 
     return activities.slice(0, 5)
-  } catch {
+  } catch (error) {
+    authLogger.error('[getRecentActivity] Error fetching recent activity', error)
     return []
   }
 }

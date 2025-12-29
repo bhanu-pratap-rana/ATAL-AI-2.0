@@ -92,6 +92,48 @@ export const RATE_LIMITS = {
     refillRate: 5 / SECONDS_PER_HOUR,
     refillInterval: 1000,
   } as RateLimitConfig,
+
+  /** AI tutor chat - 30 requests per hour */
+  aiTutorChat: {
+    maxTokens: 30,
+    refillRate: 30 / SECONDS_PER_HOUR,
+    refillInterval: 1000,
+  } as RateLimitConfig,
+
+  /** Text-to-Speech - 50 requests per hour */
+  tts: {
+    maxTokens: 50,
+    refillRate: 50 / SECONDS_PER_HOUR,
+    refillInterval: 1000,
+  } as RateLimitConfig,
+
+  /** PIN rotation - 10 per hour (prevent abuse of PIN generation) */
+  pinRotation: {
+    maxTokens: 10,
+    refillRate: 10 / SECONDS_PER_HOUR,
+    refillInterval: 1000,
+  } as RateLimitConfig,
+
+  /** Assessment submission - 20 per hour (prevent rapid retakes) */
+  assessmentSubmission: {
+    maxTokens: 20,
+    refillRate: 20 / SECONDS_PER_HOUR,
+    refillInterval: 1000,
+  } as RateLimitConfig,
+
+  /** Dashboard stats - 60 per hour (generous for normal usage) */
+  dashboardStats: {
+    maxTokens: 60,
+    refillRate: 60 / SECONDS_PER_HOUR,
+    refillInterval: 1000,
+  } as RateLimitConfig,
+
+  /** Admin metrics - 30 per hour (prevent resource abuse) */
+  adminMetrics: {
+    maxTokens: 30,
+    refillRate: 30 / SECONDS_PER_HOUR,
+    refillInterval: 1000,
+  } as RateLimitConfig,
 } as const
 
 /**

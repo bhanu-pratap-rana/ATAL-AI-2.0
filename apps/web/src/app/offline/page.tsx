@@ -15,6 +15,7 @@
  */
 
 // Theme constants matching globals.css (fallbacks for service worker context)
+// These inline styles are intentional - offline page must work when CSS isn't loaded
 const THEME = {
   surface: '#FFFBF7',
   white: '#FFFFFF',
@@ -24,6 +25,7 @@ const THEME = {
   primary: '#F98819',
   primaryDark: '#E07510',
   primaryLight: '#FFCFA3',
+  error: '#DC2626', // Theme error color (matches globals.css --color-error)
   gradientPrimary: 'linear-gradient(135deg, #F98819 0%, #FFAB4A 100%)',
 } as const
 
@@ -222,7 +224,7 @@ export default function OfflinePage() {
             width: '8px',
             height: '8px',
             borderRadius: '50%',
-            backgroundColor: '#EF4444', // Error red
+            backgroundColor: `var(--color-error, ${THEME.error})`,
             animation: 'pulse 2s infinite',
           }}
         />

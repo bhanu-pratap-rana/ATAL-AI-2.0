@@ -43,12 +43,7 @@ export function maskPhone(phone?: string): string {
  * Alias for maskPhone for compatibility with phone-validation.ts exports
  * Returns format: ***XXXX (last 4 digits)
  */
-export function maskPhoneNumber(phone: string): string {
-  if (!phone) return '****'
-  const cleaned = phone.replace(/\D/g, '')
-  if (cleaned.length < 4) return '****'
-  return `***${cleaned.slice(-4)}`
-}
+export const maskPhoneNumber = (phone: string): string => maskPhone(phone) || '****'
 
 /**
  * Mask user ID for logging

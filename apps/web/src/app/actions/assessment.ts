@@ -2,9 +2,46 @@
 
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
-import { createClient, getCurrentUser } from '@/lib/supabase-server'
+import { createClient, getCurrentUser, verifyStudentAuth } from '@/lib/supabase-server'
 import { AssessmentSubmitSchema } from '@/lib/validation-schemas'
 import { authLogger } from '@/lib/auth-logger'
+import { checkRateLimit } from '@/lib/rate-limiter-distributed'
+import { RATE_LIMITS } from '@/lib/constants/rate-limits'
+
+/**
+ * OFFLINE SYNC INTEGRATION:
+ *
+ * The submitAssessment server action integrates with the offline sync queue
+ * through client-side error handling. Usage pattern:
+ *
+ * ```tsx
+ * // In AssessmentRunner.tsx or calling component:
+ * import { useOfflineSync } from '@/hooks';
+ *
+ * const { submitAssessmentWithSync } = useOfflineSync();
+ *
+ * const handleSubmit = async () => {
+ *   if (!navigator.onLine) {
+ *     // Go offline - enqueue for later
+ *     const result = await submitAssessmentWithSync(sessionId, responses);
+ *     if (result.queued) {
+ *       toast.info('Assessment queued - will sync when online');
+ *     }
+ *     return;
+ *   }
+ *
+ *   // Online - call server action normally
+ *   const result = await submitAssessment(sessionId, responses);
+ *   if (result.success) {
+ *     toast.success('Assessment submitted');
+ *   }
+ * };
+ * ```
+ *
+ * When offline, responses are stored in IndexedDB via 'assessment_submit'
+ * mutation type and synced via background sync when connection restored.
+ * See: /src/lib/offline/sync-queue.ts for sync implementation.
+ */
 
 // IRT 3PL Model Types
 interface IRTItem {
@@ -236,9 +273,10 @@ function updateTheta(
  */
 export async function getAdaptiveQuestions(language: 'en' | 'hi' | 'as' = 'en') {
   try {
-    const user = await getCurrentUser()
-    if (!user) {
-      return { success: false, error: 'Not authenticated', questions: [] }
+    // SECURITY: Verify caller is authenticated and is a student
+    const auth = await verifyStudentAuth('getAdaptiveQuestions')
+    if (!auth.authorized) {
+      return { ...auth.error!, questions: [] }
     }
 
     const supabase = await createClient()
@@ -570,10 +608,10 @@ export async function calculateIRTScore(
 
 export async function startAssessment(classId?: string) {
   try {
-    const user = await getCurrentUser()
-
-    if (!user) {
-      return { success: false, error: 'Not authenticated' }
+    // SECURITY: Verify caller is authenticated and is a student
+    const auth = await verifyStudentAuth('startAssessment')
+    if (!auth.authorized) {
+      return auth.error!
     }
 
     const supabase = await createClient()
@@ -581,7 +619,7 @@ export async function startAssessment(classId?: string) {
     const { data, error } = await supabase
       .from('assessment_sessions')
       .insert({
-        user_id: user.id,
+        user_id: auth.user!.id,
         class_id: classId || null,
         started_at: new Date().toISOString(),
       })
@@ -621,10 +659,21 @@ export async function submitAssessment(
       responses,
     })
 
-    const user = await getCurrentUser()
+    // SECURITY: Verify caller is authenticated and is a student
+    const auth = await verifyStudentAuth('submitAssessment')
+    if (!auth.authorized) {
+      return auth.error!
+    }
 
-    if (!user) {
-      return { success: false, error: 'Not authenticated' }
+    // SECURITY: Rate limit assessment submissions to prevent abuse
+    const rateLimitKey = `assessment-submit:${auth.user!.id}`
+    const isAllowed = await checkRateLimit(rateLimitKey, RATE_LIMITS.assessmentSubmission)
+    if (!isAllowed) {
+      authLogger.warn('[submitAssessment] Rate limit exceeded', { userId: auth.user!.id, sessionId })
+      return {
+        success: false,
+        error: 'Too many assessment submissions. Please wait before trying again.',
+      }
     }
 
     const supabase = await createClient()
@@ -644,7 +693,7 @@ export async function submitAssessment(
       return { success: false, error: 'Session not found' }
     }
 
-    if (session.user_id !== user.id) {
+    if (session.user_id !== auth.user!.id) {
       return { success: false, error: 'Unauthorized' }
     }
 
@@ -679,6 +728,13 @@ export async function submitAssessment(
 
     // Calculate score and module breakdown from validated responses
     const totalQuestions = validatedData.responses.length
+
+    // Prevent division by zero if no responses submitted
+    if (totalQuestions === 0) {
+      authLogger.error('[submitAssessment] No assessment responses found', new Error('Empty responses array'))
+      return { success: false, error: 'No responses submitted for assessment' }
+    }
+
     const correctAnswers = validatedData.responses.filter((r) => r.isCorrect).length
     const score = Math.round((correctAnswers / totalQuestions) * 100)
 

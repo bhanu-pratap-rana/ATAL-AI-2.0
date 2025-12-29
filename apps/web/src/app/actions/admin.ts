@@ -1,7 +1,9 @@
 'use server'
 
-import { createAdminClient, getCurrentUser } from '@/lib/supabase-server'
+import { z } from 'zod'
+import { createAdminClient, verifySuperAdminAuth } from '@/lib/supabase-server'
 import { authLogger } from '@/lib/auth-logger'
+import { AdminEmailSchema } from '@/lib/validation-schemas'
 
 export interface SetAdminRoleResult {
   success: boolean
@@ -10,38 +12,26 @@ export interface SetAdminRoleResult {
 }
 
 /**
- * Set admin role for a user by email
- * SECURITY: Requires super_admin role - only super admins can create other admins
- * Used to grant admin access to accounts
+ * Set admin role for an existing user by email
+ * SECURITY: Requires super_admin role
+ *
+ * Note: For creating new admin accounts with password, use createAdminAccount from admin-management.ts
+ * This function is for promoting existing users to admin role (used by setup page).
  */
 export async function setAdminRole(email: string): Promise<SetAdminRoleResult> {
   try {
-    // SECURITY: Verify caller is authenticated and authorized
-    const currentUser = await getCurrentUser()
-    if (!currentUser) {
-      authLogger.warn('[setAdminRole] Unauthorized: No authenticated user')
-      return {
-        success: false,
-        error: 'Authentication required',
-      }
-    }
+    // Validate email input
+    const normalizedEmail = AdminEmailSchema.parse(email)
 
-    // SECURITY: Only super_admin can grant admin roles
-    const currentRole = currentUser.app_metadata?.role
-    if (currentRole !== 'super_admin') {
-      authLogger.warn('[setAdminRole] Forbidden: User lacks super_admin role', {
-        userId: currentUser.id,
-        role: currentRole,
-      })
-      return {
-        success: false,
-        error: 'Only super admins can grant admin access',
-      }
+    // SECURITY: Verify caller is authenticated and authorized as super_admin
+    const auth = await verifySuperAdminAuth('setAdminRole')
+    if (!auth.authorized) {
+      return auth.error!
     }
 
     const adminClient = await createAdminClient()
 
-    // 1. Find user by email
+    // Find user by email
     const { data: users, error: listError } = await adminClient.auth.admin.listUsers()
 
     if (listError) {
@@ -52,20 +42,29 @@ export async function setAdminRole(email: string): Promise<SetAdminRoleResult> {
       }
     }
 
-    // 2. Find the specific user
-    const user = users?.users.find((u) => u.email?.toLowerCase() === email.toLowerCase())
+    const user = users?.users.find((u) => u.email?.toLowerCase() === normalizedEmail)
 
     if (!user) {
-      authLogger.warn('[setAdminRole] User not found', { email })
+      authLogger.warn('[setAdminRole] User not found', { email: normalizedEmail })
       return {
         success: false,
         error: `User with email ${email} not found`,
       }
     }
 
-    // 3. Update user with admin role metadata
+    // Check if already admin
+    const existingRole = user.app_metadata?.role
+    if (existingRole === 'admin' || existingRole === 'super_admin') {
+      return {
+        success: true,
+        message: `User ${email} already has ${existingRole} role`,
+      }
+    }
+
+    // Update user with admin role
     const { error: updateError } = await adminClient.auth.admin.updateUserById(user.id, {
       app_metadata: {
+        ...user.app_metadata,
         role: 'admin',
       },
     })
@@ -78,12 +77,16 @@ export async function setAdminRole(email: string): Promise<SetAdminRoleResult> {
       }
     }
 
-    authLogger.success('[setAdminRole] Admin role set successfully', { email })
+    authLogger.success('[setAdminRole] Admin role set successfully', { email: normalizedEmail })
     return {
       success: true,
       message: `Admin role successfully set for ${email}`,
     }
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      const firstError = error.issues[0]
+      return { success: false, error: firstError?.message || 'Invalid input' }
+    }
     authLogger.error('[setAdminRole] Unexpected error', error)
     return {
       success: false,
@@ -94,12 +97,16 @@ export async function setAdminRole(email: string): Promise<SetAdminRoleResult> {
 
 /**
  * Check if user has admin role
+ * Lightweight check that doesn't require full admin operations
  */
 export async function checkAdminRoleByEmail(email: string): Promise<{
   hasAdminRole: boolean
   error?: string
 }> {
   try {
+    // Validate email input
+    const normalizedEmail = AdminEmailSchema.parse(email)
+
     const adminClient = await createAdminClient()
 
     // Find user by email
@@ -109,7 +116,7 @@ export async function checkAdminRoleByEmail(email: string): Promise<{
       return { hasAdminRole: false, error: 'Failed to check user role' }
     }
 
-    const user = users?.users.find((u) => u.email?.toLowerCase() === email.toLowerCase())
+    const user = users?.users.find((u) => u.email?.toLowerCase() === normalizedEmail)
 
     if (!user) {
       return { hasAdminRole: false, error: 'User not found' }
@@ -119,6 +126,10 @@ export async function checkAdminRoleByEmail(email: string): Promise<{
     const isAdmin = role === 'admin' || role === 'super_admin'
     return { hasAdminRole: isAdmin }
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      const firstError = error.issues[0]
+      return { hasAdminRole: false, error: firstError?.message || 'Invalid input' }
+    }
     authLogger.error('[checkAdminRoleByEmail] Error', error)
     return { hasAdminRole: false, error: 'Failed to check role' }
   }

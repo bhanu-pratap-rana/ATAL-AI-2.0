@@ -159,11 +159,121 @@ export const AssessmentSubmitSchema = z.object({
 })
 
 // ============================================================================
+// Admin Schemas
+// ============================================================================
+
+/**
+ * Schema for admin email input
+ */
+export const AdminEmailSchema = z
+  .string()
+  .min(1, 'Email required')
+  .max(254, 'Email too long')
+  .email('Invalid email format')
+  .transform(email => email.toLowerCase().trim())
+
+/**
+ * Schema for admin password
+ */
+export const AdminPasswordSchema = z
+  .string()
+  .min(8, 'Password must be at least 8 characters')
+  .max(128, 'Password too long')
+
+/**
+ * Schema for class ID (UUID)
+ */
+export const ClassIdSchema = z.string().uuid('Invalid class ID')
+
+/**
+ * Schema for user ID (UUID)
+ */
+export const UserIdSchema = z.string().uuid('Invalid user ID')
+
+/**
+ * Schema for student ID (UUID alias for clarity)
+ */
+export const StudentIdSchema = z.string().uuid('Invalid student ID')
+
+/**
+ * Schema for updating a class
+ */
+export const UpdateClassSchema = z.object({
+  classId: z.string().uuid('Invalid class ID'),
+  name: z
+    .string()
+    .min(1, 'Class name is required')
+    .max(SCHOOL_LIMITS.classNameMaxLength, `Class name must be ${SCHOOL_LIMITS.classNameMaxLength} characters or less`),
+  subject: z
+    .string()
+    .max(SCHOOL_LIMITS.subjectMaxLength, `Subject must be ${SCHOOL_LIMITS.subjectMaxLength} characters or less`)
+    .optional(),
+})
+
+/**
+ * Schema for enrollment operations (enroll/remove student)
+ */
+export const EnrollmentSchema = z.object({
+  classId: z.string().uuid('Invalid class ID'),
+  studentId: z.string().uuid('Invalid student ID'),
+})
+
+// ============================================================================
+// Auth Schemas
+// ============================================================================
+
+/**
+ * Schema for email validation in auth flows
+ * More permissive than admin email - allows standard email formats
+ */
+export const AuthEmailSchema = z
+  .string()
+  .min(1, 'Email is required')
+  .max(254, 'Email too long')
+  .email('Please enter a valid email address')
+  .transform(email => email.toLowerCase().trim())
+
+/**
+ * Schema for password validation in auth flows
+ */
+export const AuthPasswordSchema = z
+  .string()
+  .min(8, 'Password must be at least 8 characters')
+  .max(128, 'Password too long')
+
+/**
+ * Schema for OTP token
+ */
+export const OtpTokenSchema = z
+  .string()
+  .min(1, 'Verification code is required')
+  .max(10, 'Verification code too long')
+  .regex(/^\d+$/, 'Verification code must contain only digits')
+
+/**
+ * Schema for username validation
+ * Rules:
+ * - 3-20 characters
+ * - Alphanumeric and underscores only
+ * - Must start with a letter
+ * - Case insensitive (transformed to lowercase)
+ */
+export const UsernameSchema = z
+  .string()
+  .min(3, 'Username must be at least 3 characters')
+  .max(20, 'Username must be at most 20 characters')
+  .regex(/^[a-zA-Z]/, 'Username must start with a letter')
+  .regex(/^[a-zA-Z][a-zA-Z0-9_]*$/, 'Username can only contain letters, numbers, and underscores')
+  .transform(username => username.toLowerCase().trim())
+
+// ============================================================================
 // Type Exports
 // ============================================================================
 
 export type JoinClassInput = z.infer<typeof JoinClassSchema>
 export type StudentProfileInput = z.infer<typeof StudentProfileSchema>
 export type CreateClassInput = z.infer<typeof CreateClassSchema>
+export type UpdateClassInput = z.infer<typeof UpdateClassSchema>
+export type EnrollmentInput = z.infer<typeof EnrollmentSchema>
 export type AssessmentResponseInput = z.infer<typeof AssessmentResponseSchema>
 export type AssessmentSubmitInput = z.infer<typeof AssessmentSubmitSchema>

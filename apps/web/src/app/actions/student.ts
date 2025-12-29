@@ -3,11 +3,11 @@
 import { revalidatePath } from 'next/cache'
 import { timingSafeEqual } from 'crypto'
 import { z } from 'zod'
-import { createClient, getCurrentUser } from '@/lib/supabase-server'
+import { createClient, getCurrentUser, verifyStudentAuth } from '@/lib/supabase-server'
 import { authLogger } from '@/lib/auth-logger'
 import { checkRateLimit } from '@/lib/rate-limiter-distributed'
 import { RATE_LIMITS } from '@/lib/constants/rate-limits'
-import { JoinClassSchema, StudentProfileSchema } from '@/lib/validation-schemas'
+import { JoinClassSchema, StudentProfileSchema, ClassIdSchema } from '@/lib/validation-schemas'
 
 interface StudentProfileParams {
   name: string
@@ -282,17 +282,17 @@ export async function joinClass({ classCode, pin }: JoinClassParams) {
     classCode = validatedInput.classCode
     pin = validatedInput.pin
 
-    const user = await getCurrentUser()
-
-    if (!user) {
-      return { success: false, error: 'Not authenticated' }
+    // SECURITY: Verify caller is authenticated and is a student
+    const auth = await verifyStudentAuth('joinClass')
+    if (!auth.authorized) {
+      return auth.error!
     }
 
     // SECURITY: Rate limit to prevent PIN brute force attacks
     // Uses dedicated class join limits (5 attempts per hour per class)
-    const isAllowed = await checkRateLimit(`join-class:${user.id}:${classCode}`, RATE_LIMITS.classJoinAttempts)
+    const isAllowed = await checkRateLimit(`join-class:${auth.user!.id}:${classCode}`, RATE_LIMITS.classJoinAttempts)
     if (!isAllowed) {
-      authLogger.warn('[joinClass] Rate limit exceeded', { userId: user.id, classCode })
+      authLogger.warn('[joinClass] Rate limit exceeded', { userId: auth.user!.id, classCode })
       return {
         success: false,
         error: 'Too many join attempts. Please wait before trying again.',
@@ -330,7 +330,7 @@ export async function joinClass({ classCode, pin }: JoinClassParams) {
     }
 
     if (!pinMatch) {
-      authLogger.warn('[joinClass] Invalid PIN attempt', { classCode, userId: user.id })
+      authLogger.warn('[joinClass] Invalid PIN attempt', { classCode, userId: auth.user!.id })
       return { success: false, error: 'Invalid class code or PIN' }
     }
 
@@ -340,7 +340,7 @@ export async function joinClass({ classCode, pin }: JoinClassParams) {
       .from('enrollments')
       .select('id')
       .eq('class_id', classData.id)
-      .eq('student_id', user.id)
+      .eq('student_id', auth.user!.id)
       .maybeSingle()
 
     if (enrollmentCheckError) {
@@ -357,7 +357,7 @@ export async function joinClass({ classCode, pin }: JoinClassParams) {
       .from('enrollments')
       .insert({
         class_id: classData.id,
-        student_id: user.id,
+        student_id: auth.user!.id,
       })
       .select()
       .single()
@@ -384,10 +384,13 @@ export async function joinClass({ classCode, pin }: JoinClassParams) {
 
 export async function leaveClass(classId: string) {
   try {
-    const user = await getCurrentUser()
+    // Validate class ID
+    const validatedClassId = ClassIdSchema.parse(classId)
 
-    if (!user) {
-      return { success: false, error: 'Not authenticated' }
+    // SECURITY: Verify caller is authenticated and is a student
+    const auth = await verifyStudentAuth('leaveClass')
+    if (!auth.authorized) {
+      return auth.error!
     }
 
     const supabase = await createClient()
@@ -395,8 +398,8 @@ export async function leaveClass(classId: string) {
     const { error } = await supabase
       .from('enrollments')
       .delete()
-      .eq('class_id', classId)
-      .eq('student_id', user.id)
+      .eq('class_id', validatedClassId)
+      .eq('student_id', auth.user!.id)
 
     if (error) {
       return { success: false, error: error.message }
@@ -405,6 +408,10 @@ export async function leaveClass(classId: string) {
     revalidatePath('/app/student/classes')
     return { success: true }
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      const firstError = error.issues[0]
+      return { success: false, error: firstError?.message || 'Invalid input' }
+    }
     return {
       success: false,
       error: error instanceof Error ? error.message : 'An unexpected error occurred',
