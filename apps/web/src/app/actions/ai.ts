@@ -94,6 +94,9 @@ export async function askAITutor(
 
 /**
  * Essay Feedback - Get AI feedback on written content
+ *
+ * @internal Phase 2 Feature - Not yet integrated into UI
+ * @see ATAL_AI_IMPLEMENTATION_PLAN.md for integration timeline
  */
 export async function getAIEssayFeedback(
   essay: string,
@@ -136,6 +139,9 @@ export async function getAIEssayFeedback(
 
 /**
  * Practice Generator - Generate practice questions
+ *
+ * @internal Phase 2 Feature - Not yet integrated into UI
+ * @see ATAL_AI_IMPLEMENTATION_PLAN.md for integration timeline
  */
 export async function generateAIPracticeQuestions(
   topic: string,
@@ -179,6 +185,9 @@ export async function generateAIPracticeQuestions(
 
 /**
  * Study Summarizer - Create study materials from content
+ *
+ * @internal Phase 2 Feature - Not yet integrated into UI
+ * @see ATAL_AI_IMPLEMENTATION_PLAN.md for integration timeline
  */
 export async function summarizeStudyContent(
   content: string,
@@ -221,6 +230,9 @@ export async function summarizeStudyContent(
 
 /**
  * Check AI Service Status
+ *
+ * @internal Phase 2 Feature - Health check endpoint for AI service monitoring
+ * @see ATAL_AI_IMPLEMENTATION_PLAN.md for integration timeline
  */
 export async function checkAIServiceStatus(): Promise<ActionResult<{
   available: boolean

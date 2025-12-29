@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Trash2, RotateCcw, AlertCircle, X, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
+import { clientLogger } from '@/lib/client-logger'
 
 interface AdminListTableProps {
   refreshTrigger?: number
@@ -46,6 +47,7 @@ export function AdminListTable({ refreshTrigger = 0, onAdminDeleted }: AdminList
         setError(result.error || 'Failed to load admin accounts')
       }
     } catch (err) {
+      clientLogger.error('[AdminListTable] Error loading admins', err instanceof Error ? err : { error: String(err) })
       setError('An error occurred while loading admins')
     } finally {
       setIsLoading(false)
@@ -70,6 +72,7 @@ export function AdminListTable({ refreshTrigger = 0, onAdminDeleted }: AdminList
         toast.error(result.error || 'Failed to delete admin account')
       }
     } catch (err) {
+      clientLogger.error('[AdminListTable] Error deleting admin', err instanceof Error ? err : { error: String(err) })
       toast.error('An error occurred while deleting admin')
     } finally {
       setDeletingId(null)
@@ -116,6 +119,7 @@ export function AdminListTable({ refreshTrigger = 0, onAdminDeleted }: AdminList
         setResetError(result.error || 'Failed to reset password')
       }
     } catch (err) {
+      clientLogger.error('[AdminListTable] Error resetting password', err instanceof Error ? err : { error: String(err) })
       setResetError('An error occurred while resetting password')
     } finally {
       setResetingId(null)

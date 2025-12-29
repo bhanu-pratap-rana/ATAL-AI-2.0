@@ -8,6 +8,8 @@ import { InviteStudentDialog } from '@/components/teacher/InviteStudentDialog'
 import { RosterTable } from '@/components/teacher/RosterTable'
 import { InvitePanel } from '@/components/teacher/InvitePanel'
 import { AnalyticsTiles } from '@/components/teacher/AnalyticsTiles'
+import { StudentProgressGrid } from '@/components/teacher/StudentProgressGrid'
+import { AIInteractionsLog } from '@/components/teacher/AIInteractionsLog'
 import { getClassAnalytics } from '@/app/actions/teacher'
 
 interface StudentInfo {
@@ -212,6 +214,40 @@ export default async function ClassDetailPage({
             className={classData.name}
           />
         </div>
+
+        {/* Real-time Student Progress Grid */}
+        {enrollments.length > 0 && (
+          <Card className="card-responsive mb-responsive">
+            <CardHeader>
+              <CardTitle className="text-lg md:text-xl flex items-center gap-2">
+                <span>📊</span> Real-time Student Progress
+              </CardTitle>
+              <CardDescription>
+                Live view of student learning progress and at-risk indicators
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <StudentProgressGrid classId={id} teacherId={user.id} />
+            </CardContent>
+          </Card>
+        )}
+
+        {/* AI Tutor Interactions Log */}
+        {enrollments.length > 0 && (
+          <Card className="card-responsive mb-responsive">
+            <CardHeader>
+              <CardTitle className="text-lg md:text-xl flex items-center gap-2">
+                <span>🤖</span> AI Tutor Activity
+              </CardTitle>
+              <CardDescription>
+                Recent AI tutor conversations from your students
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AIInteractionsLog classId={id} limit={15} />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Roster */}
         <Card className="card-responsive">

@@ -370,7 +370,7 @@ export function AssessmentRunner({
         correctCount: updatedResponses.filter(r => r.isCorrect).length,
       })
     }).catch(err => {
-      clientLogger.error('Failed to update IRT ability estimate', err)
+      clientLogger.error('Failed to update IRT ability estimate', err instanceof Error ? err : undefined)
     })
 
     setSelectedOption(null)

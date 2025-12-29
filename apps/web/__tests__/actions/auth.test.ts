@@ -253,7 +253,7 @@ describe('Auth Actions', () => {
       const result = await requestOtp('')
 
       expect(result.success).toBe(false)
-      expect(result.error).toContain('enter an email')
+      expect(result.error).toContain('Email is required')
     })
 
     it('should reject invalid email format', async () => {
@@ -381,7 +381,8 @@ describe('Auth Actions', () => {
         error: { message: 'Invalid token' },
       })
 
-      const result = await verifyOtp('test@example.com', 'wrong')
+      // Token must be digits only - 'wrong' is invalid format
+      const result = await verifyOtp('test@example.com', '000000')
 
       expect(result.success).toBe(false)
       expect(result.error).toBe('Invalid token')
@@ -397,7 +398,7 @@ describe('Auth Actions', () => {
       const result = await sendForgotPasswordOtp('')
 
       expect(result.success).toBe(false)
-      expect(result.error).toContain('enter an email')
+      expect(result.error).toContain('Email is required')
     })
 
     it('should reject invalid email format', async () => {
@@ -481,7 +482,8 @@ describe('Auth Actions', () => {
         error: { message: 'Token expired' },
       })
 
-      const result = await resetPasswordWithOtp('test@example.com', 'expired', 'newPassword123')
+      // Use valid digit format for token to test Supabase error handling
+      const result = await resetPasswordWithOtp('test@example.com', '123456', 'newPassword123')
 
       expect(result.success).toBe(false)
       expect(result.error).toContain('Invalid or expired')
@@ -741,7 +743,8 @@ describe('Auth Actions', () => {
         const result = await signInWithUsername('', 'password123')
 
         expect(result.success).toBe(false)
-        expect(result.error).toBe('Username is required')
+        // Zod returns generic error on login to avoid leaking username format requirements
+        expect(result.error).toBe('Invalid username or password')
       })
 
       it('should reject empty password', async () => {

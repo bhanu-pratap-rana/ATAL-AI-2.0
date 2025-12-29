@@ -10,10 +10,9 @@
  * - phone-validation.ts - Phone number format (87 lines)
  * - code-validation.ts - Class codes, PINs, OTPs (130 lines)
  * - name-validation.ts - Names, roll numbers (55 lines)
- * - form-validation.ts - Multi-field form validation (165 lines)
  *
- * Main file: validation-utils.ts (re-exports + utilities, ~80 lines)
- * Total: ~782 lines split → main file now ~80 lines ✓
+ * Main file: validation-utils.ts (re-exports + utilities, ~67 lines)
+ * Total: ~617 lines properly split across modules ✓
  */
 
 // Re-export from specialized modules for backward compatibility
@@ -64,17 +63,3 @@ export {
   validateRollNumber,
   sanitizeString,
 } from './name-validation'
-
-export type {
-  RegistrationFormData,
-  SignInFormData,
-} from './form-validation'
-
-export {
-  validateRegistrationForm,
-  validateSignInForm,
-  validatePhoneSignInForm,
-  validatePhoneSignUpForm,
-  validateJoinClassForm,
-  formatValidationErrors,
-} from './form-validation'

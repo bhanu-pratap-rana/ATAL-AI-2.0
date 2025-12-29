@@ -1,10 +1,11 @@
 'use server'
 
-import { createAdminClient, getCurrentUser } from '@/lib/supabase-server'
+import { z } from 'zod'
+import { createAdminClient, verifySuperAdminAuth, verifyAdminAuth, getCurrentUser } from '@/lib/supabase-server'
 import { authLogger } from '@/lib/auth-logger'
 import { RATE_LIMITS } from '@/lib/constants/rate-limits'
 import { checkRateLimit as checkDistributedRateLimit } from '@/lib/rate-limiter-distributed'
-import { EMAIL_REGEX } from '@/lib/auth-constants'
+import { AdminEmailSchema, AdminPasswordSchema, UserIdSchema } from '@/lib/validation-schemas'
 
 // Use centralized rate limit config for admin operations
 const ADMIN_RATE_LIMIT = RATE_LIMITS.adminOperations
@@ -27,6 +28,9 @@ export interface AdminActionResult {
 /**
  * Check if current user is super admin
  * SECURITY: Uses getCurrentUser() to get authenticated user from session
+ *
+ * @internal Reserved for future UI conditional rendering
+ * @returns true if current user has super_admin role
  */
 export async function isSuperAdmin(): Promise<boolean> {
   try {
@@ -46,6 +50,9 @@ export async function isSuperAdmin(): Promise<boolean> {
 /**
  * Get current user's admin role
  * SECURITY: Uses getCurrentUser() to get authenticated user from session
+ *
+ * @internal Reserved for future role-based UI rendering
+ * @returns 'super_admin', 'admin', or null if not an admin
  */
 export async function getCurrentAdminRole(): Promise<'super_admin' | 'admin' | null> {
   try {
@@ -75,31 +82,18 @@ export async function createAdminAccount(
   role: 'admin' | 'super_admin' = 'admin'
 ): Promise<AdminActionResult> {
   try {
-    // SECURITY: Verify caller is authenticated and authorized
-    const currentUser = await getCurrentUser()
-    if (!currentUser) {
-      authLogger.warn('[createAdminAccount] Unauthorized: No authenticated user')
-      return {
-        success: false,
-        error: 'Authentication required',
-      }
-    }
+    // Validate inputs using Zod schemas
+    const normalizedEmail = AdminEmailSchema.parse(email)
+    AdminPasswordSchema.parse(password)
 
-    // SECURITY: Only super_admin can create admin accounts
-    const currentRole = currentUser.app_metadata?.role
-    if (currentRole !== 'super_admin') {
-      authLogger.warn('[createAdminAccount] Forbidden: User lacks super_admin role', {
-        userId: currentUser.id,
-        role: currentRole,
-      })
-      return {
-        success: false,
-        error: 'Only super admins can create admin accounts',
-      }
+    // SECURITY: Verify caller is authenticated and authorized as super_admin
+    const auth = await verifySuperAdminAuth('createAdminAccount')
+    if (!auth.authorized) {
+      return auth.error!
     }
 
     // Rate limiting using distributed rate limiter
-    const rateLimitKey = `admin:create:${email}`
+    const rateLimitKey = `admin:create:${normalizedEmail}`
     const isAllowed = await checkDistributedRateLimit(rateLimitKey, ADMIN_RATE_LIMIT)
     if (!isAllowed) {
       return {
@@ -109,23 +103,6 @@ export async function createAdminAccount(
     }
 
     const adminClient = await createAdminClient()
-    const normalizedEmail = email.toLowerCase().trim()
-
-    // Validate email using centralized regex
-    if (!EMAIL_REGEX.test(normalizedEmail)) {
-      return {
-        success: false,
-        error: 'Please enter a valid email address',
-      }
-    }
-
-    // Validate password
-    if (password.length < 8) {
-      return {
-        success: false,
-        error: 'Password must be at least 8 characters',
-      }
-    }
 
     // Check if user already exists
     const { data: users } = await adminClient.auth.admin.listUsers()
@@ -228,6 +205,10 @@ export async function createAdminAccount(
       data: { userId: data.user.id },
     }
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      const firstError = error.issues[0]
+      return { success: false, error: firstError?.message || 'Invalid input' }
+    }
     authLogger.error('[createAdminAccount] Unexpected error', error)
     return {
       success: false,
@@ -242,27 +223,10 @@ export async function createAdminAccount(
  */
 export async function listAdminAccounts(): Promise<AdminActionResult> {
   try {
-    // SECURITY: Verify caller is authenticated and authorized
-    const currentUser = await getCurrentUser()
-    if (!currentUser) {
-      authLogger.warn('[listAdminAccounts] Unauthorized: No authenticated user')
-      return {
-        success: false,
-        error: 'Authentication required',
-      }
-    }
-
-    // SECURITY: Only super_admin can list admin accounts
-    const currentRole = currentUser.app_metadata?.role
-    if (currentRole !== 'super_admin') {
-      authLogger.warn('[listAdminAccounts] Forbidden: User lacks super_admin role', {
-        userId: currentUser.id,
-        role: currentRole,
-      })
-      return {
-        success: false,
-        error: 'Only super admins can view admin accounts',
-      }
+    // SECURITY: Verify caller is authenticated and authorized as super_admin
+    const auth = await verifySuperAdminAuth('listAdminAccounts')
+    if (!auth.authorized) {
+      return auth.error!
     }
 
     const adminClient = await createAdminClient()
@@ -316,33 +280,19 @@ export async function listAdminAccounts(): Promise<AdminActionResult> {
  */
 export async function deleteAdminAccount(adminId: string): Promise<AdminActionResult> {
   try {
-    // SECURITY: Verify caller is authenticated and authorized
-    const currentUser = await getCurrentUser()
-    if (!currentUser) {
-      authLogger.warn('[deleteAdminAccount] Unauthorized: No authenticated user')
-      return {
-        success: false,
-        error: 'Authentication required',
-      }
-    }
+    // Validate input
+    const validatedId = UserIdSchema.parse(adminId)
 
-    // SECURITY: Only super_admin can delete admin accounts
-    const currentRole = currentUser.app_metadata?.role
-    if (currentRole !== 'super_admin') {
-      authLogger.warn('[deleteAdminAccount] Forbidden: User lacks super_admin role', {
-        userId: currentUser.id,
-        role: currentRole,
-      })
-      return {
-        success: false,
-        error: 'Only super admins can delete admin accounts',
-      }
+    // SECURITY: Verify caller is authenticated and authorized as super_admin
+    const auth = await verifySuperAdminAuth('deleteAdminAccount')
+    if (!auth.authorized) {
+      return auth.error!
     }
 
     // SECURITY: Prevent self-deletion
-    if (adminId === currentUser.id) {
+    if (validatedId === auth.user!.id) {
       authLogger.warn('[deleteAdminAccount] Forbidden: Cannot delete own account', {
-        userId: currentUser.id,
+        userId: auth.user!.id,
       })
       return {
         success: false,
@@ -351,7 +301,7 @@ export async function deleteAdminAccount(adminId: string): Promise<AdminActionRe
     }
 
     // Rate limiting using distributed rate limiter
-    const isAllowed = await checkDistributedRateLimit(`admin:delete:${adminId}`, ADMIN_RATE_LIMIT)
+    const isAllowed = await checkDistributedRateLimit(`admin:delete:${validatedId}`, ADMIN_RATE_LIMIT)
     if (!isAllowed) {
       return {
         success: false,
@@ -363,7 +313,7 @@ export async function deleteAdminAccount(adminId: string): Promise<AdminActionRe
 
     // Get the user to check role
     const { data: users } = await adminClient.auth.admin.listUsers()
-    const userToDelete = users?.users.find((u) => u.id === adminId)
+    const userToDelete = users?.users.find((u) => u.id === validatedId)
 
     if (!userToDelete) {
       return {
@@ -383,7 +333,7 @@ export async function deleteAdminAccount(adminId: string): Promise<AdminActionRe
     }
 
     // Delete the user
-    const { error: deleteError } = await adminClient.auth.admin.deleteUser(adminId)
+    const { error: deleteError } = await adminClient.auth.admin.deleteUser(validatedId)
 
     if (deleteError) {
       authLogger.error('[deleteAdminAccount] Failed to delete user', deleteError)
@@ -393,12 +343,16 @@ export async function deleteAdminAccount(adminId: string): Promise<AdminActionRe
       }
     }
 
-    authLogger.success('[deleteAdminAccount] Admin account deleted', { adminId })
+    authLogger.success('[deleteAdminAccount] Admin account deleted', { adminId: validatedId })
     return {
       success: true,
       message: `Admin account deleted successfully`,
     }
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      const firstError = error.issues[0]
+      return { success: false, error: firstError?.message || 'Invalid input' }
+    }
     authLogger.error('[deleteAdminAccount] Unexpected error', error)
     return {
       success: false,
@@ -413,36 +367,22 @@ export async function deleteAdminAccount(adminId: string): Promise<AdminActionRe
  */
 export async function resetAdminPassword(adminId: string, newPassword: string): Promise<AdminActionResult> {
   try {
-    // SECURITY: Verify caller is authenticated
-    const currentUser = await getCurrentUser()
-    if (!currentUser) {
-      authLogger.warn('[resetAdminPassword] Unauthorized: No authenticated user')
-      return {
-        success: false,
-        error: 'Authentication required',
-      }
-    }
+    // Validate inputs using Zod schemas
+    const validatedId = UserIdSchema.parse(adminId)
+    AdminPasswordSchema.parse(newPassword)
 
-    // SECURITY: Check authorization - super_admin can reset any, others only own
-    const currentRole = currentUser.app_metadata?.role
-    const isAdmin = currentRole === 'admin' || currentRole === 'super_admin'
-
-    if (!isAdmin) {
-      authLogger.warn('[resetAdminPassword] Forbidden: User is not an admin', {
-        userId: currentUser.id,
-        role: currentRole,
-      })
-      return {
-        success: false,
-        error: 'Only admins can reset passwords',
-      }
+    // SECURITY: Verify caller is authenticated and is an admin
+    const auth = await verifyAdminAuth('resetAdminPassword')
+    if (!auth.authorized) {
+      return auth.error!
     }
 
     // Regular admins can only reset their own password
-    if (currentRole === 'admin' && adminId !== currentUser.id) {
+    const currentRole = auth.user!.app_metadata?.role
+    if (currentRole === 'admin' && validatedId !== auth.user!.id) {
       authLogger.warn('[resetAdminPassword] Forbidden: Admin cannot reset other passwords', {
-        userId: currentUser.id,
-        targetId: adminId,
+        userId: auth.user!.id,
+        targetId: validatedId,
       })
       return {
         success: false,
@@ -451,7 +391,7 @@ export async function resetAdminPassword(adminId: string, newPassword: string): 
     }
 
     // Rate limiting using distributed rate limiter
-    const isAllowed = await checkDistributedRateLimit(`admin:reset:${adminId}`, ADMIN_RATE_LIMIT)
+    const isAllowed = await checkDistributedRateLimit(`admin:reset:${validatedId}`, ADMIN_RATE_LIMIT)
     if (!isAllowed) {
       return {
         success: false,
@@ -459,18 +399,10 @@ export async function resetAdminPassword(adminId: string, newPassword: string): 
       }
     }
 
-    // Validate password
-    if (newPassword.length < 8) {
-      return {
-        success: false,
-        error: 'Password must be at least 8 characters',
-      }
-    }
-
     const adminClient = await createAdminClient()
 
     // Update password
-    const { error: updateError } = await adminClient.auth.admin.updateUserById(adminId, {
+    const { error: updateError } = await adminClient.auth.admin.updateUserById(validatedId, {
       password: newPassword,
     })
 
@@ -482,12 +414,16 @@ export async function resetAdminPassword(adminId: string, newPassword: string): 
       }
     }
 
-    authLogger.success('[resetAdminPassword] Admin password reset', { adminId })
+    authLogger.success('[resetAdminPassword] Admin password reset', { adminId: validatedId })
     return {
       success: true,
       message: 'Password reset successfully',
     }
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      const firstError = error.issues[0]
+      return { success: false, error: firstError?.message || 'Invalid input' }
+    }
     authLogger.error('[resetAdminPassword] Unexpected error', error)
     return {
       success: false,
@@ -501,6 +437,9 @@ export async function resetAdminPassword(adminId: string, newPassword: string): 
  */
 export async function isSuperAdminEmail(email: string): Promise<boolean> {
   try {
+    // Validate email input
+    const normalizedEmail = AdminEmailSchema.parse(email)
+
     const adminClient = await createAdminClient()
     const { data: users } = await adminClient.auth.admin.listUsers()
 
@@ -508,7 +447,7 @@ export async function isSuperAdminEmail(email: string): Promise<boolean> {
       return false
     }
 
-    const user = users.users.find((u) => u.email?.toLowerCase() === email.toLowerCase())
+    const user = users.users.find((u) => u.email?.toLowerCase() === normalizedEmail)
     if (!user) {
       return false
     }
@@ -527,33 +466,19 @@ export async function isSuperAdminEmail(email: string): Promise<boolean> {
  */
 export async function getAdminById(adminId: string): Promise<AdminActionResult> {
   try {
-    // SECURITY: Verify caller is authenticated and authorized
-    const currentUser = await getCurrentUser()
-    if (!currentUser) {
-      authLogger.warn('[getAdminById] Unauthorized: No authenticated user')
-      return {
-        success: false,
-        error: 'Authentication required',
-      }
-    }
+    // Validate input
+    const validatedId = UserIdSchema.parse(adminId)
 
-    // SECURITY: Only super_admin can view admin details
-    const currentRole = currentUser.app_metadata?.role
-    if (currentRole !== 'super_admin') {
-      authLogger.warn('[getAdminById] Forbidden: User lacks super_admin role', {
-        userId: currentUser.id,
-        role: currentRole,
-      })
-      return {
-        success: false,
-        error: 'Only super admins can view admin details',
-      }
+    // SECURITY: Verify caller is authenticated and authorized as super_admin
+    const auth = await verifySuperAdminAuth('getAdminById')
+    if (!auth.authorized) {
+      return auth.error!
     }
 
     const adminClient = await createAdminClient()
     const { data: users } = await adminClient.auth.admin.listUsers()
 
-    const user = users?.users.find((u) => u.id === adminId)
+    const user = users?.users.find((u) => u.id === validatedId)
     if (!user) {
       return {
         success: false,
@@ -574,6 +499,10 @@ export async function getAdminById(adminId: string): Promise<AdminActionResult> 
       data: admin,
     }
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      const firstError = error.issues[0]
+      return { success: false, error: firstError?.message || 'Invalid input' }
+    }
     authLogger.error('[getAdminById] Unexpected error', error)
     return {
       success: false,

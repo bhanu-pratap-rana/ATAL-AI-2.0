@@ -1,17 +1,29 @@
 'use client'
 
-import { useState } from 'react'
-import { createAdminUser } from '@/app/actions/admin-auth'
+import { useState, useEffect } from 'react'
+import { createAdminUser, checkAdminExists } from '@/app/actions/admin-auth'
 import { AuthCard } from '@/components/auth/AuthCard'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { AlertCircle, CheckCircle, Loader2, Eye, EyeOff } from 'lucide-react'
+import { AlertCircle, CheckCircle, Loader2, Eye, EyeOff, ShieldAlert } from 'lucide-react'
 import { toast } from 'sonner'
 import { FORM_TIMING } from '@/lib/constants/ui-timings'
 
 export default function CreateAdminPage() {
   const [email, setEmail] = useState('atal.app.ai@gmail.com')
+  const [adminExists, setAdminExists] = useState<boolean | null>(null)
+  const [checkingAdmin, setCheckingAdmin] = useState(true)
+
+  // Check if admin exists on mount
+  useEffect(() => {
+    async function checkAdmin() {
+      const result = await checkAdminExists()
+      setAdminExists(result.exists)
+      setCheckingAdmin(false)
+    }
+    checkAdmin()
+  }, [])
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -78,6 +90,72 @@ export default function CreateAdminPage() {
     }
   }
 
+  // Show loading while checking admin status
+  if (checkingAdmin) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface flex items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-text-secondary">Checking system status...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show access denied if admin already exists
+  if (adminExists) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface flex items-center justify-center p-4">
+        <div className="absolute top-4 left-4">
+          <Button
+            onClick={() => (window.location.href = '/admin/login')}
+            variant="outline"
+            size="sm"
+            className="text-sm border-primary text-primary hover:bg-primary/10"
+          >
+            ← Back to Login
+          </Button>
+        </div>
+
+        <AuthCard
+          title="Access Denied"
+          description="This page is for first-time setup only"
+        >
+          <div className="space-y-6">
+            <div className="bg-error-light border border-error/30 rounded-lg p-4">
+              <div className="flex gap-3">
+                <ShieldAlert className="w-6 h-6 text-error flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold text-error">Admin Account Already Exists</p>
+                  <p className="text-xs text-error/80 mt-1">
+                    The system already has an admin account configured. For security reasons, new admin
+                    accounts can only be created by existing super admins through the admin panel.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-surface border border-border rounded-lg p-4">
+              <p className="text-sm text-text-primary font-semibold mb-2">What to do:</p>
+              <ul className="text-xs text-text-secondary space-y-1 list-disc list-inside">
+                <li>Go to <strong>/admin/login</strong> to sign in</li>
+                <li>Contact your system administrator if you need an account</li>
+                <li>Super admins can create new admin accounts in the admin panel</li>
+              </ul>
+            </div>
+
+            <Button
+              onClick={() => (window.location.href = '/admin/login')}
+              className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary"
+            >
+              Go to Admin Login
+            </Button>
+          </div>
+        </AuthCard>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface flex items-center justify-center p-4">
       <div className="absolute top-4 left-4">
@@ -102,8 +180,8 @@ export default function CreateAdminPage() {
               <strong>ℹ️ First Time Setup:</strong>
               <br />
               <span className="text-xs">
-                Create an admin account with email and password. After creation, you can login to
-                the admin panel.
+                Create the first super admin account. This account will have full system access
+                and can create additional admin accounts.
               </span>
             </p>
           </div>

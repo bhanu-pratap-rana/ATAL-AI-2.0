@@ -50,6 +50,13 @@ export const AI_FEATURES = {
  * Provider configurations
  */
 export const AI_PROVIDERS = {
+  gemini: {
+    name: 'Google Gemini',
+    defaultModel: 'gemini-2.5-flash-preview-05-20',
+    baseUrl: 'https://generativelanguage.googleapis.com/v1',
+    embeddingModel: 'text-embedding-004',
+    embeddingDimensions: 768,
+  },
   groq: {
     name: 'Groq',
     defaultModel: 'llama-3.3-70b-versatile',
@@ -64,6 +71,33 @@ export const AI_PROVIDERS = {
     name: 'OpenAI',
     defaultModel: 'gpt-4o-mini',
     baseUrl: 'https://api.openai.com/v1',
+  },
+} as const
+
+/**
+ * TTS (Text-to-Speech) configurations
+ */
+export const TTS_CONFIG = {
+  ai4bharat: {
+    name: 'AI4Bharat Indic-Parler-TTS',
+    huggingFaceUrl: 'https://api-inference.huggingface.co/models/ai4bharat/indic-parler-tts',
+    supportedLanguages: ['en', 'hi', 'as'] as const,
+    defaultVoice: 'female',
+    defaultEmotion: 'friendly',
+  },
+} as const
+
+/**
+ * Voice recognition (STT) configurations
+ */
+export const STT_CONFIG = {
+  webSpeechApi: {
+    name: 'Web Speech API',
+    languageCodes: {
+      en: 'en-IN',
+      hi: 'hi-IN',
+      as: 'as-IN', // Assamese supported!
+    } as const,
   },
 } as const
 

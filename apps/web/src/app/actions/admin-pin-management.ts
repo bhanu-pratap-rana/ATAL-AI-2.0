@@ -3,6 +3,8 @@
 import { createClient, createAdminClient, verifyAdminAuth } from '@/lib/supabase-server'
 import { authLogger } from '@/lib/auth-logger'
 import { PIN_LIMITS } from '@/lib/constants/validation-limits'
+import { checkRateLimit } from '@/lib/rate-limiter-distributed'
+import { RATE_LIMITS } from '@/lib/constants/rate-limits'
 
 export interface SchoolPINInfo {
   schoolId: string
@@ -172,6 +174,17 @@ export async function rotateSchoolPIN(schoolId: string, customPIN?: string): Pro
       return {
         success: false,
         error: 'School ID is required',
+      }
+    }
+
+    // SECURITY: Rate limit PIN rotation to prevent abuse
+    const rateLimitKey = `pin-rotation:${authCheck.user!.id}`
+    const isAllowed = await checkRateLimit(rateLimitKey, RATE_LIMITS.pinRotation)
+    if (!isAllowed) {
+      authLogger.warn('[rotateSchoolPIN] Rate limit exceeded', { userId: authCheck.user!.id, schoolId })
+      return {
+        success: false,
+        error: 'Too many PIN rotation requests. Please wait before trying again.',
       }
     }
 

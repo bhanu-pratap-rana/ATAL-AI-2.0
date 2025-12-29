@@ -1,0 +1,390 @@
+/**
+ * AI Tutor Service
+ *
+ * Implements Socratic tutoring with:
+ * - RAG context retrieval (direct pgvector)
+ * - Adaptive learning personalization
+ * - Streaming responses via Vercel AI SDK
+ * - Trilingual support (EN/HI/AS)
+ *
+ * NO LangChain - uses direct API calls for better performance.
+ *
+ * OFFLINE SYNC INTEGRATION:
+ *
+ * Chat messages are logged via logInteraction() and synced offline using
+ * the 'chat_message' mutation type. Client integration pattern:
+ *
+ * ```tsx
+ * // In VoiceChat.tsx or calling component:
+ * import { useOfflineSync } from '@/hooks';
+ *
+ * const { logChatMessageWithSync } = useOfflineSync();
+ *
+ * const handleMessage = async (message: string) => {
+ *   if (!navigator.onLine) {
+ *     // Queue message for later sync
+ *     await logChatMessageWithSync({
+ *       student_id: studentId,
+ *       session_id: sessionId,
+ *       topic_id: topicId,
+ *       message_content: message,
+ *       message_role: 'user',
+ *       input_mode: 'text',
+ *       language: language as TutorLanguage,
+ *     });
+ *     return;
+ *   }
+ *
+ *   // Online - use TutorService.streamChat() normally
+ *   const result = await tutorService.streamChat({...params});
+ * };
+ * ```
+ *
+ * See: /src/lib/offline/mutation-queue.ts for sync implementation.
+ */
+
+import { streamText, generateText, CoreMessage } from 'ai';
+import { getAIModel, MODEL_CONFIGS } from '../providers';
+import { CurriculumRAGService, ragService } from './rag-service';
+import { AdaptiveLearningService, adaptiveService } from './adaptive-service';
+import { buildSystemPrompt, getFeedbackPrompt } from '../prompts/socratic-tutor';
+import { createClient } from '@/lib/supabase-server';
+import { authLogger } from '@/lib/auth-logger';
+
+/**
+ * Supported languages
+ */
+export type TutorLanguage = 'en' | 'hi' | 'as';
+
+/**
+ * Chat message structure
+ */
+export interface TutorMessage {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+}
+
+/**
+ * Chat request parameters
+ */
+export interface TutorChatRequest {
+  message: string;
+  sessionId: string;
+  studentId: string;
+  topicId?: string;
+  moduleId?: string;
+  language: TutorLanguage;
+  conversationHistory?: TutorMessage[];
+  inputMode?: 'text' | 'voice';
+}
+
+/**
+ * Chat response with metadata
+ */
+export interface TutorChatResponse {
+  content: string;
+  tokensUsed?: number;
+  responseTimeMs: number;
+  provider: string;
+  context?: string;
+}
+
+/**
+ * AI Tutor Service
+ */
+export class TutorService {
+  private ragService: CurriculumRAGService;
+  private adaptiveService: AdaptiveLearningService;
+
+  constructor() {
+    this.ragService = ragService;
+    this.adaptiveService = adaptiveService;
+  }
+
+  /**
+   * Stream a chat response (for real-time UI updates)
+   * Returns a StreamableValue compatible with Vercel AI SDK's useChat
+   */
+  async streamChat(params: TutorChatRequest) {
+    const startTime = Date.now();
+
+    // Get curriculum context via RAG
+    const context = params.topicId
+      ? await this.ragService.getRelevantContext(params.message, {
+          filterLanguage: params.language,
+          filterTopic: params.topicId,
+          matchCount: 3,
+        })
+      : await this.ragService.getRelevantContext(params.message, {
+          filterLanguage: params.language,
+          matchCount: 5,
+        });
+
+    // Get student's learning style for personalization
+    const learningProfile = await this.adaptiveService.getAdaptedContent(
+      params.studentId,
+      params.topicId || 'general'
+    );
+
+    // Build personalized system prompt
+    const systemPrompt = buildSystemPrompt({
+      language: params.language,
+      context,
+      learningStyle: learningProfile.preferredStyle,
+      showImages: learningProfile.showImages,
+      topic: params.topicId,
+      module: params.moduleId,
+    });
+
+    // Get AI model
+    const model = getAIModel('gemini');
+
+    // Convert conversation history to CoreMessage format
+    const messages: CoreMessage[] = [
+      ...(params.conversationHistory || []).map((msg) => ({
+        role: msg.role as 'user' | 'assistant',
+        content: msg.content,
+      })),
+      { role: 'user' as const, content: params.message },
+    ];
+
+    // Stream response using Vercel AI SDK
+    const result = streamText({
+      model,
+      system: systemPrompt,
+      messages,
+      ...MODEL_CONFIGS.tutor,
+      onFinish: async ({ text, usage }) => {
+        // Log interaction for teacher visibility
+        await this.logInteraction({
+          studentId: params.studentId,
+          sessionId: params.sessionId,
+          topicId: params.topicId,
+          messageRole: 'assistant',
+          messageContent: text,
+          inputMode: params.inputMode || 'text',
+          language: params.language,
+          tokensUsed: usage?.totalTokens || 0,
+          responseTimeMs: Date.now() - startTime,
+        });
+      },
+    });
+
+    return result;
+  }
+
+  /**
+   * Generate a non-streaming response (for API routes)
+   */
+  async generateResponse(params: TutorChatRequest): Promise<TutorChatResponse> {
+    const startTime = Date.now();
+
+    // Get curriculum context via RAG
+    const context = await this.ragService.getRelevantContext(params.message, {
+      filterLanguage: params.language,
+      filterTopic: params.topicId,
+      matchCount: 5,
+    });
+
+    // Get student's learning style
+    const learningProfile = await this.adaptiveService.getAdaptedContent(
+      params.studentId,
+      params.topicId || 'general'
+    );
+
+    // Build system prompt
+    const systemPrompt = buildSystemPrompt({
+      language: params.language,
+      context,
+      learningStyle: learningProfile.preferredStyle,
+      showImages: learningProfile.showImages,
+      topic: params.topicId,
+      module: params.moduleId,
+    });
+
+    // Get AI model
+    const model = getAIModel('gemini');
+
+    // Convert conversation history
+    const messages: CoreMessage[] = [
+      ...(params.conversationHistory || []).map((msg) => ({
+        role: msg.role as 'user' | 'assistant',
+        content: msg.content,
+      })),
+      { role: 'user' as const, content: params.message },
+    ];
+
+    // Generate response
+    const result = await generateText({
+      model,
+      system: systemPrompt,
+      messages,
+      ...MODEL_CONFIGS.tutor,
+    });
+
+    const responseTimeMs = Date.now() - startTime;
+
+    // Log interaction
+    await this.logInteraction({
+      studentId: params.studentId,
+      sessionId: params.sessionId,
+      topicId: params.topicId,
+      messageRole: 'assistant',
+      messageContent: result.text,
+      inputMode: params.inputMode || 'text',
+      language: params.language,
+      tokensUsed: result.usage?.totalTokens || 0,
+      responseTimeMs,
+    });
+
+    return {
+      content: result.text,
+      tokensUsed: result.usage?.totalTokens,
+      responseTimeMs,
+      provider: 'gemini',
+      context,
+    };
+  }
+
+  /**
+   * Generate feedback for assessment response
+   */
+  async generateFeedback(params: {
+    studentId: string;
+    question: string;
+    studentAnswer: string;
+    correctAnswer: string;
+    isCorrect: boolean;
+    language: TutorLanguage;
+  }): Promise<string> {
+    const model = getAIModel('gemini');
+    const feedbackPrompt = getFeedbackPrompt(params.language);
+
+    const result = await generateText({
+      model,
+      system: feedbackPrompt,
+      messages: [
+        {
+          role: 'user',
+          content: `Question: ${params.question}
+Student's Answer: ${params.studentAnswer}
+Was it correct? ${params.isCorrect ? 'Yes' : 'No'}
+${!params.isCorrect ? `Correct answer hint: The answer relates to "${params.correctAnswer.substring(0, 20)}..."` : ''}
+
+Please provide encouraging feedback.`,
+        },
+      ],
+      ...MODEL_CONFIGS.assessment,
+    });
+
+    return result.text;
+  }
+
+  /**
+   * Generate a hint for a struggling student
+   */
+  async generateHint(params: {
+    studentId: string;
+    topicId: string;
+    question: string;
+    previousAttempts: number;
+    language: TutorLanguage;
+  }): Promise<string> {
+    // Get topic context
+    const context = await this.ragService.getTopicContext(
+      params.topicId,
+      params.language,
+      2
+    );
+
+    const hintLevel =
+      params.previousAttempts <= 1
+        ? 'gentle nudge'
+        : params.previousAttempts <= 2
+        ? 'more specific hint'
+        : 'clear guidance toward the answer';
+
+    const model = getAIModel('gemini');
+
+    const result = await generateText({
+      model,
+      system: `You are providing a ${hintLevel} to help a student answer a question.
+Never give away the answer directly. Use the Socratic method.
+Language: ${params.language === 'en' ? 'English' : params.language === 'hi' ? 'Hindi' : 'Assamese'}`,
+      messages: [
+        {
+          role: 'user',
+          content: `Question: ${params.question}
+Context: ${context}
+Previous attempts: ${params.previousAttempts}
+
+Provide a ${hintLevel} to help the student.`,
+        },
+      ],
+      ...MODEL_CONFIGS.retrieval,
+    });
+
+    return result.text;
+  }
+
+  /**
+   * Log AI tutor interaction for teacher visibility
+   */
+  private async logInteraction(params: {
+    studentId: string;
+    sessionId: string;
+    topicId?: string;
+    messageRole: 'user' | 'assistant' | 'system';
+    messageContent: string;
+    inputMode: 'text' | 'voice';
+    language: TutorLanguage;
+    tokensUsed: number;
+    responseTimeMs: number;
+  }): Promise<void> {
+    try {
+      const supabase = await createClient();
+
+      await supabase.from('ai_tutor_interactions').insert({
+        student_id: params.studentId,
+        session_id: params.sessionId,
+        topic_id: params.topicId,
+        message_role: params.messageRole,
+        message_content: params.messageContent,
+        input_mode: params.inputMode,
+        language: params.language,
+        tokens_used: params.tokensUsed,
+        response_time_ms: params.responseTimeMs,
+      });
+    } catch (error) {
+      authLogger.error('[Tutor] Error logging interaction:', error);
+    }
+  }
+
+  /**
+   * Get conversation history for a session
+   */
+  async getSessionHistory(sessionId: string): Promise<TutorMessage[]> {
+    try {
+      const supabase = await createClient();
+
+      const { data, error } = await supabase
+        .from('ai_tutor_interactions')
+        .select('message_role, message_content')
+        .eq('session_id', sessionId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      return (data || []).map((row) => ({
+        role: row.message_role as 'user' | 'assistant' | 'system',
+        content: row.message_content,
+      }));
+    } catch (error) {
+      authLogger.error('[Tutor] Error getting session history:', error);
+      return [];
+    }
+  }
+}
+
+// Export singleton instance
+export const tutorService = new TutorService();

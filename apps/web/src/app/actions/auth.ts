@@ -1,12 +1,19 @@
 'use server'
 
-import { createClient, createAdminClient, getCurrentUser } from '@/lib/supabase-server'
+import { z } from 'zod'
+import { createClient, createAdminClient } from '@/lib/supabase-server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { BLOCKED_EMAIL_DOMAINS, COMMON_DOMAIN_TYPOS, EMAIL_REGEX } from '@/lib/auth-constants'
+import { BLOCKED_EMAIL_DOMAINS, COMMON_DOMAIN_TYPOS } from '@/lib/auth-constants'
 import { authLogger } from '@/lib/auth-logger'
 import { checkOtpRateLimit, checkPasswordResetRateLimit } from '@/lib/rate-limiter-distributed'
 import { isValidEmailDomain } from '@/lib/email-validation'
+import {
+  AuthEmailSchema,
+  AuthPasswordSchema,
+  OtpTokenSchema,
+  UsernameSchema,
+} from '@/lib/validation-schemas'
 
 /**
  * Check if email exists in the system and determine role
@@ -29,7 +36,8 @@ export async function checkEmailExistsInAuth(email: string): Promise<{
   hasTeacherProfile?: boolean
 }> {
   try {
-    const trimmedEmail = email.trim().toLowerCase()
+    // Validate and normalize email
+    const trimmedEmail = AuthEmailSchema.parse(email)
 
     // Use admin client to check auth.users (bypasses RLS)
     const adminClient = await createAdminClient()
@@ -104,17 +112,17 @@ export async function checkEmailExistsInAuth(email: string): Promise<{
 
 export async function requestOtp(email: string) {
   try {
-    // Validate email format
-    const trimmedEmail = email.trim().toLowerCase()
-
-    if (!trimmedEmail) {
-      authLogger.debug('[requestOtp] Empty email provided')
-      return { success: false, error: 'Please enter an email address.' }
-    }
-
-    if (!EMAIL_REGEX.test(trimmedEmail)) {
-      authLogger.debug('[requestOtp] Invalid email format')
-      return { success: false, error: 'Please enter a valid email address.' }
+    // Validate email format using Zod schema
+    let trimmedEmail: string
+    try {
+      trimmedEmail = AuthEmailSchema.parse(email)
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const firstError = error.issues[0]
+        authLogger.debug('[requestOtp] Invalid email format', { error: firstError?.message })
+        return { success: false, error: firstError?.message || 'Please enter a valid email address.' }
+      }
+      throw error
     }
 
     // Validate email domain
@@ -234,13 +242,27 @@ export async function requestOtp(email: string) {
 
 export async function verifyOtp(email: string, token: string) {
   try {
+    // Validate inputs
+    let validatedEmail: string
+    let validatedToken: string
+    try {
+      validatedEmail = AuthEmailSchema.parse(email)
+      validatedToken = OtpTokenSchema.parse(token)
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const firstError = error.issues[0]
+        return { success: false, error: firstError?.message || 'Invalid input' }
+      }
+      throw error
+    }
+
     authLogger.debug('[verifyOtp] Starting OTP verification')
 
     const supabase = await createClient()
 
     const { data, error } = await supabase.auth.verifyOtp({
-      email,
-      token,
+      email: validatedEmail,
+      token: validatedToken,
       type: 'email',
     })
 
@@ -286,15 +308,16 @@ export async function verifyOtp(email: string, token: string) {
  */
 export async function sendForgotPasswordOtp(email: string) {
   try {
-    const trimmedEmail = email.trim().toLowerCase()
-
-    // Validate email format
-    if (!trimmedEmail) {
-      return { success: false, error: 'Please enter an email address.' }
-    }
-
-    if (!EMAIL_REGEX.test(trimmedEmail)) {
-      return { success: false, error: 'Please enter a valid email address.' }
+    // Validate email format using Zod schema
+    let trimmedEmail: string
+    try {
+      trimmedEmail = AuthEmailSchema.parse(email)
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const firstError = error.issues[0]
+        return { success: false, error: firstError?.message || 'Please enter a valid email address.' }
+      }
+      throw error
     }
 
     // Check rate limit - prevent password reset spam/abuse
@@ -348,47 +371,6 @@ export async function sendForgotPasswordOtp(email: string) {
  * Used for both teacher and student password recovery
  */
 /**
- * Check if authenticated user is a teacher (has teacher_profiles record)
- * Used to enforce role-based login restrictions
- */
-export async function checkUserIsTeacher(): Promise<{
-  isTeacher: boolean
-  userId?: string
-  error?: string
-}> {
-  try {
-    // Get current user using consistent pattern
-    const user = await getCurrentUser()
-
-    if (!user) {
-      return { isTeacher: false, error: 'Not authenticated' }
-    }
-
-    const supabase = await createClient()
-
-    // Check if user has a teacher_profiles record
-    // Use .maybeSingle() - user may not be a teacher
-    const { data: teacherProfile, error: profileError } = await supabase
-      .from('teacher_profiles')
-      .select('user_id')
-      .eq('user_id', user.id)
-      .maybeSingle()
-
-    if (profileError) {
-      authLogger.error('[checkUserIsTeacher] Error checking teacher profile', profileError)
-    }
-
-    const isTeacher = !!teacherProfile
-    authLogger.debug('[checkUserIsTeacher] User role checked', { userId: user.id, isTeacher })
-
-    return { isTeacher, userId: user.id }
-  } catch (error) {
-    authLogger.error('[checkUserIsTeacher] Unexpected error', error)
-    return { isTeacher: false, error: 'Failed to check user role' }
-  }
-}
-
-/**
  * Sign out the current user
  * Used when user tries to login via wrong role page
  */
@@ -412,21 +394,29 @@ export async function signOutUser(): Promise<{ success: boolean; error?: string 
 
 export async function resetPasswordWithOtp(email: string, token: string, newPassword: string) {
   try {
-    authLogger.debug('[resetPasswordWithOtp] Starting password reset')
-
-    if (!newPassword || newPassword.length < 8) {
-      return {
-        success: false,
-        error: 'Password must be at least 8 characters long.'
+    // Validate inputs using Zod schemas
+    let validatedEmail: string
+    let validatedToken: string
+    try {
+      validatedEmail = AuthEmailSchema.parse(email)
+      validatedToken = OtpTokenSchema.parse(token)
+      AuthPasswordSchema.parse(newPassword)
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const firstError = error.issues[0]
+        return { success: false, error: firstError?.message || 'Invalid input' }
       }
+      throw error
     }
+
+    authLogger.debug('[resetPasswordWithOtp] Starting password reset')
 
     const supabase = await createClient()
 
     // First verify the OTP
     const { data, error: verifyError } = await supabase.auth.verifyOtp({
-      email: email.trim().toLowerCase(),
-      token: token.trim(),
+      email: validatedEmail,
+      token: validatedToken,
       type: 'email',
     })
 
@@ -487,43 +477,50 @@ export async function resetPasswordWithOtp(email: string, token: string, newPass
   }
 }
 
+/**
+ * Check if current user is a teacher
+ * Returns isTeacher status and user ID
+ */
+export async function checkUserIsTeacher(): Promise<{
+  isTeacher: boolean
+  userId?: string
+  error?: string
+}> {
+  try {
+    const { getCurrentUser, createClient } = await import('@/lib/supabase-server')
+    const user = await getCurrentUser()
+
+    if (!user) {
+      return { isTeacher: false, error: 'Not authenticated' }
+    }
+
+    const supabase = await createClient()
+
+    // Check if user has a teacher profile
+    const { data: teacherProfile, error } = await supabase
+      .from('teacher_profiles')
+      .select('user_id')
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    if (error) {
+      authLogger.error('[checkUserIsTeacher] Error checking teacher profile', error)
+      return { isTeacher: false, userId: user.id, error: 'Failed to check teacher status' }
+    }
+
+    return {
+      isTeacher: !!teacherProfile,
+      userId: user.id,
+    }
+  } catch (error) {
+    authLogger.error('[checkUserIsTeacher] Unexpected error', error)
+    return { isTeacher: false, error: 'An unexpected error occurred' }
+  }
+}
+
 // ========================================
 // USERNAME-BASED AUTHENTICATION
 // ========================================
-
-/**
- * Validate username format
- * Rules:
- * - 3-20 characters
- * - Alphanumeric and underscores only
- * - Must start with a letter
- * - Case insensitive (stored lowercase)
- */
-function validateUsername(username: string): { valid: boolean; error?: string } {
-  const trimmed = username.trim()
-
-  if (!trimmed) {
-    return { valid: false, error: 'Username is required' }
-  }
-
-  if (trimmed.length < 3) {
-    return { valid: false, error: 'Username must be at least 3 characters' }
-  }
-
-  if (trimmed.length > 20) {
-    return { valid: false, error: 'Username must be at most 20 characters' }
-  }
-
-  if (!/^[a-zA-Z]/.test(trimmed)) {
-    return { valid: false, error: 'Username must start with a letter' }
-  }
-
-  if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(trimmed)) {
-    return { valid: false, error: 'Username can only contain letters, numbers, and underscores' }
-  }
-
-  return { valid: true }
-}
 
 /**
  * Check if username is available
@@ -533,9 +530,16 @@ export async function checkUsernameAvailable(username: string): Promise<{
   error?: string
 }> {
   try {
-    const validation = validateUsername(username)
-    if (!validation.valid) {
-      return { available: false, error: validation.error }
+    // Validate username format using Zod schema
+    let validatedUsername: string
+    try {
+      validatedUsername = UsernameSchema.parse(username)
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const firstError = error.issues[0]
+        return { available: false, error: firstError?.message || 'Invalid username format' }
+      }
+      throw error
     }
 
     const adminClient = await createAdminClient()
@@ -544,7 +548,7 @@ export async function checkUsernameAvailable(username: string): Promise<{
     const { data, error } = await adminClient
       .from('usernames')
       .select('username')
-      .ilike('username', username.trim().toLowerCase())
+      .ilike('username', validatedUsername)
       .maybeSingle()
 
     if (error) {
@@ -572,18 +576,18 @@ export async function registerWithUsername(
   userId?: string
 }> {
   try {
-    // Validate username
-    const usernameValidation = validateUsername(username)
-    if (!usernameValidation.valid) {
-      return { success: false, error: usernameValidation.error }
+    // Validate username and password using Zod schemas
+    let trimmedUsername: string
+    try {
+      trimmedUsername = UsernameSchema.parse(username)
+      AuthPasswordSchema.parse(password)
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const firstError = error.issues[0]
+        return { success: false, error: firstError?.message || 'Invalid input' }
+      }
+      throw error
     }
-
-    // Validate password (at least 8 characters)
-    if (!password || password.length < 8) {
-      return { success: false, error: 'Password must be at least 8 characters' }
-    }
-
-    const trimmedUsername = username.trim().toLowerCase()
 
     // Rate limit check
     if (!(await checkOtpRateLimit(`username:${trimmedUsername}`))) {
@@ -675,10 +679,16 @@ export async function signInWithUsername(
   error?: string
 }> {
   try {
-    const trimmedUsername = username.trim().toLowerCase()
-
-    if (!trimmedUsername) {
-      return { success: false, error: 'Username is required' }
+    // Validate inputs - username is required, password is required but we don't validate format on login
+    let trimmedUsername: string
+    try {
+      trimmedUsername = UsernameSchema.parse(username)
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        // For login, return generic error to avoid leaking username format requirements
+        return { success: false, error: 'Invalid username or password' }
+      }
+      throw error
     }
 
     if (!password) {

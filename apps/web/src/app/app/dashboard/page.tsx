@@ -10,6 +10,7 @@ import { authLogger } from '@/lib/auth-logger'
 import type { User } from '@supabase/supabase-js'
 import { LogOut } from 'lucide-react'
 import { getDashboardStats, type DashboardStats } from '@/app/actions/dashboard-stats'
+import { SyncStatusIndicator } from '@/components/offline/SyncStatusIndicator'
 
 // Animation variants
 const containerVariants = {
@@ -237,16 +238,19 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Sign Out Button */}
-            <Button
-              onClick={handleSignOut}
-              variant="outline"
-              size="sm"
-              className="gap-2"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Sign Out</span>
-            </Button>
+            {/* Sync Status & Sign Out */}
+            <div className="flex items-center gap-2">
+              <SyncStatusIndicator compact />
+              <Button
+                onClick={handleSignOut}
+                variant="outline"
+                size="sm"
+                className="gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline">Sign Out</span>
+              </Button>
+            </div>
           </div>
         </div>
       </header>

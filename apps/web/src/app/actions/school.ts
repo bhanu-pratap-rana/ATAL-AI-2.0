@@ -33,31 +33,6 @@ export interface VerifyTeacherResult {
 }
 
 /**
- * Check if current user has admin access
- * Used for authorization on admin pages
- */
-export async function checkAdminAuth() {
-  try {
-    const user = await getCurrentUser()
-
-    if (!user) {
-      return { authorized: false, error: 'Not authenticated' }
-    }
-
-    const role = user.app_metadata?.role
-    const isAdmin = role === 'admin' || role === 'super_admin'
-    if (!isAdmin) {
-      return { authorized: false, error: 'Admin access required' }
-    }
-
-    return { authorized: true }
-  } catch (error) {
-    authLogger.error('[checkAdminAuth] Unexpected error', error)
-    return { authorized: false, error: 'Failed to verify authorization' }
-  }
-}
-
-/**
  * Verify teacher credentials using School Code + Staff PIN
  * This elevates the authenticated user's role to 'teacher'
  */
@@ -281,8 +256,9 @@ export async function searchSchools(query: string) {
 
 /**
  * Get school by code
+ * @internal - Not currently used, kept for potential future use
  */
-export async function getSchoolByCode(schoolCode: string) {
+async function getSchoolByCode(schoolCode: string) {
   try {
     const supabase = await createClient()
 
@@ -333,7 +309,7 @@ export async function rotateStaffPin(schoolCode: string, newPin: string) {
     const supabase = await createClient()
     const userRole = user.app_metadata?.role
 
-    let isAuthorized = userRole === 'admin' || userRole === 'teacher'
+    let isAuthorized = userRole === 'admin' || userRole === 'super_admin' || userRole === 'teacher'
 
     if (!isAuthorized && !userRole) {
       // Use .maybeSingle() - user may not have a teacher profile
@@ -381,7 +357,7 @@ export async function rotateStaffPin(schoolCode: string, newPin: string) {
     if (schoolData) {
       school = schoolData
 
-      if (userRole !== 'admin') {
+      if (userRole !== 'admin' && userRole !== 'super_admin') {
         // Use .maybeSingle() - user may not have a teacher profile
         const { data: teacherProfile, error: teacherError } = await supabase
           .from('teacher_profiles')
@@ -396,6 +372,7 @@ export async function rotateStaffPin(schoolCode: string, newPin: string) {
 
         isAuthorizedForSchool = !!(teacherProfile && school.id === teacherProfile.school_id)
       } else {
+        // Admins and super_admins can rotate any school's PIN
         isAuthorizedForSchool = true
       }
     }
@@ -458,11 +435,12 @@ export async function rotateStaffPin(schoolCode: string, newPin: string) {
 /**
  * Get PIN rotation history for a school (Admin only)
  * Returns when the PIN was last rotated
+ * @internal - Not currently used, kept for potential future use
  *
  * @param schoolCode - The school code
  * @returns Rotation metadata (without exposing the hash)
  */
-export async function getStaffPinRotationInfo(schoolCode: string) {
+async function getStaffPinRotationInfo(schoolCode: string) {
   try {
     const user = await getCurrentUser()
 
@@ -523,5 +501,32 @@ export async function getStaffPinRotationInfo(schoolCode: string) {
   }
 }
 
-// NOTE: createAdminUser has been moved to admin-auth.ts to avoid duplication
-// Import from '@/app/actions/admin-auth' instead
+/**
+ * Check if current user is an admin (admin or super_admin role)
+ *
+ * NOTE: This is a lightweight client-side authorization check.
+ * For server actions that need full user data, use verifyAdminAuth() from supabase-server.ts.
+ * This function is intentionally simpler for client-side use cases like conditional UI rendering.
+ */
+export async function checkAdminAuth(): Promise<{
+  authorized: boolean
+  error?: string
+}> {
+  try {
+    const user = await getCurrentUser()
+
+    if (!user) {
+      return { authorized: false, error: 'Not authenticated' }
+    }
+
+    const userRole = user.app_metadata?.role
+    if (userRole === 'admin' || userRole === 'super_admin') {
+      return { authorized: true }
+    }
+
+    return { authorized: false, error: 'Admin access required' }
+  } catch (error) {
+    authLogger.error('[checkAdminAuth] Error checking admin authorization', error)
+    return { authorized: false, error: 'An error occurred while checking authorization' }
+  }
+}

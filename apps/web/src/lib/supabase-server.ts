@@ -114,6 +114,198 @@ export async function verifyAdminAuth(functionName: string): Promise<{
   return { authorized: true, user: currentUser }
 }
 
+/**
+ * Verify that the current user has super_admin role
+ * Used by admin server actions that only super_admin can perform
+ *
+ * @param functionName - Name of the calling function for logging
+ * @returns Object with authorized flag and optional error
+ */
+export async function verifySuperAdminAuth(functionName: string): Promise<{
+  authorized: boolean
+  user?: Awaited<ReturnType<typeof getCurrentUser>>
+  error?: { success: false; error: string }
+}> {
+  const currentUser = await getCurrentUser()
+  if (!currentUser) {
+    authLogger.warn(`[${functionName}] Unauthorized: No authenticated user`)
+    return {
+      authorized: false,
+      error: { success: false, error: 'Authentication required' },
+    }
+  }
+
+  const role = currentUser.app_metadata?.role
+  if (role !== 'super_admin') {
+    authLogger.warn(`[${functionName}] Forbidden: User lacks super_admin role`, {
+      userId: currentUser.id,
+      role,
+    })
+    return {
+      authorized: false,
+      error: { success: false, error: 'Only super admins can perform this action' },
+    }
+  }
+
+  return { authorized: true, user: currentUser }
+}
+
+/**
+ * Verify that the current user is a teacher (has teacher_profiles entry)
+ * Used by teacher server actions for authorization
+ *
+ * @param functionName - Name of the calling function for logging
+ * @returns Object with authorized flag, user, teacherProfile, and optional error
+ */
+export async function verifyTeacherAuth(functionName: string): Promise<{
+  authorized: boolean
+  user?: Awaited<ReturnType<typeof getCurrentUser>>
+  teacherProfile?: { user_id: string }
+  error?: { success: false; error: string }
+}> {
+  const currentUser = await getCurrentUser()
+  if (!currentUser) {
+    authLogger.warn(`[${functionName}] Unauthorized: No authenticated user`)
+    return {
+      authorized: false,
+      error: { success: false, error: 'Not authenticated' },
+    }
+  }
+
+  const supabase = await createClient()
+
+  // Verify user is a teacher (teacher_profiles uses user_id as primary key)
+  const { data: teacherProfile, error: profileError } = await supabase
+    .from('teacher_profiles')
+    .select('user_id')
+    .eq('user_id', currentUser.id)
+    .maybeSingle()
+
+  if (profileError) {
+    authLogger.error(`[${functionName}] Failed to verify teacher status`, profileError)
+    return {
+      authorized: false,
+      error: { success: false, error: 'Failed to verify teacher status' },
+    }
+  }
+
+  if (!teacherProfile) {
+    authLogger.warn(`[${functionName}] Forbidden: User is not a teacher`, {
+      userId: currentUser.id,
+    })
+    return {
+      authorized: false,
+      error: { success: false, error: 'Only teachers can perform this action' },
+    }
+  }
+
+  return { authorized: true, user: currentUser, teacherProfile }
+}
+
+/**
+ * Verify that the current user is a student (has student_profiles entry)
+ * Used by student server actions for authorization
+ *
+ * @param functionName - Name of the calling function for logging
+ * @returns Object with authorized flag, user, studentProfile, and optional error
+ */
+export async function verifyStudentAuth(functionName: string): Promise<{
+  authorized: boolean
+  user?: Awaited<ReturnType<typeof getCurrentUser>>
+  studentProfile?: { user_id: string; name: string }
+  error?: { success: false; error: string }
+}> {
+  const currentUser = await getCurrentUser()
+  if (!currentUser) {
+    authLogger.warn(`[${functionName}] Unauthorized: No authenticated user`)
+    return {
+      authorized: false,
+      error: { success: false, error: 'Not authenticated' },
+    }
+  }
+
+  const supabase = await createClient()
+
+  // Verify user is a student (student_profiles uses user_id as primary key)
+  const { data: studentProfile, error: profileError } = await supabase
+    .from('student_profiles')
+    .select('user_id, name')
+    .eq('user_id', currentUser.id)
+    .maybeSingle()
+
+  if (profileError) {
+    authLogger.error(`[${functionName}] Failed to verify student status`, profileError)
+    return {
+      authorized: false,
+      error: { success: false, error: 'Failed to verify student status' },
+    }
+  }
+
+  if (!studentProfile) {
+    authLogger.warn(`[${functionName}] Forbidden: User is not a student`, {
+      userId: currentUser.id,
+    })
+    return {
+      authorized: false,
+      error: { success: false, error: 'Only students can perform this action' },
+    }
+  }
+
+  return { authorized: true, user: currentUser, studentProfile }
+}
+
+/**
+ * Verify that the current user owns a specific class
+ * Used by teacher server actions that require class ownership
+ *
+ * @param functionName - Name of the calling function for logging
+ * @param classId - The class ID to verify ownership of
+ * @returns Object with authorized flag, user, classData, and optional error
+ */
+export async function verifyClassOwnership(functionName: string, classId: string): Promise<{
+  authorized: boolean
+  user?: Awaited<ReturnType<typeof getCurrentUser>>
+  classData?: { id: string; teacher_id: string; name: string }
+  error?: { success: false; error: string }
+}> {
+  // First verify teacher auth
+  const teacherAuth = await verifyTeacherAuth(functionName)
+  if (!teacherAuth.authorized) {
+    return teacherAuth
+  }
+
+  const supabase = await createClient()
+
+  // Verify user owns this class
+  const { data: classData, error: classError } = await supabase
+    .from('classes')
+    .select('id, teacher_id, name')
+    .eq('id', classId)
+    .eq('teacher_id', teacherAuth.user!.id)
+    .maybeSingle()
+
+  if (classError) {
+    authLogger.error(`[${functionName}] Failed to verify class ownership`, classError)
+    return {
+      authorized: false,
+      error: { success: false, error: 'Failed to verify class ownership' },
+    }
+  }
+
+  if (!classData) {
+    authLogger.warn(`[${functionName}] Forbidden: User does not own this class`, {
+      userId: teacherAuth.user!.id,
+      classId,
+    })
+    return {
+      authorized: false,
+      error: { success: false, error: 'You do not own this class' },
+    }
+  }
+
+  return { authorized: true, user: teacherAuth.user, classData }
+}
+
 export async function createAdminClient() {
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL

@@ -33,6 +33,8 @@ export const AI_CONTENT_LIMITS = {
   contentMinLength: 100,
   /** Maximum content length for summarization */
   contentMaxLength: 15000,
+  /** Maximum text length for TTS */
+  ttsMaxLength: 1000,
 } as const
 
 /**

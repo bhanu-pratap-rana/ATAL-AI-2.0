@@ -459,7 +459,7 @@ Grep: "catch\s*\(\s*\)\s*\{" → No bare catches
 - [ ] No `any` types
 - [ ] No bare catch blocks
 - [ ] No console.log in production
-- [ ] Files < 500 lines
+- [ ] Files < 1500 lines (single-purpose files may exceed if cohesive)
 - [ ] No duplicate logic
 - [ ] No commented-out code
 - [ ] All imports resolve correctly

@@ -3,6 +3,7 @@ import { Nunito, Noto_Sans_Devanagari, Noto_Sans_Bengali } from "next/font/googl
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { PageTransition } from "@/components/ui/page-transition";
+import { OfflineBanner } from "@/components/offline/OfflineBanner";
 import "./globals.css";
 
 /* ============================================
@@ -101,6 +102,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <OfflineBanner position="top" />
           <PageTransition>
             {children}
           </PageTransition>
