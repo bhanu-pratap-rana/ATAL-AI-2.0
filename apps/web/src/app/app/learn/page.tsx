@@ -219,7 +219,7 @@ export default async function LearnPage() {
         {/* Progress Overview */}
         <Card className="border-2">
           <CardContent className="p-6">
-            <div className="grid grid-cols-3 gap-4 text-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-center">
               <div>
                 <div className="text-3xl font-bold text-primary">{overallProgress}%</div>
                 <div className="text-sm text-muted-foreground">Overall Progress</div>

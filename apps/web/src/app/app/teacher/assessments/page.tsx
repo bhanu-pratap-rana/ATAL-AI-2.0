@@ -22,7 +22,7 @@ function formatRelativeTime(dateString: string | null): string {
 
 // Get score color based on value
 function getScoreColor(score: number | null): string {
-  if (score === null) return 'bg-gray-100 text-gray-600'
+  if (score === null) return 'bg-surface text-text-tertiary'
   if (score >= 80) return 'bg-success-light text-success-dark'
   if (score >= 60) return 'bg-warning-light text-warning-dark'
   return 'bg-error-light text-error-dark'

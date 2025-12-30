@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { authLogger } from '@/lib/auth-logger'
+import { QR_CODE_COLORS } from '@/lib/constants/theme-colors'
 
 interface InvitePanelProps {
   classCode: string
@@ -36,8 +37,8 @@ export function InvitePanel({ classCode, joinPin, className }: InvitePanelProps)
           width: 256,
           margin: 2,
           color: {
-            dark: getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || '#F98819',
-            light: '#ffffff',
+            dark: getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim() || QR_CODE_COLORS.dark,
+            light: QR_CODE_COLORS.light,
           },
         },
         (error) => {

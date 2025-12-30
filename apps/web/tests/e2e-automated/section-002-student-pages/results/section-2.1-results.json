@@ -1,0 +1,21 @@
+{
+  "section": "Section 2.1: Student Dashboard",
+  "timestamp": "2025-12-30T09:32:05.777Z",
+  "totalTests": 1,
+  "passed": 0,
+  "failed": 1,
+  "totalDuration": 1849,
+  "results": [
+    {
+      "testCase": "TC-2.1.3",
+      "testName": "Display-Total-Points",
+      "status": "FAIL",
+      "duration": 1849,
+      "screenshots": [],
+      "steps": [
+        "Sign in as student"
+      ],
+      "error": "locator.fill: Page crashed\nCall log:\n\u001b[2m  - waiting for locator('input[type=\"email\"]').first()\u001b[22m\n"
+    }
+  ]
+}

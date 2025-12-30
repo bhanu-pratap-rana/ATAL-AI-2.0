@@ -1,6 +1,8 @@
 import { test, expect, Page } from '@playwright/test';
 import * as fs from 'fs';
-import * as path from 'path';<br><br>const BASE_URL = process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000';
+import * as path from 'path';
+
+const BASE_URL = process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000';
 const TEST_TEACHER_EMAIL = process.env.TEST_TEACHER_EMAIL || 'test.teacher@example.com';
 const TEST_TEACHER_PASSWORD = process.env.TEST_TEACHER_PASSWORD || 'TeacherPass123';
 const TEST_SCHOOL_CODE = process.env.TEST_SCHOOL_CODE || 'SCH001';

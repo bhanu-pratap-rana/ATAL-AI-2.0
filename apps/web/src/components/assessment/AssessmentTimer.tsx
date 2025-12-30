@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { formatTimeMMSS } from '@/lib/time-utils'
 
 /**
  * ATAL AI Assessment Timer - Jyoti Theme
@@ -33,13 +34,6 @@ export function AssessmentTimer({
 }: AssessmentTimerProps) {
   const [elapsedSeconds, setElapsedSeconds] = useState(initialSeconds)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
-
-  // Format seconds as MM:SS
-  const formatTime = (totalSeconds: number): string => {
-    const minutes = Math.floor(totalSeconds / 60)
-    const seconds = totalSeconds % 60
-    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-  }
 
   // Start/stop timer based on pause state
   useEffect(() => {
@@ -77,13 +71,13 @@ export function AssessmentTimer({
     <div
       className={`inline-flex items-center gap-2 text-text-secondary ${className}`}
       role="timer"
-      aria-label={`Elapsed time: ${formatTime(elapsedSeconds)}`}
+      aria-label={`Elapsed time: ${formatTimeMMSS(elapsedSeconds)}`}
     >
       <span className="text-lg" aria-hidden="true">
         ⏱️
       </span>
       <span className="font-mono text-base font-medium tabular-nums">
-        {formatTime(elapsedSeconds)}
+        {formatTimeMMSS(elapsedSeconds)}
       </span>
     </div>
   )
@@ -99,12 +93,6 @@ export function CompactTimer({
 }: Omit<AssessmentTimerProps, 'className'>) {
   const [elapsedSeconds, setElapsedSeconds] = useState(initialSeconds)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
-
-  const formatTime = (totalSeconds: number): string => {
-    const minutes = Math.floor(totalSeconds / 60)
-    const seconds = totalSeconds % 60
-    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-  }
 
   useEffect(() => {
     if (isPaused) {
@@ -139,9 +127,9 @@ export function CompactTimer({
     <span
       className="text-sm font-mono font-medium text-text-tertiary tabular-nums"
       role="timer"
-      aria-label={`Elapsed time: ${formatTime(elapsedSeconds)}`}
+      aria-label={`Elapsed time: ${formatTimeMMSS(elapsedSeconds)}`}
     >
-      {formatTime(elapsedSeconds)}
+      {formatTimeMMSS(elapsedSeconds)}
     </span>
   )
 }

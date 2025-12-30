@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Mail, CheckCircle, ArrowLeft, RefreshCw } from 'lucide-react'
+import { formatTimeTidyCompact } from '@/lib/time-utils'
 
 const RESEND_COOLDOWN_SECONDS = 60 // 60 seconds cooldown
 
@@ -80,12 +81,6 @@ export function TeacherSignupEmailFlow({
     setIsResending(false)
     setResendCooldown(RESEND_COOLDOWN_SECONDS)
   }, [resendCooldown, isResending, onSendOtp])
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return mins > 0 ? `${mins}:${secs.toString().padStart(2, '0')}` : `${secs}s`
-  }
 
   if (!otpSent) {
     return (
@@ -201,7 +196,7 @@ export function TeacherSignupEmailFlow({
             {isResending
               ? 'Sending...'
               : resendCooldown > 0
-                ? `Resend OTP in ${formatTime(resendCooldown)}`
+                ? `Resend OTP in ${formatTimeTidyCompact(resendCooldown)}`
                 : 'Resend OTP'}
           </Button>
         </div>

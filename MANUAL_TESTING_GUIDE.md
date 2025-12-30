@@ -135,7 +135,6 @@
   7. Verify redirect to dashboard
 - **Expected:** Account created successfully
 - **Status:** ☐ Pass ☐ Fail
-
 ---
 
 ## 2. Student Pages Testing
@@ -3061,7 +3060,7 @@
 
 ---
 
-## 44. Multiple Device Sessions
+ 44. Multiple Device Sessions
 
 #### Test Case 44.1.1: Simultaneous Logins from Different Devices
 - **Steps:**
@@ -3172,7 +3171,7 @@
   3. Leaderboard cache invalidates
   4. Student A's view updates in real-time
   5. Verify B's new position visible immediately
-- **Expected:** Real-time cache invalidation
+- **Expected:** Real-time cache invalidation##
 - **Status:** ☐ Pass ☐ Fail
 
 #### Test Case 45.1.5: Curriculum Content Cache

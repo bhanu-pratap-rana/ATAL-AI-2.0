@@ -14,8 +14,8 @@
  * Touch-friendly with minimum 44px tap targets (PWA best practice).
  */
 
-// Theme constants matching globals.css (fallbacks for service worker context)
-// These inline styles are intentional - offline page must work when CSS isn't loaded
+// Theme fallbacks for service worker context (when globals.css may not be loaded)
+// CSS variables are preferred, these are fallbacks only
 const THEME = {
   surface: '#FFFBF7',
   white: '#FFFFFF',
@@ -25,9 +25,12 @@ const THEME = {
   primary: '#F98819',
   primaryDark: '#E07510',
   primaryLight: '#FFCFA3',
-  error: '#DC2626', // Theme error color (matches globals.css --color-error)
+  error: '#DC2626',
   gradientPrimary: 'linear-gradient(135deg, #F98819 0%, #FFAB4A 100%)',
 } as const
+
+// Helper function to get CSS variable with fallback
+const getCSSVar = (varName: string, fallback: string) => `var(--${varName}, ${fallback})`
 
 export default function OfflinePage() {
   return (
