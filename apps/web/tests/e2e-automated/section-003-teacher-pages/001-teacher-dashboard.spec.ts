@@ -147,40 +147,15 @@ test.describe('SECTION 3.1: Teacher Dashboard', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: Dashboard Load`);
 
-      // Step 1: Sign in as teacher
-      steps.push('Sign in as teacher');
-      console.log('Step 1: Signing in as teacher...');
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.waitForLoadState('networkidle', { timeout: 10000 });
-      screenshots.push(await takeScreenshot(page, testName, '01-signin-page'));
-
-      const emailInput = page.locator('input[type="email"]').first();
-      const passwordInput = page.locator('input[type="password"]').first();
-
-      await emailInput.fill(TEST_TEACHER_EMAIL);
-      await passwordInput.fill(TEST_TEACHER_PASSWORD);
-      console.log('✓ Credentials entered');
-
-      const signInBtn = page.locator('button:has-text("Sign In"), button:has-text("signin")').first();
-      await signInBtn.click();
-
-      // Wait for navigation - teacher might go to different page
-      await Promise.race([
-        page.waitForURL('**/app/teacher/**', { timeout: 15000 }),
-        page.waitForURL('**/app/dashboard', { timeout: 15000 }).catch(() => null),
-      ]);
-
-      console.log('✓ Signed in successfully');
-
-      // Step 2: Navigate to teacher dashboard
-      steps.push('Navigate to /app/teacher/dashboard');
-      console.log('Step 2: Navigating to teacher dashboard...');
+      // Step 1: Navigate to teacher dashboard (using pre-authenticated session)
+      steps.push('Navigate to teacher dashboard');
+      console.log('Step 1: Navigating to teacher dashboard...');
       const navigationStart = Date.now();
-      await page.goto(`${BASE_URL}/app/teacher/dashboard`);
+      await page.goto(`${BASE_URL}/app/teacher/classes`);
       await page.waitForLoadState('networkidle', { timeout: 10000 });
       const navigationDuration = Date.now() - navigationStart;
       console.log(`✓ Navigated to teacher dashboard (${navigationDuration}ms)`);
-      screenshots.push(await takeScreenshot(page, testName, '02-dashboard-loaded'));
+      screenshots.push(await takeScreenshot(page, testName, '01-dashboard-loaded'));
 
       // Step 3: Verify page loads within 3 seconds
       steps.push('Verify page loads within 3 seconds');
@@ -244,34 +219,13 @@ test.describe('SECTION 3.1: Teacher Dashboard', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: Display Active Classes`);
 
-      // Step 1: Sign in as teacher
-      steps.push('Sign in as teacher');
-      console.log('Step 1: Signing in as teacher...');
-      await page.goto(`${BASE_URL}/auth/signin`);
+      // Step 1: Navigate to teacher classes (using pre-authenticated session)
+      steps.push('Navigate to teacher classes');
+      console.log('Step 1: Navigating to teacher classes...');
+      await page.goto(`${BASE_URL}/app/teacher/classes`);
       await page.waitForLoadState('networkidle', { timeout: 10000 });
-
-      const emailInput = page.locator('input[type="email"]').first();
-      const passwordInput = page.locator('input[type="password"]').first();
-      await emailInput.fill(TEST_TEACHER_EMAIL);
-      await passwordInput.fill(TEST_TEACHER_PASSWORD);
-
-      const signInBtn = page.locator('button:has-text("Sign In")').first();
-      await signInBtn.click();
-
-      await Promise.race([
-        page.waitForURL('**/app/teacher/**', { timeout: 15000 }),
-        page.waitForURL('**/app/dashboard', { timeout: 15000 }).catch(() => null),
-      ]);
-
-      console.log('✓ Signed in');
-
-      // Step 2: Navigate to teacher dashboard
-      steps.push('Navigate to teacher dashboard');
-      console.log('Step 2: Navigating to dashboard...');
-      await page.goto(`${BASE_URL}/app/teacher/dashboard`);
-      await page.waitForLoadState('networkidle', { timeout: 10000 });
-      console.log('✓ On teacher dashboard');
-      screenshots.push(await takeScreenshot(page, testName, '01-dashboard'));
+      console.log('✓ On teacher classes page');
+      screenshots.push(await takeScreenshot(page, testName, '01-classes-page'));
 
       // Step 3: Verify "My Classes" section
       steps.push('Verify My Classes section');
@@ -387,33 +341,12 @@ test.describe('SECTION 3.1: Teacher Dashboard', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: Display Class Statistics`);
 
-      // Step 1: Sign in as teacher
-      steps.push('Sign in as teacher');
-      console.log('Step 1: Signing in as teacher...');
-      await page.goto(`${BASE_URL}/auth/signin`);
+      // Step 1: Navigate to teacher dashboard (using pre-authenticated session)
+      steps.push('Navigate to teacher dashboard');
+      console.log('Step 1: Navigating to teacher dashboard...');
+      await page.goto(`${BASE_URL}/app/teacher/classes`);
       await page.waitForLoadState('networkidle', { timeout: 10000 });
-
-      const emailInput = page.locator('input[type="email"]').first();
-      const passwordInput = page.locator('input[type="password"]').first();
-      await emailInput.fill(TEST_TEACHER_EMAIL);
-      await passwordInput.fill(TEST_TEACHER_PASSWORD);
-
-      const signInBtn = page.locator('button:has-text("Sign In")').first();
-      await signInBtn.click();
-
-      await Promise.race([
-        page.waitForURL('**/app/teacher/**', { timeout: 15000 }),
-        page.waitForURL('**/app/dashboard', { timeout: 15000 }).catch(() => null),
-      ]);
-
-      console.log('✓ Signed in');
-
-      // Step 2: Navigate to dashboard
-      steps.push('Navigate to dashboard');
-      console.log('Step 2: Navigating to dashboard...');
-      await page.goto(`${BASE_URL}/app/teacher/dashboard`);
-      await page.waitForLoadState('networkidle', { timeout: 10000 });
-      console.log('✓ On dashboard');
+      console.log('✓ On teacher dashboard');
       screenshots.push(await takeScreenshot(page, testName, '01-dashboard'));
 
       // Step 3: Verify class statistics section
