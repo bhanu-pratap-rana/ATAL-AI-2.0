@@ -150,61 +150,12 @@ test.describe('SECTION 3.2: Teacher Class Management', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: Create Class`);
 
-      // Step 1: Sign in as teacher
-      steps.push('Sign in as teacher');
-      console.log('Step 1: Signing in as teacher...');
-      await page.goto(`${BASE_URL}/auth/signin`);
+      // Step 1: Navigate to teacher classes (using pre-authenticated session)
+      steps.push('Navigate to teacher classes');
+      console.log('Step 1: Navigating to teacher classes...');
+      await page.goto(`${BASE_URL}/app/teacher/classes`);
       await page.waitForLoadState('networkidle', { timeout: 10000 });
-
-      const emailInput = page.locator('input[type="email"]').first();
-      const passwordInput = page.locator('input[type="password"]').first();
-
-      await emailInput.fill(TEST_TEACHER_EMAIL);
-      await passwordInput.fill(TEST_TEACHER_PASSWORD);
-
-      const signInBtn = page.locator('button:has-text("Sign In")').first();
-      await signInBtn.click();
-
-      await Promise.race([
-        page.waitForURL('**/app/teacher/**', { timeout: 15000 }),
-        page.waitForURL('**/app/dashboard', { timeout: 15000 }).catch(() => null),
-      ]);
-
-      console.log('✓ Signed in');
-
-      // Step 2: Navigate to Classes page
-      steps.push('Navigate to Classes page');
-      console.log('Step 2: Navigating to classes management...');
-
-      // Try common class management URLs
-      const classUrls = [
-        '/app/teacher/classes',
-        '/app/teacher/manage-classes',
-        '/app/classes',
-      ];
-
-      let classPageFound = false;
-      for (const url of classUrls) {
-        try {
-          await page.goto(`${BASE_URL}${url}`, { waitUntil: 'networkidle', timeout: 5000 });
-          classPageFound = true;
-          console.log(`✓ Navigated to ${url}`);
-          break;
-        } catch (e) {
-          // Try next URL
-        }
-      }
-
-      if (!classPageFound) {
-        // Fallback: look for classes link on current page
-        const classesLink = page.locator('a:has-text("Classes"), button:has-text("Manage Classes")').first();
-        if (await classesLink.isVisible({ timeout: 5000 }).catch(() => false)) {
-          await classesLink.click();
-          await page.waitForLoadState('networkidle', { timeout: 10000 });
-          console.log('✓ Clicked Classes link');
-        }
-      }
-
+      console.log('✓ Navigated to classes page');
       screenshots.push(await takeScreenshot(page, testName, '01-classes-page'));
 
       // Step 3: Click "Create Class" button
@@ -329,34 +280,16 @@ test.describe('SECTION 3.2: Teacher Class Management', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: Generate Class Code`);
 
-      // Step 1: Sign in as teacher
-      steps.push('Sign in as teacher');
-      console.log('Step 1: Signing in as teacher...');
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.waitForLoadState('networkidle', { timeout: 10000 });
-
-      const emailInput = page.locator('input[type="email"]').first();
-      const passwordInput = page.locator('input[type="password"]').first();
-      await emailInput.fill(TEST_TEACHER_EMAIL);
-      await passwordInput.fill(TEST_TEACHER_PASSWORD);
-
-      const signInBtn = page.locator('button:has-text("Sign In")').first();
-      await signInBtn.click();
-
-      await Promise.race([
-        page.waitForURL('**/app/teacher/**', { timeout: 15000 }),
-        page.waitForURL('**/app/dashboard', { timeout: 15000 }).catch(() => null),
-      ]);
-
-      console.log('✓ Signed in');
-
-      // Step 2: Navigate to class details
-      steps.push('Navigate to class details');
-      console.log('Step 2: Navigating to class details...');
-
-      // Navigate to a class (use teacher/classes)
+      // Step 1: Navigate to teacher classes (using pre-authenticated session)
+      steps.push('Navigate to teacher classes');
+      console.log('Step 1: Navigating to teacher classes...');
       await page.goto(`${BASE_URL}/app/teacher/classes`);
       await page.waitForLoadState('networkidle', { timeout: 10000 });
+      console.log('✓ On teacher classes page');
+
+      // Step 2: Navigate to first class details
+      steps.push('Navigate to first class details');
+      console.log('Step 2: Navigating to class details...');
 
       // Click first available class
       const firstClass = page.locator('[class*="class"], li, [role="button"]').first();
@@ -474,33 +407,16 @@ test.describe('SECTION 3.2: Teacher Class Management', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: Generate QR Code`);
 
-      // Step 1: Sign in as teacher
-      steps.push('Sign in as teacher');
-      console.log('Step 1: Signing in as teacher...');
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.waitForLoadState('networkidle', { timeout: 10000 });
-
-      const emailInput = page.locator('input[type="email"]').first();
-      const passwordInput = page.locator('input[type="password"]').first();
-      await emailInput.fill(TEST_TEACHER_EMAIL);
-      await passwordInput.fill(TEST_TEACHER_PASSWORD);
-
-      const signInBtn = page.locator('button:has-text("Sign In")').first();
-      await signInBtn.click();
-
-      await Promise.race([
-        page.waitForURL('**/app/teacher/**', { timeout: 15000 }),
-        page.waitForURL('**/app/dashboard', { timeout: 15000 }).catch(() => null),
-      ]);
-
-      console.log('✓ Signed in');
-
-      // Step 2: Navigate to class details
-      steps.push('Navigate to class details');
-      console.log('Step 2: Navigating to class details...');
-
+      // Step 1: Navigate to teacher classes (using pre-authenticated session)
+      steps.push('Navigate to teacher classes');
+      console.log('Step 1: Navigating to teacher classes...');
       await page.goto(`${BASE_URL}/app/teacher/classes`);
       await page.waitForLoadState('networkidle', { timeout: 10000 });
+      console.log('✓ On teacher classes page');
+
+      // Step 2: Navigate to first class details
+      steps.push('Navigate to first class details');
+      console.log('Step 2: Navigating to class details...');
 
       const firstClass = page.locator('[class*="class"], li, [role="button"]').first();
       const classVisible = await firstClass.isVisible({ timeout: 5000 }).catch(() => false);
@@ -610,33 +526,16 @@ test.describe('SECTION 3.2: Teacher Class Management', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: View Class Roster`);
 
-      // Step 1: Sign in as teacher
-      steps.push('Sign in as teacher');
-      console.log('Step 1: Signing in as teacher...');
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.waitForLoadState('networkidle', { timeout: 10000 });
-
-      const emailInput = page.locator('input[type="email"]').first();
-      const passwordInput = page.locator('input[type="password"]').first();
-      await emailInput.fill(TEST_TEACHER_EMAIL);
-      await passwordInput.fill(TEST_TEACHER_PASSWORD);
-
-      const signInBtn = page.locator('button:has-text("Sign In")').first();
-      await signInBtn.click();
-
-      await Promise.race([
-        page.waitForURL('**/app/teacher/**', { timeout: 15000 }),
-        page.waitForURL('**/app/dashboard', { timeout: 15000 }).catch(() => null),
-      ]);
-
-      console.log('✓ Signed in');
-
-      // Step 2: Navigate to class details
-      steps.push('Navigate to class details');
-      console.log('Step 2: Navigating to class details...');
-
+      // Step 1: Navigate to teacher classes (using pre-authenticated session)
+      steps.push('Navigate to teacher classes');
+      console.log('Step 1: Navigating to teacher classes...');
       await page.goto(`${BASE_URL}/app/teacher/classes`);
       await page.waitForLoadState('networkidle', { timeout: 10000 });
+      console.log('✓ On teacher classes page');
+
+      // Step 2: Navigate to first class details
+      steps.push('Navigate to first class details');
+      console.log('Step 2: Navigating to class details...');
 
       const firstClass = page.locator('[class*="class"], li, [role="button"]').first();
       const classVisible = await firstClass.isVisible({ timeout: 5000 }).catch(() => false);

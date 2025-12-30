@@ -1,0 +1,43 @@
+{
+  "section": "Section 3.1: Teacher Dashboard",
+  "timestamp": "2025-12-30T11:04:13.888Z",
+  "totalTests": 2,
+  "passed": 1,
+  "failed": 1,
+  "totalDuration": 5502,
+  "results": [
+    {
+      "testCase": "TC-3.1.1",
+      "testName": "Dashboard-Load",
+      "status": "PASS",
+      "duration": 2830,
+      "screenshots": [
+        "Dashboard-Load___01-dashboard-loaded___1767092649870.png",
+        "Dashboard-Load___03-widgets-visible___1767092650151.png"
+      ],
+      "steps": [
+        "Navigate to teacher dashboard",
+        "Verify page loads within 3 seconds",
+        "Verify dashboard widgets visible"
+      ]
+    },
+    {
+      "testCase": "TC-3.1.2",
+      "testName": "Display-Active-Classes",
+      "status": "FAIL",
+      "duration": 2672,
+      "screenshots": [
+        "Display-Active-Classes___01-classes-page___1767092653021.png",
+        "Display-Active-Classes___02-classes-visible___1767092653325.png"
+      ],
+      "steps": [
+        "Navigate to teacher classes",
+        "Verify My Classes section",
+        "Verify list of teacher classes",
+        "Verify class names and student counts",
+        "Verify classes are displayed"
+      ],
+      "error": "\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m"
+    }
+  ]
+}

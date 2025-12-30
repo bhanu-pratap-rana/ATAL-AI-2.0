@@ -1,0 +1,48 @@
+{
+  "section": "Section 3.2: Teacher Class Management",
+  "timestamp": "2025-12-30T11:04:21.332Z",
+  "totalTests": 2,
+  "passed": 1,
+  "failed": 1,
+  "totalDuration": 5449,
+  "results": [
+    {
+      "testCase": "TC-3.2.3",
+      "testName": "Generate-QR-Code",
+      "status": "PASS",
+      "duration": 2829,
+      "screenshots": [
+        "Generate-QR-Code___01-class-details___1767092657146.png",
+        "Generate-QR-Code___02-qr-code___1767092657514.png",
+        "Generate-QR-Code___03-qr-verified___1767092657746.png"
+      ],
+      "steps": [
+        "Navigate to teacher classes",
+        "Navigate to first class details",
+        "Verify QR code visible",
+        "Check for invite panel",
+        "Verify QR code is scannable"
+      ]
+    },
+    {
+      "testCase": "TC-3.2.4",
+      "testName": "View-Class-Roster",
+      "status": "FAIL",
+      "duration": 2620,
+      "screenshots": [
+        "View-Class-Roster___01-class-details___1767092660289.png",
+        "View-Class-Roster___02-roster-tab___1767092660552.png",
+        "View-Class-Roster___03-roster-list___1767092660825.png"
+      ],
+      "steps": [
+        "Navigate to teacher classes",
+        "Navigate to first class details",
+        "Click Roster tab",
+        "Verify enrolled students list",
+        "Verify student details (names and roll numbers)",
+        "Verify roster displays correctly"
+      ],
+      "error": "\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m"
+    }
+  ]
+}
