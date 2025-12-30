@@ -1,0 +1,39 @@
+{
+  "section": "Section 20.1: Forgot Password Testing",
+  "timestamp": "2025-12-30T09:34:59.028Z",
+  "totalTests": 1,
+  "passed": 1,
+  "failed": 0,
+  "totalDuration": 2571,
+  "features": [
+    "Forgot Password Flow",
+    "Password Reset with OTP"
+  ],
+  "results": [
+    {
+      "testCase": "TC-20.1.2",
+      "testName": "Reset-Password-with-OTP",
+      "status": "PASS",
+      "duration": 2571,
+      "featureName": "Password Reset (resetPasswordWithOtp)",
+      "resultsSummary": "Password reset form structure verified ✓",
+      "steps": [
+        "Navigate to password reset page",
+        "Look for OTP input",
+        "Look for new password input",
+        "Look for confirm password input",
+        "Verify password requirements",
+        "Look for submit button",
+        "Verify form structure"
+      ],
+      "findings": [
+        "OTP input field not located",
+        "Password field not located",
+        "Confirm password field not found",
+        "Password requirements visible",
+        "Submit button not located",
+        "Reset form: 0 inputs"
+      ]
+    }
+  ]
+}

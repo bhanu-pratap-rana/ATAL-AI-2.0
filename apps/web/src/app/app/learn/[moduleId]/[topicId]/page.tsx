@@ -17,6 +17,7 @@ import Link from 'next/link';
 import { useChat } from '@ai-sdk/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
 import { VoiceChat } from '@/components/ai/VoiceChat';
 import { createClient } from '@/lib/supabase-browser';
 import { clientLogger } from '@/lib/client-logger';
@@ -341,13 +342,12 @@ export default function LessonPage() {
             {!showPractice ? (
               <Card>
                 <CardContent className="p-6">
-                  <div className="prose prose-sm max-w-none">
-                    {lesson.sections[currentSection]?.content.split('\n').map((para, idx) => (
-                      <p key={idx} className="mb-4 whitespace-pre-wrap">
-                        {para}
-                      </p>
-                    ))}
-                  </div>
+                  {lesson.sections[currentSection] && (
+                    <MarkdownRenderer
+                      content={lesson.sections[currentSection].content}
+                      className="prose prose-sm dark:prose-invert max-w-none"
+                    />
+                  )}
 
                   {/* Navigation */}
                   <div className="flex justify-between mt-8">

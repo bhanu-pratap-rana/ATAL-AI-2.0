@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { PageTransition } from "@/components/ui/page-transition";
 import { OfflineBanner } from "@/components/offline/OfflineBanner";
+import { BackgroundSyncInitializer } from "@/components/offline/BackgroundSyncInitializer";
 import "./globals.css";
 
 /* ============================================
@@ -102,6 +103,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <BackgroundSyncInitializer />
           <OfflineBanner position="top" />
           <PageTransition>
             {children}

@@ -4,6 +4,8 @@
 
 export { Badge } from './badge';
 export { Button, buttonVariants } from './button';
+export { DialogContainer } from './DialogContainer';
+export { FormMessage } from './FormMessage';
 export {
   Card,
   CardHeader,
@@ -27,6 +29,7 @@ export {
 export { IconBox } from './icon-box';
 export { Input } from './input';
 export { Label } from './label';
+export { MarkdownRenderer } from './markdown-renderer';
 export { PageTransition } from './page-transition';
 export { Progress } from './progress';
 export { Toaster } from './sonner';

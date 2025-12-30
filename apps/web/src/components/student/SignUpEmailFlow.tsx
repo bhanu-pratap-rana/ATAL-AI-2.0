@@ -18,6 +18,7 @@ import { authLogger } from '@/lib/auth-logger'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import type { AuthState, AuthActions } from '@/hooks/useAuthState'
+import { formatTimeTidyCompact } from '@/lib/time-utils'
 
 /**
  * ATAL AI Student Sign Up (Email) - Jyoti Theme
@@ -68,11 +69,6 @@ export function SignUpEmailFlow({
     }
   }, [resendCooldown])
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return mins > 0 ? `${mins}:${secs.toString().padStart(2, '0')}` : `${secs}s`
-  }
 
   const handleResendOtp = useCallback(async () => {
     if (resendCooldown > 0 || isResending) return
@@ -315,7 +311,7 @@ export function SignUpEmailFlow({
           {isResending
             ? 'Sending...'
             : resendCooldown > 0
-              ? `Resend OTP in ${formatTime(resendCooldown)}`
+              ? `Resend OTP in ${formatTimeTidyCompact(resendCooldown)}`
               : 'Resend OTP'}
         </button>
       </div>

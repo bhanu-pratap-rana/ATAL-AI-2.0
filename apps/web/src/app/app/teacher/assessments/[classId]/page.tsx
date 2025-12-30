@@ -22,7 +22,7 @@ function formatRelativeTime(dateString: string | null): string {
 
 // Get score color based on value
 function getScoreColor(score: number | null): string {
-  if (score === null) return 'bg-gray-100 text-gray-600'
+  if (score === null) return 'bg-surface text-text-tertiary'
   if (score >= 80) return 'bg-success text-white'
   if (score >= 60) return 'bg-warning text-white'
   return 'bg-error text-white'
@@ -30,7 +30,7 @@ function getScoreColor(score: number | null): string {
 
 // Get skill level from score
 function getSkillLevel(score: number | null): { label: string; color: string } {
-  if (score === null) return { label: 'No Data', color: 'bg-gray-100 text-gray-600' }
+  if (score === null) return { label: 'No Data', color: 'bg-surface text-text-tertiary' }
   if (score >= 80) return { label: 'Advanced', color: 'bg-success-light text-success-dark' }
   if (score >= 60) return { label: 'Intermediate', color: 'bg-warning-light text-warning-dark' }
   return { label: 'Beginner', color: 'bg-error-light text-error-dark' }

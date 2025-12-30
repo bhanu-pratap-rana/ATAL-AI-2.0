@@ -122,7 +122,7 @@ export function QuestionPagination({
             onClick={() => canJump && onJumpTo(index)}
             disabled={!canJump}
             className={`
-              w-8 h-8 min-w-[2rem] min-h-[2rem] sm:w-10 sm:h-10 sm:min-w-[2.5rem] sm:min-h-[2.5rem]
+              min-w-[2.75rem] min-h-[2.75rem] w-8 h-8 sm:w-10 sm:h-10
               rounded-full flex items-center justify-center
               text-xs sm:text-sm font-semibold
               transition-all duration-200
