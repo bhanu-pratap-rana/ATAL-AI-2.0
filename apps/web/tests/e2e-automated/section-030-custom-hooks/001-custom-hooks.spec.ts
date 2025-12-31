@@ -67,7 +67,7 @@ test('TC-30.1.1: useAuthState Hook', async ({ page }) => {
 
     // Step 1: Navigate to login
     console.log('  Step 1: Navigating to login form...');
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ Login form accessed');
 
     await page.waitForTimeout(500);
@@ -151,7 +151,7 @@ test('TC-30.1.2: useOTPInput Hook', async ({ page }) => {
 
     // Navigate to page with OTP input
     console.log('  Step 1: Navigating to OTP input page...');
-    await page.goto(`${BASE_URL}/auth/verify-otp`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/auth/verify-otp`, { waitUntil: 'domcontentloaded' }).catch(() => {});
     findings.push('✓ OTP page accessed');
 
     await page.waitForTimeout(500);
@@ -212,7 +212,7 @@ test('TC-30.1.3: usePhoneInput Hook', async ({ page }) => {
 
     // Navigate to form with phone input
     console.log('  Step 1: Navigating to phone input page...');
-    await page.goto(`${BASE_URL}/auth/signup`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signup`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ Signup page accessed');
 
     await page.waitForTimeout(500);
@@ -273,7 +273,7 @@ test('TC-30.1.4: useNetworkStatus Hook', async ({ page, context }) => {
 
     // Navigate to page using hook
     console.log('  Step 1: Navigating to app...');
-    await page.goto(`${BASE_URL}/app`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ App page accessed');
 
     // Check online status
@@ -334,7 +334,7 @@ test('TC-30.1.5: useFormHandler Hook', async ({ page }) => {
 
     // Navigate to form
     console.log('  Step 1: Navigating to form page...');
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ Form page accessed');
 
     await page.waitForTimeout(500);

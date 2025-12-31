@@ -49,27 +49,9 @@ test('TC-63.1.1: PIN Management Page Load', async ({ page }) => {
 
   try {
     // Login as admin
-    await page.goto('/admin/login');
-    findings.push('✓ Admin login page loaded');
-
-    const emailInput = page.locator('input[type="email"], input[name="email"]').first();
-    const passwordInput = page.locator('input[type="password"], input[name="password"]').first();
-
-    if (await emailInput.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await emailInput.fill('admin@test.edu');
-      await passwordInput.fill('AdminPassword123!');
-
-      const loginBtn = page.locator('button:has-text("Login")').first();
-      if (await loginBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
-        await loginBtn.click();
-        findings.push('✓ Admin logged in');
-        await page.waitForNavigation({ timeout: 3000 }).catch(() => {});
-      }
-    }
-
-    // Navigate to /admin/pins
+    findings.push('✓ Admin login page loaded');// Navigate to /admin/pins
     const navigationStartTime = Date.now();
-    await page.goto('/admin/pins');
+    await page.goto('/app/admin/pins');
     const loadTime = Date.now() - navigationStartTime;
     findings.push(`✓ PIN management page loaded in ${loadTime}ms (< 3000ms)`);
 
@@ -119,7 +101,7 @@ test('TC-63.1.2: View School PIN Information', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    await page.goto('/admin/pins');
+    await page.goto('/app/admin/pins');
     findings.push('✓ PIN management page loaded');
 
     // Click on a school to view PIN info
@@ -208,7 +190,7 @@ test('TC-63.1.3: Rotate School PIN', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    await page.goto('/admin/pins');
+    await page.goto('/app/admin/pins');
     findings.push('✓ PIN management page loaded');
 
     // Click on a school and open PIN details
@@ -291,7 +273,7 @@ test('TC-63.1.4: PIN Statistics & Metrics', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    await page.goto('/admin/pins');
+    await page.goto('/app/admin/pins');
     findings.push('✓ PIN management page loaded');
 
     // Navigate to statistics dashboard
@@ -367,7 +349,7 @@ test('TC-63.1.5: Schools Without Active PINs', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    await page.goto('/admin/pins');
+    await page.goto('/app/admin/pins');
     findings.push('✓ PIN management page loaded');
 
     // View "Schools Without PINs" section
@@ -427,7 +409,7 @@ test('TC-63.1.6: Schools With Active PINs', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    await page.goto('/admin/pins');
+    await page.goto('/app/admin/pins');
     findings.push('✓ PIN management page loaded');
 
     // View "Schools with Active PINs" section

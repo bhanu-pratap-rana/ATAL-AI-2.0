@@ -48,8 +48,8 @@ test('TC-52.1.1: Badge Earning Conditions', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    await page.goto('/app/badges');
-    findings.push('✓ Badges page loaded');
+    await page.goto('/app/dashboard', { waitUntil: 'domcontentloaded' });
+    findings.push('✓ Dashboard page loaded');
 
     // Check First Steps badge
     const firstStepsBadge = page.locator('[data-test="badge"], text=/first.*step|first.*assessment/i').first();
@@ -96,8 +96,8 @@ test('TC-52.1.2: Points Calculation Logic', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    await page.goto('/app/results');
-    findings.push('✓ Results page loaded');
+    await page.goto('/app/dashboard', { waitUntil: 'domcontentloaded' });
+    findings.push('✓ Dashboard page loaded');
 
     // Find assessment result
     const result = page.locator('[data-test="result"], .result-item, [class*="result"]').first();

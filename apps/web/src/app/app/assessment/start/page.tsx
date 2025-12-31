@@ -38,9 +38,11 @@ function AssessmentStartContent() {
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [questions, setQuestions] = useState<Question[]>([])
+  const [error, setError] = useState<string | null>(null)
 
   const handleStartAssessment = async () => {
     setLoading(true)
+    setError(null)
 
     try {
       // Start session and fetch adaptive questions in parallel
@@ -50,21 +52,28 @@ function AssessmentStartContent() {
       ])
 
       if (!sessionResult.success || !sessionResult.sessionId) {
-        toast.error(sessionResult.error || 'Failed to start assessment')
+        const errorMsg = sessionResult.error || 'Failed to start assessment'
+        setError(errorMsg)
+        toast.error(errorMsg)
         setLoading(false)
         return
       }
 
       if (!questionsResult.success || questionsResult.questions.length === 0) {
-        toast.error(questionsResult.error || 'Failed to load questions')
+        const errorMsg = questionsResult.error || 'Failed to load questions'
+        setError(errorMsg)
+        toast.error(errorMsg)
         setLoading(false)
         return
       }
 
       setSessionId(sessionResult.sessionId)
       setQuestions(questionsResult.questions as Question[])
-    } catch (error) {
-      toast.error('An unexpected error occurred')
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'An unexpected error occurred'
+      console.error('[Assessment] Error starting assessment:', err)
+      setError(errorMsg)
+      toast.error(errorMsg)
       setLoading(false)
     }
   }
@@ -87,6 +96,19 @@ function AssessmentStartContent() {
       <div className="max-w-2xl w-full">
         <div className="card-gradient">
           <div className="bg-white rounded-xl p-6 md:p-8">
+            {/* Error Display */}
+            {error && (
+              <div className="mb-6 p-4 bg-error/10 border border-error/30 rounded-lg">
+                <p className="text-error font-medium">{error}</p>
+                <button
+                  onClick={() => setError(null)}
+                  className="text-sm text-error/70 hover:text-error mt-2"
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
+
             {/* Header */}
             <div className="text-center mb-8">
               {/* Icon Box - Primary Light */}

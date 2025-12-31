@@ -70,8 +70,8 @@ test('TC-46.1.1: Schema Migration Execution', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Check current schema version from admin panel
-    await page.goto('/app/admin/database');
+    // Check current schema version from admin panel (pre-authenticated admin)
+    await page.goto('/app/admin/database', { waitUntil: 'domcontentloaded' });
     findings.push('✓ Navigated to admin database panel');
 
     // Get current schema version

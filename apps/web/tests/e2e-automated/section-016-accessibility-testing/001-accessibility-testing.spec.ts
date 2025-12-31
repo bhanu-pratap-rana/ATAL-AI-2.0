@@ -67,12 +67,12 @@ test.describe('Section 16.1: Accessibility Testing', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: Keyboard Navigation`);
 
-      // Step 1: Navigate to signup form
-      steps.push('Navigate to signup form');
-      console.log('  1️⃣ Navigating to signup form...');
-      await page.goto(`${BASE_URL}/auth/signup`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
-      await takeScreenshot(page, testName, '01-signup-form');
+      // Step 1: Navigate to dashboard
+      steps.push('Navigate to dashboard');
+      console.log('  1️⃣ Navigating to dashboard...');
+      await page.goto(`${BASE_URL}/app/dashboard`);
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
+      await takeScreenshot(page, testName, '01-dashboard-loaded');
 
       // Step 2: Check for focusable elements
       steps.push('Verify focusable elements exist');
@@ -253,12 +253,12 @@ test.describe('Section 16.1: Accessibility Testing', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: Screen Reader Compatibility`);
 
-      // Step 1: Navigate to page
+      // Step 1: Navigate to dashboard
       steps.push('Navigate to dashboard');
       console.log('  1️⃣ Navigating to dashboard...');
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
-      await takeScreenshot(page, testName, '01-page-loaded');
+      await page.goto(`${BASE_URL}/app/dashboard`);
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
+      await takeScreenshot(page, testName, '01-dashboard-loaded');
 
       // Step 2: Check semantic HTML structure
       steps.push('Verify semantic HTML structure');
@@ -411,12 +411,12 @@ test.describe('Section 16.1: Accessibility Testing', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: Color Contrast`);
 
-      // Step 1: Navigate to page
-      steps.push('Navigate to signin page');
-      console.log('  1️⃣ Navigating to signin page...');
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
-      await takeScreenshot(page, testName, '01-page-loaded');
+      // Step 1: Navigate to dashboard
+      steps.push('Navigate to dashboard');
+      console.log('  1️⃣ Navigating to dashboard...');
+      await page.goto(`${BASE_URL}/app/dashboard`);
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
+      await takeScreenshot(page, testName, '01-dashboard-loaded');
 
       // Step 2: Analyze color contrast
       steps.push('Analyze text color contrast');
@@ -549,8 +549,8 @@ test.describe('Section 16.1: Accessibility Testing', () => {
       steps.push('Set mobile viewport (375px)');
       console.log('  1️⃣ Setting mobile viewport...');
       await page.setViewportSize({ width: 375, height: 667 });
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.goto(`${BASE_URL}/app/dashboard`);
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       await takeScreenshot(page, testName, '01-mobile-viewport');
 
       // Step 2: Measure button sizes

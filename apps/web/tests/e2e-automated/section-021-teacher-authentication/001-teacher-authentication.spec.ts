@@ -66,7 +66,7 @@ test.describe('Section 21.1: Teacher Authentication Testing', () => {
       steps.push('Navigate to teacher signup');
       console.log('  1️⃣ Navigating to teacher signup...');
       await page.goto(`${BASE_URL}/auth/teacher-signup`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       await takeScreenshot(page, testName, '01-teacher-signup-page');
 
       // Step 2: Select New Teacher option
@@ -185,7 +185,7 @@ test.describe('Section 21.1: Teacher Authentication Testing', () => {
       steps.push('Navigate to teacher signup');
       console.log('  1️⃣ Navigating to teacher signup...');
       await page.goto(`${BASE_URL}/auth/teacher-signup`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       await takeScreenshot(page, testName, '01-teacher-choice-page');
 
       // Step 2: Select Existing Teacher option
@@ -276,7 +276,7 @@ test.describe('Section 21.1: Teacher Authentication Testing', () => {
       steps.push('Navigate to school verification');
       console.log('  1️⃣ Navigating to school verification...');
       await page.goto(`${BASE_URL}/auth/teacher-signup`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       await takeScreenshot(page, testName, '01-verification-page');
 
       // Step 2: Look for school code input
@@ -369,7 +369,7 @@ test.describe('Section 21.1: Teacher Authentication Testing', () => {
       steps.push('Navigate to password setup');
       console.log('  1️⃣ Navigating to teacher signup...');
       await page.goto(`${BASE_URL}/auth/teacher-signup`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
 
       // Step 2: Look for password fields
       steps.push('Find password input fields');
@@ -450,7 +450,7 @@ test.describe('Section 21.1: Teacher Authentication Testing', () => {
       steps.push('Navigate to profile setup');
       console.log('  1️⃣ Navigating to teacher signup...');
       await page.goto(`${BASE_URL}/auth/teacher-signup`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
 
       // Step 2: Find name field
       steps.push('Enter teacher name');
@@ -539,7 +539,7 @@ test.describe('Section 21.1: Teacher Authentication Testing', () => {
       steps.push('Navigate to teacher login');
       console.log('  1️⃣ Navigating to teacher login...');
       await page.goto(`${BASE_URL}/auth/teacher-login`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       await takeScreenshot(page, testName, '01-teacher-login-page');
 
       // Step 2: Enter email
@@ -616,7 +616,7 @@ test.describe('Section 21.1: Teacher Authentication Testing', () => {
       steps.push('Navigate to teacher login');
       console.log('  1️⃣ Navigating to teacher login...');
       await page.goto(`${BASE_URL}/auth/teacher-login`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       await takeScreenshot(page, testName, '01-teacher-login');
 
       // Step 2: Find forgot password link

@@ -73,8 +73,8 @@ test('TC-40.1.1: Bulk Class Creation', async ({ page, browser }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to teacher dashboard
-    await page.goto('/app/teacher');
+    // Navigate to teacher dashboard (pre-authenticated teacher)
+    await page.goto('/app/teacher/classes', { waitUntil: 'domcontentloaded' });
     findings.push('✓ Navigated to teacher dashboard');
     screenshots.push(await takeScreenshot(page, 'TC-40.1.1', 'dashboard'));
 
@@ -169,8 +169,8 @@ test('TC-40.1.2: Bulk Student Enrollment', async ({ page, browser }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to class management
-    await page.goto('/app/teacher');
+    // Navigate to class management (pre-authenticated teacher)
+    await page.goto('/app/teacher/classes', { waitUntil: 'domcontentloaded' });
     findings.push('✓ Navigated to teacher dashboard');
 
     // Find a class to add students to
@@ -268,8 +268,8 @@ test('TC-40.1.3: Bulk Assessment Assignment', async ({ page, browser }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to assessments section
-    await page.goto('/app/teacher/assessments');
+    // Navigate to assessments section (pre-authenticated teacher)
+    await page.goto('/app/teacher/assessments', { waitUntil: 'domcontentloaded' });
     findings.push('✓ Navigated to assessments page');
     screenshots.push(await takeScreenshot(page, 'TC-40.1.3', 'assessments-page'));
 
@@ -376,8 +376,8 @@ test('TC-40.1.4: Bulk Points Distribution', async ({ page, browser }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to gamification/rewards section
-    await page.goto('/app/teacher');
+    // Navigate to gamification/rewards section (pre-authenticated teacher)
+    await page.goto('/app/teacher/classes', { waitUntil: 'domcontentloaded' });
     findings.push('✓ Navigated to teacher dashboard');
 
     // Look for rewards or points distribution option
@@ -498,9 +498,9 @@ test('TC-40.1.5: System Performance Under Load', async ({ page, browser }) => {
 
     findings.push(`✓ Created ${pages.length} concurrent contexts successfully`);
 
-    // Simulate concurrent dashboard navigation
+    // Simulate concurrent dashboard navigation (pre-authenticated)
     const navigationPromises = pages.map((p, idx) =>
-      p.goto('/app/dashboard').then(() => ({
+      p.goto('/app/dashboard', { waitUntil: 'domcontentloaded' }).then(() => ({
         idx,
         success: true,
         timestamp: Date.now()
@@ -528,9 +528,9 @@ test('TC-40.1.5: System Performance Under Load', async ({ page, browser }) => {
       screenshots.push(await takeScreenshot(pages[0], 'TC-40.1.5', 'concurrent-load'));
     }
 
-    // Simulate concurrent assessment access
+    // Simulate concurrent assessment access (pre-authenticated)
     const assessmentPromises = pages.map((p, idx) =>
-      p.goto('/app/learn').then(() => ({
+      p.goto('/app/learn', { waitUntil: 'domcontentloaded' }).then(() => ({
         idx,
         success: true,
         responseTime: Date.now() - startTime

@@ -199,7 +199,7 @@ test('TC-58.1.3: AI Tools Hub - Navigation to Tools', async ({ page }) => {
     if (await askTutorTool.isVisible({ timeout: 1000 }).catch(() => false)) {
       await askTutorTool.click();
       findings.push('✓ Ask Tutor clicked');
-      await page.waitForNavigation({ timeout: 3000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded');
     }
 
     // Verify navigation to Ask Tutor page
@@ -217,7 +217,7 @@ test('TC-58.1.3: AI Tools Hub - Navigation to Tools', async ({ page }) => {
     if (await essayFeedbackTool.isVisible({ timeout: 1000 }).catch(() => false)) {
       await essayFeedbackTool.click();
       findings.push('✓ Essay Feedback clicked');
-      await page.waitForNavigation({ timeout: 3000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded');
     }
 
     // Navigate to Practice Questions
@@ -226,7 +226,7 @@ test('TC-58.1.3: AI Tools Hub - Navigation to Tools', async ({ page }) => {
     if (await practiceTool.isVisible({ timeout: 1000 }).catch(() => false)) {
       await practiceTool.click();
       findings.push('✓ Practice Questions clicked');
-      await page.waitForNavigation({ timeout: 3000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded');
     }
 
     // Navigate to Summarize
@@ -235,7 +235,7 @@ test('TC-58.1.3: AI Tools Hub - Navigation to Tools', async ({ page }) => {
     if (await summarizeTool.isVisible({ timeout: 1000 }).catch(() => false)) {
       await summarizeTool.click();
       findings.push('✓ Summarize tool clicked');
-      await page.waitForNavigation({ timeout: 3000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded');
     }
 
     // Verify breadcrumb navigation

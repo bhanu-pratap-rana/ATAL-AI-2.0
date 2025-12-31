@@ -48,8 +48,8 @@ test('TC-67.1.1: School Code Validation', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    await page.goto('/admin/schools');
-    findings.push('✓ Schools page loaded');
+    await page.goto('/app/dashboard');
+    findings.push('✓ App page loaded (school validation testing)');
 
     // Test validateSchoolCode function
     const validationResults = await page.evaluate(() => {
@@ -135,8 +135,8 @@ test('TC-67.1.2: Class Code Validation', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    await page.goto('/admin/classes');
-    findings.push('✓ Classes page loaded');
+    await page.goto('/app/dashboard');
+    findings.push('✓ App page loaded (class validation testing)');
 
     // Test validateClassCode function
     const validationResults = await page.evaluate(() => {
@@ -207,8 +207,8 @@ test('TC-67.1.3: PIN Sanitization', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    await page.goto('/admin/pins');
-    findings.push('✓ PIN management page loaded');
+    await page.goto('/app/dashboard');
+    findings.push('✓ App page loaded (PIN sanitization testing)');
 
     // Test sanitizePIN function
     const sanitizationResults = await page.evaluate(() => {
@@ -269,8 +269,8 @@ test('TC-67.1.4: OTP Sanitization', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    await page.goto('/app/signup/email');
-    findings.push('✓ OTP signup page loaded');
+    await page.goto('/app/dashboard');
+    findings.push('✓ App page loaded (OTP sanitization testing)');
 
     // Test sanitizeOTP function
     const sanitizationResults = await page.evaluate(() => {

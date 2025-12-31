@@ -67,7 +67,7 @@ test('TC-31.1.1: Email Validation with Typo Detection', async ({ page }) => {
 
     // Step 1: Navigate to signup form
     console.log('  Step 1: Navigating to signup page...');
-    await page.goto(`${BASE_URL}/auth/signup`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signup`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ Signup page accessed');
 
     await page.waitForTimeout(500);
@@ -140,7 +140,7 @@ test('TC-31.1.2: Phone Validation', async ({ page }) => {
 
     // Step 1: Navigate to form with phone input
     console.log('  Step 1: Navigating to signup page...');
-    await page.goto(`${BASE_URL}/auth/signup`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signup`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ Signup page accessed');
 
     await page.waitForTimeout(500);
@@ -204,7 +204,7 @@ test('TC-31.1.3: Password Strength Validation', async ({ page }) => {
 
     // Step 1: Navigate to signup
     console.log('  Step 1: Navigating to signup page...');
-    await page.goto(`${BASE_URL}/auth/signup`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signup`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ Signup page accessed');
 
     await page.waitForTimeout(500);
@@ -267,7 +267,7 @@ test('TC-31.1.4: Name Validation', async ({ page }) => {
 
     // Step 1: Navigate to signup
     console.log('  Step 1: Navigating to signup page...');
-    await page.goto(`${BASE_URL}/auth/signup`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signup`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ Signup page accessed');
 
     await page.waitForTimeout(500);
@@ -332,7 +332,7 @@ test('TC-31.1.5: Code/PIN Validation', async ({ page }) => {
 
     // Step 1: Navigate to join class
     console.log('  Step 1: Navigating to join class page...');
-    await page.goto(`${BASE_URL}/auth/join-class`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/auth/join-class`, { waitUntil: 'domcontentloaded' }).catch(() => {});
     findings.push('✓ Join class page accessed');
 
     await page.waitForTimeout(500);
@@ -397,7 +397,7 @@ test('TC-31.1.6: Time Utilities', async ({ page }) => {
 
     // Step 1: Navigate to assessment
     console.log('  Step 1: Navigating to assessment page...');
-    await page.goto(`${BASE_URL}/app`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ App page accessed');
 
     await page.waitForTimeout(500);
@@ -473,7 +473,7 @@ test('TC-31.1.7: Masking Utilities (Logging)', async ({ page, context }) => {
 
     // Step 2: Navigate to login
     console.log('  Step 2: Navigating to login page...');
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ Login page accessed');
 
     await page.waitForTimeout(500);
@@ -534,7 +534,7 @@ test('TC-31.1.8: Ternary Utilities', async ({ page }) => {
 
     // Step 1: Navigate to dashboard
     console.log('  Step 1: Navigating to student dashboard...');
-    await page.goto(`${BASE_URL}/app`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ Dashboard page accessed');
 
     await page.waitForTimeout(500);
@@ -600,7 +600,7 @@ test('TC-31.1.9: Action Error Handler Wrapper', async ({ page }) => {
 
     // Step 1: Navigate to form
     console.log('  Step 1: Navigating to form page...');
-    await page.goto(`${BASE_URL}/auth/signup`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signup`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ Form page accessed');
 
     await page.waitForTimeout(500);

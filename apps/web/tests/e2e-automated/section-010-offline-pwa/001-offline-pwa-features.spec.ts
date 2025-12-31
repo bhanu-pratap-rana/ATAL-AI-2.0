@@ -63,7 +63,7 @@ test.describe('Section 10.1: Offline & PWA Features Testing', () => {
       steps.push('Open application in browser');
       console.log('  1️⃣ Opening application...');
       await page.goto(BASE_URL);
-      await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
       await takeScreenshot(page, testName, '01-app-loaded');
 
       // Step 2: Check service worker registration via JavaScript
@@ -198,7 +198,7 @@ test.describe('Section 10.1: Offline & PWA Features Testing', () => {
         await signInEmail.fill(TEST_STUDENT_EMAIL);
         await page.fill('input[type="password"]', TEST_STUDENT_PASSWORD);
         await page.locator('button:has-text("Sign In")').first().click();
-        await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+        await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
       }
 
       // Step 3: Go offline
@@ -305,7 +305,7 @@ test.describe('Section 10.1: Offline & PWA Features Testing', () => {
       steps.push('Load page while online');
       console.log('  1️⃣ Loading page online...');
       await page.goto(`${BASE_URL}/app/dashboard`, { waitUntil: 'networkidle' });
-      await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
       const onlinePageTitle = await page.title();
       console.log(`  ✓ Page loaded: ${onlinePageTitle}`);
       await takeScreenshot(page, testName, '01-page-online');

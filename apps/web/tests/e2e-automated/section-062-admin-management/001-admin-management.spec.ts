@@ -48,30 +48,9 @@ test('TC-62.1.1: Admin Management Page Load', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Simulate super_admin login
-    await page.goto('/admin/login');
-    findings.push('✓ Admin login page loaded');
-
-    // Login as super_admin
-    const emailInput = page.locator('input[type="email"], input[name="email"]').first();
-    const passwordInput = page.locator('input[type="password"], input[name="password"]').first();
-
-    if (await emailInput.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await emailInput.fill('superadmin@test.edu');
-      await passwordInput.fill('AdminPassword123!');
-      findings.push('✓ Admin credentials entered');
-
-      const loginBtn = page.locator('button:has-text("Login"), button:has-text("Sign In")').first();
-      if (await loginBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
-        await loginBtn.click();
-        findings.push('✓ Admin login submitted');
-        await page.waitForNavigation({ timeout: 3000 }).catch(() => {});
-      }
-    }
-
     // Navigate to /admin/admins
     const navigationStartTime = Date.now();
-    await page.goto('/admin/admins');
+    await page.goto('/app/admin/admins');
     const loadTime = Date.now() - navigationStartTime;
     findings.push(`✓ Admin management page loaded in ${loadTime}ms (< 3000ms)`);
 
@@ -121,7 +100,7 @@ test('TC-62.1.2: Admin List Display & Management', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    await page.goto('/admin/admins');
+    await page.goto('/app/admin/admins');
     findings.push('✓ Admin management page loaded');
 
     // Verify admin list table columns
@@ -207,7 +186,7 @@ test('TC-62.1.3: Create New Admin', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    await page.goto('/admin/admins');
+    await page.goto('/app/admin/admins');
     findings.push('✓ Admin management page loaded');
 
     // Click "Create Admin" button
@@ -295,7 +274,7 @@ test('TC-62.1.4: Delete Admin Account', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    await page.goto('/admin/admins');
+    await page.goto('/app/admin/admins');
     findings.push('✓ Admin management page loaded');
 
     // Find an admin to delete (not self)
@@ -362,7 +341,7 @@ test('TC-62.1.5: Reset Admin Password', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    await page.goto('/admin/admins');
+    await page.goto('/app/admin/admins');
     findings.push('✓ Admin management page loaded');
 
     // Click reset password button
@@ -430,7 +409,7 @@ test('TC-62.1.6: Admin Role Management', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    await page.goto('/admin/admins');
+    await page.goto('/app/admin/admins');
     findings.push('✓ Admin management page loaded');
 
     // View admin role options

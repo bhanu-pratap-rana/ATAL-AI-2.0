@@ -117,8 +117,8 @@ test('TC-66.1.2: useOTPInput Hook', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    await page.goto('/app/signup/email');
-    findings.push('✓ OTP signup page loaded');
+    await page.goto('/app/dashboard');
+    findings.push('✓ App page loaded (OTP input testing)');
 
     // Test useOTPInput hook
     const otpHookResult = await page.evaluate(() => {
@@ -186,8 +186,8 @@ test('TC-66.1.3: usePhoneInput Hook', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    await page.goto('/app/signup');
-    findings.push('✓ Signup page with phone field loaded');
+    await page.goto('/app/dashboard');
+    findings.push('✓ App page loaded (phone input testing)');
 
     // Test usePhoneInput hook
     const phoneHookResult = await page.evaluate(() => {

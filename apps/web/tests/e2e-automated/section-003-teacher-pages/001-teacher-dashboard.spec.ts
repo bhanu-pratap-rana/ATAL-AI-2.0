@@ -152,7 +152,7 @@ test.describe('SECTION 3.1: Teacher Dashboard', () => {
       console.log('Step 1: Navigating to teacher dashboard...');
       const navigationStart = Date.now();
       await page.goto(`${BASE_URL}/app/teacher/classes`);
-      await page.waitForLoadState('networkidle', { timeout: 10000 });
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
       const navigationDuration = Date.now() - navigationStart;
       console.log(`✓ Navigated to teacher dashboard (${navigationDuration}ms)`);
       screenshots.push(await takeScreenshot(page, testName, '01-dashboard-loaded'));
@@ -223,7 +223,7 @@ test.describe('SECTION 3.1: Teacher Dashboard', () => {
       steps.push('Navigate to teacher classes');
       console.log('Step 1: Navigating to teacher classes...');
       await page.goto(`${BASE_URL}/app/teacher/classes`);
-      await page.waitForLoadState('networkidle', { timeout: 10000 });
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
       console.log('✓ On teacher classes page');
       screenshots.push(await takeScreenshot(page, testName, '01-classes-page'));
 
@@ -345,7 +345,7 @@ test.describe('SECTION 3.1: Teacher Dashboard', () => {
       steps.push('Navigate to teacher dashboard');
       console.log('Step 1: Navigating to teacher dashboard...');
       await page.goto(`${BASE_URL}/app/teacher/classes`);
-      await page.waitForLoadState('networkidle', { timeout: 10000 });
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
       console.log('✓ On teacher dashboard');
       screenshots.push(await takeScreenshot(page, testName, '01-dashboard'));
 

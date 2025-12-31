@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { createClient, verifyTeacherAuth, verifyClassOwnership } from '@/lib/supabase-server'
+import { checkTeacherMutationRateLimit } from '@/lib/rate-limiter-distributed'
 import {
   ANALYTICS_WINDOW_DAYS,
   RAPID_RESPONSE_THRESHOLD_MS,
@@ -38,6 +39,11 @@ export async function createClass(name: string, subject?: string) {
     const auth = await verifyTeacherAuth('createClass')
     if (!auth.authorized) {
       return auth.error!
+    }
+
+    // SECURITY: Rate limit teacher mutations to prevent abuse
+    if (!(await checkTeacherMutationRateLimit(auth.user!.id))) {
+      return { success: false, error: 'Too many requests. Please try again later.' }
     }
 
     const supabase = await createClient()
@@ -76,6 +82,11 @@ export async function updateClass(classId: string, name: string, subject?: strin
     const auth = await verifyClassOwnership('updateClass', validatedInput.classId)
     if (!auth.authorized) {
       return auth.error!
+    }
+
+    // SECURITY: Rate limit teacher mutations to prevent abuse
+    if (!(await checkTeacherMutationRateLimit(auth.user!.id))) {
+      return { success: false, error: 'Too many requests. Please try again later.' }
     }
 
     const supabase = await createClient()
@@ -120,6 +131,12 @@ export async function deleteClass(classId: string) {
       return auth.error!
     }
 
+    // SECURITY: Rate limit teacher mutations to prevent abuse
+    if (!(await checkTeacherMutationRateLimit(auth.user!.id))) {
+      authLogger.warn('[deleteClass] Rate limit exceeded', { userId: auth.user!.id })
+      return { success: false, error: 'Too many requests. Please try again later.' }
+    }
+
     const supabase = await createClient()
 
     const { error } = await supabase
@@ -155,6 +172,12 @@ export async function enrollStudent(classId: string, studentId: string) {
     const auth = await verifyClassOwnership('enrollStudent', validatedInput.classId)
     if (!auth.authorized) {
       return auth.error!
+    }
+
+    // SECURITY: Rate limit teacher mutations to prevent abuse
+    if (!(await checkTeacherMutationRateLimit(auth.user!.id))) {
+      authLogger.warn('[enrollStudent] Rate limit exceeded', { userId: auth.user!.id })
+      return { success: false, error: 'Too many requests. Please try again later.' }
     }
 
     const supabase = await createClient()
@@ -200,6 +223,12 @@ export async function removeStudent(classId: string, studentId: string) {
     const auth = await verifyClassOwnership('removeStudent', validatedInput.classId)
     if (!auth.authorized) {
       return auth.error!
+    }
+
+    // SECURITY: Rate limit teacher mutations to prevent abuse
+    if (!(await checkTeacherMutationRateLimit(auth.user!.id))) {
+      authLogger.warn('[removeStudent] Rate limit exceeded', { userId: auth.user!.id })
+      return { success: false, error: 'Too many requests. Please try again later.' }
     }
 
     const supabase = await createClient()

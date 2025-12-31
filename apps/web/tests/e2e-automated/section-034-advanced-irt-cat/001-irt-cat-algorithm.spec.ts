@@ -67,7 +67,7 @@ test('TC-34.1.1: 3PL IRT Model Parameters', async ({ page }) => {
 
     // Step 1: Navigate to assessment
     console.log('  Step 1: Navigating to adaptive assessment...');
-    await page.goto(`${BASE_URL}/app/assessments`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app/assessments`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ Assessment page accessed');
 
     await page.waitForTimeout(500);
@@ -155,7 +155,7 @@ test('TC-34.1.2: Ability Estimate (θ) Calculation', async ({ page }) => {
 
     // Step 1: Navigate to adaptive assessment
     console.log('  Step 1: Navigating to adaptive assessment...');
-    await page.goto(`${BASE_URL}/app/assessments`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app/assessments`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ Assessment page accessed');
 
     await page.waitForTimeout(500);
@@ -250,7 +250,7 @@ test('TC-34.1.3: Maximum Fisher Information (MFI)', async ({ page }) => {
 
     // Step 1: Navigate to assessment
     console.log('  Step 1: Navigating to adaptive assessment...');
-    await page.goto(`${BASE_URL}/app/assessments`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app/assessments`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ Assessment page accessed');
 
     await page.waitForTimeout(500);
@@ -334,7 +334,7 @@ test('TC-34.1.4: a-Stratification (Exposure Control)', async ({ page }) => {
 
     // Step 1: Navigate to multiple assessments
     console.log('  Step 1: Navigating to assessments...');
-    await page.goto(`${BASE_URL}/app/assessments`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app/assessments`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ Assessments page accessed');
 
     await page.waitForTimeout(500);
@@ -409,7 +409,7 @@ test('TC-34.1.5: CAT Termination Conditions', async ({ page }) => {
 
     // Step 1: Navigate to CAT assessment
     console.log('  Step 1: Navigating to adaptive assessment...');
-    await page.goto(`${BASE_URL}/app/assessments`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app/assessments`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ Assessment page accessed');
 
     await page.waitForTimeout(500);

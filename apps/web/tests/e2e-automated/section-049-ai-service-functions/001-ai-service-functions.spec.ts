@@ -70,8 +70,8 @@ test('TC-49.1.1: Ask Tutor Function', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to AI tutor
-    await page.goto('/app/ai-tutor');
+    // Navigate to AI tutor (pre-authenticated)
+    await page.goto('/app/tutor', { waitUntil: 'domcontentloaded' });
     findings.push('✓ AI Tutor page loaded');
 
     // Find question input

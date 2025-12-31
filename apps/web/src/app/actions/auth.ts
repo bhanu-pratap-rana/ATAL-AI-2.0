@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { BLOCKED_EMAIL_DOMAINS, COMMON_DOMAIN_TYPOS } from '@/lib/auth-constants'
 import { authLogger } from '@/lib/auth-logger'
-import { checkOtpRateLimit, checkPasswordResetRateLimit } from '@/lib/rate-limiter-distributed'
+import { checkOtpRateLimit, checkOtpVerifyRateLimit, checkPasswordResetRateLimit } from '@/lib/rate-limiter-distributed'
 import { isValidEmailDomain } from '@/lib/email-validation'
 import {
   AuthEmailSchema,
@@ -257,6 +257,12 @@ export async function verifyOtp(email: string, token: string) {
     }
 
     authLogger.debug('[verifyOtp] Starting OTP verification')
+
+    // SECURITY: Rate limit OTP verification to prevent brute-force attacks
+    if (!(await checkOtpVerifyRateLimit(validatedEmail))) {
+      authLogger.warn('[verifyOtp] Rate limit exceeded', { email: validatedEmail })
+      return { success: false, error: 'Too many verification attempts. Please try again later.' }
+    }
 
     const supabase = await createClient()
 

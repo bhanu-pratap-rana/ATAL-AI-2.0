@@ -83,46 +83,14 @@ test('TC-26.1.1: Teacher Dashboard - Advanced', async ({ page }) => {
     console.log('\n🧪 TEST: Teacher Dashboard - Advanced');
     console.log('━'.repeat(50));
 
-    // Step 1: Navigate to login
-    console.log('  Step 1: Navigating to login...');
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
-    findings.push('✓ Login page accessible');
+    // Step 1: Navigate to teacher dashboard (pre-authenticated)
+    console.log('  Step 1: Navigating to teacher dashboard...');
+    await page.goto(`${BASE_URL}/app/teacher/classes`, { waitUntil: 'domcontentloaded' });
+    findings.push('✓ Teacher dashboard accessible');
 
-    // Step 2: Login as teacher
-    console.log('  Step 2: Logging in as teacher...');
-    const emailInput = page.locator(
-      'input[type="email"], input[placeholder*="email" i], input[name="email"], [data-test="email-input"]'
-    ).first();
-
-    if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await emailInput.fill('teacher@example.com');
-    }
-
-    const passwordInput = page.locator(
-      'input[type="password"], input[placeholder*="password" i], input[name="password"], [data-test="password-input"]'
-    ).first();
-
-    if (await passwordInput.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await passwordInput.fill('TestPass123!');
-    }
-
-    const loginButton = page.locator(
-      'button:has-text("Sign In"), button:has-text("Login"), [data-test="login-button"]'
-    ).first();
-
-    if (await loginButton.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await loginButton.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
-    }
-
-    await page.waitForTimeout(2000);
-    screenshots.push(await takeScreenshot(page, testName, 'after-login'));
-
-    // Step 3: Navigate to teacher dashboard
-    console.log('  Step 3: Navigating to teacher dashboard...');
-    await page.goto(`${BASE_URL}/app/teacher`, { waitUntil: 'networkidle' }).catch(() => {
-      findings.push('⚠️ Dashboard navigation attempted');
-    });
+    // Step 2: Verify pre-authenticated session
+    console.log('  Step 2: Verifying pre-authenticated session...');
+    // No login needed - session is pre-authenticated
 
     await page.waitForTimeout(1000);
     screenshots.push(await takeScreenshot(page, testName, 'dashboard-page'));
@@ -287,7 +255,7 @@ test('TC-26.1.2: Class Detail Page - Roster', async ({ page }) => {
 
     // Step 1: Login as teacher
     console.log('  Step 1: Logging in...');
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
 
     const emailInput = page.locator(
       'input[type="email"], input[placeholder*="email" i], input[name="email"], [data-test="email-input"]'
@@ -311,7 +279,7 @@ test('TC-26.1.2: Class Detail Page - Roster', async ({ page }) => {
 
     if (await loginButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await loginButton.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(2000);
@@ -319,7 +287,7 @@ test('TC-26.1.2: Class Detail Page - Roster', async ({ page }) => {
 
     // Step 2: Navigate to class details
     console.log('  Step 2: Navigating to class details...');
-    await page.goto(`${BASE_URL}/app/teacher`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app/teacher`, { waitUntil: 'domcontentloaded' });
 
     // Click on first class
     const classCard = page.locator(
@@ -328,7 +296,7 @@ test('TC-26.1.2: Class Detail Page - Roster', async ({ page }) => {
 
     if (await classCard.isVisible({ timeout: 3000 }).catch(() => false)) {
       await classCard.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(1000);
@@ -466,7 +434,7 @@ test('TC-26.1.3: Invite Panel - Code Copy', async ({ page }) => {
 
     // Step 1: Login as teacher
     console.log('  Step 1: Logging in...');
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
 
     const emailInput = page.locator(
       'input[type="email"], input[placeholder*="email" i], input[name="email"], [data-test="email-input"]'
@@ -490,7 +458,7 @@ test('TC-26.1.3: Invite Panel - Code Copy', async ({ page }) => {
 
     if (await loginButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await loginButton.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(2000);
@@ -498,12 +466,12 @@ test('TC-26.1.3: Invite Panel - Code Copy', async ({ page }) => {
 
     // Step 2: Navigate to class
     console.log('  Step 2: Navigating to class...');
-    await page.goto(`${BASE_URL}/app/teacher`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app/teacher`, { waitUntil: 'domcontentloaded' });
 
     const classCard = page.locator('[data-test="class-card"], [class*="class-card"]').first();
     if (await classCard.isVisible({ timeout: 3000 }).catch(() => false)) {
       await classCard.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(1000);
@@ -637,7 +605,7 @@ test('TC-26.1.4: Invite Student Dialog', async ({ page }) => {
 
     // Step 1: Login
     console.log('  Step 1: Logging in...');
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
 
     const emailInput = page.locator('input[type="email"]').first();
     if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -652,7 +620,7 @@ test('TC-26.1.4: Invite Student Dialog', async ({ page }) => {
     const loginButton = page.locator('button:has-text("Sign In"), button:has-text("Login")').first();
     if (await loginButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await loginButton.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(2000);
@@ -660,12 +628,12 @@ test('TC-26.1.4: Invite Student Dialog', async ({ page }) => {
 
     // Step 2: Navigate to class
     console.log('  Step 2: Navigating to class...');
-    await page.goto(`${BASE_URL}/app/teacher`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app/teacher`, { waitUntil: 'domcontentloaded' });
 
     const classCard = page.locator('[data-test="class-card"], [class*="class-card"]').first();
     if (await classCard.isVisible({ timeout: 3000 }).catch(() => false)) {
       await classCard.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(1000);
@@ -815,7 +783,7 @@ test('TC-26.1.5: Roster Table Operations', async ({ page }) => {
 
     // Step 1-2: Login and navigate to class
     console.log('  Step 1-2: Logging in and navigating...');
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
 
     const emailInput = page.locator('input[type="email"]').first();
     if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -830,16 +798,16 @@ test('TC-26.1.5: Roster Table Operations', async ({ page }) => {
     const loginButton = page.locator('button:has-text("Sign In")').first();
     if (await loginButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await loginButton.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(2000);
 
-    await page.goto(`${BASE_URL}/app/teacher`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app/teacher`, { waitUntil: 'domcontentloaded' });
     const classCard = page.locator('[data-test="class-card"], [class*="class-card"]').first();
     if (await classCard.isVisible({ timeout: 3000 }).catch(() => false)) {
       await classCard.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(1000);
@@ -877,7 +845,7 @@ test('TC-26.1.5: Roster Table Operations', async ({ page }) => {
     const viewDetailsBtn = page.locator('button:has-text("View"), [data-test="view-details"]').first();
     if (await viewDetailsBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
       await viewDetailsBtn.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
       findings.push('✓ View Details clicked');
       console.log('  ✓ Details opened');
     }
@@ -975,7 +943,7 @@ test('TC-26.1.6: Analytics Tiles', async ({ page }) => {
 
     // Step 1: Login and navigate
     console.log('  Step 1: Logging in and navigating...');
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
 
     const emailInput = page.locator('input[type="email"]').first();
     if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -990,16 +958,16 @@ test('TC-26.1.6: Analytics Tiles', async ({ page }) => {
     const loginButton = page.locator('button:has-text("Sign In")').first();
     if (await loginButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await loginButton.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(2000);
 
-    await page.goto(`${BASE_URL}/app/teacher`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app/teacher`, { waitUntil: 'domcontentloaded' });
     const classCard = page.locator('[data-test="class-card"], [class*="class-card"]').first();
     if (await classCard.isVisible({ timeout: 3000 }).catch(() => false)) {
       await classCard.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(1000);
@@ -1108,7 +1076,7 @@ test('TC-26.1.7: Student Progress Grid', async ({ page }) => {
 
     // Step 1: Login and navigate to analytics
     console.log('  Step 1: Logging in...');
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
 
     const emailInput = page.locator('input[type="email"]').first();
     if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -1123,16 +1091,16 @@ test('TC-26.1.7: Student Progress Grid', async ({ page }) => {
     const loginButton = page.locator('button:has-text("Sign In")').first();
     if (await loginButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await loginButton.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(2000);
 
-    await page.goto(`${BASE_URL}/app/teacher`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app/teacher`, { waitUntil: 'domcontentloaded' });
     const classCard = page.locator('[data-test="class-card"], [class*="class-card"]').first();
     if (await classCard.isVisible({ timeout: 3000 }).catch(() => false)) {
       await classCard.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(1000);
@@ -1253,7 +1221,7 @@ test('TC-26.1.8: AI Interactions Log', async ({ page }) => {
 
     // Step 1: Login and navigate
     console.log('  Step 1: Logging in...');
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
 
     const emailInput = page.locator('input[type="email"]').first();
     if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -1268,16 +1236,16 @@ test('TC-26.1.8: AI Interactions Log', async ({ page }) => {
     const loginButton = page.locator('button:has-text("Sign In")').first();
     if (await loginButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await loginButton.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(2000);
 
-    await page.goto(`${BASE_URL}/app/teacher`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app/teacher`, { waitUntil: 'domcontentloaded' });
     const classCard = page.locator('[data-test="class-card"], [class*="class-card"]').first();
     if (await classCard.isVisible({ timeout: 3000 }).catch(() => false)) {
       await classCard.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(1000);
@@ -1392,7 +1360,7 @@ test('TC-26.1.9: Class Analytics Deep Dive', async ({ page }) => {
 
     // Step 1: Login and navigate
     console.log('  Step 1: Logging in and navigating...');
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
 
     const emailInput = page.locator('input[type="email"]').first();
     if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -1407,16 +1375,16 @@ test('TC-26.1.9: Class Analytics Deep Dive', async ({ page }) => {
     const loginButton = page.locator('button:has-text("Sign In")').first();
     if (await loginButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await loginButton.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(2000);
 
-    await page.goto(`${BASE_URL}/app/teacher`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app/teacher`, { waitUntil: 'domcontentloaded' });
     const classCard = page.locator('[data-test="class-card"], [class*="class-card"]').first();
     if (await classCard.isVisible({ timeout: 3000 }).catch(() => false)) {
       await classCard.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(1000);
@@ -1531,7 +1499,7 @@ test('TC-26.1.10: Teacher Profile Editor', async ({ page }) => {
 
     // Step 1: Login
     console.log('  Step 1: Logging in...');
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
 
     const emailInput = page.locator('input[type="email"]').first();
     if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -1546,7 +1514,7 @@ test('TC-26.1.10: Teacher Profile Editor', async ({ page }) => {
     const loginButton = page.locator('button:has-text("Sign In")').first();
     if (await loginButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await loginButton.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(2000);
@@ -1554,7 +1522,7 @@ test('TC-26.1.10: Teacher Profile Editor', async ({ page }) => {
 
     // Step 2: Navigate to settings
     console.log('  Step 2: Navigating to settings...');
-    await page.goto(`${BASE_URL}/app/settings`, { waitUntil: 'networkidle' }).catch(() => {
+    await page.goto(`${BASE_URL}/app/settings`, { waitUntil: 'domcontentloaded' }).catch(() => {
       findings.push('⚠️ Settings navigation attempted');
     });
 

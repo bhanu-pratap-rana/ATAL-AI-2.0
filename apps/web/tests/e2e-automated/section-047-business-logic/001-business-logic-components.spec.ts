@@ -70,8 +70,8 @@ test('TC-47.1.1: AssessmentRunner Component - Core Assessment Execution', async 
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to assessment
-    await page.goto('/app/assessment');
+    // Navigate to assessment (pre-authenticated)
+    await page.goto('/app/assessment', { waitUntil: 'domcontentloaded' });
     findings.push('✓ Assessment page loaded');
 
     // Render AssessmentRunner with assessment data

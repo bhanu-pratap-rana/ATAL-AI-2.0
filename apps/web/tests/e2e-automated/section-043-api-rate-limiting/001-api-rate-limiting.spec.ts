@@ -73,8 +73,8 @@ test('TC-43.1.1: AI Tutor Endpoint Rate Limit', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to AI tutor
-    await page.goto('/app/tutor');
+    // Navigate to AI tutor (pre-authenticated)
+    await page.goto('/app/tutor', { waitUntil: 'domcontentloaded' });
     findings.push('✓ Navigated to AI tutor page');
     screenshots.push(await takeScreenshot(page, 'TC-43.1.1', 'tutor-page'));
 
@@ -168,8 +168,8 @@ test('TC-43.1.2: Assessment Submission Rate Limit', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to assessment
-    await page.goto('/app/learn');
+    // Navigate to assessment (pre-authenticated)
+    await page.goto('/app/learn', { waitUntil: 'domcontentloaded' });
     findings.push('✓ Navigated to learning page');
     screenshots.push(await takeScreenshot(page, 'TC-43.1.2', 'learn-page'));
 
@@ -268,8 +268,8 @@ test('TC-43.1.3: Teacher Analytics Endpoint Rate Limit', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to analytics
-    await page.goto('/app/teacher/analytics');
+    // Navigate to analytics (pre-authenticated teacher)
+    await page.goto('/app/teacher/analytics', { waitUntil: 'domcontentloaded' });
     findings.push('✓ Navigated to analytics page');
     screenshots.push(await takeScreenshot(page, 'TC-43.1.3', 'analytics-page'));
 
@@ -289,7 +289,7 @@ test('TC-43.1.3: Teacher Analytics Endpoint Rate Limit', async ({ page }) => {
 
     // Rapidly request analytics 10 times
     for (let i = 0; i < 10; i++) {
-      await page.reload({ waitUntil: 'load' });
+      await page.reload({ waitUntil: 'domcontentloaded' });
       findings.push(`✓ Refreshed analytics ${i + 1}/10`);
       await page.waitForTimeout(100);
     }
@@ -297,7 +297,7 @@ test('TC-43.1.3: Teacher Analytics Endpoint Rate Limit', async ({ page }) => {
     findings.push(`✓ 10 rapid requests succeeded (within limit)`);
 
     // Try 11th request (should be rate limited)
-    await page.reload({ waitUntil: 'load' });
+    await page.reload({ waitUntil: 'domcontentloaded' });
     findings.push('✓ Attempted 11th refresh (exceeds limit)');
     await page.waitForTimeout(500);
 
@@ -342,8 +342,8 @@ test('TC-43.1.4: Cross-Endpoint Rate Limiting', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to app
-    await page.goto('/app/dashboard');
+    // Navigate to app (pre-authenticated)
+    await page.goto('/app/dashboard', { waitUntil: 'domcontentloaded' });
     findings.push('✓ Navigated to dashboard');
 
     // Monitor cross-endpoint traffic
@@ -415,8 +415,8 @@ test('TC-43.1.5: Admin Endpoint Exemption', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to app
-    await page.goto('/app/admin');
+    // Navigate to app (pre-authenticated admin)
+    await page.goto('/app/admin', { waitUntil: 'domcontentloaded' });
     findings.push('✓ Navigated to admin dashboard');
     screenshots.push(await takeScreenshot(page, 'TC-43.1.3', 'admin-page'));
 
@@ -435,7 +435,7 @@ test('TC-43.1.5: Admin Endpoint Exemption', async ({ page }) => {
 
     // Make many rapid requests as admin
     for (let i = 0; i < 30; i++) {
-      await page.reload({ waitUntil: 'load' });
+      await page.reload({ waitUntil: 'domcontentloaded' });
       findings.push(`✓ Admin request ${i + 1}/30`);
       await page.waitForTimeout(50);
     }

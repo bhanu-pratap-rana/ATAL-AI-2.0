@@ -64,7 +64,7 @@ test.describe('Section 23.1: School Management Testing', () => {
       steps.push('Navigate to school search');
       console.log('  1️⃣ Navigating to school search...');
       await page.goto(`${BASE_URL}/auth/teacher-signup`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       await takeScreenshot(page, testName, '01-school-search-page');
 
       // Step 2: Look for school search input
@@ -140,7 +140,7 @@ test.describe('Section 23.1: School Management Testing', () => {
       steps.push('Navigate to PIN management');
       console.log('  1️⃣ Navigating to PIN management...');
       await page.goto(`${BASE_URL}/admin/pin-management`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       await takeScreenshot(page, testName, '01-pin-management-page');
 
       // Step 2: Look for school selector
@@ -213,7 +213,7 @@ test.describe('Section 23.1: School Management Testing', () => {
       steps.push('Navigate to PIN management');
       console.log('  1️⃣ Navigating to PIN management...');
       await page.goto(`${BASE_URL}/admin/pin-management`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
 
       // Step 2: Find rotate PIN button
       steps.push('Find rotate PIN button');
@@ -281,7 +281,7 @@ test.describe('Section 23.1: School Management Testing', () => {
       steps.push('Navigate to PIN statistics');
       console.log('  1️⃣ Navigating to PIN statistics...');
       await page.goto(`${BASE_URL}/admin/pin-management`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       await takeScreenshot(page, testName, '01-pin-stats-page');
 
       // Step 2: Check statistics display

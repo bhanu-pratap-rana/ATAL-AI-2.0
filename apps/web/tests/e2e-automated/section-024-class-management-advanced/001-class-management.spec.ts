@@ -66,7 +66,7 @@ test.describe('Section 24.1: Class Management Advanced Testing', () => {
       steps.push('Navigate to class creation');
       console.log('  1️⃣ Navigating to class creation...');
       await page.goto(`${BASE_URL}/app/teacher/classes/new`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
 
       // Step 2: Create class
       steps.push('Create test class');
@@ -136,7 +136,7 @@ test.describe('Section 24.1: Class Management Advanced Testing', () => {
       steps.push('Navigate to join class page');
       console.log('  1️⃣ Navigating to join class...');
       await page.goto(`${BASE_URL}/app/join-class`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
 
       // Step 2: Test invalid code
       steps.push('Test invalid class code');
@@ -205,7 +205,7 @@ test.describe('Section 24.1: Class Management Advanced Testing', () => {
       steps.push('Navigate to class details');
       console.log('  1️⃣ Navigating to class details...');
       await page.goto(`${BASE_URL}/app/teacher/classes/1`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
 
       // Step 2: Look for invite panel
       steps.push('Find invite panel');
@@ -276,7 +276,7 @@ test.describe('Section 24.1: Class Management Advanced Testing', () => {
       steps.push('Navigate to join class');
       console.log('  1️⃣ Navigating to join class...');
       await page.goto(`${BASE_URL}/app/join-class`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
 
       // Step 2: Enter class code
       steps.push('Enter class code');
@@ -355,7 +355,7 @@ test.describe('Section 24.1: Class Management Advanced Testing', () => {
       steps.push('Navigate to class roster');
       console.log('  1️⃣ Navigating to class roster...');
       await page.goto(`${BASE_URL}/app/teacher/classes/1/roster`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
 
       // Step 2: Check roster table
       steps.push('Verify roster display');
@@ -413,7 +413,7 @@ test.describe('Section 24.1: Class Management Advanced Testing', () => {
       steps.push('Navigate to class roster');
       console.log('  1️⃣ Navigating to class roster...');
       await page.goto(`${BASE_URL}/app/teacher/classes/1/roster`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
 
       // Step 2: Find remove button
       steps.push('Find remove button');
@@ -473,7 +473,7 @@ test.describe('Section 24.1: Class Management Advanced Testing', () => {
       steps.push('Navigate to class settings');
       console.log('  1️⃣ Navigating to class settings...');
       await page.goto(`${BASE_URL}/app/student/classes/1/settings`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
 
       // Step 2: Find leave button
       steps.push('Find leave class button');
@@ -532,7 +532,7 @@ test.describe('Section 24.1: Class Management Advanced Testing', () => {
       steps.push('Navigate to join class');
       console.log('  1️⃣ Navigating to join class...');
       await page.goto(`${BASE_URL}/app/join-class`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
 
       // Step 2: Enter already enrolled class code
       steps.push('Enter already enrolled class code');

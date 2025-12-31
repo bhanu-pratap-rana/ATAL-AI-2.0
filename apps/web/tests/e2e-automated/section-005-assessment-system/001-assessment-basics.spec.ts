@@ -153,48 +153,17 @@ test.describe('SECTION 5.1: Assessment System - Basics', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: Start Assessment`);
 
-      // Step 1: Sign in as student
-      steps.push('Sign in as student');
-      console.log('Step 1: Signing in as student...');
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.waitForLoadState('networkidle', { timeout: 10000 });
-
-      const emailInput = page.locator('input[type="email"]').first();
-      const passwordInput = page.locator('input[type="password"]').first();
-
-      await emailInput.fill(TEST_STUDENT_EMAIL);
-      await passwordInput.fill(TEST_STUDENT_PASSWORD);
-
-      const signInBtn = page.locator('button:has-text("Sign In")').first();
-      await signInBtn.click();
-      await page.waitForURL('**/app/**', { timeout: 15000 });
-      console.log('✓ Signed in');
-
-      // Step 2: Navigate to assessment page
+      // Step 1: Navigate to assessments page (using pre-authenticated session)
       steps.push('Navigate to assessment page');
-      console.log('Step 2: Navigating to assessments...');
+      console.log('Step 1: Navigating to assessments (pre-authenticated)...');
+      await page.goto(`${BASE_URL}/app/assessments`);
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
+      console.log('✓ Navigated to assessments');
 
-      const assessmentUrls = [
-        '/app/assessments',
-        '/app/assessment',
-        '/assessments',
-      ];
+      // Step 2: Wait for assessments to load
+      steps.push('Wait for assessments to load');
+      console.log('Step 2: Waiting for content to load...');
 
-      let assessmentPageFound = false;
-      for (const url of assessmentUrls) {
-        try {
-          await page.goto(`${BASE_URL}${url}`, { waitUntil: 'networkidle', timeout: 5000 });
-          assessmentPageFound = true;
-          console.log(`✓ Navigated to ${url}`);
-          break;
-        } catch (e) {
-          // Try next URL
-        }
-      }
-
-      if (!assessmentPageFound) {
-        console.log('⚠ Could not find assessments page, may need alternative navigation');
-      }
 
       screenshots.push(await takeScreenshot(page, testName, '01-assessments-list'));
 
@@ -215,7 +184,7 @@ test.describe('SECTION 5.1: Assessment System - Basics', () => {
 
       if (btnVisible) {
         await startBtn.click();
-        await page.waitForLoadState('networkidle', { timeout: 10000 });
+        await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
         console.log('✓ Assessment started');
       } else {
         console.log('⚠ Start button not found');
@@ -279,36 +248,19 @@ test.describe('SECTION 5.1: Assessment System - Basics', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: Assessment Timer`);
 
-      // Step 1: Sign in and start assessment
-      steps.push('Sign in and start assessment');
-      console.log('Step 1: Signing in...');
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.waitForLoadState('networkidle', { timeout: 10000 });
-
-      const emailInput = page.locator('input[type="email"]').first();
-      const passwordInput = page.locator('input[type="password"]').first();
-      await emailInput.fill(TEST_STUDENT_EMAIL);
-      await passwordInput.fill(TEST_STUDENT_PASSWORD);
-
-      const signInBtn = page.locator('button:has-text("Sign In")').first();
-      await signInBtn.click();
-      await page.waitForURL('**/app/**', { timeout: 15000 });
-
-      console.log('✓ Signed in');
-
-      // Navigate to assessments
-      try {
-        await page.goto(`${BASE_URL}/app/assessments`, { waitUntil: 'networkidle', timeout: 5000 });
-      } catch (e) {
-        // Alternative URL
-      }
+      // Step 1: Navigate to assessments (pre-authenticated)
+      steps.push('Navigate to assessments');
+      console.log('Step 1: Navigating to assessments...');
+      await page.goto(`${BASE_URL}/app/assessments`);
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
+      console.log('✓ Navigated to assessments');
 
       const startBtn = page.locator('button:has-text("Start"), button:has-text("Begin")').first();
       const btnVisible = await startBtn.isVisible({ timeout: 5000 }).catch(() => false);
 
       if (btnVisible) {
         await startBtn.click();
-        await page.waitForLoadState('networkidle', { timeout: 10000 });
+        await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
       }
 
       // Step 2: Verify timer displays MM:SS format
@@ -395,31 +347,16 @@ test.describe('SECTION 5.1: Assessment System - Basics', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: Question Navigation - Next`);
 
-      // Setup: Sign in and start assessment
-      steps.push('Sign in and start assessment');
+      // Setup: Navigate to assessments (pre-authenticated)
+      steps.push('Navigate to assessments');
       console.log('Step 1: Setting up assessment...');
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.waitForLoadState('networkidle', { timeout: 10000 });
-
-      const emailInput = page.locator('input[type="email"]').first();
-      const passwordInput = page.locator('input[type="password"]').first();
-      await emailInput.fill(TEST_STUDENT_EMAIL);
-      await passwordInput.fill(TEST_STUDENT_PASSWORD);
-
-      const signInBtn = page.locator('button:has-text("Sign In")').first();
-      await signInBtn.click();
-      await page.waitForURL('**/app/**', { timeout: 15000 });
-
-      try {
-        await page.goto(`${BASE_URL}/app/assessments`, { waitUntil: 'networkidle', timeout: 5000 });
-      } catch (e) {
-        // Alternative navigation
-      }
+      await page.goto(`${BASE_URL}/app/assessments`);
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
 
       const startBtn = page.locator('button:has-text("Start"), button:has-text("Begin")').first();
       if (await startBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
         await startBtn.click();
-        await page.waitForLoadState('networkidle', { timeout: 10000 });
+        await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
       }
 
       console.log('✓ Assessment started');
@@ -459,7 +396,7 @@ test.describe('SECTION 5.1: Assessment System - Basics', () => {
 
       if (nextVisible) {
         await nextBtn.click();
-        await page.waitForLoadState('networkidle', { timeout: 10000 });
+        await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
         console.log('✓ Next button clicked');
       }
 
@@ -483,7 +420,7 @@ test.describe('SECTION 5.1: Assessment System - Basics', () => {
 
       if (prevVisible) {
         await prevBtn.click();
-        await page.waitForLoadState('networkidle', { timeout: 10000 });
+        await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
 
         const prevAnswerPreserved = await page.evaluate(() => {
           const checkedRadio = document.querySelector('input[type="radio"]:checked');
@@ -496,7 +433,7 @@ test.describe('SECTION 5.1: Assessment System - Basics', () => {
 
         // Go back to question 2
         await nextBtn.click();
-        await page.waitForLoadState('networkidle', { timeout: 10000 });
+        await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
       }
 
       screenshots.push(await takeScreenshot(page, testName, '03-navigation-verified'));
@@ -533,40 +470,24 @@ test.describe('SECTION 5.1: Assessment System - Basics', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: Question Navigation - Previous`);
 
-      // Similar setup and navigation
-      steps.push('Setup assessment and navigate to question 2');
+      // Setup and navigate to assessment
+      steps.push('Navigate to assessments and start');
       console.log('Step 1: Setting up...');
 
-      // Abbreviated setup (similar to TC-5.1.3)
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.waitForLoadState('networkidle', { timeout: 10000 });
-
-      const emailInput = page.locator('input[type="email"]').first();
-      const passwordInput = page.locator('input[type="password"]').first();
-      await emailInput.fill(TEST_STUDENT_EMAIL);
-      await passwordInput.fill(TEST_STUDENT_PASSWORD);
-
-      const signInBtn = page.locator('button:has-text("Sign In")').first();
-      await signInBtn.click();
-      await page.waitForURL('**/app/**', { timeout: 15000 });
-
-      try {
-        await page.goto(`${BASE_URL}/app/assessments`, { waitUntil: 'networkidle', timeout: 5000 });
-      } catch (e) {
-        // Alternative
-      }
+      await page.goto(`${BASE_URL}/app/assessments`);
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
 
       const startBtn = page.locator('button:has-text("Start"), button:has-text("Begin")').first();
       if (await startBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
         await startBtn.click();
-        await page.waitForLoadState('networkidle', { timeout: 10000 });
+        await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
       }
 
       // Move to question 2
       const nextBtn = page.locator('button:has-text("Next"), button:has-text("Continue")').first();
       if (await nextBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
         await nextBtn.click();
-        await page.waitForLoadState('networkidle', { timeout: 10000 });
+        await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
       }
 
       console.log('✓ On question 2');
@@ -584,7 +505,7 @@ test.describe('SECTION 5.1: Assessment System - Basics', () => {
 
       if (prevVisible) {
         await prevBtn.click();
-        await page.waitForLoadState('networkidle', { timeout: 10000 });
+        await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
         console.log('✓ Previous button clicked');
       }
 
@@ -655,32 +576,17 @@ test.describe('SECTION 5.1: Assessment System - Basics', () => {
       await page.setViewportSize({ width: 375, height: 667 });
       console.log('✓ Viewport set to mobile size');
 
-      // Step 2: Sign in and start assessment
-      steps.push('Sign in and start assessment');
+      // Step 2: Navigate to assessments (pre-authenticated)
+      steps.push('Navigate to assessments');
       console.log('Step 2: Starting assessment...');
 
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.waitForLoadState('networkidle', { timeout: 10000 });
-
-      const emailInput = page.locator('input[type="email"]').first();
-      const passwordInput = page.locator('input[type="password"]').first();
-      await emailInput.fill(TEST_STUDENT_EMAIL);
-      await passwordInput.fill(TEST_STUDENT_PASSWORD);
-
-      const signInBtn = page.locator('button:has-text("Sign In")').first();
-      await signInBtn.click();
-      await page.waitForURL('**/app/**', { timeout: 15000 });
-
-      try {
-        await page.goto(`${BASE_URL}/app/assessments`, { waitUntil: 'networkidle', timeout: 5000 });
-      } catch (e) {
-        // Alternative
-      }
+      await page.goto(`${BASE_URL}/app/assessments`);
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
 
       const startBtn = page.locator('button:has-text("Start"), button:has-text("Begin")').first();
       if (await startBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
         await startBtn.click();
-        await page.waitForLoadState('networkidle', { timeout: 10000 });
+        await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
       }
 
       screenshots.push(await takeScreenshot(page, testName, '01-mobile-assessment'));
@@ -754,31 +660,16 @@ test.describe('SECTION 5.1: Assessment System - Basics', () => {
       console.log(`\n🧪 Running ${testCase}: Submit Assessment`);
 
       // Setup
-      steps.push('Setup and navigate to assessment');
+      steps.push('Navigate to assessments');
       console.log('Step 1: Setting up...');
 
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.waitForLoadState('networkidle', { timeout: 10000 });
-
-      const emailInput = page.locator('input[type="email"]').first();
-      const passwordInput = page.locator('input[type="password"]').first();
-      await emailInput.fill(TEST_STUDENT_EMAIL);
-      await passwordInput.fill(TEST_STUDENT_PASSWORD);
-
-      const signInBtn = page.locator('button:has-text("Sign In")').first();
-      await signInBtn.click();
-      await page.waitForURL('**/app/**', { timeout: 15000 });
-
-      try {
-        await page.goto(`${BASE_URL}/app/assessments`, { waitUntil: 'networkidle', timeout: 5000 });
-      } catch (e) {
-        // Alternative
-      }
+      await page.goto(`${BASE_URL}/app/assessments`);
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
 
       const startBtn = page.locator('button:has-text("Start"), button:has-text("Begin")').first();
       if (await startBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
         await startBtn.click();
-        await page.waitForLoadState('networkidle', { timeout: 10000 });
+        await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
       }
 
       screenshots.push(await takeScreenshot(page, testName, '01-assessment-running'));
@@ -820,7 +711,7 @@ test.describe('SECTION 5.1: Assessment System - Basics', () => {
 
       if (confirmBtnVisible) {
         await confirmBtn.click();
-        await page.waitForLoadState('networkidle', { timeout: 10000 });
+        await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
         console.log('✓ Confirmed submission');
       }
 
@@ -871,33 +762,18 @@ test.describe('SECTION 5.1: Assessment System - Basics', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: Assessment Results Display`);
 
-      // Setup - navigate to results page (from previous test flow)
-      steps.push('Complete assessment and view results');
+      // Setup - navigate to assessments and start
+      steps.push('Navigate to assessments');
       console.log('Step 1: Setting up assessment...');
 
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.waitForLoadState('networkidle', { timeout: 10000 });
+      await page.goto(`${BASE_URL}/app/assessments`);
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
 
-      const emailInput = page.locator('input[type="email"]').first();
-      const passwordInput = page.locator('input[type="password"]').first();
-      await emailInput.fill(TEST_STUDENT_EMAIL);
-      await passwordInput.fill(TEST_STUDENT_PASSWORD);
-
-      const signInBtn = page.locator('button:has-text("Sign In")').first();
-      await signInBtn.click();
-      await page.waitForURL('**/app/**', { timeout: 15000 });
-
-      try {
-        await page.goto(`${BASE_URL}/app/assessments`, { waitUntil: 'networkidle', timeout: 5000 });
-      } catch (e) {
-        // Alternative
-      }
-
-      // Start and quickly navigate to completion
+      // Start assessment
       const startBtn = page.locator('button:has-text("Start"), button:has-text("Begin")').first();
       if (await startBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
         await startBtn.click();
-        await page.waitForLoadState('networkidle', { timeout: 10000 });
+        await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
       }
 
       console.log('✓ Assessment in progress');
@@ -916,7 +792,7 @@ test.describe('SECTION 5.1: Assessment System - Basics', () => {
           await confirmBtn.click();
         }
 
-        await page.waitForLoadState('networkidle', { timeout: 10000 });
+        await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
       }
 
       screenshots.push(await takeScreenshot(page, testName, '01-results-page'));

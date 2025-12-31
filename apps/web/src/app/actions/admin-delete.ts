@@ -3,6 +3,7 @@
 import { z } from 'zod'
 import { createAdminClient, verifySuperAdminAuth } from '@/lib/supabase-server'
 import { authLogger } from '@/lib/auth-logger'
+import { checkAdminOperationRateLimit } from '@/lib/rate-limiter-distributed'
 import { AdminEmailSchema } from '@/lib/validation-schemas'
 
 export interface DeleteUserResult {
@@ -25,6 +26,12 @@ export async function deleteUserByEmail(email: string): Promise<DeleteUserResult
     const auth = await verifySuperAdminAuth('deleteUserByEmail')
     if (!auth.authorized) {
       return auth.error!
+    }
+
+    // SECURITY: Rate limit admin operations to prevent abuse
+    if (!(await checkAdminOperationRateLimit(auth.user!.id))) {
+      authLogger.warn('[deleteUserByEmail] Rate limit exceeded', { userId: auth.user!.id })
+      return { success: false, error: 'Too many requests. Please try again later.' }
     }
 
     const adminClient = await createAdminClient()

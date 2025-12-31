@@ -1,70 +1,20 @@
 {
   "section": "Section 1.1: Email OTP Sign-Up Flow",
-  "timestamp": "2025-12-30T09:23:11.475Z",
-  "totalTests": 3,
-  "passed": 3,
-  "failed": 0,
+  "timestamp": "2025-12-31T06:49:42.861Z",
+  "totalTests": 1,
+  "passed": 0,
+  "failed": 1,
   "results": [
-    {
-      "testCase": "TC-1.1.1",
-      "testName": "Email-Input-Validation",
-      "status": "PASS",
-      "duration": 5129,
-      "screenshots": [
-        "Email-Input-Validation___signup-page-loaded___1767086574173.png",
-        "Email-Input-Validation___email-input-found___1767086574392.png",
-        "Email-Input-Validation___invalid-email-entered___1767086575147.png",
-        "Email-Input-Validation___error-message-shown___1767086575345.png",
-        "Email-Input-Validation___valid-email-entered___1767086576134.png",
-        "Email-Input-Validation___error-cleared___1767086576369.png"
-      ],
-      "steps": [
-        "Navigate to student signup page",
-        "Locate email input field",
-        "Enter invalid email \"notanemail\"",
-        "Verify error message appears",
-        "Enter valid email \"test@example.com\"",
-        "Verify error message clears"
-      ]
-    },
     {
       "testCase": "TC-1.1.2",
       "testName": "Email-Submission",
-      "status": "PASS",
-      "duration": 7381,
-      "screenshots": [
-        "Email-Submission___signup-page-loaded___1767086579463.png",
-        "Email-Submission___email-filled___1767086579726.png",
-        "Email-Submission___send-otp-clicked___1767086581442.png",
-        "Email-Submission___loading-state-shown___1767086581685.png",
-        "Email-Submission___api-response-received___1767086583889.png",
-        "Email-Submission___otp-sent-success___1767086584135.png"
-      ],
+      "status": "FAIL",
+      "duration": 16475,
+      "screenshots": [],
       "steps": [
-        "Navigate to signup and enter valid email",
-        "Click Send OTP button",
-        "Verify loading state on button",
-        "Verify API call succeeds",
-        "Verify OTP input appears or success message"
-      ]
-    },
-    {
-      "testCase": "TC-1.1.3",
-      "testName": "Email-Duplicate-Check",
-      "status": "PASS",
-      "duration": 6447,
-      "screenshots": [
-        "Email-Duplicate-Check___signup-page-loaded___1767086587892.png",
-        "Email-Duplicate-Check___registered-email-entered___1767086588125.png",
-        "Email-Duplicate-Check___send-otp-clicked___1767086590767.png",
-        "Email-Duplicate-Check___error-message-shown___1767086590984.png"
+        "Navigate to signup and enter valid email"
       ],
-      "steps": [
-        "Navigate to signup page",
-        "Enter email already registered in system",
-        "Click Send OTP button",
-        "Verify error message for duplicate email"
-      ]
+      "error": "locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Create Account\")').first()\u001b[22m\n"
     }
   ]
 }

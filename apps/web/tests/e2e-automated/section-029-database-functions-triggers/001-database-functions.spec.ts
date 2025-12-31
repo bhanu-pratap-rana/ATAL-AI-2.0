@@ -79,7 +79,7 @@ test('TC-29.1.1: match_curriculum() - pgvector Search', async ({ page }) => {
 
     // Step 1: Login
     console.log('  Step 1: Logging in...');
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
 
     const emailInput = page.locator('input[type="email"]').first();
     if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -94,7 +94,7 @@ test('TC-29.1.1: match_curriculum() - pgvector Search', async ({ page }) => {
     const loginButton = page.locator('button:has-text("Sign In")').first();
     if (await loginButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await loginButton.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(2000);
@@ -102,7 +102,7 @@ test('TC-29.1.1: match_curriculum() - pgvector Search', async ({ page }) => {
 
     // Step 2: Navigate to learning dashboard
     console.log('  Step 2: Navigating to curriculum...');
-    await page.goto(`${BASE_URL}/app/learn`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/app/learn`, { waitUntil: 'domcontentloaded' }).catch(() => {});
     await page.waitForTimeout(1000);
     screenshots.push(await takeScreenshot(page, testName, 'curriculum-page'));
 
@@ -195,7 +195,7 @@ test('TC-29.1.2: get_class_leaderboard() - Ranking', async ({ page }) => {
 
     // Step 1: Login as student
     console.log('  Step 1: Logging in...');
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
 
     const emailInput = page.locator('input[type="email"]').first();
     if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -210,7 +210,7 @@ test('TC-29.1.2: get_class_leaderboard() - Ranking', async ({ page }) => {
     const loginButton = page.locator('button:has-text("Sign In")').first();
     if (await loginButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await loginButton.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(2000);
@@ -218,12 +218,12 @@ test('TC-29.1.2: get_class_leaderboard() - Ranking', async ({ page }) => {
 
     // Step 2: Navigate to class page
     console.log('  Step 2: Navigating to class...');
-    await page.goto(`${BASE_URL}/app/learn`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/app/learn`, { waitUntil: 'domcontentloaded' }).catch(() => {});
 
     const classCard = page.locator('[data-test="class-card"], [class*="class-card"]').first();
     if (await classCard.isVisible({ timeout: 3000 }).catch(() => false)) {
       await classCard.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(1000);
@@ -324,7 +324,7 @@ test('TC-29.1.3: calculate_student_progress()', async ({ page }) => {
 
     // Step 1: Login
     console.log('  Step 1: Logging in...');
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
 
     const emailInput = page.locator('input[type="email"]').first();
     if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -339,7 +339,7 @@ test('TC-29.1.3: calculate_student_progress()', async ({ page }) => {
     const loginButton = page.locator('button:has-text("Sign In")').first();
     if (await loginButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await loginButton.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(2000);
@@ -347,7 +347,7 @@ test('TC-29.1.3: calculate_student_progress()', async ({ page }) => {
 
     // Step 2: Navigate to progress page
     console.log('  Step 2: Navigating to progress...');
-    await page.goto(`${BASE_URL}/app/progress`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/app/progress`, { waitUntil: 'domcontentloaded' }).catch(() => {});
     await page.waitForTimeout(1000);
     screenshots.push(await takeScreenshot(page, testName, 'progress-page'));
 
@@ -378,7 +378,7 @@ test('TC-29.1.3: calculate_student_progress()', async ({ page }) => {
     // Step 5: Complete an assessment
     console.log('  Step 5: Completing assessment...');
 
-    await page.goto(`${BASE_URL}/app/learn/module1/topic1`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/app/learn/module1/topic1`, { waitUntil: 'domcontentloaded' }).catch(() => {});
     const assessmentButton = page.locator('button:has-text("Start"), button:has-text("Quiz")').first();
 
     if (await assessmentButton.isVisible({ timeout: 2000 }).catch(() => false)) {
@@ -390,7 +390,7 @@ test('TC-29.1.3: calculate_student_progress()', async ({ page }) => {
     // Step 6: Check updated progress
     console.log('  Step 6: Checking updated progress...');
 
-    await page.goto(`${BASE_URL}/app/progress`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/app/progress`, { waitUntil: 'domcontentloaded' }).catch(() => {});
     await page.waitForTimeout(1000);
 
     const newProgressDisplay = page.locator('[data-test="overall-progress"]').first();
@@ -454,7 +454,7 @@ test('TC-29.1.4: Badge Earning Trigger', async ({ page }) => {
 
     // Step 1: Login as new student
     console.log('  Step 1: Logging in...');
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
 
     const emailInput = page.locator('input[type="email"]').first();
     if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -469,7 +469,7 @@ test('TC-29.1.4: Badge Earning Trigger', async ({ page }) => {
     const loginButton = page.locator('button:has-text("Sign In")').first();
     if (await loginButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await loginButton.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(2000);
@@ -477,7 +477,7 @@ test('TC-29.1.4: Badge Earning Trigger', async ({ page }) => {
 
     // Step 2: Check initial badges
     console.log('  Step 2: Checking badges...');
-    await page.goto(`${BASE_URL}/app/profile`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/app/profile`, { waitUntil: 'domcontentloaded' }).catch(() => {});
     await page.waitForTimeout(1000);
     screenshots.push(await takeScreenshot(page, testName, 'badges-page'));
 
@@ -489,7 +489,7 @@ test('TC-29.1.4: Badge Earning Trigger', async ({ page }) => {
     // Step 3: Complete first assessment
     console.log('  Step 3: Completing first assessment...');
 
-    await page.goto(`${BASE_URL}/app/learn`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/app/learn`, { waitUntil: 'domcontentloaded' }).catch(() => {});
     const assessmentButton = page.locator('button:has-text("Start"), button:has-text("Quiz")').first();
 
     if (await assessmentButton.isVisible({ timeout: 2000 }).catch(() => false)) {
@@ -510,7 +510,7 @@ test('TC-29.1.4: Badge Earning Trigger', async ({ page }) => {
     // Step 5: Verify badge appears in profile
     console.log('  Step 5: Verifying badge in profile...');
 
-    await page.goto(`${BASE_URL}/app/profile`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/app/profile`, { waitUntil: 'domcontentloaded' }).catch(() => {});
     await page.waitForTimeout(1000);
 
     const newBadge = page.locator('[data-test="earned-badge"], [class*="badge-earned"]').first();
@@ -572,7 +572,7 @@ test('TC-29.1.5: Points Calculation & History', async ({ page }) => {
     console.log('\n🧪 TEST: Points Calculation & History');
     console.log('━'.repeat(50));
 
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
     const emailInput = page.locator('input[type="email"]').first();
     if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
       await emailInput.fill('student@example.com');
@@ -584,13 +584,13 @@ test('TC-29.1.5: Points Calculation & History', async ({ page }) => {
     const loginButton = page.locator('button:has-text("Sign In")').first();
     if (await loginButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await loginButton.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(2000);
     findings.push('✓ Student logged in');
 
-    await page.goto(`${BASE_URL}/app/profile`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/app/profile`, { waitUntil: 'domcontentloaded' }).catch(() => {});
     await page.waitForTimeout(1000);
 
     const pointsDisplay = page.locator('[data-test="total-points"], text=/points|score/i').first();
@@ -633,7 +633,7 @@ test('TC-29.1.6: Student Knowledge State Tracking', async ({ page }) => {
     console.log('\n🧪 TEST: Student Knowledge State Tracking');
     console.log('━'.repeat(50));
 
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
     const emailInput = page.locator('input[type="email"]').first();
     if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
       await emailInput.fill('student@example.com');
@@ -645,13 +645,13 @@ test('TC-29.1.6: Student Knowledge State Tracking', async ({ page }) => {
     const loginButton = page.locator('button:has-text("Sign In")').first();
     if (await loginButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await loginButton.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(2000);
     findings.push('✓ Student logged in');
 
-    await page.goto(`${BASE_URL}/app/progress`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/app/progress`, { waitUntil: 'domcontentloaded' }).catch(() => {});
 
     const masteryDisplay = page.locator('[data-test="mastery"], text=/mastery|level/i').first();
     if (await masteryDisplay.isVisible({ timeout: 2000 }).catch(() => false)) {
@@ -691,7 +691,7 @@ test('TC-29.1.7: Learning Style Profile Detection', async ({ page }) => {
     console.log('\n🧪 TEST: Learning Style Profile Detection');
     console.log('━'.repeat(50));
 
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
     const emailInput = page.locator('input[type="email"]').first();
     if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
       await emailInput.fill('student@example.com');
@@ -703,13 +703,13 @@ test('TC-29.1.7: Learning Style Profile Detection', async ({ page }) => {
     const loginButton = page.locator('button:has-text("Sign In")').first();
     if (await loginButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await loginButton.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(2000);
     findings.push('✓ Student logged in');
 
-    await page.goto(`${BASE_URL}/app/profile`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/app/profile`, { waitUntil: 'domcontentloaded' }).catch(() => {});
 
     const learningStyle = page.locator('[data-test="learning-style"], text=/visual|auditory|kinesthetic/i').first();
     if (await learningStyle.isVisible({ timeout: 2000 }).catch(() => false)) {
@@ -750,7 +750,7 @@ test('TC-29.1.8: IRT Parameter Tracking', async ({ page }) => {
     console.log('\n🧪 TEST: IRT Parameter Tracking');
     console.log('━'.repeat(50));
 
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
     const emailInput = page.locator('input[type="email"]').first();
     if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
       await emailInput.fill('student@example.com');
@@ -762,13 +762,13 @@ test('TC-29.1.8: IRT Parameter Tracking', async ({ page }) => {
     const loginButton = page.locator('button:has-text("Sign In")').first();
     if (await loginButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await loginButton.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(2000);
     findings.push('✓ Student logged in');
 
-    await page.goto(`${BASE_URL}/app/learn`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/app/learn`, { waitUntil: 'domcontentloaded' }).catch(() => {});
 
     const assessmentButton = page.locator('button:has-text("Start"), button:has-text("Quiz")').first();
     if (await assessmentButton.isVisible({ timeout: 2000 }).catch(() => false)) {
@@ -810,7 +810,7 @@ test('TC-29.1.9: Formative Assessment Responses', async ({ page }) => {
     console.log('\n🧪 TEST: Formative Assessment Responses');
     console.log('━'.repeat(50));
 
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
     const emailInput = page.locator('input[type="email"]').first();
     if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
       await emailInput.fill('student@example.com');
@@ -822,13 +822,13 @@ test('TC-29.1.9: Formative Assessment Responses', async ({ page }) => {
     const loginButton = page.locator('button:has-text("Sign In")').first();
     if (await loginButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await loginButton.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(2000);
     findings.push('✓ Student logged in');
 
-    await page.goto(`${BASE_URL}/app/learn`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/app/learn`, { waitUntil: 'domcontentloaded' }).catch(() => {});
 
     const practiceButton = page.locator('button:has-text("Practice"), button:has-text("Quiz")').first();
     if (await practiceButton.isVisible({ timeout: 2000 }).catch(() => false)) {
@@ -871,7 +871,7 @@ test('TC-29.1.10: RLS Policies - Database Level', async ({ page }) => {
     console.log('\n🧪 TEST: RLS Policies - Database Level');
     console.log('━'.repeat(50));
 
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
     const emailInput = page.locator('input[type="email"]').first();
     if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
       await emailInput.fill('student@example.com');
@@ -883,13 +883,13 @@ test('TC-29.1.10: RLS Policies - Database Level', async ({ page }) => {
     const loginButton = page.locator('button:has-text("Sign In")').first();
     if (await loginButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await loginButton.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(2000);
     findings.push('✓ Student logged in');
 
-    await page.goto(`${BASE_URL}/app/progress`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/app/progress`, { waitUntil: 'domcontentloaded' }).catch(() => {});
 
     const myResults = page.locator('[data-test="my-results"], [class*="personal-results"]').first();
     if (await myResults.isVisible({ timeout: 2000 }).catch(() => false)) {
@@ -926,7 +926,7 @@ test('TC-29.1.11: Assessment Results Trigger', async ({ page }) => {
     console.log('\n🧪 TEST: Assessment Results Trigger');
     console.log('━'.repeat(50));
 
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
     const emailInput = page.locator('input[type="email"]').first();
     if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
       await emailInput.fill('newstudent2@example.com');
@@ -938,13 +938,13 @@ test('TC-29.1.11: Assessment Results Trigger', async ({ page }) => {
     const loginButton = page.locator('button:has-text("Sign In")').first();
     if (await loginButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await loginButton.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(2000);
     findings.push('✓ Student logged in');
 
-    await page.goto(`${BASE_URL}/app/learn`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/app/learn`, { waitUntil: 'domcontentloaded' }).catch(() => {});
 
     const assessmentButton = page.locator('button:has-text("Start"), button:has-text("Quiz")').first();
     if (await assessmentButton.isVisible({ timeout: 2000 }).catch(() => false)) {
