@@ -73,9 +73,9 @@ test('TC-36.1.1: English Language Interface', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to app
-    await page.goto('/app/dashboard');
-    findings.push('✓ Navigated to app');
+    // Navigate to app with pre-authenticated session
+    await page.goto('/app/dashboard', { waitUntil: 'domcontentloaded' });
+    findings.push('✓ Navigated to dashboard');
 
     // Check language setting
     const langSelect = page.locator('select[name="language"], [data-test="language-select"]').first();
@@ -139,9 +139,9 @@ test('TC-36.1.2: Hindi Language (Devanagari Script)', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to app
-    await page.goto('/app/dashboard');
-    findings.push('✓ Navigated to app');
+    // Navigate to app with pre-authenticated session
+    await page.goto('/app/dashboard', { waitUntil: 'domcontentloaded' });
+    findings.push('✓ Navigated to dashboard');
 
     // Change language to Hindi
     const langSelect = page.locator('select[name="language"], [data-test="language-select"]').first();
@@ -213,9 +213,9 @@ test('TC-36.1.3: Tamil Language (Tamil Script)', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to app
-    await page.goto('/app/dashboard');
-    findings.push('✓ Navigated to app');
+    // Navigate to app with pre-authenticated session
+    await page.goto('/app/dashboard', { waitUntil: 'domcontentloaded' });
+    findings.push('✓ Navigated to dashboard');
 
     // Change language to Tamil
     const langSelect = page.locator('select[name="language"], [data-test="language-select"]').first();
@@ -286,9 +286,9 @@ test('TC-36.1.4: Language Switching', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to app
-    await page.goto('/app/dashboard');
-    findings.push('✓ Navigated to app');
+    // Navigate to app with pre-authenticated session
+    await page.goto('/app/dashboard', { waitUntil: 'domcontentloaded' });
+    findings.push('✓ Navigated to dashboard');
 
     // Start in English
     const langSelect = page.locator('select[name="language"], [data-test="language-select"]').first();
@@ -357,8 +357,8 @@ test('TC-36.1.5: Locale-Specific Formatting', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to page with dates/numbers
-    await page.goto('/app/teacher/analytics');
+    // Navigate to page with dates/numbers - pre-authenticated teacher
+    await page.goto('/app/teacher/analytics', { waitUntil: 'domcontentloaded' });
     findings.push('✓ Navigated to analytics page');
 
     screenshots.push(await takeScreenshot(page, 'TC-36.1.5', 'english-formatting'));

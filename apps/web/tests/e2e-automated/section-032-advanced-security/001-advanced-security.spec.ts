@@ -67,7 +67,7 @@ test('TC-32.1.1: Rate Limiting - IP-Based', async ({ page }) => {
 
     // Step 1: Navigate to login
     console.log('  Step 1: Navigating to login page...');
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ Login page accessed');
 
     await page.waitForTimeout(500);
@@ -157,7 +157,7 @@ test('TC-32.1.2: Rate Limiting - User-Based', async ({ page }) => {
 
     // Step 1: Navigate to login and authenticate
     console.log('  Step 1: Navigating to app...');
-    await page.goto(`${BASE_URL}/app`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/app`, { waitUntil: 'domcontentloaded' }).catch(() => {});
     findings.push('✓ App page accessed');
 
     await page.waitForTimeout(500);
@@ -247,7 +247,7 @@ test('TC-32.1.3: OTP Expiry Enforcement', async ({ page }) => {
 
     // Step 1: Navigate to OTP verification
     console.log('  Step 1: Navigating to OTP page...');
-    await page.goto(`${BASE_URL}/auth/verify-otp`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/auth/verify-otp`, { waitUntil: 'domcontentloaded' }).catch(() => {});
     findings.push('✓ OTP verification page accessed');
 
     await page.waitForTimeout(500);
@@ -333,7 +333,7 @@ test('TC-32.1.4: Session Timeout', async ({ page }) => {
 
     // Step 1: Navigate to app
     console.log('  Step 1: Navigating to protected page...');
-    await page.goto(`${BASE_URL}/app`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/app`, { waitUntil: 'domcontentloaded' }).catch(() => {});
     findings.push('✓ App page accessed');
 
     await page.waitForTimeout(500);
@@ -412,7 +412,7 @@ test('TC-32.1.5: Multi-Role Switching Security', async ({ page }) => {
 
     // Step 1: Navigate to login
     console.log('  Step 1: Navigating to login page...');
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ Login page accessed');
 
     await page.waitForTimeout(500);
@@ -458,7 +458,7 @@ test('TC-32.1.5: Multi-Role Switching Security', async ({ page }) => {
     console.log('  Step 4: Checking role-based access...');
 
     // Try to navigate to teacher page
-    await page.goto(`${BASE_URL}/teacher`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/teacher`, { waitUntil: 'domcontentloaded' }).catch(() => {});
 
     const accessDenied = page.locator('text=/access denied|unauthorized|forbidden/i').first();
 
@@ -508,7 +508,7 @@ test('TC-32.1.6: Password Encryption Verification', async ({ page }) => {
 
     // Step 1: Navigate to login
     console.log('  Step 1: Navigating to login page...');
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ Login page accessed');
 
     await page.waitForTimeout(500);

@@ -63,7 +63,7 @@ test.describe('Section 20.1: Forgot Password Testing', () => {
       steps.push('Navigate to signin page');
       console.log('  1️⃣ Navigating to signin page...');
       await page.goto(`${BASE_URL}/auth/signin`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       await takeScreenshot(page, testName, '01-signin-page');
 
       // Step 2: Look for Forgot Password link
@@ -183,7 +183,7 @@ test.describe('Section 20.1: Forgot Password Testing', () => {
 
       // Try to navigate directly or via forgot flow
       await page.goto(`${BASE_URL}/auth/reset-password`).catch(() => page.goto(`${BASE_URL}/auth/signin`));
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       await takeScreenshot(page, testName, '01-reset-page');
 
       // Step 2: Look for OTP input

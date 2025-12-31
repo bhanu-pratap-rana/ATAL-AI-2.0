@@ -108,24 +108,46 @@ test.describe('Student Guest/Join Class Flow', () => {
 })
 
 test.describe('Join Class Flow (Dedicated Page)', () => {
-  test('SF-020: Join page redirects unauthenticated users', async ({ page }) => {
-    // Join page redirects to student/start without auth
+  test('SF-020: Join page allows unauthenticated access with auth options', async ({ page }) => {
+    // Join page allows unauthenticated users to see auth selection
     await page.goto('/join')
     await page.waitForLoadState('networkidle')
 
-    await expect(page).toHaveURL(/student\/start/)
+    // Wait for page to be ready (could be in Suspense loading state)
+    await page.waitForTimeout(1000)
+
+    // Should show authentication selection options
+    const continuePhoneBtn = page.getByRole('button', { name: /Continue with Phone/ })
+    const continueGuestBtn = page.getByRole('button', { name: /Continue as Guest/ })
+    const joinClassHeading = page.getByRole('heading', { name: /Join Class/i })
+
+    // Check if we're on the join page with auth options
+    const phoneVisible = await continuePhoneBtn.isVisible().catch(() => false)
+    const guestVisible = await continueGuestBtn.isVisible().catch(() => false)
+    const hasHeading = await joinClassHeading.isVisible().catch(() => false)
+
+    expect(hasHeading && (phoneVisible || guestVisible)).toBeTruthy()
   })
 
   test('SF-020b: Join page with invite shows auth options', async ({ page }) => {
-    // With invite params, should stay on join
+    // With invite params, should show join form with auth options
     await page.goto('/join?via=invite&code=ABC123')
     await page.waitForLoadState('networkidle')
 
-    // Should show auth selection options
-    const phoneButton = page.getByRole('button', { name: /Continue with Phone|Phone/i })
-    const guestButton = page.getByRole('button', { name: /Continue as Guest|Guest/i })
+    // Wait for page to be ready
+    await page.waitForTimeout(1000)
 
-    await expect(phoneButton.or(guestButton).first()).toBeVisible()
+    // Should show auth selection options
+    const phoneButton = page.getByRole('button', { name: /Continue with Phone/ })
+    const guestButton = page.getByRole('button', { name: /Continue as Guest/ })
+    const joinClassHeading = page.getByRole('heading', { name: /Join Class/i })
+
+    // At least one auth option should be visible with the heading
+    const phoneVisible = await phoneButton.isVisible().catch(() => false)
+    const guestVisible = await guestButton.isVisible().catch(() => false)
+    const hasHeading = await joinClassHeading.isVisible().catch(() => false)
+
+    expect(hasHeading && (phoneVisible || guestVisible)).toBeTruthy()
   })
 
   test('SF-021: Class code auto-uppercases', async ({ page }) => {
@@ -241,16 +263,29 @@ test.describe('Student Dashboard (Authenticated)', () => {
     test('SF-031: Classes page shows enrolled classes', async ({ page }) => {
       await page.goto('/app/student/classes')
 
-      // Should show classes or "Join a class" prompt
-      const hasClasses = await page.getByText(/My Classes|Enrolled/i).isVisible()
-      const hasJoinPrompt = await page.getByText(/Join|No classes/i).isVisible()
-      expect(hasClasses || hasJoinPrompt).toBeTruthy()
+      // Should show classes page with heading or join prompt
+      const classesHeading = page.getByRole('heading', { name: /Classes/i })
+      const joinButton = page.getByRole('button', { name: /Join a Class/i })
+      const noClassesText = page.getByText(/No classes yet/i)
+
+      const hasClasses = await classesHeading.isVisible().catch(() => false)
+      const hasJoinPrompt = await joinButton.isVisible().catch(() => false)
+      const hasNoClassesMsg = await noClassesText.isVisible().catch(() => false)
+      expect(hasClasses || hasJoinPrompt || hasNoClassesMsg).toBeTruthy()
     })
 
     test('SF-032: Assessment page is accessible', async ({ page }) => {
       await page.goto('/app/student/assessments')
 
-      await expect(page.getByText(/Assessment|Test/i)).toBeVisible()
+      // Check for assessment content - page should show assessments heading and/or start button
+      const assessmentHeading = page.locator('h1').filter({ hasText: /Assessment/i })
+      const startButton = page.getByRole('button', { name: /Start Assessment/i })
+      const assessmentHistory = page.getByText('Assessment History')
+
+      const hasHeading = await assessmentHeading.isVisible().catch(() => false)
+      const hasButton = await startButton.isVisible().catch(() => false)
+      const hasHistory = await assessmentHistory.isVisible().catch(() => false)
+      expect(hasHeading || hasButton || hasHistory).toBeTruthy()
     })
   })
 })
@@ -274,8 +309,12 @@ test.describe('Student Assessment Flow', () => {
     await page.goto('/app/assessment/start')
 
     // Should show assessment start page or redirect to login
-    const hasAssessment = await page.getByText(/Start|Begin|Assessment/i).isVisible()
+    const startButton = page.getByRole('button', { name: /Start Assessment/i })
+    const preAssessmentHeading = page.getByRole('heading', { name: /Pre-Assessment/i })
     const isRedirected = page.url().includes('/student/start')
+
+    const hasAssessment = await startButton.isVisible().catch(() => false) ||
+                         await preAssessmentHeading.isVisible().catch(() => false)
     expect(hasAssessment || isRedirected).toBeTruthy()
   })
 

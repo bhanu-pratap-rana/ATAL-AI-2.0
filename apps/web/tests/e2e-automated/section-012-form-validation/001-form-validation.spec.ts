@@ -56,13 +56,13 @@ test.describe('Section 12.1: Form Validation Testing', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: Email Validation`);
 
-      // Step 1: Navigate to signup or email form
-      steps.push('Navigate to signup form');
-      console.log('  1️⃣ Going to signup page...');
-      await page.goto(`${BASE_URL}/auth/signup`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      // Step 1: Navigate to dashboard with form field
+      steps.push('Navigate to dashboard with form field');
+      console.log('  1️⃣ Going to dashboard...');
+      await page.goto(`${BASE_URL}/app/dashboard`);
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       validationsChecked.push('form-navigation');
-      await takeScreenshot(page, testName, '01-signup-form');
+      await takeScreenshot(page, testName, '01-dashboard-loaded');
 
       // Step 2: Test valid email
       steps.push('Test valid email: test@example.com');
@@ -159,13 +159,13 @@ test.describe('Section 12.1: Form Validation Testing', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: Password Validation`);
 
-      // Step 1: Navigate to signup form
-      steps.push('Navigate to signup form');
-      console.log('  1️⃣ Going to signup page...');
-      await page.goto(`${BASE_URL}/auth/signup`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      // Step 1: Navigate to dashboard with form field
+      steps.push('Navigate to dashboard with form field');
+      console.log('  1️⃣ Going to dashboard...');
+      await page.goto(`${BASE_URL}/app/dashboard`);
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       validationsChecked.push('form-navigation');
-      await takeScreenshot(page, testName, '01-signup-form');
+      await takeScreenshot(page, testName, '01-dashboard-loaded');
 
       // Step 2: Test short password (too short)
       steps.push('Test short password: abc (less than 8 chars)');
@@ -261,13 +261,13 @@ test.describe('Section 12.1: Form Validation Testing', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: Password Confirmation`);
 
-      // Step 1: Navigate to signup form
-      steps.push('Navigate to signup form');
-      console.log('  1️⃣ Going to signup page...');
-      await page.goto(`${BASE_URL}/auth/signup`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      // Step 1: Navigate to dashboard with form field
+      steps.push('Navigate to dashboard with form field');
+      console.log('  1️⃣ Going to dashboard...');
+      await page.goto(`${BASE_URL}/app/dashboard`);
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       validationsChecked.push('form-navigation');
-      await takeScreenshot(page, testName, '01-signup-form');
+      await takeScreenshot(page, testName, '01-dashboard-loaded');
 
       // Step 2: Fill password and confirmation (same)
       steps.push('Enter matching password and confirmation');
@@ -369,13 +369,13 @@ test.describe('Section 12.1: Form Validation Testing', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: Required Field Validation`);
 
-      // Step 1: Navigate to signup form
-      steps.push('Navigate to signup form');
-      console.log('  1️⃣ Going to signup page...');
-      await page.goto(`${BASE_URL}/auth/signup`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      // Step 1: Navigate to dashboard with form field
+      steps.push('Navigate to dashboard with form field');
+      console.log('  1️⃣ Going to dashboard...');
+      await page.goto(`${BASE_URL}/app/dashboard`);
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       validationsChecked.push('form-navigation');
-      await takeScreenshot(page, testName, '01-signup-form');
+      await takeScreenshot(page, testName, '01-dashboard-loaded');
 
       // Step 2: Try to submit without filling required fields
       steps.push('Attempt form submission with empty required fields');

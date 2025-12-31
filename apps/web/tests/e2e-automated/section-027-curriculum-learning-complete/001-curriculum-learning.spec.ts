@@ -85,7 +85,7 @@ test('TC-27.1.1: Curriculum Page Structure', async ({ page }) => {
 
     // Step 1: Navigate to curriculum page
     console.log('  Step 1: Navigating to curriculum page...');
-    await page.goto(`${BASE_URL}/app/curriculum`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app/curriculum`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ Curriculum page accessible');
 
     await page.waitForTimeout(1000);
@@ -218,7 +218,7 @@ test('TC-27.1.2: Lesson Content Load', async ({ page }) => {
     // Step 1: Navigate to lesson page
     console.log('  Step 1: Navigating to lesson page...');
     const startTime = Date.now();
-    await page.goto(`${BASE_URL}/app/learn/module1/topic1`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app/learn/module1/topic1`, { waitUntil: 'domcontentloaded' });
     const loadTime = Date.now() - startTime;
 
     console.log(`  ✓ Page loaded in ${(loadTime / 1000).toFixed(2)}s`);
@@ -356,7 +356,7 @@ test('TC-27.1.3: AI-Generated Explanations', async ({ page }) => {
 
     // Step 1: Navigate to lesson
     console.log('  Step 1: Navigating to lesson...');
-    await page.goto(`${BASE_URL}/app/learn/module1/topic1`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app/learn/module1/topic1`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ Lesson page accessible');
 
     await page.waitForTimeout(1000);
@@ -483,7 +483,7 @@ test('TC-27.1.4: pgvector Content Embeddings', async ({ page }) => {
 
     // Step 1: Navigate to lesson
     console.log('  Step 1: Navigating to lesson...');
-    await page.goto(`${BASE_URL}/app/learn/module1/topic1`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app/learn/module1/topic1`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ Lesson page accessible');
 
     // Step 2: Check for related content/recommendations
@@ -605,7 +605,7 @@ test('TC-27.1.5: Content Caching for Offline', async ({ page }) => {
 
     // Step 1: Navigate to lesson
     console.log('  Step 1: Navigating to lesson...');
-    await page.goto(`${BASE_URL}/app/learn/module1/topic1`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app/learn/module1/topic1`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ Lesson page accessible');
 
     await page.waitForTimeout(1000);
@@ -740,7 +740,7 @@ test('TC-27.1.6: Content in Multiple Languages', async ({ page }) => {
 
     // Step 1: Navigate to lesson in English
     console.log('  Step 1: Viewing lesson in English...');
-    await page.goto(`${BASE_URL}/app/learn/module1/topic1?lang=en`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app/learn/module1/topic1?lang=en`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ Lesson page accessible');
 
     await page.waitForTimeout(1000);
@@ -750,7 +750,7 @@ test('TC-27.1.6: Content in Multiple Languages', async ({ page }) => {
     console.log('  Step 2: Changing language to Hindi...');
 
     // Go to settings
-    await page.goto(`${BASE_URL}/app/settings`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/app/settings`, { waitUntil: 'domcontentloaded' }).catch(() => {});
 
     const languageSelect = page.locator(
       '[data-test="language-select"], select[name="language"], [class*="language-select"]'
@@ -771,7 +771,7 @@ test('TC-27.1.6: Content in Multiple Languages', async ({ page }) => {
     // Step 3: Navigate back to lesson
     console.log('  Step 3: Viewing lesson in Hindi...');
 
-    await page.goto(`${BASE_URL}/app/learn/module1/topic1`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app/learn/module1/topic1`, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(1000);
     screenshots.push(await takeScreenshot(page, testName, 'hindi-content'));
 
@@ -791,7 +791,7 @@ test('TC-27.1.6: Content in Multiple Languages', async ({ page }) => {
     // Step 5: Change to Assamese
     console.log('  Step 5: Changing language to Assamese...');
 
-    await page.goto(`${BASE_URL}/app/settings`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/app/settings`, { waitUntil: 'domcontentloaded' }).catch(() => {});
 
     const languageSelect2 = page.locator(
       '[data-test="language-select"], select[name="language"], [class*="language-select"]'
@@ -812,7 +812,7 @@ test('TC-27.1.6: Content in Multiple Languages', async ({ page }) => {
     // Step 6: Verify Assamese content
     console.log('  Step 6: Verifying Assamese content...');
 
-    await page.goto(`${BASE_URL}/app/learn/module1/topic1`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app/learn/module1/topic1`, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(1000);
     screenshots.push(await takeScreenshot(page, testName, 'assamese-content'));
 

@@ -73,8 +73,8 @@ test('TC-42.1.1: Gemini API Rate Limit Handling', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to AI tutor
-    await page.goto('/app/tutor');
+    // Navigate to AI tutor (pre-authenticated)
+    await page.goto('/app/tutor', { waitUntil: 'domcontentloaded' });
     findings.push('✓ Navigated to AI tutor page');
     screenshots.push(await takeScreenshot(page, 'TC-42.1.1', 'tutor-page'));
 
@@ -152,8 +152,8 @@ test('TC-42.1.2: AI4Bharat TTS Failure', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to a page with TTS functionality (assessment, tutor, etc.)
-    await page.goto('/app/learn');
+    // Navigate to a page with TTS functionality (assessment, tutor, etc.) - pre-authenticated
+    await page.goto('/app/learn', { waitUntil: 'domcontentloaded' });
     findings.push('✓ Navigated to learning page');
     screenshots.push(await takeScreenshot(page, 'TC-42.1.2', 'learn-page'));
 
@@ -217,8 +217,8 @@ test('TC-42.1.3: Database Connection Failure', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Try to navigate to a page requiring database
-    await page.goto('/app/dashboard');
+    // Try to navigate to a page requiring database (pre-authenticated)
+    await page.goto('/app/dashboard', { waitUntil: 'domcontentloaded' });
     findings.push('✓ Attempted navigation to dashboard');
     await page.waitForTimeout(2000);
 
@@ -278,8 +278,8 @@ test('TC-42.1.4: Email Service Failure', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to a page where email might be triggered (rewards, badges, etc.)
-    await page.goto('/app/teacher');
+    // Navigate to a page where email might be triggered (rewards, badges, etc.) - pre-authenticated teacher
+    await page.goto('/app/teacher/classes', { waitUntil: 'domcontentloaded' });
     findings.push('✓ Navigated to teacher dashboard');
     screenshots.push(await takeScreenshot(page, 'TC-42.1.4', 'dashboard'));
 
@@ -340,8 +340,8 @@ test('TC-42.1.5: Supabase Outage', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to application
-    await page.goto('/app/dashboard');
+    // Navigate to application (pre-authenticated)
+    await page.goto('/app/dashboard', { waitUntil: 'domcontentloaded' });
     findings.push('✓ Navigated to dashboard');
     await page.waitForTimeout(1000);
 

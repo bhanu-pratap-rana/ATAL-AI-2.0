@@ -279,7 +279,7 @@ test('TC-59.1.4: Curriculum - Start Learning Topic', async ({ page }) => {
       const topicText = await topic.textContent();
       await topic.click();
       findings.push(`✓ Topic clicked: "${topicText}"`);
-      await page.waitForNavigation({ timeout: 3000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded');
     }
 
     // Verify navigation to learn page

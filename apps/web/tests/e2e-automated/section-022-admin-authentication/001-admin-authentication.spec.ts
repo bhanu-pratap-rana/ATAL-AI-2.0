@@ -64,7 +64,7 @@ test.describe('Section 22.1: Admin Authentication & Management Testing', () => {
       steps.push('Navigate to admin setup page');
       console.log('  1️⃣ Navigating to admin setup...');
       await page.goto(`${BASE_URL}/admin/setup`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       await takeScreenshot(page, testName, '01-admin-setup-page');
 
       // Step 2: Check for setup form
@@ -158,7 +158,7 @@ test.describe('Section 22.1: Admin Authentication & Management Testing', () => {
       steps.push('Navigate to admin login page');
       console.log('  1️⃣ Navigating to admin login...');
       await page.goto(`${BASE_URL}/admin/login`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       await takeScreenshot(page, testName, '01-admin-login-page');
 
       // Step 2: Enter admin email
@@ -235,7 +235,7 @@ test.describe('Section 22.1: Admin Authentication & Management Testing', () => {
       steps.push('Navigate to admin management page');
       console.log('  1️⃣ Navigating to admin management...');
       await page.goto(`${BASE_URL}/admin/manage-admins`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       await takeScreenshot(page, testName, '01-admin-management-page');
 
       // Step 2: Look for create admin button
@@ -335,7 +335,7 @@ test.describe('Section 22.1: Admin Authentication & Management Testing', () => {
       steps.push('Navigate to admin list page');
       console.log('  1️⃣ Navigating to admin list...');
       await page.goto(`${BASE_URL}/admin/manage-admins`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       await takeScreenshot(page, testName, '01-admin-list-page');
 
       // Step 2: Verify table structure
@@ -422,7 +422,7 @@ test.describe('Section 22.1: Admin Authentication & Management Testing', () => {
       steps.push('Navigate to admin list');
       console.log('  1️⃣ Navigating to admin list...');
       await page.goto(`${BASE_URL}/admin/manage-admins`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
 
       // Step 2: Find delete button
       steps.push('Find delete button for admin');
@@ -508,7 +508,7 @@ test.describe('Section 22.1: Admin Authentication & Management Testing', () => {
       steps.push('Navigate to admin list');
       console.log('  1️⃣ Navigating to admin list...');
       await page.goto(`${BASE_URL}/admin/manage-admins`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
 
       // Step 2: Find reset password button
       steps.push('Find reset password button');
@@ -604,7 +604,7 @@ test.describe('Section 22.1: Admin Authentication & Management Testing', () => {
       steps.push('Navigate to admin list');
       console.log('  1️⃣ Navigating to admin list...');
       await page.goto(`${BASE_URL}/admin/manage-admins`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
 
       // Step 2: Find role column
       steps.push('Find admin role column');

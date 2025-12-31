@@ -7,7 +7,7 @@
  * Convert array of objects to CSV format
  * Handles special characters, escaping, and UTF-8 encoding
  */
-export function convertToCSV(data: any[]): string {
+export function convertToCSV<T extends Record<string, unknown>>(data: T[]): string {
   if (data.length === 0) {
     return '';
   }
@@ -47,7 +47,7 @@ function escapeCSVField(field: string): string {
  * Download CSV file to client
  * Adds BOM for UTF-8 to ensure proper encoding in Excel
  */
-export function downloadCSV(data: any[], filename: string): void {
+export function downloadCSV<T extends Record<string, unknown>>(data: T[], filename: string): void {
   const csv = convertToCSV(data);
 
   // Add UTF-8 BOM for Excel compatibility with Assamese/Hindi characters
@@ -60,7 +60,7 @@ export function downloadCSV(data: any[], filename: string): void {
 /**
  * Download JSON file to client
  */
-export function downloadJSON(data: any, filename: string): void {
+export function downloadJSON<T>(data: T, filename: string): void {
   const jsonContent = JSON.stringify(data, null, 2);
   const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
 
@@ -98,15 +98,17 @@ function getCurrentDateString(): string {
  * Format data for CSV export with headers
  * Transforms nested objects to flat structure
  */
-export function formatForExport(data: any[], columns?: string[]): any[] {
+export function formatForExport<T extends Record<string, unknown>>(data: T[], columns?: string[]): Partial<T>[] {
   if (!data.length) return [];
 
   return data.map(row => {
     if (columns) {
       // Only include specified columns
-      const filtered: any = {};
+      const filtered: Partial<T> = {};
       for (const col of columns) {
-        filtered[col] = row[col];
+        if (col in row) {
+          (filtered as Record<string, unknown>)[col] = row[col as keyof T];
+        }
       }
       return filtered;
     }

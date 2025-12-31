@@ -5,7 +5,7 @@ import { timingSafeEqual } from 'crypto'
 import { z } from 'zod'
 import { createClient, getCurrentUser, verifyStudentAuth } from '@/lib/supabase-server'
 import { authLogger } from '@/lib/auth-logger'
-import { checkRateLimit } from '@/lib/rate-limiter-distributed'
+import { checkRateLimit, checkStudentMutationRateLimit } from '@/lib/rate-limiter-distributed'
 import { RATE_LIMITS } from '@/lib/constants/rate-limits'
 import { JoinClassSchema, StudentProfileSchema, ClassIdSchema } from '@/lib/validation-schemas'
 
@@ -45,6 +45,12 @@ export async function saveStudentProfile(params: StudentProfileParams) {
       email: user.email,
       isAnonymous: user.is_anonymous
     })
+
+    // SECURITY: Rate limit student mutations to prevent abuse
+    if (!(await checkStudentMutationRateLimit(user.id))) {
+      authLogger.warn('[saveStudentProfile] Rate limit exceeded', { userId: user.id })
+      return { success: false, error: 'Too many requests. Please try again later.' }
+    }
 
     const supabase = await createClient()
 
@@ -391,6 +397,12 @@ export async function leaveClass(classId: string) {
     const auth = await verifyStudentAuth('leaveClass')
     if (!auth.authorized) {
       return auth.error!
+    }
+
+    // SECURITY: Rate limit student mutations to prevent abuse
+    if (!(await checkStudentMutationRateLimit(auth.user!.id))) {
+      authLogger.warn('[leaveClass] Rate limit exceeded', { userId: auth.user!.id })
+      return { success: false, error: 'Too many requests. Please try again later.' }
     }
 
     const supabase = await createClient()

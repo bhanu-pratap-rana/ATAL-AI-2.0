@@ -65,9 +65,9 @@ test('TC-39.1.1: Simultaneous Assessment Submission', async ({ page, browser }) 
     console.log('\n🧪 TEST: Simultaneous Assessment Submission');
     console.log('━'.repeat(50));
 
-    // Step 1: Navigate to assessment
+    // Step 1: Navigate to assessment (pre-authenticated)
     console.log('  Step 1: Navigating to assessment...');
-    await page.goto(`${BASE_URL}/app/assessments`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app/assessments`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ Assessment page accessed');
 
     await page.waitForTimeout(500);
@@ -94,7 +94,7 @@ test('TC-39.1.1: Simultaneous Assessment Submission', async ({ page, browser }) 
     }
 
     if (await startBtn2.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await page2.goto(`${BASE_URL}/app/assessments`, { waitUntil: 'networkidle' });
+      await page2.goto(`${BASE_URL}/app/assessments`, { waitUntil: 'domcontentloaded' });
       const btn2 = page2.locator('button:has-text("Start")').first();
       if (await btn2.isVisible({ timeout: 2000 }).catch(() => false)) {
         await btn2.click();
@@ -187,9 +187,9 @@ test('TC-39.1.2: Concurrent Class Enrollment', async ({ page, browser }) => {
     console.log('\n🧪 TEST: Concurrent Class Enrollment');
     console.log('━'.repeat(50));
 
-    // Step 1: Navigate to join class
-    console.log('  Step 1: Navigating to join class page...');
-    await page.goto(`${BASE_URL}/auth/join-class`, { waitUntil: 'networkidle' }).catch(() => {});
+    // Step 1: Navigate to class enrollment (pre-authenticated)
+    console.log('  Step 1: Navigating to class enrollment...');
+    await page.goto(`${BASE_URL}/app/classes/join`, { waitUntil: 'domcontentloaded' }).catch(() => {});
     findings.push('✓ Join class page accessed');
 
     await page.waitForTimeout(500);
@@ -270,10 +270,10 @@ test('TC-39.1.3: Teacher Viewing Class While Students Submit', async ({ page }) 
     console.log('\n🧪 TEST: Teacher Viewing Class While Students Submit');
     console.log('━'.repeat(50));
 
-    // Step 1: Teacher navigates to class analytics
+    // Step 1: Teacher navigates to class analytics (pre-authenticated teacher)
     console.log('  Step 1: Teacher opening class analytics...');
-    await page.goto(`${BASE_URL}/teacher/class/analytics`, { waitUntil: 'networkidle' }).catch(() => {
-      return page.goto(`${BASE_URL}/app/teacher`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app/teacher/analytics`, { waitUntil: 'domcontentloaded' }).catch(() => {
+      return page.goto(`${BASE_URL}/app/teacher/classes`, { waitUntil: 'domcontentloaded' });
     });
     findings.push('✓ Analytics page accessed');
 
@@ -344,9 +344,9 @@ test('TC-39.1.4: Multiple Simultaneous AI Tutor Sessions', async ({ page, browse
     console.log('\n🧪 TEST: Multiple Simultaneous AI Tutor Sessions');
     console.log('━'.repeat(50));
 
-    // Step 1: User 1 starts AI tutor
+    // Step 1: User 1 starts AI tutor (pre-authenticated)
     console.log('  Step 1: Starting first AI tutor session...');
-    await page.goto(`${BASE_URL}/app/ai-tutor`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/app/tutor`, { waitUntil: 'domcontentloaded' }).catch(() => {});
     findings.push('✓ AI tutor page accessed');
 
     await page.waitForTimeout(500);
@@ -375,7 +375,7 @@ test('TC-39.1.4: Multiple Simultaneous AI Tutor Sessions', async ({ page, browse
       }
     }
 
-    if (await page2.goto(`${BASE_URL}/app/ai-tutor`, { waitUntil: 'networkidle' }).catch(() => false)) {
+    if (await page2.goto(`${BASE_URL}/app/tutor`, { waitUntil: 'domcontentloaded' }).catch(() => false)) {
       const input2Updated = page2.locator('textarea, input[placeholder*="ask"]').first();
       if (await input2Updated.isVisible({ timeout: 2000 }).catch(() => false)) {
         await input2Updated.fill('What is photosynthesis');
@@ -438,9 +438,9 @@ test('TC-39.1.5: Race Condition - Knowledge State Update', async ({ page }) => {
     console.log('\n🧪 TEST: Race Condition - Knowledge State Update');
     console.log('━'.repeat(50));
 
-    // Step 1: Navigate to assessment
+    // Step 1: Navigate to assessment (pre-authenticated)
     console.log('  Step 1: Navigating to assessment...');
-    await page.goto(`${BASE_URL}/app/assessments`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app/assessments`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ Assessment page accessed');
 
     await page.waitForTimeout(500);

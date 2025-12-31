@@ -146,37 +146,12 @@ test.describe('SECTION 4.1: Admin Dashboard', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: Admin Dashboard Load`);
 
-      // Step 1: Sign in as admin
-      steps.push('Sign in as admin');
-      console.log('Step 1: Signing in as admin...');
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.waitForLoadState('networkidle', { timeout: 10000 });
-      screenshots.push(await takeScreenshot(page, testName, '01-signin-page'));
-
-      const emailInput = page.locator('input[type="email"]').first();
-      const passwordInput = page.locator('input[type="password"]').first();
-
-      await emailInput.fill(TEST_ADMIN_EMAIL);
-      await passwordInput.fill(TEST_ADMIN_PASSWORD);
-      console.log('✓ Credentials entered');
-
-      const signInBtn = page.locator('button:has-text("Sign In"), button:has-text("signin")').first();
-      await signInBtn.click();
-
-      // Wait for admin navigation
-      await Promise.race([
-        page.waitForURL('**/app/admin/**', { timeout: 15000 }),
-        page.waitForURL('**/admin', { timeout: 15000 }),
-      ]);
-
-      console.log('✓ Signed in successfully');
-
-      // Step 2: Navigate to /app/admin
-      steps.push('Navigate to /app/admin');
-      console.log('Step 2: Navigating to admin dashboard...');
+      // Step 1: Navigate to admin dashboard (using pre-authenticated session)
+      steps.push('Navigate to admin dashboard');
+      console.log('Step 1: Navigating to admin dashboard...');
       const navigationStart = Date.now();
       await page.goto(`${BASE_URL}/app/admin`);
-      await page.waitForLoadState('networkidle', { timeout: 10000 });
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
       const navigationDuration = Date.now() - navigationStart;
       console.log(`✓ Navigated to admin dashboard (${navigationDuration}ms)`);
       screenshots.push(await takeScreenshot(page, testName, '02-dashboard-loaded'));
@@ -243,33 +218,11 @@ test.describe('SECTION 4.1: Admin Dashboard', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: Display System Statistics`);
 
-      // Step 1: Sign in as admin
-      steps.push('Sign in as admin');
-      console.log('Step 1: Signing in as admin...');
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.waitForLoadState('networkidle', { timeout: 10000 });
-
-      const emailInput = page.locator('input[type="email"]').first();
-      const passwordInput = page.locator('input[type="password"]').first();
-
-      await emailInput.fill(TEST_ADMIN_EMAIL);
-      await passwordInput.fill(TEST_ADMIN_PASSWORD);
-
-      const signInBtn = page.locator('button:has-text("Sign In")').first();
-      await signInBtn.click();
-
-      await Promise.race([
-        page.waitForURL('**/app/admin/**', { timeout: 15000 }),
-        page.waitForURL('**/admin', { timeout: 15000 }),
-      ]);
-
-      console.log('✓ Signed in');
-
-      // Step 2: Navigate to admin dashboard
+      // Step 1: Navigate to admin dashboard (using pre-authenticated session)
       steps.push('Navigate to admin dashboard');
-      console.log('Step 2: Navigating to dashboard...');
+      console.log('Step 1: Navigating to admin dashboard...');
       await page.goto(`${BASE_URL}/app/admin`);
-      await page.waitForLoadState('networkidle', { timeout: 10000 });
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
       console.log('✓ On admin dashboard');
       screenshots.push(await takeScreenshot(page, testName, '01-dashboard'));
 

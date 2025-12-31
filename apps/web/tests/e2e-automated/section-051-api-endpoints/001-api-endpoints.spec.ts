@@ -48,8 +48,9 @@ test('TC-51.1.1: Auth Config Endpoint', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    await page.goto('/signup');
-    findings.push('✓ Signup page loaded');
+    // Navigate to public auth page (no pre-auth needed for this endpoint check)
+    await page.goto('/auth/signup', { waitUntil: 'domcontentloaded' });
+    findings.push('✓ Auth page loaded');
 
     // Check auth config usage
     const emailOption = page.locator('button:has-text("Email"), [data-test="email-signup"]').first();
@@ -93,8 +94,8 @@ test('TC-51.1.2: Teacher Student Search Endpoint', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    await page.goto('/app/teacher/students');
-    findings.push('✓ Teacher students page loaded');
+    await page.goto('/app/teacher/classes', { waitUntil: 'domcontentloaded' });
+    findings.push('✓ Teacher page loaded');
 
     // Find search input
     const searchInput = page.locator('input[placeholder*="search"], input[name="search"], [data-test="search"]').first();

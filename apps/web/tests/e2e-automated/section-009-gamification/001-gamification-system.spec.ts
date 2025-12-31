@@ -59,27 +59,11 @@ test.describe('Section 9.1: Gamification System Testing', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: ${gamificationEvent}`);
 
-      // Step 1: Sign in
-      steps.push('Sign in as student');
-      console.log('  1️⃣ Signing in...');
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.fill('input[type="email"]', TEST_STUDENT_EMAIL);
-      await page.fill('input[type="password"]', TEST_STUDENT_PASSWORD);
-      await page.locator('button:has-text("Sign In")').first().click();
-
-      try {
-        await Promise.race([
-          page.waitForURL('**/app/**', { timeout: 10000 }),
-        ]).catch(() => {});
-      } catch (e) {
-        // Continue
-      }
-
-      // Step 2: Navigate to assessments
+      // Step 1: Navigate to assessments (pre-authenticated)
       steps.push('Navigate to assessments');
-      console.log('  2️⃣ Navigating to assessments...');
+      console.log('  1️⃣ Navigating to assessments...');
       await page.goto(`${BASE_URL}/app/assessments`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       await takeScreenshot(page, testName, '01-assessments-list');
 
       // Step 3: Find and start an assessment
@@ -89,7 +73,7 @@ test.describe('Section 9.1: Gamification System Testing', () => {
       const assessmentCard = page.locator('[class*="assessment"], [class*="quiz"]').first();
       if (await assessmentCard.isVisible({ timeout: 2000 }).catch(() => false)) {
         await assessmentCard.click();
-        await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+        await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       }
 
       // Step 4: Complete assessment to get >80%
@@ -174,7 +158,7 @@ test.describe('Section 9.1: Gamification System Testing', () => {
       console.log('  6️⃣ Checking dashboard for new badge...');
 
       await page.goto(`${BASE_URL}/app/dashboard`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       await takeScreenshot(page, testName, '03-dashboard-badges');
 
       const badgeElements = page.locator('[class*="badge"], [class*="achievement"], [class*="reward"]');
@@ -211,28 +195,12 @@ test.describe('Section 9.1: Gamification System Testing', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: ${gamificationEvent}`);
 
-      // Step 1: Sign in
-      steps.push('Sign in as student');
-      console.log('  1️⃣ Signing in...');
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.fill('input[type="email"]', TEST_STUDENT_EMAIL);
-      await page.fill('input[type="password"]', TEST_STUDENT_PASSWORD);
-      await page.locator('button:has-text("Sign In")').first().click();
-
-      try {
-        await Promise.race([
-          page.waitForURL('**/app/**', { timeout: 10000 }),
-        ]).catch(() => {});
-      } catch (e) {
-        // Continue
-      }
-
-      // Step 2: Check initial points
+      // Step 1: Navigate to dashboard (pre-authenticated)
       steps.push('Check initial points on dashboard');
-      console.log('  2️⃣ Checking initial points...');
+      console.log('  1️⃣ Checking initial points...');
 
       await page.goto(`${BASE_URL}/app/dashboard`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
 
       const pointsSelectors = [
         'text=Points',
@@ -262,12 +230,12 @@ test.describe('Section 9.1: Gamification System Testing', () => {
       console.log('  3️⃣ Starting and completing assessment...');
 
       await page.goto(`${BASE_URL}/app/assessments`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
 
       const assessmentCard = page.locator('[class*="assessment"], [class*="quiz"]').first();
       if (await assessmentCard.isVisible({ timeout: 2000 }).catch(() => false)) {
         await assessmentCard.click();
-        await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+        await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       }
 
       // Answer questions quickly
@@ -321,7 +289,7 @@ test.describe('Section 9.1: Gamification System Testing', () => {
       console.log('  5️⃣ Checking updated points on dashboard...');
 
       await page.goto(`${BASE_URL}/app/dashboard`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
 
       let updatedPoints = 0;
       for (const selector of pointsSelectors) {
@@ -370,27 +338,11 @@ test.describe('Section 9.1: Gamification System Testing', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: ${gamificationEvent}`);
 
-      // Step 1: Sign in
-      steps.push('Sign in as student');
-      console.log('  1️⃣ Signing in...');
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.fill('input[type="email"]', TEST_STUDENT_EMAIL);
-      await page.fill('input[type="password"]', TEST_STUDENT_PASSWORD);
-      await page.locator('button:has-text("Sign In")').first().click();
-
-      try {
-        await Promise.race([
-          page.waitForURL('**/app/**', { timeout: 10000 }),
-        ]).catch(() => {});
-      } catch (e) {
-        // Continue
-      }
-
-      // Step 2: Navigate to dashboard
+      // Step 1: Navigate to dashboard (pre-authenticated)
       steps.push('Navigate to dashboard');
-      console.log('  2️⃣ Navigating to dashboard...');
+      console.log('  1️⃣ Navigating to dashboard...');
       await page.goto(`${BASE_URL}/app/dashboard`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       await takeScreenshot(page, testName, '01-dashboard');
 
       // Step 3: Look for streak indicator
@@ -433,12 +385,12 @@ test.describe('Section 9.1: Gamification System Testing', () => {
       console.log('  4️⃣ Completing assessment...');
 
       await page.goto(`${BASE_URL}/app/assessments`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
 
       const assessmentCard = page.locator('[class*="assessment"], [class*="quiz"]').first();
       if (await assessmentCard.isVisible({ timeout: 2000 }).catch(() => false)) {
         await assessmentCard.click();
-        await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+        await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
 
         // Quick answer
         const radioBtn = page.locator('input[type="radio"]').first();
@@ -460,7 +412,7 @@ test.describe('Section 9.1: Gamification System Testing', () => {
       console.log('  5️⃣ Checking for streak update...');
 
       await page.goto(`${BASE_URL}/app/dashboard`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
 
       let updatedStreakCount = currentStreakCount;
       for (const selector of streakSelectors) {

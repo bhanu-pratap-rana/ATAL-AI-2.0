@@ -256,7 +256,7 @@ test('TC-65.1.4: PageTransition Component', async ({ page }) => {
     if (await navLink.isVisible({ timeout: 1000 }).catch(() => false)) {
       await navLink.click();
       findings.push('✓ Navigation initiated');
-      await page.waitForNavigation({ timeout: 3000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded');
     }
 
     const transitionTime = Date.now() - transitionStartTime;

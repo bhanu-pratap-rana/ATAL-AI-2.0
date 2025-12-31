@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase-server'
 import { authLogger } from '@/lib/auth-logger'
+import { checkSchoolFinderRateLimit } from '@/lib/rate-limiter-distributed'
 
 // Types
 export interface District {
@@ -27,6 +28,13 @@ export interface SchoolData {
  */
 export async function getDistricts() {
   try {
+    // SECURITY: Rate limit school finder to prevent abuse
+    const isAllowed = await checkSchoolFinderRateLimit('districts')
+    if (!isAllowed) {
+      authLogger.warn('[getDistricts] Rate limit exceeded')
+      return { success: false, error: 'Too many requests. Please try again later.', data: [] }
+    }
+
     const supabase = await createClient()
 
     const { data, error } = await supabase
@@ -56,6 +64,13 @@ export async function getDistricts() {
  */
 export async function getBlocksByDistrict(district: string) {
   try {
+    // SECURITY: Rate limit school finder to prevent abuse
+    const isAllowed = await checkSchoolFinderRateLimit(district)
+    if (!isAllowed) {
+      authLogger.warn('[getBlocksByDistrict] Rate limit exceeded', { district })
+      return { success: false, error: 'Too many requests. Please try again later.', data: [] }
+    }
+
     const supabase = await createClient()
 
     const { data, error } = await supabase
@@ -102,6 +117,14 @@ export async function getSchoolsByDistrictAndBlock(
   block?: string
 ) {
   try {
+    // SECURITY: Rate limit school search to prevent abuse
+    // Use district as identifier since this is public search
+    const isAllowed = await checkSchoolFinderRateLimit(district)
+    if (!isAllowed) {
+      authLogger.warn('[getSchoolsByDistrictAndBlock] Rate limit exceeded', { district })
+      return { success: false, error: 'Too many requests. Please try again later.', data: [] }
+    }
+
     const supabase = await createClient()
 
     let query = supabase
@@ -138,13 +161,25 @@ export async function getSchoolsByDistrictAndBlock(
  */
 export async function getSchoolPinStatus(schoolCode: string) {
   try {
+    // SECURITY: Rate limit school finder to prevent abuse
+    const normalizedCode = schoolCode.toUpperCase().trim()
+    const isAllowed = await checkSchoolFinderRateLimit(normalizedCode)
+    if (!isAllowed) {
+      authLogger.warn('[getSchoolPinStatus] Rate limit exceeded', { schoolCode: normalizedCode })
+      return {
+        success: false,
+        error: 'Too many requests. Please try again later.',
+        exists: false,
+      }
+    }
+
     const supabase = await createClient()
 
     // Find school - use .maybeSingle() as school code may not exist
     const { data: school, error: schoolError } = await supabase
       .from('schools')
       .select('id')
-      .eq('school_code', schoolCode.toUpperCase().trim())
+      .eq('school_code', normalizedCode)
       .maybeSingle()
 
     if (schoolError) {

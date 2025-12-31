@@ -67,8 +67,8 @@ test('TC-35.1.1: No Duplicate Class Codes', async ({ page }) => {
 
     // Step 1: Navigate to teacher dashboard
     console.log('  Step 1: Navigating to teacher dashboard...');
-    await page.goto(`${BASE_URL}/teacher`, { waitUntil: 'networkidle' }).catch(() => {
-      return page.goto(`${BASE_URL}/app/teacher`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/teacher`, { waitUntil: 'domcontentloaded' }).catch(() => {
+      return page.goto(`${BASE_URL}/app/teacher`, { waitUntil: 'domcontentloaded' }).catch(() => {});
     });
     findings.push('✓ Teacher dashboard accessed');
 
@@ -163,7 +163,7 @@ test('TC-35.1.2: No Duplicate Student Enrollment', async ({ page }) => {
 
     // Step 1: Navigate to join class
     console.log('  Step 1: Navigating to join class...');
-    await page.goto(`${BASE_URL}/auth/join-class`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/auth/join-class`, { waitUntil: 'domcontentloaded' }).catch(() => {});
     findings.push('✓ Join class page accessed');
 
     await page.waitForTimeout(500);
@@ -239,7 +239,7 @@ test('TC-35.1.3: Assessment Response Atomicity', async ({ page }) => {
 
     // Step 1: Navigate to assessment
     console.log('  Step 1: Navigating to assessment...');
-    await page.goto(`${BASE_URL}/app/assessments`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app/assessments`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ Assessment page accessed');
 
     await page.waitForTimeout(500);
@@ -329,7 +329,7 @@ test('TC-35.1.4: No Points/Badges Double-Granting', async ({ page }) => {
 
     // Step 1: Navigate to dashboard
     console.log('  Step 1: Navigating to dashboard...');
-    await page.goto(`${BASE_URL}/app`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ Dashboard accessed');
 
     await page.waitForTimeout(500);
@@ -356,7 +356,7 @@ test('TC-35.1.4: No Points/Badges Double-Granting', async ({ page }) => {
     // Step 4: Complete assessment
     console.log('  Step 4: Completing assessment...');
 
-    await page.goto(`${BASE_URL}/app/assessments`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app/assessments`, { waitUntil: 'domcontentloaded' });
     const assessmentBtn = page.locator('button:has-text("Take"), button:has-text("Start")').first();
 
     if (await assessmentBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
@@ -423,8 +423,8 @@ test('TC-35.1.5: Leaderboard Tie-Breaking', async ({ page }) => {
 
     // Step 1: Navigate to leaderboard
     console.log('  Step 1: Navigating to leaderboard...');
-    await page.goto(`${BASE_URL}/app/leaderboard`, { waitUntil: 'networkidle' }).catch(() => {
-      return page.goto(`${BASE_URL}/app`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app/leaderboard`, { waitUntil: 'domcontentloaded' }).catch(() => {
+      return page.goto(`${BASE_URL}/app`, { waitUntil: 'domcontentloaded' });
     });
     findings.push('✓ Leaderboard page accessed');
 

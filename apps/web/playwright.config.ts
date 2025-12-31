@@ -52,25 +52,90 @@ export default defineConfig({
       testMatch: /global-setup\.ts/,
     },
 
-    // Main test suite - Desktop Chrome
+    // Student tests - Desktop Chrome with student authentication
+    // Assessment tests require student role to access assessment features
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: 'chromium-student',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'playwright/.auth/student.json',
+      },
+      testMatch: [
+        '**/assessment*.spec.ts',
+        '**/student*.spec.ts',
+      ],
+      testIgnore: [
+        '**/admin*.spec.ts',
+        '**/teacher*.spec.ts',
+        '**/class*.spec.ts',
+      ],
       dependencies: ['setup'],
     },
 
-    // Mobile testing (optional)
+    // Teacher tests - Desktop Chrome with teacher authentication
+    // Teacher and class management tests require teacher role
+    {
+      name: 'chromium-teacher',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'playwright/.auth/teacher.json',
+      },
+      testMatch: [
+        '**/teacher*.spec.ts',
+        '**/class*.spec.ts',
+      ],
+      testIgnore: [
+        '**/admin*.spec.ts',
+        '**/assessment*.spec.ts',
+        '**/student*.spec.ts',
+      ],
+      dependencies: ['setup'],
+    },
+
+    // Admin tests - Desktop Chrome with admin authentication
+    // Admin-specific features require admin role
+    {
+      name: 'chromium-admin',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'playwright/.auth/admin.json',
+      },
+      testMatch: ['**/admin*.spec.ts'],
+      testIgnore: [
+        '**/assessment*.spec.ts',
+        '**/teacher*.spec.ts',
+        '**/student*.spec.ts',
+        '**/class*.spec.ts',
+      ],
+      dependencies: ['setup'],
+    },
+
+    // Mobile testing - Teacher context
     {
       name: 'mobile-chrome',
-      use: { ...devices['Pixel 5'] },
+      use: {
+        ...devices['Pixel 5'],
+        storageState: 'playwright/.auth/teacher.json',
+      },
+      testMatch: [
+        '**/teacher*.spec.ts',
+        '**/class*.spec.ts',
+      ],
+      testIgnore: /admin-.*\.spec\.ts/,
       dependencies: ['setup'],
-      testIgnore: /admin-.*\.spec\.ts/, // Skip admin tests on mobile
     },
 
-    // Tablet testing (optional)
+    // Tablet testing - Teacher context
     {
       name: 'tablet',
-      use: { ...devices['iPad Pro 11'] },
+      use: {
+        ...devices['iPad Pro 11'],
+        storageState: 'playwright/.auth/teacher.json',
+      },
+      testMatch: [
+        '**/teacher*.spec.ts',
+        '**/class*.spec.ts',
+      ],
       dependencies: ['setup'],
     },
   ],

@@ -34,6 +34,18 @@ import {
 import { clientLogger } from '@/lib/client-logger';
 
 /**
+ * Assessment response type for submitAssessmentWithSync
+ */
+interface AssessmentResponse {
+  itemId: string;
+  module: string;
+  isCorrect: boolean;
+  rtMs?: number;
+  focusBlurCount?: number;
+  chosenOption?: string;
+}
+
+/**
  * Hook for offline-aware mutations
  */
 export function useOfflineSync() {
@@ -61,7 +73,7 @@ export function useOfflineSync() {
    * If offline, enqueues and returns success: true, queued: true
    */
   const submitAssessmentWithSync = useCallback(
-    async (sessionId: string, responses: any[]) => {
+    async (sessionId: string, responses: AssessmentResponse[]) => {
       try {
         // Don't enqueue if online - let server action handle it
         if (typeof navigator !== 'undefined' && navigator.onLine) {

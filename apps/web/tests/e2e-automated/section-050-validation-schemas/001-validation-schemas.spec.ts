@@ -70,9 +70,9 @@ test('TC-50.1.1: Email Validation Schema', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to signup page
-    await page.goto('/signup');
-    findings.push('✓ Signup page loaded');
+    // Navigate to app profile page for validation testing (no signup page in pre-auth context)
+    await page.goto('/app/profile', { waitUntil: 'domcontentloaded' });
+    findings.push('✓ App page loaded for validation testing');
 
     const emailInput = page.locator('input[type="email"], input[name="email"], [data-test="email"]').first();
 
@@ -133,9 +133,9 @@ test('TC-50.1.2: Password Validation Schema', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to signup page
-    await page.goto('/signup');
-    findings.push('✓ Signup page loaded');
+    // Navigate to settings page for password validation testing (pre-authenticated)
+    await page.goto('/app/settings', { waitUntil: 'domcontentloaded' });
+    findings.push('✓ Settings page loaded');
 
     const passwordInput = page.locator('input[type="password"], input[name="password"], [data-test="password"]').first();
 

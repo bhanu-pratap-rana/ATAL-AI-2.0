@@ -3,7 +3,7 @@
 import { createClient, createAdminClient, getCurrentUser } from '@/lib/supabase-server'
 import { authLogger } from '@/lib/auth-logger'
 import { checkEmailExistsInAuth } from '@/app/actions/auth'
-import { checkOtpRateLimit } from '@/lib/rate-limiter-distributed'
+import { checkOtpRateLimit, checkTeacherOnboardRateLimit } from '@/lib/rate-limiter-distributed'
 
 // Types
 export interface SendEmailOtpResult {
@@ -168,6 +168,12 @@ export async function setPassword(password: string): Promise<SetPasswordResult> 
       return { success: false, error: 'Not authenticated. Please sign in again.' }
     }
 
+    // SECURITY: Rate limit onboarding operations to prevent abuse
+    if (!(await checkTeacherOnboardRateLimit(user.id))) {
+      authLogger.warn('[setPassword] Rate limit exceeded', { userId: user.id })
+      return { success: false, error: 'Too many requests. Please try again later.' }
+    }
+
     const supabase = await createClient()
 
     // 2. Validate password (min 8 chars)
@@ -217,6 +223,12 @@ export async function saveTeacherProfile({
 
     if (!user) {
       return { success: false, error: 'Not authenticated' }
+    }
+
+    // SECURITY: Rate limit onboarding operations to prevent abuse
+    if (!(await checkTeacherOnboardRateLimit(user.id))) {
+      authLogger.warn('[saveTeacherProfile] Rate limit exceeded', { userId: user.id })
+      return { success: false, error: 'Too many requests. Please try again later.' }
     }
 
     const supabase = await createClient()
@@ -315,6 +327,12 @@ export async function updateTeacherProfile({
 
     if (!user) {
       return { success: false, error: 'Not authenticated' }
+    }
+
+    // SECURITY: Rate limit onboarding operations to prevent abuse
+    if (!(await checkTeacherOnboardRateLimit(user.id))) {
+      authLogger.warn('[updateTeacherProfile] Rate limit exceeded', { userId: user.id })
+      return { success: false, error: 'Too many requests. Please try again later.' }
     }
 
     const supabase = await createClient()

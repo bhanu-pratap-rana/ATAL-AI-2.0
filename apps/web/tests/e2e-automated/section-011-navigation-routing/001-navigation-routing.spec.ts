@@ -70,7 +70,7 @@ test.describe('Section 11.1: Navigation & Routing Testing', () => {
       steps.push('Attempt to access /app/dashboard without authentication');
       console.log('  2️⃣ Attempting to access /app/dashboard...');
       await page.goto(`${BASE_URL}/app/dashboard`);
-      await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
       routesTested.push('/app/dashboard');
       await takeScreenshot(page, testName, '01-unauthenticated-attempt');
 
@@ -142,34 +142,21 @@ test.describe('Section 11.1: Navigation & Routing Testing', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: Role-Based Route Protection`);
 
-      // Step 1: Sign in as student
-      steps.push('Sign in as student');
-      console.log('  1️⃣ Signing in as student...');
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.fill('input[type="email"]', TEST_STUDENT_EMAIL);
-      await page.fill('input[type="password"]', TEST_STUDENT_PASSWORD);
-      await page.locator('button:has-text("Sign In")').first().click();
-
-      try {
-        await Promise.race([
-          page.waitForURL('**/app/dashboard**', { timeout: 10000 }),
-          page.waitForURL('**/app/learn**', { timeout: 10000 }),
-        ]);
-      } catch (e) {
-        console.log('  ⚠️ Sign in navigation timeout');
-      }
-
-      routesTested.push('student-signin');
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
-      await takeScreenshot(page, testName, '01-student-signin');
+      // Step 1: Navigate to dashboard with pre-authenticated session
+      steps.push('Navigate to /app/dashboard with pre-authenticated session');
+      console.log('  1️⃣ Navigating to dashboard...');
+      await page.goto(`${BASE_URL}/app/dashboard`);
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
+      routesTested.push('/app/dashboard');
+      await takeScreenshot(page, testName, '01-student-dashboard');
 
       // Step 2: Try to access admin-only route
       steps.push('Attempt to access /app/admin as student');
       console.log('  2️⃣ Attempting to access /app/admin...');
-      await page.goto(`${BASE_URL}/app/admin`, { waitUntil: 'networkidle' }).catch(() => {});
+      await page.goto(`${BASE_URL}/app/admin`, { waitUntil: 'domcontentloaded' }).catch(() => {});
       routesTested.push('/app/admin');
 
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       const afterAdminAttemptUrl = page.url();
       console.log(`  Current URL after admin attempt: ${afterAdminAttemptUrl}`);
 
@@ -200,7 +187,7 @@ test.describe('Section 11.1: Navigation & Routing Testing', () => {
       console.log('  4️⃣ Verifying student dashboard access...');
 
       await page.goto(`${BASE_URL}/app/dashboard`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       const dashboardUrl = page.url();
 
       if (dashboardUrl.includes('/app/dashboard') || dashboardUrl.includes('/app/learn')) {
@@ -236,24 +223,11 @@ test.describe('Section 11.1: Navigation & Routing Testing', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: Header Navigation`);
 
-      // Step 1: Sign in as student
-      steps.push('Sign in as student');
-      console.log('  1️⃣ Signing in...');
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.fill('input[type="email"]', TEST_STUDENT_EMAIL);
-      await page.fill('input[type="password"]', TEST_STUDENT_PASSWORD);
-      await page.locator('button:has-text("Sign In")').first().click();
-
-      try {
-        await Promise.race([
-          page.waitForURL('**/app/**', { timeout: 10000 }),
-        ]).catch(() => {});
-      } catch (e) {
-        // Continue
-      }
-
+      // Step 1: Navigate to dashboard with pre-authenticated session
+      steps.push('Navigate to /app/dashboard with pre-authenticated session');
+      console.log('  1️⃣ Navigating to dashboard...');
       await page.goto(`${BASE_URL}/app/dashboard`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       routesTested.push('/app/dashboard');
       await takeScreenshot(page, testName, '01-dashboard-loaded');
 
@@ -306,7 +280,7 @@ test.describe('Section 11.1: Navigation & Routing Testing', () => {
           // Try clicking the link
           try {
             await linkElement.click();
-            await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 }).catch(() => {});
             const currentUrl = page.url();
 
             if (currentUrl.includes(link.route) || currentUrl.includes(link.text.toLowerCase())) {
@@ -321,7 +295,7 @@ test.describe('Section 11.1: Navigation & Routing Testing', () => {
 
           // Go back to dashboard for next test
           await page.goto(`${BASE_URL}/app/dashboard`);
-          await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+          await page.waitForLoadState('domcontentloaded', { timeout: 5000 }).catch(() => {});
         } else {
           console.log(`  ℹ️ "${link.text}" link not visible`);
         }

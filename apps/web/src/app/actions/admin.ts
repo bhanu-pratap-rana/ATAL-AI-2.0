@@ -3,6 +3,7 @@
 import { z } from 'zod'
 import { createAdminClient, verifySuperAdminAuth } from '@/lib/supabase-server'
 import { authLogger } from '@/lib/auth-logger'
+import { checkAdminOperationRateLimit } from '@/lib/rate-limiter-distributed'
 import { AdminEmailSchema } from '@/lib/validation-schemas'
 
 export interface SetAdminRoleResult {
@@ -27,6 +28,12 @@ export async function setAdminRole(email: string): Promise<SetAdminRoleResult> {
     const auth = await verifySuperAdminAuth('setAdminRole')
     if (!auth.authorized) {
       return auth.error!
+    }
+
+    // SECURITY: Rate limit admin operations to prevent abuse
+    if (!(await checkAdminOperationRateLimit(auth.user!.id))) {
+      authLogger.warn('[setAdminRole] Rate limit exceeded', { userId: auth.user!.id })
+      return { success: false, error: 'Too many requests. Please try again later.' }
     }
 
     const adminClient = await createAdminClient()
@@ -106,6 +113,13 @@ export async function checkAdminRoleByEmail(email: string): Promise<{
   try {
     // Validate email input
     const normalizedEmail = AdminEmailSchema.parse(email)
+
+    // SECURITY: Rate limit admin operations to prevent abuse
+    // Use email as identifier since this is a lookup operation
+    if (!(await checkAdminOperationRateLimit(normalizedEmail))) {
+      authLogger.warn('[checkAdminRoleByEmail] Rate limit exceeded', { email: normalizedEmail })
+      return { hasAdminRole: false, error: 'Too many requests. Please try again later.' }
+    }
 
     const adminClient = await createAdminClient()
 

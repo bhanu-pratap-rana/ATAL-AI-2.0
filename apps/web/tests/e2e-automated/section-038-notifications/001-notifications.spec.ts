@@ -73,8 +73,8 @@ test('TC-38.1.1: In-App Toast Notifications', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to app
-    await page.goto('/app/dashboard');
+    // Navigate to dashboard with pre-authenticated session
+    await page.goto('/app/dashboard', { waitUntil: 'domcontentloaded' });
     findings.push('✓ Navigated to dashboard');
 
     // Trigger an action that generates toast notification
@@ -144,8 +144,8 @@ test('TC-38.1.2: Email Notifications', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to settings
-    await page.goto('/app/settings');
+    // Navigate to settings with pre-authenticated session
+    await page.goto('/app/settings', { waitUntil: 'domcontentloaded' });
     findings.push('✓ Navigated to settings');
     screenshots.push(await takeScreenshot(page, 'TC-38.1.2', 'settings-page'));
 
@@ -226,8 +226,8 @@ test('TC-38.1.3: In-App Notification Center', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to app
-    await page.goto('/app/dashboard');
+    // Navigate to dashboard with pre-authenticated session
+    await page.goto('/app/dashboard', { waitUntil: 'domcontentloaded' });
     findings.push('✓ Navigated to dashboard');
 
     // Find notification bell icon
@@ -310,8 +310,8 @@ test('TC-38.1.4: SMS/Push Notifications', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to settings
-    await page.goto('/app/settings');
+    // Navigate to settings with pre-authenticated session
+    await page.goto('/app/settings', { waitUntil: 'domcontentloaded' });
     findings.push('✓ Navigated to settings');
 
     // Find push notification settings
@@ -388,8 +388,8 @@ test('TC-38.1.5: Notification Resilience & Error Handling', async ({ page }) => 
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to app
-    await page.goto('/app/dashboard');
+    // Navigate to dashboard with pre-authenticated session
+    await page.goto('/app/dashboard', { waitUntil: 'domcontentloaded' });
     findings.push('✓ Navigated to dashboard');
 
     // Simulate notification service failure (mock)
@@ -420,7 +420,7 @@ test('TC-38.1.5: Notification Resilience & Error Handling', async ({ page }) => 
     screenshots.push(await takeScreenshot(page, 'TC-38.1.5', 'error-handling'));
 
     // Verify notification settings still accessible
-    await page.goto('/app/settings');
+    await page.goto('/app/settings', { waitUntil: 'domcontentloaded' });
     findings.push('✓ Settings page accessible after error');
 
     const notifSettings = page.locator('[data-test="notifications"]').first();

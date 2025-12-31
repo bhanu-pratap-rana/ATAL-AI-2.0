@@ -59,27 +59,11 @@ test.describe('Section 8.1: Database Functions Testing', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: ${dbFunction}`);
 
-      // Step 1: Sign in as student
-      steps.push('Sign in as student');
-      console.log('  1️⃣ Signing in as student...');
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.fill('input[type="email"]', TEST_STUDENT_EMAIL);
-      await page.fill('input[type="password"]', TEST_STUDENT_PASSWORD);
-      await page.locator('button:has-text("Sign In")').first().click();
-
-      try {
-        await Promise.race([
-          page.waitForURL('**/app/**', { timeout: 10000 }),
-        ]).catch(() => {});
-      } catch (e) {
-        // Continue
-      }
-
-      // Step 2: Navigate to Learn page to trigger curriculum matching
+      // Step 1: Navigate to Learn page (pre-authenticated)
       steps.push('Navigate to Learn page');
-      console.log('  2️⃣ Navigating to Learn page...');
+      console.log('  1️⃣ Navigating to Learn page...');
       await page.goto(`${BASE_URL}/app/learn`);
-      await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
       await takeScreenshot(page, testName, '01-learn-page');
 
       // Step 3: Verify curriculum topics are displayed (result of match_curriculum_function)
@@ -116,7 +100,7 @@ test.describe('Section 8.1: Database Functions Testing', () => {
       const firstTopic = topics.first();
       if (await firstTopic.isVisible({ timeout: 2000 }).catch(() => false)) {
         await firstTopic.click();
-        await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+        await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
         await takeScreenshot(page, testName, '02-topic-content');
         console.log('  ✓ Topic content loaded');
       }
@@ -147,27 +131,11 @@ test.describe('Section 8.1: Database Functions Testing', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: ${dbFunction}`);
 
-      // Step 1: Sign in as student
-      steps.push('Sign in as student');
-      console.log('  1️⃣ Signing in as student...');
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.fill('input[type="email"]', TEST_STUDENT_EMAIL);
-      await page.fill('input[type="password"]', TEST_STUDENT_PASSWORD);
-      await page.locator('button:has-text("Sign In")').first().click();
-
-      try {
-        await Promise.race([
-          page.waitForURL('**/app/**', { timeout: 10000 }),
-        ]).catch(() => {});
-      } catch (e) {
-        // Continue
-      }
-
-      // Step 2: Navigate to dashboard
+      // Step 1: Navigate to dashboard (pre-authenticated)
       steps.push('Navigate to student dashboard');
-      console.log('  2️⃣ Navigating to dashboard...');
+      console.log('  1️⃣ Navigating to dashboard...');
       await page.goto(`${BASE_URL}/app/dashboard`);
-      await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
       await takeScreenshot(page, testName, '01-dashboard');
 
       // Step 3: Look for leaderboard or class rankings
@@ -203,7 +171,7 @@ test.describe('Section 8.1: Database Functions Testing', () => {
 
         if (await firstClass.isVisible({ timeout: 2000 }).catch(() => false)) {
           await firstClass.click();
-          await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+          await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
           await takeScreenshot(page, testName, '02-class-page');
 
           // Look for leaderboard on class page
@@ -275,24 +243,11 @@ test.describe('Section 8.1: Database Functions Testing', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: ${dbFunction}`);
 
-      // Step 1: Sign in as student A
-      steps.push('Sign in as student A');
-      console.log('  1️⃣ Signing in as student A...');
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.fill('input[type="email"]', TEST_STUDENT_EMAIL);
-      await page.fill('input[type="password"]', TEST_STUDENT_PASSWORD);
-      await page.locator('button:has-text("Sign In")').first().click();
-
-      try {
-        await Promise.race([
-          page.waitForURL('**/app/**', { timeout: 10000 }),
-        ]).catch(() => {});
-      } catch (e) {
-        // Continue
-      }
-
+      // Step 1: Navigate to dashboard (pre-authenticated)
+      steps.push('Navigate to student dashboard');
+      console.log('  1️⃣ Navigating to dashboard...');
       await page.goto(`${BASE_URL}/app/dashboard`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       await takeScreenshot(page, testName, '01-student-a-dashboard');
 
       // Step 2: Verify student A can view own data

@@ -85,7 +85,7 @@ test('TC-28.1.1: AI Tutor Streaming Chat', async ({ page }) => {
 
     // Step 1: Login
     console.log('  Step 1: Logging in...');
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
 
     const emailInput = page.locator('input[type="email"]').first();
     if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -100,7 +100,7 @@ test('TC-28.1.1: AI Tutor Streaming Chat', async ({ page }) => {
     const loginButton = page.locator('button:has-text("Sign In")').first();
     if (await loginButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await loginButton.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(2000);
@@ -108,7 +108,7 @@ test('TC-28.1.1: AI Tutor Streaming Chat', async ({ page }) => {
 
     // Step 2: Navigate to AI tutor
     console.log('  Step 2: Navigating to AI tutor...');
-    await page.goto(`${BASE_URL}/app/tutor`, { waitUntil: 'networkidle' }).catch(() => {
+    await page.goto(`${BASE_URL}/app/tutor`, { waitUntil: 'domcontentloaded' }).catch(() => {
       findings.push('⚠️ Tutor navigation attempted');
     });
 
@@ -236,7 +236,7 @@ test('TC-28.1.2: RAG - Retrieval Augmented Generation', async ({ page }) => {
 
     // Step 1-2: Login and navigate to tutor
     console.log('  Step 1-2: Logging in and navigating...');
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
 
     const emailInput = page.locator('input[type="email"]').first();
     if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -251,12 +251,12 @@ test('TC-28.1.2: RAG - Retrieval Augmented Generation', async ({ page }) => {
     const loginButton = page.locator('button:has-text("Sign In")').first();
     if (await loginButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await loginButton.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(2000);
 
-    await page.goto(`${BASE_URL}/app/tutor`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/app/tutor`, { waitUntil: 'domcontentloaded' }).catch(() => {});
     await page.waitForTimeout(1000);
     findings.push('✓ Tutor interface accessible');
 
@@ -371,7 +371,7 @@ test('TC-28.1.3: Socratic Method Implementation', async ({ page }) => {
 
     // Step 1: Login and navigate
     console.log('  Step 1: Logging in and navigating...');
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
 
     const emailInput = page.locator('input[type="email"]').first();
     if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -386,12 +386,12 @@ test('TC-28.1.3: Socratic Method Implementation', async ({ page }) => {
     const loginButton = page.locator('button:has-text("Sign In")').first();
     if (await loginButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await loginButton.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(2000);
 
-    await page.goto(`${BASE_URL}/app/tutor?mode=socratic`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/app/tutor?mode=socratic`, { waitUntil: 'domcontentloaded' }).catch(() => {});
     await page.waitForTimeout(1000);
     findings.push('✓ Socratic tutor mode active');
 
@@ -518,7 +518,7 @@ test('TC-28.1.4: AI Tutor - Multi-Language Support', async ({ page }) => {
 
     // Step 1-2: Login and navigate
     console.log('  Step 1-2: Logging in...');
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
 
     const emailInput = page.locator('input[type="email"]').first();
     if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -533,7 +533,7 @@ test('TC-28.1.4: AI Tutor - Multi-Language Support', async ({ page }) => {
     const loginButton = page.locator('button:has-text("Sign In")').first();
     if (await loginButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await loginButton.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(2000);
@@ -541,7 +541,7 @@ test('TC-28.1.4: AI Tutor - Multi-Language Support', async ({ page }) => {
     // Step 3: Change language to Hindi
     console.log('  Step 3: Changing language to Hindi...');
 
-    await page.goto(`${BASE_URL}/app/settings`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/app/settings`, { waitUntil: 'domcontentloaded' }).catch(() => {});
 
     const languageSelect = page.locator('[data-test="language-select"], select[name="language"]').first();
     if (await languageSelect.isVisible({ timeout: 2000 }).catch(() => false)) {
@@ -555,7 +555,7 @@ test('TC-28.1.4: AI Tutor - Multi-Language Support', async ({ page }) => {
     // Step 4: Navigate to tutor
     console.log('  Step 4: Navigating to tutor in Hindi...');
 
-    await page.goto(`${BASE_URL}/app/tutor`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/app/tutor`, { waitUntil: 'domcontentloaded' }).catch(() => {});
     await page.waitForTimeout(1000);
     screenshots.push(await takeScreenshot(page, testName, 'hindi-tutor'));
 
@@ -588,7 +588,7 @@ test('TC-28.1.4: AI Tutor - Multi-Language Support', async ({ page }) => {
     // Step 7: Change to Assamese
     console.log('  Step 7: Changing language to Assamese...');
 
-    await page.goto(`${BASE_URL}/app/settings`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/app/settings`, { waitUntil: 'domcontentloaded' }).catch(() => {});
 
     const languageSelect2 = page.locator('[data-test="language-select"], select[name="language"]').first();
     if (await languageSelect2.isVisible({ timeout: 2000 }).catch(() => false)) {
@@ -602,7 +602,7 @@ test('TC-28.1.4: AI Tutor - Multi-Language Support', async ({ page }) => {
     // Step 8: Ask question in Assamese
     console.log('  Step 8: Testing Assamese...');
 
-    await page.goto(`${BASE_URL}/app/tutor`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/app/tutor`, { waitUntil: 'domcontentloaded' }).catch(() => {});
     await page.waitForTimeout(1000);
     screenshots.push(await takeScreenshot(page, testName, 'assamese-tutor'));
 
@@ -676,7 +676,7 @@ test('TC-28.1.5: AI Interaction Logging', async ({ page }) => {
 
     // Step 1: Login
     console.log('  Step 1: Logging in...');
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
 
     const emailInput = page.locator('input[type="email"]').first();
     if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -691,7 +691,7 @@ test('TC-28.1.5: AI Interaction Logging', async ({ page }) => {
     const loginButton = page.locator('button:has-text("Sign In")').first();
     if (await loginButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await loginButton.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(2000);
@@ -699,7 +699,7 @@ test('TC-28.1.5: AI Interaction Logging', async ({ page }) => {
 
     // Step 2: Navigate to tutor
     console.log('  Step 2: Navigating to tutor...');
-    await page.goto(`${BASE_URL}/app/tutor`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/app/tutor`, { waitUntil: 'domcontentloaded' }).catch(() => {});
     await page.waitForTimeout(1000);
 
     // Step 3: Have conversation
@@ -756,7 +756,7 @@ test('TC-28.1.5: AI Interaction Logging', async ({ page }) => {
     // Step 5: Verify teacher can view logs
     console.log('  Step 5: Checking teacher access to logs...');
 
-    await page.goto(`${BASE_URL}/app/teacher/analytics`, { waitUntil: 'networkidle' }).catch(() => {
+    await page.goto(`${BASE_URL}/app/teacher/analytics`, { waitUntil: 'domcontentloaded' }).catch(() => {
       findings.push('⚠️ Teacher analytics navigation attempted');
     });
 
@@ -826,7 +826,7 @@ test('TC-28.1.6: AI Tutor Rate Limiting', async ({ page }) => {
 
     // Step 1: Login
     console.log('  Step 1: Logging in...');
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
 
     const emailInput = page.locator('input[type="email"]').first();
     if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -841,7 +841,7 @@ test('TC-28.1.6: AI Tutor Rate Limiting', async ({ page }) => {
     const loginButton = page.locator('button:has-text("Sign In")').first();
     if (await loginButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await loginButton.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(2000);
@@ -849,7 +849,7 @@ test('TC-28.1.6: AI Tutor Rate Limiting', async ({ page }) => {
 
     // Step 2: Navigate to tutor
     console.log('  Step 2: Navigating to tutor...');
-    await page.goto(`${BASE_URL}/app/tutor`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/app/tutor`, { waitUntil: 'domcontentloaded' }).catch(() => {});
     await page.waitForTimeout(1000);
 
     // Step 3: Send rapid requests
@@ -952,7 +952,7 @@ test('TC-28.1.7: AI Essay Feedback', async ({ page }) => {
 
     // Step 1: Login
     console.log('  Step 1: Logging in...');
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
 
     const emailInput = page.locator('input[type="email"]').first();
     if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -967,7 +967,7 @@ test('TC-28.1.7: AI Essay Feedback', async ({ page }) => {
     const loginButton = page.locator('button:has-text("Sign In")').first();
     if (await loginButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await loginButton.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(2000);
@@ -976,7 +976,7 @@ test('TC-28.1.7: AI Essay Feedback', async ({ page }) => {
     // Step 2: Navigate to essay submission
     console.log('  Step 2: Finding essay submission area...');
 
-    await page.goto(`${BASE_URL}/app/assignments`, { waitUntil: 'networkidle' }).catch(() => {
+    await page.goto(`${BASE_URL}/app/assignments`, { waitUntil: 'domcontentloaded' }).catch(() => {
       findings.push('⚠️ Assignments navigation attempted');
     });
 
@@ -1091,7 +1091,7 @@ test('TC-28.1.8: Generate AI Practice Questions', async ({ page }) => {
 
     // Step 1: Login
     console.log('  Step 1: Logging in...');
-    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/auth/signin`, { waitUntil: 'domcontentloaded' });
 
     const emailInput = page.locator('input[type="email"]').first();
     if (await emailInput.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -1106,7 +1106,7 @@ test('TC-28.1.8: Generate AI Practice Questions', async ({ page }) => {
     const loginButton = page.locator('button:has-text("Sign In")').first();
     if (await loginButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       await loginButton.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle' }).catch(() => {});
+      await page.waitForNavigation({ waitUntil: 'domcontentloaded' }).catch(() => {});
     }
 
     await page.waitForTimeout(2000);
@@ -1115,7 +1115,7 @@ test('TC-28.1.8: Generate AI Practice Questions', async ({ page }) => {
     // Step 2: Navigate to topic
     console.log('  Step 2: Navigating to topic page...');
 
-    await page.goto(`${BASE_URL}/app/learn/module1/topic1`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/app/learn/module1/topic1`, { waitUntil: 'domcontentloaded' }).catch(() => {});
     await page.waitForTimeout(1000);
     findings.push('✓ Topic page accessed');
 

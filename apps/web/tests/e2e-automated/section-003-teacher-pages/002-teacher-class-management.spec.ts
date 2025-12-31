@@ -154,7 +154,7 @@ test.describe('SECTION 3.2: Teacher Class Management', () => {
       steps.push('Navigate to teacher classes');
       console.log('Step 1: Navigating to teacher classes...');
       await page.goto(`${BASE_URL}/app/teacher/classes`);
-      await page.waitForLoadState('networkidle', { timeout: 10000 });
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
       console.log('✓ Navigated to classes page');
       screenshots.push(await takeScreenshot(page, testName, '01-classes-page'));
 
@@ -212,7 +212,7 @@ test.describe('SECTION 3.2: Teacher Class Management', () => {
 
       if (submitVisible) {
         await submitBtn.click();
-        await page.waitForLoadState('networkidle', { timeout: 10000 });
+        await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
         console.log('✓ Form submitted');
       } else {
         console.log('⚠ Submit button not found');
@@ -284,7 +284,7 @@ test.describe('SECTION 3.2: Teacher Class Management', () => {
       steps.push('Navigate to teacher classes');
       console.log('Step 1: Navigating to teacher classes...');
       await page.goto(`${BASE_URL}/app/teacher/classes`);
-      await page.waitForLoadState('networkidle', { timeout: 10000 });
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
       console.log('✓ On teacher classes page');
 
       // Step 2: Navigate to first class details
@@ -297,7 +297,7 @@ test.describe('SECTION 3.2: Teacher Class Management', () => {
 
       if (classVisible) {
         await firstClass.click();
-        await page.waitForLoadState('networkidle', { timeout: 10000 });
+        await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
         console.log('✓ Clicked on class');
       }
 
@@ -411,7 +411,7 @@ test.describe('SECTION 3.2: Teacher Class Management', () => {
       steps.push('Navigate to teacher classes');
       console.log('Step 1: Navigating to teacher classes...');
       await page.goto(`${BASE_URL}/app/teacher/classes`);
-      await page.waitForLoadState('networkidle', { timeout: 10000 });
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
       console.log('✓ On teacher classes page');
 
       // Step 2: Navigate to first class details
@@ -423,7 +423,7 @@ test.describe('SECTION 3.2: Teacher Class Management', () => {
 
       if (classVisible) {
         await firstClass.click();
-        await page.waitForLoadState('networkidle', { timeout: 10000 });
+        await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
         console.log('✓ Clicked on class');
       }
 
@@ -530,7 +530,7 @@ test.describe('SECTION 3.2: Teacher Class Management', () => {
       steps.push('Navigate to teacher classes');
       console.log('Step 1: Navigating to teacher classes...');
       await page.goto(`${BASE_URL}/app/teacher/classes`);
-      await page.waitForLoadState('networkidle', { timeout: 10000 });
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
       console.log('✓ On teacher classes page');
 
       // Step 2: Navigate to first class details
@@ -542,7 +542,7 @@ test.describe('SECTION 3.2: Teacher Class Management', () => {
 
       if (classVisible) {
         await firstClass.click();
-        await page.waitForLoadState('networkidle', { timeout: 10000 });
+        await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
         console.log('✓ Clicked on class');
       }
 
@@ -557,7 +557,7 @@ test.describe('SECTION 3.2: Teacher Class Management', () => {
 
       if (rosterTabVisible) {
         await rosterTab.click();
-        await page.waitForLoadState('networkidle', { timeout: 10000 });
+        await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
         console.log('✓ Roster tab clicked');
       } else {
         console.log('⚠ Roster tab not found, roster may be on current page');

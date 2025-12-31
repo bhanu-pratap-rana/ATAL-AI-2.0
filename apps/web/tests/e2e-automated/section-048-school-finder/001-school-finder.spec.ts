@@ -70,8 +70,8 @@ test('TC-48.1.1: Get Districts List', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to school finder
-    await page.goto('/app/teacher-signup/school-finder');
+    // Navigate to school finder (pre-authenticated teacher signup flow)
+    await page.goto('/app/teacher-signup/school-finder', { waitUntil: 'domcontentloaded' });
     findings.push('✓ School finder page loaded');
 
     // Call getDistricts() function (verify through UI)

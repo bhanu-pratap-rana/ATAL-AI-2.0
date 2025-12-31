@@ -73,7 +73,7 @@ test.describe('Section 17.1: Responsive Design Testing', () => {
       console.log('  1️⃣ Setting mobile viewport (375x667)...');
       await page.setViewportSize({ width: 375, height: 667 });
       await page.goto(`${BASE_URL}/app/dashboard`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       await takeScreenshot(page, testName, '01-mobile-view');
 
       // Step 2: Check single-column layout
@@ -244,7 +244,7 @@ test.describe('Section 17.1: Responsive Design Testing', () => {
       console.log('  1️⃣ Setting tablet viewport (768x1024)...');
       await page.setViewportSize({ width: 768, height: 1024 });
       await page.goto(`${BASE_URL}/app/dashboard`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       await takeScreenshot(page, testName, '01-tablet-view');
 
       // Step 2: Check 2-column layout
@@ -408,7 +408,7 @@ test.describe('Section 17.1: Responsive Design Testing', () => {
       console.log('  1️⃣ Setting desktop viewport (1920x1080)...');
       await page.setViewportSize({ width: 1920, height: 1080 });
       await page.goto(`${BASE_URL}/app/dashboard`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       await takeScreenshot(page, testName, '01-desktop-view');
 
       // Step 2: Check multi-column layout
@@ -572,7 +572,7 @@ test.describe('Section 17.1: Responsive Design Testing', () => {
       console.log('  1️⃣ Testing portrait orientation...');
       await page.setViewportSize({ width: 375, height: 667 });
       await page.goto(`${BASE_URL}/app/dashboard`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       await takeScreenshot(page, testName, '01-portrait-mode');
 
       const portraitAnalysis = await page.evaluate(() => {
@@ -601,7 +601,7 @@ test.describe('Section 17.1: Responsive Design Testing', () => {
       await page.setViewportSize({ width: 667, height: 375 });
       await page.waitForTimeout(500);
       await page.goto(`${BASE_URL}/app/dashboard`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       await takeScreenshot(page, testName, '02-landscape-mode');
 
       const landscapeAnalysis = await page.evaluate(() => {

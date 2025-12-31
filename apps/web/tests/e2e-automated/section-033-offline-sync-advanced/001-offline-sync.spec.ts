@@ -67,7 +67,7 @@ test('TC-33.1.1: Lesson Pre-Caching', async ({ page }) => {
 
     // Step 1: Navigate to lesson page
     console.log('  Step 1: Navigating to lesson page...');
-    await page.goto(`${BASE_URL}/app/learn`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app/learn`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ Lesson page accessed');
 
     await page.waitForTimeout(500);
@@ -153,7 +153,7 @@ test('TC-33.1.2: Background Sync Queue', async ({ page, context }) => {
 
     // Step 1: Navigate to assessment
     console.log('  Step 1: Navigating to assessment...');
-    await page.goto(`${BASE_URL}/app/assessments`, { waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto(`${BASE_URL}/app/assessments`, { waitUntil: 'domcontentloaded' }).catch(() => {});
     findings.push('✓ Assessment page accessed');
 
     await page.waitForTimeout(500);
@@ -246,7 +246,7 @@ test('TC-33.1.3: Sync Status Indicator', async ({ page, context }) => {
 
     // Step 1: Navigate to app
     console.log('  Step 1: Navigating to app...');
-    await page.goto(`${BASE_URL}/app`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ App accessed');
 
     await page.waitForTimeout(500);
@@ -335,7 +335,7 @@ test('TC-33.1.4: Data Persistence & Conflict Resolution', async ({ page, context
 
     // Step 1: Navigate to profile
     console.log('  Step 1: Navigating to profile...');
-    await page.goto(`${BASE_URL}/app/profile`, { waitUntil: 'networkidle' });
+    await page.goto(`${BASE_URL}/app/profile`, { waitUntil: 'domcontentloaded' });
     findings.push('✓ Profile page accessed');
 
     await page.waitForTimeout(500);

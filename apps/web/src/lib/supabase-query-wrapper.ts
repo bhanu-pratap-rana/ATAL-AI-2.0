@@ -23,6 +23,14 @@
 import { authLogger } from './auth-logger'
 
 /**
+ * Supabase error type
+ */
+export interface SupabaseError {
+  message: string;
+  [key: string]: unknown;
+}
+
+/**
  * Query result type
  */
 export interface QueryResult<T> {
@@ -39,7 +47,7 @@ export interface QueryResult<T> {
  * @returns Query result with data or error
  */
 export async function queryWithError<T>(
-  promise: Promise<{ data: T | null; error: any }>,
+  promise: Promise<{ data: T | null; error: SupabaseError | null }>,
   context: string
 ): Promise<QueryResult<T>> {
   try {
@@ -76,10 +84,10 @@ export async function queryWithError<T>(
  * @param context - Log context
  * @returns Array of query results
  */
-export async function batchQueryWithError<T extends any[]>(
-  queries: Promise<{ data: any; error: any }>[],
+export async function batchQueryWithError<TData extends unknown[]>(
+  queries: Promise<{ data: TData[number]; error: SupabaseError | null }>[],
   context: string
-): Promise<QueryResult<T[number]>[]> {
+): Promise<QueryResult<TData[number]>[]> {
   try {
     const results = await Promise.all(queries)
 
@@ -117,7 +125,7 @@ export async function batchQueryWithError<T extends any[]>(
  * @returns Mutation result
  */
 export async function mutationWithError<T>(
-  mutation: Promise<{ data: T | null; error: any }>,
+  mutation: Promise<{ data: T | null; error: SupabaseError | null }>,
   context: string
 ): Promise<QueryResult<T>> {
   const result = await queryWithError(mutation, context)

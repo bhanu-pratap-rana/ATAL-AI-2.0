@@ -73,8 +73,8 @@ test('TC-41.1.1: Export Class Roster to CSV', async ({ page, context }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to class management
-    await page.goto('/app/teacher');
+    // Navigate to class management (pre-authenticated teacher)
+    await page.goto('/app/teacher/classes', { waitUntil: 'domcontentloaded' });
     findings.push('✓ Navigated to teacher dashboard');
 
     // Find and click on a class
@@ -168,8 +168,8 @@ test('TC-41.1.2: Export Assessment Results', async ({ page, context }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to assessments
-    await page.goto('/app/teacher/assessments');
+    // Navigate to assessments (pre-authenticated teacher)
+    await page.goto('/app/teacher/assessments', { waitUntil: 'domcontentloaded' });
     findings.push('✓ Navigated to assessments page');
     screenshots.push(await takeScreenshot(page, 'TC-41.1.2', 'assessments-page'));
 
@@ -244,8 +244,8 @@ test('TC-41.1.3: Export Student Progress Report', async ({ page, context }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to analytics
-    await page.goto('/app/teacher/analytics');
+    // Navigate to analytics (pre-authenticated teacher)
+    await page.goto('/app/teacher/analytics', { waitUntil: 'domcontentloaded' });
     findings.push('✓ Navigated to analytics page');
     screenshots.push(await takeScreenshot(page, 'TC-41.1.3', 'analytics-page'));
 
@@ -319,8 +319,8 @@ test('TC-41.1.4: Bulk Import Student Roster', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to class management
-    await page.goto('/app/teacher');
+    // Navigate to class management (pre-authenticated teacher)
+    await page.goto('/app/teacher/classes', { waitUntil: 'domcontentloaded' });
     findings.push('✓ Navigated to teacher dashboard');
 
     // Find and click on a class
@@ -432,8 +432,8 @@ test('TC-41.1.5: Import Question Bank', async ({ page }) => {
   let testStatus: 'pass' | 'fail' = 'pass';
 
   try {
-    // Navigate to admin section (questions)
-    await page.goto('/app/admin');
+    // Navigate to admin section (questions) - pre-authenticated admin
+    await page.goto('/app/admin', { waitUntil: 'domcontentloaded' });
     findings.push('✓ Navigated to admin dashboard');
 
     // Look for questions/curriculum section

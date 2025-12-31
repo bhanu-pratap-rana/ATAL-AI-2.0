@@ -61,8 +61,8 @@ test.describe('Section 13.1: Error Handling Testing', () => {
       // Step 1: Load page while online
       steps.push('Load page while online');
       console.log('  1️⃣ Loading page while online...');
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.goto(`${BASE_URL}/app/dashboard`);
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       await takeScreenshot(page, testName, '01-page-online');
 
       // Step 2: Go offline
@@ -117,7 +117,7 @@ test.describe('Section 13.1: Error Handling Testing', () => {
 
       // Try to reload
       try {
-        await page.reload({ waitUntil: 'networkidle', timeout: 8000 });
+        await page.reload({ waitUntil: 'domcontentloaded', timeout: 8000 });
         console.log('  ✓ Page recovered after reconnecting');
       } catch (e) {
         console.log('  ℹ️ Page reload in progress');
@@ -150,24 +150,12 @@ test.describe('Section 13.1: Error Handling Testing', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: Server Error 500 Handling`);
 
-      // Step 1: Sign in first
-      steps.push('Sign in as student');
-      console.log('  1️⃣ Signing in...');
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.fill('input[type="email"]', TEST_STUDENT_EMAIL);
-      await page.fill('input[type="password"]', TEST_STUDENT_PASSWORD);
-      await page.locator('button:has-text("Sign In")').first().click();
-
-      try {
-        await Promise.race([
-          page.waitForURL('**/app/**', { timeout: 10000 }),
-        ]).catch(() => {});
-      } catch (e) {
-        // Continue
-      }
-
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
-      await takeScreenshot(page, testName, '01-signed-in');
+      // Step 1: Navigate to dashboard with pre-authenticated session
+      steps.push('Navigate to /app/dashboard with pre-authenticated session');
+      console.log('  1️⃣ Navigating to dashboard...');
+      await page.goto(`${BASE_URL}/app/dashboard`);
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
+      await takeScreenshot(page, testName, '01-dashboard-loaded');
 
       // Step 2: Try to trigger a server error by accessing an endpoint that may fail
       steps.push('Attempt operation that may trigger server error');
@@ -183,7 +171,7 @@ test.describe('Section 13.1: Error Handling Testing', () => {
 
       for (const url of errorTriggerAttempts) {
         try {
-          await page.goto(url, { timeout: 5000, waitUntil: 'networkidle' }).catch(() => {});
+          await page.goto(url, { timeout: 5000, waitUntil: 'domcontentloaded' }).catch(() => {});
           const response = await page.evaluate(() => document.documentElement.outerHTML);
           if (response.includes('500') || response.includes('error') || response.includes('Error')) {
             console.log('  ✓ Error page detected');
@@ -279,7 +267,7 @@ test.describe('Section 13.1: Error Handling Testing', () => {
 
       for (const url of nonExistentUrls) {
         try {
-          await page.goto(url, { timeout: 5000, waitUntil: 'networkidle' }).catch(() => {});
+          await page.goto(url, { timeout: 5000, waitUntil: 'domcontentloaded' }).catch(() => {});
           const pageText = await page.textContent('body');
           const htmlContent = await page.evaluate(() => document.documentElement.outerHTML);
 
@@ -331,7 +319,7 @@ test.describe('Section 13.1: Error Handling Testing', () => {
       console.log('  3️⃣ Looking for home/back navigation...');
 
       const backNavSelectors = [
-        'button:has-text("Back"),
+        'button:has-text("Back")',
         'button:has-text("Home")',
         'a:has-text("Home")',
         'a:has-text("Go back")',
@@ -358,7 +346,7 @@ test.describe('Section 13.1: Error Handling Testing', () => {
           const backBtn = page.locator('button:has-text("Back"), a:has-text("Home"), a[href="/"]').first();
           if (await backBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
             await backBtn.click();
-            await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+            await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
             const newUrl = page.url();
             console.log(`  ✓ Navigated to: ${newUrl}`);
           }

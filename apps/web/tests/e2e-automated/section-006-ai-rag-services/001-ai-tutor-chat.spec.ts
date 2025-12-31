@@ -53,30 +53,11 @@ test.describe('Section 6.1: AI Tutor Chat Testing', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: Start Tutor Chat`);
 
-      // Step 1: Sign in as student
-      steps.push('Sign in as student');
-      console.log('  1️⃣ Signing in as student...');
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.fill('input[type="email"]', TEST_STUDENT_EMAIL);
-      await page.fill('input[type="password"]', TEST_STUDENT_PASSWORD);
-      const signInBtn = page.locator('button:has-text("Sign In")').first();
-      await signInBtn.click();
-
-      // Wait for navigation
-      try {
-        await Promise.race([
-          page.waitForURL('**/app/dashboard**', { timeout: 10000 }),
-          page.waitForURL('**/app/learn**', { timeout: 10000 }),
-        ]);
-      } catch (e) {
-        console.log('  ⚠️ Sign in navigation timeout, continuing...');
-      }
-
-      // Step 2: Navigate to Learn page
+      // Step 1: Navigate to Learn page (pre-authenticated)
       steps.push('Navigate to Learn page');
-      console.log('  2️⃣ Navigating to Learn page...');
+      console.log('  1️⃣ Navigating to Learn page...');
       await page.goto(`${BASE_URL}/app/learn`);
-      await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
       screenshots.push(await takeScreenshot(page, testName, '01-learn-page'));
 
       // Step 3: Look for Chat with AI Tutor button/option
@@ -108,7 +89,7 @@ test.describe('Section 6.1: AI Tutor Chat Testing', () => {
         await page.goto(`${BASE_URL}/app/chat`, { waitUntil: 'networkidle' }).catch(() => {});
       }
 
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       screenshots.push(await takeScreenshot(page, testName, '02-chat-opened'));
 
       // Step 4: Verify chat interface loads
@@ -184,27 +165,14 @@ test.describe('Section 6.1: AI Tutor Chat Testing', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: Send Message to AI`);
 
-      // Step 1: Sign in and navigate to chat
-      steps.push('Sign in and navigate to chat');
-      console.log('  1️⃣ Signing in and navigating to chat...');
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.fill('input[type="email"]', TEST_STUDENT_EMAIL);
-      await page.fill('input[type="password"]', TEST_STUDENT_PASSWORD);
-      await page.locator('button:has-text("Sign In")').first().click();
-
-      try {
-        await Promise.race([
-          page.waitForURL('**/app/**', { timeout: 10000 }),
-        ]).catch(() => {});
-      } catch (e) {
-        console.log('  ⚠️ Sign in navigation timeout');
-      }
-
+      // Step 1: Navigate to chat (pre-authenticated)
+      steps.push('Navigate to chat');
+      console.log('  1️⃣ Navigating to chat...');
       // Navigate to chat
       await page.goto(`${BASE_URL}/app/chat`, { waitUntil: 'networkidle' }).catch(() =>
         page.goto(`${BASE_URL}/app/learn`).catch(() => {})
       );
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
       screenshots.push(await takeScreenshot(page, testName, '01-chat-page'));
 
       // Step 2: Find and focus message input
@@ -340,26 +308,13 @@ test.describe('Section 6.1: AI Tutor Chat Testing', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: AI Response Quality`);
 
-      // Step 1: Navigate to chat
-      steps.push('Sign in and navigate to chat');
+      // Step 1: Navigate to chat (pre-authenticated)
+      steps.push('Navigate to chat');
       console.log('  1️⃣ Setting up chat session...');
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.fill('input[type="email"]', TEST_STUDENT_EMAIL);
-      await page.fill('input[type="password"]', TEST_STUDENT_PASSWORD);
-      await page.locator('button:has-text("Sign In")').first().click();
-
-      try {
-        await Promise.race([
-          page.waitForURL('**/app/**', { timeout: 10000 }),
-        ]).catch(() => {});
-      } catch (e) {
-        // Continue anyway
-      }
-
       await page.goto(`${BASE_URL}/app/chat`, { waitUntil: 'networkidle' }).catch(() =>
         page.goto(`${BASE_URL}/app/learn`).catch(() => {})
       );
-      await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+      await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
 
       // Step 2: Find message input
       steps.push('Locate message input');
@@ -470,22 +425,9 @@ test.describe('Section 6.1: AI Tutor Chat Testing', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: Rate Limiting`);
 
-      // Step 1: Sign in and navigate to chat
-      steps.push('Sign in and navigate to chat');
+      // Step 1: Navigate to chat (pre-authenticated)
+      steps.push('Navigate to chat');
       console.log('  1️⃣ Setting up chat session...');
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.fill('input[type="email"]', TEST_STUDENT_EMAIL);
-      await page.fill('input[type="password"]', TEST_STUDENT_PASSWORD);
-      await page.locator('button:has-text("Sign In")').first().click();
-
-      try {
-        await Promise.race([
-          page.waitForURL('**/app/**', { timeout: 10000 }),
-        ]).catch(() => {});
-      } catch (e) {
-        // Continue
-      }
-
       await page.goto(`${BASE_URL}/app/chat`, { waitUntil: 'networkidle' }).catch(() =>
         page.goto(`${BASE_URL}/app/learn`).catch(() => {})
       );

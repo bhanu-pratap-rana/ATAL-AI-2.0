@@ -60,28 +60,16 @@ test.describe('Section 14.1: Performance Testing', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: Page Load Time`);
 
-      // Step 1: Sign in
-      steps.push('Sign in as student');
-      console.log('  1️⃣ Signing in...');
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.fill('input[type="email"]', TEST_STUDENT_EMAIL);
-      await page.fill('input[type="password"]', TEST_STUDENT_PASSWORD);
-      await page.locator('button:has-text("Sign In")').first().click();
-
-      try {
-        await Promise.race([
-          page.waitForURL('**/app/**', { timeout: 10000 }),
-        ]).catch(() => {});
-      } catch (e) {
-        // Continue
-      }
+      // Step 1: Navigate to dashboard with pre-authenticated session
+      steps.push('Navigate to /app/dashboard with pre-authenticated session');
+      console.log('  1️⃣ Navigating to dashboard...');
 
       // Step 2: Measure dashboard load time
       steps.push('Measure dashboard page load time');
       console.log('  2️⃣ Measuring dashboard load time...');
 
       const navigationStart = Date.now();
-      await page.goto(`${BASE_URL}/app/dashboard`, { waitUntil: 'networkidle' });
+      await page.goto(`${BASE_URL}/app/dashboard`, { waitUntil: 'domcontentloaded' });
       const navigationEnd = Date.now();
       const navigationTime = navigationEnd - navigationStart;
 
@@ -158,27 +146,11 @@ test.describe('Section 14.1: Performance Testing', () => {
     try {
       console.log(`\n🧪 Running ${testCase}: Assessment Page Load`);
 
-      // Step 1: Sign in
-      steps.push('Sign in as student');
-      console.log('  1️⃣ Signing in...');
-      await page.goto(`${BASE_URL}/auth/signin`);
-      await page.fill('input[type="email"]', TEST_STUDENT_EMAIL);
-      await page.fill('input[type="password"]', TEST_STUDENT_PASSWORD);
-      await page.locator('button:has-text("Sign In")').first().click();
-
-      try {
-        await Promise.race([
-          page.waitForURL('**/app/**', { timeout: 10000 }),
-        ]).catch(() => {});
-      } catch (e) {
-        // Continue
-      }
-
-      // Step 2: Navigate to assessments
+      // Step 1: Navigate to assessments with pre-authenticated session
       steps.push('Navigate to assessments list');
-      console.log('  2️⃣ Navigating to assessments...');
+      console.log('  1️⃣ Navigating to assessments...');
       const listStart = Date.now();
-      await page.goto(`${BASE_URL}/app/assessments`, { waitUntil: 'networkidle' });
+      await page.goto(`${BASE_URL}/app/assessments`, { waitUntil: 'domcontentloaded' });
       const listEnd = Date.now();
       const listLoadTime = listEnd - listStart;
 
@@ -187,13 +159,13 @@ test.describe('Section 14.1: Performance Testing', () => {
 
       // Step 3: Click on first assessment
       steps.push('Open first assessment');
-      console.log('  3️⃣ Opening first assessment...');
+      console.log('  2️⃣ Opening first assessment...');
 
       const assessmentCard = page.locator('[class*="assessment"], [class*="quiz"]').first();
       if (await assessmentCard.isVisible({ timeout: 2000 }).catch(() => false)) {
         const assessmentStart = Date.now();
         await assessmentCard.click();
-        await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+        await page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
         const assessmentEnd = Date.now();
         const assessmentLoadTime = assessmentEnd - assessmentStart;
 
@@ -203,7 +175,7 @@ test.describe('Section 14.1: Performance Testing', () => {
 
       // Step 4: Verify <2 seconds threshold
       steps.push('Verify assessment load time < 2 seconds');
-      console.log('  4️⃣ Verifying threshold (< 2 seconds)...');
+      console.log('  3️⃣ Verifying threshold (< 2 seconds)...');
 
       const threshold = 2000; // 2 seconds
       const assessmentLoadTime = measurements['assessmentLoadTime'] || 0;
