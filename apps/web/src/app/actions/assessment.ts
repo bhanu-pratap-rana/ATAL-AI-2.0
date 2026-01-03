@@ -697,6 +697,64 @@ export async function submitAssessment(
       return { success: false, error: 'Unauthorized' }
     }
 
+    // SECURITY: Check if session already submitted (idempotency check)
+    // This prevents duplicate submissions if network fails after insert but before update
+    const { data: fullSession, error: fullSessionError } = await supabase
+      .from('assessment_sessions')
+      .select('submitted_at')
+      .eq('id', validatedData.sessionId)
+      .maybeSingle()
+
+    if (fullSessionError) {
+      return { success: false, error: 'Failed to verify session status' }
+    }
+
+    if (fullSession?.submitted_at) {
+      // Session already submitted - return success without duplicate insert (idempotent)
+      authLogger.info('[submitAssessment] Session already submitted (idempotent retry)', {
+        userId: auth.user!.id,
+        sessionId: validatedData.sessionId,
+      })
+
+      // Extract score from existing responses for consistent response
+      const { data: existingResponses, error: responseError } = await supabase
+        .from('assessment_responses')
+        .select('is_correct, module')
+        .eq('session_id', validatedData.sessionId)
+
+      if (responseError || !existingResponses) {
+        return { success: true, message: 'Assessment already submitted' }
+      }
+
+      const totalQuestions = existingResponses.length
+      const correctAnswers = existingResponses.filter((r) => r.is_correct).length
+      const score = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0
+
+      const moduleBreakdown = existingResponses.reduce(
+        (acc, r) => {
+          if (!acc[r.module]) {
+            acc[r.module] = { total: 0, correct: 0 }
+          }
+          const moduleStats = acc[r.module]!
+          moduleStats.total++
+          if (r.is_correct) {
+            moduleStats.correct++
+          }
+          return acc
+        },
+        {} as Record<string, { total: number; correct: number }>
+      )
+
+      return {
+        success: true,
+        score,
+        totalQuestions,
+        correctAnswers,
+        moduleBreakdown,
+        message: 'Assessment already submitted',
+      }
+    }
+
     // Batch insert responses using validated data
     const responsesToInsert = validatedData.responses.map((r) => ({
       session_id: validatedData.sessionId,
@@ -713,17 +771,45 @@ export async function submitAssessment(
       .insert(responsesToInsert)
 
     if (insertError) {
-      return { success: false, error: insertError.message }
+      authLogger.error('[submitAssessment] Failed to insert responses', {
+        userId: auth.user!.id,
+        sessionId: validatedData.sessionId,
+        error: insertError.message,
+      })
+      return { success: false, error: 'Failed to save assessment responses' }
     }
 
-    // Update session submitted_at
+    // Update session submitted_at - MUST come after insert succeeds
     const { error: updateError } = await supabase
       .from('assessment_sessions')
       .update({ submitted_at: new Date().toISOString() })
       .eq('id', validatedData.sessionId)
 
     if (updateError) {
-      return { success: false, error: updateError.message }
+      // ERROR: Responses were inserted but session not marked as submitted
+      // This is a critical state - log it and try to clean up
+      authLogger.error('[submitAssessment] Failed to mark session as submitted', {
+        userId: auth.user!.id,
+        sessionId: validatedData.sessionId,
+        error: updateError.message,
+        warning: 'Assessment responses inserted but session not marked as submitted',
+      })
+
+      // Attempt to delete the inserted responses to maintain consistency
+      const { error: deleteError } = await supabase
+        .from('assessment_responses')
+        .delete()
+        .eq('session_id', validatedData.sessionId)
+
+      if (deleteError) {
+        authLogger.error('[submitAssessment] Failed to cleanup responses after update failure', {
+          userId: auth.user!.id,
+          sessionId: validatedData.sessionId,
+          deleteError: deleteError.message,
+        })
+      }
+
+      return { success: false, error: 'Failed to finalize assessment submission. Please try again.' }
     }
 
     // Calculate score and module breakdown from validated responses

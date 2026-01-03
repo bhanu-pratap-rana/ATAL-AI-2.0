@@ -1,16 +1,16 @@
 {
-  "timestamp": "2025-12-31T09:13:17.919Z",
+  "timestamp": "2025-12-31T10:09:56.489Z",
   "section": "Teacher Pages Testing",
   "totalTests": 1,
   "passed": 0,
   "failed": 1,
-  "duration": "21.95s",
+  "duration": "17.87s",
   "results": [
     {
-      "testName": "TC-3.2.2-ClassCode",
+      "testName": "TC-3.2.4-ClassRoster",
       "section": "3. Teacher Pages Testing",
       "status": "FAIL",
-      "duration": 19415,
+      "duration": 15700,
       "screenshots": [],
       "errorMessage": "TimeoutError: page.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[type=\"email\"]')\u001b[22m\n"
     }

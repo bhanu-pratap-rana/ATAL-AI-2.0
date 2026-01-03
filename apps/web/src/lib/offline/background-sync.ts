@@ -14,6 +14,32 @@
 import { clientLogger } from '@/lib/client-logger';
 
 /**
+ * Background Sync API type definitions
+ * Extends standard ServiceWorkerRegistration with sync capabilities
+ */
+
+// SyncManager interface for one-time background sync
+interface SyncManager {
+  register(tag: string): Promise<void>;
+  getTags(): Promise<string[]>;
+}
+
+// PeriodicSyncManager interface for periodic background sync
+interface PeriodicSyncManager {
+  register(tag: string, options?: { minInterval?: number }): Promise<void>;
+  unregister(tag: string): Promise<void>;
+  getTags(): Promise<string[]>;
+}
+
+// Extend ServiceWorkerRegistration with sync properties
+declare global {
+  interface ServiceWorkerRegistration {
+    sync?: SyncManager;
+    periodicSync?: PeriodicSyncManager;
+  }
+}
+
+/**
  * Sync tags for different mutation types
  * Used to identify what type of data needs syncing
  */
@@ -84,9 +110,11 @@ export async function registerSync(tag: SyncTag): Promise<boolean> {
 
   try {
     const registration = await navigator.serviceWorker.ready;
-    // Background Sync API types not in standard TypeScript lib
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (registration as any).sync.register(tag);
+    // Use properly typed sync interface
+    if (!registration.sync) {
+      throw new Error('Background Sync API not available');
+    }
+    await registration.sync.register(tag);
     clientLogger.debug('[BackgroundSync] Registered', { tag });
     return true;
   } catch (error) {
@@ -130,8 +158,11 @@ export async function registerPeriodicSync(
     }
 
     const registration = await navigator.serviceWorker.ready;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (registration as any).periodicSync.register(tag, { minInterval });
+    // Use properly typed periodicSync interface
+    if (!registration.periodicSync) {
+      throw new Error('Periodic Background Sync API not available');
+    }
+    await registration.periodicSync.register(tag, { minInterval });
 
     clientLogger.debug('[PeriodicSync] Registered', { tag, interval: minInterval });
     return true;
@@ -153,8 +184,11 @@ export async function unregisterPeriodicSync(
 
   try {
     const registration = await navigator.serviceWorker.ready;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (registration as any).periodicSync.unregister(tag);
+    // Use properly typed periodicSync interface
+    if (!registration.periodicSync) {
+      throw new Error('Periodic Background Sync API not available');
+    }
+    await registration.periodicSync.unregister(tag);
     clientLogger.debug('[PeriodicSync] Unregistered', { tag });
     return true;
   } catch (error) {
@@ -173,8 +207,11 @@ export async function getPeriodicSyncTags(): Promise<string[]> {
 
   try {
     const registration = await navigator.serviceWorker.ready;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const tags = await (registration as any).periodicSync.getTags();
+    // Use properly typed periodicSync interface
+    if (!registration.periodicSync) {
+      throw new Error('Periodic Background Sync API not available');
+    }
+    const tags = await registration.periodicSync.getTags();
     return tags;
   } catch (error) {
     clientLogger.warn('[PeriodicSync] Failed to get tags', { error: error instanceof Error ? error.message : String(error) });

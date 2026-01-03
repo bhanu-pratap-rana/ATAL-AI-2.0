@@ -1,5 +1,6 @@
 'use client';
 
+import React, { ReactNode, InputHTMLAttributes } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeSanitize from 'rehype-sanitize';
@@ -8,6 +9,18 @@ import rehypeRaw from 'rehype-raw';
 interface MarkdownRendererProps {
   content: string;
   className?: string;
+}
+
+// React Markdown component prop types
+interface CodeProps {
+  node?: unknown;
+  inline?: boolean;
+  className?: string;
+  children?: ReactNode;
+}
+
+interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+  node?: unknown;
 }
 
 /**
@@ -61,7 +74,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
         ),
 
         // Code with syntax highlighting background
-        code: (props: any) => {
+        code: (props: CodeProps) => {
           const { node, inline, ...rest } = props;
           return inline ? (
             <code
@@ -121,7 +134,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
         ),
 
         // Task lists (GFM)
-        input: ({ type, checked, ...props }: any) =>
+        input: ({ type, checked, ...props }: InputProps) =>
           type === 'checkbox' ? (
             <input
               type="checkbox"

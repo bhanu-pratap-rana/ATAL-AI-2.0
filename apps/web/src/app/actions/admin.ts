@@ -4,7 +4,9 @@ import { z } from 'zod'
 import { createAdminClient, verifySuperAdminAuth } from '@/lib/supabase-server'
 import { authLogger } from '@/lib/auth-logger'
 import { checkAdminOperationRateLimit } from '@/lib/rate-limiter-distributed'
+import { isAdmin } from '@/lib/auth/role-utils'
 import { AdminEmailSchema } from '@/lib/validation-schemas'
+import { findAuthUserByEmail } from '@/lib/admin-utils'
 
 export interface SetAdminRoleResult {
   success: boolean
@@ -38,18 +40,8 @@ export async function setAdminRole(email: string): Promise<SetAdminRoleResult> {
 
     const adminClient = await createAdminClient()
 
-    // Find user by email
-    const { data: users, error: listError } = await adminClient.auth.admin.listUsers()
-
-    if (listError) {
-      authLogger.error('[setAdminRole] Failed to list users', listError)
-      return {
-        success: false,
-        error: 'Failed to access user database',
-      }
-    }
-
-    const user = users?.users.find((u) => u.email?.toLowerCase() === normalizedEmail)
+    // Find user by email (with pagination support for large user bases)
+    const user = await findAuthUserByEmail(adminClient, normalizedEmail)
 
     if (!user) {
       authLogger.warn('[setAdminRole] User not found', { email: normalizedEmail })
@@ -61,7 +53,7 @@ export async function setAdminRole(email: string): Promise<SetAdminRoleResult> {
 
     // Check if already admin
     const existingRole = user.app_metadata?.role
-    if (existingRole === 'admin' || existingRole === 'super_admin') {
+    if (isAdmin(existingRole)) {
       return {
         success: true,
         message: `User ${email} already has ${existingRole} role`,
@@ -123,22 +115,15 @@ export async function checkAdminRoleByEmail(email: string): Promise<{
 
     const adminClient = await createAdminClient()
 
-    // Find user by email
-    const { data: users, error: listError } = await adminClient.auth.admin.listUsers()
-
-    if (listError) {
-      return { hasAdminRole: false, error: 'Failed to check user role' }
-    }
-
-    const user = users?.users.find((u) => u.email?.toLowerCase() === normalizedEmail)
+    // Find user by email (with pagination support for large user bases)
+    const user = await findAuthUserByEmail(adminClient, normalizedEmail)
 
     if (!user) {
       return { hasAdminRole: false, error: 'User not found' }
     }
 
     const role = user.app_metadata?.role
-    const isAdmin = role === 'admin' || role === 'super_admin'
-    return { hasAdminRole: isAdmin }
+    return { hasAdminRole: isAdmin(role) }
   } catch (error) {
     if (error instanceof z.ZodError) {
       const firstError = error.issues[0]

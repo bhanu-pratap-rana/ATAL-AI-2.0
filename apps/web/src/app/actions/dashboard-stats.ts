@@ -4,6 +4,7 @@ import { createClient, getCurrentUser } from '@/lib/supabase-server'
 import { authLogger } from '@/lib/auth-logger'
 import { checkRateLimit } from '@/lib/rate-limiter-distributed'
 import { RATE_LIMITS } from '@/lib/constants/rate-limits'
+import { isTeacherOrHigher } from '@/lib/auth/role-utils'
 
 /**
  * Dashboard statistics for students and teachers
@@ -67,6 +68,19 @@ export async function getDashboardStats(): Promise<{
       return { success: false, error: 'Not authenticated' }
     }
 
+    // SECURITY: Verify user has an authorized role (student, teacher, or admin)
+    const role = user.app_metadata?.role
+    const isTeacher = isTeacherOrHigher(role)
+    const isStudent = role === 'student' || role === undefined // Default to student if no explicit role
+
+    if (!isTeacher && !isStudent) {
+      authLogger.warn('[getDashboardStats] Unauthorized role attempted to access dashboard', {
+        userId: user.id,
+        role,
+      })
+      return { success: false, error: 'Unauthorized' }
+    }
+
     // SECURITY: Rate limit dashboard stats to prevent abuse
     const rateLimitKey = `dashboard-stats:${user.id}`
     const isAllowed = await checkRateLimit(rateLimitKey, RATE_LIMITS.dashboardStats)
@@ -76,8 +90,6 @@ export async function getDashboardStats(): Promise<{
     }
 
     const supabase = await createClient()
-    const role = user.app_metadata?.role
-    const isTeacher = role === 'teacher' || role === 'admin' || role === 'super_admin'
 
     // Fetch classes count
     let classesCount = 0
@@ -102,16 +114,23 @@ export async function getDashboardStats(): Promise<{
       .eq('user_id', user.id)
       .not('submitted_at', 'is', null)
 
-    // Calculate average score from responses
-    const { data: responses } = await supabase
+    // Calculate average score from responses (joined through assessment_sessions)
+    // SECURITY: Only fetch responses from the current user's sessions
+    const { data: responses, error: responsesError } = await supabase
       .from('assessment_responses')
-      .select('is_correct')
-      .eq('user_id', user.id)
+      .select(`
+        is_correct,
+        assessment_sessions!inner(user_id)
+      `)
+      .eq('assessment_sessions.user_id', user.id)
 
     let averageScore: number | null = null
     if (responses && responses.length > 0) {
-      const correctCount = responses.filter(r => r.is_correct).length
-      averageScore = Math.round((correctCount / responses.length) * 100)
+      // Type assertion needed due to Supabase's join type inference
+      // Using double cast pattern (as unknown as) is the documented way to handle join types
+      const typedResponses = responses as unknown as Array<{ is_correct: boolean }>
+      const correctCount = typedResponses.filter((r: any) => r.is_correct).length
+      averageScore = Math.round((correctCount / typedResponses.length) * 100)
     }
 
     // Calculate streak (consecutive days with activity)
@@ -305,7 +324,7 @@ async function getRecentActivity(
 
   try {
     // Get recent assessment completions
-    const { data: sessions } = await supabase
+    const { data: sessions, error: sessionError } = await supabase
       .from('assessment_sessions')
       .select('id, started_at, submitted_at')
       .eq('user_id', userId)
@@ -313,16 +332,38 @@ async function getRecentActivity(
       .order('submitted_at', { ascending: false })
       .limit(5)
 
-    if (sessions) {
-      for (const session of sessions) {
-        // Get score for this session
-        const { data: responses } = await supabase
-          .from('assessment_responses')
-          .select('is_correct')
-          .eq('session_id', session.id)
+    if (sessionError) {
+      authLogger.error('[getRecentActivity] Failed to fetch sessions', sessionError)
+    }
 
-        const total = responses?.length || 0
-        const correct = responses?.filter(r => r.is_correct).length || 0
+    if (sessions && sessions.length > 0) {
+      // OPTIMIZATION: Batch fetch all responses instead of per-session loop (N+1 fix)
+      const sessionIds = sessions.map(s => s.id)
+      const { data: allResponses, error: responseError } = await supabase
+        .from('assessment_responses')
+        .select('session_id, is_correct')
+        .in('session_id', sessionIds)
+
+      if (responseError) {
+        authLogger.error('[getRecentActivity] Failed to fetch responses', responseError)
+      }
+
+      // Build map of responses by session for O(1) lookup
+      const responsesBySession = new Map<string, Array<{ is_correct: boolean }>>()
+      if (allResponses) {
+        for (const response of allResponses) {
+          if (!responsesBySession.has(response.session_id)) {
+            responsesBySession.set(response.session_id, [])
+          }
+          responsesBySession.get(response.session_id)!.push({ is_correct: response.is_correct })
+        }
+      }
+
+      // Process sessions using pre-fetched responses
+      for (const session of sessions) {
+        const responses = responsesBySession.get(session.id) || []
+        const total = responses.length
+        const correct = responses.filter(r => r.is_correct).length
         const score = total > 0 ? Math.round((correct / total) * 100) : 0
 
         activities.push({

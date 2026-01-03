@@ -81,13 +81,13 @@ export function StudentProgressGrid({ classId, teacherId }: StudentProgressGridP
 
       for (const enrollment of data || []) {
         const studentId = enrollment.student_id;
-        // The join returns an array, but we expect a single student per enrollment
-        const studentArray = enrollment.student as unknown as Array<{
+        // The join returns an array of student objects
+        const studentArray = enrollment.student as Array<{
           id: string;
           email: string;
           raw_user_meta_data?: { full_name?: string };
         }> | null;
-        const studentData = studentArray?.[0];
+        const studentData = studentArray?.[0] || null;
 
         const studentProgress = (progressData || []).filter(
           (p) => p.student_id === studentId
@@ -139,7 +139,8 @@ export function StudentProgressGrid({ classId, teacherId }: StudentProgressGridP
       setStudents(Array.from(progressMap.values()));
       setLoading(false);
     } catch (err) {
-      clientLogger.error('[StudentProgressGrid] Error:', err instanceof Error ? err : undefined);
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      clientLogger.error('[StudentProgressGrid] Error: ' + errorMessage);
       setError('Failed to load student progress');
       setLoading(false);
     }

@@ -5,6 +5,7 @@ import { createAdminClient, verifySuperAdminAuth, verifyAdminAuth, getCurrentUse
 import { authLogger } from '@/lib/auth-logger'
 import { RATE_LIMITS } from '@/lib/constants/rate-limits'
 import { checkRateLimit as checkDistributedRateLimit } from '@/lib/rate-limiter-distributed'
+import { isSuperAdmin, isAdmin } from '@/lib/auth/role-utils'
 import { AdminEmailSchema, AdminPasswordSchema, UserIdSchema } from '@/lib/validation-schemas'
 
 // Use centralized rate limit config for admin operations
@@ -26,13 +27,59 @@ export interface AdminActionResult {
 }
 
 /**
+ * Helper function to fetch all users with pagination
+ * Supabase admin API has 1000 user limit per request, so we need to paginate
+ * @internal
+ */
+async function fetchAllAdminUsers(adminClient: Awaited<ReturnType<typeof createAdminClient>>) {
+  const allUsers: any[] = []
+  let page = 1
+  const perPage = 1000
+
+  try {
+    while (true) {
+      const { data, error } = await adminClient.auth.admin.listUsers({
+        perPage,
+        page,
+      })
+
+      if (error) {
+        authLogger.error('[fetchAllAdminUsers] Error fetching users page', {
+          page,
+          error: error.message,
+        })
+        break
+      }
+
+      if (!data?.users || data.users.length === 0) {
+        break
+      }
+
+      allUsers.push(...data.users)
+
+      // If we got fewer users than requested, we've reached the end
+      if (data.users.length < perPage) {
+        break
+      }
+
+      page++
+    }
+
+    return allUsers
+  } catch (error) {
+    authLogger.error('[fetchAllAdminUsers] Unexpected error', error)
+    return allUsers // Return what we got so far
+  }
+}
+
+/**
  * Check if current user is super admin
  * SECURITY: Uses getCurrentUser() to get authenticated user from session
  *
  * @internal Reserved for future UI conditional rendering
  * @returns true if current user has super_admin role
  */
-export async function isSuperAdmin(): Promise<boolean> {
+export async function isCurrentUserSuperAdmin(): Promise<boolean> {
   try {
     const currentUser = await getCurrentUser()
     if (!currentUser) {
@@ -40,9 +87,9 @@ export async function isSuperAdmin(): Promise<boolean> {
     }
 
     const role = currentUser.app_metadata?.role
-    return role === 'super_admin'
+    return isSuperAdmin(role)
   } catch (error) {
-    authLogger.error('[isSuperAdmin] Error checking super admin status', error)
+    authLogger.error('[isCurrentUserSuperAdmin] Error checking super admin status', error)
     return false
   }
 }
@@ -62,8 +109,8 @@ export async function getCurrentAdminRole(): Promise<'super_admin' | 'admin' | n
     }
 
     const role = currentUser.app_metadata?.role
-    if (role === 'super_admin' || role === 'admin') {
-      return role
+    if (isAdmin(role)) {
+      return role as 'admin' | 'super_admin'
     }
     return null
   } catch (error) {
@@ -104,9 +151,9 @@ export async function createAdminAccount(
 
     const adminClient = await createAdminClient()
 
-    // Check if user already exists
-    const { data: users } = await adminClient.auth.admin.listUsers()
-    const existingUser = users?.users.find((u) => u.email?.toLowerCase() === normalizedEmail)
+    // Check if user already exists (using pagination helper for large user bases)
+    const allUsers = await fetchAllAdminUsers(adminClient)
+    const existingUser = allUsers.find((u) => u.email?.toLowerCase() === normalizedEmail)
 
     if (existingUser) {
       // User exists - check if already an admin
@@ -145,9 +192,36 @@ export async function createAdminAccount(
       }
 
       // Promote existing user to admin (teacher becoming admin)
+      // SECURITY: Re-check user state to prevent race condition
+      // (Another concurrent request might have changed the user's role)
+      const { data, error: recheckError } = await adminClient.auth.admin.getUserById(existingUser.id)
+      const recheck = data?.user
+
+      if (recheckError || !recheck) {
+        authLogger.warn('[createAdminAccount] User disappeared during operation', { userId: existingUser.id })
+        return {
+          success: false,
+          error: 'User no longer exists. Please try again.',
+        }
+      }
+
+      const recheckRole = recheck.app_metadata?.role as string
+      if (recheckRole === 'admin' || recheckRole === 'super_admin') {
+        authLogger.warn('[createAdminAccount] User already promoted by concurrent request', {
+          email: normalizedEmail,
+          userId: existingUser.id,
+          role: recheckRole,
+        })
+        return {
+          success: true,
+          message: `${email} is already an ${recheckRole === 'super_admin' ? 'Super Admin' : 'Admin'}`,
+          data: { userId: existingUser.id, promoted: false },
+        }
+      }
+
       const { error: updateError } = await adminClient.auth.admin.updateUserById(existingUser.id, {
         app_metadata: {
-          ...existingUser.app_metadata,
+          ...recheck.app_metadata,  // Use rechecked metadata, not stale data
           role: role,
         },
       })
@@ -230,17 +304,10 @@ export async function listAdminAccounts(): Promise<AdminActionResult> {
     }
 
     const adminClient = await createAdminClient()
-    const { data: userData, error } = await adminClient.auth.admin.listUsers()
+    // List all users with full pagination support
+    const allUsers = await fetchAllAdminUsers(adminClient)
 
-    if (error) {
-      authLogger.error('[listAdminAccounts] Failed to list users', error)
-      return {
-        success: false,
-        error: 'Failed to fetch admin accounts',
-      }
-    }
-
-    if (!userData?.users) {
+    if (!allUsers || allUsers.length === 0) {
       return {
         success: true,
         data: [],
@@ -248,10 +315,10 @@ export async function listAdminAccounts(): Promise<AdminActionResult> {
     }
 
     // Filter for admins only
-    const admins: AdminUser[] = userData.users
+    const admins: AdminUser[] = allUsers
       .filter((user) => {
-        const role = (user.app_metadata?.role as string) || 'user'
-        return role === 'admin' || role === 'super_admin'
+        const role = user.app_metadata?.role
+        return isAdmin(role)
       })
       .map((user) => ({
         id: user.id,
@@ -311,9 +378,9 @@ export async function deleteAdminAccount(adminId: string): Promise<AdminActionRe
 
     const adminClient = await createAdminClient()
 
-    // Get the user to check role
-    const { data: users } = await adminClient.auth.admin.listUsers()
-    const userToDelete = users?.users.find((u) => u.id === validatedId)
+    // Get the user to check role (with full pagination support for large user bases)
+    const allUsers = await fetchAllAdminUsers(adminClient)
+    const userToDelete = allUsers.find((u) => u.id === validatedId)
 
     if (!userToDelete) {
       return {
@@ -322,10 +389,10 @@ export async function deleteAdminAccount(adminId: string): Promise<AdminActionRe
       }
     }
 
-    const role = (userToDelete.app_metadata?.role as string) || 'user'
+    const role = userToDelete.app_metadata?.role
 
     // Prevent deletion of super admins
-    if (role === 'super_admin') {
+    if (isSuperAdmin(role)) {
       return {
         success: false,
         error: 'Cannot delete super admin accounts',
@@ -441,19 +508,20 @@ export async function isSuperAdminEmail(email: string): Promise<boolean> {
     const normalizedEmail = AdminEmailSchema.parse(email)
 
     const adminClient = await createAdminClient()
-    const { data: users } = await adminClient.auth.admin.listUsers()
+    // Fetch all users with proper pagination support for scalability
+    const allUsers = await fetchAllAdminUsers(adminClient)
 
-    if (!users?.users) {
+    if (!allUsers || allUsers.length === 0) {
       return false
     }
 
-    const user = users.users.find((u) => u.email?.toLowerCase() === normalizedEmail)
+    const user = allUsers.find((u) => u.email?.toLowerCase() === normalizedEmail)
     if (!user) {
       return false
     }
 
-    const role = (user.app_metadata?.role as string) || 'user'
-    return role === 'super_admin'
+    const role = user.app_metadata?.role
+    return isSuperAdmin(role)
   } catch (error) {
     authLogger.error('[isSuperAdminEmail] Error checking super admin email', error)
     return false
@@ -476,9 +544,10 @@ export async function getAdminById(adminId: string): Promise<AdminActionResult> 
     }
 
     const adminClient = await createAdminClient()
-    const { data: users } = await adminClient.auth.admin.listUsers()
+    // List users with full pagination support for scalability
+    const allUsers = await fetchAllAdminUsers(adminClient)
 
-    const user = users?.users.find((u) => u.id === validatedId)
+    const user = allUsers.find((u) => u.id === validatedId)
     if (!user) {
       return {
         success: false,

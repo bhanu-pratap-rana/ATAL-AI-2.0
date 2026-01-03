@@ -19,15 +19,43 @@ import { clientLogger } from '@/lib/client-logger';
 
 /**
  * Network connection type
+ * Combines NetworkInformation API types with effective connection types
  */
 export type ConnectionType =
   | 'wifi'
+  | 'ethernet'
   | 'cellular'
+  | 'bluetooth'
+  | 'wimax'
+  | 'mixed'
+  | 'other'
+  | 'unknown'
   | '4g'
   | '3g'
   | '2g'
-  | 'slow-2g'
-  | 'unknown';
+  | 'slow-2g';
+
+/**
+ * NetworkInformation API type definition
+ * Standard API for accessing connection information
+ */
+interface NetworkInformation extends EventTarget {
+  downlink?: number;
+  effectiveType?: 'slow-2g' | '2g' | '3g' | '4g';
+  rtt?: number;
+  saveData?: boolean;
+  type?: 'bluetooth' | 'cellular' | 'ethernet' | 'mixed' | 'other' | 'unknown' | 'wifi' | 'wimax';
+  onchange?: ((this: NetworkInformation, ev: Event) => void) | null;
+}
+
+/**
+ * Extended Navigator with connection property
+ */
+declare global {
+  interface Navigator {
+    connection?: NetworkInformation;
+  }
+}
 
 /**
  * Network status interface
@@ -100,8 +128,7 @@ export function useNetworkStatus(): NetworkStatus {
     if (typeof navigator === 'undefined') return;
 
     // Get NetworkInformation API if available
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const connection = (navigator as any).connection;
+    const connection = navigator.connection;
 
     const effectiveType = connection?.effectiveType || null;
     const isSlowConnection =
@@ -166,8 +193,7 @@ export function useNetworkStatus(): NetworkStatus {
     window.addEventListener('offline', handleOffline);
 
     // Add NetworkInformation API listener if available
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const connection = (navigator as any).connection;
+    const connection = navigator.connection;
     if (connection) {
       connection.addEventListener('change', handleConnectionChange);
     }
