@@ -6,6 +6,16 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { motion, HTMLMotionProps } from "framer-motion"
 import { cn } from "@/lib/utils"
 
+// Extend Window interface for test environment detection
+declare global {
+  interface Window {
+    __PLAYWRIGHT_TEST__?: boolean
+  }
+  interface Global {
+    __PLAYWRIGHT__?: boolean
+  }
+}
+
 // Detect test environment for Playwright test stability
 // Uses runtime detection to check if we're in a test/Playwright browser
 const isTestEnvironment = () => {
@@ -20,12 +30,11 @@ const isTestEnvironment = () => {
     (typeof navigator !== 'undefined' && (
       navigator.webdriver === true ||
       navigator.userAgent.includes('HeadlessChrome') ||
-      // @ts-ignore - check for Playwright-specific global
+      // Now properly typed
       window.__PLAYWRIGHT_TEST__ === true
     )) ||
     // Check for test globals that might be set
-    // @ts-ignore
-    (typeof globalThis !== 'undefined' && globalThis.__PLAYWRIGHT__ === true)
+    (typeof globalThis !== 'undefined' && (globalThis as any).__PLAYWRIGHT__ === true)
   )
 }
 

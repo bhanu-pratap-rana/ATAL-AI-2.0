@@ -1,6 +1,7 @@
 'use server'
 
 import { createAdminClient, verifyAdminAuth } from '@/lib/supabase-server'
+import { fetchAllAuthUsers } from '@/lib/admin-utils'
 import { authLogger } from '@/lib/auth-logger'
 import { checkRateLimit } from '@/lib/rate-limiter-distributed'
 import { RATE_LIMITS } from '@/lib/constants/rate-limits'
@@ -100,23 +101,28 @@ export async function getDashboardMetrics(): Promise<{ success: boolean; data?: 
       studentCount = studentProfileCount || 0
     }
 
-    // Get admin count from auth users
+    // Get admin count from auth users - CRITICAL: required for admin dashboard
     let adminCount = 0
     let authTeacherCount = 0
     try {
-      const { data: authUsers } = await supabase.auth.admin.listUsers()
-      if (authUsers?.users) {
+      const authUsers = await fetchAllAuthUsers(supabase)
+      if (authUsers && authUsers.length > 0) {
         // Count admins (admin or super_admin role)
-        adminCount = authUsers.users.filter(
-          (u) => u.app_metadata?.role === 'admin' || u.app_metadata?.role === 'super_admin'
+        adminCount = authUsers.filter(
+          (u: any) => u.app_metadata?.role === 'admin' || u.app_metadata?.role === 'super_admin'
         ).length
         // Count teachers from auth users
-        authTeacherCount = authUsers.users.filter(
-          (u) => u.app_metadata?.role === 'teacher'
+        authTeacherCount = authUsers.filter(
+          (u: any) => u.app_metadata?.role === 'teacher'
         ).length
       }
     } catch (err) {
-      authLogger.error('[getDashboardMetrics] Failed to list auth users', err)
+      // CRITICAL: Admin count fetch failure should be reported, not silently ignored
+      authLogger.error('[getDashboardMetrics] Failed to fetch auth users for admin count', err)
+      return {
+        success: false,
+        error: 'Failed to fetch admin metrics - critical authentication data unavailable',
+      }
     }
 
     // Use the higher count between profiles and auth users
@@ -203,43 +209,82 @@ export async function getSchoolStatsByDistrict(): Promise<{
       district: string
     }
 
-    // Get teacher and student counts for each school
-    const schoolStats: SchoolStats[] = await Promise.all(
-      (schools as SchoolData[]).map(async (school) => {
-        // Get teacher count from teacher_profiles table
-        const { count: teacherCount } = await supabase
-          .from('teacher_profiles')
-          .select('*', { count: 'exact', head: true })
-          .eq('school_id', school.id)
+    const schoolData = schools as SchoolData[]
+    const schoolIds = schoolData.map(s => s.id)
 
-        // Get student count from student_profiles table
-        const { count: studentCount } = await supabase
-          .from('student_profiles')
-          .select('*', { count: 'exact', head: true })
-          .eq('school_id', school.id)
+    // OPTIMIZATION: Batch fetch all data instead of per-school queries (N+1 fix)
+    // Get all teachers for all schools in one query
+    const { data: allTeachers, error: teacherError } = await supabase
+      .from('teacher_profiles')
+      .select('school_id')
+      .in('school_id', schoolIds)
 
-        // Get PIN from school_staff_credentials table
-        // Note: Each school has at most one PIN record (school_id is unique)
-        const { data: pinData } = await supabase
-          .from('school_staff_credentials')
-          .select('id, deleted_at')
-          .eq('school_id', school.id)
-          .maybeSingle()
+    if (teacherError) {
+      authLogger.error('[getSchoolStatsByDistrict] Failed to get teachers', teacherError)
+    }
 
-        // A PIN is "active" if it exists and is not deleted
-        const hasActivePIN = pinData && !pinData.deleted_at
+    // Get all students for all schools in one query
+    const { data: allStudents, error: studentError } = await supabase
+      .from('student_profiles')
+      .select('school_id')
+      .in('school_id', schoolIds)
 
-        return {
-          schoolId: school.id,
-          schoolName: school.school_name,
-          districtName: school.district || 'Unknown',
-          teacherCount: teacherCount || 0,
-          studentCount: studentCount || 0,
-          pinCount: pinData ? 1 : 0,
-          activePinCount: hasActivePIN ? 1 : 0,
-        }
-      })
-    )
+    if (studentError) {
+      authLogger.error('[getSchoolStatsByDistrict] Failed to get students', studentError)
+    }
+
+    // Get all PINs for all schools in one query
+    const { data: allPins, error: pinError } = await supabase
+      .from('school_staff_credentials')
+      .select('school_id, deleted_at')
+      .in('school_id', schoolIds)
+
+    if (pinError) {
+      authLogger.error('[getSchoolStatsByDistrict] Failed to get PINs', pinError)
+    }
+
+    // Build maps for O(1) lookup
+    const teacherCountBySchool = new Map<string, number>()
+    const studentCountBySchool = new Map<string, number>()
+    const pinsBySchool = new Map<string, { isActive: boolean }>()
+
+    // Aggregate teachers by school
+    if (allTeachers) {
+      for (const teacher of allTeachers) {
+        const count = teacherCountBySchool.get(teacher.school_id) || 0
+        teacherCountBySchool.set(teacher.school_id, count + 1)
+      }
+    }
+
+    // Aggregate students by school
+    if (allStudents) {
+      for (const student of allStudents) {
+        const count = studentCountBySchool.get(student.school_id) || 0
+        studentCountBySchool.set(student.school_id, count + 1)
+      }
+    }
+
+    // Aggregate PINs by school
+    if (allPins) {
+      for (const pin of allPins) {
+        const isActive = !pin.deleted_at
+        pinsBySchool.set(pin.school_id, { isActive })
+      }
+    }
+
+    // Build results using pre-fetched data (no additional queries)
+    const schoolStats: SchoolStats[] = schoolData.map(school => {
+      const hasActivePIN = pinsBySchool.get(school.id)?.isActive || false
+      return {
+        schoolId: school.id,
+        schoolName: school.school_name,
+        districtName: school.district || 'Unknown',
+        teacherCount: teacherCountBySchool.get(school.id) || 0,
+        studentCount: studentCountBySchool.get(school.id) || 0,
+        pinCount: pinsBySchool.has(school.id) ? 1 : 0,
+        activePinCount: hasActivePIN ? 1 : 0,
+      }
+    })
 
     return {
       success: true,
@@ -380,30 +425,57 @@ export async function getRecentActivityCount(days: number = 7): Promise<{
     }
 
     const supabase = await createAdminClient()
-    const activityData: { date: string; count: number }[] = []
 
-    // Get activity for last N days
-    for (let i = 0; i < days; i++) {
-      const date = new Date()
+    // Validate days parameter to prevent excessive queries
+    const validatedDays = Math.min(Math.max(1, Math.floor(days)), 365)
+
+    // Calculate date range
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const startDate = new Date(today)
+    startDate.setDate(startDate.getDate() - validatedDays + 1)
+
+    // OPTIMIZATION: Single batch query instead of per-day loop (N+1 fix)
+    const { data: allProfiles, error: profileError } = await supabase
+      .from('teacher_profiles')
+      .select('created_at')
+      .gte('created_at', startDate.toISOString())
+      .lte('created_at', today.toISOString() + ' 23:59:59')
+
+    if (profileError) {
+      authLogger.error('[getRecentActivityCount] Failed to fetch activity data', profileError)
+      return {
+        success: false,
+        error: 'Failed to fetch activity data',
+      }
+    }
+
+    // Build activity count by date using in-memory aggregation
+    const countByDate = new Map<string, number>()
+
+    if (allProfiles) {
+      for (const profile of allProfiles) {
+        const date = new Date(profile.created_at).toISOString().split('T')[0]
+        const count = countByDate.get(date) || 0
+        countByDate.set(date, count + 1)
+      }
+    }
+
+    // Build result array for all days in range
+    const activityData: { date: string; count: number }[] = []
+    for (let i = validatedDays - 1; i >= 0; i--) {
+      const date = new Date(today)
       date.setDate(date.getDate() - i)
       const dateStr = date.toISOString().split('T')[0]
-
-      // Count teacher profiles created
-      const { count } = await supabase
-        .from('teacher_profiles')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', `${dateStr}T00:00:00`)
-        .lte('created_at', `${dateStr}T23:59:59`)
-
       activityData.push({
         date: dateStr,
-        count: count || 0,
+        count: countByDate.get(dateStr) || 0,
       })
     }
 
     return {
       success: true,
-      data: activityData.reverse(),
+      data: activityData,
     }
   } catch (error) {
     authLogger.error('[getRecentActivityCount] Unexpected error', error)
@@ -538,9 +610,20 @@ export async function getAllTeachers(): Promise<{
       return { success: false, error: 'Failed to fetch teacher profiles' }
     }
 
-    // Get auth users to get email addresses
-    const { data: authUsers } = await supabase.auth.admin.listUsers()
-    const userMap = new Map((authUsers?.users || []).map((u) => [u.id, u]))
+    // OPTIMIZATION: Fetch auth users and build map of only the IDs we need
+    // This prevents N+1 query problem where we fetched all 1000+ auth users just to match emails
+    const teacherIds = new Set((profiles || []).map((p: any) => p.user_id))
+
+    const adminClient = await createAdminClient()
+    const allAuthUsers = await fetchAllAuthUsers(adminClient)
+
+    // Create map of only the auth users we need (teachers in this instance)
+    const userMap = new Map<string, any>()
+    allAuthUsers.forEach((u: any) => {
+      if (teacherIds.has(u.id)) {
+        userMap.set(u.id, u)
+      }
+    })
 
     // Type for profile data with joined school
     // Note: Double cast required because Supabase's TypeScript types don't properly
@@ -556,18 +639,30 @@ export async function getAllTeachers(): Promise<{
     }
 
     const typedProfiles = (profiles ?? []) as unknown as TeacherProfileData[]
-    const result = typedProfiles.map((profile) => {
-      const authUser = userMap.get(profile.user_id)
-      return {
-        id: profile.user_id,
-        email: authUser?.email || '',
-        name: profile.name || 'Unknown',
-        phone: profile.phone || null,
-        schoolName: profile.schools.school_name,
-        schoolCode: profile.school_code || 'N/A',
-        createdAt: profile.created_at,
-      }
-    })
+    const result = typedProfiles
+      .filter((profile): profile is TeacherProfileData => {
+        // Validate required fields exist
+        if (!profile.schools || !profile.schools.school_name) {
+          authLogger.warn('[getAllTeachers] Skipping profile with missing school data', {
+            userId: profile.user_id,
+            profile,
+          })
+          return false
+        }
+        return true
+      })
+      .map((profile) => {
+        const authUser = userMap.get(profile.user_id)
+        return {
+          id: profile.user_id,
+          email: authUser?.email || '',
+          name: profile.name || 'Unknown',
+          phone: profile.phone || null,
+          schoolName: profile.schools?.school_name || 'Unknown',  // Safe access with fallback
+          schoolCode: profile.school_code || 'N/A',
+          createdAt: profile.created_at,
+        }
+      })
 
     return { success: true, data: result }
   } catch (error) {
@@ -631,9 +726,19 @@ export async function getAllStudents(): Promise<{
       return { success: false, error: 'Failed to fetch student profiles' }
     }
 
-    // Get auth users to get email addresses and usernames
-    const { data: authUsers } = await supabase.auth.admin.listUsers()
-    const userMap = new Map((authUsers?.users || []).map((u) => [u.id, u]))
+    // OPTIMIZATION: Fetch auth users and build map of only the IDs we need
+    // This prevents N+1 query problem where we fetched all 1000+ auth users just to match emails
+    const studentIds = new Set((profiles || []).map((p: any) => p.user_id))
+
+    const allAuthUsers = await fetchAllAuthUsers(supabase)
+
+    // Create map of only the auth users we need (students in this instance)
+    const userMap = new Map<string, any>()
+    allAuthUsers.forEach((u: any) => {
+      if (studentIds.has(u.id)) {
+        userMap.set(u.id, u)
+      }
+    })
 
     // Type for profile data
     interface StudentProfileData {

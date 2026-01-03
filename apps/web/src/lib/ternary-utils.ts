@@ -152,21 +152,13 @@ export function getScoreColor(score: number | null): string {
 
 /**
  * Role display name
+ *
+ * Re-exported from role-utils for backward compatibility.
+ * Use `@/lib/auth/role-utils` as the authoritative source.
+ *
+ * @see {@link @/lib/auth/role-utils#getRoleDisplayName} for the canonical implementation
  */
-export function getRoleDisplayName(role: string): string {
-  switch (role) {
-    case 'admin':
-      return 'Administrator'
-    case 'teacher':
-      return 'Teacher'
-    case 'student':
-      return 'Student'
-    case 'parent':
-      return 'Parent'
-    default:
-      return role.charAt(0).toUpperCase() + role.slice(1)
-  }
-}
+export { getRoleDisplayName } from '@/lib/auth/role-utils'
 
 /**
  * Permission label

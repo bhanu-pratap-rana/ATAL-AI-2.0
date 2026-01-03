@@ -18,6 +18,81 @@ import {
 import { authLogger } from '@/lib/auth-logger'
 
 /**
+ * Type definitions for Supabase responses
+ *
+ * Note: Some interfaces include `[key: string]: unknown` to allow for additional fields
+ * from Supabase responses. This is necessary because:
+ * 1. Supabase may include extra metadata fields depending on the select() clause
+ * 2. User-defined custom fields may be present in raw_user_meta_data
+ * 3. Future schema extensions may add new fields
+ *
+ * When accessing these interfaces, always validate known required fields first.
+ */
+
+/**
+ * User object from auth.users joined queries
+ *
+ * Guaranteed fields: id
+ * Optional fields: email, raw_user_meta_data
+ * Note: Not all fields are always available depending on the select clause used
+ */
+interface AuthUser {
+  id: string
+  email?: string
+  raw_user_meta_data?: {
+    full_name?: string
+    [key: string]: unknown
+  }
+  [key: string]: unknown
+}
+
+/**
+ * Knowledge state for a student
+ *
+ * Guaranteed fields: topics_mastered, total_topics, average_mastery, last_attempt_at
+ * These fields represent computed student learning metrics
+ */
+interface StudentKnowledgeState {
+  topics_mastered: number
+  total_topics: number
+  average_mastery: number
+  last_attempt_at: string | null
+  [key: string]: unknown
+}
+
+/**
+ * Student enrollment with knowledge state
+ *
+ * Note: Supabase joins return arrays when using nested select with multiple rows
+ * Fields may contain single objects or arrays depending on the query results
+ */
+interface StudentEnrollment {
+  student: AuthUser[] | AuthUser | undefined
+  student_knowledge_state: StudentKnowledgeState[] | StudentKnowledgeState | null
+  [key: string]: unknown
+}
+
+/**
+ * AI tutor interaction record
+ *
+ * Guaranteed fields: id, student_id, topic_id, message_content, message_role, language, input_mode, tokens_used, created_at
+ * Optional fields: student (populated if using select with join)
+ */
+interface AITutorInteraction {
+  id: string
+  student_id: string
+  topic_id: string
+  message_content: string
+  message_role: 'user' | 'assistant'
+  language: string
+  input_mode: string
+  tokens_used: number
+  created_at: string
+  student?: AuthUser
+  [key: string]: unknown
+}
+
+/**
  * Type guard to safely validate student profile structure from Supabase
  */
 function isValidStudentProfile(data: unknown): data is { name: string; roll_number: string | null } {
@@ -299,6 +374,22 @@ export async function getClassAssessmentResults(classId: string): Promise<{
 
     const supabase = await createClient()
 
+    // SECURITY FIX #4 EXTENSION: Re-verify class ownership before analytics queries
+    // Prevents TOCTOU vulnerability if class is deleted/transferred after initial check
+    const { data: classData, error: classDataError } = await supabase
+      .from('classes')
+      .select('id, teacher_id, name')
+      .eq('id', validatedClassId)
+      .maybeSingle()
+
+    if (classDataError || !classData || classData.teacher_id !== auth.user!.id) {
+      authLogger.warn('[getClassAssessmentResults] Access denied: Class no longer owned by user', {
+        userId: auth.user!.id,
+        classId: validatedClassId,
+      })
+      return { success: false, error: 'You do not own this class' }
+    }
+
     // Get all enrolled students
     const { data: enrollments, error: enrollmentError } = await supabase
       .from('enrollments')
@@ -317,7 +408,52 @@ export async function getClassAssessmentResults(classId: string): Promise<{
 
     const studentResults: StudentAssessmentResult[] = []
 
-    // For each enrolled student, get their assessment data
+    // OPTIMIZATION: Batch fetch all assessment data instead of looping (prevents N+1 queries)
+    const studentIds = (enrollments || []).map(e => e.student_id)
+
+    // Get all assessment sessions for all students in this class in one query
+    const { data: allSessions } = await supabase
+      .from('assessment_sessions')
+      .select('id, user_id, submitted_at')
+      .in('user_id', studentIds)
+      .eq('class_id', validatedClassId)
+      .not('submitted_at', 'is', null)
+
+    // Get all assessment session IDs for bulk response fetch
+    const sessionIds = allSessions?.map(s => s.id) || []
+
+    // Get all responses for all sessions in one query (instead of per-student queries)
+    const { data: allResponses } = await supabase
+      .from('assessment_responses')
+      .select('is_correct, session_id')
+      .in('session_id', sessionIds)
+
+    // Build lookup maps for efficient data association
+    const sessionsByStudent = new Map<string, Array<{ id: string; submitted_at: string }>>()
+    const responsesBySession = new Map<string, Array<{ is_correct: boolean }>>()
+
+    // Index sessions by student_id
+    allSessions?.forEach(session => {
+      if (!sessionsByStudent.has(session.user_id)) {
+        sessionsByStudent.set(session.user_id, [])
+      }
+      sessionsByStudent.get(session.user_id)!.push({
+        id: session.id,
+        submitted_at: session.submitted_at
+      })
+    })
+
+    // Index responses by session_id
+    allResponses?.forEach(response => {
+      if (!responsesBySession.has(response.session_id)) {
+        responsesBySession.set(response.session_id, [])
+      }
+      responsesBySession.get(response.session_id)!.push({
+        is_correct: response.is_correct
+      })
+    })
+
+    // Process student results using pre-fetched data (no queries in loop)
     for (const enrollment of enrollments || []) {
       // Validate student profile structure from Supabase
       if (!isValidStudentProfile(enrollment.student_profiles)) {
@@ -328,38 +464,28 @@ export async function getClassAssessmentResults(classId: string): Promise<{
       }
       const studentProfile = enrollment.student_profiles
 
-      // Get assessment sessions for this student in this class
-      const { data: sessions } = await supabase
-        .from('assessment_sessions')
-        .select('id, submitted_at')
-        .eq('user_id', enrollment.student_id)
-        .eq('class_id', validatedClassId)
-        .not('submitted_at', 'is', null)
-        .order('submitted_at', { ascending: false })
+      const sessions = sessionsByStudent.get(enrollment.student_id) || []
+      const sessionsCompleted = sessions.length
 
-      const sessionsCompleted = sessions?.length || 0
       let averageScore: number | null = null
       let totalQuestions = 0
       let correctAnswers = 0
       let lastAssessmentDate: string | null = null
 
-      if (sessions && sessions.length > 0) {
+      if (sessions.length > 0) {
+        // Sort by submitted_at to get most recent first
+        sessions.sort((a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime())
         lastAssessmentDate = sessions[0].submitted_at
 
-        // Get all responses for these sessions
-        const sessionIds = sessions.map(s => s.id)
-        const { data: responses } = await supabase
-          .from('assessment_responses')
-          .select('is_correct')
-          .in('session_id', sessionIds)
+        // Calculate score from pre-fetched responses
+        for (const session of sessions) {
+          const responses = responsesBySession.get(session.id) || []
+          totalQuestions += responses.length
+          correctAnswers += responses.filter(r => r.is_correct).length
+        }
 
-        if (responses && responses.length > 0) {
-          totalQuestions = responses.length
-          correctAnswers = responses.filter(r => r.is_correct).length
-          // Prevent division by zero (should never happen since we check length > 0)
-          if (totalQuestions > 0) {
-            averageScore = Math.round((correctAnswers / totalQuestions) * 100)
-          }
+        if (totalQuestions > 0) {
+          averageScore = Math.round((correctAnswers / totalQuestions) * 100)
         }
       }
 
@@ -461,35 +587,81 @@ export async function getTeacherAssessmentOverview(): Promise<{
     let totalScore = 0
     let scoredAssessments = 0
 
+    // OPTIMIZATION: Batch fetch all data for all classes (prevents N+1 queries)
+    const classIds = (classes || []).map(c => c.id)
+
+    // Get enrollment counts for all classes in one query
+    const { data: allEnrollments } = await supabase
+      .from('enrollments')
+      .select('class_id')
+      .in('class_id', classIds)
+
+    // Get all assessment sessions for all classes in one query
+    const { data: allSessions } = await supabase
+      .from('assessment_sessions')
+      .select('id, class_id')
+      .in('class_id', classIds)
+      .not('submitted_at', 'is', null)
+
+    // Get all responses for all sessions in one query
+    const sessionIds = allSessions?.map(s => s.id) || []
+    const { data: allResponses } = await supabase
+      .from('assessment_responses')
+      .select('is_correct, session_id')
+      .in('session_id', sessionIds)
+
+    // Build lookup maps for efficient data association
+    const enrollmentCountByClass = new Map<string, number>()
+    const sessionsByClass = new Map<string, string[]>()
+    const responseCountBySession = new Map<string, { correct: number; total: number }>()
+
+    // Count enrollments by class
+    allEnrollments?.forEach(enrollment => {
+      const count = (enrollmentCountByClass.get(enrollment.class_id) || 0) + 1
+      enrollmentCountByClass.set(enrollment.class_id, count)
+    })
+
+    // Index sessions by class_id
+    allSessions?.forEach(session => {
+      if (!sessionsByClass.has(session.class_id)) {
+        sessionsByClass.set(session.class_id, [])
+      }
+      sessionsByClass.get(session.class_id)!.push(session.id)
+    })
+
+    // Count responses per session (both correct and total) in single pass
+    allResponses?.forEach(response => {
+      const current = responseCountBySession.get(response.session_id) || { correct: 0, total: 0 }
+      current.total += 1
+      if (response.is_correct) {
+        current.correct += 1
+      }
+      responseCountBySession.set(response.session_id, current)
+    })
+
+    // Process class results using pre-fetched data (no queries in loop)
     for (const cls of classes || []) {
-      // Get enrollment count
-      const { count: studentCount } = await supabase
-        .from('enrollments')
-        .select('*', { count: 'exact', head: true })
-        .eq('class_id', cls.id)
-
-      // Get assessment sessions for this class
-      const { data: sessions } = await supabase
-        .from('assessment_sessions')
-        .select('id')
-        .eq('class_id', cls.id)
-        .not('submitted_at', 'is', null)
-
-      const assessmentsTaken = sessions?.length || 0
+      const studentCount = enrollmentCountByClass.get(cls.id) || 0
+      const sessions = sessionsByClass.get(cls.id) || []
+      const assessmentsTaken = sessions.length
       totalAssessments += assessmentsTaken
 
-      // Get responses for score calculation
+      // Calculate average score from pre-fetched responses
       let averageScore: number | null = null
-      if (sessions && sessions.length > 0) {
-        const sessionIds = sessions.map(s => s.id)
-        const { data: responses } = await supabase
-          .from('assessment_responses')
-          .select('is_correct')
-          .in('session_id', sessionIds)
+      if (sessions.length > 0) {
+        let totalCorrect = 0
+        let totalQuestions = 0
 
-        if (responses && responses.length > 0) {
-          const correct = responses.filter(r => r.is_correct).length
-          averageScore = Math.round((correct / responses.length) * 100)
+        for (const sessionId of sessions) {
+          const counts = responseCountBySession.get(sessionId)
+          if (counts) {
+            totalCorrect += counts.correct
+            totalQuestions += counts.total
+          }
+        }
+
+        if (totalQuestions > 0) {
+          averageScore = Math.round((totalCorrect / totalQuestions) * 100)
           totalScore += averageScore
           scoredAssessments++
         }
@@ -499,7 +671,7 @@ export async function getTeacherAssessmentOverview(): Promise<{
         classId: cls.id,
         className: cls.name,
         subject: cls.subject,
-        studentCount: studentCount || 0,
+        studentCount,
         assessmentsTaken,
         averageScore
       })
@@ -537,7 +709,25 @@ export async function getClassAnalytics(classId: string) {
       return auth.error!
     }
 
+    const user = auth.user!
+
     const supabase = await createClient()
+
+    // SECURITY FIX #4: Re-verify class ownership before analytics queries
+    // Prevents returning data if class was deleted/transferred after initial check
+    const { data: classData, error: classDataError } = await supabase
+      .from('classes')
+      .select('teacher_id')
+      .eq('id', validatedClassId)
+      .maybeSingle()
+
+    if (classDataError || !classData || classData.teacher_id !== user.id) {
+      authLogger.warn('[getClassAnalytics] Access denied: Class no longer owned by user', {
+        userId: user.id,
+        classId: validatedClassId,
+      })
+      return { success: false, error: 'You do not own this class' }
+    }
 
     // Use UTC for consistent timezone handling across all regions
     const sevenDaysAgo = new Date()
@@ -690,8 +880,6 @@ export async function getClassAnalytics(classId: string) {
  * Returns: Student name, progress percentage, mastery score, last activity
  */
 export async function exportStudentProgress(classId: string) {
-  'use server'
-
   try {
     const auth = await verifyTeacherAuth('exportStudentProgress')
     if (auth.error) {
@@ -737,8 +925,14 @@ export async function exportStudentProgress(classId: string) {
     }
 
     // Format for export
-    const exportData = (students || []).map(enrollment => {
-      const profile = enrollment.student as any
+    const exportData = (students || []).map((enrollment: StudentEnrollment) => {
+      // Handle student array or single object
+      const studentArray = Array.isArray(enrollment.student)
+        ? enrollment.student
+        : enrollment.student ? [enrollment.student] : []
+      const profile = studentArray[0] as AuthUser | undefined
+
+      // Handle knowledge state array or single object
       const state = Array.isArray(enrollment.student_knowledge_state)
         ? enrollment.student_knowledge_state[0]
         : enrollment.student_knowledge_state
@@ -770,8 +964,6 @@ export async function exportStudentProgress(classId: string) {
  * Returns: Student, topic, message content, role, language, timestamp
  */
 export async function exportAIInteractions(classId: string, limit: number = 500) {
-  'use server'
-
   try {
     const auth = await verifyTeacherAuth('exportAIInteractions')
     if (auth.error) {
@@ -829,17 +1021,17 @@ export async function exportAIInteractions(classId: string, limit: number = 500)
     }
 
     // Format for export
-    const exportData = (interactions || []).map(interaction => {
-      const student = interaction.student as any
+    const exportData = (interactions || []).map((interaction: AITutorInteraction) => {
+      const student = interaction.student as AuthUser | undefined
       return {
         student_name: student?.raw_user_meta_data?.full_name || 'Unknown',
         topic_id: interaction.topic_id || '',
-        message: (interaction as any).message_content || '',
-        role: (interaction as any).message_role || 'user',
+        message: interaction.message_content || '',
+        role: interaction.message_role || 'user',
         language: interaction.language || 'en',
-        input_mode: (interaction as any).input_mode || 'text',
+        input_mode: interaction.input_mode || 'text',
         created_at: interaction.created_at || '',
-        tokens_used: (interaction as any).tokens_used || 0,
+        tokens_used: interaction.tokens_used || 0,
       }
     })
 

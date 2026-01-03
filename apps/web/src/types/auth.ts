@@ -190,3 +190,10 @@ export interface School {
   schoolName: string
   district?: string
 }
+
+/**
+ * Admin Role Type
+ * Defines role types for admin authentication.
+ * Used by RoleGuard component for access control.
+ */
+export type AdminRole = 'super_admin' | 'admin' | 'teacher' | 'student'

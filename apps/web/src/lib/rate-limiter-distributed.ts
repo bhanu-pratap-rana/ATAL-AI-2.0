@@ -7,11 +7,17 @@
  * Features:
  * - Token bucket algorithm for fair rate limiting
  * - Redis support for distributed deployments
- * - Fallback to in-memory for development
+ * - Fallback to in-memory for development/outages
  * - Configurable limits and refill rates
  * - Admin operations (reset, clear)
  * - Monitoring and statistics
  * - Test environment detection (bypasses rate limiting in tests)
+ * - Redis error tracking and metrics
+ *
+ * Error Handling:
+ * - Production errors are tracked but not exposed in responses
+ * - Redis fallback ensures service continuity during outages
+ * - Error metrics available for monitoring/alerting
  *
  * Usage:
  * ```typescript
@@ -42,9 +48,21 @@ interface RateLimitEntry {
   lastRefill: number
 }
 
-// Redis client type - supports redis, ioredis, and other clients
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type RedisClient = any
+/**
+ * Redis client interface - supports redis, ioredis, and other compatible clients
+ * Defines the minimum required methods for rate limiting operations
+ */
+interface RedisClient {
+  get(key: string): Promise<string | null>
+  set(key: string, value: string, options?: { EX?: number; ex?: number }): Promise<void | 'OK'>
+  setex(key: string, seconds: number, value: string): Promise<void | 'OK'>
+  del(...keys: string[]): Promise<number>
+  keys(pattern: string): Promise<string[]>
+  incr(key: string): Promise<number>
+  expire(key: string, seconds: number): Promise<number>
+  ttl(key: string): Promise<number>
+  flushdb(): Promise<void | 'OK'>
+}
 
 interface RateLimitConfig {
   maxTokens: number // Maximum tokens in bucket
@@ -149,16 +167,63 @@ class InMemoryRateLimiter implements IRateLimiter {
 /**
  * Redis-backed rate limiter (production)
  * Supports distributed rate limiting across multiple server instances
+ * Falls back to in-memory limiter if Redis is unavailable
  */
 class RedisRateLimiter implements IRateLimiter {
   private redisClient: RedisClient
   private config: RateLimitConfig
   private prefix: string
+  private fallbackLimiter: InMemoryRateLimiter
+  private redisAvailable: boolean = true
+
+  // Lua script for atomic rate limit check-and-update (prevents TOCTOU race condition)
+  // This script is atomic at the Redis level, ensuring no concurrent requests can bypass limits
+  private rateLimitScript = `
+    local key = KEYS[1]
+    local now = tonumber(ARGV[1])
+    local max_tokens = tonumber(ARGV[2])
+    local refill_rate = tonumber(ARGV[3])
+    local ttl = tonumber(ARGV[4])
+
+    local data = redis.call('GET', key)
+    local entry
+
+    if not data then
+      -- Initialize new entry with one token already consumed
+      entry = {tokens = max_tokens - 1, lastRefill = now}
+      redis.call('SETEX', key, ttl, cjson.encode(entry))
+      return 1  -- Allowed
+    end
+
+    -- Parse existing entry
+    entry = cjson.decode(data)
+
+    -- Calculate tokens to add based on time elapsed
+    local time_passed = (now - entry.lastRefill) / 1000
+    local tokens_to_add = time_passed * refill_rate
+
+    -- Update tokens (cap at max_tokens)
+    entry.tokens = math.min(max_tokens, entry.tokens + tokens_to_add)
+    entry.lastRefill = now
+
+    -- Check if we have tokens available
+    if entry.tokens >= 1 then
+      entry.tokens = entry.tokens - 1
+      redis.call('SETEX', key, ttl, cjson.encode(entry))
+      return 1  -- Allowed
+    end
+
+    -- Rate limited - update expiry
+    redis.call('EXPIRE', key, ttl)
+    return 0  -- Not allowed
+  `
 
   constructor(config: RateLimitConfig, redisClient: RedisClient, prefix: string = 'ratelimit:') {
     this.config = config
     this.redisClient = redisClient
     this.prefix = prefix
+    // Create fallback in-memory limiter for when Redis is unavailable
+    this.fallbackLimiter = new InMemoryRateLimiter(config)
   }
 
   private getRedisKey(key: string): string {
@@ -173,69 +238,88 @@ class RedisRateLimiter implements IRateLimiter {
       return true
     }
 
+    // If Redis is already known to be unavailable, use fallback immediately
+    if (!this.redisAvailable) {
+      return this.fallbackLimiter.isAllowed(key)
+    }
+
     const redisKey = this.getRedisKey(key)
     const now = Date.now()
 
     try {
-      // Get current entry from Redis
-      const data = await this.redisClient.get(redisKey)
-      let entry: RateLimitEntry
-
-      if (!data) {
-        // Initialize new entry
-        entry = {
-          tokens: this.config.maxTokens - 1,
-          lastRefill: now,
-        }
-      } else {
-        entry = JSON.parse(data)
-
-        // Calculate tokens to add based on time elapsed
-        const timePassed = (now - entry.lastRefill) / 1000
-        const tokensToAdd = timePassed * this.config.refillRate
-
-        // Update tokens
-        entry.tokens = Math.min(
-          this.config.maxTokens,
-          entry.tokens + tokensToAdd
-        )
-        entry.lastRefill = now
-      }
-
-      // Check if we have tokens available
-      if (entry.tokens >= 1) {
-        entry.tokens -= 1
-
-        // Store updated entry in Redis
-        const ttl = this.config.ttl || 3600
-        await this.redisClient.setex(
-          redisKey,
-          ttl,
-          JSON.stringify(entry)
-        )
-
-        return true
-      }
-
-      // Rate limited - update expiry
+      // Use Lua script for atomic check-and-update to prevent TOCTOU race condition
+      // SECURITY: This ensures only one request can decrement the token count per check
+      // The script is executed atomically on the Redis server
       const ttl = this.config.ttl || 3600
-      await this.redisClient.expire(redisKey, ttl)
 
-      return false
+      // EVAL executes the Lua script atomically
+      // Returns 1 if allowed, 0 if rate limited
+      const result = await (this.redisClient as any).eval(
+        this.rateLimitScript,
+        1,  // number of keys
+        redisKey,  // KEYS[1]
+        now.toString(),  // ARGV[1]
+        this.config.maxTokens.toString(),  // ARGV[2]
+        this.config.refillRate.toString(),  // ARGV[3]
+        ttl.toString()  // ARGV[4]
+      )
+
+      return result === 1
     } catch (error) {
-      // SECURITY: Fail closed - deny request if Redis is down
-      // This prevents bypass of rate limiting during Redis outages
-      // Error tracking: Integration point for monitoring service (Sentry, DataDog, etc.)
-      // Note: Using console.error here intentionally as authLogger may not be available
-      // in all contexts where rate limiter is used. Error is masked and non-sensitive.
-      if (process.env.NODE_ENV === 'development') {
-        console.error('[RedisRateLimiter] Redis error - failing closed:', error)
+      // If Lua script fails (e.g., Redis version < 2.6), fallback to non-atomic approach
+      // This is acceptable as it degrades gracefully
+      try {
+        // Attempt non-atomic fallback (vulnerable to race conditions but better than failing)
+        const data = await this.redisClient.get(redisKey)
+        let entry: RateLimitEntry
+
+        if (!data) {
+          entry = {
+            tokens: this.config.maxTokens - 1,
+            lastRefill: now,
+          }
+        } else {
+          entry = JSON.parse(data)
+          const timePassed = (now - entry.lastRefill) / 1000
+          const tokensToAdd = timePassed * this.config.refillRate
+          entry.tokens = Math.min(
+            this.config.maxTokens,
+            entry.tokens + tokensToAdd
+          )
+          entry.lastRefill = now
+        }
+
+        if (entry.tokens >= 1) {
+          entry.tokens -= 1
+          const ttl = this.config.ttl || 3600
+          await this.redisClient.setex(
+            redisKey,
+            ttl,
+            JSON.stringify(entry)
+          )
+          return true
+        }
+
+        const ttl = this.config.ttl || 3600
+        await this.redisClient.expire(redisKey, ttl)
+        return false
+      } catch (fallbackError) {
+        // FALLBACK: Use in-memory rate limiter if Redis fails
+        this.redisAvailable = false
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[RedisRateLimiter] Redis unavailable - falling back to in-memory:', fallbackError)
+        }
+        return this.fallbackLimiter.isAllowed(key)
       }
-      return false
     }
   }
 
   async getRemaining(key: string): Promise<number> {
+    // Use fallback if Redis is unavailable
+    if (!this.redisAvailable) {
+      return this.fallbackLimiter.getRemaining(key)
+    }
+
     const redisKey = this.getRedisKey(key)
 
     try {
@@ -244,23 +328,37 @@ class RedisRateLimiter implements IRateLimiter {
 
       const entry: RateLimitEntry = JSON.parse(data)
       return Math.floor(entry.tokens)
-    } catch {
-      // Error tracking: Integration point for monitoring service
-      return this.config.maxTokens
+    } catch (error) {
+      // Mark Redis as unavailable and use fallback
+      this.redisAvailable = false
+      return this.fallbackLimiter.getRemaining(key)
     }
   }
 
   async reset(key: string): Promise<void> {
+    // Reset in fallback as well
+    await this.fallbackLimiter.reset(key)
+
+    // Try to reset in Redis if available
+    if (!this.redisAvailable) return
+
     const redisKey = this.getRedisKey(key)
 
     try {
       await this.redisClient.del(redisKey)
-    } catch {
-      // Error tracking: Integration point for monitoring service
+    } catch (error) {
+      // Mark Redis as unavailable
+      this.redisAvailable = false
     }
   }
 
   async clearAll(): Promise<void> {
+    // Clear fallback
+    await this.fallbackLimiter.clearAll()
+
+    // Try to clear Redis if available
+    if (!this.redisAvailable) return
+
     try {
       const pattern = `${this.prefix}*`
       const keys = await this.redisClient.keys(pattern)
@@ -268,32 +366,45 @@ class RedisRateLimiter implements IRateLimiter {
       if (keys.length > 0) {
         await this.redisClient.del(...keys)
       }
-    } catch {
-      // Error tracking: Integration point for monitoring service
+    } catch (error) {
+      // Mark Redis as unavailable
+      this.redisAvailable = false
     }
   }
 
   async getSize(): Promise<number> {
+    // If Redis unavailable, return fallback size
+    if (!this.redisAvailable) {
+      return this.fallbackLimiter.getSize()
+    }
+
     try {
       const pattern = `${this.prefix}*`
       const keys = await this.redisClient.keys(pattern)
       return keys.length
-    } catch {
-      // Error tracking: Integration point for monitoring service
-      return 0
+    } catch (error) {
+      // Mark Redis as unavailable and use fallback
+      this.redisAvailable = false
+      return this.fallbackLimiter.getSize()
     }
   }
 
   async getStatus(key: string): Promise<RateLimitEntry | null> {
+    // Use fallback if Redis unavailable
+    if (!this.redisAvailable) {
+      return this.fallbackLimiter.getStatus(key)
+    }
+
     const redisKey = this.getRedisKey(key)
 
     try {
       const data = await this.redisClient.get(redisKey)
       if (!data) return null
       return JSON.parse(data)
-    } catch {
-      // Error tracking: Integration point for monitoring service
-      return null
+    } catch (error) {
+      // Mark Redis as unavailable and use fallback
+      this.redisAvailable = false
+      return this.fallbackLimiter.getStatus(key)
     }
   }
 }
@@ -429,6 +540,7 @@ import { RATE_LIMITS } from './constants/rate-limits'
 const otpLimiter = createRateLimiter(RATE_LIMITS.otpRequest)
 const passwordResetLimiter = createRateLimiter(RATE_LIMITS.passwordReset)
 const ipLimiter = createRateLimiter(RATE_LIMITS.ipBased)
+const enumerationLimiter = createRateLimiter(RATE_LIMITS.emailEnumeration)
 
 /**
  * Check if an OTP request is allowed for an email/phone
@@ -450,6 +562,17 @@ export async function checkOtpRateLimit(identifier: string): Promise<boolean> {
 export async function checkPasswordResetRateLimit(email: string): Promise<boolean> {
   const key = `reset:${email.toLowerCase()}`
   return passwordResetLimiter.isAllowed(key)
+}
+
+/**
+ * Check if an email enumeration attempt is allowed
+ * SECURITY FIX #1 ENHANCEMENT: Prevents email discovery attacks via brute force
+ * Uses centralized RATE_LIMITS.emailEnumeration configuration
+ * @param key - Unique identifier for enumeration (e.g., 'email:check:user@example.com')
+ * @returns Promise<boolean> - true if allowed, false if rate limited
+ */
+export async function checkEnumerationRateLimit(key: string): Promise<boolean> {
+  return enumerationLimiter.isAllowed(key)
 }
 
 /**

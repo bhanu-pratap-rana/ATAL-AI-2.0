@@ -32,13 +32,13 @@ export async function saveStudentProfile(params: StudentProfileParams) {
       gender: validatedInput.gender
     })
 
-    // Get user using consistent getCurrentUser() pattern
-    const user = await getCurrentUser()
-
-    if (!user) {
-      authLogger.error('[saveStudentProfile] No authenticated user - session may not be synced')
-      return { success: false, error: 'Not authenticated. Please try logging in again.' }
+    // SECURITY: Verify caller is authenticated and is a student (not teacher/admin)
+    const auth = await verifyStudentAuth('saveStudentProfile')
+    if (!auth.authorized) {
+      return auth.error!
     }
+
+    const user = auth.user!
 
     authLogger.debug('[saveStudentProfile] User authenticated', {
       userId: user.id,
@@ -54,98 +54,54 @@ export async function saveStudentProfile(params: StudentProfileParams) {
 
     const supabase = await createClient()
 
-    // Check if profile already exists (use maybeSingle to avoid 406 error when no rows found)
-    const { data: existingProfile, error: selectError } = await supabase
-      .from('student_profiles')
-      .select('user_id')
-      .eq('user_id', user.id)
-      .maybeSingle()
+    // SECURITY FIX #2: Use atomic UPSERT RPC to eliminate race condition
+    // Single database operation ensures concurrent requests are serialized atomically
+    // No check-then-insert pattern window for concurrent requests to exploit
+    authLogger.debug('[saveStudentProfile] Calling atomic upsert_student_profile RPC...', {
+      userId: user.id,
+      name: validatedInput.name
+    })
 
-    // Log select error if any (maybeSingle returns null for no rows, not an error)
-    if (selectError) {
-      authLogger.error('[saveStudentProfile] Error checking existing profile', {
-        code: selectError.code,
-        message: selectError.message,
-        details: selectError.details,
-        hint: selectError.hint
-      })
-      // Continue anyway - we'll try to insert and handle duplicate if it exists
-    }
-
-    if (existingProfile) {
-      authLogger.debug('[saveStudentProfile] Profile exists, updating...')
-      // Update existing profile
-      const { error: updateError } = await supabase
-        .from('student_profiles')
-        .update({
-          name: validatedInput.name,
-          gender: validatedInput.gender,
-          phone: validatedInput.phone || null,
-          roll_number: validatedInput.rollNumber || null,
-          school_name: validatedInput.schoolName || null,
-          class_name: validatedInput.className || null,
-          village: validatedInput.village || null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('user_id', user.id)
-
-      if (updateError) {
-        authLogger.error('[saveStudentProfile] Failed to update profile', {
-          code: updateError.code,
-          message: updateError.message,
-          details: updateError.details,
-          hint: updateError.hint
-        })
-        return { success: false, error: `Failed to update profile: ${updateError.message}` }
+    const { data: rpcResult, error: rpcError } = await supabase.rpc(
+      'upsert_student_profile',
+      {
+        p_user_id: user.id,
+        p_name: validatedInput.name,
+        p_gender: validatedInput.gender,
+        p_date_of_birth: null, // Not in current schema - reserved for future
+        p_phone: validatedInput.phone || null,
+        p_location: validatedInput.village || null,
+        p_medium: null, // Not in current schema - reserved for future
+        p_board: null, // Not in current schema - reserved for future
+        p_class: validatedInput.className || null,
       }
+    )
 
-      authLogger.success('[saveStudentProfile] Profile updated successfully')
-      return { success: true }
-    }
-
-    // Create new profile
-    authLogger.debug('[saveStudentProfile] Creating new profile...', { userId: user.id })
-    const { data: insertData, error: insertError } = await supabase
-      .from('student_profiles')
-      .insert({
-        user_id: user.id,
-        name: validatedInput.name,
-        gender: validatedInput.gender,
-        phone: validatedInput.phone || null,
-        roll_number: validatedInput.rollNumber || null,
-        school_name: validatedInput.schoolName || null,
-        class_name: validatedInput.className || null,
-        village: validatedInput.village || null,
-      })
-      .select()
-
-    if (insertError) {
-      authLogger.error('[saveStudentProfile] Failed to create profile', {
-        code: insertError.code,
-        message: insertError.message,
-        details: insertError.details,
-        hint: insertError.hint,
+    if (rpcError) {
+      authLogger.error('[saveStudentProfile] RPC upsert_student_profile failed', {
+        code: rpcError.code,
+        message: rpcError.message,
+        details: rpcError.details,
+        hint: rpcError.hint,
         userId: user.id
       })
-
-      // Provide more specific error messages based on error code
-      let errorMessage = 'Failed to create profile'
-      if (insertError.code === '23505') {
-        errorMessage = 'Profile already exists for this user'
-      } else if (insertError.code === '23503') {
-        errorMessage = 'User account not found. Please try signing up again.'
-      } else if (insertError.code === '42501') {
-        errorMessage = 'Permission denied. Please try logging in again.'
-      } else if (insertError.message) {
-        errorMessage = insertError.message
-      }
-
-      return { success: false, error: errorMessage }
+      return { success: false, error: 'Failed to save profile. Please try again.' }
     }
 
-    authLogger.success('[saveStudentProfile] Profile created successfully', {
+    // RPC returns JSON object with success/error
+    if (rpcResult && typeof rpcResult === 'object') {
+      if ((rpcResult as any).success === false) {
+        authLogger.error('[saveStudentProfile] RPC returned error', {
+          error: (rpcResult as any).error,
+          code: (rpcResult as any).code
+        })
+        return { success: false, error: 'Failed to save profile. Please try again.' }
+      }
+    }
+
+    authLogger.success('[saveStudentProfile] Profile saved successfully (UPSERT)', {
       userId: user.id,
-      insertData
+      result: rpcResult
     })
     revalidatePath('/app/dashboard')
     return { success: true }
@@ -215,12 +171,10 @@ export async function previewClass(classCode: string): Promise<{
   error?: string
 }> {
   try {
-    // Normalize class code
-    classCode = classCode.toUpperCase().replace(/[^A-Z0-9]/g, '')
-
-    if (classCode.length !== 6) {
-      return { success: false, error: 'Class code must be 6 characters' }
-    }
+    // Validate input using schema (consistent with other functions)
+    const validatedClassCode = JoinClassSchema.pick({ classCode: true }).parse({
+      classCode: classCode.toUpperCase().replace(/[^A-Z0-9]/g, ''),
+    }).classCode
 
     const supabase = await createClient()
 
@@ -233,7 +187,7 @@ export async function previewClass(classCode: string): Promise<{
         subject,
         teacher_id
       `)
-      .eq('class_code', classCode)
+      .eq('class_code', validatedClassCode)
       .maybeSingle()
 
     if (classError) {
@@ -369,7 +323,22 @@ export async function joinClass({ classCode, pin }: JoinClassParams) {
       .single()
 
     if (error) {
-      return { success: false, error: error.message }
+      // Don't expose raw Supabase error to client
+      authLogger.error('[joinClassWithPIN] Failed to create enrollment', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        classId: classData.id,
+        studentId: auth.user!.id,
+      })
+
+      // Return generic error message
+      if (error.code === '23505') {
+        // Unique constraint violation (already enrolled)
+        return { success: false, error: 'Already enrolled in this class' }
+      }
+
+      return { success: false, error: 'Failed to enroll in class. Please try again.' }
     }
 
     revalidatePath('/app/student/classes')

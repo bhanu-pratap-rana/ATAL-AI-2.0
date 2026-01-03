@@ -3,6 +3,7 @@ import { createClient, getCurrentUser } from '@/lib/supabase-server'
 import { authLogger } from '@/lib/auth-logger'
 import { checkRateLimit } from '@/lib/rate-limiter-distributed'
 import { RATE_LIMITS } from '@/lib/constants/rate-limits'
+import { isTeacherOrHigher } from '@/lib/auth/role-utils'
 
 // Type definitions for API responses
 export interface Student {
@@ -36,12 +37,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verify user is a teacher - check app_metadata.role or teacher_profiles table
+    // Verify user is a teacher or higher (respects role hierarchy: teacher, admin, super_admin)
     const supabase = await createClient()
-    const isTeacherByMetadata = user.app_metadata?.role === 'teacher'
+    const hasTeacherOrHigherRole = isTeacherOrHigher(user.app_metadata?.role)
 
-    if (!isTeacherByMetadata) {
-      // Fallback: check teacher_profiles table
+    if (!hasTeacherOrHigherRole) {
+      // Fallback: check teacher_profiles table for users without explicit role metadata
       const { data: teacherProfile } = await supabase
         .from('teacher_profiles')
         .select('user_id')
@@ -49,9 +50,9 @@ export async function POST(request: NextRequest) {
         .maybeSingle()
 
       if (!teacherProfile) {
-        authLogger.warn('[searchStudents] Non-teacher attempted to search students', { userId: user.id })
+        authLogger.warn('[searchStudents] Non-teacher attempted to search students', { userId: user.id, role: user.app_metadata?.role })
         return NextResponse.json(
-          { error: 'Only teachers can search for students' },
+          { error: 'Only teachers and administrators can search for students' },
           { status: 403 }
         )
       }
@@ -93,16 +94,73 @@ export async function POST(request: NextRequest) {
       })
 
     if (error) {
-      authLogger.warn('[searchStudents] RPC failed, falling back to direct query', error)
+      authLogger.warn('[searchStudents] RPC failed, falling back to restricted query', error)
 
-      // Fallback to direct query if RPC function not yet deployed
-      // This may return empty results due to RLS, but at least won't error
-      // Note: Using separate ilike patterns is safer than string interpolation
+      // SECURITY: Fallback query must be restricted to teacher's own classes
+      // Do NOT search across ALL students - that bypasses access control
+
+      // Step 1: Get teacher's classes
+      const { data: teacherClasses, error: classError } = await supabase
+        .from('classes')
+        .select('id')
+        .eq('teacher_id', user.id)
+
+      if (classError) {
+        authLogger.error('[searchStudents] Failed to fetch teacher classes', classError)
+        return NextResponse.json(
+          { error: 'Failed to search students' },
+          { status: 500 }
+        )
+      }
+
+      const classIds = (teacherClasses || []).map(c => c.id)
+
+      if (classIds.length === 0) {
+        // Teacher has no classes
+        return NextResponse.json({ students: [] })
+      }
+
+      // Step 2: Get students enrolled ONLY in teacher's classes
+      const { data: enrollments, error: enrollmentError } = await supabase
+        .from('enrollments')
+        .select('student_id')
+        .in('class_id', classIds)
+
+      if (enrollmentError) {
+        authLogger.error('[searchStudents] Failed to fetch enrollments', enrollmentError)
+        return NextResponse.json(
+          { error: 'Failed to search students' },
+          { status: 500 }
+        )
+      }
+
+      const studentIds = (enrollments || []).map(e => e.student_id)
+
+      if (studentIds.length === 0) {
+        // No students enrolled in teacher's classes
+        return NextResponse.json({ students: [] })
+      }
+
+      // Step 3: Search ONLY students enrolled in teacher's classes
       const searchPattern = `%${sanitizedQuery}%`
+
+      // Build search filter - SECURITY: Handle null fields properly in OR clause
+      // ilike doesn't work well with null values, so we need to explicitly handle them
+      const searchFilters = [
+        `name.ilike.${searchPattern}`,
+        `roll_number.ilike.${searchPattern}`,
+      ]
+
+      // Only include phone in search if it's not empty (to avoid null comparison issues)
+      if (sanitizedQuery.length > 0) {
+        searchFilters.push(`phone.ilike.${searchPattern}`)
+      }
+
       const { data: fallbackProfiles, error: fallbackError } = await supabase
         .from('student_profiles')
         .select('user_id, name, phone, roll_number')
-        .or(`name.ilike.${searchPattern},roll_number.ilike.${searchPattern},phone.ilike.${searchPattern}`)
+        .in('user_id', studentIds)  // SECURITY: Restrict to teacher's students only
+        .or(searchFilters.join(','))
         .limit(10)
 
       if (fallbackError) {

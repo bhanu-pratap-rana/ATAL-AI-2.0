@@ -7,6 +7,7 @@ import { motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase-browser'
 import { Button } from '@/components/ui/button'
 import { authLogger } from '@/lib/auth-logger'
+import { isTeacherOrHigher } from '@/lib/auth/role-utils'
 import type { User } from '@supabase/supabase-js'
 import { LogOut } from 'lucide-react'
 import { getDashboardStats, type DashboardStats } from '@/app/actions/dashboard-stats'
@@ -131,7 +132,7 @@ export default function DashboardPage() {
   // Check app_metadata.role (set during teacher registration via admin API)
   // This is reliable as it's set server-side and cannot be modified by client
   const appRole = user?.app_metadata?.role
-  const isTeacherOrAdmin = appRole === 'teacher' || appRole === 'admin' || appRole === 'super_admin'
+  const isTeacherOrAdmin = isTeacherOrHigher(appRole)
 
   // Use profile name if available, otherwise fall back to user metadata or email
   const userName = profileName || user?.user_metadata?.full_name || user?.app_metadata?.full_name || user?.email?.split('@')[0] || 'User'
@@ -144,7 +145,7 @@ export default function DashboardPage() {
       if (user) {
         const role = user.app_metadata?.role
         // Check for teacher, admin, AND super_admin roles
-        const isTeacher = role === 'teacher' || role === 'admin' || role === 'super_admin'
+        const isTeacher = isTeacherOrHigher(role)
 
         if (isTeacher) {
           // Fetch teacher profile name

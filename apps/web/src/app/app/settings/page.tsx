@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
+import { isTeacherOrHigher } from '@/lib/auth/role-utils'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { StudentProfileEditor } from '@/components/settings/StudentProfileEditor'
 import { TeacherProfileEditor } from '@/components/settings/TeacherProfileEditor'
@@ -17,7 +18,7 @@ export default async function SettingsPage() {
   // Check app_metadata.role (set during teacher registration via admin API)
   // This is reliable as it's set server-side and cannot be modified by client
   const appRole = user.app_metadata?.role
-  const isTeacherOrAdmin = appRole === 'teacher' || appRole === 'admin' || appRole === 'super_admin'
+  const isTeacherOrAdmin = isTeacherOrHigher(appRole)
 
   // Check if user signed up with username (Quick Start)
   const authType = user.user_metadata?.auth_type

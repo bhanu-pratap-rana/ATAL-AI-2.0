@@ -1,16 +1,16 @@
 {
-  "timestamp": "2025-12-31T08:57:12.458Z",
+  "timestamp": "2025-12-31T09:54:24.090Z",
   "section": "Assessment System Testing",
   "totalTests": 1,
   "passed": 0,
   "failed": 1,
-  "duration": "30.07s",
+  "duration": "24.35s",
   "results": [
     {
-      "testName": "TC-5.1.2-AssessmentTimer",
+      "testName": "TC-5.1.4-NavigationPrevious",
       "section": "5. Assessment System Testing",
       "status": "FAIL",
-      "duration": 28876,
+      "duration": 23407,
       "screenshots": [],
       "errorMessage": "TimeoutError: page.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[type=\"email\"]')\u001b[22m\n"
     }

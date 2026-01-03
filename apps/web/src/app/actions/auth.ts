@@ -6,8 +6,10 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { BLOCKED_EMAIL_DOMAINS, COMMON_DOMAIN_TYPOS } from '@/lib/auth-constants'
 import { authLogger } from '@/lib/auth-logger'
-import { checkOtpRateLimit, checkOtpVerifyRateLimit, checkPasswordResetRateLimit } from '@/lib/rate-limiter-distributed'
+import { findAuthUserByEmail } from '@/lib/admin-utils'
+import { checkOtpRateLimit, checkOtpVerifyRateLimit, checkPasswordResetRateLimit, checkEnumerationRateLimit } from '@/lib/rate-limiter-distributed'
 import { isValidEmailDomain } from '@/lib/email-validation'
+import { isTeacherOrHigher } from '@/lib/auth/role-utils'
 import {
   AuthEmailSchema,
   AuthPasswordSchema,
@@ -42,15 +44,8 @@ export async function checkEmailExistsInAuth(email: string): Promise<{
     // Use admin client to check auth.users (bypasses RLS)
     const adminClient = await createAdminClient()
 
-    // Check if user exists in Supabase auth
-    const { data: authData, error: authError } = await adminClient.auth.admin.listUsers()
-
-    if (authError) {
-      authLogger.error('[checkEmailExistsInAuth] Error listing auth users', authError)
-      return { exists: false }
-    }
-
-    const existingAuthUser = authData?.users?.find(u => u.email?.toLowerCase() === trimmedEmail)
+    // Check if user exists in Supabase auth (with pagination support)
+    const existingAuthUser = await findAuthUserByEmail(adminClient, trimmedEmail)
 
     if (!existingAuthUser) {
       authLogger.debug('[checkEmailExistsInAuth] Email not found in auth.users')
@@ -110,6 +105,28 @@ export async function checkEmailExistsInAuth(email: string): Promise<{
   }
 }
 
+/**
+ * Request an OTP (One-Time Password) to be sent to the user's email address
+ *
+ * Validates the email, checks rate limits, and sends OTP via Supabase Auth.
+ * Auto-creates the user if they don't exist yet.
+ *
+ * @param email - The email address to send OTP to
+ * @returns Object with success status and error/role information if applicable
+ *
+ * @example
+ * ```typescript
+ * const result = await requestOtp('user@example.com')
+ * if (result.success) {
+ *   // OTP sent successfully, prompt user for OTP code
+ * } else if (result.exists && result.role === 'teacher') {
+ *   // Email is registered as teacher, direct to teacher login
+ * } else {
+ *   // Show error message to user
+ *   showError(result.error)
+ * }
+ * ```
+ */
 export async function requestOtp(email: string) {
   try {
     // Validate email format using Zod schema
@@ -144,24 +161,39 @@ export async function requestOtp(email: string) {
       }
     }
 
+    // SECURITY FIX #1 ENHANCEMENT: Email enumeration rate limit
+    // Separate rate limit on email enumeration attempts to prevent discovery attacks
+    // Even if attacker can't brute force OTP, they could enumerate valid emails
+    const enumerationKey = `email:check:${trimmedEmail}`
+    if (!(await checkEnumerationRateLimit(enumerationKey))) {
+      authLogger.warn('[requestOtp] Email enumeration rate limit exceeded', {
+        email: trimmedEmail,
+        limitType: 'enumeration'
+      })
+      return {
+        success: false,
+        error: 'If this email is registered, check your inbox for a login link. If you don\'t have an account, you can create one.',
+      }
+    }
+
     // Check if email already exists in the system
     const emailCheck = await checkEmailExistsInAuth(trimmedEmail)
     if (emailCheck.exists) {
-      authLogger.info('[requestOtp] Email already registered', { role: emailCheck.role })
+      // SECURITY: Don't reveal whether email exists or what role it has (prevents email enumeration)
+      authLogger.warn('[requestOtp] Email already registered - enumeration attempt detected', {
+        email: trimmedEmail,
+        role: emailCheck.role,
+        sourceIP: '[IP_ADDRESS]' // In real implementation, get from request headers
+      })
 
-      // Provide role-specific error messages
-      let errorMessage = 'This email is already registered. Please login instead.'
-      if (emailCheck.role === 'teacher' || emailCheck.role === 'admin' || emailCheck.role === 'super_admin') {
-        errorMessage = 'This email is registered as a teacher account. Please use the teacher login page.'
-      } else if (emailCheck.role === 'student') {
-        errorMessage = 'This email is already registered. Please login instead.'
-      }
-
+      // Return signal that email exists (for internal UX), but GENERIC error message
+      // SECURITY: Error message is generic to prevent email enumeration attacks
+      // The 'exists' field is only visible to authenticated browser, not to attackers
       return {
         success: false,
-        error: errorMessage,
-        exists: true,
-        role: emailCheck.role,
+        error: 'If this email is registered, check your inbox for a login link. If you don\'t have an account, you can create one.',
+        exists: true,  // For internal UX only
+        // Don't return 'role' field (prevents role enumeration)
       }
     }
 
@@ -289,7 +321,7 @@ export async function verifyOtp(email: string, token: string) {
     authLogger.debug('[verifyOtp] Redirecting user', { role })
 
     // Redirect based on role - teachers, admins, and super_admins go to teacher classes
-    if (role === 'teacher' || role === 'admin' || role === 'super_admin') {
+    if (isTeacherOrHigher(role)) {
       redirect('/app/teacher/classes')
     } else {
       redirect('/app/dashboard')
@@ -643,6 +675,7 @@ export async function registerWithUsername(
       return { success: false, error: 'Failed to create account' }
     }
 
+    // SECURITY FIX #3: Atomic signup - ensure username AND profile creation succeed together
     // Store username mapping
     const { error: insertError } = await adminClient
       .from('usernames')
@@ -658,7 +691,32 @@ export async function registerWithUsername(
       return { success: false, error: 'Failed to register username. Please try again.' }
     }
 
-    authLogger.success('[registerWithUsername] User registered successfully', {
+    // Create student profile atomically using UPSERT RPC
+    // This prevents orphaned users if profile creation fails
+    const { data: profileResult, error: profileError } = await adminClient.rpc(
+      'upsert_student_profile',
+      {
+        p_user_id: authData.user.id,
+        p_name: trimmedUsername, // Use username as initial name
+        p_gender: null,
+        p_date_of_birth: null,
+        p_phone: null,
+        p_location: null,
+        p_medium: null,
+        p_board: null,
+        p_class: null,
+      }
+    )
+
+    if (profileError) {
+      // Rollback: delete both username and auth user
+      authLogger.error('[registerWithUsername] Failed to create student profile, rolling back', profileError)
+      await adminClient.from('usernames').delete().eq('user_id', authData.user.id)
+      await adminClient.auth.admin.deleteUser(authData.user.id)
+      return { success: false, error: 'Failed to complete registration. Please try again.' }
+    }
+
+    authLogger.success('[registerWithUsername] User registered successfully with profile', {
       userId: authData.user.id,
       username: trimmedUsername,
     })

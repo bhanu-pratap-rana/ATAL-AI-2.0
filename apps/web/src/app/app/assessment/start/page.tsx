@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { AssessmentRunner } from '@/components/assessment/AssessmentRunner'
 import { AssessmentSkeleton } from '@/components/assessment/AssessmentSkeleton'
 import { startAssessment, getAdaptiveQuestions } from '@/app/actions/assessment'
+import { clientLogger } from '@/lib/client-logger'
 
 /**
  * ATAL AI Assessment Start Page - Jyoti Theme
@@ -71,7 +72,7 @@ function AssessmentStartContent() {
       setQuestions(questionsResult.questions as Question[])
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'An unexpected error occurred'
-      console.error('[Assessment] Error starting assessment:', err)
+      clientLogger.error('[Assessment] Error starting assessment:', err instanceof Error ? err : { error: String(err) })
       setError(errorMsg)
       toast.error(errorMsg)
       setLoading(false)

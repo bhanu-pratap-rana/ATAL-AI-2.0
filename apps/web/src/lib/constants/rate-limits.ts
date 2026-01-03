@@ -134,6 +134,13 @@ export const RATE_LIMITS = {
     refillRate: 30 / SECONDS_PER_HOUR,
     refillInterval: 1000,
   } as RateLimitConfig,
+
+  /** Email enumeration - 20 per hour (prevent email discovery attacks) */
+  emailEnumeration: {
+    maxTokens: 20,
+    refillRate: 20 / SECONDS_PER_HOUR,
+    refillInterval: 1000,
+  } as RateLimitConfig,
 } as const
 
 /**

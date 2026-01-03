@@ -4,7 +4,8 @@ import { ReactNode } from 'react'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
-import type { AdminRole } from '@/app/actions/admin-roles'
+import { isAdminClient, isSuperAdminClient, isTeacherOrHigherClient } from '@/lib/auth/role-utils-client'
+import type { AdminRole } from '@/types/auth'
 import { clientLogger } from '@/lib/client-logger'
 
 interface RoleGuardProps {
@@ -51,13 +52,13 @@ export function RoleGuard({ children, requiredRole, fallback }: RoleGuardProps) 
 
         if (requiredRole === 'super_admin') {
           // Only super_admin can access
-          isAuthorizedForRole = role === 'super_admin'
+          isAuthorizedForRole = isSuperAdminClient(role)
         } else if (requiredRole === 'admin') {
           // admin or super_admin can access
-          isAuthorizedForRole = role === 'admin' || role === 'super_admin'
+          isAuthorizedForRole = isAdminClient(role)
         } else if (requiredRole === 'teacher') {
           // teacher, admin, or super_admin can access
-          isAuthorizedForRole = role === 'teacher' || role === 'admin' || role === 'super_admin'
+          isAuthorizedForRole = isTeacherOrHigherClient(role)
         }
 
         setIsAuthorized(isAuthorizedForRole)

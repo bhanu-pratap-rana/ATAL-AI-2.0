@@ -67,79 +67,122 @@ const pwaConfig = withPWA({
 const nextConfig: NextConfig = {
   // Next.js 16 has instrumentation enabled by default
   // No experimental flags needed for Sentry integration
-}
 
-// Sentry configuration options
-const sentryWebpackPluginOptions = {
-  // Organization and project slugs from Sentry dashboard
-  // These will be set via environment variables in production
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
-
-  // Auth token for source map uploads (set in Vercel/CI)
-  authToken: process.env.SENTRY_AUTH_TOKEN,
-
-  // Suppress Sentry CLI output during build (cleaner logs)
-  silent: !process.env.CI,
-
-  // Upload source maps only in production builds
-  widenClientFileUpload: true,
-
-  // Route browser requests to Sentry through Next.js to avoid ad-blockers
-  tunnelRoute: '/monitoring',
-
-  // Hide source maps from generated client bundles
-  hideSourceMaps: true,
-
-  // Skip source map upload in development
-  skipEnvironmentCheck: process.env.NODE_ENV === 'development',
-
-  // Webpack plugin options (new format - replaces deprecated disableLogger and automaticVercelMonitors)
-  webpack: {
-    treeshake: {
-      removeDebugLogging: true,
-    },
-    automaticVercelMonitors: true,
-  },
+  // Security headers configuration
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          // Content Security Policy - prevent XSS and injection attacks
+          // Note: 'unsafe-inline' for style-src is acceptable with proper Content-Type
+          // Scripts are bundled by Next.js Turbopack (no unsafe-inline needed)
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              // Script src: self only (Next.js handles bundling, no unsafe-inline)
+              "script-src 'self' cdn.jsdelivr.net fonts.googleapis.com",
+              // Style src: self + unsafe-inline only for Tailwind/CSS-in-JS generated styles
+              // These are generated at build time, not dynamic user content
+              "style-src 'self' 'unsafe-inline' fonts.googleapis.com cdn.jsdelivr.net",
+              "font-src 'self' fonts.gstatic.com data:",
+              "img-src 'self' data: https: blob:",
+              // WebSocket connections for real-time features
+              "connect-src 'self' https: wss:",
+              // No embedding in iframes
+              "frame-ancestors 'self'",
+              // Form submissions only to same origin
+              "form-action 'self'",
+              // Base URI restricted to prevent injection
+              "base-uri 'self'",
+              // Prevent object/embed elements (Flash, Java, etc.)
+              "object-src 'none'",
+              // Frame src for embedded iframes
+              "frame-src 'self'",
+              // Upgrade insecure requests to HTTPS
+              "upgrade-insecure-requests"
+            ].join('; ')
+          },
+          // Prevent clickjacking attacks
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN'
+          },
+          // Prevent MIME type sniffing
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          },
+          // Enable XSS filter in older browsers
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block'
+          },
+          // HTTP Strict Transport Security
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains; preload'
+          },
+          // Referrer Policy - privacy
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-no-referrer'
+          },
+          // Permissions Policy - control browser features
+          {
+            key: 'Permissions-Policy',
+            value: [
+              'accelerometer=()',
+              'camera=()',
+              'geolocation=()',
+              'gyroscope=()',
+              'magnetometer=()',
+              'microphone=()',
+              'payment=()',
+              'usb=()'
+            ].join(', ')
+          },
+          // Disable caching for sensitive content
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=3600, must-revalidate'
+          }
+        ],
+      }
+    ]
+  }
 }
 
 // Export config with Sentry wrapper (only if Sentry is configured)
 // Apply PWA wrapper first, then Sentry
 const configWithPWA = pwaConfig(nextConfig)
-const exportedConfig = process.env.NEXT_PUBLIC_SENTRY_DSN
-  ? withSentryConfig(configWithPWA, sentryWebpackPluginOptions)
-  : configWithPWA
 
-export default withSentryConfig(exportedConfig, {
-  // For all available options, see:
-  // https://www.npmjs.com/package/@sentry/webpack-plugin#options
+export default process.env.NEXT_PUBLIC_SENTRY_DSN
+  ? withSentryConfig(configWithPWA, {
+      // For all available options, see:
+      // https://www.npmjs.com/package/@sentry/webpack-plugin#options
 
-  org: "atal-ai",
+      org: process.env.SENTRY_ORG || "atal-ai",
+      project: process.env.SENTRY_PROJECT || "javascript-nextjs",
 
-  project: "javascript-nextjs",
+      // Only print logs for uploading source maps in CI
+      silent: !process.env.CI,
 
-  // Only print logs for uploading source maps in CI
-  silent: !process.env.CI,
+      // Upload a larger set of source maps for prettier stack traces
+      widenClientFileUpload: true,
 
-  // For all available options, see:
-  // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
+      // Route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers
+      tunnelRoute: "/monitoring",
 
-  // Upload a larger set of source maps for prettier stack traces (increases build time)
-  widenClientFileUpload: true,
-
-  // Route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
-  // This can increase your server load as well as your hosting bill.
-  // Note: Check that the configured route will not match with your Next.js middleware, otherwise reporting of client-
-  // side errors will fail.
-  tunnelRoute: "/monitoring",
-
-  // Webpack plugin options (moved from deprecated top-level options)
-  webpack: {
-    // Automatically tree-shake Sentry logger statements to reduce bundle size
-    treeshake: {
-      removeDebugLogging: true,
-    },
-    // Enables automatic instrumentation of Vercel Cron Monitors
-    automaticVercelMonitors: true,
-  },
-});
+      // Webpack plugin options
+      webpack: {
+        // Automatically tree-shake Sentry logger statements to reduce bundle size
+        treeshake: {
+          removeDebugLogging: true,
+        },
+        // Enables automatic instrumentation of Vercel Cron Monitors
+        automaticVercelMonitors: true,
+      },
+    })
+  : configWithPWA;

@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase-server'
+import { isTeacherOrHigher } from '@/lib/auth/role-utils'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -38,7 +39,7 @@ export default async function TeacherAssessmentsPage() {
 
   // Check app_metadata for role - teachers, admins, and super_admins can access
   const role = user.app_metadata?.role
-  const isTeacherOrAdmin = role === 'teacher' || role === 'admin' || role === 'super_admin'
+  const isTeacherOrAdmin = isTeacherOrHigher(role)
   if (!isTeacherOrAdmin) {
     redirect('/app/dashboard')
   }

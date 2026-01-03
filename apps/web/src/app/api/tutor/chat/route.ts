@@ -13,6 +13,7 @@
  */
 
 import { streamText, CoreMessage } from 'ai';
+import { z } from 'zod';
 import { getCurrentUser, createClient } from '@/lib/supabase-server';
 import { getAIModel, MODEL_CONFIGS } from '@/lib/ai/providers';
 import { ragService } from '@/lib/ai/services/rag-service';
@@ -22,49 +23,81 @@ import { checkRateLimit } from '@/lib/rate-limiter-distributed';
 import { RATE_LIMITS } from '@/lib/constants/rate-limits';
 import { authLogger } from '@/lib/auth-logger';
 
+/**
+ * Request body schema for tutor chat API
+ * SECURITY: Includes bounds validation to prevent DoS attacks via large payloads
+ */
+const ChatRequestSchema = z.object({
+  messages: z.array(z.object({
+    role: z.enum(['user', 'assistant', 'system']),
+    content: z.string()
+      .min(1, 'Message content cannot be empty')
+      .max(5000, 'Message content must be less than 5000 characters'),
+  }))
+    .min(1, 'At least one message is required')
+    .max(100, 'Conversation history must not exceed 100 messages'),
+  language: z.enum(['en', 'hi', 'as']).default('en'),
+  topicId: z.string().optional(),
+  moduleId: z.string().optional(),
+  sessionId: z.string().optional(),
+  inputMode: z.enum(['text', 'voice']).default('text'),
+});
+
 export async function POST(request: Request) {
+  let user: Awaited<ReturnType<typeof getCurrentUser>> | null = null;
+
   try {
     // Authenticate user
-    const user = await getCurrentUser();
+    user = await getCurrentUser();
     if (!user) {
       return new Response('Unauthorized', { status: 401 });
     }
 
+    // At this point, user is guaranteed to be non-null due to the guard above
+    const authenticatedUser = user;
+
     // Rate limit check
-    const isAllowed = await checkRateLimit(`ai:chat:${user.id}`, RATE_LIMITS.aiTutorChat);
+    const isAllowed = await checkRateLimit(`ai:chat:${authenticatedUser.id}`, RATE_LIMITS.aiTutorChat);
     if (!isAllowed) {
       return new Response('Rate limit exceeded. Please wait before sending another message.', {
         status: 429,
       });
     }
 
-    // Parse request body
+    // Parse and validate request body
     const body = await request.json();
+
+    let validatedData: z.infer<typeof ChatRequestSchema>;
+    try {
+      validatedData = ChatRequestSchema.parse(body);
+    } catch (validationError) {
+      const errorMessage = validationError instanceof z.ZodError
+        ? validationError.errors.map(e => `${e.path.join('.')}: ${e.message}`).join('; ')
+        : 'Invalid request body';
+
+      authLogger.error('[TutorChat] Request validation failed', {
+        error: errorMessage,
+        userId: authenticatedUser.id
+      });
+
+      return new Response(JSON.stringify({ error: errorMessage }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
     const {
       messages,
-      language = 'en',
+      language,
       topicId,
       moduleId,
       sessionId,
-      inputMode = 'text',
-    } = body as {
-      messages: CoreMessage[];
-      language?: 'en' | 'hi' | 'as';
-      topicId?: string;
-      moduleId?: string;
-      sessionId?: string;
-      inputMode?: 'text' | 'voice';
-    };
-
-    if (!messages || messages.length === 0) {
-      return new Response('Messages are required', { status: 400 });
-    }
+      inputMode,
+    } = validatedData;
 
     // Get the latest user message for RAG
     const latestMessage = messages[messages.length - 1];
-    const userQuery = typeof latestMessage.content === 'string'
-      ? latestMessage.content
-      : '';
+    const userQuery = latestMessage.content;
 
     // Get curriculum context via RAG (direct pgvector - NO LangChain)
     // Uses multilingual context to prioritize same-language content
@@ -75,7 +108,7 @@ export async function POST(request: Request) {
 
     // Get student's learning style for personalization
     const learningProfile = await adaptiveService.getAdaptedContent(
-      user.id,
+      authenticatedUser.id,
       topicId || 'general'
     );
 
@@ -97,7 +130,7 @@ export async function POST(request: Request) {
 
     // Log user message
     await logInteraction({
-      studentId: user.id,
+      studentId: authenticatedUser.id,
       sessionId: sessionId || crypto.randomUUID(),
       topicId,
       messageRole: 'user',
@@ -115,28 +148,47 @@ export async function POST(request: Request) {
       messages,
       ...MODEL_CONFIGS.tutor,
       onFinish: async ({ text, usage }) => {
-        // Log assistant response
-        await logInteraction({
-          studentId: user.id,
-          sessionId: sessionId || crypto.randomUUID(),
-          topicId,
-          messageRole: 'assistant',
-          messageContent: text,
-          inputMode,
-          language,
-          tokensUsed: usage?.totalTokens || 0,
-          responseTimeMs: Date.now() - startTime,
-        });
+        // Log assistant response - with proper error handling for async operation
+        // SECURITY: Errors in logging should not break the response
+        try {
+          await logInteraction({
+            studentId: authenticatedUser.id,
+            sessionId: sessionId || crypto.randomUUID(),
+            topicId,
+            messageRole: 'assistant',
+            messageContent: text,
+            inputMode,
+            language,
+            tokensUsed: usage?.totalTokens || 0,
+            responseTimeMs: Date.now() - startTime,
+          });
+        } catch (loggingError) {
+          // Log the error but don't throw - user's response is already sent
+          authLogger.error('[TutorChat] Failed to log interaction in onFinish callback', {
+            error: loggingError instanceof Error ? loggingError.message : String(loggingError),
+            userId: authenticatedUser.id,
+            sessionId,
+          });
+          // Note: Response already streamed, so we can't return error to client
+          // This ensures failed logging doesn't break the user's chat experience
+        }
       },
     });
 
     // Return streaming response compatible with useChat
     return result.toDataStreamResponse();
   } catch (error) {
-    authLogger.error('[Tutor API] Error:', error);
+    // Log detailed error for debugging (server-side only)
+    authLogger.error('[Tutor API] Unexpected error in chat handler', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      userId: user?.id || 'unknown',
+    });
+
+    // Return generic message to client (avoid exposing sensitive error details)
     return new Response(
-      error instanceof Error ? error.message : 'Internal server error',
-      { status: 500 }
+      JSON.stringify({ error: 'An error occurred while processing your message. Please try again.' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
 }

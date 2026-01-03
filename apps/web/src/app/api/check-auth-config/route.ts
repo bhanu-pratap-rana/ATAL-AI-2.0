@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/supabase-server'
 import { checkRateLimit } from '@/lib/rate-limiter-distributed'
 import { RATE_LIMITS } from '@/lib/constants/rate-limits'
+import { authLogger } from '@/lib/auth-logger'
 
 /**
  * GET /api/check-auth-config
@@ -71,7 +72,11 @@ export async function GET() {
       // Don't expose supabaseUrl in response - already public in client config
       hasAnonKey: true,
     })
-  } catch {
+  } catch (error) {
+    authLogger.error('[checkAuthConfig] Error checking auth configuration', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    })
     return NextResponse.json(
       { error: 'An unexpected error occurred' },
       { status: 500 }

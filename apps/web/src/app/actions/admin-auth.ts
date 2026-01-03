@@ -3,6 +3,7 @@
 import { z } from 'zod'
 import { createAdminClient, verifySuperAdminAuth, getCurrentUser } from '@/lib/supabase-server'
 import { authLogger } from '@/lib/auth-logger'
+import { isAdmin } from '@/lib/auth/role-utils'
 import { AdminEmailSchema, AdminPasswordSchema } from '@/lib/validation-schemas'
 import { RATE_LIMITS } from '@/lib/constants/rate-limits'
 import { checkRateLimit as checkDistributedRateLimit } from '@/lib/rate-limiter-distributed'
@@ -34,8 +35,8 @@ export async function checkAdminExists(): Promise<AdminExistsResult> {
     }
 
     const hasAdmin = users?.users.some((u) => {
-      const role = u.app_metadata?.role as string
-      return role === 'admin' || role === 'super_admin'
+      const role = u.app_metadata?.role
+      return isAdmin(role)
     })
 
     return { exists: hasAdmin || false }
@@ -87,8 +88,8 @@ export async function createAdminUser(
     }
 
     const hasExistingAdmin = users?.users.some((u) => {
-      const role = u.app_metadata?.role as string
-      return role === 'admin' || role === 'super_admin'
+      const role = u.app_metadata?.role
+      return isAdmin(role)
     })
 
     // SECURITY: If admin exists, require super_admin authentication
