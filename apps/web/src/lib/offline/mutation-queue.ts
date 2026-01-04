@@ -22,6 +22,7 @@
 
 import { syncQueue, type SyncQueue } from './sync-queue';
 import { clientLogger } from '@/lib/client-logger';
+import { validateMutationQueuePayload } from '@/lib/validation/rpc-schemas';
 
 /**
  * Assessment response data structure
@@ -99,7 +100,9 @@ export async function enqueueAssessmentResponse(
       itemId: payload.item_id,
     });
 
-    const id = await syncQueue.enqueue('assessment_submit', payload as unknown as Record<string, unknown>);
+    // Validate payload before enqueueing
+    const validatedPayload = validateMutationQueuePayload(payload);
+    const id = await syncQueue.enqueue('assessment_submit', validatedPayload);
     clientLogger.info('[MutationQueue] Assessment response queued', { queueId: id });
     return id;
   } catch (error) {
@@ -131,7 +134,9 @@ export async function enqueueChatMessage(
       sessionId: payload.session_id,
     });
 
-    const id = await syncQueue.enqueue('chat_message', payload as unknown as Record<string, unknown>);
+    // Validate payload before enqueueing
+    const validatedPayload = validateMutationQueuePayload(payload);
+    const id = await syncQueue.enqueue('chat_message', validatedPayload);
     clientLogger.info('[MutationQueue] Chat message queued', { queueId: id });
     return id;
   } catch (error) {
@@ -164,7 +169,9 @@ export async function enqueuePointsAward(
       source: payload.source,
     });
 
-    const id = await syncQueue.enqueue('points_award', payload as unknown as Record<string, unknown>);
+    // Validate payload before enqueueing
+    const validatedPayload = validateMutationQueuePayload(payload);
+    const id = await syncQueue.enqueue('points_award', validatedPayload);
     clientLogger.info('[MutationQueue] Points award queued', { queueId: id });
     return id;
   } catch (error) {
@@ -196,7 +203,9 @@ export async function enqueueProgressUpdate(
       topicId: payload.topic_id,
     });
 
-    const id = await syncQueue.enqueue('progress_update', payload as unknown as Record<string, unknown>);
+    // Validate payload before enqueueing
+    const validatedPayload = validateMutationQueuePayload(payload);
+    const id = await syncQueue.enqueue('progress_update', validatedPayload);
     clientLogger.info('[MutationQueue] Progress update queued', { queueId: id });
     return id;
   } catch (error) {

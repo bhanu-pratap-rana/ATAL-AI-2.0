@@ -8,6 +8,7 @@ import { checkRateLimit as checkDistributedRateLimit } from '@/lib/rate-limiter-
 import { isSuperAdmin, isAdmin } from '@/lib/auth/role-utils'
 import { AdminEmailSchema, AdminPasswordSchema, UserIdSchema } from '@/lib/validation-schemas'
 import type { SupabaseAuthUser } from '@/lib/admin-utils'
+import { validateSupabaseAuthUsers } from '@/lib/validation/rpc-schemas'
 
 // Use centralized rate limit config for admin operations
 const ADMIN_RATE_LIMIT = RATE_LIMITS.adminOperations
@@ -56,7 +57,17 @@ async function fetchAllAdminUsers(adminClient: Awaited<ReturnType<typeof createA
         break
       }
 
-      allUsers.push(...(data.users as unknown as SupabaseAuthUser[]))
+      // Validate and type-check users from Supabase admin API
+      try {
+        const validatedUsers = validateSupabaseAuthUsers(data.users)
+        allUsers.push(...validatedUsers)
+      } catch (error) {
+        authLogger.error('[fetchAllAuthUsers] Failed to validate users', {
+          error: error instanceof Error ? error.message : String(error),
+        })
+        // Continue with next page instead of failing completely
+        break
+      }
 
       // If we got fewer users than requested, we've reached the end
       if (data.users.length < perPage) {

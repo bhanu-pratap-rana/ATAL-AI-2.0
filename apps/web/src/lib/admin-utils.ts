@@ -5,6 +5,7 @@
 
 import { createAdminClient } from '@/lib/supabase-server'
 import { authLogger } from '@/lib/auth-logger'
+import { validateSupabaseAuthUsers, type SupabaseAuthUser } from '@/lib/validation/rpc-schemas'
 
 /**
  * Supabase Admin API User type wrapper
@@ -51,7 +52,18 @@ export async function fetchAllAuthUsers(
         break
       }
 
-      allUsers.push(...(data.users as unknown as SupabaseAuthUser[]))
+      // Validate and type-check users from Supabase admin API
+      try {
+        const validatedUsers = validateSupabaseAuthUsers(data.users)
+        allUsers.push(...validatedUsers)
+      } catch (error) {
+        authLogger.error('[fetchAllAuthUsers] Failed to validate users', {
+          error: error instanceof Error ? error.message : String(error),
+          page,
+        })
+        // Continue with next page instead of failing completely
+        break
+      }
 
       // Break if we got fewer users than requested (reached end)
       if (data.users.length < perPage) {
