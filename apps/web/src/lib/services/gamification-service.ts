@@ -177,9 +177,14 @@ export class GamificationService {
       }
 
       case 'high_score': {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('summative_results')
           .select('total_score')
+        
+        if (error) {
+          authLogger.error('[checkBadgeCriteria] Failed to fetch high score', { error: error.message, studentId })
+          return false
+        }
           .eq('student_id', studentId)
           .gte('total_score', criteria.threshold || 90)
           .limit(1);
