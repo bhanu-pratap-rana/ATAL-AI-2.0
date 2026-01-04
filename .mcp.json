@@ -1,0 +1,103 @@
+{
+    "mcpServers": {
+      "filesystem": {
+        "type": "stdio",
+        "command": "cmd",
+        "args": [
+          "/c",
+          "npx",
+          "-y",
+          "@modelcontextprotocol/server-filesystem",
+          "C:\\Users\\ranab\\Downloads",
+          "C:\\Users\\ranab\\Downloads\\Atal-ai-1.0",
+          "C:\\Users\\ranab\\AppData",
+          "C:\\Users\\ranab\\Documents"
+        ]
+      },
+      "memory": {
+        "type": "stdio",
+        "command": "cmd",
+        "args": [
+          "/c",
+          "npx",
+          "-y",
+          "@modelcontextprotocol/server-memory"
+        ]
+      },
+      "sequential-thinking": {
+        "type": "stdio",
+        "command": "cmd",
+        "args": [
+          "/c",
+          "npx",
+          "-y",
+          "@modelcontextprotocol/server-sequential-thinking"
+        ]
+      },
+      "fetch": {
+        "type": "stdio",
+        "command": "uvx",
+        "args": [
+          "mcp-server-fetch"
+        ]
+      },
+      "playwright": {
+        "type": "stdio",
+        "command": "cmd",
+        "args": [
+          "/c",
+          "npx",
+          "-y",
+          "@playwright/mcp@latest"
+        ]
+      },
+      "supabase": {
+        "type": "http",
+        "url": "https://mcp.supabase.com/mcp"
+      },
+      "semgrep": {
+        "type": "stdio",
+        "command": "uvx",
+        "args": [
+          "semgrep-mcp"
+        ]
+      },
+      "time": {
+        "type": "stdio",
+        "command": "uvx",
+        "args": [
+          "mcp-server-time"
+        ]
+      },
+      "context7": {
+        "type": "stdio",
+        "command": "cmd",
+        "args": [
+          "/c",
+          "npx",
+          "-y",
+          "@upstash/context7-mcp"
+        ],
+        "env": {
+          "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
+        }
+      },
+      "pmd-mcp": {
+        "type": "stdio",
+        "command": "cmd",
+        "args": [
+          "/c",
+          "npx",
+          "-y",
+          "@springsoftware/pmd-mcp"
+        ]
+      },
+      "cloc": {
+        "type": "stdio",
+        "command": "cloc",
+        "args": [
+          "."
+        ]
+      }
+    }
+  }

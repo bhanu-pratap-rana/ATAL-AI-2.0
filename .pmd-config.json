@@ -1,0 +1,43 @@
+{
+  "rules": [
+    {
+      "name": "bestpractices",
+      "enabled": true,
+      "rules": [
+        "AvoidUsingHardCodedIP",
+        "CheckResultSet",
+        "UnusedImports",
+        "UnusedLocalVariable"
+      ]
+    },
+    {
+      "name": "design",
+      "enabled": true,
+      "rules": [
+        "ClassWithOnlyPrivateConstructorsShouldBeFinal",
+        "ExcessiveClassLength",
+        "ExcessiveMethodLength",
+        "ExcessiveParameterList"
+      ]
+    },
+    {
+      "name": "performance",
+      "enabled": true,
+      "rules": [
+        "AvoidArrayLoops",
+        "BigIntegerInstantiation",
+        "AvoidFileStream"
+      ]
+    },
+    {
+      "name": "security",
+      "enabled": true,
+      "rules": [
+        "HardCodedPassword",
+        "InsecureRandomness"
+      ]
+    }
+  ],
+  "suppressMarker": "NOPMD",
+  "targetLanguage": "javascript"
+}
