@@ -1290,9 +1290,11 @@ cd apps/web && npx tsx scripts/index-curriculum.ts
 
 ---
 
-### feature_flags
+### feature_flags ⚠️ NOT YET DEPLOYED
 
 > **Purpose:** Feature flags for safe gradual rollouts, A/B testing, and emergency kill switches. Enables percentage-based rollouts and user whitelisting.
+> 
+> **Status:** ⚠️ Migration 122 exists in codebase but is NOT yet deployed to production database.
 
 | Column | Type | Nullable | Default | Constraints | Description |
 |--------|------|----------|---------|-------------|-------------|
@@ -1305,18 +1307,12 @@ cd apps/web && npx tsx scripts/index-curriculum.ts
 | `created_at` | `timestamptz` | YES | `now()` | - | Creation timestamp |
 | `updated_at` | `timestamptz` | YES | `now()` | - | Last update timestamp |
 
-**RLS Enabled:** Yes
-**Rows:** 5 (default flags)
-**Index:** `idx_feature_flags_enabled` on `enabled`
-
-**Default Flags:**
+**Planned Default Flags (after deployment):**
 - `voice_ai_tutor`: Voice AI Tutor (10% rollout)
 - `badge_automation`: Badge Automation (100% enabled)
 - `adaptive_learning`: Adaptive Learning (100% enabled)
 - `teacher_assessment_creation`: Teacher Assessment Creation (0% disabled)
 - `offline_sync`: Offline Sync (100% enabled)
-
-**Usage:** Feature flags can be checked server-side or client-side. Supports percentage-based rollouts using user ID hashing and explicit whitelisting.
 
 ---
 
