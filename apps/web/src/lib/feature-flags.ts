@@ -51,9 +51,10 @@ export async function isFeatureEnabled(
   try {
     const supabase = await createServerClient();
     
+    // OPTIMIZATION: Select only needed columns instead of *
     const { data: flag, error } = await supabase
       .from('feature_flags')
-      .select('*')
+      .select('id, name, enabled, rollout_percentage, whitelist_user_ids')
       .eq('id', flagId)
       .single();
     
@@ -117,9 +118,10 @@ export async function isFeatureEnabledClient(
   try {
     const supabase = createBrowserClient();
     
+    // OPTIMIZATION: Select only needed columns instead of *
     const { data: flag, error } = await supabase
       .from('feature_flags')
-      .select('*')
+      .select('id, name, enabled, rollout_percentage, whitelist_user_ids')
       .eq('id', flagId)
       .single();
     
@@ -177,9 +179,10 @@ export async function getEnabledFeatures(userId: string): Promise<string[]> {
   try {
     const supabase = await createServerClient();
     
+    // OPTIMIZATION: Select only needed columns instead of *
     const { data: flags, error } = await supabase
       .from('feature_flags')
-      .select('*')
+      .select('id, name, enabled, rollout_percentage, whitelist_user_ids')
       .eq('enabled', true);
     
     if (error || !flags) {

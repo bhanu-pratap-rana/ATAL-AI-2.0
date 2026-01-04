@@ -61,9 +61,10 @@ export function AIInteractionsLog({ classId, limit = 20 }: AIInteractionsLogProp
       }
 
       // Get recent AI interactions for these students
+      // OPTIMIZATION: Select only needed columns instead of *
       const { data, error: fetchError } = await supabase
         .from('ai_tutor_interactions')
-        .select('*')
+        .select('id, student_id, session_id, topic_id, message_role, message_content, input_mode, language, tokens_used, created_at')
         .in('student_id', studentIds)
         .order('created_at', { ascending: false })
         .limit(limit);
