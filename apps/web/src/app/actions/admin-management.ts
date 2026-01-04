@@ -7,6 +7,7 @@ import { RATE_LIMITS } from '@/lib/constants/rate-limits'
 import { checkRateLimit as checkDistributedRateLimit } from '@/lib/rate-limiter-distributed'
 import { isSuperAdmin, isAdmin } from '@/lib/auth/role-utils'
 import { AdminEmailSchema, AdminPasswordSchema, UserIdSchema } from '@/lib/validation-schemas'
+import type { SupabaseAuthUser } from '@/lib/admin-utils'
 
 // Use centralized rate limit config for admin operations
 const ADMIN_RATE_LIMIT = RATE_LIMITS.adminOperations
@@ -15,8 +16,8 @@ export interface AdminUser {
   id: string
   email: string
   role: 'super_admin' | 'admin'
-  created_at: string
-  last_sign_in_at?: string
+  created_at: unknown
+  last_sign_in_at?: unknown
 }
 
 export interface AdminActionResult {
@@ -32,7 +33,7 @@ export interface AdminActionResult {
  * @internal
  */
 async function fetchAllAdminUsers(adminClient: Awaited<ReturnType<typeof createAdminClient>>) {
-  const allUsers: any[] = []
+  const allUsers: SupabaseAuthUser[] = []
   let page = 1
   const perPage = 1000
 
@@ -55,7 +56,7 @@ async function fetchAllAdminUsers(adminClient: Awaited<ReturnType<typeof createA
         break
       }
 
-      allUsers.push(...data.users)
+      allUsers.push(...(data.users as unknown as SupabaseAuthUser[]))
 
       // If we got fewer users than requested, we've reached the end
       if (data.users.length < perPage) {
@@ -86,7 +87,7 @@ export async function isCurrentUserSuperAdmin(): Promise<boolean> {
       return false
     }
 
-    const role = currentUser.app_metadata?.role
+    const role = currentUser.app_metadata?.role as string | null | undefined
     return isSuperAdmin(role)
   } catch (error) {
     authLogger.error('[isCurrentUserSuperAdmin] Error checking super admin status', error)
@@ -108,7 +109,7 @@ export async function getCurrentAdminRole(): Promise<'super_admin' | 'admin' | n
       return null
     }
 
-    const role = currentUser.app_metadata?.role
+    const role = currentUser.app_metadata?.role as string | null | undefined
     if (isAdmin(role)) {
       return role as 'admin' | 'super_admin'
     }
@@ -257,18 +258,36 @@ export async function createAdminAccount(
       }
     }
 
+    const newUserId = data.user.id
+
     // Set admin role
-    const { error: updateError } = await adminClient.auth.admin.updateUserById(data.user.id, {
+    const { error: updateError } = await adminClient.auth.admin.updateUserById(newUserId, {
       app_metadata: {
         role: role,
       },
     })
 
     if (updateError) {
-      authLogger.error('[createAdminAccount] Failed to set admin role', updateError)
+      // ERROR RECOVERY: Rollback - delete created user since role update failed
+      authLogger.error('[createAdminAccount] Failed to set admin role, initiating rollback', updateError)
+
+      const { error: deleteError } = await adminClient.auth.admin.deleteUser(newUserId)
+      if (deleteError) {
+        authLogger.error('[createAdminAccount] CRITICAL: Rollback failed, orphaned user created', {
+          userId: newUserId,
+          email: normalizedEmail,
+          deleteError: deleteError.message,
+        })
+        return {
+          success: false,
+          error: 'Failed to configure admin account and rollback failed. Manual intervention required.',
+        }
+      }
+
+      authLogger.warn('[createAdminAccount] Rollback successful, user deleted', { userId: newUserId })
       return {
         success: false,
-        error: 'Failed to set admin role',
+        error: 'Failed to set admin role. Account creation rolled back.',
       }
     }
 
@@ -276,7 +295,7 @@ export async function createAdminAccount(
     return {
       success: true,
       message: `Admin account created for ${email}`,
-      data: { userId: data.user.id },
+      data: { userId: newUserId },
     }
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -317,7 +336,7 @@ export async function listAdminAccounts(): Promise<AdminActionResult> {
     // Filter for admins only
     const admins: AdminUser[] = allUsers
       .filter((user) => {
-        const role = user.app_metadata?.role
+        const role = user.app_metadata?.role as string | null | undefined
         return isAdmin(role)
       })
       .map((user) => ({
@@ -389,7 +408,7 @@ export async function deleteAdminAccount(adminId: string): Promise<AdminActionRe
       }
     }
 
-    const role = userToDelete.app_metadata?.role
+    const role = userToDelete.app_metadata?.role as string | null | undefined
 
     // Prevent deletion of super admins
     if (isSuperAdmin(role)) {
@@ -520,7 +539,7 @@ export async function isSuperAdminEmail(email: string): Promise<boolean> {
       return false
     }
 
-    const role = user.app_metadata?.role
+    const role = user.app_metadata?.role as string | null | undefined
     return isSuperAdmin(role)
   } catch (error) {
     authLogger.error('[isSuperAdminEmail] Error checking super admin email', error)

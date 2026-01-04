@@ -173,9 +173,9 @@ export function AdminListTable({ refreshTrigger = 0, onAdminDeleted }: AdminList
                     {admin.role === 'super_admin' ? 'Super Admin' : 'Admin'}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-text-secondary">{new Date(admin.created_at).toLocaleDateString()}</td>
+                <td className="px-4 py-3 text-text-secondary">{new Date(admin.created_at as string).toLocaleDateString()}</td>
                 <td className="px-4 py-3 text-text-secondary">
-                  {admin.last_sign_in_at ? new Date(admin.last_sign_in_at).toLocaleDateString() : 'Never'}
+                  {admin.last_sign_in_at ? new Date(admin.last_sign_in_at as string).toLocaleDateString() : 'Never'}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2">

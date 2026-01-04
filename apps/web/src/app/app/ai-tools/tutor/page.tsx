@@ -1,94 +1,40 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRef, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { toast } from 'sonner'
+import { useChat } from 'ai/react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { askAITutor } from '@/app/actions/ai'
-import { createClient } from '@/lib/supabase-browser'
+import { useRequireAuth } from '@/hooks/useRequireAuth'
+import { VoiceChat } from '@/components/voice/VoiceChat'
 
-interface Message {
+type Message = {
   id: string
   role: 'user' | 'assistant'
   content: string
-  timestamp: Date
 }
 
 export default function AITutorPage() {
-  const router = useRouter()
-  const [messages, setMessages] = useState<Message[]>([])
-  const [input, setInput] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const { user, loading: isAuthChecking } = useRequireAuth('/student/start')
   const [language, setLanguage] = useState<'en' | 'hi' | 'as'>('en')
-  const [isAuthChecking, setIsAuthChecking] = useState(true)
+  const [inputMode, setInputMode] = useState<'text' | 'voice'>('text')
+  const [sessionId] = useState(() => crypto.randomUUID())
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  const scrollToBottom = () => {
+  // Use Vercel AI SDK's useChat hook for streaming
+  const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat({
+    api: '/api/tutor/chat',
+    body: {
+      language,
+      sessionId,
+      inputMode: 'text',
+    },
+  })
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
-
-  // Auth check on mount
-  useEffect(() => {
-    const checkAuth = async () => {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/student/start')
-        return
-      }
-      setIsAuthChecking(false)
-    }
-    checkAuth()
-  }, [router])
-
-  useEffect(() => {
-    scrollToBottom()
   }, [messages])
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!input.trim() || isLoading) return
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: input.trim(),
-      timestamp: new Date(),
-    }
-
-    setMessages((prev) => [...prev, userMessage])
-    setInput('')
-    setIsLoading(true)
-
-    try {
-      const result = await askAITutor(input.trim(), {
-        language,
-        studentLevel: 'beginner',
-        previousMessages: messages.slice(-6).map((m) => ({
-          role: m.role,
-          content: m.content,
-        })),
-      })
-
-      if (result.success && result.data?.content) {
-        const assistantMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: result.data.content,
-          timestamp: new Date(),
-        }
-        setMessages((prev) => [...prev, assistantMessage])
-      } else {
-        toast.error(result.error || 'Failed to get response')
-      }
-    } catch {
-      toast.error('An unexpected error occurred')
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const suggestedQuestions = [
     'What is a computer?',
@@ -123,22 +69,60 @@ export default function AITutorPage() {
           </p>
         </div>
 
-        {/* Language Selector */}
-        <div className="flex gap-2 mb-4">
-          {(['en', 'hi', 'as'] as const).map((lang) => (
+        {/* Language & Input Mode Selectors */}
+        <div className="flex flex-wrap gap-4 mb-4">
+          {/* Language Selector */}
+          <div className="flex gap-2">
+            {(['en', 'hi', 'as'] as const).map((lang) => (
+              <button
+                key={lang}
+                onClick={() => setLanguage(lang)}
+                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                  language === lang
+                    ? 'bg-primary text-white'
+                    : 'bg-white text-text-secondary hover:bg-primary-light'
+                }`}
+              >
+                {lang === 'en' ? 'English' : lang === 'hi' ? 'हिंदी' : 'অসমীয়া'}
+              </button>
+            ))}
+          </div>
+          
+          {/* Input Mode Toggle */}
+          <div className="flex gap-2 ml-auto">
             <button
-              key={lang}
-              onClick={() => setLanguage(lang)}
-              className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                language === lang
+              onClick={() => setInputMode('text')}
+              className={`px-3 py-1 rounded-full text-sm font-medium transition-colors flex items-center gap-1 ${
+                inputMode === 'text'
                   ? 'bg-primary text-white'
                   : 'bg-white text-text-secondary hover:bg-primary-light'
               }`}
             >
-              {lang === 'en' ? 'English' : lang === 'hi' ? 'हिंदी' : 'অসমীয়া'}
+              📝 Text
             </button>
-          ))}
+            <button
+              onClick={() => setInputMode('voice')}
+              className={`px-3 py-1 rounded-full text-sm font-medium transition-colors flex items-center gap-1 ${
+                inputMode === 'voice'
+                  ? 'bg-primary text-white'
+                  : 'bg-white text-text-secondary hover:bg-primary-light'
+              }`}
+            >
+              🎤 Voice
+            </button>
+          </div>
         </div>
+
+        {/* Error Display */}
+        {error && (
+          <Card className="mb-4 border-error bg-error/10">
+            <CardContent className="p-4">
+              <p className="text-sm text-error">
+                ⚠️ {error.message || 'An error occurred. Please try again.'}
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Chat Area */}
         <Card className="mb-4">
@@ -153,7 +137,7 @@ export default function AITutorPage() {
                     {suggestedQuestions.map((q) => (
                       <button
                         key={q}
-                        onClick={() => setInput(q)}
+                        onClick={() => handleInputChange({ target: { value: q } } as React.ChangeEvent<HTMLInputElement>)}
                         className="px-3 py-2 bg-primary-light text-primary rounded-lg text-sm hover:bg-primary-lighter transition-colors"
                       >
                         {q}
@@ -177,18 +161,6 @@ export default function AITutorPage() {
                       }`}
                     >
                       <p className="whitespace-pre-wrap text-sm">{message.content}</p>
-                      <p
-                        className={`text-xs mt-1 ${
-                          message.role === 'user'
-                            ? 'text-white/70'
-                            : 'text-text-tertiary'
-                        }`}
-                      >
-                        {message.timestamp.toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </p>
                     </div>
                   </div>
                 ))
@@ -207,20 +179,37 @@ export default function AITutorPage() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Form */}
-            <form onSubmit={handleSubmit} className="flex gap-2">
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask a question..."
-                className="flex-1 px-4 py-2 rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            {/* Input Form - Conditional based on mode */}
+            {inputMode === 'voice' ? (
+              <VoiceChat
+                language={language}
+                onTranscript={(transcript) => {
+                  handleInputChange({ target: { value: transcript } } as React.ChangeEvent<HTMLInputElement>)
+                  // Auto-submit after voice input
+                  setTimeout(() => {
+                    const form = document.querySelector('form') as HTMLFormElement
+                    if (form) {
+                      form.requestSubmit()
+                    }
+                  }, 100)
+                }}
                 disabled={isLoading}
               />
-              <Button type="submit" disabled={isLoading || !input.trim()}>
-                {isLoading ? 'Sending...' : 'Send'}
-              </Button>
-            </form>
+            ) : (
+              <form onSubmit={handleSubmit} className="flex gap-2">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={handleInputChange}
+                  placeholder="Ask a question..."
+                  className="flex-1 px-4 py-2 rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  disabled={isLoading}
+                />
+                <Button type="submit" disabled={isLoading || !input.trim()}>
+                  {isLoading ? 'Sending...' : 'Send'}
+                </Button>
+              </form>
+            )}
           </CardContent>
         </Card>
 
@@ -234,6 +223,7 @@ export default function AITutorPage() {
               <li>• Ask specific questions about digital literacy topics</li>
               <li>• Include context about what you&apos;re trying to learn</li>
               <li>• Feel free to ask follow-up questions</li>
+              <li>• Watch responses appear in real-time with streaming! ⚡</li>
             </ul>
           </CardContent>
         </Card>

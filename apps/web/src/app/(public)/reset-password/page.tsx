@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase-browser'
@@ -22,7 +22,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { authLogger } from '@/lib/auth-logger'
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
@@ -144,7 +144,7 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-8">
-      <AuthCard title="Reset Password" subtitle="Enter your verification code and new password">
+      <AuthCard title="Reset Password">
         <form onSubmit={handleResetPassword} className="space-y-4">
           {/* Email Field */}
           <div className="space-y-2">
@@ -252,5 +252,17 @@ export default function ResetPasswordPage() {
         </form>
       </AuthCard>
     </div>
+  )
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="animate-pulse text-text-secondary">Loading...</div>
+      </div>
+    }>
+      <ResetPasswordContent />
+    </Suspense>
   )
 }

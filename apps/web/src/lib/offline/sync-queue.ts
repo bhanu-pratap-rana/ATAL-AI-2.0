@@ -432,13 +432,19 @@ export const syncQueue = new SyncQueue();
 
 // Auto-sync when coming online
 if (typeof window !== 'undefined') {
-  window.addEventListener('online', () => {
+  // MEMORY LEAK FIX: Track interval ID for proper cleanup
+  let syncIntervalId: NodeJS.Timeout | null = null;
+  let onlineHandler: (() => void) | null = null;
+
+  onlineHandler = () => {
     clientLogger.debug('[SyncQueue] Online - starting sync');
     syncQueue.syncAll();
-  });
+  };
 
-  // Periodic sync every 5 minutes when online
-  setInterval(
+  window.addEventListener('online', onlineHandler);
+
+  // Initialize periodic sync (5 minutes when online)
+  syncIntervalId = setInterval(
     () => {
       if (navigator.onLine) {
         syncQueue.syncAll();
@@ -446,4 +452,28 @@ if (typeof window !== 'undefined') {
     },
     5 * 60 * 1000
   );
+
+  // Cleanup function to prevent memory leaks
+  const cleanup = () => {
+    if (syncIntervalId) {
+      clearInterval(syncIntervalId);
+      syncIntervalId = null;
+      clientLogger.debug('[SyncQueue] Interval cleared');
+    }
+    if (onlineHandler) {
+      window.removeEventListener('online', onlineHandler);
+      onlineHandler = null;
+      clientLogger.debug('[SyncQueue] Event listener removed');
+    }
+  };
+
+  // Cleanup on page unload
+  window.addEventListener('beforeunload', cleanup);
+  
+  // Cleanup on visibility change (tab hidden for long time)
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      clientLogger.debug('[SyncQueue] Page hidden - stopping sync');
+    }
+  });
 }

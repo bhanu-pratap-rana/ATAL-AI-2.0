@@ -105,18 +105,14 @@ export function SignUpEmailFlow({
     try {
       const result = await requestOtp(state.signupEmailAddress.trim())
       if (!result.success) {
-        // Check if email already exists - redirect to login
-        if (result.exists) {
-          authLogger.debug('[SignUp Email] Email already exists, redirecting to login')
-          toast.error(result.error || 'This email is already registered')
-          // Switch to signin tab with email prefilled
-          actions.setSigninEmailAddress(state.signupEmailAddress)
-          actions.setMainStep('signin')
-          actions.setSigninTab('email')
-        } else {
-          actions.setSignupEmailError(result.error || 'Failed to send OTP')
-          toast.error(result.error || 'Failed to send OTP')
-        }
+        // SECURITY FIX: Don't differentiate email enumeration responses
+        // All error responses are generic for security (prevents email enumeration attacks)
+        // The generic error message already suggests checking inbox or creating account
+        authLogger.debug('[SignUp Email] OTP request failed', {
+          error: result.error,
+        })
+        actions.setSignupEmailError(result.error || 'Failed to send OTP. If this email is registered, check your inbox for a login link.')
+        toast.error(result.error || 'Failed to send OTP. If this email is registered, check your inbox for a login link.')
       } else {
         toast.success('OTP sent to your email!')
         actions.setSignupEmailOtpSent(true)

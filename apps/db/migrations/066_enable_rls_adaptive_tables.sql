@@ -2,19 +2,19 @@
 -- Migration 066: Enable RLS on Adaptive Learning Tables
 -- =====================================================
 --
--- Enables Row-Level Security on 7 tables for the adaptive
--- learning system. Ensures students can only access their own
--- data, teachers can see enrolled students' data, and admins
--- can see everything.
+-- Enables Row-Level Security on 6 tables for the adaptive
+-- learning system (learning_paths deferred to future implementation).
+-- Ensures students can only access their own data, teachers can see
+-- enrolled students' data, and admins can see everything.
 --
 -- Tables affected:
 -- 1. student_knowledge_state
--- 2. learning_paths
+-- 2. learning_paths (deferred - IF EXISTS ensures no error)
 -- 3. student_badges
 -- 4. ai_tutor_interactions
 -- 5. practice_questions
 -- 6. learning_style_profile
--- 7. cultural_badges
+-- 7. badges (cultural badge definitions)
 --
 -- Security principles:
 -- - Students: View/Edit own data only
@@ -298,31 +298,31 @@ CREATE POLICY service_role_all ON practice_questions
 ALTER TABLE IF EXISTS learning_style_profile ENABLE ROW LEVEL SECURITY;
 
 -- Drop existing policies
-DROP POLICY IF EXISTS students_own_learning_style_select ON learning_style_profile;
-DROP POLICY IF EXISTS students_own_learning_style_insert ON learning_style_profile;
-DROP POLICY IF EXISTS students_own_learning_style_update ON learning_style_profile;
-DROP POLICY IF EXISTS teachers_view_student_learning_style ON learning_style_profile;
-DROP POLICY IF EXISTS admin_view_all_learning_style ON learning_style_profile;
+DROP POLICY IF EXISTS students_own_profile_select ON learning_style_profile;
+DROP POLICY IF EXISTS students_own_profile_insert ON learning_style_profile;
+DROP POLICY IF EXISTS students_own_profile_update ON learning_style_profile;
+DROP POLICY IF EXISTS teachers_view_student_profile ON learning_style_profile;
+DROP POLICY IF EXISTS admin_view_all_profiles ON learning_style_profile;
 DROP POLICY IF EXISTS service_role_all ON learning_style_profile;
 
 -- Students can view their own learning style profile
-CREATE POLICY students_own_learning_style_select ON learning_style_profile
+CREATE POLICY students_own_profile_select ON learning_style_profile
   FOR SELECT
   USING (student_id = (SELECT auth.uid()));
 
 -- Students can insert their own learning style profile
-CREATE POLICY students_own_learning_style_insert ON learning_style_profile
+CREATE POLICY students_own_profile_insert ON learning_style_profile
   FOR INSERT
   WITH CHECK (student_id = (SELECT auth.uid()));
 
 -- Students can update their own learning style profile
-CREATE POLICY students_own_learning_style_update ON learning_style_profile
+CREATE POLICY students_own_profile_update ON learning_style_profile
   FOR UPDATE
   USING (student_id = (SELECT auth.uid()))
   WITH CHECK (student_id = (SELECT auth.uid()));
 
 -- Teachers can view learning style of students in their classes
-CREATE POLICY teachers_view_student_learning_style ON learning_style_profile
+CREATE POLICY teachers_view_student_profile ON learning_style_profile
   FOR SELECT
   USING (
     EXISTS (
@@ -334,7 +334,7 @@ CREATE POLICY teachers_view_student_learning_style ON learning_style_profile
   );
 
 -- Admins can view all learning style profiles
-CREATE POLICY admin_view_all_learning_style ON learning_style_profile
+CREATE POLICY admin_view_all_profiles ON learning_style_profile
   FOR SELECT
   USING (
     (SELECT (auth.jwt()->'app_metadata'->>'role')) IN ('admin', 'super_admin')
@@ -347,37 +347,27 @@ CREATE POLICY service_role_all ON learning_style_profile
   WITH CHECK (auth.role() = 'service_role');
 
 -- =====================================================
--- PART 7: cultural_badges (READ-ONLY)
+-- PART 7: badges (Cultural Badge Definitions - READ-ONLY)
 -- =====================================================
 
 -- Enable RLS (public read-only)
-ALTER TABLE IF EXISTS cultural_badges ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS badges ENABLE ROW LEVEL SECURITY;
 
 -- Drop existing policies
-DROP POLICY IF EXISTS cultural_badges_public_select ON cultural_badges;
-DROP POLICY IF EXISTS admin_manage_cultural_badges ON cultural_badges;
-DROP POLICY IF EXISTS service_role_all ON cultural_badges;
+DROP POLICY IF EXISTS public_read_cultural_badges ON badges;
+DROP POLICY IF EXISTS admin_manage_cultural_badges ON badges;
 
 -- Everyone can view badge definitions
-CREATE POLICY cultural_badges_public_select ON cultural_badges
+CREATE POLICY public_read_cultural_badges ON badges
   FOR SELECT
   USING (true);
 
 -- Only admins can modify badge definitions
-CREATE POLICY admin_manage_cultural_badges ON cultural_badges
+CREATE POLICY admin_manage_cultural_badges ON badges
   FOR ALL
   USING (
     (SELECT (auth.jwt()->'app_metadata'->>'role')) IN ('admin', 'super_admin')
-  )
-  WITH CHECK (
-    (SELECT (auth.jwt()->'app_metadata'->>'role')) IN ('admin', 'super_admin')
   );
-
--- Service role can do everything
-CREATE POLICY service_role_all ON cultural_badges
-  FOR ALL
-  USING (auth.role() = 'service_role')
-  WITH CHECK (auth.role() = 'service_role');
 
 -- =====================================================
 -- Verification
@@ -396,6 +386,6 @@ WHERE tablename IN (
   'ai_tutor_interactions',
   'practice_questions',
   'learning_style_profile',
-  'cultural_badges'
+  'badges'
 )
 ORDER BY tablename;

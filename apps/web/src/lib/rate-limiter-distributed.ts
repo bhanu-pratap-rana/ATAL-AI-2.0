@@ -29,6 +29,8 @@
  * ```
  */
 
+import { authLogger } from './auth-logger';
+
 /**
  * Detect if we're running in test environment
  * Matches test detection in button.tsx for consistency
@@ -96,9 +98,56 @@ interface IRateLimiter {
 class InMemoryRateLimiter implements IRateLimiter {
   private store: Map<string, RateLimitEntry> = new Map()
   private config: RateLimitConfig
+  // MEDIUM #5 Fix: TTL-based cleanup for fallback limiter
+  // Entries older than TTL are automatically removed to prevent memory leaks
+  private readonly ENTRY_TTL_MS = 24 * 60 * 60 * 1000 // 24 hours
+  private readonly CLEANUP_INTERVAL_MS = 60 * 60 * 1000 // Clean up every hour
+  private cleanupTimer?: NodeJS.Timeout
 
   constructor(config: RateLimitConfig) {
     this.config = config
+    this.startCleanupTimer()
+  }
+
+  /**
+   * Start periodic cleanup of expired entries (MEDIUM #5 fix)
+   * Prevents memory accumulation when Redis is unavailable
+   */
+  private startCleanupTimer(): void {
+    if (typeof setInterval === 'undefined') {
+      // Skip timer in non-Node environments (e.g., browsers)
+      return
+    }
+
+    this.cleanupTimer = setInterval(() => {
+      this.cleanupExpiredEntries()
+    }, this.CLEANUP_INTERVAL_MS)
+
+    // Allow timer to be garbage collected if process exits
+    if (this.cleanupTimer.unref) {
+      this.cleanupTimer.unref()
+    }
+  }
+
+  /**
+   * Remove entries that haven't been updated in TTL period
+   * Called periodically by cleanup timer
+   */
+  private cleanupExpiredEntries(): void {
+    const now = Date.now()
+    let removedCount = 0
+
+    for (const [key, entry] of this.store.entries()) {
+      // Remove if not updated in ENTRY_TTL_MS
+      if (now - entry.lastRefill > this.ENTRY_TTL_MS) {
+        this.store.delete(key)
+        removedCount++
+      }
+    }
+
+    if (removedCount > 0) {
+      authLogger.debug('[InMemoryRateLimiter] Cleaned up expired entries', { removedCount })
+    }
   }
 
   async isAllowed(key: string): Promise<boolean> {
@@ -307,7 +356,7 @@ class RedisRateLimiter implements IRateLimiter {
         // FALLBACK: Use in-memory rate limiter if Redis fails
         this.redisAvailable = false
         if (process.env.NODE_ENV === 'development') {
-          console.error('[RedisRateLimiter] Redis unavailable - falling back to in-memory:', fallbackError)
+          authLogger.error('[RedisRateLimiter] Redis unavailable - falling back to in-memory', { error: fallbackError })
         }
         return this.fallbackLimiter.isAllowed(key)
       }

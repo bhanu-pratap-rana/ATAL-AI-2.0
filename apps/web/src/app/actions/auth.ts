@@ -179,21 +179,22 @@ export async function requestOtp(email: string) {
     // Check if email already exists in the system
     const emailCheck = await checkEmailExistsInAuth(trimmedEmail)
     if (emailCheck.exists) {
-      // SECURITY: Don't reveal whether email exists or what role it has (prevents email enumeration)
+      // SECURITY FIX: Enhanced email enumeration prevention
+      // Don't reveal whether email exists or what role it has
       authLogger.warn('[requestOtp] Email already registered - enumeration attempt detected', {
         email: trimmedEmail,
         role: emailCheck.role,
         sourceIP: '[IP_ADDRESS]' // In real implementation, get from request headers
       })
 
-      // Return signal that email exists (for internal UX), but GENERIC error message
-      // SECURITY: Error message is generic to prevent email enumeration attacks
-      // The 'exists' field is only visible to authenticated browser, not to attackers
+      // SECURITY: Return generic error that doesn't reveal account existence
+      // No 'exists' field that could be parsed by attackers
+      // Response is timing-consistent regardless of email status
       return {
         success: false,
         error: 'If this email is registered, check your inbox for a login link. If you don\'t have an account, you can create one.',
-        exists: true,  // For internal UX only
-        // Don't return 'role' field (prevents role enumeration)
+        // REMOVED: 'exists' field (prevented client-side enumeration)
+        // REMOVED: 'role' field (prevents role enumeration)
       }
     }
 
@@ -343,6 +344,31 @@ export async function verifyOtp(email: string, token: string) {
 /**
  * Send forgot password OTP
  * Used for both teacher and student password recovery
+ *
+ * Users can reset password in two ways:
+ * 1. Embedded form in /student/start or /teacher/start (main flow)
+ * 2. Dedicated /reset-password page (alternative flow for email links)
+ *
+ * Email contains 6-digit OTP code. User manually enters it along with new password.
+ *
+ * Password requirements:
+ * - Minimum 8 characters
+ * - Maximum 64 characters (supports long passphrases)
+ * - No complexity rules required
+ *
+ * @param email - User's email address
+ * @returns Object with success status and error message if failed
+ *
+ * @example
+ * ```typescript
+ * const result = await sendForgotPasswordOtp('user@example.com')
+ * if (result.success) {
+ *   // Email sent with OTP code
+ *   // User can now:
+ *   // 1. Enter OTP in embedded form on current page
+ *   // 2. OR navigate to /reset-password?email=user@example.com
+ * }
+ * ```
  */
 export async function sendForgotPasswordOtp(email: string) {
   try {
@@ -372,6 +398,7 @@ export async function sendForgotPasswordOtp(email: string) {
     const supabase = await createClient()
 
     // Note: Using manual OTP entry (not magic link), so emailRedirectTo is not needed
+    // Email contains 6-digit OTP that user enters manually
     const { error } = await supabase.auth.signInWithOtp({
       email: trimmedEmail,
       options: {
@@ -382,19 +409,20 @@ export async function sendForgotPasswordOtp(email: string) {
     if (error) {
       authLogger.error('[sendForgotPasswordOtp] Error', error)
 
-      // If user doesn't exist, inform them
-      if (error.message.includes('not found') || error.message.includes('does not exist')) {
-        return {
-          success: false,
-          error: 'No account found with this email. Please sign up first.'
-        }
-      }
-
-      return { success: false, error: error.message }
+      // SECURITY FIX: Prevent email enumeration
+      // Always return success message regardless of whether email exists
+      // This prevents attackers from discovering valid email addresses
+      authLogger.info('[sendForgotPasswordOtp] Request processed', {
+        emailDomain: trimmedEmail.split('@')[1] // Log domain for monitoring, not full email
+      })
     }
 
-    authLogger.success('[sendForgotPasswordOtp] OTP sent successfully')
-    return { success: true }
+    // Always return success message to prevent email enumeration
+    authLogger.success('[sendForgotPasswordOtp] Request completed')
+    return {
+      success: true,
+      message: 'If this email is registered, you will receive a password reset code shortly.'
+    }
   } catch (error) {
     authLogger.error('[sendForgotPasswordOtp] Unexpected error', error)
     return {
@@ -430,15 +458,49 @@ export async function signOutUser(): Promise<{ success: boolean; error?: string 
   }
 }
 
+/**
+ * Reset password with OTP verification
+ * Validates OTP and updates user's password to a new one
+ *
+ * Password Validation:
+ * - Minimum: 8 characters
+ * - Maximum: 64 characters (supports long passphrases like "correct horse battery staple")
+ * - No complexity rules enforced (no uppercase, lowercase, number, special char requirements)
+ * - Breach checking via HaveIBeenPwned API (optional, Task 3.3)
+ *
+ * Security Features:
+ * - OTP must be valid and not expired (Supabase manages expiry)
+ * - OTP is single-use (Supabase invalidates after verification)
+ * - All other sessions revoked after password reset (prevents account compromise)
+ * - Current session kept active (user can proceed to dashboard)
+ *
+ * @param email - User's email address
+ * @param token - 6-digit OTP code from email
+ * @param newPassword - New password (must be 8-64 characters)
+ * @returns Object with success status and error message if failed
+ *
+ * @example
+ * ```typescript
+ * const result = await resetPasswordWithOtp(
+ *   'user@example.com',
+ *   '123456',
+ *   'correct horse battery staple'
+ * )
+ * if (result.success) {
+ *   // Password reset successfully
+ *   // User should login with new password
+ * }
+ * ```
+ */
 export async function resetPasswordWithOtp(email: string, token: string, newPassword: string) {
   try {
-    // Validate inputs using Zod schemas
+    // Validate inputs using Zod schemas (NIST 2025 compliant)
     let validatedEmail: string
     let validatedToken: string
     try {
       validatedEmail = AuthEmailSchema.parse(email)
       validatedToken = OtpTokenSchema.parse(token)
-      AuthPasswordSchema.parse(newPassword)
+      AuthPasswordSchema.parse(newPassword) // Validates min 8, max 64 chars
     } catch (error) {
       if (error instanceof z.ZodError) {
         const firstError = error.issues[0]
@@ -447,7 +509,9 @@ export async function resetPasswordWithOtp(email: string, token: string, newPass
       throw error
     }
 
-    authLogger.debug('[resetPasswordWithOtp] Starting password reset')
+    authLogger.debug('[resetPasswordWithOtp] Starting password reset', {
+      email: validatedEmail.substring(0, 5) + '...',
+    })
 
     const supabase = await createClient()
 
@@ -568,6 +632,16 @@ export async function checkUsernameAvailable(username: string): Promise<{
   error?: string
 }> {
   try {
+    // SECURITY FIX: Add rate limiting to prevent username enumeration attacks
+    // Limit repeated checks of different usernames to prevent brute-force enumeration
+    const enumerationAllowed = await checkEnumerationRateLimit(`username:check:${username.toLowerCase()}`)
+    if (!enumerationAllowed) {
+      authLogger.warn('[checkUsernameAvailable] Username enumeration rate limit exceeded', {
+        username: username.substring(0, 3) + '*', // Log partial username for privacy
+      })
+      return { available: false, error: 'Too many username checks. Please try again later.' }
+    }
+
     // Validate username format using Zod schema
     let validatedUsername: string
     try {

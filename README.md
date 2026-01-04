@@ -64,7 +64,7 @@ Atal-ai-1.0/
 │   │   │   └── data/          # Static data
 │   │   └── public/            # Static assets
 │   └── db/                    # Database related files
-│       └── email-templates/   # Custom email templates
+│       └── migrations/        # Database migrations
 ├── docs/                      # Documentation
 └── packages/                  # Shared packages (if any)
 ```
@@ -111,8 +111,6 @@ Atal-ai-1.0/
    a. Create a new project at [supabase.com](https://supabase.com)
 
    b. Run the database migrations (see [Database Setup](#database-setup))
-
-   c. Configure email templates (see [Email Templates](#email-templates))
 
 5. **Run the development server**
    ```bash
@@ -177,31 +175,6 @@ The application uses Row Level Security (RLS) to ensure:
 - Students can only view their own data
 - Teachers can only manage their own classes
 - Proper authentication checks on all operations
-
-## 📧 Email Templates
-
-Custom email templates are located in `apps/db/email-templates/`:
-
-- `magic-link.html` - OTP email for authentication
-- `confirm-signup.html` - New user signup confirmation
-- `invite-user.html` - Class invitation emails
-- `reset-password.html` - Password reset emails
-- `change-email.html` - Email change confirmation
-
-### Configuring Email Templates
-
-1. Go to Supabase Dashboard → **Authentication** → **Email Templates**
-2. Copy content from each template file
-3. Customize with your branding (logo, colors, etc.)
-4. Save each template
-
-### Email Features
-
-- ✅ Responsive design (works on all devices)
-- ✅ Orange/yellow/white color scheme matching brand
-- ✅ Professional formatting
-- ✅ Action buttons for OTP/magic links
-- ✅ Footer with app information
 
 ## 🎨 Design System
 

@@ -15,6 +15,8 @@
  * - HaveIBeenPwned API: https://haveibeenpwned.com/API/v3
  */
 
+import { authLogger } from './auth-logger';
+
 import * as crypto from 'crypto'
 
 /**
@@ -76,7 +78,7 @@ export async function isPasswordBreached(password: string): Promise<boolean> {
 
     if (!response.ok) {
       // API error or rate limit - don't block user
-      console.warn('[isPasswordBreached] API returned non-200 status', {
+      authLogger.warn('[isPasswordBreached] API returned non-200 status', {
         status: response.status,
         statusText: response.statusText,
       })
@@ -95,14 +97,14 @@ export async function isPasswordBreached(password: string): Promise<boolean> {
     })
 
     if (isBreached) {
-      console.info('[isPasswordBreached] Password found in breach database')
+      authLogger.info('[isPasswordBreached] Password found in breach database')
     }
 
     return isBreached
   } catch (error) {
     // Network error, timeout, or parsing error
     // Don't block user - let them proceed with warning
-    console.warn('[isPasswordBreached] Exception checking password breach', {
+    authLogger.warn('[isPasswordBreached] Exception checking password breach', {
       error: error instanceof Error ? error.message : String(error),
     })
     return false
@@ -202,7 +204,7 @@ export async function validatePasswordNist2025(
       }
     } catch (error) {
       // If breach check fails, still allow password but log warning
-      console.warn('[validatePasswordNist2025] Error checking breach database', error)
+      authLogger.warn('[validatePasswordNist2025] Error checking breach database', error instanceof Error ? error : { error: String(error) })
       return {
         valid: true,
         isBreached: undefined, // Unknown due to error

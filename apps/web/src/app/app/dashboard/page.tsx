@@ -12,6 +12,8 @@ import type { User } from '@supabase/supabase-js'
 import { LogOut } from 'lucide-react'
 import { getDashboardStats, type DashboardStats } from '@/app/actions/dashboard-stats'
 import { SyncStatusIndicator } from '@/components/offline/SyncStatusIndicator'
+import { BadgesDisplay } from '@/components/gamification/BadgesDisplay'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 // Animation variants
 const containerVariants = {
@@ -335,6 +337,22 @@ export default function DashboardPage() {
               >
                 {isTeacherOrAdmin ? "Create Your First Class" : "Start an Assessment"}
               </Button>
+            </motion.div>
+          )}
+
+          {/* Gamification Section - Badges */}
+          {!isTeacherOrAdmin && user && (
+            <motion.div variants={itemVariants} className="mb-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    🏆 Your Badges
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <BadgesDisplay studentId={user.id} language="en" showAll={true} />
+                </CardContent>
+              </Card>
             </motion.div>
           )}
 

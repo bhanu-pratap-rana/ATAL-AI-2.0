@@ -6,8 +6,10 @@ import { z } from 'zod'
 import { createClient, getCurrentUser, verifyStudentAuth } from '@/lib/supabase-server'
 import { authLogger } from '@/lib/auth-logger'
 import { checkRateLimit, checkStudentMutationRateLimit } from '@/lib/rate-limiter-distributed'
+import { queryCache } from '@/lib/cache/query-cache'
 import { RATE_LIMITS } from '@/lib/constants/rate-limits'
 import { JoinClassSchema, StudentProfileSchema, ClassIdSchema } from '@/lib/validation-schemas'
+import type { UpsertStudentProfileRPCResponse } from '@/types/auth'
 
 interface StudentProfileParams {
   name: string
@@ -89,11 +91,12 @@ export async function saveStudentProfile(params: StudentProfileParams) {
     }
 
     // RPC returns JSON object with success/error
-    if (rpcResult && typeof rpcResult === 'object') {
-      if ((rpcResult as any).success === false) {
+    const rpcResponse = rpcResult as UpsertStudentProfileRPCResponse
+    if (rpcResponse && typeof rpcResponse === 'object') {
+      if (rpcResponse.success === false) {
         authLogger.error('[saveStudentProfile] RPC returned error', {
-          error: (rpcResult as any).error,
-          code: (rpcResult as any).code
+          error: rpcResponse.error,
+          code: rpcResponse.code
         })
         return { success: false, error: 'Failed to save profile. Please try again.' }
       }
@@ -120,7 +123,29 @@ export async function saveStudentProfile(params: StudentProfileParams) {
 }
 
 /**
+ * Internal function to fetch student profile from database
+ * This is wrapped by getStudentProfile() with query caching
+ */
+async function fetchStudentProfileFromDB(userId: string) {
+  const supabase = await createClient()
+
+  // Use maybeSingle to avoid 406 error when profile doesn't exist
+  const { data: profile, error } = await supabase
+    .from('student_profiles')
+    .select('*')
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  if (error) {
+    throw error
+  }
+
+  return profile
+}
+
+/**
  * Get current user's student profile
+ * PERFORMANCE: Results cached for 2 minutes to reduce database load
  */
 export async function getStudentProfile() {
   try {
@@ -130,19 +155,13 @@ export async function getStudentProfile() {
       return { success: false, error: 'Not authenticated', profile: null }
     }
 
-    const supabase = await createClient()
-
-    // Use maybeSingle to avoid 406 error when profile doesn't exist
-    const { data: profile, error } = await supabase
-      .from('student_profiles')
-      .select('*')
-      .eq('user_id', user.id)
-      .maybeSingle()
-
-    if (error) {
-      authLogger.error('[getStudentProfile] Error fetching profile', error)
-      return { success: false, error: 'Failed to fetch profile', profile: null }
-    }
+    // PERFORMANCE: Use query cache - 2 minute TTL for student profiles
+    // Student profiles change less frequently and benefit from caching
+    const profile = await queryCache.getOrFetch(
+      `student:${user.id}:profile`,
+      () => fetchStudentProfileFromDB(user.id),
+      2 * 60 * 1000 // 2 minutes
+    )
 
     return { success: true, profile }
   } catch (error) {
