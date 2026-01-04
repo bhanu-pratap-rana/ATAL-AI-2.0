@@ -276,10 +276,25 @@ export async function getSchoolStatsByDistrict(): Promise<{
 
     // Filter metrics for schools in the specified district (if district parameter was used)
     const schoolIdSet = new Set(schoolIds);
-    const filteredMetrics = metricsData?.filter((m: any) => schoolIdSet.has(m.school_id)) || [];
+    // Type: GetSchoolMetricsResponse from apps/db/migrations/127_fix_get_school_metrics.sql
+    const filteredMetrics = metricsData?.filter((m: {
+      school_id: string;
+      school_name: string;
+      teacher_count: number;
+      student_count: number;
+      active_pin_count: number;
+      total_classes: number;
+    }) => schoolIdSet.has(m.school_id)) || [];
 
     // Build results from RPC response
-    const schoolStats: SchoolStats[] = filteredMetrics.map((metrics: any) => ({
+    const schoolStats: SchoolStats[] = filteredMetrics.map((metrics: {
+      school_id: string;
+      school_name: string;
+      teacher_count: number;
+      student_count: number;
+      active_pin_count: number;
+      total_classes: number;
+    }) => ({
       schoolId: metrics.school_id,
       schoolName: metrics.school_name,
       districtName: schoolData.find(s => s.id === metrics.school_id)?.district || 'Unknown',

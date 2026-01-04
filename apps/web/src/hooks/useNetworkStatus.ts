@@ -223,10 +223,18 @@ export function useNetworkStatus(): NetworkStatus {
  * Type guard to check if NetworkInformation API is available
  */
 export function hasNetworkInformation(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  
+  const nav = navigator as Navigator & {
+    connection?: any;
+    mozConnection?: any;
+    webkitConnection?: any;
+  };
+  
   return (
-    typeof navigator !== 'undefined' &&
-    'connection' in navigator &&
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (navigator as any).connection !== undefined
+    ('connection' in nav || 'mozConnection' in nav || 'webkitConnection' in nav) &&
+    (nav.connection !== undefined || 
+     nav.mozConnection !== undefined || 
+     nav.webkitConnection !== undefined)
   );
 }

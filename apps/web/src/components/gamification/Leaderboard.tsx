@@ -70,7 +70,13 @@ export function Leaderboard({ classId, currentUserId, limit = 10 }: LeaderboardP
       }
 
       // Transform RPC response to LeaderEntry format
-      const entries: LeaderEntry[] = leaderboardData.map((entry: any) => ({
+      // Type: GetClassLeaderboardResponse from apps/db/migrations/126_get_class_leaderboard.sql
+      const entries: LeaderEntry[] = leaderboardData.map((entry: {
+        student_id: string;
+        student_name: string;
+        total_points: number;
+        rank: number;
+      }) => ({
         studentId: entry.student_id,
         name: entry.student_name,
         points: Number(entry.total_points),

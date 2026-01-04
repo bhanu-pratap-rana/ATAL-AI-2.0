@@ -19,18 +19,46 @@ import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { clientLogger } from '@/lib/client-logger';
 
+// Speech Recognition types (Web Speech API)
+interface SpeechRecognitionEvent extends Event {
+  readonly results: {
+    readonly length: number;
+    [index: number]: {
+      readonly length: number;
+      [index: number]: {
+        readonly transcript: string;
+        readonly confidence: number;
+      };
+    };
+  };
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  readonly error: string;
+}
+
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  maxAlternatives: number;
+  lang: string;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
+  onend: (() => void) | null;
+  start(): void;
+  stop(): void;
+  abort(): void;
+}
+
 interface VoiceChatProps {
   language: 'en' | 'hi' | 'as';
   onTranscript: (transcript: string) => void;
   disabled?: boolean;
 }
 
-// Use any type for Speech Recognition to avoid conflicts with built-in types
-type SpeechRecognitionType = any;
-
 export function VoiceChat({ language, onTranscript, disabled = false }: VoiceChatProps) {
   const [isListening, setIsListening] = useState(false);
-  const [recognition, setRecognition] = useState<SpeechRecognitionType | null>(null);
+  const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
   const [isSupported, setIsSupported] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,16 +67,18 @@ export function VoiceChat({ language, onTranscript, disabled = false }: VoiceCha
     if (typeof window === 'undefined') return;
 
     // Check browser support
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognitionConstructor: new () => SpeechRecognition = 
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition;
     
-    if (!SpeechRecognition) {
+    if (!SpeechRecognitionConstructor) {
       setIsSupported(false);
       clientLogger.warn('[VoiceChat] Speech recognition not supported in this browser');
       return;
     }
 
     // Create recognition instance
-    const rec = new SpeechRecognition();
+    const rec = new SpeechRecognitionConstructor();
     
     // Configure recognition
     rec.continuous = false; // Stop after one result
@@ -64,7 +94,7 @@ export function VoiceChat({ language, onTranscript, disabled = false }: VoiceCha
     rec.lang = langMap[language];
 
     // Handle results
-    rec.onresult = (event: any) => {
+    rec.onresult = (event: SpeechRecognitionEvent) => {
       const transcript = event.results[0][0].transcript;
       clientLogger.debug('[VoiceChat] Transcript received:', { transcript, language });
       onTranscript(transcript);
@@ -73,7 +103,7 @@ export function VoiceChat({ language, onTranscript, disabled = false }: VoiceCha
     };
 
     // Handle errors
-    rec.onerror = (event: any) => {
+    rec.onerror = (event: SpeechRecognitionErrorEvent) => {
       clientLogger.error('[VoiceChat] Recognition error:', { error: event.error });
       setIsListening(false);
       
