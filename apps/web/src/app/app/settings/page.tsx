@@ -40,9 +40,10 @@ export default async function SettingsPage() {
   // Fetch student profile if user is a student
   let studentProfile = null
   if (!isTeacherOrAdmin) {
+    // OPTIMIZATION: Select only needed columns instead of *
     const { data: profile } = await supabase
       .from('student_profiles')
-      .select('*')
+      .select('user_id, name, gender, date_of_birth, phone, location, medium, board, class, created_at, updated_at')
       .eq('user_id', user.id)
       .maybeSingle()
 
@@ -52,9 +53,10 @@ export default async function SettingsPage() {
   // Fetch teacher profile if user is a teacher/admin
   let teacherProfile = null
   if (isTeacherOrAdmin) {
+    // OPTIMIZATION: Select only needed columns instead of *
     const { data: profile } = await supabase
       .from('teacher_profiles')
-      .select('*')
+      .select('user_id, name, phone, school_id, school_code, created_at, updated_at')
       .eq('user_id', user.id)
       .maybeSingle()
 

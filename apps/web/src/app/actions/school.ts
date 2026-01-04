@@ -263,9 +263,10 @@ async function getSchoolByCode(schoolCode: string) {
     const supabase = await createClient()
 
     // Use .maybeSingle() - school code may not exist
+    // OPTIMIZATION: Select only needed columns instead of *
     const { data, error } = await supabase
       .from('schools')
-      .select('*')
+      .select('id, name, school_code, district, created_at, updated_at')
       .eq('school_code', schoolCode.toUpperCase().trim())
       .maybeSingle()
 

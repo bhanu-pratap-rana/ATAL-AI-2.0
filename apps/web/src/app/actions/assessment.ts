@@ -284,13 +284,16 @@ export async function getAdaptiveQuestions(language: 'en' | 'hi' | 'as' = 'en') 
 
     const supabase = await createClient()
 
-    // Fetch all active questions for the selected language
+    // Fetch active questions for the selected language with pagination
+    // OPTIMIZATION: Limit to 500 items to prevent unbounded growth
+    // If more items needed, implement cursor-based pagination
     const { data: allItems, error } = await supabase
       .from('irt_item_bank')
       .select('id, item_code, category, question_text, options, correct_answer, difficulty, discrimination, guessing')
       .eq('language', language)
       .eq('is_active', true)
       .order('category')
+      .limit(500) // Prevent unbounded query growth
 
     if (error) {
       authLogger.error('[getAdaptiveQuestions] Error fetching questions', error)

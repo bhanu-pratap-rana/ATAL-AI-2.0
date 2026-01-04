@@ -239,10 +239,18 @@ export async function getProgressStats(): Promise<{
     }
 
     // Get recent assessment results
+    // OPTIMIZATION: Pre-build Map for O(1) lookup instead of O(n×m) filtering
+    const responsesBySession = new Map<string, typeof responses[0][]>()
+    responses?.forEach(r => {
+      const existing = responsesBySession.get(r.session_id) || []
+      existing.push(r)
+      responsesBySession.set(r.session_id, existing)
+    })
+
     const recentAssessments: AssessmentResult[] = []
     if (sessions && sessions.length > 0) {
       for (const session of sessions.slice(0, 5)) {
-        const sessionResponses = responses?.filter(r => r.session_id === session.id) || []
+        const sessionResponses = responsesBySession.get(session.id) || []
         const correctCount = sessionResponses.filter(r => r.is_correct).length
         const totalQuestions = sessionResponses.length
         const timeSpent = sessionResponses.reduce((sum, r) => sum + (r.rt_ms || 0), 0) / 1000 // seconds
