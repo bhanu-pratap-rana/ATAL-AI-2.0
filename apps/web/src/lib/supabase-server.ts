@@ -83,13 +83,12 @@ export async function getCurrentUser() {
  * Used by admin server actions for authorization
  *
  * @param functionName - Name of the calling function for logging
- * @returns Object with authorized flag and optional error
+ * @returns Discriminated union - authorized true with user, or authorized false with error
  */
-export async function verifyAdminAuth(functionName: string): Promise<{
-  authorized: boolean
-  user?: Awaited<ReturnType<typeof getCurrentUser>>
-  error?: { success: false; error: string }
-}> {
+export async function verifyAdminAuth(functionName: string): Promise<
+  | { authorized: true; user: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>> }
+  | { authorized: false; error: { success: false; error: string } }
+> {
   const currentUser = await getCurrentUser()
   if (!currentUser) {
     authLogger.warn(`[${functionName}] Unauthorized: No authenticated user`)
@@ -119,13 +118,12 @@ export async function verifyAdminAuth(functionName: string): Promise<{
  * Used by admin server actions that only super_admin can perform
  *
  * @param functionName - Name of the calling function for logging
- * @returns Object with authorized flag and optional error
+ * @returns Discriminated union - authorized true with user, or authorized false with error
  */
-export async function verifySuperAdminAuth(functionName: string): Promise<{
-  authorized: boolean
-  user?: Awaited<ReturnType<typeof getCurrentUser>>
-  error?: { success: false; error: string }
-}> {
+export async function verifySuperAdminAuth(functionName: string): Promise<
+  | { authorized: true; user: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>> }
+  | { authorized: false; error: { success: false; error: string } }
+> {
   const currentUser = await getCurrentUser()
   if (!currentUser) {
     authLogger.warn(`[${functionName}] Unauthorized: No authenticated user`)
@@ -155,14 +153,12 @@ export async function verifySuperAdminAuth(functionName: string): Promise<{
  * Used by teacher server actions for authorization
  *
  * @param functionName - Name of the calling function for logging
- * @returns Object with authorized flag, user, teacherProfile, and optional error
+ * @returns Discriminated union - authorized true with user and profile, or authorized false with error
  */
-export async function verifyTeacherAuth(functionName: string): Promise<{
-  authorized: boolean
-  user?: Awaited<ReturnType<typeof getCurrentUser>>
-  teacherProfile?: { user_id: string }
-  error?: { success: false; error: string }
-}> {
+export async function verifyTeacherAuth(functionName: string): Promise<
+  | { authorized: true; user: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>; teacherProfile: { user_id: string } }
+  | { authorized: false; error: { success: false; error: string } }
+> {
   const currentUser = await getCurrentUser()
   if (!currentUser) {
     authLogger.warn(`[${functionName}] Unauthorized: No authenticated user`)
@@ -207,14 +203,12 @@ export async function verifyTeacherAuth(functionName: string): Promise<{
  * Used by student server actions for authorization
  *
  * @param functionName - Name of the calling function for logging
- * @returns Object with authorized flag, user, studentProfile, and optional error
+ * @returns Discriminated union - authorized true with user and profile, or authorized false with error
  */
-export async function verifyStudentAuth(functionName: string): Promise<{
-  authorized: boolean
-  user?: Awaited<ReturnType<typeof getCurrentUser>>
-  studentProfile?: { user_id: string; name: string }
-  error?: { success: false; error: string }
-}> {
+export async function verifyStudentAuth(functionName: string): Promise<
+  | { authorized: true; user: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>; studentProfile: { user_id: string; name: string } }
+  | { authorized: false; error: { success: false; error: string } }
+> {
   const currentUser = await getCurrentUser()
   if (!currentUser) {
     authLogger.warn(`[${functionName}] Unauthorized: No authenticated user`)
@@ -260,14 +254,12 @@ export async function verifyStudentAuth(functionName: string): Promise<{
  *
  * @param functionName - Name of the calling function for logging
  * @param classId - The class ID to verify ownership of
- * @returns Object with authorized flag, user, classData, and optional error
+ * @returns Discriminated union - authorized true with user and classData, or authorized false with error
  */
-export async function verifyClassOwnership(functionName: string, classId: string): Promise<{
-  authorized: boolean
-  user?: Awaited<ReturnType<typeof getCurrentUser>>
-  classData?: { id: string; teacher_id: string; name: string }
-  error?: { success: false; error: string }
-}> {
+export async function verifyClassOwnership(functionName: string, classId: string): Promise<
+  | { authorized: true; user: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>; classData: { id: string; teacher_id: string; name: string } }
+  | { authorized: false; error: { success: false; error: string } }
+> {
   // First verify teacher auth
   const teacherAuth = await verifyTeacherAuth(functionName)
   if (!teacherAuth.authorized) {
@@ -281,7 +273,7 @@ export async function verifyClassOwnership(functionName: string, classId: string
     .from('classes')
     .select('id, teacher_id, name')
     .eq('id', classId)
-    .eq('teacher_id', teacherAuth.user!.id)
+    .eq('teacher_id', teacherAuth.user.id)
     .maybeSingle()
 
   if (classError) {
@@ -294,7 +286,7 @@ export async function verifyClassOwnership(functionName: string, classId: string
 
   if (!classData) {
     authLogger.warn(`[${functionName}] Forbidden: User does not own this class`, {
-      userId: teacherAuth.user!.id,
+      userId: teacherAuth.user.id,
       classId,
     })
     return {

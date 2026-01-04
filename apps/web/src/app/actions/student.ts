@@ -37,10 +37,10 @@ export async function saveStudentProfile(params: StudentProfileParams) {
     // SECURITY: Verify caller is authenticated and is a student (not teacher/admin)
     const auth = await verifyStudentAuth('saveStudentProfile')
     if (!auth.authorized) {
-      return auth.error!
+      return auth.error
     }
 
-    const user = auth.user!
+    const user = auth.user
 
     authLogger.debug('[saveStudentProfile] User authenticated', {
       userId: user.id,
@@ -264,14 +264,14 @@ export async function joinClass({ classCode, pin }: JoinClassParams) {
     // SECURITY: Verify caller is authenticated and is a student
     const auth = await verifyStudentAuth('joinClass')
     if (!auth.authorized) {
-      return auth.error!
+      return auth.error
     }
 
     // SECURITY: Rate limit to prevent PIN brute force attacks
     // Uses dedicated class join limits (5 attempts per hour per class)
-    const isAllowed = await checkRateLimit(`join-class:${auth.user!.id}:${classCode}`, RATE_LIMITS.classJoinAttempts)
+    const isAllowed = await checkRateLimit(`join-class:${auth.user.id}:${classCode}`, RATE_LIMITS.classJoinAttempts)
     if (!isAllowed) {
-      authLogger.warn('[joinClass] Rate limit exceeded', { userId: auth.user!.id, classCode })
+      authLogger.warn('[joinClass] Rate limit exceeded', { userId: auth.user.id, classCode })
       return {
         success: false,
         error: 'Too many join attempts. Please wait before trying again.',
@@ -309,7 +309,7 @@ export async function joinClass({ classCode, pin }: JoinClassParams) {
     }
 
     if (!pinMatch) {
-      authLogger.warn('[joinClass] Invalid PIN attempt', { classCode, userId: auth.user!.id })
+      authLogger.warn('[joinClass] Invalid PIN attempt', { classCode, userId: auth.user.id })
       return { success: false, error: 'Invalid class code or PIN' }
     }
 
@@ -319,7 +319,7 @@ export async function joinClass({ classCode, pin }: JoinClassParams) {
       .from('enrollments')
       .select('id')
       .eq('class_id', classData.id)
-      .eq('student_id', auth.user!.id)
+      .eq('student_id', auth.user.id)
       .maybeSingle()
 
     if (enrollmentCheckError) {
@@ -336,7 +336,7 @@ export async function joinClass({ classCode, pin }: JoinClassParams) {
       .from('enrollments')
       .insert({
         class_id: classData.id,
-        student_id: auth.user!.id,
+        student_id: auth.user.id,
       })
       .select()
       .single()
@@ -348,7 +348,7 @@ export async function joinClass({ classCode, pin }: JoinClassParams) {
         message: error.message,
         details: error.details,
         classId: classData.id,
-        studentId: auth.user!.id,
+        studentId: auth.user.id,
       })
 
       // Return generic error message
@@ -384,12 +384,12 @@ export async function leaveClass(classId: string) {
     // SECURITY: Verify caller is authenticated and is a student
     const auth = await verifyStudentAuth('leaveClass')
     if (!auth.authorized) {
-      return auth.error!
+      return auth.error
     }
 
     // SECURITY: Rate limit student mutations to prevent abuse
-    if (!(await checkStudentMutationRateLimit(auth.user!.id))) {
-      authLogger.warn('[leaveClass] Rate limit exceeded', { userId: auth.user!.id })
+    if (!(await checkStudentMutationRateLimit(auth.user.id))) {
+      authLogger.warn('[leaveClass] Rate limit exceeded', { userId: auth.user.id })
       return { success: false, error: 'Too many requests. Please try again later.' }
     }
 
@@ -399,7 +399,7 @@ export async function leaveClass(classId: string) {
       .from('enrollments')
       .delete()
       .eq('class_id', validatedClassId)
-      .eq('student_id', auth.user!.id)
+      .eq('student_id', auth.user.id)
 
     if (error) {
       return { success: false, error: error.message }

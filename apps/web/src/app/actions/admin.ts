@@ -29,12 +29,12 @@ export async function setAdminRole(email: string): Promise<SetAdminRoleResult> {
     // SECURITY: Verify caller is authenticated and authorized as super_admin
     const auth = await verifySuperAdminAuth('setAdminRole')
     if (!auth.authorized) {
-      return auth.error!
+      return auth.error
     }
 
     // SECURITY: Rate limit admin operations to prevent abuse
-    if (!(await checkAdminOperationRateLimit(auth.user!.id))) {
-      authLogger.warn('[setAdminRole] Rate limit exceeded', { userId: auth.user!.id })
+    if (!(await checkAdminOperationRateLimit(auth.user.id))) {
+      authLogger.warn('[setAdminRole] Rate limit exceeded', { userId: auth.user.id })
       return { success: false, error: 'Too many requests. Please try again later.' }
     }
 

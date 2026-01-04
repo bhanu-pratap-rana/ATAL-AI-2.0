@@ -49,12 +49,12 @@ export async function deleteUserByEmail(email: string): Promise<DeleteUserResult
     // SECURITY: Verify caller is authenticated and authorized as super_admin
     const auth = await verifySuperAdminAuth('deleteUserByEmail')
     if (!auth.authorized) {
-      return auth.error!
+      return auth.error
     }
 
     // SECURITY: Rate limit admin operations to prevent abuse
-    if (!(await checkAdminOperationRateLimit(auth.user!.id))) {
-      authLogger.warn('[deleteUserByEmail] Rate limit exceeded', { userId: auth.user!.id })
+    if (!(await checkAdminOperationRateLimit(auth.user.id))) {
+      authLogger.warn('[deleteUserByEmail] Rate limit exceeded', { userId: auth.user.id })
       return { success: false, error: 'Too many requests. Please try again later.' }
     }
 
@@ -72,7 +72,7 @@ export async function deleteUserByEmail(email: string): Promise<DeleteUserResult
     }
 
     // SECURITY: Prevent self-deletion (cannot delete the current user)
-    if (user.id === auth.user!.id) {
+    if (user.id === auth.user.id) {
       authLogger.warn('[deleteUserByEmail] Self-deletion attempted', { userId: user.id, email })
       return {
         success: false,

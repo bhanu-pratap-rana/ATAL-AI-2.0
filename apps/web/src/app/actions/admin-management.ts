@@ -137,7 +137,7 @@ export async function createAdminAccount(
     // SECURITY: Verify caller is authenticated and authorized as super_admin
     const auth = await verifySuperAdminAuth('createAdminAccount')
     if (!auth.authorized) {
-      return auth.error!
+      return auth.error
     }
 
     // Rate limiting using distributed rate limiter
@@ -319,7 +319,7 @@ export async function listAdminAccounts(): Promise<AdminActionResult> {
     // SECURITY: Verify caller is authenticated and authorized as super_admin
     const auth = await verifySuperAdminAuth('listAdminAccounts')
     if (!auth.authorized) {
-      return auth.error!
+      return auth.error
     }
 
     const adminClient = await createAdminClient()
@@ -372,13 +372,13 @@ export async function deleteAdminAccount(adminId: string): Promise<AdminActionRe
     // SECURITY: Verify caller is authenticated and authorized as super_admin
     const auth = await verifySuperAdminAuth('deleteAdminAccount')
     if (!auth.authorized) {
-      return auth.error!
+      return auth.error
     }
 
     // SECURITY: Prevent self-deletion
-    if (validatedId === auth.user!.id) {
+    if (validatedId === auth.user.id) {
       authLogger.warn('[deleteAdminAccount] Forbidden: Cannot delete own account', {
-        userId: auth.user!.id,
+        userId: auth.user.id,
       })
       return {
         success: false,
@@ -460,14 +460,14 @@ export async function resetAdminPassword(adminId: string, newPassword: string): 
     // SECURITY: Verify caller is authenticated and is an admin
     const auth = await verifyAdminAuth('resetAdminPassword')
     if (!auth.authorized) {
-      return auth.error!
+      return auth.error
     }
 
     // Regular admins can only reset their own password
-    const currentRole = auth.user!.app_metadata?.role
-    if (currentRole === 'admin' && validatedId !== auth.user!.id) {
+    const currentRole = auth.user.app_metadata?.role
+    if (currentRole === 'admin' && validatedId !== auth.user.id) {
       authLogger.warn('[resetAdminPassword] Forbidden: Admin cannot reset other passwords', {
-        userId: auth.user!.id,
+        userId: auth.user.id,
         targetId: validatedId,
       })
       return {
@@ -559,7 +559,7 @@ export async function getAdminById(adminId: string): Promise<AdminActionResult> 
     // SECURITY: Verify caller is authenticated and authorized as super_admin
     const auth = await verifySuperAdminAuth('getAdminById')
     if (!auth.authorized) {
-      return auth.error!
+      return auth.error
     }
 
     const adminClient = await createAdminClient()
