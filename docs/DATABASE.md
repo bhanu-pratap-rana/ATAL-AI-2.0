@@ -1,28 +1,30 @@
 # ATAL AI Database Documentation
 
-> **Last Updated:** January 5, 2026 18:00 UTC (Verified via Live Supabase MCP Query)
-> **Status:** ✅ PRODUCTION READY - All 22 tables live & accessible, RLS 100% enabled, 40 RPC functions verified, 0 privilege escalation risks
-> **Database:** Supabase PostgreSQL 15 (Project: hnlsqznoviwnyrkskfay)
-> **Live Verification:** ✅ All tables queried and confirmed accessible
-> **Schema Status:** ✅ 128 migrations applied successfully, all FKs intact, data integrity validated
+> **Last Updated:** January 5, 2026 18:30 UTC (Verified via Live Supabase MCP Query)
+> **Status:** ✅ PRODUCTION READY - All 21 tables live & accessible, RLS 100% enabled, 35 RPC functions verified, 0 privilege escalation risks
+> **Database:** Supabase PostgreSQL 17 (Project: hnlsqznoviwnyrkskfay)
+> **Live Verification:** ✅ All tables queried and confirmed accessible via Supabase MCP
+> **Schema Status:** ✅ 80 migrations applied successfully (latest: 080_fix_hybrid_function_type_cast), all FKs intact, data integrity validated
+> **Note:** Migrations 122-128 (feature_flags, new RPC functions, new indexes) are in codebase but NOT yet deployed to production
 > **Compliance:** ✅ GDPR, COPPA, FERPA, CCPA compliant with RLS policies
 > **Type Safety:** ✅ ALL FIXED - RPC response types aligned, no unsafe `as any` assertions, runtime validation in place (validated via code audit)
 > **Security Enhancements:** ✅ Circuit breaker for AI providers, RPC response validators, XSS protection, RLS optimization (Migrations 068-080)
 > **Adaptive Learning:** ✅ FIXED - Knowledge state updates now working (Migrations 072-077)
 > **RAG System:** ✅ PRODUCTION READY - All 3 RAG functions tested and working (Migrations 078-080)
-> **TypeScript Types:** ✅ GENERATED - All 22 tables have type-safe definitions
+> **TypeScript Types:** ✅ GENERATED - All 21 tables have type-safe definitions (production state)
 > **Critical Bugs:** ✅ ALL FIXED - Migration 127 created, dashboard stats corrected, promise handling fixed
 
 ## Quick Stats
 
 | Metric | Value | Status |
 |--------|-------|--------|
-| **Live Tables** | 22/22 | ✅ All accessible & verified |
-| **Total Rows** | 1,988+ | ✅ Live data verified (as of January 5, 2026) |
-| **Total Migrations** | 128 | ✅ All applied & validated |
+| **Live Tables** | 21/21 | ✅ All accessible & verified (via Supabase MCP) |
+| **Total Rows** | 1,978 | ✅ Live data verified (as of January 5, 2026 18:30 UTC) |
+| **Total Migrations** | 80 | ✅ All applied & validated (latest: 080_fix_hybrid_function_type_cast) |
 | **RLS Policies** | 60+ | ✅ 100% table coverage |
-| **RPC Functions** | 40 | ✅ All accessible & documented |
-| **Database Indexes** | 75+ | ✅ Strategic placement verified (Migration 128 added 5 composite indexes) |
+| **RPC Functions** | 35 | ✅ All accessible & documented (verified via Supabase MCP) |
+| **Database Indexes** | 70+ | ✅ Strategic placement verified |
+| **Pending Migrations** | 122-128 | ⚠️ In codebase, not yet deployed (feature_flags, new RPCs, new indexes) |
 | **Extensions** | 3 active | ✅ pgcrypto, pgvector, pg_trgm |
 | **Privilege Escalation Risks** | 0 | ✅ SECURE |
 | **Type Safety Issues** | 0 | ✅ ALL FIXED |
@@ -32,7 +34,7 @@
 | **Security Advisor Warnings** | 22 | ✅ ACCEPTABLE (Intentional anonymous workflow) |
 | **Performance Advisor Warnings** | 14 WARN + 36 INFO | ⚠️ 9 can be optimized, 5 acceptable, 36 expected |
 | **RAG Functions Status** | 3/3 Working | ✅ All tested with real embeddings |
-| **TypeScript Types** | Generated | ✅ All 22 tables type-safe |
+| **TypeScript Types** | Generated | ✅ All 21 tables type-safe (production) |
 | **Build Status** | Passing | ✅ No compilation errors |
 | **Health Score** | 92/100 | ✅ PRODUCTION READY |
 
@@ -199,7 +201,7 @@ Status: ✅ WORKING
 **Impact:** All 3 RAG functions production-ready, sub-150ms query performance ✅
 
 #### TypeScript Types Generation
-- ✅ Generated types for all 22 tables using `mcp_supabase_generate_typescript_types`
+- ✅ Generated types for all 21 tables using `mcp_supabase_generate_typescript_types` (production state)
 - ✅ Saved to `apps/web/src/types/database.ts`
 - ✅ Full type safety across application:
   - Row types for SELECT queries
@@ -1320,7 +1322,7 @@ cd apps/web && npx tsx scripts/index-curriculum.ts
 
 ## Row Level Security (RLS) Policies
 
-**Total Policies:** 60+ policies across 22 tables (all tables have RLS enabled)
+**Total Policies:** 60+ policies across 21 tables (all tables have RLS enabled)
 
 ### users
 
@@ -1556,17 +1558,19 @@ cd apps/web && npx tsx scripts/index-curriculum.ts
 | `get_class_roster(p_class_id)` | RECORD | DEFINER | Returns student roster for a class (teacher only) |
 | `search_students_for_teacher(p_search, p_limit)` | RECORD | DEFINER | Searches students in teacher's classes |
 
-### Assessment & Adaptive Learning Functions (7)
+### Assessment & Adaptive Learning Functions (4)
 
-| Function | Returns | Security | Description |
-|----------|---------|----------|-------------|
-| `submit_assessment(p_session_id, p_user_id, p_responses)` | JSONB | DEFINER | Submits assessment, calculates score, updates knowledge state |
-| `update_knowledge_state(p_student_id, p_module_id, p_topic_id, ...)` | JSONB | DEFINER | Updates student knowledge state with IRT-based mastery calculation |
-| `upsert_student_profile(p_user_id, p_name, p_gender, ...)` | JSONB | DEFINER | Atomic upsert for student profile (prevents race conditions) |
-| `get_class_leaderboard(p_class_id, p_limit)` | TABLE | DEFINER | Returns leaderboard with student points for a class (Migration 126) |
-| `get_class_student_progress(p_student_ids)` | TABLE | DEFINER | Aggregates student progress for teacher dashboard (Migration 124) |
-| `batch_check_and_award_badges(p_student_id)` | TABLE | DEFINER | Batch checks and awards all eligible badges (Migration 123) |
-| `get_school_metrics()` | TABLE | DEFINER | Returns aggregated metrics for all schools - admin only (Migration 127) |
+| Function | Returns | Security | Description | Status |
+|----------|---------|----------|-------------|--------|
+| `submit_assessment(p_session_id, p_user_id, p_responses)` | JSONB | DEFINER | Submits assessment, calculates score, updates knowledge state | ✅ Production |
+| `update_knowledge_state(p_student_id, p_module_id, p_topic_id, ...)` | JSONB | DEFINER | Updates student knowledge state with IRT-based mastery calculation | ✅ Production |
+| `upsert_student_profile(p_user_id, p_name, p_gender, ...)` | JSONB | DEFINER | Atomic upsert for student profile (prevents race conditions) | ✅ Production |
+| `get_class_leaderboard(p_class_id, p_limit)` | RECORD | DEFINER | Returns leaderboard with student points for a class | ✅ Production |
+
+**Pending Functions (Not Yet Deployed):**
+- `get_class_student_progress(p_student_ids)` - Migration 124 (in codebase, not deployed)
+- `batch_check_and_award_badges(p_student_id)` - Migration 123 (in codebase, not deployed)
+- `get_school_metrics()` - Migration 127 (in codebase, not deployed)
 
 ### AI Tutor & RAG Functions (4)
 
