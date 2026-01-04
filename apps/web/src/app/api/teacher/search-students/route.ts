@@ -144,41 +144,57 @@ export async function POST(request: NextRequest) {
       // Step 3: Search ONLY students enrolled in teacher's classes
       const searchPattern = `%${sanitizedQuery}%`
 
-      // Build search filter - SECURITY: Handle null fields properly in OR clause
-      // ilike doesn't work well with null values, so we need to explicitly handle them
-      const searchFilters = [
-        `name.ilike.${searchPattern}`,
-        `roll_number.ilike.${searchPattern}`,
-      ]
-
-      // Only include phone in search if it's not empty (to avoid null comparison issues)
-      if (sanitizedQuery.length > 0) {
-        searchFilters.push(`phone.ilike.${searchPattern}`)
+      // SECURITY: Build safe OR filters to avoid injection
+      // Use helper function to safely construct filter strings
+      const buildSafeFilter = (field: string, pattern: string): string => {
+        // Validate pattern contains only safe characters
+        if (!/^%[\w\s\-\.]*%$/.test(pattern)) {
+          throw new Error('Invalid search pattern')
+        }
+        return `${field}.ilike.${pattern}`
       }
 
-      const { data: fallbackProfiles, error: fallbackError } = await supabase
-        .from('student_profiles')
-        .select('user_id, name, phone, roll_number')
-        .in('user_id', studentIds)  // SECURITY: Restrict to teacher's students only
-        .or(searchFilters.join(','))
-        .limit(10)
+      try {
+        const searchFilters = [
+          buildSafeFilter('name', searchPattern),
+          buildSafeFilter('roll_number', searchPattern),
+        ]
 
-      if (fallbackError) {
-        authLogger.error('[searchStudents] Fallback query also failed', fallbackError)
+        // Only include phone in search if it's not empty (to avoid null comparison issues)
+        if (sanitizedQuery.length > 0) {
+          searchFilters.push(buildSafeFilter('phone', searchPattern))
+        }
+
+        const { data: fallbackProfiles, error: fallbackError } = await supabase
+          .from('student_profiles')
+          .select('user_id, name, phone, roll_number')
+          .in('user_id', studentIds)  // SECURITY: Restrict to teacher's students only
+          .or(searchFilters.join(','), { referencedTable: 'student_profiles' })
+          .limit(10)
+
+        if (fallbackError) {
+          authLogger.error('[searchStudents] Fallback query also failed', fallbackError)
+          return NextResponse.json(
+            { error: 'Failed to search students' },
+            { status: 500 }
+          )
+        }
+
+        const students = (fallbackProfiles || []).map(profile => ({
+          id: profile.user_id,
+          name: profile.name || 'Unknown',
+          rollNumber: profile.roll_number || null,
+          phone: profile.phone || null,
+        }))
+
+        return NextResponse.json({ students })
+      } catch (filterError) {
+        authLogger.error('[searchStudents] Invalid search filter', filterError)
         return NextResponse.json(
-          { error: 'Failed to search students' },
-          { status: 500 }
+          { error: 'Invalid search pattern' },
+          { status: 400 }
         )
       }
-
-      const students = (fallbackProfiles || []).map(profile => ({
-        id: profile.user_id,
-        name: profile.name || 'Unknown',
-        rollNumber: profile.roll_number || null,
-        phone: profile.phone || null,
-      }))
-
-      return NextResponse.json({ students })
     }
 
     // Map RPC result to expected response format

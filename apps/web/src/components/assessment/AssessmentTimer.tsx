@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { formatTimeMMSS } from '@/lib/time-utils'
+import { useTimer, formatTimeMMSS } from '@/hooks/useTimer'
 
 /**
  * ATAL AI Assessment Timer - Jyoti Theme
@@ -32,40 +31,12 @@ export function AssessmentTimer({
   onTimeUpdate,
   className = '',
 }: AssessmentTimerProps) {
-  const [elapsedSeconds, setElapsedSeconds] = useState(initialSeconds)
-  const intervalRef = useRef<NodeJS.Timeout | null>(null)
-
-  // Start/stop timer based on pause state
-  useEffect(() => {
-    if (isPaused) {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-        intervalRef.current = null
-      }
-      return
-    }
-
-    intervalRef.current = setInterval(() => {
-      setElapsedSeconds((prev) => {
-        const newTime = prev + 1
-        onTimeUpdate?.(newTime)
-        return newTime
-      })
-    }, 1000)
-
-    // Cleanup on unmount or when paused
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-        intervalRef.current = null
-      }
-    }
-  }, [isPaused, onTimeUpdate])
-
-  // Sync with initialSeconds when it changes
-  useEffect(() => {
-    setElapsedSeconds(initialSeconds)
-  }, [initialSeconds])
+  // Use shared timer hook (eliminates duplication)
+  const elapsedSeconds = useTimer({
+    initialSeconds,
+    isPaused,
+    onTimeUpdate,
+  })
 
   return (
     <div
@@ -91,37 +62,12 @@ export function CompactTimer({
   initialSeconds = 0,
   onTimeUpdate,
 }: Omit<AssessmentTimerProps, 'className'>) {
-  const [elapsedSeconds, setElapsedSeconds] = useState(initialSeconds)
-  const intervalRef = useRef<NodeJS.Timeout | null>(null)
-
-  useEffect(() => {
-    if (isPaused) {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-        intervalRef.current = null
-      }
-      return
-    }
-
-    intervalRef.current = setInterval(() => {
-      setElapsedSeconds((prev) => {
-        const newTime = prev + 1
-        onTimeUpdate?.(newTime)
-        return newTime
-      })
-    }, 1000)
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-        intervalRef.current = null
-      }
-    }
-  }, [isPaused, onTimeUpdate])
-
-  useEffect(() => {
-    setElapsedSeconds(initialSeconds)
-  }, [initialSeconds])
+  // Use shared timer hook (eliminates duplication)
+  const elapsedSeconds = useTimer({
+    initialSeconds,
+    isPaused,
+    onTimeUpdate,
+  })
 
   return (
     <span

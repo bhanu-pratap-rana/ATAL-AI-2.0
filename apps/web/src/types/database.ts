@@ -7,8 +7,55 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "13.0.5"
+  }
   public: {
     Tables: {
+      ai_tutor_interactions: {
+        Row: {
+          created_at: string | null
+          id: string
+          input_mode: string | null
+          language: string | null
+          message_content: string
+          message_role: string
+          response_time_ms: number | null
+          session_id: string
+          student_id: string | null
+          tokens_used: number | null
+          topic_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          input_mode?: string | null
+          language?: string | null
+          message_content: string
+          message_role: string
+          response_time_ms?: number | null
+          session_id: string
+          student_id?: string | null
+          tokens_used?: number | null
+          topic_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          input_mode?: string | null
+          language?: string | null
+          message_content?: string
+          message_role?: string
+          response_time_ms?: number | null
+          session_id?: string
+          student_id?: string | null
+          tokens_used?: number | null
+          topic_id?: string | null
+        }
+        Relationships: []
+      }
       assessment_responses: {
         Row: {
           chosen_option: string | null
@@ -20,6 +67,7 @@ export type Database = {
           module: string
           rt_ms: number | null
           session_id: string
+          user_id: string | null
         }
         Insert: {
           chosen_option?: string | null
@@ -31,6 +79,7 @@ export type Database = {
           module: string
           rt_ms?: number | null
           session_id: string
+          user_id?: string | null
         }
         Update: {
           chosen_option?: string | null
@@ -42,6 +91,7 @@ export type Database = {
           module?: string
           rt_ms?: number | null
           session_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -98,6 +148,45 @@ export type Database = {
           },
         ]
       }
+      badges: {
+        Row: {
+          cultural_note: string | null
+          description: string
+          icon: string
+          id: string
+          name_as: string
+          name_en: string
+          name_hi: string
+          points_value: number | null
+          rarity: string | null
+          unlock_criteria: Json
+        }
+        Insert: {
+          cultural_note?: string | null
+          description: string
+          icon: string
+          id: string
+          name_as: string
+          name_en: string
+          name_hi: string
+          points_value?: number | null
+          rarity?: string | null
+          unlock_criteria: Json
+        }
+        Update: {
+          cultural_note?: string | null
+          description?: string
+          icon?: string
+          id?: string
+          name_as?: string
+          name_en?: string
+          name_hi?: string
+          points_value?: number | null
+          rarity?: string | null
+          unlock_criteria?: Json
+        }
+        Relationships: []
+      }
       classes: {
         Row: {
           class_code: string | null
@@ -136,22 +225,64 @@ export type Database = {
           },
         ]
       }
+      curriculum_content: {
+        Row: {
+          content: string
+          content_type: string
+          created_at: string | null
+          embedding: string | null
+          id: string
+          language: string
+          metadata: Json | null
+          module_id: string
+          title: string | null
+          topic_id: string
+        }
+        Insert: {
+          content: string
+          content_type: string
+          created_at?: string | null
+          embedding?: string | null
+          id?: string
+          language: string
+          metadata?: Json | null
+          module_id: string
+          title?: string | null
+          topic_id: string
+        }
+        Update: {
+          content?: string
+          content_type?: string
+          created_at?: string | null
+          embedding?: string | null
+          id?: string
+          language?: string
+          metadata?: Json | null
+          module_id?: string
+          title?: string | null
+          topic_id?: string
+        }
+        Relationships: []
+      }
       enrollments: {
         Row: {
           class_id: string | null
           created_at: string | null
+          enrolled_at: string | null
           id: string
           student_id: string | null
         }
         Insert: {
           class_id?: string | null
           created_at?: string | null
+          enrolled_at?: string | null
           id?: string
           student_id?: string | null
         }
         Update: {
           class_id?: string | null
           created_at?: string | null
+          enrolled_at?: string | null
           id?: string
           student_id?: string | null
         }
@@ -171,6 +302,228 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      formative_responses: {
+        Row: {
+          ai_hint_requested: boolean | null
+          created_at: string | null
+          id: string
+          is_correct: boolean | null
+          question_id: string
+          response_time_ms: number | null
+          student_id: string | null
+          topic_id: string
+        }
+        Insert: {
+          ai_hint_requested?: boolean | null
+          created_at?: string | null
+          id?: string
+          is_correct?: boolean | null
+          question_id: string
+          response_time_ms?: number | null
+          student_id?: string | null
+          topic_id: string
+        }
+        Update: {
+          ai_hint_requested?: boolean | null
+          created_at?: string | null
+          id?: string
+          is_correct?: boolean | null
+          question_id?: string
+          response_time_ms?: number | null
+          student_id?: string | null
+          topic_id?: string
+        }
+        Relationships: []
+      }
+      irt_item_bank: {
+        Row: {
+          category: string
+          correct_answer: number
+          created_at: string | null
+          created_by: string | null
+          cultural_context: string | null
+          difficulty: number
+          discrimination: number
+          estimated_time_seconds: number | null
+          guessing: number
+          id: string
+          is_active: boolean | null
+          item_code: string
+          language: string
+          level: string
+          min_time_ms: number | null
+          options: Json
+          point_biserial: number | null
+          question_text: string
+          review_state: string | null
+          source_language: string | null
+          times_administered: number | null
+          times_correct: number | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          category: string
+          correct_answer: number
+          created_at?: string | null
+          created_by?: string | null
+          cultural_context?: string | null
+          difficulty?: number
+          discrimination?: number
+          estimated_time_seconds?: number | null
+          guessing?: number
+          id?: string
+          is_active?: boolean | null
+          item_code: string
+          language?: string
+          level?: string
+          min_time_ms?: number | null
+          options: Json
+          point_biserial?: number | null
+          question_text: string
+          review_state?: string | null
+          source_language?: string | null
+          times_administered?: number | null
+          times_correct?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          category?: string
+          correct_answer?: number
+          created_at?: string | null
+          created_by?: string | null
+          cultural_context?: string | null
+          difficulty?: number
+          discrimination?: number
+          estimated_time_seconds?: number | null
+          guessing?: number
+          id?: string
+          is_active?: boolean | null
+          item_code?: string
+          language?: string
+          level?: string
+          min_time_ms?: number | null
+          options?: Json
+          point_biserial?: number | null
+          question_text?: string
+          review_state?: string | null
+          source_language?: string | null
+          times_administered?: number | null
+          times_correct?: number | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      learning_style_profile: {
+        Row: {
+          auditory_score: number | null
+          id: string
+          images_viewed: number | null
+          preferred_style: string | null
+          student_id: string | null
+          text_read_time_seconds: number | null
+          text_score: number | null
+          updated_at: string | null
+          visual_score: number | null
+          voice_replays: number | null
+        }
+        Insert: {
+          auditory_score?: number | null
+          id?: string
+          images_viewed?: number | null
+          preferred_style?: string | null
+          student_id?: string | null
+          text_read_time_seconds?: number | null
+          text_score?: number | null
+          updated_at?: string | null
+          visual_score?: number | null
+          voice_replays?: number | null
+        }
+        Update: {
+          auditory_score?: number | null
+          id?: string
+          images_viewed?: number | null
+          preferred_style?: string | null
+          student_id?: string | null
+          text_read_time_seconds?: number | null
+          text_score?: number | null
+          updated_at?: string | null
+          visual_score?: number | null
+          voice_replays?: number | null
+        }
+        Relationships: []
+      }
+      points_history: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          points: number
+          source: string
+          student_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          points: number
+          source: string
+          student_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          points?: number
+          source?: string
+          student_id?: string | null
+        }
+        Relationships: []
+      }
+      practice_questions: {
+        Row: {
+          correct_index: number
+          created_at: string | null
+          difficulty: string | null
+          explanation: string | null
+          id: string
+          language: string | null
+          module_id: string
+          options: Json
+          order_index: number | null
+          question: string
+          topic_id: string
+        }
+        Insert: {
+          correct_index: number
+          created_at?: string | null
+          difficulty?: string | null
+          explanation?: string | null
+          id?: string
+          language?: string | null
+          module_id: string
+          options?: Json
+          order_index?: number | null
+          question: string
+          topic_id: string
+        }
+        Update: {
+          correct_index?: number
+          created_at?: string | null
+          difficulty?: string | null
+          explanation?: string | null
+          id?: string
+          language?: string | null
+          module_id?: string
+          options?: Json
+          order_index?: number | null
+          question?: string
+          topic_id?: string
+        }
+        Relationships: []
       }
       school_staff_credentials: {
         Row: {
@@ -240,6 +593,80 @@ export type Database = {
         }
         Relationships: []
       }
+      student_badges: {
+        Row: {
+          badge_id: string | null
+          earned_at: string | null
+          id: string
+          student_id: string | null
+        }
+        Insert: {
+          badge_id?: string | null
+          earned_at?: string | null
+          id?: string
+          student_id?: string | null
+        }
+        Update: {
+          badge_id?: string | null
+          earned_at?: string | null
+          id?: string
+          student_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_knowledge_state: {
+        Row: {
+          attempts: number | null
+          confidence_level: string | null
+          created_at: string | null
+          id: string
+          last_attempt_at: string | null
+          mastery_score: number | null
+          module_id: string
+          status: string | null
+          student_id: string | null
+          time_spent_seconds: number | null
+          topic_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          attempts?: number | null
+          confidence_level?: string | null
+          created_at?: string | null
+          id?: string
+          last_attempt_at?: string | null
+          mastery_score?: number | null
+          module_id: string
+          status?: string | null
+          student_id?: string | null
+          time_spent_seconds?: number | null
+          topic_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          attempts?: number | null
+          confidence_level?: string | null
+          created_at?: string | null
+          id?: string
+          last_attempt_at?: string | null
+          mastery_score?: number | null
+          module_id?: string
+          status?: string | null
+          student_id?: string | null
+          time_spent_seconds?: number | null
+          topic_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       student_profiles: {
         Row: {
           class_name: string | null
@@ -289,6 +716,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      summative_results: {
+        Row: {
+          badge_level: string | null
+          completed_at: string | null
+          id: string
+          mcq_score: number | null
+          module_id: string
+          passed: boolean | null
+          practical_score: number | null
+          reflection_score: number | null
+          student_id: string | null
+          total_score: number | null
+        }
+        Insert: {
+          badge_level?: string | null
+          completed_at?: string | null
+          id?: string
+          mcq_score?: number | null
+          module_id: string
+          passed?: boolean | null
+          practical_score?: number | null
+          reflection_score?: number | null
+          student_id?: string | null
+          total_score?: number | null
+        }
+        Update: {
+          badge_level?: string | null
+          completed_at?: string | null
+          id?: string
+          mcq_score?: number | null
+          module_id?: string
+          passed?: boolean | null
+          practical_score?: number | null
+          reflection_score?: number | null
+          student_id?: string | null
+          total_score?: number | null
+        }
+        Relationships: []
       }
       teacher_profiles: {
         Row: {
@@ -388,7 +854,7 @@ export type Database = {
         Args: { p_email: string }
         Returns: {
           email_exists: boolean
-          user_role: string
+          user_id: string
         }[]
       }
       check_username_available: {
@@ -397,22 +863,167 @@ export type Database = {
       }
       generate_class_code: { Args: never; Returns: string }
       generate_join_pin: { Args: never; Returns: string }
+      get_class_leaderboard: {
+        Args: { p_class_id: string; p_limit?: number }
+        Returns: {
+          badge_count: number
+          rank: number
+          streak_days: number
+          student_id: string
+          student_name: string
+          total_points: number
+        }[]
+      }
+      get_class_roster: {
+        Args: { p_class_id: string }
+        Returns: {
+          class_name: string
+          enrolled_at: string
+          enrollment_id: string
+          roll_number: string
+          student_id: string
+          student_name: string
+          student_phone: string
+        }[]
+      }
       get_teacher_class_ids: { Args: { p_user_id: string }; Returns: string[] }
       get_teacher_student_ids: { Args: never; Returns: string[] }
+      get_topic_context: {
+        Args: { p_language?: string; p_limit?: number; p_topic_id: string }
+        Returns: {
+          content: string
+          content_type: string
+          title: string
+        }[]
+      }
       get_user_enrolled_class_ids: {
         Args: { p_user_id: string }
         Returns: string[]
       }
       get_user_id_by_username: { Args: { p_username: string }; Returns: string }
+      increment_auditory_score: {
+        Args: { p_student_id: string }
+        Returns: undefined
+      }
+      increment_text_score: {
+        Args: { p_student_id: string; p_time_seconds?: number }
+        Returns: undefined
+      }
+      increment_visual_score: {
+        Args: { p_student_id: string; p_time_seconds?: number }
+        Returns: undefined
+      }
       is_class_teacher: { Args: { p_class_id: string }; Returns: boolean }
       is_enrolled_in_class: { Args: { p_class_id: string }; Returns: boolean }
       is_teacher: { Args: never; Returns: boolean }
+      match_curriculum: {
+        Args: {
+          filter_language?: string
+          filter_topic?: string
+          match_count?: number
+          match_threshold?: number
+          query_embedding: string
+        }
+        Returns: {
+          content: string
+          content_type: string
+          id: string
+          language: string
+          module_id: string
+          similarity: number
+          title: string
+          topic_id: string
+        }[]
+      }
+      match_curriculum_cosine: {
+        Args: {
+          filter_language?: string
+          filter_module?: string
+          match_count?: number
+          match_threshold?: number
+          query_embedding: string
+        }
+        Returns: {
+          content: string
+          content_type: string
+          id: string
+          language: string
+          module_id: string
+          similarity: number
+          title: string
+          topic_id: string
+        }[]
+      }
+      match_curriculum_hybrid: {
+        Args: {
+          filter_language?: string
+          match_count?: number
+          match_threshold?: number
+          query_embedding: string
+          query_text: string
+          vector_weight?: number
+        }
+        Returns: {
+          content: string
+          id: string
+          language: string
+          module_id: string
+          text_similarity: number
+          topic_id: string
+          vector_similarity: number
+          combined_score: number
+        }[]
+      }
       rotate_staff_pin: {
         Args: { p_new_pin: string; p_school_id: string }
         Returns: {
           error_message: string
+          new_pin: string
           success: boolean
         }[]
+      }
+      search_students_for_teacher: {
+        Args: { p_limit?: number; p_search_query: string }
+        Returns: {
+          class_name: string
+          name: string
+          phone: string
+          roll_number: string
+          user_id: string
+        }[]
+      }
+      submit_assessment: {
+        Args: { p_responses: Json; p_session_id: string; p_user_id: string }
+        Returns: Json
+      }
+      teacher_has_student_access: {
+        Args: { p_student_id: string; p_teacher_id: string }
+        Returns: boolean
+      }
+      update_knowledge_state: {
+        Args: {
+          p_ai_hint_requested: boolean
+          p_is_correct: boolean
+          p_module_id: string
+          p_response_time_ms: number
+          p_student_id: string
+          p_topic_id: string
+        }
+        Returns: Json
+      }
+      upsert_student_profile: {
+        Args: {
+          p_board: string
+          p_class: string
+          p_date_of_birth: string
+          p_gender: string
+          p_location: string
+          p_medium: string
+          p_name: string
+          p_phone: string
+          p_user_id: string
+        }
+        Returns: Json
       }
       verify_staff_pin: {
         Args: { p_pin: string; p_school_id: string }
@@ -432,23 +1043,25 @@ export type Database = {
   }
 }
 
-type DefaultSchema = Database[Extract<keyof Database, "public">]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof Database
+  schema: keyof DatabaseWithoutInternals
 }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
@@ -466,16 +1079,16 @@ export type Tables<
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof Database
+  schema: keyof DatabaseWithoutInternals
 }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
@@ -491,16 +1104,16 @@ export type TablesInsert<
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof Database
+  schema: keyof DatabaseWithoutInternals
 }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
@@ -512,3 +1125,43 @@ export type TablesUpdate<
       ? U
       : never
     : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const

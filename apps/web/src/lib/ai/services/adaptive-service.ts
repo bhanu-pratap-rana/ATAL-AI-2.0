@@ -49,6 +49,7 @@
 
 import { createClient } from '@/lib/supabase-server';
 import { authLogger } from '@/lib/auth-logger';
+import { validateUpdateKnowledgeStateResponse } from '@/lib/rpc-validators';
 
 /**
  * Learning style types (VARK model)
@@ -280,6 +281,7 @@ export class AdaptiveLearningService {
 
   /**
    * Update knowledge state after assessment or practice
+   * ATOMIC: Uses RPC for concurrent-safe updates (MEDIUM #1 fix)
    */
   async updateKnowledgeState(
     studentId: string,
@@ -290,97 +292,44 @@ export class AdaptiveLearningService {
     try {
       const supabase = await createClient();
 
-      // Get current state
-      const currentState = await this.getKnowledgeState(studentId, topicId);
-
-      // Calculate new mastery using BKT-inspired algorithm
-      const newMastery = this.calculateMastery(currentState, performance);
-      const confidenceLevel = this.getConfidenceLevel(newMastery);
-      const status = this.getTopicStatus(newMastery, currentState?.attempts || 0);
-
-      // Upsert knowledge state
-      await supabase.from('student_knowledge_state').upsert({
-        student_id: studentId,
-        module_id: moduleId,
-        topic_id: topicId,
-        mastery_score: newMastery,
-        confidence_level: confidenceLevel,
-        attempts: (currentState?.attempts || 0) + 1,
-        time_spent_seconds:
-          (currentState?.time_spent_seconds || 0) + Math.round(performance.responseTimeMs / 1000),
-        last_attempt_at: new Date().toISOString(),
-        status,
+      // ATOMIC: Use RPC function for race-condition-free update
+      // This performs calculation and update in single transaction with locking
+      const { data: rpcResultRaw, error } = await supabase.rpc('update_knowledge_state', {
+        p_student_id: studentId,
+        p_module_id: moduleId,
+        p_topic_id: topicId,
+        p_is_correct: performance.isCorrect,
+        p_response_time_ms: performance.responseTimeMs,
+        p_ai_hint_requested: performance.aiHintRequested,
       });
+
+      if (error) {
+        authLogger.error('[Adaptive] RPC failed to update knowledge state:', error);
+        return;
+      }
+
+      // SECURITY FIX: Runtime validation of RPC response structure
+      // Ensures response matches expected schema before accessing properties
+      const validationResult = validateUpdateKnowledgeStateResponse(rpcResultRaw);
+      if (!validationResult.success) {
+        authLogger.error('[Adaptive] RPC response validation failed:', validationResult.error);
+        return;
+      }
+
+      const rpcResult = validationResult.data;
+      if (!rpcResult.success) {
+        authLogger.error('[Adaptive] Knowledge state update failed:', rpcResult.error);
+      }
     } catch (error) {
       authLogger.error('[Adaptive] Error updating knowledge state:', error);
     }
   }
 
   /**
-   * Calculate new mastery score using BKT-inspired algorithm
+   * NOTE: Mastery calculation, confidence level, and topic status determination
+   * have been moved to the PostgreSQL RPC function update_knowledge_state() for
+   * atomic concurrent-safe updates. See migration 053.
    */
-  private calculateMastery(
-    currentState: KnowledgeState | null,
-    performance: TopicPerformance
-  ): number {
-    const currentMastery = currentState?.mastery_score || 0;
-
-    // Learning rate based on performance
-    const learningRate = performance.isCorrect ? 0.15 : -0.05;
-
-    // Adjust for response time (faster = more confident)
-    const timeBonus = performance.responseTimeMs < 10000 ? 0.02 : 0;
-
-    // Penalty for using hints
-    const hintPenalty = performance.aiHintRequested ? 0.03 : 0;
-
-    // Calculate new mastery
-    let newMastery = currentMastery + learningRate + timeBonus - hintPenalty;
-
-    // Apply forgetting curve if last attempt was long ago
-    if (currentState?.last_attempt_at) {
-      const daysSinceLastAttempt = this.daysSince(currentState.last_attempt_at);
-      if (daysSinceLastAttempt > 7) {
-        // Decay factor based on Ebbinghaus curve
-        const decayFactor = Math.exp(-0.1 * daysSinceLastAttempt);
-        newMastery = newMastery * (0.5 + 0.5 * decayFactor);
-      }
-    }
-
-    // Clamp to valid range
-    return Math.max(0, Math.min(100, newMastery));
-  }
-
-  /**
-   * Get confidence level from mastery score
-   */
-  private getConfidenceLevel(mastery: number): ConfidenceLevel {
-    if (mastery >= 80) return 'high';
-    if (mastery >= 50) return 'medium';
-    return 'low';
-  }
-
-  /**
-   * Get topic status from mastery and attempts
-   */
-  private getTopicStatus(
-    mastery: number,
-    attempts: number
-  ): 'not_started' | 'in_progress' | 'mastered' {
-    if (attempts === 0) return 'not_started';
-    if (mastery >= 70) return 'mastered';
-    return 'in_progress';
-  }
-
-  /**
-   * Calculate days since a date
-   */
-  private daysSince(dateStr: string): number {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    return Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  }
 
   /**
    * Get next recommended topic based on knowledge gaps

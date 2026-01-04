@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { PageTransition } from "@/components/ui/page-transition";
 import { OfflineBanner } from "@/components/offline/OfflineBanner";
 import { BackgroundSyncInitializer } from "@/components/offline/BackgroundSyncInitializer";
+import { GlobalErrorBoundary } from "@/components/errors/GlobalErrorBoundary";
 import "./globals.css";
 
 /* ============================================
@@ -103,12 +104,14 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <BackgroundSyncInitializer />
-          <OfflineBanner position="top" />
-          <PageTransition>
-            {children}
-          </PageTransition>
-          <Toaster />
+          <GlobalErrorBoundary>
+            <BackgroundSyncInitializer />
+            <OfflineBanner position="top" />
+            <PageTransition>
+              {children}
+            </PageTransition>
+            <Toaster />
+          </GlobalErrorBoundary>
         </ThemeProvider>
       </body>
     </html>

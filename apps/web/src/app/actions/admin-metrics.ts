@@ -5,6 +5,8 @@ import { fetchAllAuthUsers } from '@/lib/admin-utils'
 import { authLogger } from '@/lib/auth-logger'
 import { checkRateLimit } from '@/lib/rate-limiter-distributed'
 import { RATE_LIMITS } from '@/lib/constants/rate-limits'
+import { queryCache } from '@/lib/cache/query-cache'
+import type { SupabaseAuthUser } from '@/types/auth'
 
 export interface DashboardMetrics {
   totalSchools: number
@@ -31,8 +33,134 @@ export interface SchoolStats {
  */
 
 /**
+ * Internal function to fetch dashboard metrics from database
+ * This is wrapped by getDashboardMetrics() with query caching
+ */
+async function fetchDashboardMetricsFromDB(): Promise<DashboardMetrics> {
+  const supabase = await createAdminClient()
+
+  // PERFORMANCE: Run all metric queries in parallel to avoid N+1 query pattern
+  // This significantly improves dashboard load time, especially under load
+  const [
+    { count: schoolCount, error: schoolError },
+    { count: profileCount, error: teacherError },
+    { count: activePinCount, error: activePinError },
+    { count: inactivePinCount, error: inactivePinError },
+    { count: studentProfileCount, error: studentError },
+    authUsersResult,
+  ] = await Promise.all([
+    // Query 1: Get school count
+    supabase
+      .from('schools')
+      .select('*', { count: 'exact', head: true }),
+
+    // Query 2: Get teacher count from teacher_profiles table
+    supabase
+      .from('teacher_profiles')
+      .select('*', { count: 'exact', head: true }),
+
+    // Query 3: Get active PINs (deleted_at is NULL)
+    supabase
+      .from('school_staff_credentials')
+      .select('*', { count: 'exact', head: true })
+      .is('deleted_at', null),
+
+    // Query 4: Get inactive PINs (deleted_at is NOT NULL)
+    supabase
+      .from('school_staff_credentials')
+      .select('*', { count: 'exact', head: true })
+      .not('deleted_at', 'is', null),
+
+    // Query 5: Get student count from student_profiles table
+    supabase
+      .from('student_profiles')
+      .select('*', { count: 'exact', head: true }),
+
+    // Query 6: Get admin count from auth users (async operation)
+    (async () => {
+      try {
+        const authUsers = await fetchAllAuthUsers(supabase)
+        return {
+          authUsers,
+          error: null,
+        }
+      } catch (err) {
+        return {
+          authUsers: null,
+          error: err,
+        }
+      }
+    })(),
+  ])
+
+  // Check for errors
+  if (schoolError) {
+    authLogger.error('[getDashboardMetrics] Failed to get school count', schoolError)
+    throw schoolError
+  }
+
+  if (authUsersResult.error) {
+    authLogger.error('[getDashboardMetrics] Failed to fetch auth users for admin count', authUsersResult.error)
+    throw authUsersResult.error
+  }
+
+  // Extract counts with error handling for individual queries
+  let teacherCount = 0
+  if (teacherError) {
+    authLogger.error('[getDashboardMetrics] Failed to get teacher count from profiles', teacherError)
+  } else {
+    teacherCount = profileCount || 0
+  }
+
+  let studentCount = 0
+  if (studentError) {
+    authLogger.error('[getDashboardMetrics] Failed to get student count from profiles', studentError)
+  } else {
+    studentCount = studentProfileCount || 0
+  }
+
+  const activePins = activePinCount || 0
+  const inactivePins = inactivePinCount || 0
+
+  if (activePinError) {
+    authLogger.error('[getDashboardMetrics] Failed to get active PIN count', activePinError)
+  }
+  if (inactivePinError) {
+    authLogger.error('[getDashboardMetrics] Failed to get inactive PIN count', inactivePinError)
+  }
+
+  // Count admins from auth users
+  let adminCount = 0
+  let authTeacherCount = 0
+  const authUsers = authUsersResult.authUsers
+  if (authUsers && authUsers.length > 0) {
+    // Count admins (admin or super_admin role)
+    adminCount = authUsers.filter(
+      (u: SupabaseAuthUser) => u.app_metadata?.role === 'admin' || u.app_metadata?.role === 'super_admin'
+    ).length
+    // Count teachers from auth users
+    authTeacherCount = authUsers.filter(
+      (u: SupabaseAuthUser) => u.app_metadata?.role === 'teacher'
+    ).length
+  }
+
+  // Use the higher count between profiles and auth users
+  const finalTeacherCount = Math.max(teacherCount, authTeacherCount)
+
+  return {
+    totalSchools: schoolCount || 0,
+    totalTeachers: finalTeacherCount,
+    totalStudents: studentCount,
+    activePins: activePins,
+    inactivePins: inactivePins,
+    totalAdmins: adminCount,
+  }
+}
+
+/**
  * Get dashboard metrics for super admin dashboard
  * SECURITY: Requires admin or super_admin role
+ * PERFORMANCE: Results cached for 5 minutes to reduce database load
  */
 export async function getDashboardMetrics(): Promise<{ success: boolean; data?: DashboardMetrics; error?: string }> {
   try {
@@ -50,92 +178,13 @@ export async function getDashboardMetrics(): Promise<{ success: boolean; data?: 
       return { success: false, error: 'Too many requests. Please wait before trying again.' }
     }
 
-    const supabase = await createAdminClient()
-
-    // Get school count
-    const { count: schoolCount, error: schoolError } = await supabase
-      .from('schools')
-      .select('*', { count: 'exact', head: true })
-
-    if (schoolError) {
-      authLogger.error('[getDashboardMetrics] Failed to get school count', schoolError)
-      return {
-        success: false,
-        error: 'Failed to fetch school metrics',
-      }
-    }
-
-    // Get teacher count from teacher_profiles table
-    let teacherCount = 0
-    const { count: profileCount, error: teacherError } = await supabase
-      .from('teacher_profiles')
-      .select('*', { count: 'exact', head: true })
-
-    if (teacherError) {
-      authLogger.error('[getDashboardMetrics] Failed to get teacher count from profiles', teacherError)
-    } else {
-      teacherCount = profileCount || 0
-    }
-
-    // Get PIN metrics from school_staff_credentials table
-    const { count: activePinCount, error: pinError } = await supabase
-      .from('school_staff_credentials')
-      .select('*', { count: 'exact', head: true })
-
-    if (pinError) {
-      authLogger.error('[getDashboardMetrics] Failed to get PIN count', pinError)
-    }
-
-    const activePins = activePinCount || 0
-    const inactivePins = (schoolCount || 0) - activePins
-
-    // Get student count from student_profiles table (actual enrolled students)
-    let studentCount = 0
-    const { count: studentProfileCount, error: studentError } = await supabase
-      .from('student_profiles')
-      .select('*', { count: 'exact', head: true })
-
-    if (studentError) {
-      authLogger.error('[getDashboardMetrics] Failed to get student count from profiles', studentError)
-    } else {
-      studentCount = studentProfileCount || 0
-    }
-
-    // Get admin count from auth users - CRITICAL: required for admin dashboard
-    let adminCount = 0
-    let authTeacherCount = 0
-    try {
-      const authUsers = await fetchAllAuthUsers(supabase)
-      if (authUsers && authUsers.length > 0) {
-        // Count admins (admin or super_admin role)
-        adminCount = authUsers.filter(
-          (u: any) => u.app_metadata?.role === 'admin' || u.app_metadata?.role === 'super_admin'
-        ).length
-        // Count teachers from auth users
-        authTeacherCount = authUsers.filter(
-          (u: any) => u.app_metadata?.role === 'teacher'
-        ).length
-      }
-    } catch (err) {
-      // CRITICAL: Admin count fetch failure should be reported, not silently ignored
-      authLogger.error('[getDashboardMetrics] Failed to fetch auth users for admin count', err)
-      return {
-        success: false,
-        error: 'Failed to fetch admin metrics - critical authentication data unavailable',
-      }
-    }
-
-    // Use the higher count between profiles and auth users
-    const finalTeacherCount = Math.max(teacherCount, authTeacherCount)
-
-    const metrics: DashboardMetrics = {
-      totalSchools: schoolCount || 0,
-      totalTeachers: finalTeacherCount,
-      totalStudents: studentCount,
-      activePins: activePins,
-      inactivePins: inactivePins,
-      totalAdmins: adminCount,
-    }
+    // PERFORMANCE: Use query cache - 5 minute TTL for dashboard metrics
+    // This reduces database load significantly as this query is called frequently
+    const metrics = await queryCache.getOrFetch(
+      'admin:dashboard:metrics',
+      fetchDashboardMetricsFromDB,
+      5 * 60 * 1000 // 5 minutes
+    )
 
     authLogger.info('[getDashboardMetrics] Metrics fetched successfully', { ...metrics })
     return {
@@ -212,79 +261,33 @@ export async function getSchoolStatsByDistrict(): Promise<{
     const schoolData = schools as SchoolData[]
     const schoolIds = schoolData.map(s => s.id)
 
-    // OPTIMIZATION: Batch fetch all data instead of per-school queries (N+1 fix)
-    // Get all teachers for all schools in one query
-    const { data: allTeachers, error: teacherError } = await supabase
-      .from('teacher_profiles')
-      .select('school_id')
-      .in('school_id', schoolIds)
+    // PERFORMANCE FIX: Use database aggregation RPC instead of client-side pagination
+    // Old pattern: Multiple paginated queries + in-memory aggregation (20-50MB memory)
+    // New pattern: Single RPC with GROUP BY aggregation (<1MB memory)
+    const { data: metricsData, error: metricsError } = await supabase.rpc('get_school_metrics');
 
-    if (teacherError) {
-      authLogger.error('[getSchoolStatsByDistrict] Failed to get teachers', teacherError)
-    }
-
-    // Get all students for all schools in one query
-    const { data: allStudents, error: studentError } = await supabase
-      .from('student_profiles')
-      .select('school_id')
-      .in('school_id', schoolIds)
-
-    if (studentError) {
-      authLogger.error('[getSchoolStatsByDistrict] Failed to get students', studentError)
-    }
-
-    // Get all PINs for all schools in one query
-    const { data: allPins, error: pinError } = await supabase
-      .from('school_staff_credentials')
-      .select('school_id, deleted_at')
-      .in('school_id', schoolIds)
-
-    if (pinError) {
-      authLogger.error('[getSchoolStatsByDistrict] Failed to get PINs', pinError)
-    }
-
-    // Build maps for O(1) lookup
-    const teacherCountBySchool = new Map<string, number>()
-    const studentCountBySchool = new Map<string, number>()
-    const pinsBySchool = new Map<string, { isActive: boolean }>()
-
-    // Aggregate teachers by school
-    if (allTeachers) {
-      for (const teacher of allTeachers) {
-        const count = teacherCountBySchool.get(teacher.school_id) || 0
-        teacherCountBySchool.set(teacher.school_id, count + 1)
-      }
-    }
-
-    // Aggregate students by school
-    if (allStudents) {
-      for (const student of allStudents) {
-        const count = studentCountBySchool.get(student.school_id) || 0
-        studentCountBySchool.set(student.school_id, count + 1)
-      }
-    }
-
-    // Aggregate PINs by school
-    if (allPins) {
-      for (const pin of allPins) {
-        const isActive = !pin.deleted_at
-        pinsBySchool.set(pin.school_id, { isActive })
-      }
-    }
-
-    // Build results using pre-fetched data (no additional queries)
-    const schoolStats: SchoolStats[] = schoolData.map(school => {
-      const hasActivePIN = pinsBySchool.get(school.id)?.isActive || false
+    if (metricsError) {
+      authLogger.error('[getSchoolStatsByDistrict] Failed to get school metrics', metricsError)
       return {
-        schoolId: school.id,
-        schoolName: school.school_name,
-        districtName: school.district || 'Unknown',
-        teacherCount: teacherCountBySchool.get(school.id) || 0,
-        studentCount: studentCountBySchool.get(school.id) || 0,
-        pinCount: pinsBySchool.has(school.id) ? 1 : 0,
-        activePinCount: hasActivePIN ? 1 : 0,
+        success: false,
+        error: 'Failed to fetch school statistics',
       }
-    })
+    }
+
+    // Filter metrics for schools in the specified district (if district parameter was used)
+    const schoolIdSet = new Set(schoolIds);
+    const filteredMetrics = metricsData?.filter((m: any) => schoolIdSet.has(m.school_id)) || [];
+
+    // Build results from RPC response
+    const schoolStats: SchoolStats[] = filteredMetrics.map((metrics: any) => ({
+      schoolId: metrics.school_id,
+      schoolName: metrics.school_name,
+      districtName: schoolData.find(s => s.id === metrics.school_id)?.district || 'Unknown',
+      teacherCount: Number(metrics.teacher_count),
+      studentCount: Number(metrics.student_count),
+      pinCount: Number(metrics.active_pin_count) > 0 ? 1 : 0,
+      activePinCount: Number(metrics.active_pin_count),
+    }))
 
     return {
       success: true,
@@ -610,21 +613,6 @@ export async function getAllTeachers(): Promise<{
       return { success: false, error: 'Failed to fetch teacher profiles' }
     }
 
-    // OPTIMIZATION: Fetch auth users and build map of only the IDs we need
-    // This prevents N+1 query problem where we fetched all 1000+ auth users just to match emails
-    const teacherIds = new Set((profiles || []).map((p: any) => p.user_id))
-
-    const adminClient = await createAdminClient()
-    const allAuthUsers = await fetchAllAuthUsers(adminClient)
-
-    // Create map of only the auth users we need (teachers in this instance)
-    const userMap = new Map<string, any>()
-    allAuthUsers.forEach((u: any) => {
-      if (teacherIds.has(u.id)) {
-        userMap.set(u.id, u)
-      }
-    })
-
     // Type for profile data with joined school
     // Note: Double cast required because Supabase's TypeScript types don't properly
     // infer joined relations. This is the documented pattern for typed joins.
@@ -635,14 +623,30 @@ export async function getAllTeachers(): Promise<{
       phone: string | null
       school_code: string
       created_at: string
-      schools: { school_name: string }
+      schools: Array<{ school_name: string }>
     }
+
+    // OPTIMIZATION: Fetch auth users and build map of only the IDs we need
+    // This prevents N+1 query problem where we fetched all 1000+ auth users just to match emails
+    const teacherIds = new Set((profiles ?? []).map((p) => (p as TeacherProfileData).user_id))
+
+    const adminClient = await createAdminClient()
+    const allAuthUsers = await fetchAllAuthUsers(adminClient)
+
+    // Create map of only the auth users we need (teachers in this instance)
+    const userMap = new Map<string, SupabaseAuthUser>()
+    allAuthUsers.forEach((u: SupabaseAuthUser) => {
+      if (teacherIds.has(u.id)) {
+        userMap.set(u.id, u)
+      }
+    })
 
     const typedProfiles = (profiles ?? []) as unknown as TeacherProfileData[]
     const result = typedProfiles
       .filter((profile): profile is TeacherProfileData => {
         // Validate required fields exist
-        if (!profile.schools || !profile.schools.school_name) {
+        // INNER JOIN guarantees schools is not empty, but check first element
+        if (!profile.schools || profile.schools.length === 0 || !profile.schools[0]?.school_name) {
           authLogger.warn('[getAllTeachers] Skipping profile with missing school data', {
             userId: profile.user_id,
             profile,
@@ -658,7 +662,7 @@ export async function getAllTeachers(): Promise<{
           email: authUser?.email || '',
           name: profile.name || 'Unknown',
           phone: profile.phone || null,
-          schoolName: profile.schools?.school_name || 'Unknown',  // Safe access with fallback
+          schoolName: profile.schools?.[0]?.school_name || 'Unknown',  // Safe access with fallback
           schoolCode: profile.school_code || 'N/A',
           createdAt: profile.created_at,
         }
@@ -726,20 +730,6 @@ export async function getAllStudents(): Promise<{
       return { success: false, error: 'Failed to fetch student profiles' }
     }
 
-    // OPTIMIZATION: Fetch auth users and build map of only the IDs we need
-    // This prevents N+1 query problem where we fetched all 1000+ auth users just to match emails
-    const studentIds = new Set((profiles || []).map((p: any) => p.user_id))
-
-    const allAuthUsers = await fetchAllAuthUsers(supabase)
-
-    // Create map of only the auth users we need (students in this instance)
-    const userMap = new Map<string, any>()
-    allAuthUsers.forEach((u: any) => {
-      if (studentIds.has(u.id)) {
-        userMap.set(u.id, u)
-      }
-    })
-
     // Type for profile data
     interface StudentProfileData {
       user_id: string
@@ -750,26 +740,52 @@ export async function getAllStudents(): Promise<{
       created_at: string
     }
 
-    const typedProfiles = (profiles ?? []) as StudentProfileData[]
-    const result = typedProfiles.map((profile) => {
-      const authUser = userMap.get(profile.user_id)
-      const username = authUser?.user_metadata?.username as string || null
-      const authType = authUser?.user_metadata?.auth_type as string || 'email'
-      // For username auth, don't show the internal email
-      const displayEmail = authType === 'username' ? '' : (authUser?.email || '')
+    // OPTIMIZATION: Fetch auth users and build map of only the IDs we need
+    // This prevents N+1 query problem where we fetched all 1000+ auth users just to match emails
+    const studentIds = new Set((profiles ?? []).map((p) => (p as StudentProfileData).user_id))
 
-      return {
-        id: profile.user_id,
-        email: displayEmail,
-        username: username,
-        name: profile.name || 'Unknown',
-        phone: profile.phone || null,
-        className: profile.class_name || null,
-        schoolName: profile.school_name || null,
-        createdAt: profile.created_at,
-        lastSignIn: authUser?.last_sign_in_at || null,
+    const allAuthUsers = await fetchAllAuthUsers(supabase)
+
+    // Create map of only the auth users we need (students in this instance)
+    const userMap = new Map<string, SupabaseAuthUser>()
+    allAuthUsers.forEach((u: SupabaseAuthUser) => {
+      if (studentIds.has(u.id)) {
+        userMap.set(u.id, u)
       }
     })
+
+    const typedProfiles = (profiles ?? []) as StudentProfileData[]
+    const result = typedProfiles
+      .filter((profile): profile is StudentProfileData => {
+        // Validate required fields exist before processing
+        if (!profile.user_id || !profile.created_at) {
+          authLogger.warn('[getAllStudents] Skipping profile with missing required data', {
+            userId: profile.user_id,
+            profile,
+          })
+          return false
+        }
+        return true
+      })
+      .map((profile) => {
+        const authUser = userMap.get(profile.user_id)
+        const username = (authUser?.user_metadata?.username as string | undefined) || null
+        const authType = (authUser?.user_metadata?.auth_type as string | undefined) || 'email'
+        // For username auth, don't show the internal email
+        const displayEmail = authType === 'username' ? '' : (authUser?.email || '')
+
+        return {
+          id: profile.user_id,
+          email: displayEmail,
+          username: username,
+          name: profile.name || 'Unknown',
+          phone: profile.phone || null,
+          className: profile.class_name || null,
+          schoolName: profile.school_name || null,
+          createdAt: profile.created_at,
+          lastSignIn: (authUser?.last_sign_in_at as string | null | undefined) || null,
+        }
+      })
 
     return { success: true, data: result }
   } catch (error) {

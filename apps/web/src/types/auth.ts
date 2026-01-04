@@ -197,3 +197,90 @@ export interface School {
  * Used by RoleGuard component for access control.
  */
 export type AdminRole = 'super_admin' | 'admin' | 'teacher' | 'student'
+
+// ============================================================================
+// RPC FUNCTION RESPONSE TYPES
+// ============================================================================
+
+/**
+ * Response type for submit_assessment RPC function
+ * Ensures type safety when calling the atomic assessment submission function
+ */
+export interface SubmitAssessmentRPCResponse {
+  success: boolean
+  error?: string
+  alreadySubmitted?: boolean
+  score?: number
+  totalQuestions?: number
+  correctAnswers?: number
+  moduleBreakdown?: Record<string, unknown>
+}
+
+/**
+ * Supabase Auth User type with app metadata for roles
+ * Used for type-safe role checking throughout the application
+ */
+export interface SupabaseAuthUser {
+  id: string
+  email?: string
+  user_metadata?: Record<string, unknown>
+  app_metadata?: {
+    role?: 'student' | 'teacher' | 'admin' | 'super_admin'
+    [key: string]: unknown
+  }
+  created_at?: string
+  updated_at?: string
+  last_sign_in_at?: string | null
+  [key: string]: unknown
+}
+
+/**
+ * Response type for update_knowledge_state RPC function
+ * Returns updated mastery score and learning state with BKT-based metrics
+ * Maps to: apps/db/migrations/053_add_update_knowledge_state_rpc.sql
+ */
+export interface UpdateKnowledgeStateRPCResponse {
+  success: boolean
+  error?: string
+  mastery_score?: number
+  confidence_level?: 'low' | 'medium' | 'high'
+  attempts?: number
+  status?: 'not_started' | 'in_progress' | 'completed' | 'mastered'
+  time_spent_seconds?: number
+}
+
+/**
+ * Response type for upsert_student_profile RPC function
+ * Creates or updates student profile with validation
+ * Maps to: apps/db/migrations/051_add_upsert_student_profile.sql
+ */
+export interface UpsertStudentProfileRPCResponse {
+  success: boolean
+  error?: string
+  code?: string
+}
+
+/**
+ * Response type for get_adaptive_questions RPC function
+ * Returns questions selected by adaptive algorithm
+ */
+export interface GetAdaptiveQuestionsRPCResponse {
+  success: boolean
+  error?: string
+  questions?: Array<{
+    id: string
+    itemId: string
+    module: string
+    difficulty: number
+    type: string
+    text: string
+  }>
+}
+
+/**
+ * Discriminated union type for RPC errors
+ * Use with type guards to safely handle RPC responses
+ */
+export type RPCResult<T> =
+  | { success: true; data: T }
+  | { success: false; error: string }

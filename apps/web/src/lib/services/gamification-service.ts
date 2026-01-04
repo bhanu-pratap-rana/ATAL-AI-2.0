@@ -113,45 +113,37 @@ export class GamificationService {
     try {
       const supabase = await createClient();
 
-      // Get all badges
-      const { data: allBadges } = await supabase.from('badges').select('*');
+      // PERFORMANCE FIX: Use single RPC call instead of N+1 loop
+      // Old pattern: 12-102 queries (1 + 10 badges × 1-10 criteria checks each)
+      // New pattern: 1 query (batch RPC function)
+      const { data: awardedBadges, error } = await supabase.rpc(
+        'batch_check_and_award_badges',
+        { p_student_id: studentId }
+      );
 
-      // Get already earned badges
-      const { data: earnedBadges } = await supabase
-        .from('student_badges')
-        .select('badge_id')
-        .eq('student_id', studentId);
-
-      const earnedIds = new Set(earnedBadges?.map((b) => b.badge_id) || []);
-
-      // Check each unearned badge
-      const newlyEarned: Badge[] = [];
-
-      for (const badge of allBadges || []) {
-        if (earnedIds.has(badge.id)) continue;
-
-        const earned = await this.checkCriteria(studentId, badge.unlock_criteria);
-
-        if (earned) {
-          // Award badge
-          await supabase.from('student_badges').insert({
-            student_id: studentId,
-            badge_id: badge.id,
-          });
-
-          // Award bonus points
-          await this.awardPoints(
-            studentId,
-            badge.points_value,
-            'badge_earned',
-            `Earned badge: ${badge.name_en}`
-          );
-
-          newlyEarned.push(badge);
-        }
+      if (error) {
+        authLogger.error('[Gamification] Batch badge check failed:', error);
+        return [];
       }
 
-      return newlyEarned;
+      if (!awardedBadges || awardedBadges.length === 0) {
+        return [];
+      }
+
+      // Transform RPC response to Badge objects
+      return awardedBadges.map((b: any) => ({
+        id: b.badge_id,
+        name_en: b.badge_name_en,
+        name_hi: b.badge_name_hi,
+        name_as: b.badge_name_as,
+        points_value: b.points_awarded,
+        description_en: '',
+        description_hi: '',
+        description_as: '',
+        icon: '',
+        unlock_criteria: {},
+        created_at: new Date().toISOString(),
+      }));
     } catch (error) {
       authLogger.error('[Gamification] Error checking badges:', error instanceof Error ? error : { error: String(error) });
       return [];

@@ -18,6 +18,7 @@ import Link from 'next/link';
 import { getCurrentUser, createClient } from '@/lib/supabase-server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { AdaptiveRecommendations } from '@/components/learn/AdaptiveRecommendations';
 
 // Module definitions with Assamese cultural context
 // Colors use theme tokens: primary (orange), cyan, success (green), warning, info
@@ -249,6 +250,11 @@ export default async function LearnPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Adaptive Recommendations */}
+        <Suspense fallback={null}>
+          <AdaptiveRecommendations userId={user.id} limit={3} />
+        </Suspense>
 
         {/* Module Cards */}
         <div className="space-y-4">

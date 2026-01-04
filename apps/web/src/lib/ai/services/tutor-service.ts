@@ -50,6 +50,7 @@ import { AdaptiveLearningService, adaptiveService } from './adaptive-service';
 import { buildSystemPrompt, getFeedbackPrompt } from '../prompts/socratic-tutor';
 import { createClient } from '@/lib/supabase-server';
 import { authLogger } from '@/lib/auth-logger';
+import { aiProviderBreakers } from '@/lib/circuit-breaker';
 
 /**
  * Supported languages
@@ -148,27 +149,42 @@ export class TutorService {
       { role: 'user' as const, content: params.message },
     ];
 
-    // Stream response using Vercel AI SDK
-    const result = streamText({
-      model,
-      system: systemPrompt,
-      messages,
-      ...MODEL_CONFIGS.tutor,
-      onFinish: async ({ text, usage }) => {
-        // Log interaction for teacher visibility
-        await this.logInteraction({
-          studentId: params.studentId,
-          sessionId: params.sessionId,
-          topicId: params.topicId,
-          messageRole: 'assistant',
-          messageContent: text,
-          inputMode: params.inputMode || 'text',
-          language: params.language,
-          tokensUsed: usage?.totalTokens || 0,
-          responseTimeMs: Date.now() - startTime,
-        });
+    // Stream response using Vercel AI SDK with circuit breaker protection
+    // This prevents cascading failures if the AI provider is down
+    const breaker = aiProviderBreakers.getBreaker('tutor-chat', {
+      failureThreshold: 5,
+      timeout: 60000,
+      onStateChange: (state) => {
+        if (state === 'OPEN') {
+          authLogger.error('[TutorService] AI provider circuit breaker OPEN - service degraded');
+        } else if (state === 'CLOSED') {
+          authLogger.info('[TutorService] AI provider circuit breaker CLOSED - service recovered');
+        }
       },
     });
+
+    const result = await breaker.execute(async () =>
+      streamText({
+        model,
+        system: systemPrompt,
+        messages,
+        ...MODEL_CONFIGS.tutor,
+        onFinish: async ({ text, usage }) => {
+          // Log interaction for teacher visibility
+          await this.logInteraction({
+            studentId: params.studentId,
+            sessionId: params.sessionId,
+            topicId: params.topicId,
+            messageRole: 'assistant',
+            messageContent: text,
+            inputMode: params.inputMode || 'text',
+            language: params.language,
+            tokensUsed: usage?.totalTokens || 0,
+            responseTimeMs: Date.now() - startTime,
+          });
+        },
+      })
+    );
 
     return result;
   }
@@ -214,13 +230,20 @@ export class TutorService {
       { role: 'user' as const, content: params.message },
     ];
 
-    // Generate response
-    const result = await generateText({
-      model,
-      system: systemPrompt,
-      messages,
-      ...MODEL_CONFIGS.tutor,
+    // Generate response with circuit breaker protection
+    const breaker = aiProviderBreakers.getBreaker('tutor-generate', {
+      failureThreshold: 5,
+      timeout: 60000,
     });
+
+    const result = await breaker.execute(() =>
+      generateText({
+        model,
+        system: systemPrompt,
+        messages,
+        ...MODEL_CONFIGS.tutor,
+      })
+    );
 
     const responseTimeMs = Date.now() - startTime;
 
@@ -260,22 +283,29 @@ export class TutorService {
     const model = getAIModel('gemini');
     const feedbackPrompt = getFeedbackPrompt(params.language);
 
-    const result = await generateText({
-      model,
-      system: feedbackPrompt,
-      messages: [
-        {
-          role: 'user',
-          content: `Question: ${params.question}
+    const breaker = aiProviderBreakers.getBreaker('tutor-feedback', {
+      failureThreshold: 5,
+      timeout: 60000,
+    });
+
+    const result = await breaker.execute(() =>
+      generateText({
+        model,
+        system: feedbackPrompt,
+        messages: [
+          {
+            role: 'user',
+            content: `Question: ${params.question}
 Student's Answer: ${params.studentAnswer}
 Was it correct? ${params.isCorrect ? 'Yes' : 'No'}
 ${!params.isCorrect ? `Correct answer hint: The answer relates to "${params.correctAnswer.substring(0, 20)}..."` : ''}
 
 Please provide encouraging feedback.`,
-        },
-      ],
-      ...MODEL_CONFIGS.assessment,
-    });
+          },
+        ],
+        ...MODEL_CONFIGS.assessment,
+      })
+    );
 
     return result.text;
   }
@@ -306,23 +336,30 @@ Please provide encouraging feedback.`,
 
     const model = getAIModel('gemini');
 
-    const result = await generateText({
-      model,
-      system: `You are providing a ${hintLevel} to help a student answer a question.
+    const breaker = aiProviderBreakers.getBreaker('tutor-hint', {
+      failureThreshold: 5,
+      timeout: 60000,
+    });
+
+    const result = await breaker.execute(() =>
+      generateText({
+        model,
+        system: `You are providing a ${hintLevel} to help a student answer a question.
 Never give away the answer directly. Use the Socratic method.
 Language: ${params.language === 'en' ? 'English' : params.language === 'hi' ? 'Hindi' : 'Assamese'}`,
-      messages: [
-        {
-          role: 'user',
-          content: `Question: ${params.question}
+        messages: [
+          {
+            role: 'user',
+            content: `Question: ${params.question}
 Context: ${context}
 Previous attempts: ${params.previousAttempts}
 
 Provide a ${hintLevel} to help the student.`,
-        },
-      ],
-      ...MODEL_CONFIGS.retrieval,
-    });
+          },
+        ],
+        ...MODEL_CONFIGS.retrieval,
+      })
+    );
 
     return result.text;
   }

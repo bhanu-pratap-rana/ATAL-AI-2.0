@@ -7,6 +7,18 @@ import { createAdminClient } from '@/lib/supabase-server'
 import { authLogger } from '@/lib/auth-logger'
 
 /**
+ * Supabase Admin API User type wrapper
+ * Uses flexible typing for compatibility with Supabase SDK
+ * @internal
+ */
+export type SupabaseAuthUser = Record<string, unknown> & {
+  id: string
+  email?: string
+  app_metadata?: Record<string, unknown>
+  user_metadata?: Record<string, unknown>
+}
+
+/**
  * Fetch all auth users with pagination support
  * Handles unlimited users without memory overflow
  *
@@ -16,7 +28,7 @@ import { authLogger } from '@/lib/auth-logger'
 export async function fetchAllAuthUsers(
   adminClient: Awaited<ReturnType<typeof createAdminClient>>
 ) {
-  const allUsers: any[] = []
+  const allUsers: SupabaseAuthUser[] = []
   let page = 1
   const perPage = 1000
 
@@ -39,7 +51,7 @@ export async function fetchAllAuthUsers(
         break
       }
 
-      allUsers.push(...data.users)
+      allUsers.push(...(data.users as unknown as SupabaseAuthUser[]))
 
       // Break if we got fewer users than requested (reached end)
       if (data.users.length < perPage) {

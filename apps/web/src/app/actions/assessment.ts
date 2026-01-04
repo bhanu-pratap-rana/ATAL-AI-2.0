@@ -2,11 +2,14 @@
 
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
-import { createClient, getCurrentUser, verifyStudentAuth } from '@/lib/supabase-server'
+import { createClient, verifyStudentAuth } from '@/lib/supabase-server'
 import { AssessmentSubmitSchema } from '@/lib/validation-schemas'
 import { authLogger } from '@/lib/auth-logger'
 import { checkRateLimit } from '@/lib/rate-limiter-distributed'
+import { queryCache } from '@/lib/cache/query-cache'
 import { RATE_LIMITS } from '@/lib/constants/rate-limits'
+import { validateSubmitAssessmentResponse } from '@/lib/rpc-validators'
+import { gamificationService } from '@/lib/services/gamification-service'
 
 /**
  * OFFLINE SYNC INTEGRATION:
@@ -339,9 +342,10 @@ export async function getAdaptiveQuestions(language: 'en' | 'hi' | 'as' = 'en') 
       // Track category counts for content balancing
       answeredByCategory[nextItem.category] = (answeredByCategory[nextItem.category] || 0) + 1
 
-      // Simulate initial response pattern for variety (assume 50% correct at average ability)
-      // This creates diversity in question difficulty selection
-      // Real theta updates happen during the actual assessment
+      // Simulate alternating response pattern for initial question selection
+      // This deterministically alternates correct/incorrect to create diversity
+      // in question difficulty selection during the first few items.
+      // Actual theta is updated from real student responses during assessment.
       if (i % 2 === 0) {
         // Simulate correct answer -> increase theta slightly
         currentTheta = Math.min(currentTheta + 0.1, CAT_CONFIG.THETA_BOUNDS.max)
@@ -697,123 +701,74 @@ export async function submitAssessment(
       return { success: false, error: 'Unauthorized' }
     }
 
-    // SECURITY: Check if session already submitted (idempotency check)
-    // This prevents duplicate submissions if network fails after insert but before update
-    const { data: fullSession, error: fullSessionError } = await supabase
-      .from('assessment_sessions')
-      .select('submitted_at')
-      .eq('id', validatedData.sessionId)
-      .maybeSingle()
+    // ATOMIC RPC CALL: Use submit_assessment() function for atomic transaction
+    // This ensures responses and session submission happen together (prevents partial failures)
+    // RPC function handles idempotency, authorization, and all database operations in one atomic transaction
+    const rpcResponses = validatedData.responses.map((r) => ({
+      itemId: r.itemId,
+      module: r.module,
+      isCorrect: r.isCorrect,
+      rtMs: r.rtMs,
+      focusBlurCount: r.focusBlurCount,
+      chosenOption: r.chosenOption,
+    }))
 
-    if (fullSessionError) {
-      return { success: false, error: 'Failed to verify session status' }
+    // TYPE SAFE RPC CALL: Properly typed RPC response with runtime validation
+    const { data: rpcResultRaw, error: rpcError } = await supabase.rpc(
+      'submit_assessment',
+      {
+        p_session_id: validatedData.sessionId,
+        p_user_id: auth.user!.id,
+        p_responses: rpcResponses,
+      }
+    )
+
+    if (rpcError) {
+      authLogger.error('[submitAssessment] RPC function call failed', {
+        userId: auth.user!.id,
+        sessionId: validatedData.sessionId,
+        rpcError: rpcError.message,
+      })
+      return { success: false, error: 'Failed to submit assessment. Please try again.' }
     }
 
-    if (fullSession?.submitted_at) {
-      // Session already submitted - return success without duplicate insert (idempotent)
+    // SECURITY FIX: Runtime validation of RPC response structure
+    // Ensures response matches expected schema before accessing properties
+    const validationResult = validateSubmitAssessmentResponse(rpcResultRaw)
+    if (!validationResult.success) {
+      authLogger.error('[submitAssessment] RPC response validation failed', {
+        userId: auth.user!.id,
+        sessionId: validatedData.sessionId,
+        validationError: validationResult.error,
+      })
+      return { success: false, error: 'Failed to submit assessment. Please try again.' }
+    }
+
+    const rpcResult = validationResult.data
+
+    if (!rpcResult.success) {
+      const errorMessage = rpcResult.error || 'Unknown error during assessment submission'
+      authLogger.warn('[submitAssessment] RPC function returned error', {
+        userId: auth.user!.id,
+        sessionId: validatedData.sessionId,
+        rpcError: errorMessage,
+      })
+      return { success: false, error: errorMessage }
+    }
+
+    // Handle idempotent response (session was already submitted)
+    if (rpcResult.alreadySubmitted) {
       authLogger.info('[submitAssessment] Session already submitted (idempotent retry)', {
         userId: auth.user!.id,
         sessionId: validatedData.sessionId,
       })
-
-      // Extract score from existing responses for consistent response
-      const { data: existingResponses, error: responseError } = await supabase
-        .from('assessment_responses')
-        .select('is_correct, module')
-        .eq('session_id', validatedData.sessionId)
-
-      if (responseError || !existingResponses) {
-        return { success: true, message: 'Assessment already submitted' }
-      }
-
-      const totalQuestions = existingResponses.length
-      const correctAnswers = existingResponses.filter((r) => r.is_correct).length
-      const score = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0
-
-      const moduleBreakdown = existingResponses.reduce(
-        (acc, r) => {
-          if (!acc[r.module]) {
-            acc[r.module] = { total: 0, correct: 0 }
-          }
-          const moduleStats = acc[r.module]!
-          moduleStats.total++
-          if (r.is_correct) {
-            moduleStats.correct++
-          }
-          return acc
-        },
-        {} as Record<string, { total: number; correct: number }>
-      )
-
-      return {
-        success: true,
-        score,
-        totalQuestions,
-        correctAnswers,
-        moduleBreakdown,
-        message: 'Assessment already submitted',
-      }
     }
 
-    // Batch insert responses using validated data
-    const responsesToInsert = validatedData.responses.map((r) => ({
-      session_id: validatedData.sessionId,
-      item_id: r.itemId,
-      module: r.module,
-      is_correct: r.isCorrect,
-      rt_ms: r.rtMs,
-      focus_blur_count: r.focusBlurCount,
-      chosen_option: r.chosenOption,
-    }))
-
-    const { error: insertError } = await supabase
-      .from('assessment_responses')
-      .insert(responsesToInsert)
-
-    if (insertError) {
-      authLogger.error('[submitAssessment] Failed to insert responses', {
-        userId: auth.user!.id,
-        sessionId: validatedData.sessionId,
-        error: insertError.message,
-      })
-      return { success: false, error: 'Failed to save assessment responses' }
-    }
-
-    // Update session submitted_at - MUST come after insert succeeds
-    const { error: updateError } = await supabase
-      .from('assessment_sessions')
-      .update({ submitted_at: new Date().toISOString() })
-      .eq('id', validatedData.sessionId)
-
-    if (updateError) {
-      // ERROR: Responses were inserted but session not marked as submitted
-      // This is a critical state - log it and try to clean up
-      authLogger.error('[submitAssessment] Failed to mark session as submitted', {
-        userId: auth.user!.id,
-        sessionId: validatedData.sessionId,
-        error: updateError.message,
-        warning: 'Assessment responses inserted but session not marked as submitted',
-      })
-
-      // Attempt to delete the inserted responses to maintain consistency
-      const { error: deleteError } = await supabase
-        .from('assessment_responses')
-        .delete()
-        .eq('session_id', validatedData.sessionId)
-
-      if (deleteError) {
-        authLogger.error('[submitAssessment] Failed to cleanup responses after update failure', {
-          userId: auth.user!.id,
-          sessionId: validatedData.sessionId,
-          deleteError: deleteError.message,
-        })
-      }
-
-      return { success: false, error: 'Failed to finalize assessment submission. Please try again.' }
-    }
-
-    // Calculate score and module breakdown from validated responses
-    const totalQuestions = validatedData.responses.length
+    // Extract results from RPC response
+    const score = rpcResult.score ?? 0
+    const totalQuestions = rpcResult.totalQuestions ?? 0
+    const correctAnswers = rpcResult.correctAnswers ?? 0
+    const moduleBreakdown = rpcResult.moduleBreakdown ?? {}
 
     // Prevent division by zero if no responses submitted
     if (totalQuestions === 0) {
@@ -821,23 +776,54 @@ export async function submitAssessment(
       return { success: false, error: 'No responses submitted for assessment' }
     }
 
-    const correctAnswers = validatedData.responses.filter((r) => r.isCorrect).length
-    const score = Math.round((correctAnswers / totalQuestions) * 100)
+    // PERFORMANCE: Invalidate related caches after successful assessment submission
+    // This ensures fresh data is fetched on next request
+    authLogger.info('[submitAssessment] Invalidating affected caches', {
+      userId: auth.user!.id,
+      sessionId: validatedData.sessionId,
+    })
 
-    // Group by module
-    const moduleBreakdown = validatedData.responses.reduce((acc, r) => {
-      if (!acc[r.module]) {
-        acc[r.module] = { total: 0, correct: 0 }
-      }
-      const moduleStats = acc[r.module]!
-      moduleStats.total++
-      if (r.isCorrect) {
-        moduleStats.correct++
-      }
-      return acc
-    }, {} as Record<string, { total: number; correct: number }>)
+    // Invalidate student profile cache (assessment might have changed mastery/progress)
+    queryCache.invalidate(`student:${auth.user!.id}:profile`)
+
+    // Invalidate student progress/dashboard caches
+    queryCache.invalidate(`student:${auth.user!.id}:progress`)
+    queryCache.invalidate(`student:${auth.user!.id}:assessment`)
+
+    // Invalidate teacher dashboards (student progress changed)
+    // Find the class this assessment belongs to and invalidate teacher overview
+    queryCache.invalidate(`teacher::assessment:overview`)
+
+    // Invalidate admin dashboards (metrics changed)
+    queryCache.invalidate(`admin:dashboard:metrics`)
 
     revalidatePath('/app/assessment')
+    
+    // GAMIFICATION: Award points and check for badge unlocks
+    try {
+      await gamificationService.awardPoints(
+        auth.user!.id,
+        20,
+        'assessment_complete',
+        `Completed assessment: ${validatedData.sessionId}`
+      )
+      
+      const newBadges = await gamificationService.checkAndAwardBadges(auth.user!.id)
+      
+      authLogger.info('[submitAssessment] Gamification points awarded', {
+        userId: auth.user!.id,
+        sessionId: validatedData.sessionId,
+        pointsAwarded: 20,
+        newBadgesCount: newBadges.length,
+      })
+    } catch (gamificationError) {
+      // Don't fail the assessment if gamification fails
+      authLogger.warn('[submitAssessment] Gamification error (non-critical)', {
+        userId: auth.user!.id,
+        error: gamificationError instanceof Error ? gamificationError.message : 'Unknown error',
+      })
+    }
+    
     return {
       success: true,
       score,

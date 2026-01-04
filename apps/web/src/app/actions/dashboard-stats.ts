@@ -116,21 +116,31 @@ export async function getDashboardStats(): Promise<{
 
     // Calculate average score from responses (joined through assessment_sessions)
     // SECURITY: Only fetch responses from the current user's sessions
-    const { data: responses, error: responsesError } = await supabase
+    // PERFORMANCE FIX: Use database aggregation instead of client-side filtering
+    // Old: Fetch all responses, filter in JS (.filter((r: any) => r.is_correct))
+    // New: COUNT with WHERE clause in database
+    // FIX: Use denormalized user_id column (added in Migration 038) instead of invalid join syntax
+    const { count: totalResponses, error: totalError } = await supabase
       .from('assessment_responses')
-      .select(`
-        is_correct,
-        assessment_sessions!inner(user_id)
-      `)
-      .eq('assessment_sessions.user_id', user.id)
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)  // ✅ Fixed: use denormalized column, not 'assessment_sessions.user_id'
+
+    const { count: correctResponses, error: correctError } = await supabase
+      .from('assessment_responses')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)  // ✅ Fixed: use denormalized column, not 'assessment_sessions.user_id'
+      .eq('is_correct', true)
+
+    if (totalError || correctError) {
+      authLogger.error('[getDashboardStats] Error fetching response counts', {
+        totalError,
+        correctError
+      })
+    }
 
     let averageScore: number | null = null
-    if (responses && responses.length > 0) {
-      // Type assertion needed due to Supabase's join type inference
-      // Using double cast pattern (as unknown as) is the documented way to handle join types
-      const typedResponses = responses as unknown as Array<{ is_correct: boolean }>
-      const correctCount = typedResponses.filter((r: any) => r.is_correct).length
-      averageScore = Math.round((correctCount / typedResponses.length) * 100)
+    if (totalResponses && totalResponses > 0 && correctResponses !== null) {
+      averageScore = Math.round((correctResponses / totalResponses) * 100)
     }
 
     // Calculate streak (consecutive days with activity)
@@ -281,11 +291,13 @@ async function calculateStreak(supabase: Awaited<ReturnType<typeof createClient>
 
     if (!sessions || sessions.length === 0) return 0
 
-    // Get unique dates
-    const dates = [...new Set(sessions.map(s => {
+    // PERFORMANCE FIX: Convert dates array to Set for O(1) lookup
+    // Old: dates.includes(dateKey) is O(n) inside 365-iteration loop = O(n²)
+    // New: dateSet.has(dateKey) is O(1) inside loop = O(n)
+    const dateSet = new Set(sessions.map(s => {
       const date = new Date(s.started_at)
       return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
-    }))]
+    }))
 
     // Calculate streak from today
     let streak = 0
@@ -297,7 +309,7 @@ async function calculateStreak(supabase: Awaited<ReturnType<typeof createClient>
       checkDate.setDate(checkDate.getDate() - i)
       const dateKey = `${checkDate.getFullYear()}-${checkDate.getMonth()}-${checkDate.getDate()}`
 
-      if (dates.includes(dateKey)) {
+      if (dateSet.has(dateKey)) {
         streak++
       } else if (i > 0) {
         // Allow skipping today (user might not have done activity yet today)

@@ -71,12 +71,20 @@ export function StudentProgressGrid({ classId, teacherId }: StudentProgressGridP
         return;
       }
 
-      const { data: progressData } = await supabase
-        .from('student_knowledge_state')
-        .select('*')
-        .in('student_id', studentIds);
+      // PERFORMANCE FIX: Use RPC for database aggregation instead of client-side filtering
+      // Old pattern: Fetch all rows, filter in JS (O(n²))
+      // New pattern: Database GROUP BY aggregation (O(n log n))
+      const { data: progressData, error: progressError } = await supabase.rpc(
+        'get_class_student_progress',
+        { p_student_ids: studentIds }
+      );
 
-      // Aggregate progress by student
+      if (progressError) {
+        clientLogger.error('[StudentProgressGrid] Error fetching progress:', progressError);
+        throw progressError;
+      }
+
+      // Create map for quick lookup
       const progressMap = new Map<string, StudentProgress>();
 
       for (const enrollment of data || []) {
@@ -89,35 +97,16 @@ export function StudentProgressGrid({ classId, teacherId }: StudentProgressGridP
         }> | null;
         const studentData = studentArray?.[0] || null;
 
-        const studentProgress = (progressData || []).filter(
-          (p) => p.student_id === studentId
-        );
+        // Find progress data for this student from RPC results
+        const progress = progressData?.find((p: any) => p.student_id === studentId);
 
-        const masteredTopics = studentProgress.filter(
-          (p) => p.status === 'mastered'
-        ).length;
-        const totalMastery = studentProgress.reduce(
-          (sum, p) => sum + (p.mastery_score || 0),
-          0
-        );
-        const avgMastery =
-          studentProgress.length > 0
-            ? totalMastery / studentProgress.length
-            : 0;
+        const masteredTopics = progress?.topics_mastered || 0;
+        const totalTopics = progress?.topics_total || 0;
+        const avgMastery = progress?.avg_mastery_score || 0;
+        const latestActivity = progress?.last_activity || null;
 
-        // Check if at-risk (multiple topics with low mastery after many attempts)
-        const isAtRisk = studentProgress.some(
-          (p) => p.mastery_score < 40 && p.attempts > 3
-        );
-
-        // Get latest activity
-        const latestActivity = studentProgress.reduce(
-          (latest, p) =>
-            !latest || (p.last_attempt_at && p.last_attempt_at > latest)
-              ? p.last_attempt_at
-              : latest,
-          null as string | null
-        );
+        // Check if at-risk (low average mastery)
+        const isAtRisk = avgMastery < 40 && totalTopics > 0;
 
         progressMap.set(studentId, {
           id: `${studentId}-progress`,

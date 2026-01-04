@@ -20,7 +20,13 @@
 
 # next.js
 /.next/
+/.next
+.next/
+.next
 /out/
+/.swc/
+.swc/
+.swc
 
 # production
 /build
@@ -34,9 +40,17 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+*.log
+test-output.log
+*-test.log
+test-results.json
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+
+# auth files - contain session tokens
+playwright/.auth/*.json
 
 # vercel
 .vercel

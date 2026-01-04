@@ -11,7 +11,7 @@
 -- - Assessment queries: ~60% faster
 -- - Class enrollment queries: ~40% faster
 --
--- Total indexes added: 12
+-- Total indexes added: 11 (irt_item_bank index removed - column doesn't exist)
 -- Estimated size: ~15 MB (negligible)
 --
 -- =====================================================
@@ -20,43 +20,28 @@
 -- PART 1: Student/Teacher Profile Indexes
 -- =====================================================
 
--- classes.school_id FK index (MISSING)
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_classes_school_id
-  ON classes(school_id)
-  WHERE school_id IS NOT NULL;
+  ON classes(school_id) WHERE school_id IS NOT NULL;
 
 -- =====================================================
 -- PART 2: Adaptive Learning Table Indexes
 -- =====================================================
 
--- student_knowledge_state.student_id (MISSING)
--- Used for: Getting student's knowledge across all topics
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_student_knowledge_state_student_id
   ON student_knowledge_state(student_id);
 
--- student_knowledge_state composite index for unique constraint lookups
--- Used for: Checking if student completed topic (upsert operations)
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_student_knowledge_state_student_topic
-  ON student_knowledge_state(student_id, module_id, topic_id)
-  WHERE student_id IS NOT NULL;
+  ON student_knowledge_state(student_id, module_id, topic_id);
 
--- learning_paths.student_id (MISSING)
--- Used for: Getting student's personalized learning paths
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_learning_paths_student_id
   ON learning_paths(student_id);
 
--- learning_style_profile.student_id (MISSING)
--- Used for: Loading student's learning style preferences
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_learning_style_profile_student_id
   ON learning_style_profile(student_id);
 
--- practice_questions.student_id (MISSING)
--- Used for: Retrieving student's practice attempts
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_practice_questions_student_id
   ON practice_questions(student_id);
 
--- ai_tutor_interactions.student_id (MISSING)
--- Used for: Loading chat history and AI tutor context
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_ai_tutor_interactions_student_id
   ON ai_tutor_interactions(student_id);
 
@@ -64,35 +49,17 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_ai_tutor_interactions_student_id
 -- PART 3: Gamification & Points Indexes
 -- =====================================================
 
--- student_badges composite index for unique constraint
--- Used for: Checking if student already earned badge (upsert)
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_student_badges_student_badge
-  ON student_badges(student_id, badge_id)
-  WHERE student_id IS NOT NULL;
+  ON student_badges(student_id, badge_id);
 
--- points_history.student_id (MISSING)
--- Used for: Getting student's points history and leaderboard
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_points_history_student_id
   ON points_history(student_id);
 
--- =====================================================
--- PART 4: Assessment & IRT Indexes
--- =====================================================
+-- Note: irt_item_bank does not have a student_id column, so this index was not created
+-- It was originally intended but the table schema doesn't support it
 
--- irt_item_bank.student_id (MISSING)
--- Used for: Retrieving student-specific item difficulty estimates
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_irt_item_bank_student_id
-  ON irt_item_bank(student_id);
-
--- =====================================================
--- PART 5: Composite Performance Indexes
--- =====================================================
-
--- enrollments composite index for faster class->student lookups
--- Used for: Teacher dashboard, attendance, progress tracking
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_enrollments_class_student
-  ON enrollments(class_id, student_id)
-  WHERE class_id IS NOT NULL AND student_id IS NOT NULL;
+  ON enrollments(class_id, student_id);
 
 -- =====================================================
 -- Verification
@@ -126,7 +93,6 @@ WHERE tablename IN (
   'ai_tutor_interactions',
   'student_badges',
   'points_history',
-  'irt_item_bank',
   'enrollments'
 );
 
@@ -152,7 +118,6 @@ WHERE schemaname = 'public'
     'ai_tutor_interactions',
     'student_badges',
     'points_history',
-    'irt_item_bank',
     'enrollments'
   ))
 ORDER BY idx_scan DESC;

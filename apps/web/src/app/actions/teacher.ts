@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { createClient, verifyTeacherAuth, verifyClassOwnership } from '@/lib/supabase-server'
 import { checkTeacherMutationRateLimit } from '@/lib/rate-limiter-distributed'
+import { queryCache } from '@/lib/cache/query-cache'
 import {
   ANALYTICS_WINDOW_DAYS,
   RAPID_RESPONSE_THRESHOLD_MS,
@@ -57,7 +58,6 @@ interface StudentKnowledgeState {
   total_topics: number
   average_mastery: number
   last_attempt_at: string | null
-  [key: string]: unknown
 }
 
 /**
@@ -69,7 +69,6 @@ interface StudentKnowledgeState {
 interface StudentEnrollment {
   student: AuthUser[] | AuthUser | undefined
   student_knowledge_state: StudentKnowledgeState[] | StudentKnowledgeState | null
-  [key: string]: unknown
 }
 
 /**
@@ -89,7 +88,6 @@ interface AITutorInteraction {
   tokens_used: number
   created_at: string
   student?: AuthUser
-  [key: string]: unknown
 }
 
 /**
@@ -546,6 +544,141 @@ export async function getClassAssessmentResults(classId: string): Promise<{
 /**
  * Get all classes with assessment summary for a teacher
  */
+/**
+ * Internal function to fetch teacher assessment overview from database
+ * This is wrapped by getTeacherAssessmentOverview() with query caching
+ */
+async function fetchTeacherAssessmentOverviewFromDB(teacherId: string): Promise<{
+  classes: Array<{
+    classId: string
+    className: string
+    subject: string | null
+    studentCount: number
+    assessmentsTaken: number
+    averageScore: number | null
+  }>
+  totalAssessments: number
+  overallAverageScore: number | null
+}> {
+  const supabase = await createClient()
+
+  // Get all classes for this teacher
+  const { data: classes, error: classesError } = await supabase
+    .from('classes')
+    .select('id, name, subject')
+    .eq('teacher_id', teacherId)
+    .order('created_at', { ascending: false })
+
+  if (classesError) {
+    throw classesError
+  }
+
+  const classResults = []
+  let totalAssessments = 0
+  let totalScore = 0
+  let scoredAssessments = 0
+
+  // OPTIMIZATION: Batch fetch all data for all classes (prevents N+1 queries)
+  const classIds = (classes || []).map(c => c.id)
+
+  // Get enrollment counts for all classes in one query
+  const { data: allEnrollments } = await supabase
+    .from('enrollments')
+    .select('class_id')
+    .in('class_id', classIds)
+
+  // Get all assessment sessions for all classes in one query
+  const { data: allSessions } = await supabase
+    .from('assessment_sessions')
+    .select('id, class_id')
+    .in('class_id', classIds)
+    .not('submitted_at', 'is', null)
+
+  // Get all responses for all sessions in one query
+  const sessionIds = allSessions?.map(s => s.id) || []
+  const { data: allResponses } = await supabase
+    .from('assessment_responses')
+    .select('is_correct, session_id')
+    .in('session_id', sessionIds)
+
+  // Build lookup maps for efficient data association
+  const enrollmentCountByClass = new Map<string, number>()
+  const sessionsByClass = new Map<string, string[]>()
+  const responseCountBySession = new Map<string, { correct: number; total: number }>()
+
+  // Count enrollments by class
+  allEnrollments?.forEach(enrollment => {
+    const count = (enrollmentCountByClass.get(enrollment.class_id) || 0) + 1
+    enrollmentCountByClass.set(enrollment.class_id, count)
+  })
+
+  // Index sessions by class_id
+  allSessions?.forEach(session => {
+    if (!sessionsByClass.has(session.class_id)) {
+      sessionsByClass.set(session.class_id, [])
+    }
+    sessionsByClass.get(session.class_id)!.push(session.id)
+  })
+
+  // Count responses per session (both correct and total) in single pass
+  allResponses?.forEach(response => {
+    const current = responseCountBySession.get(response.session_id) || { correct: 0, total: 0 }
+    current.total += 1
+    if (response.is_correct) {
+      current.correct += 1
+    }
+    responseCountBySession.set(response.session_id, current)
+  })
+
+  // Process class results using pre-fetched data (no queries in loop)
+  for (const cls of classes || []) {
+    const studentCount = enrollmentCountByClass.get(cls.id) || 0
+    const sessions = sessionsByClass.get(cls.id) || []
+    const assessmentsTaken = sessions.length
+    totalAssessments += assessmentsTaken
+
+    // Calculate average score from pre-fetched responses
+    let averageScore: number | null = null
+    if (sessions.length > 0) {
+      let totalCorrect = 0
+      let totalQuestions = 0
+
+      for (const sessionId of sessions) {
+        const counts = responseCountBySession.get(sessionId)
+        if (counts) {
+          totalCorrect += counts.correct
+          totalQuestions += counts.total
+        }
+      }
+
+      if (totalQuestions > 0) {
+        averageScore = Math.round((totalCorrect / totalQuestions) * 100)
+        totalScore += averageScore
+        scoredAssessments++
+      }
+    }
+
+    classResults.push({
+      classId: cls.id,
+      className: cls.name,
+      subject: cls.subject,
+      studentCount,
+      assessmentsTaken,
+      averageScore
+    })
+  }
+
+  const overallAverageScore = scoredAssessments > 0
+    ? Math.round(totalScore / scoredAssessments)
+    : null
+
+  return {
+    classes: classResults,
+    totalAssessments,
+    overallAverageScore
+  }
+}
+
 export async function getTeacherAssessmentOverview(): Promise<{
   success: boolean
   data?: {
@@ -569,125 +702,17 @@ export async function getTeacherAssessmentOverview(): Promise<{
       return auth.error!
     }
 
-    const supabase = await createClient()
-
-    // Get all classes for this teacher
-    const { data: classes, error: classesError } = await supabase
-      .from('classes')
-      .select('id, name, subject')
-      .eq('teacher_id', auth.user!.id)
-      .order('created_at', { ascending: false })
-
-    if (classesError) {
-      return { success: false, error: 'Failed to fetch classes' }
-    }
-
-    const classResults = []
-    let totalAssessments = 0
-    let totalScore = 0
-    let scoredAssessments = 0
-
-    // OPTIMIZATION: Batch fetch all data for all classes (prevents N+1 queries)
-    const classIds = (classes || []).map(c => c.id)
-
-    // Get enrollment counts for all classes in one query
-    const { data: allEnrollments } = await supabase
-      .from('enrollments')
-      .select('class_id')
-      .in('class_id', classIds)
-
-    // Get all assessment sessions for all classes in one query
-    const { data: allSessions } = await supabase
-      .from('assessment_sessions')
-      .select('id, class_id')
-      .in('class_id', classIds)
-      .not('submitted_at', 'is', null)
-
-    // Get all responses for all sessions in one query
-    const sessionIds = allSessions?.map(s => s.id) || []
-    const { data: allResponses } = await supabase
-      .from('assessment_responses')
-      .select('is_correct, session_id')
-      .in('session_id', sessionIds)
-
-    // Build lookup maps for efficient data association
-    const enrollmentCountByClass = new Map<string, number>()
-    const sessionsByClass = new Map<string, string[]>()
-    const responseCountBySession = new Map<string, { correct: number; total: number }>()
-
-    // Count enrollments by class
-    allEnrollments?.forEach(enrollment => {
-      const count = (enrollmentCountByClass.get(enrollment.class_id) || 0) + 1
-      enrollmentCountByClass.set(enrollment.class_id, count)
-    })
-
-    // Index sessions by class_id
-    allSessions?.forEach(session => {
-      if (!sessionsByClass.has(session.class_id)) {
-        sessionsByClass.set(session.class_id, [])
-      }
-      sessionsByClass.get(session.class_id)!.push(session.id)
-    })
-
-    // Count responses per session (both correct and total) in single pass
-    allResponses?.forEach(response => {
-      const current = responseCountBySession.get(response.session_id) || { correct: 0, total: 0 }
-      current.total += 1
-      if (response.is_correct) {
-        current.correct += 1
-      }
-      responseCountBySession.set(response.session_id, current)
-    })
-
-    // Process class results using pre-fetched data (no queries in loop)
-    for (const cls of classes || []) {
-      const studentCount = enrollmentCountByClass.get(cls.id) || 0
-      const sessions = sessionsByClass.get(cls.id) || []
-      const assessmentsTaken = sessions.length
-      totalAssessments += assessmentsTaken
-
-      // Calculate average score from pre-fetched responses
-      let averageScore: number | null = null
-      if (sessions.length > 0) {
-        let totalCorrect = 0
-        let totalQuestions = 0
-
-        for (const sessionId of sessions) {
-          const counts = responseCountBySession.get(sessionId)
-          if (counts) {
-            totalCorrect += counts.correct
-            totalQuestions += counts.total
-          }
-        }
-
-        if (totalQuestions > 0) {
-          averageScore = Math.round((totalCorrect / totalQuestions) * 100)
-          totalScore += averageScore
-          scoredAssessments++
-        }
-      }
-
-      classResults.push({
-        classId: cls.id,
-        className: cls.name,
-        subject: cls.subject,
-        studentCount,
-        assessmentsTaken,
-        averageScore
-      })
-    }
-
-    const overallAverageScore = scoredAssessments > 0
-      ? Math.round(totalScore / scoredAssessments)
-      : null
+    // PERFORMANCE: Use query cache - 3 minute TTL for teacher dashboard
+    // Teacher dashboards change more frequently than admin, so shorter TTL
+    const data = await queryCache.getOrFetch(
+      `teacher:${auth.user!.id}:assessment:overview`,
+      () => fetchTeacherAssessmentOverviewFromDB(auth.user!.id),
+      3 * 60 * 1000 // 3 minutes
+    )
 
     return {
       success: true,
-      data: {
-        classes: classResults,
-        totalAssessments,
-        overallAverageScore
-      }
+      data
     }
   } catch (error) {
     authLogger.error('[getTeacherAssessmentOverview] Unexpected error', error)
@@ -772,14 +797,22 @@ export async function getClassAnalytics(classId: string) {
         return { success: false, error: 'Failed to fetch assessment responses' }
       }
 
-      // Calculate total time per user
+      // PERFORMANCE FIX: Pre-build lookup map to prevent O(n²) scans
+      // Build a Map of session_id -> responses for O(1) lookup instead of filter for each session
+      const responsesBySession = new Map<string, Array<typeof responses[0]>>()
+      responses?.forEach(r => {
+        if (!responsesBySession.has(r.session_id)) {
+          responsesBySession.set(r.session_id, [])
+        }
+        responsesBySession.get(r.session_id)!.push(r)
+      })
+
+      // Calculate total time per user with optimized lookup
       const userTimes = new Map<string, number>()
 
       for (const session of userSessions) {
-        // Filter responses that belong to this specific session's user
-        const sessionResponses = responses?.filter(r =>
-          r.session_id === session.id
-        ) || []
+        // O(1) lookup instead of O(n) filter operation
+        const sessionResponses = responsesBySession.get(session.id) || []
 
         const totalMs = sessionResponses.reduce((sum, r) => sum + (r.rt_ms || 0), 0)
         const currentTime = userTimes.get(session.user_id) || 0
@@ -937,8 +970,32 @@ export async function exportStudentProgress(classId: string) {
         ? enrollment.student_knowledge_state[0]
         : enrollment.student_knowledge_state
 
+      // Sanitize user-generated content to prevent formula injection and XSS
+      const sanitizeName = (name: unknown): string => {
+        const str = String(name || 'Unknown')
+        // SECURITY FIX: Comprehensive CSV formula injection prevention
+        // Protect against all Excel/CSV injection vectors
+        const dangerousChars = ['=', '+', '-', '@', '\t', '\r', '\n']
+        const firstChar = str[0] || ''
+        
+        // Check for formula injection attempts
+        if (dangerousChars.includes(firstChar)) {
+          // Prefix with single quote to neutralize formula
+          return "'" + str.replace(/"/g, '""')
+        }
+        
+        // Check for hidden formula injection (e.g., "  =cmd")
+        const trimmedStr = str.trim()
+        if (trimmedStr.length > 0 && dangerousChars.includes(trimmedStr[0])) {
+          return "'" + str.replace(/"/g, '""')
+        }
+        
+        // Escape quotes for CSV safety
+        return str.replace(/"/g, '""')
+      }
+
       return {
-        name: profile?.raw_user_meta_data?.full_name || 'Unknown',
+        name: sanitizeName(profile?.raw_user_meta_data?.full_name),
         email: profile?.id || '',
         progress_percentage: state ? Math.round((state.topics_mastered / state.total_topics) * 100) : 0,
         mastery_score: state?.average_mastery || 0,
