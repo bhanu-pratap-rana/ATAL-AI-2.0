@@ -1,19 +1,11 @@
--- =====================================================
--- Migration 127: Fix get_school_metrics Schema References
--- =====================================================
---
--- Purpose: Fix Migration 125 bugs
--- Bug #1: References non-existent 'pins' table (should be 'school_staff_credentials')
--- Bug #2: References non-existent 'classes.school_id' column (classes has no school_id)
---
--- Fix: Drop buggy function and recreate with correct schema references
---
--- =====================================================
+-- Migration 127: Fix get_school_metrics() function schema mismatches
+-- Issue: Migration 125 referenced non-existent tables/columns
+-- Fix: Use correct table names and join paths
 
--- Drop the buggy function from Migration 125
+-- Drop the buggy function
 DROP FUNCTION IF EXISTS get_school_metrics();
 
--- Recreate with corrected schema references
+-- Create corrected version
 CREATE OR REPLACE FUNCTION get_school_metrics()
 RETURNS TABLE (
   school_id UUID,
@@ -43,32 +35,23 @@ BEGIN
     s.name as school_name,
     COUNT(DISTINCT tp.user_id) as teacher_count,
     COUNT(DISTINCT sp.user_id) as student_count,
-    -- FIX #1: Use school_staff_credentials instead of 'pins' (which doesn't exist)
+    -- FIX #1: Use school_staff_credentials instead of non-existent "pins" table
     COUNT(DISTINCT ssc.id) FILTER (WHERE ssc.deleted_at IS NULL) as active_pin_count,
-    -- FIX #2: Join classes via teacher_profiles (classes has no school_id column)
-    -- classes.teacher_id → teacher_profiles.user_id → teacher_profiles.school_id
+    -- FIX #2: Join classes via teacher_profiles (no direct school_id on classes table)
     COUNT(DISTINCT c.id) as total_classes
   FROM schools s
   LEFT JOIN teacher_profiles tp ON tp.school_id = s.id
   LEFT JOIN student_profiles sp ON sp.school_id = s.id
   LEFT JOIN school_staff_credentials ssc ON ssc.school_id = s.id  -- ✅ Correct table name
-  LEFT JOIN classes c ON c.teacher_id = tp.user_id                -- ✅ Indirect join via teachers
+  LEFT JOIN classes c ON c.teacher_id = tp.user_id                -- ✅ Indirect join through teacher_profiles
   GROUP BY s.id, s.name
   ORDER BY s.name;
 END;
 $$;
 
--- Grant execution to authenticated users
 GRANT EXECUTE ON FUNCTION get_school_metrics() TO authenticated;
 
--- Add helpful comment
-COMMENT ON FUNCTION get_school_metrics IS 
-'Returns aggregated metrics for all schools (admin only). Fixed schema references from Migration 125.';
-
--- =====================================================
--- Verification
--- =====================================================
--- Test: SELECT * FROM get_school_metrics();
--- Expected: Returns school metrics without error
--- =====================================================
-
+COMMENT ON FUNCTION get_school_metrics IS
+'Returns aggregated metrics for all schools (admin only). Fixed schema references:
+- Uses school_staff_credentials instead of non-existent pins table
+- Joins classes via teacher_profiles.user_id (no school_id on classes table)';

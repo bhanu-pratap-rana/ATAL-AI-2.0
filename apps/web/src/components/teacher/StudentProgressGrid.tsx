@@ -98,7 +98,15 @@ export function StudentProgressGrid({ classId, teacherId }: StudentProgressGridP
         const studentData = studentArray?.[0] || null;
 
         // Find progress data for this student from RPC results
-        const progress = progressData?.find((p: any) => p.student_id === studentId);
+        // Type: GetClassStudentProgressResponse from apps/db/migrations/124_get_class_student_progress.sql
+        const progress = progressData?.find((p: {
+          student_id: string;
+          student_name: string;
+          total_topics: number;
+          topics_mastered: number;
+          avg_mastery_score: number;
+          last_activity: string | null;
+        }) => p.student_id === studentId);
 
         const masteredTopics = progress?.topics_mastered || 0;
         const totalTopics = progress?.topics_total || 0;

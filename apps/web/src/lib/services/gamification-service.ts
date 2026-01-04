@@ -131,7 +131,14 @@ export class GamificationService {
       }
 
       // Transform RPC response to Badge objects
-      return awardedBadges.map((b: any) => ({
+      // Type: BatchCheckAwardBadgesResponse from apps/db/migrations/123_batch_check_award_badges.sql
+      return awardedBadges.map((b: {
+        badge_id: string;
+        badge_name_en: string;
+        badge_name_hi: string;
+        badge_name_as: string;
+        points_awarded: number;
+      }) => ({
         id: b.badge_id,
         name_en: b.badge_name_en,
         name_hi: b.badge_name_hi,
