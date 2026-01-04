@@ -392,9 +392,10 @@ export async function getTeacherProfile() {
     const supabase = await createClient()
 
     // Use .maybeSingle() for cleaner handling - returns null if no profile exists
+    // OPTIMIZATION: Select only needed columns instead of *
     const { data: profile, error } = await supabase
       .from('teacher_profiles')
-      .select('*')
+      .select('user_id, name, phone, school_id, school_code, created_at, updated_at')
       .eq('user_id', user.id)
       .maybeSingle()
 

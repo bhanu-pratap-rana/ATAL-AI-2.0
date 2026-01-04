@@ -130,9 +130,10 @@ async function fetchStudentProfileFromDB(userId: string) {
   const supabase = await createClient()
 
   // Use maybeSingle to avoid 406 error when profile doesn't exist
+  // OPTIMIZATION: Select only needed columns instead of *
   const { data: profile, error } = await supabase
     .from('student_profiles')
-    .select('*')
+    .select('user_id, name, gender, date_of_birth, phone, location, medium, board, class, created_at, updated_at')
     .eq('user_id', userId)
     .maybeSingle()
 
