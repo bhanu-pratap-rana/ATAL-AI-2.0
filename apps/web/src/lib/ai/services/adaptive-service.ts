@@ -162,9 +162,10 @@ export class AdaptiveLearningService {
     try {
       const supabase = await createClient();
 
+      // OPTIMIZATION: Select only needed columns instead of *
       const { data, error } = await supabase
         .from('learning_style_profile')
-        .select('*')
+        .select('id, student_id, visual_score, text_score, auditory_score, preferred_style, images_viewed, voice_replays, text_read_time_seconds, updated_at')
         .eq('student_id', studentId)
         .maybeSingle();
 
@@ -261,9 +262,10 @@ export class AdaptiveLearningService {
     try {
       const supabase = await createClient();
 
+      // OPTIMIZATION: Select only needed columns instead of *
       const { data, error } = await supabase
         .from('student_knowledge_state')
-        .select('*')
+        .select('id, student_id, topic_id, module_id, mastery_score, confidence_level, attempts, time_spent_seconds, last_attempt_at, status, created_at, updated_at')
         .eq('student_id', studentId)
         .eq('topic_id', topicId)
         .maybeSingle();

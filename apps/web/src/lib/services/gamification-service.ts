@@ -400,9 +400,10 @@ export class GamificationService {
     try {
       const supabase = await createClient();
 
+      // OPTIMIZATION: Select only needed columns instead of *
       const { data } = await supabase
         .from('points_history')
-        .select('*')
+        .select('id, student_id, points, reason, description, created_at')
         .eq('student_id', studentId)
         .order('created_at', { ascending: false })
         .limit(limit);
