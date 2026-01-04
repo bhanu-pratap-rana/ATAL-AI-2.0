@@ -111,11 +111,11 @@ export async function createClass(name: string, subject?: string) {
     // SECURITY: Verify caller is authenticated and is a teacher
     const auth = await verifyTeacherAuth('createClass')
     if (!auth.authorized) {
-      return auth.error!
+      return auth.error
     }
 
     // SECURITY: Rate limit teacher mutations to prevent abuse
-    if (!(await checkTeacherMutationRateLimit(auth.user!.id))) {
+    if (!(await checkTeacherMutationRateLimit(auth.user.id))) {
       return { success: false, error: 'Too many requests. Please try again later.' }
     }
 
@@ -126,7 +126,7 @@ export async function createClass(name: string, subject?: string) {
       .insert({
         name,
         subject: subject || null,
-        teacher_id: auth.user!.id,
+        teacher_id: auth.user.id,
       })
       .select()
       .single()
@@ -154,11 +154,11 @@ export async function updateClass(classId: string, name: string, subject?: strin
     // SECURITY: Verify caller is authenticated and owns this class
     const auth = await verifyClassOwnership('updateClass', validatedInput.classId)
     if (!auth.authorized) {
-      return auth.error!
+      return auth.error
     }
 
     // SECURITY: Rate limit teacher mutations to prevent abuse
-    if (!(await checkTeacherMutationRateLimit(auth.user!.id))) {
+    if (!(await checkTeacherMutationRateLimit(auth.user.id))) {
       return { success: false, error: 'Too many requests. Please try again later.' }
     }
 
@@ -201,12 +201,12 @@ export async function deleteClass(classId: string) {
     // SECURITY: Verify caller is authenticated and owns this class
     const auth = await verifyClassOwnership('deleteClass', validatedClassId)
     if (!auth.authorized) {
-      return auth.error!
+      return auth.error
     }
 
     // SECURITY: Rate limit teacher mutations to prevent abuse
-    if (!(await checkTeacherMutationRateLimit(auth.user!.id))) {
-      authLogger.warn('[deleteClass] Rate limit exceeded', { userId: auth.user!.id })
+    if (!(await checkTeacherMutationRateLimit(auth.user.id))) {
+      authLogger.warn('[deleteClass] Rate limit exceeded', { userId: auth.user.id })
       return { success: false, error: 'Too many requests. Please try again later.' }
     }
 
@@ -244,12 +244,12 @@ export async function enrollStudent(classId: string, studentId: string) {
     // SECURITY: Verify caller is authenticated and owns this class
     const auth = await verifyClassOwnership('enrollStudent', validatedInput.classId)
     if (!auth.authorized) {
-      return auth.error!
+      return auth.error
     }
 
     // SECURITY: Rate limit teacher mutations to prevent abuse
-    if (!(await checkTeacherMutationRateLimit(auth.user!.id))) {
-      authLogger.warn('[enrollStudent] Rate limit exceeded', { userId: auth.user!.id })
+    if (!(await checkTeacherMutationRateLimit(auth.user.id))) {
+      authLogger.warn('[enrollStudent] Rate limit exceeded', { userId: auth.user.id })
       return { success: false, error: 'Too many requests. Please try again later.' }
     }
 
@@ -295,12 +295,12 @@ export async function removeStudent(classId: string, studentId: string) {
     // SECURITY: Verify caller is authenticated and owns this class
     const auth = await verifyClassOwnership('removeStudent', validatedInput.classId)
     if (!auth.authorized) {
-      return auth.error!
+      return auth.error
     }
 
     // SECURITY: Rate limit teacher mutations to prevent abuse
-    if (!(await checkTeacherMutationRateLimit(auth.user!.id))) {
-      authLogger.warn('[removeStudent] Rate limit exceeded', { userId: auth.user!.id })
+    if (!(await checkTeacherMutationRateLimit(auth.user.id))) {
+      authLogger.warn('[removeStudent] Rate limit exceeded', { userId: auth.user.id })
       return { success: false, error: 'Too many requests. Please try again later.' }
     }
 
@@ -367,7 +367,7 @@ export async function getClassAssessmentResults(classId: string): Promise<{
     // SECURITY: Verify caller is authenticated and owns this class
     const auth = await verifyClassOwnership('getClassAssessmentResults', validatedClassId)
     if (!auth.authorized) {
-      return auth.error!
+      return auth.error
     }
 
     const supabase = await createClient()
@@ -380,9 +380,9 @@ export async function getClassAssessmentResults(classId: string): Promise<{
       .eq('id', validatedClassId)
       .maybeSingle()
 
-    if (classDataError || !classData || classData.teacher_id !== auth.user!.id) {
+    if (classDataError || !classData || classData.teacher_id !== auth.user.id) {
       authLogger.warn('[getClassAssessmentResults] Access denied: Class no longer owned by user', {
-        userId: auth.user!.id,
+        userId: auth.user.id,
         classId: validatedClassId,
       })
       return { success: false, error: 'You do not own this class' }
@@ -699,14 +699,14 @@ export async function getTeacherAssessmentOverview(): Promise<{
     // SECURITY: Verify caller is authenticated and is a teacher
     const auth = await verifyTeacherAuth('getTeacherAssessmentOverview')
     if (!auth.authorized) {
-      return auth.error!
+      return auth.error
     }
 
     // PERFORMANCE: Use query cache - 3 minute TTL for teacher dashboard
     // Teacher dashboards change more frequently than admin, so shorter TTL
     const data = await queryCache.getOrFetch(
-      `teacher:${auth.user!.id}:assessment:overview`,
-      () => fetchTeacherAssessmentOverviewFromDB(auth.user!.id),
+      `teacher:${auth.user.id}:assessment:overview`,
+      () => fetchTeacherAssessmentOverviewFromDB(auth.user.id),
       3 * 60 * 1000 // 3 minutes
     )
 
@@ -731,10 +731,10 @@ export async function getClassAnalytics(classId: string) {
     // SECURITY: Verify caller is authenticated and owns this class
     const auth = await verifyClassOwnership('getClassAnalytics', validatedClassId)
     if (!auth.authorized) {
-      return auth.error!
+      return auth.error
     }
 
-    const user = auth.user!
+    const user = auth.user
 
     const supabase = await createClient()
 
@@ -915,7 +915,7 @@ export async function getClassAnalytics(classId: string) {
 export async function exportStudentProgress(classId: string) {
   try {
     const auth = await verifyTeacherAuth('exportStudentProgress')
-    if (auth.error) {
+    if (!auth.authorized) {
       return auth.error
     }
 
@@ -932,7 +932,7 @@ export async function exportStudentProgress(classId: string) {
       return { success: false, error: 'Class not found' }
     }
 
-    if (classData.teacher_id !== auth.user!.id) {
+    if (classData.teacher_id !== auth.user.id) {
       return { success: false, error: 'Unauthorized' }
     }
 
@@ -1023,7 +1023,7 @@ export async function exportStudentProgress(classId: string) {
 export async function exportAIInteractions(classId: string, limit: number = 500) {
   try {
     const auth = await verifyTeacherAuth('exportAIInteractions')
-    if (auth.error) {
+    if (!auth.authorized) {
       return auth.error
     }
 
@@ -1040,7 +1040,7 @@ export async function exportAIInteractions(classId: string, limit: number = 500)
       return { success: false, error: 'Class not found' }
     }
 
-    if (classData.teacher_id !== auth.user!.id) {
+    if (classData.teacher_id !== auth.user.id) {
       return { success: false, error: 'Unauthorized' }
     }
 

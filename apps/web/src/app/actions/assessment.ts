@@ -279,7 +279,7 @@ export async function getAdaptiveQuestions(language: 'en' | 'hi' | 'as' = 'en') 
     // SECURITY: Verify caller is authenticated and is a student
     const auth = await verifyStudentAuth('getAdaptiveQuestions')
     if (!auth.authorized) {
-      return { ...auth.error!, questions: [] }
+      return { ...auth.error, questions: [] }
     }
 
     const supabase = await createClient()
@@ -615,7 +615,7 @@ export async function startAssessment(classId?: string) {
     // SECURITY: Verify caller is authenticated and is a student
     const auth = await verifyStudentAuth('startAssessment')
     if (!auth.authorized) {
-      return auth.error!
+      return auth.error
     }
 
     const supabase = await createClient()
@@ -623,7 +623,7 @@ export async function startAssessment(classId?: string) {
     const { data, error } = await supabase
       .from('assessment_sessions')
       .insert({
-        user_id: auth.user!.id,
+        user_id: auth.user.id,
         class_id: classId || null,
         started_at: new Date().toISOString(),
       })
@@ -666,14 +666,14 @@ export async function submitAssessment(
     // SECURITY: Verify caller is authenticated and is a student
     const auth = await verifyStudentAuth('submitAssessment')
     if (!auth.authorized) {
-      return auth.error!
+      return auth.error
     }
 
     // SECURITY: Rate limit assessment submissions to prevent abuse
-    const rateLimitKey = `assessment-submit:${auth.user!.id}`
+    const rateLimitKey = `assessment-submit:${auth.user.id}`
     const isAllowed = await checkRateLimit(rateLimitKey, RATE_LIMITS.assessmentSubmission)
     if (!isAllowed) {
-      authLogger.warn('[submitAssessment] Rate limit exceeded', { userId: auth.user!.id, sessionId })
+      authLogger.warn('[submitAssessment] Rate limit exceeded', { userId: auth.user.id, sessionId })
       return {
         success: false,
         error: 'Too many assessment submissions. Please wait before trying again.',
@@ -697,7 +697,7 @@ export async function submitAssessment(
       return { success: false, error: 'Session not found' }
     }
 
-    if (session.user_id !== auth.user!.id) {
+    if (session.user_id !== auth.user.id) {
       return { success: false, error: 'Unauthorized' }
     }
 
@@ -718,14 +718,14 @@ export async function submitAssessment(
       'submit_assessment',
       {
         p_session_id: validatedData.sessionId,
-        p_user_id: auth.user!.id,
+        p_user_id: auth.user.id,
         p_responses: rpcResponses,
       }
     )
 
     if (rpcError) {
       authLogger.error('[submitAssessment] RPC function call failed', {
-        userId: auth.user!.id,
+        userId: auth.user.id,
         sessionId: validatedData.sessionId,
         rpcError: rpcError.message,
       })
@@ -737,7 +737,7 @@ export async function submitAssessment(
     const validationResult = validateSubmitAssessmentResponse(rpcResultRaw)
     if (!validationResult.success) {
       authLogger.error('[submitAssessment] RPC response validation failed', {
-        userId: auth.user!.id,
+        userId: auth.user.id,
         sessionId: validatedData.sessionId,
         validationError: validationResult.error,
       })
@@ -749,7 +749,7 @@ export async function submitAssessment(
     if (!rpcResult.success) {
       const errorMessage = rpcResult.error || 'Unknown error during assessment submission'
       authLogger.warn('[submitAssessment] RPC function returned error', {
-        userId: auth.user!.id,
+        userId: auth.user.id,
         sessionId: validatedData.sessionId,
         rpcError: errorMessage,
       })
@@ -759,7 +759,7 @@ export async function submitAssessment(
     // Handle idempotent response (session was already submitted)
     if (rpcResult.alreadySubmitted) {
       authLogger.info('[submitAssessment] Session already submitted (idempotent retry)', {
-        userId: auth.user!.id,
+        userId: auth.user.id,
         sessionId: validatedData.sessionId,
       })
     }
@@ -779,16 +779,16 @@ export async function submitAssessment(
     // PERFORMANCE: Invalidate related caches after successful assessment submission
     // This ensures fresh data is fetched on next request
     authLogger.info('[submitAssessment] Invalidating affected caches', {
-      userId: auth.user!.id,
+      userId: auth.user.id,
       sessionId: validatedData.sessionId,
     })
 
     // Invalidate student profile cache (assessment might have changed mastery/progress)
-    queryCache.invalidate(`student:${auth.user!.id}:profile`)
+    queryCache.invalidate(`student:${auth.user.id}:profile`)
 
     // Invalidate student progress/dashboard caches
-    queryCache.invalidate(`student:${auth.user!.id}:progress`)
-    queryCache.invalidate(`student:${auth.user!.id}:assessment`)
+    queryCache.invalidate(`student:${auth.user.id}:progress`)
+    queryCache.invalidate(`student:${auth.user.id}:assessment`)
 
     // Invalidate teacher dashboards (student progress changed)
     // Find the class this assessment belongs to and invalidate teacher overview
@@ -802,16 +802,16 @@ export async function submitAssessment(
     // GAMIFICATION: Award points and check for badge unlocks
     try {
       await gamificationService.awardPoints(
-        auth.user!.id,
+        auth.user.id,
         20,
         'assessment_complete',
         `Completed assessment: ${validatedData.sessionId}`
       )
       
-      const newBadges = await gamificationService.checkAndAwardBadges(auth.user!.id)
+      const newBadges = await gamificationService.checkAndAwardBadges(auth.user.id)
       
       authLogger.info('[submitAssessment] Gamification points awarded', {
-        userId: auth.user!.id,
+        userId: auth.user.id,
         sessionId: validatedData.sessionId,
         pointsAwarded: 20,
         newBadgesCount: newBadges.length,
@@ -819,7 +819,7 @@ export async function submitAssessment(
     } catch (gamificationError) {
       // Don't fail the assessment if gamification fails
       authLogger.warn('[submitAssessment] Gamification error (non-critical)', {
-        userId: auth.user!.id,
+        userId: auth.user.id,
         error: gamificationError instanceof Error ? gamificationError.message : 'Unknown error',
       })
     }
