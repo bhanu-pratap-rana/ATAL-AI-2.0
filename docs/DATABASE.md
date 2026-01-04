@@ -243,19 +243,23 @@ Status: ✅ WORKING
 | student_badges | ✅ Live | 0 | 4 | Yes | 2026-01-03 |
 | points_history | ✅ Live | 0 | 6 | Yes | 2026-01-03 |
 
-**Summary:** All 22 tables accessible and responsive. Total live data: 1,988+ rows across all tables (as of January 5, 2026 18:00 UTC).
+**Summary:** All 21 tables accessible and responsive. Total live data: 1,978 rows across all tables (as of January 5, 2026 18:30 UTC - verified via Supabase MCP).
 
-**Migration Status:** All 128 migrations applied successfully  
-**Latest Migrations:**  
-- Migration 128: Add missing composite indexes (5 indexes for 10-100x performance improvement)
-- Migration 127: Fix get_school_metrics() schema mismatches
-- Migration 126: Class leaderboard RPC function
-- Migration 124: Class student progress RPC function
-- Migration 123: Batch badge checking RPC function
-- Migration 122: Feature flags system
-- Migration 078-080: Function search path security fixes and RAG optimizations
+**Migration Status:** 80 migrations applied successfully (latest: 080_fix_hybrid_function_type_cast)  
+**Latest Migrations (Production):**  
+- Migration 080: RAG type casting fix (match_curriculum_hybrid text_similarity)
+- Migration 079: RAG function search path fixes (match_curriculum_cosine, match_curriculum_hybrid)
+- Migration 078: Function search path security fixes (submit_assessment, update_knowledge_state)
 - Migration 071-077: Adaptive learning knowledge state integration
 - Migration 068-070: Security & performance RLS optimization
+
+**Pending Migrations (Not Yet Deployed):**
+- Migration 122: Feature flags system (feature_flags table)
+- Migration 123: Batch badge checking RPC function
+- Migration 124: Class student progress RPC function
+- Migration 126: Class leaderboard RPC function (exists in codebase, may need deployment)
+- Migration 127: Fix get_school_metrics() schema mismatches
+- Migration 128: Add missing composite indexes (5 indexes for 10-100x performance improvement)
 
 ---
 
@@ -1620,26 +1624,21 @@ cd apps/web && npx tsx scripts/index-curriculum.ts
 | `assessment_responses` | `idx_assessment_responses_module` | `module` | Unused (low data) |
 | `assessment_responses` | `idx_assessment_responses_item_id` | `item_id` | Unused (low data) |
 | `assessment_responses` | `idx_assessment_responses_session_module` | `session_id, module` | Unused (low data) |
-| `assessment_responses` | `idx_assessment_responses_session_user` | `session_id, user_id` INCLUDE `(is_correct)` | ✅ NEW (Migration 128) |
-| `assessment_sessions` | `idx_assessment_sessions_user_time` | `user_id, started_at DESC` WHERE `submitted_at IS NOT NULL` | ✅ NEW (Migration 128) |
-| `assessment_sessions` | `idx_assessment_sessions_class_time` | `class_id, started_at DESC` WHERE `submitted_at IS NOT NULL` | ✅ NEW (Migration 128) |
-| `student_knowledge_state` | `idx_student_knowledge_state_student_module` | `student_id, module_id` INCLUDE `(mastery_score, status)` | ✅ NEW (Migration 128) |
-| `school_staff_credentials` | `idx_school_staff_credentials_active` | `school_id, created_at` WHERE `deleted_at IS NULL` | ✅ NEW (Migration 128) |
-| `feature_flags` | `idx_feature_flags_enabled` | `enabled` | ✅ Active (Migration 122) |
 
-#### Performance Impact (Migration 128)
+> **Note:** All indexes show as "unused" because the database has low data volume. These indexes will become essential as the application scales. Do NOT remove them.
 
-The 5 new composite indexes from Migration 128 provide significant performance improvements:
+#### Pending Indexes (Migration 128 - Not Yet Deployed)
 
-| Index | Performance Gain | Use Case |
-|-------|------------------|----------|
-| `idx_assessment_responses_session_user` | **10-50x faster** | Dashboard stats, assessment queries |
-| `idx_assessment_sessions_user_time` | **20-100x faster** | Student assessment history |
-| `idx_assessment_sessions_class_time` | **20-100x faster** | Class assessment queries |
-| `idx_student_knowledge_state_student_module` | **10-30x faster** | Adaptive learning queries |
-| `idx_school_staff_credentials_active` | **5-10x faster** | School metrics, admin queries |
+The following indexes exist in Migration 128 codebase but are NOT yet deployed to production:
 
-> **Note:** Most indexes show as "unused" because the database has low data volume. These indexes will become essential as the application scales. Do NOT remove them. The new Migration 128 indexes are optimized for production workloads and will show usage as data grows.
+| Index | Performance Gain | Use Case | Status |
+|-------|------------------|----------|--------|
+| `idx_assessment_responses_session_user` | **10-50x faster** | Dashboard stats, assessment queries | ⚠️ Pending deployment |
+| `idx_assessment_sessions_user_time` | **20-100x faster** | Student assessment history | ⚠️ Pending deployment |
+| `idx_assessment_sessions_class_time` | **20-100x faster** | Class assessment queries | ⚠️ Pending deployment |
+| `idx_student_knowledge_state_student_module` | **10-30x faster** | Adaptive learning queries | ⚠️ Pending deployment |
+| `idx_school_staff_credentials_active` | **5-10x faster** | School metrics, admin queries | ⚠️ Pending deployment |
+| `idx_feature_flags_enabled` | - | Feature flag lookups | ⚠️ Pending deployment (requires Migration 122) |
 
 ---
 
