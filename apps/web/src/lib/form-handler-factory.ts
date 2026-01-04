@@ -16,8 +16,7 @@
  */
 
 import { ValidationResult } from '@/hooks/useValidationHandler'
-import { validateEmail } from '@/lib/email-validation'
-import { validatePassword, validatePasswordMatch } from '@/lib/password-validation'
+import { validateEmail, validatePassword, validatePasswordMatch } from '@/lib/validation-utils'
 
 /**
  * Handler state for form operations
