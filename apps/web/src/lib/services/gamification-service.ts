@@ -207,10 +207,15 @@ export class GamificationService {
 
       case 'modules_mastered': {
         // Count modules where all topics are mastered
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('student_knowledge_state')
           .select('module_id, mastery_score')
           .eq('student_id', studentId);
+        
+        if (error) {
+          authLogger.error('[checkBadgeCriteria] Failed to fetch knowledge state', { error: error.message, studentId })
+          return false
+        }
 
         if (!data) return false;
 
@@ -274,11 +279,16 @@ export class GamificationService {
 
       case 'night_activity': {
         // Check for activity between 9 PM and 6 AM
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('ai_tutor_interactions')
           .select('created_at')
           .eq('student_id', studentId)
           .limit(100);
+        
+        if (error) {
+          authLogger.error('[checkBadgeCriteria] Failed to fetch night activity', { error: error.message, studentId })
+          return false
+        }
 
         const nightActivities =
           data?.filter((d) => {
@@ -291,11 +301,16 @@ export class GamificationService {
 
       case 'early_activity': {
         // Check for activity between 5 AM and 7 AM
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('ai_tutor_interactions')
           .select('created_at')
           .eq('student_id', studentId)
           .limit(100);
+
+        if (error) {
+          authLogger.error('[checkBadgeCriteria] Failed to fetch early activity', { error: error.message, studentId })
+          return false
+        }
 
         const earlyActivities =
           data?.filter((d) => {
@@ -360,7 +375,7 @@ export class GamificationService {
     try {
       const supabase = await createClient();
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('student_badges')
         .select(
           `
