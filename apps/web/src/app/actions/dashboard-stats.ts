@@ -405,7 +405,10 @@ async function getRecentActivity(
       if (enrollments) {
         for (const enrollment of enrollments) {
           // Supabase returns single related record as object, not array (one-to-one via foreign key)
-          const classData = enrollment.classes as unknown as { name: string } | null
+          // Type-safe access to related class data
+          const classData = enrollment.classes && typeof enrollment.classes === 'object' && 'name' in enrollment.classes
+            ? { name: String(enrollment.classes.name) }
+            : null
           const className = classData?.name || 'Unknown Class'
           activities.push({
             id: enrollment.id,

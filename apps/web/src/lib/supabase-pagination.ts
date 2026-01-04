@@ -75,8 +75,14 @@ export async function fetchPaginatedWithCursor<T>(
     // Calculate next cursor from last item
     let nextCursor: string | null = null
     if (hasMore && pageItems.length > 0) {
-      const lastItem = pageItems[pageItems.length - 1] as any
-      nextCursor = lastItem[cursorColumn] as string
+      const lastItem = pageItems[pageItems.length - 1]
+      // Type-safe cursor extraction - cursorColumn must exist on T
+      if (lastItem && typeof lastItem === 'object' && cursorColumn in lastItem) {
+        const cursorValue = (lastItem as Record<string, unknown>)[cursorColumn]
+        if (typeof cursorValue === 'string') {
+          nextCursor = cursorValue
+        }
+      }
     }
 
     return {
@@ -123,12 +129,21 @@ export async function fetchAllWithSnapshot<T>(
 
       // Only fetch items created before snapshot time
       if (result.data.length > 0) {
-        const lastItem = result.data[result.data.length - 1] as any
-        if (lastItem.created_at && lastItem.created_at > snapshotTime) {
-          // We've gone past the snapshot time, remove items after snapshot
-          const snapshotIndex = allData.findIndex(
-            (item: any) => item.created_at && item.created_at > snapshotTime
-          )
+        const lastItem = result.data[result.data.length - 1]
+        // Type-safe created_at check
+        if (lastItem && typeof lastItem === 'object' && 'created_at' in lastItem) {
+          const createdAt = (lastItem as { created_at?: string }).created_at
+          if (createdAt && createdAt > snapshotTime) {
+            // We've gone past the snapshot time, remove items after snapshot
+            const snapshotIndex = allData.findIndex(
+              (item) => {
+                if (item && typeof item === 'object' && 'created_at' in item) {
+                  const itemCreatedAt = (item as { created_at?: string }).created_at
+                  return itemCreatedAt && itemCreatedAt > snapshotTime
+                }
+                return false
+              }
+            )
           if (snapshotIndex >= 0) {
             allData.length = snapshotIndex
           }
