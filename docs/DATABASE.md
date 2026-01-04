@@ -10,7 +10,7 @@
 > **Security Enhancements:** ✅ Circuit breaker for AI providers, RPC response validators, XSS protection, RLS optimization (Migrations 068-080)
 > **Adaptive Learning:** ✅ FIXED - Knowledge state updates now working (Migrations 072-077)
 > **RAG System:** ✅ PRODUCTION READY - All 3 RAG functions tested and working (Migrations 078-080)
-> **TypeScript Types:** ✅ GENERATED - All 21 tables have type-safe definitions
+> **TypeScript Types:** ✅ GENERATED - All 22 tables have type-safe definitions
 > **Critical Bugs:** ✅ ALL FIXED - Migration 127 created, dashboard stats corrected, promise handling fixed
 
 ## Quick Stats
@@ -32,7 +32,7 @@
 | **Security Advisor Warnings** | 22 | ✅ ACCEPTABLE (Intentional anonymous workflow) |
 | **Performance Advisor Warnings** | 14 WARN + 36 INFO | ⚠️ 9 can be optimized, 5 acceptable, 36 expected |
 | **RAG Functions Status** | 3/3 Working | ✅ All tested with real embeddings |
-| **TypeScript Types** | Generated | ✅ All 21 tables type-safe |
+| **TypeScript Types** | Generated | ✅ All 22 tables type-safe |
 | **Build Status** | Passing | ✅ No compilation errors |
 | **Health Score** | 92/100 | ✅ PRODUCTION READY |
 
@@ -199,7 +199,7 @@ Status: ✅ WORKING
 **Impact:** All 3 RAG functions production-ready, sub-150ms query performance ✅
 
 #### TypeScript Types Generation
-- ✅ Generated types for all 21 tables using `mcp_supabase_generate_typescript_types`
+- ✅ Generated types for all 22 tables using `mcp_supabase_generate_typescript_types`
 - ✅ Saved to `apps/web/src/types/database.ts`
 - ✅ Full type safety across application:
   - Row types for SELECT queries
@@ -1284,6 +1284,37 @@ cd apps/web && npx tsx scripts/index-curriculum.ts
 
 **RLS Enabled:** Yes
 **Rows:** 0
+**Index:** `idx_points_history_student_id` on `student_id`
+
+---
+
+### feature_flags
+
+> **Purpose:** Feature flags for safe gradual rollouts, A/B testing, and emergency kill switches. Enables percentage-based rollouts and user whitelisting.
+
+| Column | Type | Nullable | Default | Constraints | Description |
+|--------|------|----------|---------|-------------|-------------|
+| `id` | `text` | NO | - | PRIMARY KEY | Feature flag identifier |
+| `name` | `text` | NO | - | - | Human-readable name |
+| `description` | `text` | YES | - | - | Feature description |
+| `enabled` | `boolean` | NO | `false` | - | Global enable/disable |
+| `rollout_percentage` | `integer` | NO | `0` | CHECK (0-100) | Percentage of users to enable for |
+| `whitelist_user_ids` | `uuid[]` | NO | `'{}'` | - | Array of user IDs with early access |
+| `created_at` | `timestamptz` | YES | `now()` | - | Creation timestamp |
+| `updated_at` | `timestamptz` | YES | `now()` | - | Last update timestamp |
+
+**RLS Enabled:** Yes
+**Rows:** 5 (default flags)
+**Index:** `idx_feature_flags_enabled` on `enabled`
+
+**Default Flags:**
+- `voice_ai_tutor`: Voice AI Tutor (10% rollout)
+- `badge_automation`: Badge Automation (100% enabled)
+- `adaptive_learning`: Adaptive Learning (100% enabled)
+- `teacher_assessment_creation`: Teacher Assessment Creation (0% disabled)
+- `offline_sync`: Offline Sync (100% enabled)
+
+**Usage:** Feature flags can be checked server-side or client-side. Supports percentage-based rollouts using user ID hashing and explicit whitelisting.
 
 ---
 
