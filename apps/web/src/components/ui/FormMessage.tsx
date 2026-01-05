@@ -14,10 +14,10 @@
 import { MessageType } from '@/hooks/useFormHandler'
 
 interface FormMessageProps {
-  type: MessageType
-  text: string
-  onClose?: () => void
-  className?: string
+  readonly type: MessageType
+  readonly text: string
+  readonly onClose?: () => void
+  readonly className?: string
 }
 
 const messageStyles: Record<MessageType, { bg: string; text: string; border: string; icon: string }> = {

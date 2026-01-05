@@ -5,13 +5,13 @@ import { cn } from "@/lib/utils"
 import { IconBox } from "./icon-box"
 
 interface StatCardProps {
-  icon: string
-  value: string | number
-  label: string
-  className?: string
-  trend?: {
-    value: number
-    isPositive: boolean
+  readonly icon: string
+  readonly value: string | number
+  readonly label: string
+  readonly className?: string
+  readonly trend?: {
+    readonly value: number
+    readonly isPositive: boolean
   }
 }
 
