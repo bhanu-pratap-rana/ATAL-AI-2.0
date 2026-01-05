@@ -102,17 +102,7 @@ export function TeacherProfileEditor({ profile, userEmail }: TeacherProfileEdito
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>Teacher Profile</span>
-          {!isEditing ? (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsEditing(true)}
-              className="gap-2"
-            >
-              <Pencil className="w-4 h-4" />
-              Edit
-            </Button>
-          ) : (
+          {isEditing ? (
             <div className="flex gap-2">
               <Button
                 variant="outline"
@@ -134,6 +124,16 @@ export function TeacherProfileEditor({ profile, userEmail }: TeacherProfileEdito
                 {saving ? 'Saving...' : 'Save'}
               </Button>
             </div>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsEditing(true)}
+              className="gap-2"
+            >
+              <Pencil className="w-4 h-4" />
+              Edit
+            </Button>
           )}
         </CardTitle>
       </CardHeader>

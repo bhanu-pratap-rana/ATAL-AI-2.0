@@ -490,7 +490,14 @@ export default function AdminManagePage() {
               )}
 
               {/* Create Button */}
-              {!completed ? (
+              {completed ? (
+                <Button
+                  onClick={() => (globalThis.location.href = '/admin/login')}
+                  className="w-full bg-success hover:bg-success/90"
+                >
+                  Go to Login Page
+                </Button>
+              ) : (
                 <Button
                   onClick={handleCreateAdmin}
                   disabled={isLoading || !email.trim() || !password || !confirmPassword}
@@ -504,13 +511,6 @@ export default function AdminManagePage() {
                   ) : (
                     'Create Admin Account'
                   )}
-                </Button>
-              ) : (
-                <Button
-                  onClick={() => (globalThis.location.href = '/admin/login')}
-                  className="w-full bg-success hover:bg-success/90"
-                >
-                  Go to Login Page
                 </Button>
               )}
 
