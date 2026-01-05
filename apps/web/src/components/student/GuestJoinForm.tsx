@@ -25,10 +25,10 @@ import type { AuthState, AuthActions } from '@/hooks/useAuthState'
  */
 
 interface GuestJoinFormProps {
-  state: AuthState
-  actions: AuthActions
-  isLoading: boolean
-  onSuccess: () => void
+  readonly state: AuthState
+  readonly actions: AuthActions
+  readonly isLoading: boolean
+  readonly onSuccess: () => void
 }
 
 export function GuestJoinForm({ state, actions, isLoading, onSuccess }: GuestJoinFormProps) {

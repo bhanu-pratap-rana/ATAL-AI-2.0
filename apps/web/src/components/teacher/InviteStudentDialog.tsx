@@ -18,7 +18,7 @@ import { Label } from '@/components/ui/label'
 import { enrollStudent } from '@/app/actions/teacher'
 
 interface InviteStudentDialogProps {
-  classId: string
+  readonly classId: string
 }
 
 interface StudentResult {

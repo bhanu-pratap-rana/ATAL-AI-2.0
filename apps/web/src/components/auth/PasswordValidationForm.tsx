@@ -14,16 +14,16 @@ import { Eye, EyeOff } from 'lucide-react'
  * Reduces code duplication in auth flows
  */
 export interface PasswordValidationFormProps {
-  password: string
-  onPasswordChange: (password: string) => void
-  passwordConfirm: string
-  onPasswordConfirmChange: (password: string) => void
-  isLoading: boolean
-  error?: string
-  onErrorChange: (error: string | null) => void
-  onSubmit: () => Promise<void>
-  submitButtonLabel?: string
-  showValidation?: boolean
+  readonly password: string
+  readonly onPasswordChange: (password: string) => void
+  readonly passwordConfirm: string
+  readonly onPasswordConfirmChange: (password: string) => void
+  readonly isLoading: boolean
+  readonly error?: string
+  readonly onErrorChange: (error: string | null) => void
+  readonly onSubmit: () => Promise<void>
+  readonly submitButtonLabel?: string
+  readonly showValidation?: boolean
 }
 
 export function PasswordValidationForm({

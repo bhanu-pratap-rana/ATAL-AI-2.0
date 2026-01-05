@@ -3,9 +3,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 interface AnalyticsTilesProps {
-  activeThisWeek: number
-  avgMinutesPerDay: number
-  atRiskCount: number
+  readonly activeThisWeek: number
+  readonly avgMinutesPerDay: number
+  readonly atRiskCount: number
 }
 
 export function AnalyticsTiles({

@@ -16,17 +16,17 @@ import { useEffect, useState } from 'react'
 
 interface ResultCircleProps {
   /** Score percentage (0-100) */
-  percentage: number
+  readonly percentage: number
   /** Size of the circle in pixels */
-  size?: number
+  readonly size?: number
   /** Stroke width in pixels */
-  strokeWidth?: number
+  readonly strokeWidth?: number
   /** Label text below percentage */
-  label?: string
+  readonly label?: string
   /** Whether to animate the fill */
-  animate?: boolean
+  readonly animate?: boolean
   /** Custom class name */
-  className?: string
+  readonly className?: string
 }
 
 export function ResultCircle({

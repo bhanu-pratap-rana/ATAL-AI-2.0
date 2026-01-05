@@ -2,16 +2,16 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 interface OTPInputProps {
-  id: string
-  label: string
-  value: string
-  onChange: (value: string) => void
-  error?: string
-  disabled?: boolean
-  placeholder?: string
-  maxLength?: number
-  helperText?: string
-  autoFocus?: boolean
+  readonly id: string
+  readonly label: string
+  readonly value: string
+  readonly onChange: (value: string) => void
+  readonly error?: string
+  readonly disabled?: boolean
+  readonly placeholder?: string
+  readonly maxLength?: number
+  readonly helperText?: string
+  readonly autoFocus?: boolean
 }
 
 /**

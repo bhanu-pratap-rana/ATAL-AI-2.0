@@ -18,13 +18,13 @@ import {
 import { deleteClass, updateClass } from '@/app/actions/teacher'
 
 interface ClassCardProps {
-  classData: {
-    id: string
-    name: string
-    subject?: string
-    created_at: string
-    class_code?: string
-    join_pin?: string
+  readonly classData: {
+    readonly id: string
+    readonly name: string
+    readonly subject?: string
+    readonly created_at: string
+    readonly class_code?: string
+    readonly join_pin?: string
   }
 }
 

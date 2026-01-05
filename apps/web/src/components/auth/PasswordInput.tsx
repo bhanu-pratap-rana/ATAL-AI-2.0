@@ -3,17 +3,17 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 interface PasswordInputProps {
-  id: string
-  label?: string
-  value: string
-  onChange: (value: string) => void
-  error?: string
-  disabled?: boolean
-  placeholder?: string
-  helperText?: string
-  autoFocus?: boolean
-  required?: boolean
-  showToggle?: boolean
+  readonly id: string
+  readonly label?: string
+  readonly value: string
+  readonly onChange: (value: string) => void
+  readonly error?: string
+  readonly disabled?: boolean
+  readonly placeholder?: string
+  readonly helperText?: string
+  readonly autoFocus?: boolean
+  readonly required?: boolean
+  readonly showToggle?: boolean
 }
 
 /**

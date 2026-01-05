@@ -15,14 +15,14 @@ import { authLogger } from '@/lib/auth-logger'
  * Reduces code duplication between student and teacher auth flows
  */
 export interface EmailOTPFormProps {
-  email: string
-  onEmailChange: (email: string) => void
-  onOtpSent: () => void
-  isLoading: boolean
-  error?: string
-  onErrorChange: (error: string | null) => void
-  submitButtonLabel?: string
-  helperText?: string
+  readonly email: string
+  readonly onEmailChange: (email: string) => void
+  readonly onOtpSent: () => void
+  readonly isLoading: boolean
+  readonly error?: string
+  readonly onErrorChange: (error: string | null) => void
+  readonly submitButtonLabel?: string
+  readonly helperText?: string
 }
 
 export function EmailOTPForm({

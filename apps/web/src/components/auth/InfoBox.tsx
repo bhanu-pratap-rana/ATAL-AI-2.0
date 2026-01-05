@@ -20,11 +20,11 @@ const variantStyles: Record<InfoBoxVariant, string> = {
 }
 
 interface InfoBoxProps {
-  children: ReactNode
-  variant?: InfoBoxVariant
-  title?: string
-  icon?: ReactNode
-  className?: string
+  readonly children: ReactNode
+  readonly variant?: InfoBoxVariant
+  readonly title?: string
+  readonly icon?: ReactNode
+  readonly className?: string
 }
 
 /**

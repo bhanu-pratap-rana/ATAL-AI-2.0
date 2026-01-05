@@ -30,8 +30,8 @@ interface Enrollment {
 }
 
 interface RosterTableProps {
-  enrollments: Enrollment[]
-  classId: string
+  readonly enrollments: Enrollment[]
+  readonly classId: string
 }
 
 export function RosterTable({ enrollments, classId }: RosterTableProps) {
