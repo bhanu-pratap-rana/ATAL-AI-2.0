@@ -8,16 +8,16 @@ import { Label } from '@/components/ui/label'
 import { Phone, CheckCircle, ArrowLeft, AlertCircle } from 'lucide-react'
 
 interface TeacherSignupPhoneFlowProps {
-  phoneNumber: string
-  phoneError: string
-  phoneOtp: string
-  phoneOtpSent: boolean
-  loading: boolean
-  onPhoneNumberChange: (value: string) => void
-  onPhoneOtpChange: (value: string) => void
-  onSendOtp: (e: FormEvent) => void
-  onVerifyOtp: (e: FormEvent) => void
-  onBack: () => void
+  readonly phoneNumber: string
+  readonly phoneError: string
+  readonly phoneOtp: string
+  readonly phoneOtpSent: boolean
+  readonly loading: boolean
+  readonly onPhoneNumberChange: (value: string) => void
+  readonly onPhoneOtpChange: (value: string) => void
+  readonly onSendOtp: (e: FormEvent) => void
+  readonly onVerifyOtp: (e: FormEvent) => void
+  readonly onBack: () => void
 }
 
 export function TeacherSignupPhoneFlow({
