@@ -14,12 +14,12 @@
 import { ReactNode } from 'react'
 
 interface DialogContainerProps {
-  open: boolean
-  title: string
-  children: ReactNode
-  onClose: () => void
-  className?: string
-  size?: 'sm' | 'md' | 'lg'
+  readonly open: boolean
+  readonly title: string
+  readonly children: ReactNode
+  readonly onClose: () => void
+  readonly className?: string
+  readonly size?: 'sm' | 'md' | 'lg'
 }
 
 const sizeClasses = {
