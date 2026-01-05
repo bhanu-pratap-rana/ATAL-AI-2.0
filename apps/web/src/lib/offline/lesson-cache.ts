@@ -124,7 +124,7 @@ export function getTopicsForModule(moduleId: string): TopicInfo[] {
  * Check if Cache API is available
  */
 export function isCacheApiAvailable(): boolean {
-  return typeof window !== 'undefined' && 'caches' in window;
+  return typeof globalThis !== 'undefined' && 'caches' in globalThis;
 }
 
 /**

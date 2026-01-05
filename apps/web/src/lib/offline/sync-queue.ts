@@ -447,7 +447,7 @@ export class SyncQueue {
 export const syncQueue = new SyncQueue();
 
 // Auto-sync when coming online
-if (typeof window !== 'undefined') {
+if (typeof globalThis !== 'undefined') {
   // MEMORY LEAK FIX: Track interval ID for proper cleanup
   let syncIntervalId: NodeJS.Timeout | null = null;
   let onlineHandler: (() => void) | null = null;

@@ -19,7 +19,7 @@ declare global {
 // Detect test environment for Playwright test stability
 // Uses runtime detection to check if we're in a test/Playwright browser
 const isTestEnvironment = () => {
-  if (typeof window === 'undefined') return false
+  if (typeof globalThis === 'undefined') return false
 
   // Check multiple ways to detect test environment
   return (
