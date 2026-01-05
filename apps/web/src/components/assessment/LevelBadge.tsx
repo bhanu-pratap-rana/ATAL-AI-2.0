@@ -177,7 +177,7 @@ export function LevelProgress({
                   transition-all duration-300
                   ${isCurrent ? `${config.bgClass} ring-2 ring-offset-2 ring-current` : ''}
                   ${isActive && !isCurrent ? config.bgClass : ''}
-                  ${!isActive ? 'bg-border' : ''}
+                  ${isActive ? '' : 'bg-border'}
                 `}
               >
                 {config.icon}

@@ -132,7 +132,7 @@ export function QuestionPagination({
                 ? 'hover:scale-105 hover:ring-2 hover:ring-primary hover:ring-offset-1 cursor-pointer'
                 : ''
               }
-              ${!canJump && !isCurrent ? 'opacity-60 cursor-default' : ''}
+              ${canJump || isCurrent ? '' : 'opacity-60 cursor-default'}
             `}
             aria-label={getStatusLabel(status, index, isCurrent)}
             aria-current={isCurrent ? 'step' : undefined}
