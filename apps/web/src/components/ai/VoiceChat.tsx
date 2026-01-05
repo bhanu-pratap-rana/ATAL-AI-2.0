@@ -27,11 +27,11 @@ const SPEECH_LANG_CODES = {
 type Language = 'en' | 'hi' | 'as';
 
 interface VoiceChatProps {
-  language: Language;
-  onTranscript: (text: string) => void;
-  onSpeakStart?: () => void;
-  onSpeakEnd?: () => void;
-  disabled?: boolean;
+  readonly language: Language;
+  readonly onTranscript: (text: string) => void;
+  readonly onSpeakStart?: () => void;
+  readonly onSpeakEnd?: () => void;
+  readonly disabled?: boolean;
 }
 
 // Check for browser support

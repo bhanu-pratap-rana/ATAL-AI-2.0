@@ -25,38 +25,38 @@ import { clientLogger } from '@/lib/client-logger'
 type ModalType = 'schools' | 'teachers' | 'students' | 'activePINs' | 'inactivePINs' | null
 
 interface SchoolItem {
-  id: string
-  schoolName: string
-  schoolCode: string
-  district: string
-  block?: string | null
-  hasPIN?: boolean
+  readonly id: string
+  readonly schoolName: string
+  readonly schoolCode: string
+  readonly district: string
+  readonly block?: string | null
+  readonly hasPIN?: boolean
 }
 
 interface TeacherItem {
-  id: string
-  email: string
-  name: string
-  phone: string | null
-  schoolName: string
-  schoolCode: string
-  createdAt: string
+  readonly id: string
+  readonly email: string
+  readonly name: string
+  readonly phone: string | null
+  readonly schoolName: string
+  readonly schoolCode: string
+  readonly createdAt: string
 }
 
 interface StudentItem {
-  id: string
-  email: string
-  phone: string | null
-  createdAt: string
-  lastSignIn: string | null
+  readonly id: string
+  readonly email: string
+  readonly phone: string | null
+  readonly createdAt: string
+  readonly lastSignIn: string | null
 }
 
 interface ActivePINSchool {
-  schoolId: string
-  schoolName: string
-  schoolCode: string
-  districtName: string
-  lastRotatedAt: string | null
+  readonly schoolId: string
+  readonly schoolName: string
+  readonly schoolCode: string
+  readonly districtName: string
+  readonly lastRotatedAt: string | null
 }
 
 export function DashboardMetrics() {

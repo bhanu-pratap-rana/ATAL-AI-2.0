@@ -1,9 +1,9 @@
 import { cn } from "@/lib/utils"
 
 interface IconBoxProps {
-  children: React.ReactNode
-  size?: 'sm' | 'md' | 'lg'
-  className?: string
+  readonly children: React.ReactNode
+  readonly size?: 'sm' | 'md' | 'lg'
+  readonly className?: string
 }
 
 const sizes = {
