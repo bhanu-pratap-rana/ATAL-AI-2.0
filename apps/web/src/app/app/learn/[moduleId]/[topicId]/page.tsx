@@ -263,6 +263,31 @@ export default function LessonPage() {
     return Math.round((correct / lesson.practice_questions.length) * 100);
   };
 
+  // Helper: Get option button styling based on state
+  // Reduces nested ternary from 4 levels to simple if/else
+  const getOptionButtonClassName = (
+    showResult: boolean,
+    isCorrect: boolean,
+    isSelected: boolean,
+  ): string => {
+    if (showResult) {
+      if (isCorrect) return "bg-success-light border-success";
+      return isSelected ? "bg-error-light border-error" : "bg-muted";
+    }
+    return isSelected ? "border-primary bg-primary/10" : "hover:border-primary/50";
+  };
+
+  // Helper: Get progress bar color based on section state
+  const getProgressBarColor = (
+    idx: number,
+    currentSection: number,
+    showPractice: boolean,
+  ): string => {
+    if (idx === currentSection && !showPractice) return "bg-primary";
+    if (idx < currentSection) return "bg-success";
+    return "bg-muted";
+  };
+
   const handlePracticeSubmit = async () => {
     setPracticeSubmitted(true);
 
@@ -406,13 +431,7 @@ export default function LessonPage() {
                         setCurrentSection(idx);
                         setShowPractice(false);
                       }}
-                      className={`w-8 h-2 rounded-full transition-all ${
-                        idx === currentSection && !showPractice
-                          ? "bg-primary"
-                          : idx < currentSection
-                            ? "bg-success"
-                            : "bg-muted"
-                      }`}
+                      className={`w-8 h-2 rounded-full transition-all ${getProgressBarColor(idx, currentSection, showPractice)}`}
                     />
                   ))}
                   {lesson.practice_questions.length > 0 && (
@@ -457,17 +476,7 @@ export default function LessonPage() {
                                 }
                               }}
                               disabled={practiceSubmitted}
-                              className={`w-full text-left p-3 rounded-lg border transition-all ${
-                                showResult
-                                  ? isCorrect
-                                    ? "bg-success-light border-success"
-                                    : isSelected
-                                      ? "bg-error-light border-error"
-                                      : "bg-muted"
-                                  : isSelected
-                                    ? "border-primary bg-primary/10"
-                                    : "hover:border-primary/50"
-                              }`}
+                              className={`w-full text-left p-3 rounded-lg border transition-all ${getOptionButtonClassName(showResult, isCorrect, isSelected)}`}
                             >
                               <span className="font-medium mr-2">
                                 {String.fromCharCode(65 + oIdx)}.
