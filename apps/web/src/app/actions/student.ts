@@ -10,6 +10,7 @@ import { queryCache } from '@/lib/cache/query-cache'
 import { RATE_LIMITS } from '@/lib/constants/rate-limits'
 import { JoinClassSchema, StudentProfileSchema, ClassIdSchema } from '@/lib/validation-schemas'
 import type { UpsertStudentProfileRPCResponse } from '@/types/auth'
+import { handleZodError } from '@/lib/action-error-handler'
 
 interface StudentProfileParams {
   name: string
@@ -28,7 +29,12 @@ interface StudentProfileParams {
 export async function saveStudentProfile(params: StudentProfileParams) {
   try {
     // Validate inputs
-    const validatedInput = StudentProfileSchema.parse(params)
+    let validatedInput
+    try {
+      validatedInput = StudentProfileSchema.parse(params)
+    } catch (error) {
+      return handleZodError(error)
+    }
     authLogger.debug('[saveStudentProfile] Validated input', {
       name: validatedInput.name,
       gender: validatedInput.gender
@@ -109,11 +115,6 @@ export async function saveStudentProfile(params: StudentProfileParams) {
     revalidatePath('/app/dashboard')
     return { success: true }
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      const firstError = error.issues[0]
-      authLogger.error('[saveStudentProfile] Validation error', { issues: error.issues })
-      return { success: false, error: firstError?.message || 'Invalid input' }
-    }
     authLogger.error('[saveStudentProfile] Unexpected error', error)
     return {
       success: false,
@@ -192,9 +193,15 @@ export async function previewClass(classCode: string): Promise<{
 }> {
   try {
     // Validate input using schema (consistent with other functions)
-    const validatedClassCode = JoinClassSchema.pick({ classCode: true }).parse({
-      classCode: classCode.toUpperCase().replace(/[^A-Z0-9]/g, ''),
-    }).classCode
+    let validatedClassCode
+    try {
+      validatedClassCode = JoinClassSchema.pick({ classCode: true }).parse({
+        classCode: classCode.toUpperCase().replace(/[^A-Z0-9]/g, ''),
+      }).classCode
+    } catch (error) {
+      const zodError = handleZodError(error)
+      return { success: zodError.success, error: zodError.error }
+    }
 
     const supabase = await createClient()
 
@@ -371,7 +378,12 @@ async function createEnrollment(
  */
 export async function joinClass({ classCode, pin }: JoinClassParams) {
   try {
-    const validatedInput = JoinClassSchema.parse({ classCode, pin })
+    let validatedInput
+    try {
+      validatedInput = JoinClassSchema.parse({ classCode, pin })
+    } catch (error) {
+      return handleZodError(error)
+    }
     const validatedClassCode = validatedInput.classCode
     const validatedPin = validatedInput.pin
 
@@ -430,10 +442,6 @@ export async function joinClass({ classCode, pin }: JoinClassParams) {
 
     return enrollmentResult
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      const firstError = error.issues[0]
-      return { success: false, error: firstError?.message || 'Invalid input' }
-    }
     authLogger.error('[joinClass] Unexpected error', error)
     return {
       success: false,
@@ -445,7 +453,12 @@ export async function joinClass({ classCode, pin }: JoinClassParams) {
 export async function leaveClass(classId: string) {
   try {
     // Validate class ID
-    const validatedClassId = ClassIdSchema.parse(classId)
+    let validatedClassId
+    try {
+      validatedClassId = ClassIdSchema.parse(classId)
+    } catch (error) {
+      return handleZodError(error)
+    }
 
     // SECURITY: Verify caller is authenticated and is a student
     const auth = await verifyStudentAuth('leaveClass')
@@ -474,10 +487,6 @@ export async function leaveClass(classId: string) {
     revalidatePath('/app/student/classes')
     return { success: true }
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      const firstError = error.issues[0]
-      return { success: false, error: firstError?.message || 'Invalid input' }
-    }
     return {
       success: false,
       error: error instanceof Error ? error.message : 'An unexpected error occurred',
