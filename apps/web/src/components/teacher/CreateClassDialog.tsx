@@ -69,55 +69,7 @@ export function CreateClassDialog() {
         </Button>
       </DialogTrigger>
       <DialogContent>
-        {!createdClass ? (
-          <form onSubmit={handleSubmit}>
-            <DialogHeader>
-              <DialogTitle>Create New Class</DialogTitle>
-              <DialogDescription>
-                Add a new class to manage students and assignments.
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="py-4 space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="class-name">Class Name</Label>
-                <Input
-                  id="class-name"
-                  placeholder="e.g., Class 10-A"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  disabled={loading}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="subject">Subject</Label>
-                <Input
-                  id="subject"
-                  placeholder="e.g., Mathematics, English, Science"
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                  disabled={loading}
-                />
-              </div>
-            </div>
-
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setOpen(false)}
-                disabled={loading}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={loading || !name}>
-                {loading ? 'Creating...' : 'Create Class'}
-              </Button>
-            </DialogFooter>
-          </form>
-        ) : (
+        {createdClass ? (
           <div>
             <DialogHeader>
               <DialogTitle>Class Created! 🎉</DialogTitle>
@@ -167,6 +119,54 @@ export function CreateClassDialog() {
               </Button>
             </DialogFooter>
           </div>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            <DialogHeader>
+              <DialogTitle>Create New Class</DialogTitle>
+              <DialogDescription>
+                Add a new class to manage students and assignments.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="py-4 space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="class-name">Class Name</Label>
+                <Input
+                  id="class-name"
+                  placeholder="e.g., Class 10-A"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="subject">Subject</Label>
+                <Input
+                  id="subject"
+                  placeholder="e.g., Mathematics, English, Science"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+                disabled={loading}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={loading || !name}>
+                {loading ? 'Creating...' : 'Create Class'}
+              </Button>
+            </DialogFooter>
+          </form>
         )}
       </DialogContent>
     </Dialog>

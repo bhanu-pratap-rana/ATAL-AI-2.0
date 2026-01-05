@@ -375,43 +375,7 @@ export default function LessonPage() {
             </Card>
 
             {/* Lesson Content or Practice */}
-            {!showPractice ? (
-              <Card>
-                <CardContent className="p-6">
-                  {lesson.sections[currentSection] && (
-                    <MarkdownRenderer
-                      content={lesson.sections[currentSection].content}
-                      className="prose prose-sm dark:prose-invert max-w-none"
-                    />
-                  )}
-
-                  {/* Navigation */}
-                  <div className="flex justify-between mt-8">
-                    <Button
-                      variant="outline"
-                      onClick={() => setCurrentSection(Math.max(0, currentSection - 1))}
-                      disabled={currentSection === 0}
-                    >
-                      ← Previous
-                    </Button>
-
-                    {currentSection < lesson.sections.length - 1 ? (
-                      <Button onClick={() => setCurrentSection(currentSection + 1)}>
-                        Next →
-                      </Button>
-                    ) : lesson.practice_questions.length > 0 ? (
-                      <Button onClick={() => setShowPractice(true)}>
-                        Practice Questions →
-                      </Button>
-                    ) : (
-                      <Button onClick={handleComplete} className="bg-success hover:bg-success-dark">
-                        Complete Lesson ✓
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
+            {showPractice ? (
               <Card>
                 <CardHeader>
                   <CardTitle>Practice Questions</CardTitle>
@@ -468,15 +432,7 @@ export default function LessonPage() {
 
                   {/* Submit / Results */}
                   <div className="pt-4 border-t">
-                    {!practiceSubmitted ? (
-                      <Button
-                        onClick={handlePracticeSubmit}
-                        disabled={Object.keys(practiceAnswers).length < lesson.practice_questions.length}
-                        className="w-full"
-                      >
-                        Submit Answers
-                      </Button>
-                    ) : (
+                    {practiceSubmitted ? (
                       <div className="text-center space-y-4">
                         <div className="text-4xl font-bold">
                           {calculateScore()}%
@@ -490,6 +446,50 @@ export default function LessonPage() {
                           Complete Lesson ✓
                         </Button>
                       </div>
+                    ) : (
+                      <Button
+                        onClick={handlePracticeSubmit}
+                        disabled={Object.keys(practiceAnswers).length < lesson.practice_questions.length}
+                        className="w-full"
+                      >
+                        Submit Answers
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+                <CardContent className="p-6">
+                  {lesson.sections[currentSection] && (
+                    <MarkdownRenderer
+                      content={lesson.sections[currentSection].content}
+                      className="prose prose-sm dark:prose-invert max-w-none"
+                    />
+                  )}
+
+                  {/* Navigation */}
+                  <div className="flex justify-between mt-8">
+                    <Button
+                      variant="outline"
+                      onClick={() => setCurrentSection(Math.max(0, currentSection - 1))}
+                      disabled={currentSection === 0}
+                    >
+                      ← Previous
+                    </Button>
+
+                    {currentSection < lesson.sections.length - 1 ? (
+                      <Button onClick={() => setCurrentSection(currentSection + 1)}>
+                        Next →
+                      </Button>
+                    ) : lesson.practice_questions.length > 0 ? (
+                      <Button onClick={() => setShowPractice(true)}>
+                        Practice Questions →
+                      </Button>
+                    ) : (
+                      <Button onClick={handleComplete} className="bg-success hover:bg-success-dark">
+                        Complete Lesson ✓
+                      </Button>
                     )}
                   </div>
                 </CardContent>
