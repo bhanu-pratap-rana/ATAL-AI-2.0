@@ -12,7 +12,7 @@
  * - Learning style adaptation
  */
 
-import { streamText, CoreMessage } from 'ai';
+import { streamText } from 'ai';
 import { z } from 'zod';
 import { getCurrentUser, createClient } from '@/lib/supabase-server';
 import { getAIModel, MODEL_CONFIGS } from '@/lib/ai/providers';

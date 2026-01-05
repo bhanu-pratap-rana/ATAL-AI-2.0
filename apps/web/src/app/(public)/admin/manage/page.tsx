@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { deleteUserByEmail } from '@/app/actions/admin-delete'
-import { createAdminUser, checkAdminExists } from '@/app/actions/admin-auth'
+import { createAdminUser } from '@/app/actions/admin-auth'
 import { createClient } from '@/lib/supabase-browser'
 import { AuthCard } from '@/components/auth/AuthCard'
 import { Button } from '@/components/ui/button'
