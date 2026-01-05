@@ -474,11 +474,11 @@ export default function TeacherStartPage() {
               {state.password.length > 0 && (
                 <div className="space-y-1">
                   <div className="flex gap-1">
-                    {[0, 1, 2, 3, 4].map((i) => (
+                    {[0, 1, 2, 3, 4].map((strength) => (
                       <div
-                        key={i}
+                        key={`strength-${strength}`}
                         className={`h-1 flex-1 rounded ${
-                          i <= state.passwordStrength
+                          strength <= state.passwordStrength
                             ? getPasswordStrengthColor()
                             : 'bg-surface-dark'
                         }`}

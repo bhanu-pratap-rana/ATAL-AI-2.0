@@ -33,9 +33,9 @@ export function AssessmentSkeleton() {
 
             {/* Options Skeleton */}
             <div className="space-y-3">
-              {[1, 2, 3, 4].map((i) => (
+              {[1, 2, 3, 4].map((item) => (
                 <div
-                  key={i}
+                  key={`question-${item}`}
                   className="p-4 rounded-md border-2 border-border bg-surface"
                 >
                   <div className="flex items-start gap-3">
