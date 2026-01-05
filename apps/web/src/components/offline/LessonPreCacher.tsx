@@ -22,11 +22,11 @@ import {
 } from '@/components/ui/tooltip';
 
 interface LessonPreCacherProps {
-  moduleId: string;
-  language?: Language;
-  topicIds: string[];
+  readonly moduleId: string;
+  readonly language?: Language;
+  readonly topicIds: string[];
   /** Show a visible indicator (default: false for silent caching) */
-  showIndicator?: boolean;
+  readonly showIndicator?: boolean;
 }
 
 export function LessonPreCacher({
@@ -120,9 +120,9 @@ export function DownloadModuleButton({
   moduleName,
   language = 'en',
 }: {
-  moduleId: string;
-  moduleName: string;
-  language?: Language;
+  readonly moduleId: string;
+  readonly moduleName: string;
+  readonly language?: Language;
 }) {
   const { isOnline } = useNetworkStatus();
   const [status, setStatus] = useState<'idle' | 'downloading' | 'done' | 'error'>('idle');

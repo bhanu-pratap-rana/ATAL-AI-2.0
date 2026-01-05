@@ -31,9 +31,9 @@ interface Recommendation {
 }
 
 interface AdaptiveRecommendationsProps {
-  userId: string;
-  currentModuleId?: string;
-  limit?: number;
+  readonly userId: string;
+  readonly currentModuleId?: string;
+  readonly limit?: number;
 }
 
 export function AdaptiveRecommendations({
