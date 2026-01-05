@@ -51,6 +51,7 @@ import { buildSystemPrompt, getFeedbackPrompt } from '../prompts/socratic-tutor'
 import { createClient } from '@/lib/supabase-server';
 import { authLogger } from '@/lib/auth-logger';
 import { aiProviderBreakers } from '@/lib/circuit-breaker';
+import { getLanguageLabelForAI } from '@/lib/form-utils';
 
 /**
  * Supported languages
@@ -346,7 +347,7 @@ Please provide encouraging feedback.`,
         model,
         system: `You are providing a ${hintLevel} to help a student answer a question.
 Never give away the answer directly. Use the Socratic method.
-Language: ${params.language === 'en' ? 'English' : params.language === 'hi' ? 'Hindi' : 'Assamese'}`,
+Language: ${getLanguageLabelForAI(params.language)}`,
         messages: [
           {
             role: 'user',

@@ -21,6 +21,7 @@ import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
 import { VoiceChat } from "@/components/ai/VoiceChat";
 import { createClient } from "@/lib/supabase-browser";
 import { clientLogger } from "@/lib/client-logger";
+import { getConfidenceLevel } from "@/lib/form-utils";
 
 // Lesson content interface
 interface LessonContent {
@@ -352,8 +353,7 @@ export default function LessonPage() {
             topic_id: topicId,
             mastery_score: score,
             status: status,
-            confidence_level:
-              score >= 90 ? "high" : score >= 70 ? "medium" : "low",
+            confidence_level: getConfidenceLevel(score),
             attempts: 1,
             last_attempt_at: new Date().toISOString(),
           },

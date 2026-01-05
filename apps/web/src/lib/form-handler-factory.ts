@@ -17,6 +17,7 @@
 
 import { ValidationResult } from '@/hooks/useValidationHandler'
 import { validateEmail, validatePassword, validatePasswordMatch } from '@/lib/validation-utils'
+import { createErrorHandler } from '@/lib/form-utils'
 
 /**
  * Handler state for form operations
@@ -182,7 +183,7 @@ export function createEmailHandler(
     validate: () => validateEmail(email),
     onSubmit: () => submitFn(email),
     onValidationError: onError,
-    onSubmitError: onError ? (err: unknown) => onError(err instanceof Error ? err.message : String(err)) : undefined,
+    onSubmitError: createErrorHandler(onError),
     onSuccess,
   })
 }
@@ -212,7 +213,7 @@ export function createPasswordHandler(
     validate: () => [validatePassword(password), validatePasswordMatch(password, passwordConfirm)],
     onSubmit: () => submitFn(password),
     onValidationError: onError,
-    onSubmitError: onError ? (err: unknown) => onError(err instanceof Error ? err.message : String(err)) : undefined,
+    onSubmitError: createErrorHandler(onError),
     onSuccess,
   })
 }
