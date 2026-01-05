@@ -1,17 +1,23 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { queryMonitor } from '@/lib/supabase-query-wrapper';
-import { connectionPoolMonitor } from '@/lib/monitoring/connection-pool-monitor';
-import type { ConnectionPoolMetrics, PoolAlert } from '@/types/monitoring';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle, TrendingDown, Zap } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { queryMonitor } from "@/lib/supabase-query-wrapper";
+import { connectionPoolMonitor } from "@/lib/monitoring/connection-pool-monitor";
+import type { ConnectionPoolMetrics, PoolAlert } from "@/types/monitoring";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertCircle, TrendingDown, Zap } from "lucide-react";
 
 export default function PerformanceMonitoringPage() {
   const [stats, setStats] = useState(queryMonitor.getStats());
-  const [slowQueries, setSlowQueries] = useState(queryMonitor.getSlowestQueries(10));
-  const [failedQueries, setFailedQueries] = useState(queryMonitor.getFailedQueries(10));
-  const [poolMetrics, setPoolMetrics] = useState<ConnectionPoolMetrics | null>(null);
+  const [slowQueries, setSlowQueries] = useState(
+    queryMonitor.getSlowestQueries(10),
+  );
+  const [failedQueries, setFailedQueries] = useState(
+    queryMonitor.getFailedQueries(10),
+  );
+  const [poolMetrics, setPoolMetrics] = useState<ConnectionPoolMetrics | null>(
+    null,
+  );
   const [poolAlerts, setPoolAlerts] = useState<PoolAlert[]>([]);
   const [refreshInterval, setRefreshInterval] = useState(5000);
 
@@ -50,7 +56,9 @@ export default function PerformanceMonitoringPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Total Queries</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">
+              Total Queries
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{stats.totalQueries}</div>
@@ -62,22 +70,34 @@ export default function PerformanceMonitoringPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Slow Queries (&gt;1s)</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">
+              Slow Queries (&gt;1s)
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-orange-600">{stats.slowQueries}</div>
+            <div className="text-3xl font-bold text-orange-600">
+              {stats.slowQueries}
+            </div>
             <p className="text-xs text-gray-500 mt-2">
-              {((stats.slowQueries / Math.max(stats.totalQueries, 1)) * 100).toFixed(1)}% of total
+              {(
+                (stats.slowQueries / Math.max(stats.totalQueries, 1)) *
+                100
+              ).toFixed(1)}
+              % of total
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Avg Duration</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">
+              Avg Duration
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{stats.avgDuration.toFixed(0)}ms</div>
+            <div className="text-3xl font-bold">
+              {stats.avgDuration.toFixed(0)}ms
+            </div>
             <p className="text-xs text-gray-500 mt-2">
               P95: {stats.p95Duration.toFixed(0)}ms
             </p>
@@ -86,13 +106,15 @@ export default function PerformanceMonitoringPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">P99 Duration</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">
+              P99 Duration
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-red-600">{stats.p99Duration.toFixed(0)}ms</div>
-            <p className="text-xs text-gray-500 mt-2">
-              Slowest 1% of queries
-            </p>
+            <div className="text-3xl font-bold text-red-600">
+              {stats.p99Duration.toFixed(0)}ms
+            </div>
+            <p className="text-xs text-gray-500 mt-2">Slowest 1% of queries</p>
           </CardContent>
         </Card>
       </div>
@@ -110,22 +132,28 @@ export default function PerformanceMonitoringPage() {
             <div className="grid grid-cols-3 gap-6">
               <div>
                 <p className="text-sm text-gray-600 mb-2">Active Connections</p>
-                <p className="text-2xl font-bold">{poolMetrics.activeConnections}</p>
+                <p className="text-2xl font-bold">
+                  {poolMetrics.activeConnections}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-gray-600 mb-2">Max Connections</p>
-                <p className="text-2xl font-bold">{poolMetrics.maxConnections}</p>
+                <p className="text-2xl font-bold">
+                  {poolMetrics.maxConnections}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-gray-600 mb-2">Utilization</p>
                 <div className="flex items-center gap-2">
-                  <p className={`text-2xl font-bold ${
-                    poolMetrics.utilizationPercent > 85
-                      ? 'text-red-600'
-                      : poolMetrics.utilizationPercent > 70
-                      ? 'text-orange-600'
-                      : 'text-green-600'
-                  }`}>
+                  <p
+                    className={`text-2xl font-bold ${
+                      poolMetrics.utilizationPercent > 85
+                        ? "text-red-600"
+                        : poolMetrics.utilizationPercent > 70
+                          ? "text-orange-600"
+                          : "text-green-600"
+                    }`}
+                  >
                     {poolMetrics.utilizationPercent.toFixed(1)}%
                   </p>
                 </div>
@@ -138,10 +166,10 @@ export default function PerformanceMonitoringPage() {
                 <div
                   className={`h-full transition-all ${
                     poolMetrics.utilizationPercent > 85
-                      ? 'bg-red-500'
+                      ? "bg-red-500"
                       : poolMetrics.utilizationPercent > 70
-                      ? 'bg-orange-500'
-                      : 'bg-green-500'
+                        ? "bg-orange-500"
+                        : "bg-green-500"
                   }`}
                   style={{ width: `${poolMetrics.utilizationPercent}%` }}
                 />
@@ -166,11 +194,11 @@ export default function PerformanceMonitoringPage() {
                 <div
                   key={`pool-alert-${idx}-${alert.timestamp}`}
                   className={`p-3 rounded border-l-4 ${
-                    alert.level === 'critical'
-                      ? 'border-red-600 bg-red-100 text-red-800'
-                      : alert.level === 'error'
-                      ? 'border-orange-600 bg-orange-100 text-orange-800'
-                      : 'border-yellow-600 bg-yellow-100 text-yellow-800'
+                    alert.level === "critical"
+                      ? "border-red-600 bg-red-100 text-red-800"
+                      : alert.level === "error"
+                        ? "border-orange-600 bg-orange-100 text-orange-800"
+                        : "border-yellow-600 bg-yellow-100 text-yellow-800"
                   }`}
                 >
                   <p className="font-semibold text-sm">{alert.message}</p>
@@ -194,17 +222,22 @@ export default function PerformanceMonitoringPage() {
         </CardHeader>
         <CardContent>
           {slowQueries.length === 0 ? (
-            <p className="text-green-600 font-semibold">✅ No slow queries detected</p>
+            <p className="text-green-600 font-semibold">
+              ✅ No slow queries detected
+            </p>
           ) : (
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {slowQueries.map((query, idx) => (
-                <div key={`slow-query-${idx}-${query.queryName}`} className="border-l-4 border-orange-500 pl-4 py-3 bg-orange-50 rounded">
+                <div
+                  key={`slow-query-${idx}-${query.queryName}`}
+                  className="border-l-4 border-orange-500 pl-4 py-3 bg-orange-50 rounded"
+                >
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="font-semibold text-sm">{query.queryName}</p>
                       {query.tableNames && query.tableNames.length > 0 && (
                         <p className="text-xs text-gray-600 mt-1">
-                          Tables: {query.tableNames.join(', ')}
+                          Tables: {query.tableNames.join(", ")}
                         </p>
                       )}
                     </div>
@@ -216,7 +249,9 @@ export default function PerformanceMonitoringPage() {
                     {new Date(query.timestamp).toLocaleString()}
                   </p>
                   {query.userId && (
-                    <p className="text-xs text-gray-600">User: {query.userId}</p>
+                    <p className="text-xs text-gray-600">
+                      User: {query.userId}
+                    </p>
                   )}
                 </div>
               ))}
@@ -237,12 +272,17 @@ export default function PerformanceMonitoringPage() {
           <CardContent>
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {failedQueries.map((query, idx) => (
-                <div key={`failed-query-${idx}-${query.queryName}`} className="border-l-4 border-red-500 pl-4 py-3 bg-red-50 rounded">
+                <div
+                  key={`failed-query-${idx}-${query.queryName}`}
+                  className="border-l-4 border-red-500 pl-4 py-3 bg-red-50 rounded"
+                >
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="font-semibold text-sm">{query.queryName}</p>
                       {query.error && (
-                        <p className="text-xs text-red-600 mt-1">{query.error}</p>
+                        <p className="text-xs text-red-600 mt-1">
+                          {query.error}
+                        </p>
                       )}
                     </div>
                     <span className="text-gray-600 text-xs">

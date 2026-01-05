@@ -1,28 +1,28 @@
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { createClient, getCurrentUser } from '@/lib/supabase-server'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { authLogger } from '@/lib/auth-logger'
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { createClient, getCurrentUser } from "@/lib/supabase-server";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { authLogger } from "@/lib/auth-logger";
 
 interface TeacherInfo {
-  name: string | null
-  user_id: string
+  name: string | null;
+  user_id: string;
 }
 
 interface ClassInfo {
-  id: string
-  name: string
-  class_code: string
-  subject: string | null
-  teacher_id: string
+  id: string;
+  name: string;
+  class_code: string;
+  subject: string | null;
+  teacher_id: string;
 }
 
 interface Enrollment {
-  id: string
-  created_at: string
-  class: ClassInfo
-  teacher: TeacherInfo | null
+  id: string;
+  created_at: string;
+  class: ClassInfo;
+  teacher: TeacherInfo | null;
 }
 
 /**
@@ -31,12 +31,13 @@ interface Enrollment {
  */
 async function getStudentClasses(userId: string): Promise<Enrollment[]> {
   try {
-    const supabase = await createClient()
+    const supabase = await createClient();
 
     // Fetch enrollments with class details
     const { data: enrollments, error: enrollmentError } = await supabase
-      .from('enrollments')
-      .select(`
+      .from("enrollments")
+      .select(
+        `
         id,
         created_at,
         class:classes(
@@ -46,73 +47,81 @@ async function getStudentClasses(userId: string): Promise<Enrollment[]> {
           subject,
           teacher_id
         )
-      `)
-      .eq('student_id', userId)
-      .order('created_at', { ascending: false })
+      `,
+      )
+      .eq("student_id", userId)
+      .order("created_at", { ascending: false });
 
     if (enrollmentError) {
-      authLogger.error('[getStudentClasses] Error fetching enrollments', enrollmentError)
-      return []
+      authLogger.error(
+        "[getStudentClasses] Error fetching enrollments",
+        enrollmentError,
+      );
+      return [];
     }
 
     if (!enrollments || enrollments.length === 0) {
-      return []
+      return [];
     }
 
     // Helper to extract class from Supabase response (handles both array and single object)
-    const getClassFromEnrollment = (e: typeof enrollments[0]): ClassInfo | null => {
-      if (!e.class) return null
+    const getClassFromEnrollment = (
+      e: (typeof enrollments)[0],
+    ): ClassInfo | null => {
+      if (!e.class) return null;
       // Supabase types can return array for relations, but single FK returns single object
-      const classData = Array.isArray(e.class) ? e.class[0] : e.class
-      return classData as ClassInfo
-    }
+      const classData = Array.isArray(e.class) ? e.class[0] : e.class;
+      return classData as ClassInfo;
+    };
 
     // Fetch teacher names for each class
-    const teacherIds = [...new Set(
-      enrollments
-        .map(e => getClassFromEnrollment(e)?.teacher_id)
-        .filter((id): id is string => !!id)
-    )]
+    const teacherIds = [
+      ...new Set(
+        enrollments
+          .map((e) => getClassFromEnrollment(e)?.teacher_id)
+          .filter((id): id is string => !!id),
+      ),
+    ];
 
-    let teacherMap = new Map<string, TeacherInfo>()
+    let teacherMap = new Map<string, TeacherInfo>();
 
     if (teacherIds.length > 0) {
       const { data: teachers } = await supabase
-        .from('teacher_profiles')
-        .select('user_id, name')
-        .in('user_id', teacherIds)
+        .from("teacher_profiles")
+        .select("user_id, name")
+        .in("user_id", teacherIds);
 
       if (teachers) {
-        teacherMap = new Map(teachers.map(t => [t.user_id, t]))
+        teacherMap = new Map(teachers.map((t) => [t.user_id, t]));
       }
     }
 
     // Combine enrollments with teacher info
-    return enrollments.map(enrollment => {
-      const classData = getClassFromEnrollment(enrollment)
+    return enrollments.map((enrollment) => {
+      const classData = getClassFromEnrollment(enrollment);
       return {
         id: enrollment.id,
         created_at: enrollment.created_at,
         class: classData as ClassInfo,
         teacher: classData?.teacher_id
           ? teacherMap.get(classData.teacher_id) || null
-          : null
-      }
-    })
+          : null,
+      };
+    });
   } catch (error) {
-    authLogger.error('[getStudentClasses] Unexpected error', error)
-    return []
+    authLogger.error("[getStudentClasses] Unexpected error", error);
+    return [];
   }
 }
 
 export default async function StudentClassesPage() {
-  const user = await getCurrentUser()
+  const user = await getCurrentUser();
 
   if (!user) {
-    redirect('/student/start')
+    redirect("/student/start");
   }
 
-  const enrollments = await getStudentClasses(user.id)
+  const enrollments = await getStudentClasses(user.id);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream to-surface page-layout">
@@ -139,14 +148,19 @@ export default async function StudentClassesPage() {
                 Ask your teacher for a class code to get started
               </p>
               <Link href="/join">
-                <Button className="btn-mobile-full sm:w-auto">Join a Class</Button>
+                <Button className="btn-mobile-full sm:w-auto">
+                  Join a Class
+                </Button>
               </Link>
             </CardContent>
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-responsive">
             {enrollments.map((enrollment: Enrollment) => (
-              <Card key={enrollment.id} className="hover:shadow-lg transition card-responsive">
+              <Card
+                key={enrollment.id}
+                className="hover:shadow-lg transition card-responsive"
+              >
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center gap-2 text-base md:text-lg">
                     <span>📚</span>
@@ -156,20 +170,22 @@ export default async function StudentClassesPage() {
                 <CardContent>
                   <div className="space-y-2">
                     <p className="text-sm text-text-secondary truncate">
-                      <span className="font-medium">Teacher:</span>{' '}
-                      {enrollment.teacher?.name || 'Not available'}
+                      <span className="font-medium">Teacher:</span>{" "}
+                      {enrollment.teacher?.name || "Not available"}
                     </p>
                     {enrollment.class.subject && (
                       <p className="text-sm text-text-secondary truncate">
-                        <span className="font-medium">Subject:</span>{' '}
+                        <span className="font-medium">Subject:</span>{" "}
                         {enrollment.class.subject}
                       </p>
                     )}
                     <p className="text-sm text-text-secondary">
-                      <span className="font-medium">Joined:</span>{' '}
+                      <span className="font-medium">Joined:</span>{" "}
                       {new Date(enrollment.created_at).toLocaleDateString()}
                     </p>
-                    <Link href={`/app/assessment/start?classId=${enrollment.class.id}`}>
+                    <Link
+                      href={`/app/assessment/start?classId=${enrollment.class.id}`}
+                    >
                       <Button className="w-full mt-4 touch-target">
                         Start Assessment
                       </Button>
@@ -182,5 +198,5 @@ export default async function StudentClassesPage() {
         )}
       </div>
     </div>
-  )
+  );
 }

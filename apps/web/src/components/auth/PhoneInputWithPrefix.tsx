@@ -1,19 +1,19 @@
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface PhoneInputWithPrefixProps {
-  readonly id: string
-  readonly label?: string
-  readonly value: string
-  readonly onChange: (value: string) => void
-  readonly error?: string
-  readonly disabled?: boolean
-  readonly placeholder?: string
-  readonly helperText?: string
-  readonly autoFocus?: boolean
-  readonly required?: boolean
-  readonly prefix?: string
-  readonly maxLength?: number
+  readonly id: string;
+  readonly label?: string;
+  readonly value: string;
+  readonly onChange: (value: string) => void;
+  readonly error?: string;
+  readonly disabled?: boolean;
+  readonly placeholder?: string;
+  readonly helperText?: string;
+  readonly autoFocus?: boolean;
+  readonly required?: boolean;
+  readonly prefix?: string;
+  readonly maxLength?: number;
 }
 
 /**
@@ -22,23 +22,23 @@ interface PhoneInputWithPrefixProps {
  */
 export function PhoneInputWithPrefix({
   id,
-  label = 'Phone Number',
+  label = "Phone Number",
   value,
   onChange,
   error,
   disabled = false,
-  placeholder = '9876543210',
-  helperText = 'Enter 10-digit phone number',
+  placeholder = "9876543210",
+  helperText = "Enter 10-digit phone number",
   autoFocus = false,
   required = true,
-  prefix = '+91',
+  prefix = "+91",
   maxLength = 10,
 }: PhoneInputWithPrefixProps) {
   // Only allow numeric input
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const numericValue = e.target.value.replace(/\D/g, '').slice(0, maxLength)
-    onChange(numericValue)
-  }
+    const numericValue = e.target.value.replace(/\D/g, "").slice(0, maxLength);
+    onChange(numericValue);
+  };
 
   return (
     <div className="space-y-2">
@@ -60,7 +60,9 @@ export function PhoneInputWithPrefix({
           required={required}
           className="bg-muted"
           aria-label={label}
-          aria-describedby={error ? `${id}-error` : helperText ? `${id}-helper` : undefined}
+          aria-describedby={
+            error ? `${id}-error` : helperText ? `${id}-helper` : undefined
+          }
         />
       </div>
       {error ? (
@@ -73,5 +75,5 @@ export function PhoneInputWithPrefix({
         </p>
       )}
     </div>
-  )
+  );
 }

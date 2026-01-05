@@ -1,38 +1,38 @@
-'use client'
+"use client";
 
-import { FormEvent } from 'react'
-import { AuthCard } from '@/components/auth/AuthCard'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Lock } from 'lucide-react'
+import { FormEvent } from "react";
+import { AuthCard } from "@/components/auth/AuthCard";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Lock } from "lucide-react";
 
 interface TeacherSetPasswordFormProps {
-  readonly password: string
-  readonly passwordConfirm: string
-  readonly passwordStrength: number
-  readonly loading: boolean
-  readonly onPasswordChange: (value: string) => void
-  readonly onConfirmPasswordChange: (value: string) => void
-  readonly onSubmit: (e: FormEvent) => void
+  readonly password: string;
+  readonly passwordConfirm: string;
+  readonly passwordStrength: number;
+  readonly loading: boolean;
+  readonly onPasswordChange: (value: string) => void;
+  readonly onConfirmPasswordChange: (value: string) => void;
+  readonly onSubmit: (e: FormEvent) => void;
 }
 
 function getPasswordStrengthLabel(strength: number): string {
-  if (strength === -1) return ''
-  const labels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong']
-  return labels[strength] || ''
+  if (strength === -1) return "";
+  const labels = ["Very Weak", "Weak", "Fair", "Good", "Strong"];
+  return labels[strength] || "";
 }
 
 function getPasswordStrengthColor(strength: number): string {
   // Use primary gradient colors for strength indicator
   const colors = [
-    'bg-error',      // Very Weak - Red
-    'bg-warning',    // Weak - Orange/Yellow
-    'bg-warning',    // Fair - Orange/Yellow
-    'bg-primary',    // Good - Primary Orange
-    'bg-success',    // Strong - Green
-  ]
-  return colors[strength] || 'bg-surface-dark'
+    "bg-error", // Very Weak - Red
+    "bg-warning", // Weak - Orange/Yellow
+    "bg-warning", // Fair - Orange/Yellow
+    "bg-primary", // Good - Primary Orange
+    "bg-success", // Strong - Green
+  ];
+  return colors[strength] || "bg-surface-dark";
 }
 
 export function TeacherSetPasswordForm({
@@ -72,7 +72,7 @@ export function TeacherSetPasswordForm({
                     className={`h-1.5 flex-1 rounded-full transition-colors ${
                       i <= passwordStrength
                         ? getPasswordStrengthColor(passwordStrength)
-                        : 'bg-surface-dark'
+                        : "bg-surface-dark"
                     }`}
                   />
                 ))}
@@ -103,8 +103,8 @@ export function TeacherSetPasswordForm({
         <div className="bg-primary-light border-l-4 border-primary p-3 rounded-md">
           <p className="text-xs text-text-primary">
             <strong className="text-primary">🔒 Why a password?</strong>
-            <br />
-            A password enables account recovery and allows you to access your account from multiple devices securely.
+            <br />A password enables account recovery and allows you to access
+            your account from multiple devices securely.
           </p>
         </div>
 
@@ -121,9 +121,9 @@ export function TeacherSetPasswordForm({
           }
         >
           <Lock className="mr-2 h-4 w-4" />
-          {loading ? 'Setting password...' : 'Set Password & Continue'}
+          {loading ? "Setting password..." : "Set Password & Continue"}
         </Button>
       </form>
     </AuthCard>
-  )
+  );
 }

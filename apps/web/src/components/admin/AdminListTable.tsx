@@ -1,133 +1,156 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { listAdminAccounts, deleteAdminAccount, resetAdminPassword } from '@/app/actions/admin-management'
-import type { AdminUser } from '@/app/actions/admin-management'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Trash2, RotateCcw, AlertCircle, X, Eye, EyeOff } from 'lucide-react'
-import { toast } from 'sonner'
-import { clientLogger } from '@/lib/client-logger'
+import { useEffect, useState } from "react";
+import {
+  listAdminAccounts,
+  deleteAdminAccount,
+  resetAdminPassword,
+} from "@/app/actions/admin-management";
+import type { AdminUser } from "@/app/actions/admin-management";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Trash2, RotateCcw, AlertCircle, X, Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
+import { clientLogger } from "@/lib/client-logger";
 
 interface AdminListTableProps {
-  readonly refreshTrigger?: number
-  readonly onAdminDeleted?: () => void
+  readonly refreshTrigger?: number;
+  readonly onAdminDeleted?: () => void;
 }
 
 /**
  * AdminListTable - Display list of all admin accounts
  */
-export function AdminListTable({ refreshTrigger = 0, onAdminDeleted }: AdminListTableProps) {
-  const [admins, setAdmins] = useState<AdminUser[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [resetingId, setResetingId] = useState<string | null>(null)
+export function AdminListTable({
+  refreshTrigger = 0,
+  onAdminDeleted,
+}: AdminListTableProps) {
+  const [admins, setAdmins] = useState<AdminUser[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [resetingId, setResetingId] = useState<string | null>(null);
 
   // Password reset modal state
-  const [showResetModal, setShowResetModal] = useState(false)
-  const [resetAdmin, setResetAdmin] = useState<{ id: string; email: string } | null>(null)
-  const [newPassword, setNewPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [resetError, setResetError] = useState<string | null>(null)
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetAdmin, setResetAdmin] = useState<{
+    id: string;
+    email: string;
+  } | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadAdmins()
-  }, [refreshTrigger])
+    loadAdmins();
+  }, [refreshTrigger]);
 
   async function loadAdmins() {
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
 
     try {
-      const result = await listAdminAccounts()
+      const result = await listAdminAccounts();
       if (result.success && Array.isArray(result.data)) {
-        setAdmins(result.data as AdminUser[])
+        setAdmins(result.data as AdminUser[]);
       } else {
-        setError(result.error || 'Failed to load admin accounts')
+        setError(result.error || "Failed to load admin accounts");
       }
     } catch (err) {
-      clientLogger.error('[AdminListTable] Error loading admins', err instanceof Error ? err : { error: String(err) })
-      setError('An error occurred while loading admins')
+      clientLogger.error(
+        "[AdminListTable] Error loading admins",
+        err instanceof Error ? err : { error: String(err) },
+      );
+      setError("An error occurred while loading admins");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
   async function handleDeleteAdmin(adminId: string, email: string) {
-    if (!globalThis.confirm(`Are you sure you want to delete ${email}? This cannot be undone.`)) {
-      return
+    if (
+      !globalThis.confirm(
+        `Are you sure you want to delete ${email}? This cannot be undone.`,
+      )
+    ) {
+      return;
     }
 
-    setDeletingId(adminId)
+    setDeletingId(adminId);
     try {
-      const result = await deleteAdminAccount(adminId)
+      const result = await deleteAdminAccount(adminId);
       if (result.success) {
-        toast.success('Admin account deleted successfully')
-        setAdmins(admins.filter((a) => a.id !== adminId))
+        toast.success("Admin account deleted successfully");
+        setAdmins(admins.filter((a) => a.id !== adminId));
         if (onAdminDeleted) {
-          onAdminDeleted()
+          onAdminDeleted();
         }
       } else {
-        toast.error(result.error || 'Failed to delete admin account')
+        toast.error(result.error || "Failed to delete admin account");
       }
     } catch (err) {
-      clientLogger.error('[AdminListTable] Error deleting admin', err instanceof Error ? err : { error: String(err) })
-      toast.error('An error occurred while deleting admin')
+      clientLogger.error(
+        "[AdminListTable] Error deleting admin",
+        err instanceof Error ? err : { error: String(err) },
+      );
+      toast.error("An error occurred while deleting admin");
     } finally {
-      setDeletingId(null)
+      setDeletingId(null);
     }
   }
 
   function openResetModal(adminId: string, email: string) {
-    setResetAdmin({ id: adminId, email })
-    setNewPassword('')
-    setShowPassword(false)
-    setResetError(null)
-    setShowResetModal(true)
+    setResetAdmin({ id: adminId, email });
+    setNewPassword("");
+    setShowPassword(false);
+    setResetError(null);
+    setShowResetModal(true);
   }
 
   function closeResetModal() {
-    setShowResetModal(false)
-    setResetAdmin(null)
-    setNewPassword('')
-    setResetError(null)
+    setShowResetModal(false);
+    setResetAdmin(null);
+    setNewPassword("");
+    setResetError(null);
   }
 
   async function handleResetPassword() {
-    if (!resetAdmin) return
+    if (!resetAdmin) return;
 
     if (!newPassword) {
-      setResetError('Please enter a new password')
-      return
+      setResetError("Please enter a new password");
+      return;
     }
 
     if (newPassword.length < 8) {
-      setResetError('Password must be at least 8 characters')
-      return
+      setResetError("Password must be at least 8 characters");
+      return;
     }
 
-    setResetingId(resetAdmin.id)
-    setResetError(null)
+    setResetingId(resetAdmin.id);
+    setResetError(null);
 
     try {
-      const result = await resetAdminPassword(resetAdmin.id, newPassword)
+      const result = await resetAdminPassword(resetAdmin.id, newPassword);
       if (result.success) {
-        toast.success('Password reset successfully')
-        closeResetModal()
+        toast.success("Password reset successfully");
+        closeResetModal();
       } else {
-        setResetError(result.error || 'Failed to reset password')
+        setResetError(result.error || "Failed to reset password");
       }
     } catch (err) {
-      clientLogger.error('[AdminListTable] Error resetting password', err instanceof Error ? err : { error: String(err) })
-      setResetError('An error occurred while resetting password')
+      clientLogger.error(
+        "[AdminListTable] Error resetting password",
+        err instanceof Error ? err : { error: String(err) },
+      );
+      setResetError("An error occurred while resetting password");
     } finally {
-      setResetingId(null)
+      setResetingId(null);
     }
   }
 
   if (isLoading) {
-    return <div className="text-center py-8">Loading admin accounts...</div>
+    return <div className="text-center py-8">Loading admin accounts...</div>;
   }
 
   if (error) {
@@ -136,7 +159,7 @@ export function AdminListTable({ refreshTrigger = 0, onAdminDeleted }: AdminList
         <AlertCircle className="w-5 h-5 text-error flex-shrink-0 mt-0.5" />
         <p className="text-sm text-error">{error}</p>
       </div>
-    )
+    );
   }
 
   if (admins.length === 0) {
@@ -144,7 +167,7 @@ export function AdminListTable({ refreshTrigger = 0, onAdminDeleted }: AdminList
       <div className="text-center py-8">
         <p className="text-text-secondary">No admin accounts found</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -153,29 +176,50 @@ export function AdminListTable({ refreshTrigger = 0, onAdminDeleted }: AdminList
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border bg-surface">
-              <th className="px-4 py-3 text-left font-semibold text-text">Email</th>
-              <th className="px-4 py-3 text-left font-semibold text-text">Role</th>
-              <th className="px-4 py-3 text-left font-semibold text-text">Created</th>
-              <th className="px-4 py-3 text-left font-semibold text-text">Last Login</th>
-              <th className="px-4 py-3 text-left font-semibold text-text">Actions</th>
+              <th className="px-4 py-3 text-left font-semibold text-text">
+                Email
+              </th>
+              <th className="px-4 py-3 text-left font-semibold text-text">
+                Role
+              </th>
+              <th className="px-4 py-3 text-left font-semibold text-text">
+                Created
+              </th>
+              <th className="px-4 py-3 text-left font-semibold text-text">
+                Last Login
+              </th>
+              <th className="px-4 py-3 text-left font-semibold text-text">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody>
             {admins.map((admin) => (
-              <tr key={admin.id} className="border-b border-border hover:bg-surface">
+              <tr
+                key={admin.id}
+                className="border-b border-border hover:bg-surface"
+              >
                 <td className="px-4 py-3 text-text">{admin.email}</td>
                 <td className="px-4 py-3">
                   <span
                     className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                      admin.role === 'super_admin' ? 'bg-accent-light text-accent-dark' : 'bg-primary-light text-primary-dark'
+                      admin.role === "super_admin"
+                        ? "bg-accent-light text-accent-dark"
+                        : "bg-primary-light text-primary-dark"
                     }`}
                   >
-                    {admin.role === 'super_admin' ? 'Super Admin' : 'Admin'}
+                    {admin.role === "super_admin" ? "Super Admin" : "Admin"}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-text-secondary">{new Date(admin.created_at as string).toLocaleDateString()}</td>
                 <td className="px-4 py-3 text-text-secondary">
-                  {admin.last_sign_in_at ? new Date(admin.last_sign_in_at as string).toLocaleDateString() : 'Never'}
+                  {new Date(admin.created_at as string).toLocaleDateString()}
+                </td>
+                <td className="px-4 py-3 text-text-secondary">
+                  {admin.last_sign_in_at
+                    ? new Date(
+                        admin.last_sign_in_at as string,
+                      ).toLocaleDateString()
+                    : "Never"}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2">
@@ -200,7 +244,7 @@ export function AdminListTable({ refreshTrigger = 0, onAdminDeleted }: AdminList
                       )}
                     </Button>
 
-                    {admin.role !== 'super_admin' && (
+                    {admin.role !== "super_admin" && (
                       <Button
                         onClick={() => handleDeleteAdmin(admin.id, admin.email)}
                         disabled={deletingId === admin.id}
@@ -251,11 +295,11 @@ export function AdminListTable({ refreshTrigger = 0, onAdminDeleted }: AdminList
 
               <div className="relative">
                 <Input
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   placeholder="New password (min 8 characters)"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleResetPassword()}
+                  onKeyDown={(e) => e.key === "Enter" && handleResetPassword()}
                   className="pr-10"
                 />
                 <button
@@ -263,13 +307,15 @@ export function AdminListTable({ refreshTrigger = 0, onAdminDeleted }: AdminList
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-primary"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                 </button>
               </div>
 
-              {resetError && (
-                <p className="text-sm text-error">{resetError}</p>
-              )}
+              {resetError && <p className="text-sm text-error">{resetError}</p>}
             </div>
 
             <div className="p-4 border-t border-border bg-surface flex gap-3">
@@ -285,12 +331,14 @@ export function AdminListTable({ refreshTrigger = 0, onAdminDeleted }: AdminList
                 disabled={resetingId === resetAdmin.id}
                 className="flex-1 bg-primary hover:bg-primary-dark"
               >
-                {resetingId === resetAdmin.id ? 'Resetting...' : 'Reset Password'}
+                {resetingId === resetAdmin.id
+                  ? "Resetting..."
+                  : "Reset Password"}
               </Button>
             </div>
           </div>
         </div>
       )}
     </>
-  )
+  );
 }

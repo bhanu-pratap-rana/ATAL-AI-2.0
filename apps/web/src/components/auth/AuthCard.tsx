@@ -1,9 +1,9 @@
-import Image from 'next/image'
+import Image from "next/image";
 
 interface AuthCardProps {
-  readonly children: React.ReactNode
-  readonly title: string
-  readonly description?: string
+  readonly children: React.ReactNode;
+  readonly title: string;
+  readonly description?: string;
 }
 
 export function AuthCard({ children, title, description }: AuthCardProps) {
@@ -14,7 +14,7 @@ export function AuthCard({ children, title, description }: AuthCardProps) {
         {/* Logo - 32px on mobile, 40px on tablet, 44px on desktop */}
         <div
           className="mx-auto w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 mb-4 sm:mb-5 relative"
-          style={{ animation: 'float 3s ease-in-out infinite' }}
+          style={{ animation: "float 3s ease-in-out infinite" }}
         >
           <Image
             src="/assets/Logo animated.gif"
@@ -29,7 +29,7 @@ export function AuthCard({ children, title, description }: AuthCardProps) {
                 0 0 0 6px white,
                 0 0 0 8px var(--color-primary-light),
                 var(--shadow-primary-sm)
-              `
+              `,
             }}
             priority
             unoptimized
@@ -64,19 +64,22 @@ export function AuthCard({ children, title, description }: AuthCardProps) {
               )}
             </div>
             {/* Card content */}
-            <div className="space-y-3 sm:space-y-4">
-              {children}
-            </div>
+            <div className="space-y-3 sm:space-y-4">{children}</div>
           </div>
         </div>
       </div>
 
       <style jsx>{`
         @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
+          0%,
+          100% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-10px);
+          }
         }
       `}</style>
     </div>
-  )
+  );
 }

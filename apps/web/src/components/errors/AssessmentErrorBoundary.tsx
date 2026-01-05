@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * Assessment Error Boundary
@@ -7,8 +7,8 @@
  * Preserves student progress and allows reload without data loss.
  */
 
-import React from 'react';
-import { clientLogger } from '@/lib/client-logger';
+import React from "react";
+import { clientLogger } from "@/lib/client-logger";
 
 interface Props {
   children: React.ReactNode;
@@ -30,7 +30,7 @@ export class AssessmentErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    clientLogger.error('[Assessment] Component error caught by boundary:', {
+    clientLogger.error("[Assessment] Component error caught by boundary:", {
       error: error.message,
       stack: error.stack,
       componentStack: errorInfo.componentStack,
@@ -60,7 +60,8 @@ export class AssessmentErrorBoundary extends React.Component<Props, State> {
               Assessment Error
             </h2>
             <p className="text-text-secondary mb-6">
-              Something went wrong with the assessment. Your progress has been saved and you can try again.
+              Something went wrong with the assessment. Your progress has been
+              saved and you can try again.
             </p>
 
             {/* Error Details (for debugging) */}
@@ -93,7 +94,8 @@ export class AssessmentErrorBoundary extends React.Component<Props, State> {
 
             {/* Help Text */}
             <p className="text-xs text-muted-foreground mt-6">
-              If this problem persists, please contact your teacher or administrator.
+              If this problem persists, please contact your teacher or
+              administrator.
             </p>
           </div>
         </div>
@@ -103,4 +105,3 @@ export class AssessmentErrorBoundary extends React.Component<Props, State> {
     return this.props.children;
   }
 }
-

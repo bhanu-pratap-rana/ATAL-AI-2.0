@@ -1,28 +1,28 @@
-'use client'
+"use client";
 
-import { FormEvent, useState, useEffect, useCallback, useRef } from 'react'
-import { AuthCard } from '@/components/auth/AuthCard'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Mail, CheckCircle, ArrowLeft, RefreshCw } from 'lucide-react'
-import { formatTimeTidyCompact } from '@/lib/time-utils'
+import { FormEvent, useState, useEffect, useCallback, useRef } from "react";
+import { AuthCard } from "@/components/auth/AuthCard";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Mail, CheckCircle, ArrowLeft, RefreshCw } from "lucide-react";
+import { formatTimeTidyCompact } from "@/lib/time-utils";
 
-const RESEND_COOLDOWN_SECONDS = 60 // 60 seconds cooldown
+const RESEND_COOLDOWN_SECONDS = 60; // 60 seconds cooldown
 
 interface TeacherSignupEmailFlowProps {
-  readonly email: string
-  readonly emailError: string
-  readonly emailSuggestion: string
-  readonly otp: string
-  readonly otpSent: boolean
-  readonly loading: boolean
-  readonly onEmailChange: (value: string) => void
-  readonly onOtpChange: (value: string) => void
-  readonly onSendOtp: (e: FormEvent) => void
-  readonly onVerifyOtp: (e: FormEvent) => void
-  readonly onSuggestionAccept: (suggestion: string) => void
-  readonly onBack: () => void
+  readonly email: string;
+  readonly emailError: string;
+  readonly emailSuggestion: string;
+  readonly otp: string;
+  readonly otpSent: boolean;
+  readonly loading: boolean;
+  readonly onEmailChange: (value: string) => void;
+  readonly onOtpChange: (value: string) => void;
+  readonly onSendOtp: (e: FormEvent) => void;
+  readonly onVerifyOtp: (e: FormEvent) => void;
+  readonly onSuggestionAccept: (suggestion: string) => void;
+  readonly onBack: () => void;
 }
 
 export function TeacherSignupEmailFlow({
@@ -41,50 +41,56 @@ export function TeacherSignupEmailFlow({
 }: TeacherSignupEmailFlowProps) {
   // Initialize cooldown based on otpSent prop (lazy initializer for pure render)
   const [resendCooldown, setResendCooldown] = useState(() =>
-    otpSent ? RESEND_COOLDOWN_SECONDS : 0
-  )
-  const [isResending, setIsResending] = useState(false)
+    otpSent ? RESEND_COOLDOWN_SECONDS : 0,
+  );
+  const [isResending, setIsResending] = useState(false);
 
   // Track previous otpSent state to detect transitions
-  const prevOtpSentRef = useRef(otpSent)
+  const prevOtpSentRef = useRef(otpSent);
 
   // Combined effect: detect otpSent transition and run countdown
   // All setState calls happen in timer callbacks (asynchronously), which is the proper pattern
   useEffect(() => {
     // Detect otpSent transitioning from false to true
-    const justSentOtp = otpSent && !prevOtpSentRef.current
-    prevOtpSentRef.current = otpSent
+    const justSentOtp = otpSent && !prevOtpSentRef.current;
+    prevOtpSentRef.current = otpSent;
 
     // Start fresh countdown when OTP is just sent - use setTimeout to avoid synchronous setState
     if (justSentOtp) {
       const restartTimer = setTimeout(() => {
-        setResendCooldown(RESEND_COOLDOWN_SECONDS)
-      }, 0)
-      return () => clearTimeout(restartTimer)
+        setResendCooldown(RESEND_COOLDOWN_SECONDS);
+      }, 0);
+      return () => clearTimeout(restartTimer);
     }
 
     // Continue countdown if already in progress
     if (resendCooldown > 0) {
       const timer = setTimeout(() => {
-        setResendCooldown((prev) => prev - 1)
-      }, 1000)
-      return () => clearTimeout(timer)
+        setResendCooldown((prev) => prev - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
     }
-  }, [resendCooldown, otpSent])
+  }, [resendCooldown, otpSent]);
 
-  const handleResendOtp = useCallback(async (e: FormEvent) => {
-    e.preventDefault()
-    if (resendCooldown > 0 || isResending) return
+  const handleResendOtp = useCallback(
+    async (e: FormEvent) => {
+      e.preventDefault();
+      if (resendCooldown > 0 || isResending) return;
 
-    setIsResending(true)
-    await onSendOtp(e)
-    setIsResending(false)
-    setResendCooldown(RESEND_COOLDOWN_SECONDS)
-  }, [resendCooldown, isResending, onSendOtp])
+      setIsResending(true);
+      await onSendOtp(e);
+      setIsResending(false);
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
+    },
+    [resendCooldown, isResending, onSendOtp],
+  );
 
   if (!otpSent) {
     return (
-      <AuthCard title="Sign Up with Email" description="Step 1 of 4: Verify your email">
+      <AuthCard
+        title="Sign Up with Email"
+        description="Step 1 of 4: Verify your email"
+      >
         <form onSubmit={onSendOtp} className="space-y-4">
           {emailError && (
             <div className="bg-error-light border border-error/30 rounded-md p-3">
@@ -96,7 +102,8 @@ export function TeacherSignupEmailFlow({
                   onClick={() => onSuggestionAccept(emailSuggestion)}
                   className="text-sm text-error hover:underline mt-2 font-medium"
                 >
-                  Did you mean <span className="font-bold">{emailSuggestion}</span>?
+                  Did you mean{" "}
+                  <span className="font-bold">{emailSuggestion}</span>?
                 </button>
               )}
             </div>
@@ -114,7 +121,9 @@ export function TeacherSignupEmailFlow({
               autoComplete="email"
               required
             />
-            <p className="text-xs text-text-secondary">We&apos;ll send you a verification code</p>
+            <p className="text-xs text-text-secondary">
+              We&apos;ll send you a verification code
+            </p>
           </div>
 
           <Button
@@ -125,7 +134,7 @@ export function TeacherSignupEmailFlow({
             className="w-full"
           >
             <Mail className="mr-2 h-4 w-4" />
-            {loading ? 'Sending OTP...' : 'Send Verification Code'}
+            {loading ? "Sending OTP..." : "Send Verification Code"}
           </Button>
 
           <Button
@@ -140,18 +149,23 @@ export function TeacherSignupEmailFlow({
           </Button>
         </form>
       </AuthCard>
-    )
+    );
   }
 
   return (
-    <AuthCard title="Verify Your Email" description="Enter the verification code we sent">
+    <AuthCard
+      title="Verify Your Email"
+      description="Enter the verification code we sent"
+    >
       <form onSubmit={onVerifyOtp} className="space-y-4">
         <div className="bg-success-light border border-success/30 rounded-md p-3">
           <div className="flex items-start gap-2">
             <CheckCircle className="h-5 w-5 text-success mt-0.5 flex-shrink-0" />
             <div>
               <p className="text-sm font-semibold text-success">Code Sent</p>
-              <p className="text-xs text-success-dark">Check your email for the 6-digit code</p>
+              <p className="text-xs text-success-dark">
+                Check your email for the 6-digit code
+              </p>
             </div>
           </div>
         </div>
@@ -162,7 +176,9 @@ export function TeacherSignupEmailFlow({
             id="email-otp"
             type="text"
             value={otp}
-            onChange={(e) => onOtpChange(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            onChange={(e) =>
+              onOtpChange(e.target.value.replace(/\D/g, "").slice(0, 6))
+            }
             placeholder="Enter 6-digit code"
             disabled={loading}
             maxLength={6}
@@ -179,7 +195,7 @@ export function TeacherSignupEmailFlow({
           size="lg"
           className="w-full"
         >
-          {loading ? 'Verifying...' : 'Verify Code'}
+          {loading ? "Verifying..." : "Verify Code"}
         </Button>
 
         {/* Resend OTP Button with Timer */}
@@ -192,12 +208,14 @@ export function TeacherSignupEmailFlow({
             size="sm"
             className="text-primary hover:text-primary-dark hover:bg-primary-light"
           >
-            <RefreshCw className={`mr-2 h-4 w-4 ${isResending ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`mr-2 h-4 w-4 ${isResending ? "animate-spin" : ""}`}
+            />
             {isResending
-              ? 'Sending...'
+              ? "Sending..."
               : resendCooldown > 0
                 ? `Resend OTP in ${formatTimeTidyCompact(resendCooldown)}`
-                : 'Resend OTP'}
+                : "Resend OTP"}
           </Button>
         </div>
 
@@ -213,5 +231,5 @@ export function TeacherSignupEmailFlow({
         </Button>
       </form>
     </AuthCard>
-  )
+  );
 }

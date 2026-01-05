@@ -1,9 +1,9 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase-browser'
-import { Button } from '@/components/ui/button'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase-browser";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -12,52 +12,54 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { toast } from 'sonner'
-import { authLogger } from '@/lib/auth-logger'
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+import { authLogger } from "@/lib/auth-logger";
 
 interface DeleteAccountButtonProps {
-  readonly userEmail: string
+  readonly userEmail: string;
 }
 
 export function DeleteAccountButton({ userEmail }: DeleteAccountButtonProps) {
-  const router = useRouter()
-  const supabase = createClient()
-  const [open, setOpen] = useState(false)
-  const [confirmText, setConfirmText] = useState('')
-  const [isDeleting, setIsDeleting] = useState(false)
+  const router = useRouter();
+  const supabase = createClient();
+  const [open, setOpen] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const isConfirmed = confirmText.toLowerCase() === 'delete'
+  const isConfirmed = confirmText.toLowerCase() === "delete";
 
   async function handleDeleteAccount() {
-    if (!isConfirmed) return
+    if (!isConfirmed) return;
 
-    setIsDeleting(true)
+    setIsDeleting(true);
 
     try {
       // Sign out the user first (this clears their session)
-      const { error: signOutError } = await supabase.auth.signOut()
+      const { error: signOutError } = await supabase.auth.signOut();
 
       if (signOutError) {
-        authLogger.error('[DeleteAccount] Sign out failed', signOutError)
-        toast.error('Failed to delete account. Please try again.')
-        setIsDeleting(false)
-        return
+        authLogger.error("[DeleteAccount] Sign out failed", signOutError);
+        toast.error("Failed to delete account. Please try again.");
+        setIsDeleting(false);
+        return;
       }
 
       // Note: Full account deletion requires server-side admin API
       // For now, we sign out the user and show a message that their data will be deleted
       // In production, you would call a server action that uses admin client to delete user
 
-      toast.success('You have been signed out. Your account data has been marked for deletion.')
-      setOpen(false)
-      router.push('/student/start')
+      toast.success(
+        "You have been signed out. Your account data has been marked for deletion.",
+      );
+      setOpen(false);
+      router.push("/student/start");
     } catch (error) {
-      authLogger.error('[DeleteAccount] Unexpected error', error)
-      toast.error('An error occurred. Please try again.')
+      authLogger.error("[DeleteAccount] Unexpected error", error);
+      toast.error("An error occurred. Please try again.");
     } finally {
-      setIsDeleting(false)
+      setIsDeleting(false);
     }
   }
 
@@ -75,8 +77,8 @@ export function DeleteAccountButton({ userEmail }: DeleteAccountButtonProps) {
         <DialogHeader>
           <DialogTitle className="text-error-dark">Delete Account</DialogTitle>
           <DialogDescription>
-            This action cannot be undone. This will permanently delete your account
-            and remove all your data from our servers.
+            This action cannot be undone. This will permanently delete your
+            account and remove all your data from our servers.
           </DialogDescription>
         </DialogHeader>
 
@@ -124,10 +126,10 @@ export function DeleteAccountButton({ userEmail }: DeleteAccountButtonProps) {
             loading={isDeleting}
             className="w-full sm:w-auto bg-error hover:bg-error-dark"
           >
-            {isDeleting ? 'Deleting...' : 'Delete Account'}
+            {isDeleting ? "Deleting..." : "Delete Account"}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

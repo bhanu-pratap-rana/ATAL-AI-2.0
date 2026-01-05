@@ -1,23 +1,23 @@
-'use client'
+"use client";
 
-import * as React from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { usePathname } from "next/navigation"
+import * as React from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { usePathname } from "next/navigation";
 
 interface PageTransitionProps {
-  readonly children: React.ReactNode
-  readonly className?: string
+  readonly children: React.ReactNode;
+  readonly className?: string;
 }
 
 export function PageTransition({ children, className }: PageTransitionProps) {
-  const pathname = usePathname()
+  const pathname = usePathname();
   // Suppress hydration warning for Framer Motion animations
   // Animations cause initial render differences between server and client
-  const [isMounted, setIsMounted] = React.useState(false)
+  const [isMounted, setIsMounted] = React.useState(false);
 
   React.useEffect(() => {
-    setIsMounted(true)
-  }, [])
+    setIsMounted(true);
+  }, []);
 
   return (
     <AnimatePresence mode="wait">
@@ -31,12 +31,12 @@ export function PageTransition({ children, className }: PageTransitionProps) {
           type: "spring",
           stiffness: 260,
           damping: 20,
-          duration: 0.15
+          duration: 0.15,
         }}
         suppressHydrationWarning
       >
         {children}
       </motion.div>
     </AnimatePresence>
-  )
+  );
 }

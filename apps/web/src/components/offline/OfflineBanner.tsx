@@ -11,19 +11,19 @@
  * - https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Offline_and_background_operation
  */
 
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { WifiOff, Cloud, RefreshCw } from 'lucide-react';
-import { useNetworkStatus } from '@/hooks/useNetworkStatus';
-import { syncQueue, type SyncStatus } from '@/lib/offline/sync-queue';
-import { cn } from '@/lib/utils';
+import { useEffect, useState } from "react";
+import { WifiOff, Cloud, RefreshCw } from "lucide-react";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { syncQueue, type SyncStatus } from "@/lib/offline/sync-queue";
+import { cn } from "@/lib/utils";
 
 interface OfflineBannerProps {
   /** Additional CSS classes */
   readonly className?: string;
   /** Position of the banner */
-  readonly position?: 'top' | 'bottom';
+  readonly position?: "top" | "bottom";
   /** Show pending sync count */
   readonly showPendingCount?: boolean;
 }
@@ -36,7 +36,7 @@ interface OfflineBannerProps {
  */
 export function OfflineBanner({
   className,
-  position = 'top',
+  position = "top",
   showPendingCount = true,
 }: OfflineBannerProps) {
   const { isOnline, isSlowConnection } = useNetworkStatus();
@@ -79,19 +79,19 @@ export function OfflineBanner({
   const getMessage = () => {
     if (!isOnline) {
       if (isSlowConnection) {
-        return 'Slow connection detected. Some features may be limited.';
+        return "Slow connection detected. Some features may be limited.";
       }
       if (showPendingCount && status.pendingCount > 0) {
-        return `You're offline. ${status.pendingCount} change${status.pendingCount > 1 ? 's' : ''} will sync when you reconnect.`;
+        return `You're offline. ${status.pendingCount} change${status.pendingCount > 1 ? "s" : ""} will sync when you reconnect.`;
       }
       return "You're offline. Changes will sync when you reconnect.";
     }
 
     if (showSyncingMessage) {
-      return `Syncing ${status.pendingCount} change${status.pendingCount > 1 ? 's' : ''}...`;
+      return `Syncing ${status.pendingCount} change${status.pendingCount > 1 ? "s" : ""}...`;
     }
 
-    return 'Back online!';
+    return "Back online!";
   };
 
   const getIcon = () => {
@@ -106,12 +106,12 @@ export function OfflineBanner({
 
   const getBackgroundColor = () => {
     if (!isOnline) {
-      return 'bg-warning';
+      return "bg-warning";
     }
     if (showSyncingMessage) {
-      return 'bg-primary';
+      return "bg-primary";
     }
-    return 'bg-success';
+    return "bg-success";
   };
 
   return (
@@ -119,13 +119,13 @@ export function OfflineBanner({
       role="alert"
       aria-live="polite"
       className={cn(
-        'fixed left-0 right-0 z-50 transition-all duration-300 ease-in-out',
-        position === 'top' ? 'top-0' : 'bottom-0',
+        "fixed left-0 right-0 z-50 transition-all duration-300 ease-in-out",
+        position === "top" ? "top-0" : "bottom-0",
         isOnline && !showSyncingMessage
-          ? 'opacity-0 translate-y-[-100%]'
-          : 'opacity-100 translate-y-0',
+          ? "opacity-0 translate-y-[-100%]"
+          : "opacity-100 translate-y-0",
         getBackgroundColor(),
-        className
+        className,
       )}
     >
       <div className="px-4 py-2 flex items-center justify-center gap-2 text-white">
@@ -149,8 +149,8 @@ export function OfflineNotice({ className }: { className?: string }) {
       role="status"
       aria-live="polite"
       className={cn(
-        'flex items-center gap-2 text-warning bg-warning/10 px-3 py-2 rounded-md text-sm',
-        className
+        "flex items-center gap-2 text-warning bg-warning/10 px-3 py-2 rounded-md text-sm",
+        className,
       )}
     >
       <WifiOff className="h-4 w-4" />
@@ -167,7 +167,9 @@ export function ConnectionQuality({ className }: { className?: string }) {
 
   if (!isOnline) {
     return (
-      <div className={cn('flex items-center gap-1 text-error text-xs', className)}>
+      <div
+        className={cn("flex items-center gap-1 text-error text-xs", className)}
+      >
         <WifiOff className="h-3 w-3" />
         <span>Offline</span>
       </div>
@@ -176,7 +178,12 @@ export function ConnectionQuality({ className }: { className?: string }) {
 
   if (isSlowConnection) {
     return (
-      <div className={cn('flex items-center gap-1 text-warning text-xs', className)}>
+      <div
+        className={cn(
+          "flex items-center gap-1 text-warning text-xs",
+          className,
+        )}
+      >
         <Cloud className="h-3 w-3" />
         <span>Slow ({effectiveType})</span>
       </div>

@@ -1,6 +1,6 @@
 /**
  * ATAL AI Assessment Skeleton - Jyoti Theme
- * 
+ *
  * Rule.md Compliant: Uses CSS variable classes from globals.css
  * NO hardcoded hex values - all colors via design tokens
  */
@@ -60,5 +60,5 @@ export function AssessmentSkeleton() {
         </div>
       </div>
     </div>
-  )
+  );
 }

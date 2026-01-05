@@ -1,26 +1,26 @@
-'use client'
+"use client";
 
-import { FormEvent } from 'react'
-import { AuthCard } from '@/components/auth/AuthCard'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { ArrowLeft, Mail, Lock } from 'lucide-react'
+import { FormEvent } from "react";
+import { AuthCard } from "@/components/auth/AuthCard";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ArrowLeft, Mail, Lock } from "lucide-react";
 
 interface TeacherForgotPasswordFlowProps {
-  readonly email: string
-  readonly otp: string
-  readonly newPassword: string
-  readonly confirmPassword: string
-  readonly otpSent: boolean
-  readonly loading: boolean
-  readonly onEmailChange: (value: string) => void
-  readonly onOtpChange: (value: string) => void
-  readonly onNewPasswordChange: (value: string) => void
-  readonly onConfirmPasswordChange: (value: string) => void
-  readonly onSendOtp: (e: FormEvent) => void
-  readonly onResetPassword: (e: FormEvent) => void
-  readonly onBack: () => void
+  readonly email: string;
+  readonly otp: string;
+  readonly newPassword: string;
+  readonly confirmPassword: string;
+  readonly otpSent: boolean;
+  readonly loading: boolean;
+  readonly onEmailChange: (value: string) => void;
+  readonly onOtpChange: (value: string) => void;
+  readonly onNewPasswordChange: (value: string) => void;
+  readonly onConfirmPasswordChange: (value: string) => void;
+  readonly onSendOtp: (e: FormEvent) => void;
+  readonly onResetPassword: (e: FormEvent) => void;
+  readonly onBack: () => void;
 }
 
 export function TeacherForgotPasswordFlow({
@@ -40,7 +40,10 @@ export function TeacherForgotPasswordFlow({
 }: TeacherForgotPasswordFlowProps) {
   if (!otpSent) {
     return (
-      <AuthCard title="Reset Your Password" description="Enter your email to receive a recovery code">
+      <AuthCard
+        title="Reset Your Password"
+        description="Enter your email to receive a recovery code"
+      >
         <form onSubmit={onSendOtp} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="forgot-email">Email Address</Label>
@@ -56,14 +59,9 @@ export function TeacherForgotPasswordFlow({
             />
           </div>
 
-          <Button
-            type="submit"
-            disabled={loading}
-            size="lg"
-            className="w-full"
-          >
+          <Button type="submit" disabled={loading} size="lg" className="w-full">
             <Mail className="mr-2 h-4 w-4" />
-            {loading ? 'Sending...' : 'Send Recovery Code'}
+            {loading ? "Sending..." : "Send Recovery Code"}
           </Button>
 
           <Button
@@ -78,11 +76,14 @@ export function TeacherForgotPasswordFlow({
           </Button>
         </form>
       </AuthCard>
-    )
+    );
   }
 
   return (
-    <AuthCard title="Enter Recovery Code & New Password" description="Complete the password reset">
+    <AuthCard
+      title="Enter Recovery Code & New Password"
+      description="Complete the password reset"
+    >
       <form onSubmit={onResetPassword} className="space-y-4">
         {/* OTP Input */}
         <div className="space-y-2">
@@ -97,7 +98,9 @@ export function TeacherForgotPasswordFlow({
             maxLength={6}
             required
           />
-          <p className="text-xs text-text-secondary">Check your email for the recovery code</p>
+          <p className="text-xs text-text-secondary">
+            Check your email for the recovery code
+          </p>
         </div>
 
         {/* New Password Input */}
@@ -113,7 +116,9 @@ export function TeacherForgotPasswordFlow({
             autoComplete="new-password"
             required
           />
-          <p className="text-xs text-text-secondary">At least 8 characters with uppercase, lowercase, number, and symbol</p>
+          <p className="text-xs text-text-secondary">
+            At least 8 characters with uppercase, lowercase, number, and symbol
+          </p>
         </div>
 
         {/* Confirm Password Input */}
@@ -132,14 +137,9 @@ export function TeacherForgotPasswordFlow({
         </div>
 
         {/* Submit Button */}
-        <Button
-          type="submit"
-          disabled={loading}
-          size="lg"
-          className="w-full"
-        >
+        <Button type="submit" disabled={loading} size="lg" className="w-full">
           <Lock className="mr-2 h-4 w-4" />
-          {loading ? 'Resetting...' : 'Reset Password'}
+          {loading ? "Resetting..." : "Reset Password"}
         </Button>
 
         {/* Back Button */}
@@ -155,5 +155,5 @@ export function TeacherForgotPasswordFlow({
         </Button>
       </form>
     </AuthCard>
-  )
+  );
 }

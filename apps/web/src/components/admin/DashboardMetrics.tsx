@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import React, { useEffect, useState } from 'react'
-import type { DashboardMetrics } from '@/app/actions/admin-metrics'
+import React, { useEffect, useState } from "react";
+import type { DashboardMetrics } from "@/app/actions/admin-metrics";
 import {
   getDashboardMetrics,
   getSchoolsWithActivePINs,
@@ -9,131 +9,141 @@ import {
   getAllTeachers,
   getAllStudents,
   getSchoolsWithoutPINs,
-} from '@/app/actions/admin-metrics'
-import { School, Users, Lock, X, GraduationCap } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { clientLogger } from '@/lib/client-logger'
+} from "@/app/actions/admin-metrics";
+import { School, Users, Lock, X, GraduationCap } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { clientLogger } from "@/lib/client-logger";
 
 /**
  * ATAL AI Dashboard Metrics - Jyoti Theme
- * 
+ *
  * Rule.md Compliant: Uses CSS variable classes from globals.css
  * NO hardcoded hex values - all colors via design tokens
  */
 
-type ModalType = 'schools' | 'teachers' | 'students' | 'activePINs' | 'inactivePINs' | null
+type ModalType =
+  | "schools"
+  | "teachers"
+  | "students"
+  | "activePINs"
+  | "inactivePINs"
+  | null;
 
 interface SchoolItem {
-  readonly id: string
-  readonly schoolName: string
-  readonly schoolCode: string
-  readonly district: string
-  readonly block?: string | null
-  readonly hasPIN?: boolean
+  readonly id: string;
+  readonly schoolName: string;
+  readonly schoolCode: string;
+  readonly district: string;
+  readonly block?: string | null;
+  readonly hasPIN?: boolean;
 }
 
 interface TeacherItem {
-  readonly id: string
-  readonly email: string
-  readonly name: string
-  readonly phone: string | null
-  readonly schoolName: string
-  readonly schoolCode: string
-  readonly createdAt: string
+  readonly id: string;
+  readonly email: string;
+  readonly name: string;
+  readonly phone: string | null;
+  readonly schoolName: string;
+  readonly schoolCode: string;
+  readonly createdAt: string;
 }
 
 interface StudentItem {
-  readonly id: string
-  readonly email: string
-  readonly phone: string | null
-  readonly createdAt: string
-  readonly lastSignIn: string | null
+  readonly id: string;
+  readonly email: string;
+  readonly phone: string | null;
+  readonly createdAt: string;
+  readonly lastSignIn: string | null;
 }
 
 interface ActivePINSchool {
-  readonly schoolId: string
-  readonly schoolName: string
-  readonly schoolCode: string
-  readonly districtName: string
-  readonly lastRotatedAt: string | null
+  readonly schoolId: string;
+  readonly schoolName: string;
+  readonly schoolCode: string;
+  readonly districtName: string;
+  readonly lastRotatedAt: string | null;
 }
 
 export function DashboardMetrics() {
-  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Modal state
-  const [activeModal, setActiveModal] = useState<ModalType>(null)
-  const [modalLoading, setModalLoading] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
+  const [activeModal, setActiveModal] = useState<ModalType>(null);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Data for modals
-  const [schools, setSchools] = useState<SchoolItem[]>([])
-  const [teachers, setTeachers] = useState<TeacherItem[]>([])
-  const [students, setStudents] = useState<StudentItem[]>([])
-  const [activePINSchools, setActivePINSchools] = useState<ActivePINSchool[]>([])
-  const [inactivePINSchools, setInactivePINSchools] = useState<SchoolItem[]>([])
+  const [schools, setSchools] = useState<SchoolItem[]>([]);
+  const [teachers, setTeachers] = useState<TeacherItem[]>([]);
+  const [students, setStudents] = useState<StudentItem[]>([]);
+  const [activePINSchools, setActivePINSchools] = useState<ActivePINSchool[]>(
+    [],
+  );
+  const [inactivePINSchools, setInactivePINSchools] = useState<SchoolItem[]>(
+    [],
+  );
 
   useEffect(() => {
     const loadMetrics = async () => {
       try {
-        const result = await getDashboardMetrics()
+        const result = await getDashboardMetrics();
         if (result.success && result.data) {
-          setMetrics(result.data)
+          setMetrics(result.data);
         } else {
-          setError(result.error || 'Failed to load metrics')
+          setError(result.error || "Failed to load metrics");
         }
       } catch {
-        setError('An error occurred while loading metrics')
+        setError("An error occurred while loading metrics");
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    loadMetrics()
-  }, [])
+    loadMetrics();
+  }, []);
 
   /**
    * Helper: Load data for a specific modal type
    */
   async function loadModalData(type: ModalType): Promise<void> {
     switch (type) {
-      case 'schools': {
-        const result = await getAllSchools()
+      case "schools": {
+        const result = await getAllSchools();
         if (result.success && result.data) {
-          setSchools(result.data)
+          setSchools(result.data);
         }
-        break
+        break;
       }
-      case 'teachers': {
-        const result = await getAllTeachers()
+      case "teachers": {
+        const result = await getAllTeachers();
         if (result.success && result.data) {
-          setTeachers(result.data)
+          setTeachers(result.data);
         }
-        break
+        break;
       }
-      case 'students': {
-        const result = await getAllStudents()
+      case "students": {
+        const result = await getAllStudents();
         if (result.success && result.data) {
-          setStudents(result.data)
+          setStudents(result.data);
         }
-        break
+        break;
       }
-      case 'activePINs': {
-        const result = await getSchoolsWithActivePINs()
+      case "activePINs": {
+        const result = await getSchoolsWithActivePINs();
         if (result.success && result.data) {
-          setActivePINSchools(result.data)
+          setActivePINSchools(result.data);
         }
-        break
+        break;
       }
-      case 'inactivePINs': {
-        const result = await getSchoolsWithoutPINs()
+      case "inactivePINs": {
+        const result = await getSchoolsWithoutPINs();
         if (result.success && result.data) {
-          setInactivePINSchools(result.data)
+          setInactivePINSchools(result.data);
         }
-        break
+        break;
       }
     }
   }
@@ -143,23 +153,26 @@ export function DashboardMetrics() {
    * CRITICAL FIX: Reduced complexity from 17 to <15 by extracting loadModalData helper
    */
   async function openModal(type: ModalType) {
-    setActiveModal(type)
-    setModalLoading(true)
-    setSearchQuery('')
+    setActiveModal(type);
+    setModalLoading(true);
+    setSearchQuery("");
 
     try {
-      await loadModalData(type)
+      await loadModalData(type);
     } catch (error) {
       // Log error for debugging but don't show to user (modal will show empty state)
-      clientLogger.error('[DashboardMetrics] Error loading modal data', error instanceof Error ? error : { error: String(error) })
+      clientLogger.error(
+        "[DashboardMetrics] Error loading modal data",
+        error instanceof Error ? error : { error: String(error) },
+      );
     } finally {
-      setModalLoading(false)
+      setModalLoading(false);
     }
   }
 
   function closeModal() {
-    setActiveModal(null)
-    setSearchQuery('')
+    setActiveModal(null);
+    setSearchQuery("");
   }
 
   /**
@@ -167,18 +180,18 @@ export function DashboardMetrics() {
    */
   function getModalTitle(): string {
     switch (activeModal) {
-      case 'schools':
-        return `All Schools (${filteredSchools.length})`
-      case 'teachers':
-        return `All Teachers (${filteredTeachers.length})`
-      case 'students':
-        return `All Students (${filteredStudents.length})`
-      case 'activePINs':
-        return `Schools with Active PINs (${filteredActivePINs.length})`
-      case 'inactivePINs':
-        return `Schools without PINs (${filteredInactivePINs.length})`
+      case "schools":
+        return `All Schools (${filteredSchools.length})`;
+      case "teachers":
+        return `All Teachers (${filteredTeachers.length})`;
+      case "students":
+        return `All Students (${filteredStudents.length})`;
+      case "activePINs":
+        return `Schools with Active PINs (${filteredActivePINs.length})`;
+      case "inactivePINs":
+        return `Schools without PINs (${filteredInactivePINs.length})`;
       default:
-        return ''
+        return "";
     }
   }
 
@@ -192,23 +205,34 @@ export function DashboardMetrics() {
           <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
           <p className="mt-2 text-text-tertiary">Loading...</p>
         </div>
-      )
+      );
     }
 
     switch (activeModal) {
-      case 'schools':
+      case "schools":
         return filteredSchools.length === 0 ? (
-          <p className="text-center text-text-tertiary py-8">No schools found</p>
+          <p className="text-center text-text-tertiary py-8">
+            No schools found
+          </p>
         ) : (
           <div className="space-y-3">
             {filteredSchools.map((school) => (
-              <div key={school.id} className="bg-surface rounded-md p-4 border border-border">
+              <div
+                key={school.id}
+                className="bg-surface rounded-md p-4 border border-border"
+              >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-semibold text-text-primary">{school.schoolName}</p>
-                    <p className="text-sm text-text-secondary">{school.district}</p>
+                    <p className="font-semibold text-text-primary">
+                      {school.schoolName}
+                    </p>
+                    <p className="text-sm text-text-secondary">
+                      {school.district}
+                    </p>
                     {school.block && (
-                      <p className="text-xs text-text-tertiary">Block: {school.block}</p>
+                      <p className="text-xs text-text-tertiary">
+                        Block: {school.block}
+                      </p>
                     )}
                   </div>
                   <div className="text-right">
@@ -216,8 +240,10 @@ export function DashboardMetrics() {
                       {school.schoolCode}
                     </span>
                     {school.hasPIN !== undefined && (
-                      <p className={`text-xs mt-1 ${school.hasPIN ? 'text-success' : 'text-error'}`}>
-                        {school.hasPIN ? '✓ PIN Active' : '✗ No PIN'}
+                      <p
+                        className={`text-xs mt-1 ${school.hasPIN ? "text-success" : "text-error"}`}
+                      >
+                        {school.hasPIN ? "✓ PIN Active" : "✗ No PIN"}
                       </p>
                     )}
                   </div>
@@ -225,20 +251,31 @@ export function DashboardMetrics() {
               </div>
             ))}
           </div>
-        )
-      case 'teachers':
+        );
+      case "teachers":
         return filteredTeachers.length === 0 ? (
-          <p className="text-center text-text-tertiary py-8">No teachers found</p>
+          <p className="text-center text-text-tertiary py-8">
+            No teachers found
+          </p>
         ) : (
           <div className="space-y-3">
             {filteredTeachers.map((teacher) => (
-              <div key={teacher.id} className="bg-surface rounded-md p-4 border border-border">
+              <div
+                key={teacher.id}
+                className="bg-surface rounded-md p-4 border border-border"
+              >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-semibold text-text-primary">{teacher.name}</p>
-                    <p className="text-sm text-text-secondary">{teacher.email}</p>
+                    <p className="font-semibold text-text-primary">
+                      {teacher.name}
+                    </p>
+                    <p className="text-sm text-text-secondary">
+                      {teacher.email}
+                    </p>
                     {teacher.phone && (
-                      <p className="text-sm text-text-secondary">{teacher.phone}</p>
+                      <p className="text-sm text-text-secondary">
+                        {teacher.phone}
+                      </p>
                     )}
                     <p className="text-xs text-text-tertiary mt-1">
                       School: {teacher.schoolName}
@@ -256,19 +293,28 @@ export function DashboardMetrics() {
               </div>
             ))}
           </div>
-        )
-      case 'students':
+        );
+      case "students":
         return filteredStudents.length === 0 ? (
-          <p className="text-center text-text-tertiary py-8">No students found</p>
+          <p className="text-center text-text-tertiary py-8">
+            No students found
+          </p>
         ) : (
           <div className="space-y-3">
             {filteredStudents.map((student) => (
-              <div key={student.id} className="bg-surface rounded-md p-4 border border-border">
+              <div
+                key={student.id}
+                className="bg-surface rounded-md p-4 border border-border"
+              >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-semibold text-text-primary">{student.email || 'No email'}</p>
+                    <p className="font-semibold text-text-primary">
+                      {student.email || "No email"}
+                    </p>
                     {student.phone && (
-                      <p className="text-sm text-text-secondary">{student.phone}</p>
+                      <p className="text-sm text-text-secondary">
+                        {student.phone}
+                      </p>
                     )}
                   </div>
                   <div className="text-right">
@@ -277,7 +323,8 @@ export function DashboardMetrics() {
                     </p>
                     {student.lastSignIn && (
                       <p className="text-xs text-text-tertiary">
-                        Last login: {new Date(student.lastSignIn).toLocaleDateString()}
+                        Last login:{" "}
+                        {new Date(student.lastSignIn).toLocaleDateString()}
                       </p>
                     )}
                   </div>
@@ -285,18 +332,27 @@ export function DashboardMetrics() {
               </div>
             ))}
           </div>
-        )
-      case 'activePINs':
+        );
+      case "activePINs":
         return filteredActivePINs.length === 0 ? (
-          <p className="text-center text-text-tertiary py-8">No schools with active PINs</p>
+          <p className="text-center text-text-tertiary py-8">
+            No schools with active PINs
+          </p>
         ) : (
           <div className="space-y-3">
             {filteredActivePINs.map((school) => (
-              <div key={school.schoolId} className="bg-surface rounded-md p-4 border border-border">
+              <div
+                key={school.schoolId}
+                className="bg-surface rounded-md p-4 border border-border"
+              >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-semibold text-text-primary">{school.schoolName}</p>
-                    <p className="text-sm text-text-secondary">{school.districtName}</p>
+                    <p className="font-semibold text-text-primary">
+                      {school.schoolName}
+                    </p>
+                    <p className="text-sm text-text-secondary">
+                      {school.districtName}
+                    </p>
                   </div>
                   <span className="text-xs bg-primary-light text-primary px-2 py-1 rounded-full font-mono">
                     {school.schoolCode}
@@ -304,24 +360,34 @@ export function DashboardMetrics() {
                 </div>
                 {school.lastRotatedAt && (
                   <p className="text-xs text-text-tertiary mt-2">
-                    Last rotated: {new Date(school.lastRotatedAt).toLocaleString()}
+                    Last rotated:{" "}
+                    {new Date(school.lastRotatedAt).toLocaleString()}
                   </p>
                 )}
               </div>
             ))}
           </div>
-        )
-      case 'inactivePINs':
+        );
+      case "inactivePINs":
         return filteredInactivePINs.length === 0 ? (
-          <p className="text-center text-text-tertiary py-8">All schools have active PINs</p>
+          <p className="text-center text-text-tertiary py-8">
+            All schools have active PINs
+          </p>
         ) : (
           <div className="space-y-3">
             {filteredInactivePINs.map((school) => (
-              <div key={school.id} className="bg-surface rounded-md p-4 border border-border">
+              <div
+                key={school.id}
+                className="bg-surface rounded-md p-4 border border-border"
+              >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-semibold text-text-primary">{school.schoolName}</p>
-                    <p className="text-sm text-text-secondary">{school.district}</p>
+                    <p className="font-semibold text-text-primary">
+                      {school.schoolName}
+                    </p>
+                    <p className="text-sm text-text-secondary">
+                      {school.district}
+                    </p>
                   </div>
                   <span className="text-xs bg-border-light text-text-secondary px-2 py-1 rounded-full font-mono">
                     {school.schoolCode}
@@ -331,9 +397,11 @@ export function DashboardMetrics() {
               </div>
             ))}
           </div>
-        )
+        );
       default:
-        return <p className="text-center text-text-tertiary py-8">No content</p>
+        return (
+          <p className="text-center text-text-tertiary py-8">No content</p>
+        );
     }
   }
 
@@ -342,42 +410,45 @@ export function DashboardMetrics() {
     (s) =>
       s.schoolName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.schoolCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.district.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+      s.district.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
   const filteredTeachers = teachers.filter(
     (t) =>
       t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       t.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.schoolName.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+      t.schoolName.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
   const filteredStudents = students.filter(
     (s) =>
       s.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (s.phone && s.phone.includes(searchQuery))
-  )
+      (s.phone && s.phone.includes(searchQuery)),
+  );
 
   const filteredActivePINs = activePINSchools.filter(
     (s) =>
       s.schoolName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.schoolCode.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+      s.schoolCode.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
   const filteredInactivePINs = inactivePINSchools.filter(
     (s) =>
       s.schoolName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.schoolCode.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+      s.schoolCode.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         {[...Array(5)].map((_, i) => (
-          <div key={`skeleton-${i}`} className="bg-border-light rounded-lg p-4 h-24 animate-pulse"></div>
+          <div
+            key={`skeleton-${i}`}
+            className="bg-border-light rounded-lg p-4 h-24 animate-pulse"
+          ></div>
         ))}
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -385,66 +456,66 @@ export function DashboardMetrics() {
       <div className="bg-error-light border border-error rounded-md p-4">
         <p className="text-sm text-error-dark">{error}</p>
       </div>
-    )
+    );
   }
 
   if (!metrics) {
-    return null
+    return null;
   }
 
   const metricCards = [
     {
-      title: 'Schools',
+      title: "Schools",
       value: metrics.totalSchools,
       icon: School,
-      color: 'bg-primary-light',
-      iconColor: 'text-primary',
-      hoverColor: 'hover:border-primary',
-      modalType: 'schools' as ModalType,
+      color: "bg-primary-light",
+      iconColor: "text-primary",
+      hoverColor: "hover:border-primary",
+      modalType: "schools" as ModalType,
     },
     {
-      title: 'Teachers',
+      title: "Teachers",
       value: metrics.totalTeachers,
       icon: Users,
-      color: 'bg-success-light',
-      iconColor: 'text-success',
-      hoverColor: 'hover:border-success',
-      modalType: 'teachers' as ModalType,
+      color: "bg-success-light",
+      iconColor: "text-success",
+      hoverColor: "hover:border-success",
+      modalType: "teachers" as ModalType,
     },
     {
-      title: 'Students',
+      title: "Students",
       value: metrics.totalStudents,
       icon: GraduationCap,
-      color: 'bg-accent-light',
-      iconColor: 'text-accent-dark',
-      hoverColor: 'hover:border-accent',
-      modalType: 'students' as ModalType,
+      color: "bg-accent-light",
+      iconColor: "text-accent-dark",
+      hoverColor: "hover:border-accent",
+      modalType: "students" as ModalType,
     },
     {
-      title: 'Active PINs',
+      title: "Active PINs",
       value: metrics.activePins,
       icon: Lock,
-      color: 'bg-primary-light',
-      iconColor: 'text-primary',
-      hoverColor: 'hover:border-primary',
-      modalType: 'activePINs' as ModalType,
+      color: "bg-primary-light",
+      iconColor: "text-primary",
+      hoverColor: "hover:border-primary",
+      modalType: "activePINs" as ModalType,
     },
     {
-      title: 'Inactive PINs',
+      title: "Inactive PINs",
       value: metrics.inactivePins,
       icon: Lock,
-      color: 'bg-border-light',
-      iconColor: 'text-text-tertiary',
-      hoverColor: 'hover:border-text-tertiary',
-      modalType: 'inactivePINs' as ModalType,
+      color: "bg-border-light",
+      iconColor: "text-text-tertiary",
+      hoverColor: "hover:border-text-tertiary",
+      modalType: "inactivePINs" as ModalType,
     },
-  ]
+  ];
 
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         {metricCards.map((card) => {
-          const Icon = card.icon
+          const Icon = card.icon;
           return (
             <button
               key={card.title}
@@ -453,12 +524,18 @@ export function DashboardMetrics() {
             >
               <div className="flex items-center gap-3 mb-3">
                 <Icon className={`w-5 h-5 ${card.iconColor}`} />
-                <h3 className="text-sm text-text-secondary font-medium">{card.title}</h3>
+                <h3 className="text-sm text-text-secondary font-medium">
+                  {card.title}
+                </h3>
               </div>
-              <p className="text-3xl font-bold text-text-primary">{card.value}</p>
-              <p className={`text-xs ${card.iconColor} mt-2 underline`}>Click to view</p>
+              <p className="text-3xl font-bold text-text-primary">
+                {card.value}
+              </p>
+              <p className={`text-xs ${card.iconColor} mt-2 underline`}>
+                Click to view
+              </p>
             </button>
-          )
+          );
         })}
       </div>
 
@@ -471,7 +548,10 @@ export function DashboardMetrics() {
               <h2 className="text-xl font-bold text-text-primary">
                 {getModalTitle()}
               </h2>
-              <button onClick={closeModal} className="text-text-tertiary hover:text-text-primary transition-colors">
+              <button
+                onClick={closeModal}
+                className="text-text-tertiary hover:text-text-primary transition-colors"
+              >
                 <X className="w-6 h-6" />
               </button>
             </div>
@@ -502,5 +582,5 @@ export function DashboardMetrics() {
         </div>
       )}
     </>
-  )
+  );
 }

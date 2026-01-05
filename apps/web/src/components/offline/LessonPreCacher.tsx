@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * Lesson Pre-Cacher Component
@@ -8,18 +8,18 @@
  * Uses the lesson-cache service to store content for offline use.
  */
 
-import { useEffect, useState } from 'react';
-import { preCacheLessons, type Language } from '@/lib/offline/lesson-cache';
-import { Download, CheckCircle, Loader2 } from 'lucide-react';
-import { useNetworkStatus } from '@/hooks/useNetworkStatus';
-import { Button } from '@/components/ui/button';
-import { clientLogger } from '@/lib/client-logger';
+import { useEffect, useState } from "react";
+import { preCacheLessons, type Language } from "@/lib/offline/lesson-cache";
+import { Download, CheckCircle, Loader2 } from "lucide-react";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { Button } from "@/components/ui/button";
+import { clientLogger } from "@/lib/client-logger";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
   TooltipProvider,
-} from '@/components/ui/tooltip';
+} from "@/components/ui/tooltip";
 
 interface LessonPreCacherProps {
   readonly moduleId: string;
@@ -31,12 +31,14 @@ interface LessonPreCacherProps {
 
 export function LessonPreCacher({
   moduleId,
-  language = 'en',
+  language = "en",
   topicIds,
   showIndicator = false,
 }: LessonPreCacherProps) {
   const { isOnline } = useNetworkStatus();
-  const [status, setStatus] = useState<'idle' | 'caching' | 'done' | 'error'>('idle');
+  const [status, setStatus] = useState<"idle" | "caching" | "done" | "error">(
+    "idle",
+  );
   const [cached, setCached] = useState(0);
   const [total, setTotal] = useState(topicIds.length);
 
@@ -45,22 +47,29 @@ export function LessonPreCacher({
     if (!isOnline) return;
 
     // Don't re-cache if already done
-    if (status === 'done') return;
+    if (status === "done") return;
 
     const doCaching = async () => {
-      setStatus('caching');
+      setStatus("caching");
       setTotal(topicIds.length);
 
       try {
         const result = await preCacheLessons(moduleId, language);
         setCached(result.cached);
-        setStatus('done');
+        setStatus("done");
 
         // Log for debugging (can be removed in production)
-        clientLogger.debug('[LessonPreCacher] Cached lessons', { cached: result.cached, failed: result.failed, moduleId });
+        clientLogger.debug("[LessonPreCacher] Cached lessons", {
+          cached: result.cached,
+          failed: result.failed,
+          moduleId,
+        });
       } catch (error) {
-        clientLogger.error('[LessonPreCacher] Error', error instanceof Error ? error : { error: String(error) });
-        setStatus('error');
+        clientLogger.error(
+          "[LessonPreCacher] Error",
+          error instanceof Error ? error : { error: String(error) },
+        );
+        setStatus("error");
       }
     };
 
@@ -83,11 +92,11 @@ export function LessonPreCacher({
             variant="ghost"
             size="sm"
             className="h-8 px-2"
-            disabled={status === 'caching'}
+            disabled={status === "caching"}
           >
-            {status === 'caching' ? (
+            {status === "caching" ? (
               <Loader2 className="h-4 w-4 animate-spin text-warning" />
-            ) : status === 'done' ? (
+            ) : status === "done" ? (
               <CheckCircle className="h-4 w-4 text-success" />
             ) : (
               <Download className="h-4 w-4 text-muted-foreground" />
@@ -95,15 +104,15 @@ export function LessonPreCacher({
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          {status === 'caching'
+          {status === "caching"
             ? `Caching lessons for offline... (${cached}/${total})`
-            : status === 'done'
-            ? `${cached} lessons available offline`
-            : status === 'error'
-            ? 'Failed to cache lessons'
-            : isOnline
-            ? 'Preparing offline access...'
-            : 'Go online to cache lessons'}
+            : status === "done"
+              ? `${cached} lessons available offline`
+              : status === "error"
+                ? "Failed to cache lessons"
+                : isOnline
+                  ? "Preparing offline access..."
+                  : "Go online to cache lessons"}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
@@ -118,50 +127,58 @@ export function LessonPreCacher({
 export function DownloadModuleButton({
   moduleId,
   moduleName,
-  language = 'en',
+  language = "en",
 }: {
   readonly moduleId: string;
   readonly moduleName: string;
   readonly language?: Language;
 }) {
   const { isOnline } = useNetworkStatus();
-  const [status, setStatus] = useState<'idle' | 'downloading' | 'done' | 'error'>('idle');
+  const [status, setStatus] = useState<
+    "idle" | "downloading" | "done" | "error"
+  >("idle");
   const [progress, setProgress] = useState({ cached: 0, total: 0 });
 
   const handleDownload = async () => {
-    if (!isOnline || status === 'downloading') return;
+    if (!isOnline || status === "downloading") return;
 
-    setStatus('downloading');
+    setStatus("downloading");
 
     try {
       const result = await preCacheLessons(moduleId, language);
-      setProgress({ cached: result.cached, total: result.cached + result.failed });
-      setStatus('done');
+      setProgress({
+        cached: result.cached,
+        total: result.cached + result.failed,
+      });
+      setStatus("done");
     } catch (error) {
-      clientLogger.error('[DownloadModuleButton] Error', error instanceof Error ? error : { error: String(error) });
-      setStatus('error');
+      clientLogger.error(
+        "[DownloadModuleButton] Error",
+        error instanceof Error ? error : { error: String(error) },
+      );
+      setStatus("error");
     }
   };
 
   return (
     <Button
-      variant={status === 'done' ? 'secondary' : 'outline'}
+      variant={status === "done" ? "secondary" : "outline"}
       size="sm"
       onClick={handleDownload}
-      disabled={!isOnline || status === 'downloading'}
+      disabled={!isOnline || status === "downloading"}
       className="gap-2"
     >
-      {status === 'downloading' ? (
+      {status === "downloading" ? (
         <>
           <Loader2 className="h-4 w-4 animate-spin" />
           Downloading...
         </>
-      ) : status === 'done' ? (
+      ) : status === "done" ? (
         <>
           <CheckCircle className="h-4 w-4 text-success" />
           Downloaded ({progress.cached} lessons)
         </>
-      ) : status === 'error' ? (
+      ) : status === "error" ? (
         <>
           <Download className="h-4 w-4 text-error" />
           Retry Download

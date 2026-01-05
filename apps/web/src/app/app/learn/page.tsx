@@ -12,67 +12,69 @@
  * M5: Local Technology (Assamese context)
  */
 
-import { Suspense } from 'react';
-import { redirect } from 'next/navigation';
-import Link from 'next/link';
-import { getCurrentUser, createClient } from '@/lib/supabase-server';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { AdaptiveRecommendations } from '@/components/learn/AdaptiveRecommendations';
+import { Suspense } from "react";
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { getCurrentUser, createClient } from "@/lib/supabase-server";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { AdaptiveRecommendations } from "@/components/learn/AdaptiveRecommendations";
 
 // Module definitions with Assamese cultural context
 // Colors use theme tokens: primary (orange), cyan, success (green), warning, info
 const MODULES = [
   {
-    id: 'M1',
-    name_en: 'Computer Basics',
-    name_hi: 'कंप्यूटर मूल बातें',
-    name_as: 'কম্পিউটাৰ মূল কথা',
-    description: 'Learn about computers, hardware, and software fundamentals',
-    icon: '💻',
+    id: "M1",
+    name_en: "Computer Basics",
+    name_hi: "कंप्यूटर मूल बातें",
+    name_as: "কম্পিউটাৰ মূল কথা",
+    description: "Learn about computers, hardware, and software fundamentals",
+    icon: "💻",
     topics: 10,
-    color: 'from-primary to-primary-dark', // Orange theme primary
+    color: "from-primary to-primary-dark", // Orange theme primary
   },
   {
-    id: 'M2',
-    name_en: 'Operating Systems',
-    name_hi: 'ऑपरेटिंग सिस्टम',
-    name_as: 'অপাৰেটিং চিষ্টেম',
-    description: 'Understand Windows, files, folders, and system basics',
-    icon: '🖥️',
+    id: "M2",
+    name_en: "Operating Systems",
+    name_hi: "ऑपरेटिंग सिस्टम",
+    name_as: "অপাৰেটিং চিষ্টেম",
+    description: "Understand Windows, files, folders, and system basics",
+    icon: "🖥️",
     topics: 10,
-    color: 'from-success to-success-dark', // Green success
+    color: "from-success to-success-dark", // Green success
   },
   {
-    id: 'M3',
-    name_en: 'Internet Basics',
-    name_hi: 'इंटरनेट मूल बातें',
-    name_as: 'ইণ্টাৰনেট মূল কথা',
-    description: 'Navigate the web, use search engines, stay safe online',
-    icon: '🌐',
+    id: "M3",
+    name_en: "Internet Basics",
+    name_hi: "इंटरनेट मूल बातें",
+    name_as: "ইণ্টাৰনেট মূল কথা",
+    description: "Navigate the web, use search engines, stay safe online",
+    icon: "🌐",
     topics: 10,
-    color: 'from-cyan to-cyan-dark', // Cyan secondary
+    color: "from-cyan to-cyan-dark", // Cyan secondary
   },
   {
-    id: 'M4',
-    name_en: 'Digital Communication',
-    name_hi: 'डिजिटल संचार',
-    name_as: 'ডিজিটেল যোগাযোগ',
-    description: 'Email, messaging, and online collaboration tools',
-    icon: '📧',
+    id: "M4",
+    name_en: "Digital Communication",
+    name_hi: "डिजिटल संचार",
+    name_as: "ডিজিটেল যোগাযোগ",
+    description: "Email, messaging, and online collaboration tools",
+    icon: "📧",
     topics: 10,
-    color: 'from-info to-info-dark', // Info blue
+    color: "from-info to-info-dark", // Info blue
   },
   {
-    id: 'M5',
-    name_en: 'Local Technology',
-    name_hi: 'स्थानीय प्रौद्योगिकी',
-    name_as: 'স্থানীয় প্ৰযুক্তি',
-    description: 'Digital tools for Assamese culture, Muga silk trade, and local businesses',
-    icon: '🏔️',
+    id: "M5",
+    name_en: "Local Technology",
+    name_hi: "स्थानीय प्रौद्योगिकी",
+    name_as: "স্থানীয় প্ৰযুক্তি",
+    description:
+      "Digital tools for Assamese culture, Muga silk trade, and local businesses",
+    icon: "🏔️",
     topics: 10,
-    color: 'from-warning to-warning-dark', // Warning amber
-    culturalNote: 'Learn how technology helps preserve and promote Assamese heritage',
+    color: "from-warning to-warning-dark", // Warning amber
+    culturalNote:
+      "Learn how technology helps preserve and promote Assamese heritage",
   },
 ];
 
@@ -83,13 +85,15 @@ interface ModuleProgress {
   is_complete: boolean;
 }
 
-async function getModuleProgress(userId: string): Promise<Map<string, ModuleProgress>> {
+async function getModuleProgress(
+  userId: string,
+): Promise<Map<string, ModuleProgress>> {
   const supabase = await createClient();
 
   const { data } = await supabase
-    .from('student_knowledge_state')
-    .select('module_id, topic_id, mastery_score, status')
-    .eq('student_id', userId);
+    .from("student_knowledge_state")
+    .select("module_id, topic_id, mastery_score, status")
+    .eq("student_id", userId);
 
   const progressMap = new Map<string, ModuleProgress>();
 
@@ -106,7 +110,10 @@ async function getModuleProgress(userId: string): Promise<Map<string, ModuleProg
   if (!data) return progressMap;
 
   // Group by module
-  const moduleData = new Map<string, { mastery: number[]; completed: number }>();
+  const moduleData = new Map<
+    string,
+    { mastery: number[]; completed: number }
+  >();
 
   for (const state of data) {
     if (!moduleData.has(state.module_id)) {
@@ -115,7 +122,7 @@ async function getModuleProgress(userId: string): Promise<Map<string, ModuleProg
     const mod = moduleData.get(state.module_id);
     if (mod) {
       mod.mastery.push(state.mastery_score || 0);
-      if (state.status === 'mastered' || (state.mastery_score || 0) >= 70) {
+      if (state.status === "mastered" || (state.mastery_score || 0) >= 70) {
         mod.completed++;
       }
     }
@@ -123,9 +130,10 @@ async function getModuleProgress(userId: string): Promise<Map<string, ModuleProg
 
   // Calculate progress
   for (const [moduleId, stats] of moduleData) {
-    const avgMastery = stats.mastery.length > 0
-      ? stats.mastery.reduce((a, b) => a + b, 0) / stats.mastery.length
-      : 0;
+    const avgMastery =
+      stats.mastery.length > 0
+        ? stats.mastery.reduce((a, b) => a + b, 0) / stats.mastery.length
+        : 0;
 
     progressMap.set(moduleId, {
       module_id: moduleId,
@@ -141,9 +149,9 @@ async function getModuleProgress(userId: string): Promise<Map<string, ModuleProg
 async function getTotalPoints(userId: string): Promise<number> {
   const supabase = await createClient();
   const { data } = await supabase
-    .from('points_history')
-    .select('points')
-    .eq('student_id', userId);
+    .from("points_history")
+    .select("points")
+    .eq("student_id", userId);
 
   return data?.reduce((sum, entry) => sum + entry.points, 0) || 0;
 }
@@ -156,11 +164,11 @@ async function getCurrentStreak(userId: string): Promise<number> {
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
   const { data } = await supabase
-    .from('student_knowledge_state')
-    .select('last_attempt_at')
-    .eq('student_id', userId)
-    .gte('last_attempt_at', thirtyDaysAgo.toISOString())
-    .order('last_attempt_at', { ascending: false });
+    .from("student_knowledge_state")
+    .select("last_attempt_at")
+    .eq("student_id", userId)
+    .gte("last_attempt_at", thirtyDaysAgo.toISOString())
+    .order("last_attempt_at", { ascending: false });
 
   if (!data || data.length === 0) return 0;
 
@@ -173,7 +181,7 @@ async function getCurrentStreak(userId: string): Promise<number> {
       const date = new Date(d.last_attempt_at);
       date.setHours(0, 0, 0, 0);
       return date.getTime();
-    })
+    }),
   );
 
   let streak = 0;
@@ -191,7 +199,7 @@ export default async function LearnPage() {
   const user = await getCurrentUser();
 
   if (!user) {
-    redirect('/student/start');
+    redirect("/student/start");
   }
 
   const [progressMap, totalPoints, currentStreak] = await Promise.all([
@@ -204,7 +212,7 @@ export default async function LearnPage() {
   const totalTopics = MODULES.reduce((sum, m) => sum + m.topics, 0);
   const completedTopics = Array.from(progressMap.values()).reduce(
     (sum, p) => sum + p.topics_completed,
-    0
+    0,
   );
   const overallProgress = Math.round((completedTopics / totalTopics) * 100);
 
@@ -224,16 +232,28 @@ export default async function LearnPage() {
           <CardContent className="p-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-center">
               <div>
-                <div className="text-3xl font-bold text-primary">{overallProgress}%</div>
-                <div className="text-sm text-muted-foreground">Overall Progress</div>
+                <div className="text-3xl font-bold text-primary">
+                  {overallProgress}%
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Overall Progress
+                </div>
               </div>
               <div>
-                <div className="text-3xl font-bold text-warning">{totalPoints}</div>
-                <div className="text-sm text-muted-foreground">Total Points</div>
+                <div className="text-3xl font-bold text-warning">
+                  {totalPoints}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Total Points
+                </div>
               </div>
               <div>
-                <div className="text-3xl font-bold text-success">{currentStreak}</div>
-                <div className="text-sm text-muted-foreground">Day Streak 🔥</div>
+                <div className="text-3xl font-bold text-success">
+                  {currentStreak}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Day Streak 🔥
+                </div>
               </div>
             </div>
 
@@ -263,9 +283,13 @@ export default async function LearnPage() {
           {MODULES.map((module, index) => {
             const progress = progressMap.get(module.id);
             if (!progress) return null;
-            const previousModule = index > 0 ? progressMap.get(MODULES[index - 1].id) : null;
-            const isUnlocked = index === 0 || (previousModule?.is_complete ?? false);
-            const progressPercent = Math.round((progress.topics_completed / module.topics) * 100);
+            const previousModule =
+              index > 0 ? progressMap.get(MODULES[index - 1].id) : null;
+            const isUnlocked =
+              index === 0 || (previousModule?.is_complete ?? false);
+            const progressPercent = Math.round(
+              (progress.topics_completed / module.topics) * 100,
+            );
 
             return (
               <ModuleCard
@@ -317,9 +341,9 @@ function ModuleCard({
     <Card
       className={`transition-all ${
         isUnlocked
-          ? 'hover:shadow-lg cursor-pointer'
-          : 'opacity-60 cursor-not-allowed'
-      } ${progress.is_complete ? 'border-success border-2' : ''}`}
+          ? "hover:shadow-lg cursor-pointer"
+          : "opacity-60 cursor-not-allowed"
+      } ${progress.is_complete ? "border-success border-2" : ""}`}
     >
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between">
@@ -332,7 +356,9 @@ function ModuleCard({
             <div>
               <CardTitle className="text-lg flex items-center gap-2">
                 {module.name_en}
-                {progress.is_complete && <span className="text-success">✓</span>}
+                {progress.is_complete && (
+                  <span className="text-success">✓</span>
+                )}
                 {!isUnlocked && <span className="text-sm">🔒</span>}
               </CardTitle>
               <p className="text-xs text-muted-foreground">{module.name_as}</p>
@@ -347,7 +373,9 @@ function ModuleCard({
         </div>
       </CardHeader>
       <CardContent className="pt-0">
-        <p className="text-sm text-muted-foreground mb-3">{module.description}</p>
+        <p className="text-sm text-muted-foreground mb-3">
+          {module.description}
+        </p>
 
         {module.culturalNote && (
           <p className="text-xs text-warning-dark mb-3 flex items-center gap-1">
@@ -361,7 +389,7 @@ function ModuleCard({
             <div
               className={`h-full transition-all duration-500 ${
                 progress.is_complete
-                  ? 'bg-success'
+                  ? "bg-success"
                   : `bg-gradient-to-r ${module.color}`
               }`}
               style={{ width: `${progressPercent}%` }}
@@ -379,13 +407,13 @@ function ModuleCard({
             <Link href={`/app/learn/${module.id}`}>
               <Button
                 className={`w-full bg-gradient-to-r ${module.color}`}
-                variant={progress.is_complete ? 'outline' : 'default'}
+                variant={progress.is_complete ? "outline" : "default"}
               >
                 {progress.is_complete
-                  ? 'Review Module'
+                  ? "Review Module"
                   : progress.topics_completed > 0
-                  ? 'Continue Learning'
-                  : 'Start Module'}
+                    ? "Continue Learning"
+                    : "Start Module"}
               </Button>
             </Link>
           </div>

@@ -1,17 +1,17 @@
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface OTPInputProps {
-  readonly id: string
-  readonly label: string
-  readonly value: string
-  readonly onChange: (value: string) => void
-  readonly error?: string
-  readonly disabled?: boolean
-  readonly placeholder?: string
-  readonly maxLength?: number
-  readonly helperText?: string
-  readonly autoFocus?: boolean
+  readonly id: string;
+  readonly label: string;
+  readonly value: string;
+  readonly onChange: (value: string) => void;
+  readonly error?: string;
+  readonly disabled?: boolean;
+  readonly placeholder?: string;
+  readonly maxLength?: number;
+  readonly helperText?: string;
+  readonly autoFocus?: boolean;
 }
 
 /**
@@ -25,16 +25,16 @@ export function OTPInput({
   onChange,
   error,
   disabled = false,
-  placeholder = '123456',
+  placeholder = "123456",
   maxLength = 6,
-  helperText = 'Enter the 6-digit code',
+  helperText = "Enter the 6-digit code",
   autoFocus = false,
 }: OTPInputProps) {
   // Only allow numeric input
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const numericValue = e.target.value.replace(/\D/g, '').slice(0, maxLength)
-    onChange(numericValue)
-  }
+    const numericValue = e.target.value.replace(/\D/g, "").slice(0, maxLength);
+    onChange(numericValue);
+  };
 
   return (
     <div className="space-y-2">
@@ -52,7 +52,9 @@ export function OTPInput({
         required
         className="text-center text-2xl font-mono tracking-widest"
         aria-label={label}
-        aria-describedby={error ? `${id}-error` : helperText ? `${id}-helper` : undefined}
+        aria-describedby={
+          error ? `${id}-error` : helperText ? `${id}-helper` : undefined
+        }
       />
       {error ? (
         <p id={`${id}-error`} className="text-sm text-error" role="alert">
@@ -64,5 +66,5 @@ export function OTPInput({
         </p>
       )}
     </div>
-  )
+  );
 }

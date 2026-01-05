@@ -1,13 +1,13 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { toast } from 'sonner'
-import { CLIPBOARD_TIMING } from '@/lib/constants/ui-timings'
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { CLIPBOARD_TIMING } from "@/lib/constants/ui-timings";
 import {
   rotateStaffPin,
   searchSchools,
   checkAdminAuth,
-} from '@/app/actions/school'
+} from "@/app/actions/school";
 import {
   getDistricts,
   getBlocksByDistrict,
@@ -16,11 +16,19 @@ import {
   type District,
   type Block,
   type SchoolData,
-} from '@/app/actions/school-finder'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Calendar, Shield, RefreshCw, Search, Copy, Check, MapPin } from 'lucide-react'
+} from "@/app/actions/school-finder";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Calendar,
+  Shield,
+  RefreshCw,
+  Search,
+  Copy,
+  Check,
+  MapPin,
+} from "lucide-react";
 
 // School Finder Modal Component
 function SchoolFinderModal({
@@ -28,100 +36,100 @@ function SchoolFinderModal({
   onClose,
   onSelectSchool,
 }: {
-  isOpen: boolean
-  onClose: () => void
-  onSelectSchool: (school: SchoolData) => Promise<void>
+  isOpen: boolean;
+  onClose: () => void;
+  onSelectSchool: (school: SchoolData) => Promise<void>;
 }) {
-  const [districts, setDistricts] = useState<District[]>([])
-  const [blocks, setBlocks] = useState<Block[]>([])
-  const [schools, setSchools] = useState<SchoolData[]>([])
-  const [selectedDistrict, setSelectedDistrict] = useState<string>('')
-  const [selectedBlock, setSelectedBlock] = useState<string>('')
-  const [loading, setLoading] = useState(false)
+  const [districts, setDistricts] = useState<District[]>([]);
+  const [blocks, setBlocks] = useState<Block[]>([]);
+  const [schools, setSchools] = useState<SchoolData[]>([]);
+  const [selectedDistrict, setSelectedDistrict] = useState<string>("");
+  const [selectedBlock, setSelectedBlock] = useState<string>("");
+  const [loading, setLoading] = useState(false);
 
   // Load districts on mount
   useEffect(() => {
     if (isOpen) {
-      loadDistricts()
+      loadDistricts();
     }
-  }, [isOpen])
+  }, [isOpen]);
 
   // Load blocks when district changes
   useEffect(() => {
     if (selectedDistrict) {
       // Clear dependent state BEFORE async load (prevent race condition)
-      setSelectedBlock('')
-      setSchools([])
+      setSelectedBlock("");
+      setSchools([]);
       // loadBlocks() will set blocks asynchronously when fetch completes
-      loadBlocks()
+      loadBlocks();
     }
-  }, [selectedDistrict])
+  }, [selectedDistrict]);
 
   // Load schools when district OR block changes
   useEffect(() => {
     if (selectedDistrict) {
-      loadSchools()
+      loadSchools();
     }
-  }, [selectedDistrict, selectedBlock])
+  }, [selectedDistrict, selectedBlock]);
 
   async function loadDistricts() {
-    setLoading(true)
+    setLoading(true);
     try {
-      const result = await getDistricts()
+      const result = await getDistricts();
       if (result.success) {
-        setDistricts(result.data)
+        setDistricts(result.data);
       } else {
-        toast.error(result.error || 'Failed to load districts')
+        toast.error(result.error || "Failed to load districts");
       }
     } catch (error) {
-      toast.error('An error occurred')
+      toast.error("An error occurred");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
   async function loadBlocks() {
-    if (!selectedDistrict) return
+    if (!selectedDistrict) return;
 
     // Clear blocks state BEFORE fetch to show loading state cleanly (prevent flicker)
-    setBlocks([])
-    setLoading(true)
+    setBlocks([]);
+    setLoading(true);
     try {
-      const result = await getBlocksByDistrict(selectedDistrict)
+      const result = await getBlocksByDistrict(selectedDistrict);
       if (result.success) {
-        setBlocks(result.data)
+        setBlocks(result.data);
       } else {
-        toast.error(result.error || 'Failed to load blocks')
+        toast.error(result.error || "Failed to load blocks");
       }
     } catch (error) {
-      toast.error('An error occurred')
+      toast.error("An error occurred");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
   async function loadSchools() {
-    if (!selectedDistrict) return
+    if (!selectedDistrict) return;
 
-    setLoading(true)
+    setLoading(true);
     try {
       const result = await getSchoolsByDistrictAndBlock(
         selectedDistrict,
-        selectedBlock || undefined
-      )
+        selectedBlock || undefined,
+      );
       if (result.success) {
-        setSchools(result.data)
+        setSchools(result.data);
       } else {
-        toast.error(result.error || 'Failed to load schools')
+        toast.error(result.error || "Failed to load schools");
       }
     } catch (error) {
-      toast.error('An error occurred')
+      toast.error("An error occurred");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -162,7 +170,7 @@ function SchoolFinderModal({
               <option value="">-- All Blocks --</option>
               {blocks.map((b) => (
                 <option key={b.name} value={b.name}>
-                  {b.name || 'Not Specified'}
+                  {b.name || "Not Specified"}
                 </option>
               ))}
             </select>
@@ -177,9 +185,9 @@ function SchoolFinderModal({
                 key={school.id}
                 onClick={async () => {
                   try {
-                    await onSelectSchool(school)
+                    await onSelectSchool(school);
                   } finally {
-                    onClose()
+                    onClose();
                   }
                 }}
                 className="w-full text-left p-3 hover:bg-surface transition-colors"
@@ -189,11 +197,13 @@ function SchoolFinderModal({
                   {school.school_name}
                 </div>
                 <div className="text-xs text-text-secondary mt-1">
-                  <strong>Code:</strong> {school.school_code} • <strong>Block:</strong>{' '}
-                  {school.block || 'N/A'}
+                  <strong>Code:</strong> {school.school_code} •{" "}
+                  <strong>Block:</strong> {school.block || "N/A"}
                 </div>
                 {school.address && (
-                  <div className="text-xs text-text-tertiary mt-1">{school.address}</div>
+                  <div className="text-xs text-text-tertiary mt-1">
+                    {school.address}
+                  </div>
                 )}
               </button>
             ))}
@@ -202,7 +212,8 @@ function SchoolFinderModal({
 
         {selectedDistrict && schools.length === 0 && !loading && (
           <div className="text-center py-4 text-text-tertiary text-sm">
-            No schools found in {selectedBlock ? `${selectedBlock} block` : 'this district'}
+            No schools found in{" "}
+            {selectedBlock ? `${selectedBlock} block` : "this district"}
           </div>
         )}
 
@@ -217,18 +228,18 @@ function SchoolFinderModal({
         </Button>
       </div>
     </div>
-  )
+  );
 }
 
 // Copy to Clipboard Component
 function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false)
+  const [copied, setCopied] = useState(false);
 
   function handleCopy() {
-    navigator.clipboard.writeText(text)
-    setCopied(true)
-    toast.success('Code copied to clipboard')
-    setTimeout(() => setCopied(false), CLIPBOARD_TIMING.successFeedback)
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    toast.success("Code copied to clipboard");
+    setTimeout(() => setCopied(false), CLIPBOARD_TIMING.successFeedback);
   }
 
   return (
@@ -236,86 +247,86 @@ function CopyButton({ text }: { text: string }) {
       onClick={handleCopy}
       className={`p-2 rounded transition-all ${
         copied
-          ? 'bg-success-light text-success'
-          : 'bg-surface hover:bg-surface-dark text-text-secondary'
+          ? "bg-success-light text-success"
+          : "bg-surface hover:bg-surface-dark text-text-secondary"
       }`}
       title="Copy to clipboard"
     >
       {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
     </button>
-  )
+  );
 }
 
 // Main Admin Panel
 export default function AdminSchoolsPage() {
-  const [loading, setLoading] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState<SchoolData[]>([])
-  const [finderModalOpen, setFinderModalOpen] = useState(false)
-  const [authorized, setAuthorized] = useState<boolean | null>(null)
-  const [authError, setAuthError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<SchoolData[]>([]);
+  const [finderModalOpen, setFinderModalOpen] = useState(false);
+  const [authorized, setAuthorized] = useState<boolean | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   // Check admin authorization on mount
   useEffect(() => {
     async function verifyAuth() {
       try {
-        const result = await checkAdminAuth()
+        const result = await checkAdminAuth();
         if (result.authorized) {
-          setAuthorized(true)
+          setAuthorized(true);
         } else {
-          setAuthorized(false)
-          setAuthError(result.error || 'Unauthorized')
+          setAuthorized(false);
+          setAuthError(result.error || "Unauthorized");
         }
       } catch (error) {
-        setAuthorized(false)
-        setAuthError('Failed to verify authorization')
+        setAuthorized(false);
+        setAuthError("Failed to verify authorization");
       }
     }
 
-    verifyAuth()
-  }, [])
+    verifyAuth();
+  }, []);
 
   // Selected school data
   const [selectedSchool, setSelectedSchool] = useState<{
-    id: string
-    code: string
-    name: string
-  } | null>(null)
+    id: string;
+    code: string;
+    name: string;
+  } | null>(null);
 
   // PIN Rotation form
-  const [schoolCode, setSchoolCode] = useState('')
-  const [newPin, setNewPin] = useState('')
-  const [confirmPin, setConfirmPin] = useState('')
+  const [schoolCode, setSchoolCode] = useState("");
+  const [newPin, setNewPin] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
 
   // PIN status
   const [pinStatus, setPinStatus] = useState<{
-    exists: boolean
-    createdAt?: string
-    lastRotatedAt?: string
-  } | null>(null)
+    exists: boolean;
+    createdAt?: string;
+    lastRotatedAt?: string;
+  } | null>(null);
 
   // Search schools by code or name
   async function handleSearch() {
     if (!searchQuery.trim()) {
-      toast.error('Please enter a school code or name')
-      return
+      toast.error("Please enter a school code or name");
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
     try {
-      const result = await searchSchools(searchQuery)
+      const result = await searchSchools(searchQuery);
       if (result.success && result.data) {
-        setSearchResults(result.data)
+        setSearchResults(result.data);
         if (result.data.length === 0) {
-          toast.info('No schools found matching your search')
+          toast.info("No schools found matching your search");
         }
       } else {
-        toast.error(result.error || 'Failed to search schools')
+        toast.error(result.error || "Failed to search schools");
       }
     } catch (error) {
-      toast.error('An error occurred while searching')
+      toast.error("An error occurred while searching");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -325,80 +336,83 @@ export default function AdminSchoolsPage() {
       id: school.id,
       code: school.school_code,
       name: school.school_name,
-    })
-    setSchoolCode(school.school_code)
-    setSearchResults([])
-    setSearchQuery('')
+    });
+    setSchoolCode(school.school_code);
+    setSearchResults([]);
+    setSearchQuery("");
 
     // Auto-fetch PIN status
-    await handleGetPinStatus(school.school_code)
+    await handleGetPinStatus(school.school_code);
   }
 
   // Get PIN status
   async function handleGetPinStatus(code: string) {
-    const codeToCheck = code || schoolCode
+    const codeToCheck = code || schoolCode;
     if (!codeToCheck.trim()) {
-      toast.error('Please enter a school code')
-      return
+      toast.error("Please enter a school code");
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
     try {
-      const result = await getSchoolPinStatus(codeToCheck.toUpperCase().trim())
+      const result = await getSchoolPinStatus(codeToCheck.toUpperCase().trim());
       if (result.success) {
         setPinStatus({
           exists: result.exists,
           createdAt: result.createdAt,
           lastRotatedAt: result.lastRotatedAt,
-        })
+        });
       } else {
-        toast.error(result.error || 'Failed to fetch PIN status')
+        toast.error(result.error || "Failed to fetch PIN status");
       }
     } catch (error) {
-      toast.error('An error occurred')
+      toast.error("An error occurred");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
   // Rotate or create PIN
   async function handleRotatePin(e: React.FormEvent) {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!schoolCode.trim()) {
-      toast.error('Please enter a school code')
-      return
+      toast.error("Please enter a school code");
+      return;
     }
 
     if (newPin.length < 4) {
-      toast.error('PIN must be at least 4 characters long')
-      return
+      toast.error("PIN must be at least 4 characters long");
+      return;
     }
 
     if (newPin !== confirmPin) {
-      toast.error('PINs do not match')
-      return
+      toast.error("PINs do not match");
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
     try {
-      const result = await rotateStaffPin(schoolCode.toUpperCase().trim(), newPin)
+      const result = await rotateStaffPin(
+        schoolCode.toUpperCase().trim(),
+        newPin,
+      );
 
       if (result.success) {
-        const action = pinStatus?.exists ? 'rotated' : 'created'
-        toast.success(`PIN ${action} successfully for ${result.schoolName}`)
-        setNewPin('')
-        setConfirmPin('')
+        const action = pinStatus?.exists ? "rotated" : "created";
+        toast.success(`PIN ${action} successfully for ${result.schoolName}`);
+        setNewPin("");
+        setConfirmPin("");
 
         // Refresh PIN status
-        await handleGetPinStatus(schoolCode)
+        await handleGetPinStatus(schoolCode);
       } else {
-        toast.error(result.error || 'Failed to rotate PIN')
+        toast.error(result.error || "Failed to rotate PIN");
       }
     } catch (error) {
-      toast.error('An unexpected error occurred')
+      toast.error("An unexpected error occurred");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -410,7 +424,7 @@ export default function AdminSchoolsPage() {
           <p className="text-text-secondary">Verifying authorization...</p>
         </div>
       </div>
-    )
+    );
   }
 
   // Show authorization error and redirect to admin login
@@ -419,20 +433,23 @@ export default function AdminSchoolsPage() {
       <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface p-6 flex items-center justify-center">
         <div className="max-w-md mx-auto text-center">
           <Shield className="h-12 w-12 text-error mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-foreground mb-2">Access Denied</h1>
+          <h1 className="text-2xl font-bold text-foreground mb-2">
+            Access Denied
+          </h1>
           <p className="text-text-secondary mb-6">
-            {authError || 'You do not have permission to access this page. Admin access required.'}
+            {authError ||
+              "You do not have permission to access this page. Admin access required."}
           </p>
           <div className="space-y-3">
             <Button
-              onClick={() => (globalThis.location.href = '/admin/login')}
+              onClick={() => (globalThis.location.href = "/admin/login")}
               className="w-full"
               variant="default"
             >
               Admin Login
             </Button>
             <Button
-              onClick={() => (globalThis.location.href = '/')}
+              onClick={() => (globalThis.location.href = "/")}
               variant="outline"
               className="w-full"
             >
@@ -441,7 +458,7 @@ export default function AdminSchoolsPage() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -477,13 +494,15 @@ export default function AdminSchoolsPage() {
           <div className="space-y-4">
             {/* Quick Search */}
             <div>
-              <Label className="text-sm font-medium mb-2 block">Quick Search by Code or Name</Label>
+              <Label className="text-sm font-medium mb-2 block">
+                Quick Search by Code or Name
+              </Label>
               <div className="flex gap-2">
                 <Input
                   placeholder="e.g., 14H0182 or School Name"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                   disabled={loading}
                   className="flex-1"
                 />
@@ -539,7 +558,9 @@ export default function AdminSchoolsPage() {
             <div className="mt-4 bg-success-light border-l-4 border-success p-4 rounded">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-xs text-success font-semibold">✓ Selected School</p>
+                  <p className="text-xs text-success font-semibold">
+                    ✓ Selected School
+                  </p>
                   <p className="text-sm text-success font-semibold mt-1">
                     {selectedSchool.name}
                   </p>
@@ -565,16 +586,18 @@ export default function AdminSchoolsPage() {
               {pinStatus ? (
                 pinStatus.exists ? (
                   <div className="bg-cyan-lightest border-l-4 border-cyan p-4 rounded">
-                    <p className="text-xs text-cyan-darkest font-semibold">✓ PIN Exists</p>
+                    <p className="text-xs text-cyan-darkest font-semibold">
+                      ✓ PIN Exists
+                    </p>
                     <p className="text-sm text-cyan-darkest mt-2">
-                      <strong>Created:</strong>{' '}
+                      <strong>Created:</strong>{" "}
                       {pinStatus.createdAt
                         ? new Date(pinStatus.createdAt).toLocaleDateString()
-                        : 'N/A'}
+                        : "N/A"}
                     </p>
                     {pinStatus.lastRotatedAt && (
                       <p className="text-sm text-cyan-darkest">
-                        <strong>Last Rotated:</strong>{' '}
+                        <strong>Last Rotated:</strong>{" "}
                         {new Date(pinStatus.lastRotatedAt).toLocaleDateString()}
                       </p>
                     )}
@@ -584,9 +607,12 @@ export default function AdminSchoolsPage() {
                   </div>
                 ) : (
                   <div className="bg-warning-light border-l-4 border-warning p-4 rounded">
-                    <p className="text-xs text-warning-dark font-semibold">⚠ No PIN Found</p>
+                    <p className="text-xs text-warning-dark font-semibold">
+                      ⚠ No PIN Found
+                    </p>
                     <p className="text-sm text-warning-dark mt-2">
-                      This school doesn&apos;t have a PIN yet. Create one in Step 3.
+                      This school doesn&apos;t have a PIN yet. Create one in
+                      Step 3.
                     </p>
                     <p className="text-xs text-warning mt-3 font-semibold">
                       👇 Scroll down to Step 3 to create the PIN
@@ -612,7 +638,7 @@ export default function AdminSchoolsPage() {
           <div className="p-6 bg-white border border-primary/20 rounded-lg">
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <RefreshCw className="h-5 w-5 text-primary" />
-              Step 3: {pinStatus?.exists ? 'Rotate' : 'Create'} PIN
+              Step 3: {pinStatus?.exists ? "Rotate" : "Create"} PIN
             </h2>
 
             <form onSubmit={handleRotatePin} className="space-y-4">
@@ -631,7 +657,7 @@ export default function AdminSchoolsPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="new-pin" className="text-sm">
-                  {pinStatus?.exists ? 'New' : ''} Staff PIN
+                  {pinStatus?.exists ? "New" : ""} Staff PIN
                 </Label>
                 <Input
                   id="new-pin"
@@ -671,10 +697,10 @@ export default function AdminSchoolsPage() {
                   <strong>⚠️ Security Notice</strong>
                 </p>
                 <p className="mt-1">
-                  PIN will be bcrypt hashed.{' '}
+                  PIN will be bcrypt hashed.{" "}
                   {pinStatus?.exists
-                    ? 'Old PIN becomes invalid immediately.'
-                    : 'Teachers can use this PIN for registration.'}
+                    ? "Old PIN becomes invalid immediately."
+                    : "Teachers can use this PIN for registration."}
                 </p>
               </div>
 
@@ -686,26 +712,31 @@ export default function AdminSchoolsPage() {
                 size="lg"
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
-                {pinStatus?.exists ? 'Rotate' : 'Create'} PIN
+                {pinStatus?.exists ? "Rotate" : "Create"} PIN
               </Button>
             </form>
 
             {/* Help */}
             <div className="mt-6 bg-gradient-to-r from-cream to-surface border border-primary/20 p-4 rounded-lg">
-              <h3 className="font-semibold text-foreground text-sm mb-2">📋 Quick Guide</h3>
+              <h3 className="font-semibold text-foreground text-sm mb-2">
+                📋 Quick Guide
+              </h3>
               <ul className="text-sm text-text-secondary space-y-2">
                 <li>
-                  <strong>Step 1:</strong> Search schools or browse by district/block
+                  <strong>Step 1:</strong> Search schools or browse by
+                  district/block
                 </li>
                 <li>
-                  <strong>Step 2:</strong> Click school → Code auto-fills → Check PIN status
+                  <strong>Step 2:</strong> Click school → Code auto-fills →
+                  Check PIN status
                 </li>
                 <li>
-                  <strong>Step 3:</strong> {pinStatus?.exists ? 'Rotate' : 'Create'} PIN for
-                  teachers
+                  <strong>Step 3:</strong>{" "}
+                  {pinStatus?.exists ? "Rotate" : "Create"} PIN for teachers
                 </li>
                 <li>
-                  <strong>Result:</strong> Teachers use code + PIN for registration
+                  <strong>Result:</strong> Teachers use code + PIN for
+                  registration
                 </li>
               </ul>
             </div>
@@ -713,5 +744,5 @@ export default function AdminSchoolsPage() {
         )}
       </div>
     </div>
-  )
+  );
 }

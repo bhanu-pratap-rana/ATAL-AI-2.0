@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { AuthCard } from '@/components/auth/AuthCard'
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { AuthCard } from "@/components/auth/AuthCard";
 
 export default function HomePage() {
-  const router = useRouter()
+  const router = useRouter();
 
   return (
     <div className="min-h-screen bg-cream flex items-center justify-center p-4">
@@ -16,7 +16,7 @@ export default function HomePage() {
         <div className="space-y-6">
           {/* Teacher Button */}
           <Button
-            onClick={() => router.push('/teacher/start')}
+            onClick={() => router.push("/teacher/start")}
             className="w-full h-16 text-lg shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5 transition-all"
             variant="default"
           >
@@ -31,7 +31,7 @@ export default function HomePage() {
 
           {/* Student Button */}
           <Button
-            onClick={() => router.push('/student/start')}
+            onClick={() => router.push("/student/start")}
             className="w-full h-16 text-lg border-2 hover:border-primary hover:shadow-[var(--shadow-primary-sm)] hover:-translate-y-0.5 transition-all"
             variant="outline"
           >
@@ -58,5 +58,5 @@ export default function HomePage() {
         </div>
       </AuthCard>
     </div>
-  )
+  );
 }

@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { useTimer, formatTimeMMSS } from '@/hooks/useTimer'
+import { useTimer, formatTimeMMSS } from "@/hooks/useTimer";
 
 /**
  * ATAL AI Assessment Timer - Jyoti Theme
@@ -16,27 +16,27 @@ import { useTimer, formatTimeMMSS } from '@/hooks/useTimer'
 
 interface AssessmentTimerProps {
   /** Whether to pause the timer */
-  readonly isPaused?: boolean
+  readonly isPaused?: boolean;
   /** Initial elapsed time in seconds (for resuming) */
-  readonly initialSeconds?: number
+  readonly initialSeconds?: number;
   /** Callback when time updates (receives total seconds) */
-  readonly onTimeUpdate?: (seconds: number) => void
+  readonly onTimeUpdate?: (seconds: number) => void;
   /** Custom class name for styling */
-  readonly className?: string
+  readonly className?: string;
 }
 
 export function AssessmentTimer({
   isPaused = false,
   initialSeconds = 0,
   onTimeUpdate,
-  className = '',
+  className = "",
 }: AssessmentTimerProps) {
   // Use shared timer hook (eliminates duplication)
   const elapsedSeconds = useTimer({
     initialSeconds,
     isPaused,
     onTimeUpdate,
-  })
+  });
 
   return (
     <div
@@ -51,7 +51,7 @@ export function AssessmentTimer({
         {formatTimeMMSS(elapsedSeconds)}
       </span>
     </div>
-  )
+  );
 }
 
 /**
@@ -61,13 +61,13 @@ export function CompactTimer({
   isPaused = false,
   initialSeconds = 0,
   onTimeUpdate,
-}: Omit<AssessmentTimerProps, 'className'>) {
+}: Omit<AssessmentTimerProps, "className">) {
   // Use shared timer hook (eliminates duplication)
   const elapsedSeconds = useTimer({
     initialSeconds,
     isPaused,
     onTimeUpdate,
-  })
+  });
 
   return (
     <span
@@ -77,5 +77,5 @@ export function CompactTimer({
     >
       {formatTimeMMSS(elapsedSeconds)}
     </span>
-  )
+  );
 }

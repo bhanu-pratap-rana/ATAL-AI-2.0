@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -11,53 +11,53 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { createClass } from '@/app/actions/teacher'
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { createClass } from "@/app/actions/teacher";
 
 export function CreateClassDialog() {
-  const router = useRouter()
-  const [open, setOpen] = useState(false)
-  const [name, setName] = useState('')
-  const [subject, setSubject] = useState('')
-  const [loading, setLoading] = useState(false)
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [subject, setSubject] = useState("");
+  const [loading, setLoading] = useState(false);
   const [createdClass, setCreatedClass] = useState<{
-    classCode: string
-    joinPin: string
-  } | null>(null)
+    classCode: string;
+    joinPin: string;
+  } | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
 
     try {
-      const result = await createClass(name, subject)
+      const result = await createClass(name, subject);
 
       if (result.success && result.data) {
         setCreatedClass({
           classCode: result.data.class_code,
-          joinPin: result.data.join_pin || '',
-        })
-        toast.success('Class created successfully!')
+          joinPin: result.data.join_pin || "",
+        });
+        toast.success("Class created successfully!");
         // Don't close dialog yet - show codes first
       } else {
-        toast.error(result.error || 'Failed to create class')
+        toast.error(result.error || "Failed to create class");
       }
     } catch {
-      toast.error('An unexpected error occurred')
+      toast.error("An unexpected error occurred");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
   function handleClose() {
-    setName('')
-    setSubject('')
-    setCreatedClass(null)
-    setOpen(false)
-    router.refresh()
+    setName("");
+    setSubject("");
+    setCreatedClass(null);
+    setOpen(false);
+    router.refresh();
   }
 
   return (
@@ -107,8 +107,9 @@ export function CreateClassDialog() {
 
               <div className="bg-warning-light border-l-4 border-warning p-3 rounded">
                 <p className="text-sm text-warning-dark">
-                  <strong>📋 Keep these codes safe!</strong> Students need both the class code and PIN to join.
-                  You can view these codes anytime in the class details.
+                  <strong>📋 Keep these codes safe!</strong> Students need both
+                  the class code and PIN to join. You can view these codes
+                  anytime in the class details.
                 </p>
               </div>
             </div>
@@ -163,12 +164,12 @@ export function CreateClassDialog() {
                 Cancel
               </Button>
               <Button type="submit" disabled={loading || !name}>
-                {loading ? 'Creating...' : 'Create Class'}
+                {loading ? "Creating..." : "Create Class"}
               </Button>
             </DialogFooter>
           </form>
         )}
       </DialogContent>
     </Dialog>
-  )
+  );
 }

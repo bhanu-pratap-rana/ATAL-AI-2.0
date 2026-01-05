@@ -11,21 +11,21 @@
  * <FormError error={state.signinEmailError} />
  */
 
-import React from 'react'
+import React from "react";
 
 export interface FormErrorProps {
   /** Error message to display (null/undefined to hide) */
-  readonly error?: string | null
+  readonly error?: string | null;
   /** Additional CSS classes to apply */
-  readonly className?: string
+  readonly className?: string;
   /** Custom error icon or prefix */
-  readonly icon?: React.ReactNode
+  readonly icon?: React.ReactNode;
   /** If true, shows a dismissible close button */
-  readonly dismissible?: boolean
+  readonly dismissible?: boolean;
   /** Called when close button is clicked */
-  readonly onDismiss?: () => void
+  readonly onDismiss?: () => void;
   /** Test ID for testing */
-  readonly testId?: string
+  readonly testId?: string;
 }
 
 /**
@@ -48,7 +48,7 @@ export interface FormErrorProps {
  */
 export function FormError({
   error,
-  className = '',
+  className = "",
   icon,
   dismissible = false,
   onDismiss,
@@ -56,11 +56,13 @@ export function FormError({
 }: FormErrorProps) {
   // Don't render if no error
   if (!error) {
-    return null
+    return null;
   }
 
-  const defaultClassName = 'text-sm text-error mt-1'
-  const combinedClassName = className ? `${defaultClassName} ${className}` : defaultClassName
+  const defaultClassName = "text-sm text-error mt-1";
+  const combinedClassName = className
+    ? `${defaultClassName} ${className}`
+    : defaultClassName;
 
   return (
     <div
@@ -87,7 +89,7 @@ export function FormError({
         </button>
       )}
     </div>
-  )
+  );
 }
 
 /**
@@ -104,22 +106,22 @@ export function FormError({
  */
 export interface FormErrorWithSuggestionProps extends FormErrorProps {
   /** Suggestion text to display below error */
-  readonly suggestion?: string | null
+  readonly suggestion?: string | null;
   /** Called when suggestion button is clicked */
-  readonly onSuggestionClick?: () => void
+  readonly onSuggestionClick?: () => void;
   /** Label for suggestion button */
-  readonly suggestionLabel?: string
+  readonly suggestionLabel?: string;
 }
 
 export function FormErrorWithSuggestion({
   error,
   suggestion,
   onSuggestionClick,
-  suggestionLabel = 'Use suggestion',
+  suggestionLabel = "Use suggestion",
   ...props
 }: FormErrorWithSuggestionProps) {
   if (!error) {
-    return null
+    return null;
   }
 
   return (
@@ -135,7 +137,7 @@ export function FormErrorWithSuggestion({
         </button>
       )}
     </div>
-  )
+  );
 }
 
 /**
@@ -144,22 +146,25 @@ export function FormErrorWithSuggestion({
  */
 export interface FormErrorWithAnimationProps extends FormErrorProps {
   /** If true, shows with fade animation */
-  readonly animated?: boolean
+  readonly animated?: boolean;
 }
 
 export function FormErrorAnimated({
   error,
   animated = true,
-  className = '',
+  className = "",
   ...props
 }: FormErrorWithAnimationProps) {
-  const animationClass = animated && error ? 'animate-in fade-in duration-200' : 'animate-out fade-out duration-200'
+  const animationClass =
+    animated && error
+      ? "animate-in fade-in duration-200"
+      : "animate-out fade-out duration-200";
 
   return (
     <div className={animationClass}>
       <FormError error={error} className={className} {...props} />
     </div>
-  )
+  );
 }
 
 /**
@@ -173,23 +178,23 @@ export function FormErrorAnimated({
  */
 export interface FormErrorListProps {
   /** Array of error messages */
-  readonly errors?: string[] | null
+  readonly errors?: string[] | null;
   /** Title/header for the error list */
-  readonly title?: string
+  readonly title?: string;
   /** Additional CSS classes */
-  readonly className?: string
+  readonly className?: string;
   /** Test ID for testing */
-  readonly testId?: string
+  readonly testId?: string;
 }
 
 export function FormErrorList({
   errors,
   title,
-  className = '',
+  className = "",
   testId,
 }: FormErrorListProps) {
   if (!errors || errors.length === 0) {
-    return null
+    return null;
   }
 
   return (
@@ -206,5 +211,5 @@ export function FormErrorList({
         ))}
       </ul>
     </div>
-  )
+  );
 }

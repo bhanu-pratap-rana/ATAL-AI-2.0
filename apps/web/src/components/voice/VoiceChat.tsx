@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * Voice Chat Component
@@ -15,9 +15,9 @@
  * - Automatic transcript callback
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { clientLogger } from '@/lib/client-logger';
+import { useState, useEffect, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { clientLogger } from "@/lib/client-logger";
 
 // Speech Recognition types (Web Speech API)
 interface SpeechRecognitionEvent extends Event {
@@ -51,20 +51,26 @@ interface SpeechRecognition extends EventTarget {
 }
 
 interface VoiceChatProps {
-  readonly language: 'en' | 'hi' | 'as';
+  readonly language: "en" | "hi" | "as";
   readonly onTranscript: (transcript: string) => void;
   readonly disabled?: boolean;
 }
 
-export function VoiceChat({ language, onTranscript, disabled = false }: VoiceChatProps) {
+export function VoiceChat({
+  language,
+  onTranscript,
+  disabled = false,
+}: VoiceChatProps) {
   const [isListening, setIsListening] = useState(false);
-  const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
+  const [recognition, setRecognition] = useState<SpeechRecognition | null>(
+    null,
+  );
   const [isSupported, setIsSupported] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Initialize speech recognition
   useEffect(() => {
-    if (typeof globalThis === 'undefined') return;
+    if (typeof globalThis === "undefined") return;
 
     // Check browser support
     const global = globalThis as typeof globalThis & {
@@ -72,11 +78,15 @@ export function VoiceChat({ language, onTranscript, disabled = false }: VoiceCha
       webkitSpeechRecognition?: new () => SpeechRecognition;
     };
     const SpeechRecognitionConstructor = (global.SpeechRecognition ||
-      global.webkitSpeechRecognition) as new () => SpeechRecognition | undefined;
-    
+      global.webkitSpeechRecognition) as new () =>
+      | SpeechRecognition
+      | undefined;
+
     if (!SpeechRecognitionConstructor) {
       setIsSupported(false);
-      clientLogger.warn('[VoiceChat] Speech recognition not supported in this browser');
+      clientLogger.warn(
+        "[VoiceChat] Speech recognition not supported in this browser",
+      );
       return;
     }
 
@@ -87,19 +97,22 @@ export function VoiceChat({ language, onTranscript, disabled = false }: VoiceCha
     rec.continuous = false; // Stop after one result
     rec.interimResults = false; // Only final results
     rec.maxAlternatives = 1; // Single best result
-    
+
     // Set language based on prop
     const langMap = {
-      en: 'en-IN',
-      hi: 'hi-IN',
-      as: 'as-IN',
+      en: "en-IN",
+      hi: "hi-IN",
+      as: "as-IN",
     };
     rec.lang = langMap[language];
 
     // Handle results
     rec.onresult = (event: SpeechRecognitionEvent) => {
       const transcript = event.results[0][0].transcript;
-      clientLogger.debug('[VoiceChat] Transcript received:', { transcript, language });
+      clientLogger.debug("[VoiceChat] Transcript received:", {
+        transcript,
+        language,
+      });
       onTranscript(transcript);
       setIsListening(false);
       setError(null);
@@ -107,25 +120,29 @@ export function VoiceChat({ language, onTranscript, disabled = false }: VoiceCha
 
     // Handle errors
     rec.onerror = (event: SpeechRecognitionErrorEvent) => {
-      clientLogger.error('[VoiceChat] Recognition error:', { error: event.error });
+      clientLogger.error("[VoiceChat] Recognition error:", {
+        error: event.error,
+      });
       setIsListening(false);
-      
+
       // User-friendly error messages
       switch (event.error) {
-        case 'no-speech':
-          setError('No speech detected. Please try again.');
+        case "no-speech":
+          setError("No speech detected. Please try again.");
           break;
-        case 'audio-capture':
-          setError('Microphone not accessible. Please check permissions.');
+        case "audio-capture":
+          setError("Microphone not accessible. Please check permissions.");
           break;
-        case 'not-allowed':
-          setError('Microphone permission denied. Please enable it in browser settings.');
+        case "not-allowed":
+          setError(
+            "Microphone permission denied. Please enable it in browser settings.",
+          );
           break;
-        case 'network':
-          setError('Network error. Please check your connection.');
+        case "network":
+          setError("Network error. Please check your connection.");
           break;
         default:
-          setError('Speech recognition error. Please try again.');
+          setError("Speech recognition error. Please try again.");
       }
     };
 
@@ -151,10 +168,13 @@ export function VoiceChat({ language, onTranscript, disabled = false }: VoiceCha
       setError(null);
       recognition.start();
       setIsListening(true);
-      clientLogger.debug('[VoiceChat] Started listening', { language });
+      clientLogger.debug("[VoiceChat] Started listening", { language });
     } catch (err) {
-      clientLogger.error('[VoiceChat] Error starting recognition:', err instanceof Error ? err : undefined);
-      setError('Failed to start voice recognition.');
+      clientLogger.error(
+        "[VoiceChat] Error starting recognition:",
+        err instanceof Error ? err : undefined,
+      );
+      setError("Failed to start voice recognition.");
     }
   }, [recognition, disabled, language]);
 
@@ -164,9 +184,12 @@ export function VoiceChat({ language, onTranscript, disabled = false }: VoiceCha
     try {
       recognition.stop();
       setIsListening(false);
-      clientLogger.debug('[VoiceChat] Stopped listening');
+      clientLogger.debug("[VoiceChat] Stopped listening");
     } catch (err) {
-      clientLogger.error('[VoiceChat] Error stopping recognition:', err instanceof Error ? err : undefined);
+      clientLogger.error(
+        "[VoiceChat] Error stopping recognition:",
+        err instanceof Error ? err : undefined,
+      );
     }
   }, [recognition]);
 
@@ -194,8 +217,8 @@ export function VoiceChat({ language, onTranscript, disabled = false }: VoiceCha
           disabled={disabled || !recognition}
           className={`relative ${
             isListening
-              ? 'bg-error hover:bg-error-dark animate-pulse'
-              : 'bg-primary hover:bg-primary-dark'
+              ? "bg-error hover:bg-error-dark animate-pulse"
+              : "bg-primary hover:bg-primary-dark"
           }`}
           size="lg"
         >
@@ -234,9 +257,13 @@ export function VoiceChat({ language, onTranscript, disabled = false }: VoiceCha
 
       {/* Language Indicator */}
       <div className="text-center text-xs text-muted-foreground">
-        Language: {language === 'en' ? 'English' : language === 'hi' ? 'हिंदी' : 'অসমীয়া'}
+        Language:{" "}
+        {language === "en"
+          ? "English"
+          : language === "hi"
+            ? "हिंदी"
+            : "অসমীয়া"}
       </div>
     </div>
   );
 }
-
