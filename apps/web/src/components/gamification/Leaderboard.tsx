@@ -24,9 +24,9 @@ interface LeaderEntry {
 }
 
 interface LeaderboardProps {
-  classId: string;
-  currentUserId: string;
-  limit?: number;
+  readonly classId: string;
+  readonly currentUserId: string;
+  readonly limit?: number;
 }
 
 const RANK_ICONS = {

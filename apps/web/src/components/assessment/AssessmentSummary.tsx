@@ -37,12 +37,12 @@ interface IRTData {
 }
 
 interface AssessmentSummaryProps {
-  score: number
-  totalQuestions: number
-  correctAnswers: number
-  moduleBreakdown: Record<string, { total: number; correct: number }>
-  avgResponseTime: number
-  irtData?: IRTData
+  readonly score: number
+  readonly totalQuestions: number
+  readonly correctAnswers: number
+  readonly moduleBreakdown: Record<string, { total: number; correct: number }>
+  readonly avgResponseTime: number
+  readonly irtData?: IRTData
 }
 
 export function AssessmentSummary({

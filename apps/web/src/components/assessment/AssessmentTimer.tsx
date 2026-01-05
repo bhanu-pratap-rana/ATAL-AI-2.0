@@ -16,13 +16,13 @@ import { useTimer, formatTimeMMSS } from '@/hooks/useTimer'
 
 interface AssessmentTimerProps {
   /** Whether to pause the timer */
-  isPaused?: boolean
+  readonly isPaused?: boolean
   /** Initial elapsed time in seconds (for resuming) */
-  initialSeconds?: number
+  readonly initialSeconds?: number
   /** Callback when time updates (receives total seconds) */
-  onTimeUpdate?: (seconds: number) => void
+  readonly onTimeUpdate?: (seconds: number) => void
   /** Custom class name for styling */
-  className?: string
+  readonly className?: string
 }
 
 export function AssessmentTimer({

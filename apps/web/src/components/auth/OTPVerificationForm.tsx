@@ -13,15 +13,15 @@ import { authLogger } from '@/lib/auth-logger'
  * Reduces code duplication between different auth flows
  */
 export interface OTPVerificationFormProps {
-  otp: string
-  onOtpChange: (otp: string) => void
-  isLoading: boolean
-  error?: string
-  onErrorChange: (error: string | null) => void
-  onSubmit: (otp: string) => Promise<void>
-  submitButtonLabel?: string
-  label?: string
-  helperText?: string
+  readonly otp: string
+  readonly onOtpChange: (otp: string) => void
+  readonly isLoading: boolean
+  readonly error?: string
+  readonly onErrorChange: (error: string | null) => void
+  readonly onSubmit: (otp: string) => Promise<void>
+  readonly submitButtonLabel?: string
+  readonly label?: string
+  readonly helperText?: string
 }
 
 export function OTPVerificationForm({

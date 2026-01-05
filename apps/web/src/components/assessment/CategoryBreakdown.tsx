@@ -21,9 +21,9 @@ interface CategoryData {
 }
 
 interface CategoryBreakdownProps {
-  categories: Record<string, { total: number; correct: number }>
+  readonly categories: Record<string, { total: number; correct: number }>
   /** Custom class name */
-  className?: string
+  readonly className?: string
 }
 
 // Category display names and icons

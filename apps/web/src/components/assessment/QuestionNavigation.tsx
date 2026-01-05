@@ -13,16 +13,16 @@ import { Button } from '@/components/ui/button'
  */
 
 interface QuestionNavigationProps {
-  currentIndex: number
-  totalQuestions: number
-  hasSelectedAnswer: boolean
-  isSubmitting: boolean
-  canGoBack: boolean
-  isReviewingHistory: boolean
-  onPrevious: () => void
-  onSkip: () => void
-  onClear: () => void
-  onNext: () => void
+  readonly currentIndex: number
+  readonly totalQuestions: number
+  readonly hasSelectedAnswer: boolean
+  readonly isSubmitting: boolean
+  readonly canGoBack: boolean
+  readonly isReviewingHistory: boolean
+  readonly onPrevious: () => void
+  readonly onSkip: () => void
+  readonly onClear: () => void
+  readonly onNext: () => void
 }
 
 export function QuestionNavigation({

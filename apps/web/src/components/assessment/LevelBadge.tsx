@@ -16,13 +16,13 @@ type SkillLevel = 'beginner' | 'intermediate' | 'advanced'
 
 interface LevelBadgeProps {
   /** Score percentage (0-100) to determine level */
-  score?: number
+  readonly score?: number
   /** Direct level specification (overrides score) */
-  level?: SkillLevel
+  readonly level?: SkillLevel
   /** Size variant */
-  size?: 'sm' | 'md' | 'lg'
+  readonly size?: 'sm' | 'md' | 'lg'
   /** Custom class name */
-  className?: string
+  readonly className?: string
 }
 
 const LEVEL_CONFIG: Record<

@@ -28,9 +28,9 @@ interface DisplayBadge extends Omit<BaseBadge, 'unlock_criteria' | 'cultural_not
 }
 
 interface BadgesDisplayProps {
-  studentId: string;
-  language?: 'en' | 'hi' | 'as';
-  showAll?: boolean;
+  readonly studentId: string;
+  readonly language?: 'en' | 'hi' | 'as';
+  readonly showAll?: boolean;
 }
 
 // Rarity colors and styles - using semantic CSS variables where possible
@@ -304,8 +304,8 @@ export function BadgesCompact({
   badges,
   maxDisplay = 5,
 }: {
-  badges: Array<{ id: string; icon: string; name: string }>;
-  maxDisplay?: number;
+  readonly badges: Array<{ id: string; icon: string; name: string }>;
+  readonly maxDisplay?: number;
 }) {
   const displayBadges = badges.slice(0, maxDisplay);
   const remaining = badges.length - maxDisplay;
