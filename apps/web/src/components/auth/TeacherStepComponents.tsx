@@ -263,7 +263,7 @@ export function SetPasswordStep({
                 <div className="flex gap-1">
                   {[0, 1, 2, 3, 4].map((i) => (
                     <div
-                      key={i}
+                      key={`strength-bar-${i}`}
                       className={`h-1 flex-1 rounded ${
                         i <= passwordStrength
                           ? getPasswordStrengthColor()

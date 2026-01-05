@@ -113,7 +113,7 @@ export function AIInteractionsLog({ classId, limit = 20 }: AIInteractionsLogProp
     return (
       <div className="space-y-2">
         {[1, 2, 3].map((i) => (
-          <Card key={i} className="animate-pulse">
+          <Card key={`interaction-skeleton-${i}`} className="animate-pulse">
             <CardContent className="p-4">
               <div className="h-4 bg-muted rounded w-1/4 mb-2" />
               <div className="h-3 bg-muted rounded w-3/4" />
