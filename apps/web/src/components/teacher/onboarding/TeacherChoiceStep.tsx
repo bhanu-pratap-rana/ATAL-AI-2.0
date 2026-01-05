@@ -14,8 +14,8 @@ import { ArrowRight, LogIn } from 'lucide-react'
  */
 
 interface TeacherChoiceStepProps {
-  loading: boolean
-  onChoice: (choice: 'auth' | 'login') => void
+  readonly loading: boolean
+  readonly onChoice: (choice: 'auth' | 'login') => void
 }
 
 export function TeacherChoiceStep({ loading, onChoice }: TeacherChoiceStepProps) {

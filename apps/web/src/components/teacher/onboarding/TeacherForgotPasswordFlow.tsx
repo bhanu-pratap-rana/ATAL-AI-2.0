@@ -8,19 +8,19 @@ import { Label } from '@/components/ui/label'
 import { ArrowLeft, Mail, Lock } from 'lucide-react'
 
 interface TeacherForgotPasswordFlowProps {
-  email: string
-  otp: string
-  newPassword: string
-  confirmPassword: string
-  otpSent: boolean
-  loading: boolean
-  onEmailChange: (value: string) => void
-  onOtpChange: (value: string) => void
-  onNewPasswordChange: (value: string) => void
-  onConfirmPasswordChange: (value: string) => void
-  onSendOtp: (e: FormEvent) => void
-  onResetPassword: (e: FormEvent) => void
-  onBack: () => void
+  readonly email: string
+  readonly otp: string
+  readonly newPassword: string
+  readonly confirmPassword: string
+  readonly otpSent: boolean
+  readonly loading: boolean
+  readonly onEmailChange: (value: string) => void
+  readonly onOtpChange: (value: string) => void
+  readonly onNewPasswordChange: (value: string) => void
+  readonly onConfirmPasswordChange: (value: string) => void
+  readonly onSendOtp: (e: FormEvent) => void
+  readonly onResetPassword: (e: FormEvent) => void
+  readonly onBack: () => void
 }
 
 export function TeacherForgotPasswordFlow({
