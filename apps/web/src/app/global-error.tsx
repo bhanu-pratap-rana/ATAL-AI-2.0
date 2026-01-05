@@ -100,7 +100,15 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
                   e.currentTarget.style.backgroundColor = `var(--color-primary-dark, ${THEME.primaryDark})`
                   e.currentTarget.style.transform = 'translateY(-2px)'
                 }}
+                onFocus={(e) => {
+                  e.currentTarget.style.backgroundColor = `var(--color-primary-dark, ${THEME.primaryDark})`
+                  e.currentTarget.style.transform = 'translateY(-2px)'
+                }}
                 onMouseOut={(e) => {
+                  e.currentTarget.style.backgroundColor = `var(--color-primary, ${THEME.primary})`
+                  e.currentTarget.style.transform = 'translateY(0)'
+                }}
+                onBlur={(e) => {
                   e.currentTarget.style.backgroundColor = `var(--color-primary, ${THEME.primary})`
                   e.currentTarget.style.transform = 'translateY(0)'
                 }}
