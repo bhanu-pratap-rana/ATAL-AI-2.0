@@ -63,6 +63,22 @@ const DEFAULT_LESSON: LessonContent = {
   practice_questions: [],
 };
 
+/**
+ * Helper: Generate AI welcome message based on language and lesson
+ */
+function getAIWelcomeMessage(
+  language: "en" | "hi" | "as",
+  lesson: LessonContent,
+): string {
+  if (language === "as") {
+    return `নমস্কাৰ! মই আপোনাৰ AI শিক্ষক। "${lesson.title_as}" বিষয়ে কিবা প্ৰশ্ন আছে নেকি?`;
+  }
+  if (language === "hi") {
+    return `नमस्ते! मैं आपका AI शिक्षक हूँ। "${lesson.title_en}" के बारे में कोई सवाल है?`;
+  }
+  return `Hello! I'm your AI Tutor. Do you have any questions about "${lesson.title_en}"?`;
+}
+
 export default function LessonPage() {
   const params = useParams();
   const router = useRouter();
@@ -223,12 +239,7 @@ export default function LessonPage() {
         {
           id: "welcome",
           role: "assistant",
-          content:
-            language === "as"
-              ? `নমস্কাৰ! মই আপোনাৰ AI শিক্ষক। "${lesson.title_as}" বিষয়ে কিবা প্ৰশ্ন আছে নেকি?`
-              : language === "hi"
-                ? `नमस्ते! मैं आपका AI शिक्षक हूँ। "${lesson.title_en}" के बारे में कोई सवाल है?`
-                : `Hello! I'm your AI Tutor. Do you have any questions about "${lesson.title_en}"?`,
+          content: getAIWelcomeMessage(language, lesson),
         },
       ],
     });
