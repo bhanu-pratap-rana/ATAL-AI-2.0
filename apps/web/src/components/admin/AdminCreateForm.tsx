@@ -128,7 +128,7 @@ export function AdminCreateForm({
       {/* Password Input */}
       <div className="space-y-2">
         <Label htmlFor="create-password" className="text-sm font-semibold">
-          Password (min. 8 characters)
+          Password
         </Label>
         <div className="relative">
           <Input
@@ -139,11 +139,13 @@ export function AdminCreateForm({
             onChange={(e) => setPassword(e.target.value)}
             disabled={isLoading}
             className="focus:ring-primary focus:border-primary pr-10"
+            aria-describedby="password-requirements"
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text"
+            aria-label={showPassword ? "Hide password" : "Show password"}
           >
             {showPassword ? (
               <EyeOff className="w-4 h-4" />
@@ -152,6 +154,12 @@ export function AdminCreateForm({
             )}
           </button>
         </div>
+        <p
+          id="password-requirements"
+          className="text-xs text-text-secondary"
+        >
+          Minimum 8 characters required
+        </p>
       </div>
 
       {/* Confirm Password Input */}
