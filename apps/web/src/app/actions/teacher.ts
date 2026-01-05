@@ -981,17 +981,17 @@ export async function exportStudentProgress(classId: string) {
         // Check for formula injection attempts
         if (dangerousChars.includes(firstChar)) {
           // Prefix with single quote to neutralize formula
-          return "'" + str.replace(/"/g, '""')
+          return "'" + str.replaceAll('"', '""')
         }
-        
+
         // Check for hidden formula injection (e.g., "  =cmd")
         const trimmedStr = str.trim()
         if (trimmedStr.length > 0 && dangerousChars.includes(trimmedStr[0])) {
-          return "'" + str.replace(/"/g, '""')
+          return "'" + str.replaceAll('"', '""')
         }
-        
+
         // Escape quotes for CSV safety
-        return str.replace(/"/g, '""')
+        return str.replaceAll('"', '""')
       }
 
       return {

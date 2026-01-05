@@ -38,7 +38,7 @@ export function convertToCSV<T extends Record<string, unknown>>(data: T[]): stri
 function escapeCSVField(field: string): string {
   // If field contains comma, quote, or newline, wrap in quotes and escape inner quotes
   if (field.includes(',') || field.includes('"') || field.includes('\n')) {
-    return `"${field.replace(/"/g, '""')}"`;
+    return `"${field.replaceAll('"', '""')}"`;
   }
   return field;
 }

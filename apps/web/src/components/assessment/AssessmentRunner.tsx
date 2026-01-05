@@ -512,9 +512,9 @@ export function AssessmentRunner({
             <div className="mb-6">
               <span
                 className="inline-block px-3 py-1 text-xs font-semibold text-primary bg-primary-light rounded-full mb-4"
-                aria-label={`Category: ${currentQuestion.category.replace(/_/g, ' ')}`}
+                aria-label={`Category: ${currentQuestion.category.replaceAll('_', ' ')}`}
               >
-                {currentQuestion.category.replace(/_/g, ' ').toUpperCase()}
+                {currentQuestion.category.replaceAll('_', ' ').toUpperCase()}
               </span>
               <h2
                 ref={questionRef}
