@@ -206,49 +206,7 @@ export default function TeacherStartPage() {
             {/* Email Method */}
             {state.signupMethod === 'email' && (
               <>
-                {!state.otpSent ? (
-                  <form onSubmit={actions.handleSendOTP} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email Address</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="teacher@school.edu"
-                        value={state.email}
-                        onChange={(e) => actions.setEmail(e.target.value)}
-                        required
-                        disabled={state.loading}
-                      />
-                      {state.emailError && (
-                        <div className="space-y-2">
-                          <p className="text-sm text-error">{state.emailError}</p>
-                          {state.emailSuggestion && (
-                            <button
-                              type="button"
-                              onClick={() => actions.setEmail(state.emailSuggestion)}
-                              className="text-sm text-cyan hover:text-cyan-dark hover:underline"
-                              disabled={state.loading}
-                            >
-                              ✓ Use suggested: {state.emailSuggestion}
-                            </button>
-                          )}
-                        </div>
-                      )}
-                      <p className="text-xs text-text-secondary">
-                        We&apos;ll send a 6-digit code to this email
-                      </p>
-                    </div>
-
-                    <Button
-                      type="submit"
-                      className="w-full shadow-[var(--shadow-primary)]"
-                      disabled={state.loading || !state.email}
-                      loading={state.loading}
-                    >
-                      Send Verification Code
-                    </Button>
-                  </form>
-                ) : (
+                {state.otpSent ? (
                   <form onSubmit={actions.handleVerifyOTP} className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="otp">Verification Code</Label>
@@ -300,6 +258,48 @@ export default function TeacherStartPage() {
                         Use different email
                       </button>
                     </div>
+                  </form>
+                ) : (
+                  <form onSubmit={actions.handleSendOTP} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email Address</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="teacher@school.edu"
+                        value={state.email}
+                        onChange={(e) => actions.setEmail(e.target.value)}
+                        required
+                        disabled={state.loading}
+                      />
+                      {state.emailError && (
+                        <div className="space-y-2">
+                          <p className="text-sm text-error">{state.emailError}</p>
+                          {state.emailSuggestion && (
+                            <button
+                              type="button"
+                              onClick={() => actions.setEmail(state.emailSuggestion)}
+                              className="text-sm text-cyan hover:text-cyan-dark hover:underline"
+                              disabled={state.loading}
+                            >
+                              ✓ Use suggested: {state.emailSuggestion}
+                            </button>
+                          )}
+                        </div>
+                      )}
+                      <p className="text-xs text-text-secondary">
+                        We&apos;ll send a 6-digit code to this email
+                      </p>
+                    </div>
+
+                    <Button
+                      type="submit"
+                      className="w-full shadow-[var(--shadow-primary)]"
+                      disabled={state.loading || !state.email}
+                      loading={state.loading}
+                    >
+                      Send Verification Code
+                    </Button>
                   </form>
                 )}
               </>
