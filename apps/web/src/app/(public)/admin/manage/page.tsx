@@ -310,7 +310,7 @@ export default function AdminManagePage() {
               aria-label="Step 2: Create admin account"
             >
               <p className="text-sm font-semibold">Step 2: Create</p>
-            </div>
+            </button>
           </div>
 
           {/* STEP 1: DELETE USER */}

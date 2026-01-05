@@ -134,7 +134,7 @@ export default function StudentStartPage() {
       } else if (data.user) {
         const isTeacher = await checkAndHandleTeacherRedirect(
           supabase,
-          data.user,
+          data.user as { id: string; app_metadata?: { role?: string } },
           actions.setSigninEmailError,
           'SignIn Email'
         )
@@ -185,7 +185,7 @@ export default function StudentStartPage() {
       } else if (data.user) {
         const isTeacher = await checkAndHandleTeacherRedirect(
           supabase,
-          data.user,
+          data.user as { id: string; app_metadata?: { role?: string } },
           actions.setSigninPhoneError,
           'SignIn Phone'
         )

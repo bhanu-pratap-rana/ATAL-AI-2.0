@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import type { DashboardMetrics } from '@/app/actions/admin-metrics'
 import {
   getDashboardMetrics,
@@ -185,7 +185,7 @@ export function DashboardMetrics() {
   /**
    * Helper: Render modal content based on type (extracted to reduce cognitive complexity)
    */
-  function renderModalContent(): JSX.Element {
+  function renderModalContent(): React.ReactElement {
     if (modalLoading) {
       return (
         <div className="text-center py-8">

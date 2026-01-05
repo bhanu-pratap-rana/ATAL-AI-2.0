@@ -144,11 +144,12 @@ export async function fetchAllWithSnapshot<T>(
                 return false
               }
             )
-          if (snapshotIndex >= 0) {
-            allData.length = snapshotIndex
+            if (snapshotIndex >= 0) {
+              allData.length = snapshotIndex
+            }
+            hasMore = false
+            break
           }
-          hasMore = false
-          break
         }
       }
 

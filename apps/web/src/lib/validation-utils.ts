@@ -26,6 +26,12 @@ export {
 } from './email-validation'
 
 // Password validation - NIST 2025 Compliant
+import {
+  getPasswordValidationError,
+  estimatePasswordStrengthNist2025,
+  getPasswordStrengthLabelNist2025,
+} from './password-utils'
+
 export {
   validatePasswordNist2025,
   getPasswordValidationError,
@@ -57,7 +63,7 @@ export function validatePasswordSimple(password: string): { valid: boolean; erro
   const error = getPasswordValidationError(password)
   return {
     valid: !error,
-    error,
+    error: error ?? undefined,
   }
 }
 

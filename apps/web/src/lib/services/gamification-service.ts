@@ -180,14 +180,14 @@ export class GamificationService {
         const { data, error } = await supabase
           .from('summative_results')
           .select('total_score')
-        
+          .eq('student_id', studentId)
+          .gte('total_score', criteria.threshold || 90)
+          .limit(1)
+
         if (error) {
           authLogger.error('[checkBadgeCriteria] Failed to fetch high score', { error: error.message, studentId })
           return false
         }
-          .eq('student_id', studentId)
-          .gte('total_score', criteria.threshold || 90)
-          .limit(1);
         return (data?.length || 0) > 0;
       }
 
@@ -411,7 +411,7 @@ export class GamificationService {
         .order('created_at', { ascending: false })
         .limit(limit);
 
-      return (data || []) as PointsEntry[];
+      return (data || []) as unknown as PointsEntry[];
     } catch (error) {
       authLogger.error('[Gamification] Error getting points history:', error instanceof Error ? error : { error: String(error) });
       return [];

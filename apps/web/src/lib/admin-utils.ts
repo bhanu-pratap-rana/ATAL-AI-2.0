@@ -5,7 +5,7 @@
 
 import { createAdminClient } from '@/lib/supabase-server'
 import { authLogger } from '@/lib/auth-logger'
-import { validateSupabaseAuthUsers, type SupabaseAuthUser } from '@/lib/validation/rpc-schemas'
+import { validateSupabaseAuthUsers } from '@/lib/validation/rpc-schemas'
 
 /**
  * Supabase Admin API User type wrapper

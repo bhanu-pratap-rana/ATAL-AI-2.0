@@ -31,9 +31,11 @@ Write-Host "URL: $SonarQubeUrl" -ForegroundColor White
 Write-Host ""
 
 try {
-    # Fetch issues as JSON
-    $jsonUrl = "$SonarQubeUrl/api/issues/search?componentKeys=$ProjectKey&ps=500"
+    # Build URL manually to avoid ampersand parsing issues
+    $queryPart = "componentKeys=" + [System.Uri]::EscapeDataString($ProjectKey) + "&ps=500"
+    $jsonUrl = "${SonarQubeUrl}/api/issues/search?" + $queryPart
     Write-Host "📥 Fetching JSON format..." -ForegroundColor Yellow
+    Write-Host "   URL: $jsonUrl" -ForegroundColor Gray
     
     $jsonResponse = Invoke-RestMethod -Uri $jsonUrl -Headers $headers -Method Get
     $jsonFile = Join-Path $OutputDir "issues.json"

@@ -257,11 +257,16 @@ const initialState: AuthState = {
 }
 
 /**
+ * Return type for useAuthState hook
+ */
+export type UseAuthStateReturn = { state: AuthState; actions: AuthActions }
+
+/**
  * Custom hook for authentication state management
  * Replaces 64+ useState hooks with a single state machine
  * @returns { state, actions } - Current auth state and action creators
  */
-export function useAuthState(): { state: AuthState; actions: AuthActions } {
+export function useAuthState(): UseAuthStateReturn {
   const [state, setState] = useState<AuthState>(initialState)
 
   // Main navigation setters

@@ -56,11 +56,11 @@ export default async function SettingsPage() {
     // OPTIMIZATION: Select only needed columns instead of *
     const { data: profile } = await supabase
       .from('teacher_profiles')
-      .select('user_id, name, phone, school_id, school_code, created_at, updated_at')
+      .select('user_id, name, phone, school_id, school_code, gender, created_at, updated_at')
       .eq('user_id', user.id)
       .maybeSingle()
 
-    teacherProfile = profile
+    teacherProfile = profile as any
   }
 
   return (
