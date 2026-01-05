@@ -176,11 +176,15 @@ export function TeacherProfileEditor({
         <div className="space-y-4">
           {/* Name */}
           <div>
-            <label className="text-sm font-medium text-text-secondary">
+            <label
+              htmlFor="teacher-name"
+              className="text-sm font-medium text-text-secondary"
+            >
               Name *
             </label>
             {isEditing ? (
               <input
+                id="teacher-name"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -194,21 +198,26 @@ export function TeacherProfileEditor({
 
           {/* Gender */}
           <div>
-            <label className="text-sm font-medium text-text-secondary">
+            <label
+              id="teacher-gender-group"
+              className="text-sm font-medium text-text-secondary"
+            >
               Gender *
             </label>
             {isEditing ? (
               <div
                 className="flex gap-4 mt-1"
                 role="radiogroup"
-                aria-label="Gender selection"
+                aria-labelledby="teacher-gender-group"
               >
                 {(["male", "female"] as const).map((g) => (
                   <label
                     key={g}
+                    htmlFor={`teacher-gender-${g}`}
                     className="flex items-center gap-2 cursor-pointer"
                   >
                     <input
+                      id={`teacher-gender-${g}`}
                       type="radio"
                       name="teacher-gender"
                       value={g}
@@ -234,7 +243,10 @@ export function TeacherProfileEditor({
 
           {/* Email (display only) */}
           <div>
-            <label className="text-sm font-medium text-text-secondary">
+            <label
+              id="teacher-email"
+              className="text-sm font-medium text-text-secondary"
+            >
               Email
             </label>
             <p className="text-text-primary">{userEmail || "Not set"}</p>
@@ -242,12 +254,16 @@ export function TeacherProfileEditor({
 
           {/* Phone */}
           <div>
-            <label className="text-sm font-medium text-text-secondary">
+            <label
+              htmlFor="teacher-phone"
+              className="text-sm font-medium text-text-secondary"
+            >
               Phone
             </label>
             {isEditing ? (
               <>
                 <input
+                  id="teacher-phone"
                   type="tel"
                   value={phone}
                   onChange={(e) =>
@@ -256,8 +272,12 @@ export function TeacherProfileEditor({
                   className="w-full mt-1 px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   placeholder="10-digit mobile number"
                   maxLength={10}
+                  aria-describedby="teacher-phone-helper"
                 />
-                <p className="text-xs text-text-secondary mt-1">
+                <p
+                  id="teacher-phone-helper"
+                  className="text-xs text-text-secondary mt-1"
+                >
                   Enter 10-digit Indian mobile number
                 </p>
                 {phone && phone.length > 0 && phone.length < 10 && (
@@ -273,11 +293,15 @@ export function TeacherProfileEditor({
 
           {/* Subject */}
           <div>
-            <label className="text-sm font-medium text-text-secondary">
+            <label
+              htmlFor="teacher-subject"
+              className="text-sm font-medium text-text-secondary"
+            >
               Subject
             </label>
             {isEditing ? (
               <input
+                id="teacher-subject"
                 type="text"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
@@ -291,7 +315,10 @@ export function TeacherProfileEditor({
 
           {/* School Code (read-only) */}
           <div>
-            <label className="text-sm font-medium text-text-secondary">
+            <label
+              id="teacher-schoolcode"
+              className="text-sm font-medium text-text-secondary"
+            >
               School Code
             </label>
             <p className="text-text-primary font-mono">
@@ -301,11 +328,15 @@ export function TeacherProfileEditor({
 
           {/* Village */}
           <div>
-            <label className="text-sm font-medium text-text-secondary">
+            <label
+              htmlFor="teacher-village"
+              className="text-sm font-medium text-text-secondary"
+            >
               Village/Location
             </label>
             {isEditing ? (
               <input
+                id="teacher-village"
                 type="text"
                 value={village}
                 onChange={(e) => setVillage(e.target.value)}
