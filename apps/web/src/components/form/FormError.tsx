@@ -15,17 +15,17 @@ import React from 'react'
 
 export interface FormErrorProps {
   /** Error message to display (null/undefined to hide) */
-  error?: string | null
+  readonly error?: string | null
   /** Additional CSS classes to apply */
-  className?: string
+  readonly className?: string
   /** Custom error icon or prefix */
-  icon?: React.ReactNode
+  readonly icon?: React.ReactNode
   /** If true, shows a dismissible close button */
-  dismissible?: boolean
+  readonly dismissible?: boolean
   /** Called when close button is clicked */
-  onDismiss?: () => void
+  readonly onDismiss?: () => void
   /** Test ID for testing */
-  testId?: string
+  readonly testId?: string
 }
 
 /**
@@ -104,11 +104,11 @@ export function FormError({
  */
 export interface FormErrorWithSuggestionProps extends FormErrorProps {
   /** Suggestion text to display below error */
-  suggestion?: string | null
+  readonly suggestion?: string | null
   /** Called when suggestion button is clicked */
-  onSuggestionClick?: () => void
+  readonly onSuggestionClick?: () => void
   /** Label for suggestion button */
-  suggestionLabel?: string
+  readonly suggestionLabel?: string
 }
 
 export function FormErrorWithSuggestion({
@@ -144,7 +144,7 @@ export function FormErrorWithSuggestion({
  */
 export interface FormErrorWithAnimationProps extends FormErrorProps {
   /** If true, shows with fade animation */
-  animated?: boolean
+  readonly animated?: boolean
 }
 
 export function FormErrorAnimated({
@@ -173,13 +173,13 @@ export function FormErrorAnimated({
  */
 export interface FormErrorListProps {
   /** Array of error messages */
-  errors?: string[] | null
+  readonly errors?: string[] | null
   /** Title/header for the error list */
-  title?: string
+  readonly title?: string
   /** Additional CSS classes */
-  className?: string
+  readonly className?: string
   /** Test ID for testing */
-  testId?: string
+  readonly testId?: string
 }
 
 export function FormErrorList({
