@@ -23,11 +23,11 @@ import type { UsePhoneInputReturn } from '@/hooks/usePhoneInput'
  */
 
 interface SignInPhoneFormProps {
-  state: AuthState
-  actions: AuthActions
-  phoneInput: UsePhoneInputReturn
-  isLoading: boolean
-  onSuccess: () => void
+  readonly state: AuthState
+  readonly actions: AuthActions
+  readonly phoneInput: UsePhoneInputReturn
+  readonly isLoading: boolean
+  readonly onSuccess: () => void
 }
 
 export function SignInPhoneForm({

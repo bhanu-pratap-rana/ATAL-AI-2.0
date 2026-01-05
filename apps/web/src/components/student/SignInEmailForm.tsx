@@ -18,10 +18,10 @@ import type { AuthState, AuthActions } from '@/hooks/useAuthState'
  */
 
 interface SignInEmailFormProps {
-  state: AuthState
-  actions: AuthActions
-  isLoading: boolean
-  onSuccess: () => void
+  readonly state: AuthState
+  readonly actions: AuthActions
+  readonly isLoading: boolean
+  readonly onSuccess: () => void
 }
 
 export function SignInEmailForm({ state, actions, isLoading, onSuccess }: SignInEmailFormProps) {

@@ -21,11 +21,11 @@ import { cn } from '@/lib/utils';
 
 interface OfflineBannerProps {
   /** Additional CSS classes */
-  className?: string;
+  readonly className?: string;
   /** Position of the banner */
-  position?: 'top' | 'bottom';
+  readonly position?: 'top' | 'bottom';
   /** Show pending sync count */
-  showPendingCount?: boolean;
+  readonly showPendingCount?: boolean;
 }
 
 /**

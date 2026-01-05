@@ -26,10 +26,10 @@ interface StudentProfile {
 }
 
 interface StudentProfileEditorProps {
-  profile: StudentProfile | null
-  userEmail: string
-  isUsernameAuth?: boolean
-  username?: string
+  readonly profile: StudentProfile | null
+  readonly userEmail: string
+  readonly isUsernameAuth?: boolean
+  readonly username?: string
 }
 
 export function StudentProfileEditor({ profile, userEmail, isUsernameAuth, username }: StudentProfileEditorProps) {
