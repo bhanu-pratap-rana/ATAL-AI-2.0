@@ -1094,35 +1094,7 @@ export default function StudentStartPage() {
           {/* Email Sign Up Form */}
           {state.signupTab === 'email' && (
             <>
-              {!state.signupEmailOtpSent ? (
-                <form onSubmit={handleSignUpEmailSendOtp} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email Address</Label>
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      placeholder="your.email@example.com"
-                      value={state.signupEmailAddress}
-                      onChange={(e) => actions.setSignupEmailAddress(e.target.value)}
-                      required
-                      disabled={state.isLoading}
-                    />
-                    {state.signupEmailError && (
-                      <p className="text-sm text-error">{state.signupEmailError}</p>
-                    )}
-                  </div>
-
-                  <Button
-                    type="submit"
-                    className="w-full text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5"
-                    disabled={state.isLoading || !state.signupEmailAddress}
-                    loading={state.isLoading}
-                  >
-                    Send OTP
-                    <span className="ml-2">→</span>
-                  </Button>
-                </form>
-              ) : (
+              {state.signupEmailOtpSent ? (
                 <form onSubmit={handleSignUpEmailVerifyAndCreate} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="signup-email-otp">Verification Code</Label>
@@ -1222,6 +1194,34 @@ export default function StudentStartPage() {
                       Change email
                     </button>
                   </div>
+                </form>
+              ) : (
+                <form onSubmit={handleSignUpEmailSendOtp} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-email">Email Address</Label>
+                    <Input
+                      id="signup-email"
+                      type="email"
+                      placeholder="your.email@example.com"
+                      value={state.signupEmailAddress}
+                      onChange={(e) => actions.setSignupEmailAddress(e.target.value)}
+                      required
+                      disabled={state.isLoading}
+                    />
+                    {state.signupEmailError && (
+                      <p className="text-sm text-error">{state.signupEmailError}</p>
+                    )}
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5"
+                    disabled={state.isLoading || !state.signupEmailAddress}
+                    loading={state.isLoading}
+                  >
+                    Send OTP
+                    <span className="ml-2">→</span>
+                  </Button>
                 </form>
               )}
             </>
