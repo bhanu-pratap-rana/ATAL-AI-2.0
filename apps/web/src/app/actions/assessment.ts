@@ -10,6 +10,7 @@ import { queryCache } from '@/lib/cache/query-cache'
 import { RATE_LIMITS } from '@/lib/constants/rate-limits'
 import { validateSubmitAssessmentResponse } from '@/lib/rpc-validators'
 import { gamificationService } from '@/lib/services/gamification-service'
+import { handleZodError } from '@/lib/action-error-handler'
 
 /**
  * OFFLINE SYNC INTEGRATION:
@@ -746,10 +747,15 @@ export async function submitAssessment(
 ) {
   try {
     // Validate inputs according to assessment constraints
-    const validatedData = AssessmentSubmitSchema.parse({
-      sessionId,
-      responses,
-    })
+    let validatedData
+    try {
+      validatedData = AssessmentSubmitSchema.parse({
+        sessionId,
+        responses,
+      })
+    } catch (error) {
+      return handleZodError(error)
+    }
 
     // SECURITY: Verify caller is authenticated and is a student
     const auth = await verifyStudentAuth('submitAssessment')
@@ -920,14 +926,6 @@ export async function submitAssessment(
       moduleBreakdown,
     }
   } catch (error) {
-    // Handle Zod validation errors with user-friendly messages
-    if (error instanceof z.ZodError) {
-      const firstError = error.issues[0]
-      return {
-        success: false,
-        error: firstError?.message || 'Invalid input data',
-      }
-    }
     return {
       success: false,
       error: error instanceof Error ? error.message : 'An unexpected error occurred',
