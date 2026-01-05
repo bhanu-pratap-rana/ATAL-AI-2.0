@@ -11,15 +11,15 @@
  * - Class-level analytics
  */
 
-import { Suspense } from 'react';
-import { redirect } from 'next/navigation';
-import Link from 'next/link';
-import { getCurrentUser, createClient } from '@/lib/supabase-server';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { StudentProgressGrid } from '@/components/teacher/StudentProgressGrid';
-import { AIInteractionsLog } from '@/components/teacher/AIInteractionsLog';
-import { isTeacherOrHigher } from '@/lib/auth/role-utils';
+import { Suspense } from "react";
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { getCurrentUser, createClient } from "@/lib/supabase-server";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { StudentProgressGrid } from "@/components/teacher/StudentProgressGrid";
+import { AIInteractionsLog } from "@/components/teacher/AIInteractionsLog";
+import { isTeacherOrHigher } from "@/lib/auth/role-utils";
 
 // Dashboard metrics
 async function getDashboardMetrics(teacherId: string) {
@@ -27,9 +27,9 @@ async function getDashboardMetrics(teacherId: string) {
 
   // Get all classes for this teacher
   const { data: classes } = await supabase
-    .from('classes')
-    .select('id, name')
-    .eq('teacher_id', teacherId);
+    .from("classes")
+    .select("id, name")
+    .eq("teacher_id", teacherId);
 
   if (!classes || classes.length === 0) {
     return {
@@ -45,9 +45,9 @@ async function getDashboardMetrics(teacherId: string) {
 
   // Get total enrolled students
   const { data: enrollments } = await supabase
-    .from('enrollments')
-    .select('student_id')
-    .in('class_id', classIds);
+    .from("enrollments")
+    .select("student_id")
+    .in("class_id", classIds);
 
   const studentIds = enrollments?.map((e) => e.student_id) || [];
 
@@ -56,22 +56,22 @@ async function getDashboardMetrics(teacherId: string) {
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
   const { data: activeKnowledgeState } = await supabase
-    .from('student_knowledge_state')
-    .select('student_id')
-    .in('student_id', studentIds)
-    .gte('last_attempt_at', sevenDaysAgo.toISOString());
+    .from("student_knowledge_state")
+    .select("student_id")
+    .in("student_id", studentIds)
+    .gte("last_attempt_at", sevenDaysAgo.toISOString());
 
   const activeStudentIds = new Set(
-    activeKnowledgeState?.map((k) => k.student_id) || []
+    activeKnowledgeState?.map((k) => k.student_id) || [],
   );
 
   // Get at-risk students (low mastery after multiple attempts)
   const { data: atRiskData } = await supabase
-    .from('student_knowledge_state')
-    .select('student_id')
-    .in('student_id', studentIds)
-    .lt('mastery_score', 40)
-    .gt('attempts', 3);
+    .from("student_knowledge_state")
+    .select("student_id")
+    .in("student_id", studentIds)
+    .lt("mastery_score", 40)
+    .gt("attempts", 3);
 
   const atRiskStudentIds = new Set(atRiskData?.map((k) => k.student_id) || []);
 
@@ -88,12 +88,12 @@ export default async function TeacherDashboardPage() {
   const user = await getCurrentUser();
 
   if (!user) {
-    redirect('/teacher/start');
+    redirect("/teacher/start");
   }
 
   // Verify teacher role
   if (!isTeacherOrHigher(user.id)) {
-    redirect('/app/dashboard');
+    redirect("/app/dashboard");
   }
 
   const metrics = await getDashboardMetrics(user.id);
@@ -108,12 +108,17 @@ export default async function TeacherDashboardPage() {
           <Card className="text-center p-8">
             <CardContent>
               <div className="text-6xl mb-4">👥</div>
-              <h2 className="text-2xl font-semibold mb-2">Welcome to ATAL AI!</h2>
+              <h2 className="text-2xl font-semibold mb-2">
+                Welcome to ATAL AI!
+              </h2>
               <p className="text-muted-foreground mb-6">
                 Create your first class to start tracking student progress.
               </p>
               <Link href="/app/teacher/classes">
-                <Button size="lg" className="bg-gradient-to-r from-primary to-cyan">
+                <Button
+                  size="lg"
+                  className="bg-gradient-to-r from-primary to-cyan"
+                >
                   Create Your First Class
                 </Button>
               </Link>
@@ -205,7 +210,9 @@ export default async function TeacherDashboardPage() {
                 {metrics.classes.map((cls) => (
                   <Button
                     key={cls.id}
-                    variant={cls.id === selectedClass.id ? 'default' : 'outline'}
+                    variant={
+                      cls.id === selectedClass.id ? "default" : "outline"
+                    }
                     size="sm"
                   >
                     {cls.name}
@@ -242,16 +249,15 @@ export default async function TeacherDashboardPage() {
             </div>
           }
         >
-          <StudentProgressGrid
-            classId={selectedClass.id}
-            teacherId={user.id}
-          />
+          <StudentProgressGrid classId={selectedClass.id} teacherId={user.id} />
         </Suspense>
 
         {/* AI Interactions Log */}
         <div className="mt-8">
           <div className="mb-4">
-            <h2 className="text-2xl font-semibold">Recent AI Tutor Interactions</h2>
+            <h2 className="text-2xl font-semibold">
+              Recent AI Tutor Interactions
+            </h2>
             <p className="text-sm text-muted-foreground">
               Monitor student questions and AI responses for quality assurance
             </p>
@@ -281,8 +287,13 @@ export default async function TeacherDashboardPage() {
             <CardTitle className="text-sm">💡 Teaching Tips</CardTitle>
           </CardHeader>
           <CardContent className="text-sm space-y-2">
-            <p>• Check the &quot;At Risk&quot; students regularly for early intervention</p>
-            <p>• Review AI interactions to understand common student questions</p>
+            <p>
+              • Check the &quot;At Risk&quot; students regularly for early
+              intervention
+            </p>
+            <p>
+              • Review AI interactions to understand common student questions
+            </p>
             <p>• Students with 🔴 indicator need attention</p>
             <p>• Progress updates happen in real-time as students work</p>
           </CardContent>
@@ -291,4 +302,3 @@ export default async function TeacherDashboardPage() {
     </div>
   );
 }
-

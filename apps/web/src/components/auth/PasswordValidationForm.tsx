@@ -1,12 +1,15 @@
-'use client'
+"use client";
 
-import React, { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { validatePassword, validatePasswordMatch } from '@/lib/validation-utils'
-import { authLogger } from '@/lib/auth-logger'
-import { Eye, EyeOff } from 'lucide-react'
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  validatePassword,
+  validatePasswordMatch,
+} from "@/lib/validation-utils";
+import { authLogger } from "@/lib/auth-logger";
+import { Eye, EyeOff } from "lucide-react";
 
 /**
  * PasswordValidationForm - Reusable password validation form
@@ -14,16 +17,16 @@ import { Eye, EyeOff } from 'lucide-react'
  * Reduces code duplication in auth flows
  */
 export interface PasswordValidationFormProps {
-  readonly password: string
-  readonly onPasswordChange: (password: string) => void
-  readonly passwordConfirm: string
-  readonly onPasswordConfirmChange: (password: string) => void
-  readonly isLoading: boolean
-  readonly error?: string
-  readonly onErrorChange: (error: string | null) => void
-  readonly onSubmit: () => Promise<void>
-  readonly submitButtonLabel?: string
-  readonly showValidation?: boolean
+  readonly password: string;
+  readonly onPasswordChange: (password: string) => void;
+  readonly passwordConfirm: string;
+  readonly onPasswordConfirmChange: (password: string) => void;
+  readonly isLoading: boolean;
+  readonly error?: string;
+  readonly onErrorChange: (error: string | null) => void;
+  readonly onSubmit: () => Promise<void>;
+  readonly submitButtonLabel?: string;
+  readonly showValidation?: boolean;
 }
 
 export function PasswordValidationForm({
@@ -35,40 +38,43 @@ export function PasswordValidationForm({
   error,
   onErrorChange,
   onSubmit,
-  submitButtonLabel = 'Create Account',
+  submitButtonLabel = "Create Account",
   showValidation = true,
 }: PasswordValidationFormProps) {
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirm, setShowConfirm] = useState(false)
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    onErrorChange(null)
+    e.preventDefault();
+    onErrorChange(null);
 
     // Validate password
-    const passwordValidation = validatePassword(password)
+    const passwordValidation = validatePassword(password);
     if (!passwordValidation.valid) {
-      onErrorChange(passwordValidation.errors.join(', ') || 'Invalid password')
-      return
+      onErrorChange(passwordValidation.errors.join(", ") || "Invalid password");
+      return;
     }
 
     // Validate password match
-    const matchValidation = validatePasswordMatch(password, passwordConfirm)
+    const matchValidation = validatePasswordMatch(password, passwordConfirm);
     if (!matchValidation.valid) {
-      onErrorChange(matchValidation.error || 'Passwords do not match')
-      return
+      onErrorChange(matchValidation.error || "Passwords do not match");
+      return;
     }
 
     try {
-      authLogger.debug('[PasswordValidationForm] Validating password')
-      await onSubmit()
+      authLogger.debug("[PasswordValidationForm] Validating password");
+      await onSubmit();
     } catch (err) {
-      authLogger.error('[PasswordValidationForm] Password validation failed', err)
+      authLogger.error(
+        "[PasswordValidationForm] Password validation failed",
+        err,
+      );
       if (err instanceof Error) {
-        onErrorChange(err.message || 'An error occurred')
+        onErrorChange(err.message || "An error occurred");
       }
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -77,19 +83,19 @@ export function PasswordValidationForm({
         <div className="relative">
           <Input
             id="password-input"
-            type={showPassword ? 'text' : 'password'}
+            type={showPassword ? "text" : "password"}
             placeholder="Enter password (min. 8 characters)"
             value={password}
             onChange={(e) => onPasswordChange(e.target.value)}
             disabled={isLoading}
             required
-            aria-describedby={error ? 'password-error' : 'password-helper'}
+            aria-describedby={error ? "password-error" : "password-helper"}
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-primary"
-            aria-label={showPassword ? 'Hide password' : 'Show password'}
+            aria-label={showPassword ? "Hide password" : "Show password"}
           >
             {showPassword ? (
               <EyeOff className="w-4 h-4" />
@@ -100,7 +106,8 @@ export function PasswordValidationForm({
         </div>
         {showValidation && (
           <p className="text-xs text-text-secondary">
-            Minimum 8 characters, must include uppercase, lowercase, number, and special character (!@#$%^&*)
+            Minimum 8 characters, must include uppercase, lowercase, number, and
+            special character (!@#$%^&*)
           </p>
         )}
       </div>
@@ -110,7 +117,7 @@ export function PasswordValidationForm({
         <div className="relative">
           <Input
             id="confirm-password-input"
-            type={showConfirm ? 'text' : 'password'}
+            type={showConfirm ? "text" : "password"}
             placeholder="Confirm your password"
             value={passwordConfirm}
             onChange={(e) => onPasswordConfirmChange(e.target.value)}
@@ -121,7 +128,7 @@ export function PasswordValidationForm({
             type="button"
             onClick={() => setShowConfirm(!showConfirm)}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-primary"
-            aria-label={showConfirm ? 'Hide password' : 'Show password'}
+            aria-label={showConfirm ? "Hide password" : "Show password"}
           >
             {showConfirm ? (
               <EyeOff className="w-4 h-4" />
@@ -144,8 +151,8 @@ export function PasswordValidationForm({
         className="w-full"
         aria-busy={isLoading}
       >
-        {isLoading ? 'Processing...' : submitButtonLabel}
+        {isLoading ? "Processing..." : submitButtonLabel}
       </Button>
     </form>
-  )
+  );
 }

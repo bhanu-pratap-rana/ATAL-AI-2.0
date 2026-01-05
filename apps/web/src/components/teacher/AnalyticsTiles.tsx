@@ -1,11 +1,17 @@
-'use client'
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface AnalyticsTilesProps {
-  readonly activeThisWeek: number
-  readonly avgMinutesPerDay: number
-  readonly atRiskCount: number
+  readonly activeThisWeek: number;
+  readonly avgMinutesPerDay: number;
+  readonly atRiskCount: number;
 }
 
 export function AnalyticsTiles({
@@ -33,7 +39,8 @@ export function AnalyticsTiles({
               {activeThisWeek}
             </div>
             <p className="text-sm text-success/80">
-              {activeThisWeek === 1 ? 'student' : 'students'} completed assessments
+              {activeThisWeek === 1 ? "student" : "students"} completed
+              assessments
             </p>
           </div>
         </CardContent>
@@ -56,36 +63,50 @@ export function AnalyticsTiles({
             <div className="text-4xl font-bold text-cyan-dark">
               {avgMinutesPerDay.toFixed(1)}
             </div>
-            <p className="text-sm text-cyan">
-              minutes per student per day
-            </p>
+            <p className="text-sm text-cyan">minutes per student per day</p>
           </div>
         </CardContent>
       </Card>
 
       {/* At-Risk Students */}
-      <Card className={`border-2 ${atRiskCount > 0 ? 'border-warning/40 bg-gradient-to-br from-warning/10 to-warning/5' : 'border-border bg-gradient-to-br from-surface to-surface-dark'}`}>
+      <Card
+        className={`border-2 ${atRiskCount > 0 ? "border-warning/40 bg-gradient-to-br from-warning/10 to-warning/5" : "border-border bg-gradient-to-br from-surface to-surface-dark"}`}
+      >
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardDescription className={atRiskCount > 0 ? 'text-warning-dark font-medium' : 'text-text-primary font-medium'}>
+            <CardDescription
+              className={
+                atRiskCount > 0
+                  ? "text-warning-dark font-medium"
+                  : "text-text-primary font-medium"
+              }
+            >
               At-Risk Students
             </CardDescription>
-            <div className={`w-10 h-10 ${atRiskCount > 0 ? 'bg-warning' : 'bg-text-tertiary'} rounded-full flex items-center justify-center`}>
-              <span className="text-2xl">{atRiskCount > 0 ? '⚠️' : '✅'}</span>
+            <div
+              className={`w-10 h-10 ${atRiskCount > 0 ? "bg-warning" : "bg-text-tertiary"} rounded-full flex items-center justify-center`}
+            >
+              <span className="text-2xl">{atRiskCount > 0 ? "⚠️" : "✅"}</span>
             </div>
           </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-1">
-            <div className={`text-4xl font-bold ${atRiskCount > 0 ? 'text-warning-dark' : 'text-text-primary'}`}>
+            <div
+              className={`text-4xl font-bold ${atRiskCount > 0 ? "text-warning-dark" : "text-text-primary"}`}
+            >
               {atRiskCount}
             </div>
-            <p className={`text-sm ${atRiskCount > 0 ? 'text-warning' : 'text-text-secondary'}`}>
-              {atRiskCount === 0 ? 'All students engaged' : 'with >30% rapid guessing'}
+            <p
+              className={`text-sm ${atRiskCount > 0 ? "text-warning" : "text-text-secondary"}`}
+            >
+              {atRiskCount === 0
+                ? "All students engaged"
+                : "with >30% rapid guessing"}
             </p>
           </div>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

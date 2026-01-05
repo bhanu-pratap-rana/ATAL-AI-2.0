@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * Real-time Student Progress Grid
@@ -13,10 +13,10 @@
  * - Click to view detailed progress
  */
 
-import { useEffect, useState, useCallback } from 'react';
-import { createClient } from '@/lib/supabase-browser';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { clientLogger } from '@/lib/client-logger';
+import { useEffect, useState, useCallback } from "react";
+import { createClient } from "@/lib/supabase-browser";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { clientLogger } from "@/lib/client-logger";
 
 interface StudentProgress {
   id: string;
@@ -37,7 +37,10 @@ interface StudentProgressGridProps {
   readonly teacherId: string;
 }
 
-export function StudentProgressGrid({ classId, teacherId }: StudentProgressGridProps) {
+export function StudentProgressGrid({
+  classId,
+  teacherId,
+}: StudentProgressGridProps) {
   const [students, setStudents] = useState<StudentProgress[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,16 +52,18 @@ export function StudentProgressGrid({ classId, teacherId }: StudentProgressGridP
 
       // Get all enrolled students with their progress
       const { data, error: fetchError } = await supabase
-        .from('enrollments')
-        .select(`
+        .from("enrollments")
+        .select(
+          `
           student_id,
           student:auth_users_view!enrollments_student_id_fkey (
             id,
             email,
             raw_user_meta_data
           )
-        `)
-        .eq('class_id', classId);
+        `,
+        )
+        .eq("class_id", classId);
 
       if (fetchError) throw fetchError;
 
@@ -75,12 +80,15 @@ export function StudentProgressGrid({ classId, teacherId }: StudentProgressGridP
       // Old pattern: Fetch all rows, filter in JS (O(n²))
       // New pattern: Database GROUP BY aggregation (O(n log n))
       const { data: progressData, error: progressError } = await supabase.rpc(
-        'get_class_student_progress',
-        { p_student_ids: studentIds }
+        "get_class_student_progress",
+        { p_student_ids: studentIds },
       );
 
       if (progressError) {
-        clientLogger.error('[StudentProgressGrid] Error fetching progress:', progressError);
+        clientLogger.error(
+          "[StudentProgressGrid] Error fetching progress:",
+          progressError,
+        );
         throw progressError;
       }
 
@@ -99,14 +107,16 @@ export function StudentProgressGrid({ classId, teacherId }: StudentProgressGridP
 
         // Find progress data for this student from RPC results
         // Type: GetClassStudentProgressResponse from apps/db/migrations/124_get_class_student_progress.sql
-        const progress = progressData?.find((p: {
-          student_id: string;
-          student_name: string;
-          total_topics: number;
-          topics_mastered: number;
-          avg_mastery_score: number;
-          last_activity: string | null;
-        }) => p.student_id === studentId);
+        const progress = progressData?.find(
+          (p: {
+            student_id: string;
+            student_name: string;
+            total_topics: number;
+            topics_mastered: number;
+            avg_mastery_score: number;
+            last_activity: string | null;
+          }) => p.student_id === studentId,
+        );
 
         const masteredTopics = progress?.topics_mastered || 0;
         const totalTopics = progress?.topics_total || 0;
@@ -121,10 +131,10 @@ export function StudentProgressGrid({ classId, teacherId }: StudentProgressGridP
           student_id: studentId,
           student_name:
             studentData?.raw_user_meta_data?.full_name ||
-            studentData?.email?.split('@')[0] ||
-            'Unknown Student',
-          email: studentData?.email || '',
-          module_id: 'all',
+            studentData?.email?.split("@")[0] ||
+            "Unknown Student",
+          email: studentData?.email || "",
+          module_id: "all",
           topics_mastered: masteredTopics,
           total_topics: 50, // 5 modules x 10 topics
           average_mastery: Math.round(avgMastery * 100) / 100,
@@ -137,8 +147,8 @@ export function StudentProgressGrid({ classId, teacherId }: StudentProgressGridP
       setLoading(false);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err);
-      clientLogger.error('[StudentProgressGrid] Error: ' + errorMessage);
-      setError('Failed to load student progress');
+      clientLogger.error("[StudentProgressGrid] Error: " + errorMessage);
+      setError("Failed to load student progress");
       setLoading(false);
     }
   }, [classId]);
@@ -153,17 +163,17 @@ export function StudentProgressGrid({ classId, teacherId }: StudentProgressGridP
     const channel = supabase
       .channel(`class-progress-${classId}`)
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'student_knowledge_state',
+          event: "*",
+          schema: "public",
+          table: "student_knowledge_state",
         },
         () => {
           // Refetch when any progress changes
           // In a production app, we'd do smarter updates
           fetchStudentProgress();
-        }
+        },
       )
       .subscribe();
 
@@ -216,22 +226,27 @@ export function StudentProgressGrid({ classId, teacherId }: StudentProgressGridP
 /**
  * Individual Student Progress Card
  */
-function StudentProgressCard({ student }: { readonly student: StudentProgress }) {
+function StudentProgressCard({
+  student,
+}: {
+  readonly student: StudentProgress;
+}) {
   const progressPercent = Math.round(
-    (student.topics_mastered / student.total_topics) * 100
+    (student.topics_mastered / student.total_topics) * 100,
   );
 
   const getActivityStatus = (lastActivity: string | null) => {
-    if (!lastActivity) return { status: 'inactive', label: 'No activity' };
+    if (!lastActivity) return { status: "inactive", label: "No activity" };
 
     const hours = Math.floor(
-      (Date.now() - new Date(lastActivity).getTime()) / (1000 * 60 * 60)
+      (Date.now() - new Date(lastActivity).getTime()) / (1000 * 60 * 60),
     );
 
-    if (hours < 1) return { status: 'active', label: 'Active now' };
-    if (hours < 24) return { status: 'recent', label: `${hours}h ago` };
-    if (hours < 168) return { status: 'week', label: `${Math.floor(hours / 24)}d ago` };
-    return { status: 'inactive', label: 'Over a week' };
+    if (hours < 1) return { status: "active", label: "Active now" };
+    if (hours < 24) return { status: "recent", label: `${hours}h ago` };
+    if (hours < 168)
+      return { status: "week", label: `${Math.floor(hours / 24)}d ago` };
+    return { status: "inactive", label: "Over a week" };
   };
 
   const activity = getActivityStatus(student.last_activity);
@@ -239,7 +254,7 @@ function StudentProgressCard({ student }: { readonly student: StudentProgress })
   return (
     <Card
       className={`transition-all hover:shadow-md ${
-        student.is_at_risk ? 'border-destructive/50 bg-destructive/10' : ''
+        student.is_at_risk ? "border-destructive/50 bg-destructive/10" : ""
       }`}
     >
       <CardHeader className="pb-2">
@@ -249,16 +264,18 @@ function StudentProgressCard({ student }: { readonly student: StudentProgress })
           </CardTitle>
           <span
             className={`w-2 h-2 rounded-full ${
-              activity.status === 'active'
-                ? 'bg-success'
-                : activity.status === 'recent'
-                ? 'bg-warning'
-                : 'bg-muted'
+              activity.status === "active"
+                ? "bg-success"
+                : activity.status === "recent"
+                  ? "bg-warning"
+                  : "bg-muted"
             }`}
             title={activity.label}
           />
         </div>
-        <p className="text-xs text-muted-foreground truncate">{student.email}</p>
+        <p className="text-xs text-muted-foreground truncate">
+          {student.email}
+        </p>
       </CardHeader>
       <CardContent className="pt-0">
         {/* Progress Bar */}
@@ -271,12 +288,12 @@ function StudentProgressCard({ student }: { readonly student: StudentProgress })
             <div
               className={`h-full transition-all ${
                 student.is_at_risk
-                  ? 'bg-destructive'
+                  ? "bg-destructive"
                   : progressPercent >= 70
-                  ? 'bg-success'
-                  : progressPercent >= 40
-                  ? 'bg-warning'
-                  : 'bg-primary'
+                    ? "bg-success"
+                    : progressPercent >= 40
+                      ? "bg-warning"
+                      : "bg-primary"
               }`}
               style={{ width: `${progressPercent}%` }}
             />
@@ -286,13 +303,13 @@ function StudentProgressCard({ student }: { readonly student: StudentProgress })
         {/* Stats */}
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div>
-            <span className="text-muted-foreground">Mastered:</span>{' '}
+            <span className="text-muted-foreground">Mastered:</span>{" "}
             <span className="font-medium">
               {student.topics_mastered}/{student.total_topics}
             </span>
           </div>
           <div>
-            <span className="text-muted-foreground">Avg:</span>{' '}
+            <span className="text-muted-foreground">Avg:</span>{" "}
             <span className="font-medium">{student.average_mastery}%</span>
           </div>
         </div>
@@ -305,7 +322,9 @@ function StudentProgressCard({ student }: { readonly student: StudentProgress })
         )}
 
         {/* Activity */}
-        <div className="mt-2 text-xs text-muted-foreground">{activity.label}</div>
+        <div className="mt-2 text-xs text-muted-foreground">
+          {activity.label}
+        </div>
       </CardContent>
     </Card>
   );

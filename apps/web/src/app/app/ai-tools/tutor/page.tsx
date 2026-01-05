@@ -1,47 +1,48 @@
-'use client'
+"use client";
 
-import { useRef, useEffect, useState } from 'react'
-import Link from 'next/link'
-import { useChat } from 'ai/react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { useRequireAuth } from '@/hooks/useRequireAuth'
-import { VoiceChat } from '@/components/voice/VoiceChat'
+import { useRef, useEffect, useState } from "react";
+import Link from "next/link";
+import { useChat } from "ai/react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { VoiceChat } from "@/components/voice/VoiceChat";
 
 type Message = {
-  id: string
-  role: 'user' | 'assistant'
-  content: string
-}
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+};
 
 export default function AITutorPage() {
-  const { user, loading: isAuthChecking } = useRequireAuth('/student/start')
-  const [language, setLanguage] = useState<'en' | 'hi' | 'as'>('en')
-  const [inputMode, setInputMode] = useState<'text' | 'voice'>('text')
-  const [sessionId] = useState(() => crypto.randomUUID())
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const { user, loading: isAuthChecking } = useRequireAuth("/student/start");
+  const [language, setLanguage] = useState<"en" | "hi" | "as">("en");
+  const [inputMode, setInputMode] = useState<"text" | "voice">("text");
+  const [sessionId] = useState(() => crypto.randomUUID());
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Use Vercel AI SDK's useChat hook for streaming
-  const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat({
-    api: '/api/tutor/chat',
-    body: {
-      language,
-      sessionId,
-      inputMode: 'text',
-    },
-  })
+  const { messages, input, handleInputChange, handleSubmit, isLoading, error } =
+    useChat({
+      api: "/api/tutor/chat",
+      body: {
+        language,
+        sessionId,
+        inputMode: "text",
+      },
+    });
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const suggestedQuestions = [
-    'What is a computer?',
-    'How does the internet work?',
-    'What is email?',
-    'How to stay safe online?',
-  ]
+    "What is a computer?",
+    "How does the internet work?",
+    "What is email?",
+    "How to stay safe online?",
+  ];
 
   // Show loading while checking auth
   if (isAuthChecking) {
@@ -49,7 +50,7 @@ export default function AITutorPage() {
       <div className="min-h-screen bg-cream flex items-center justify-center">
         <div className="animate-pulse text-text-secondary">Loading...</div>
       </div>
-    )
+    );
   }
 
   return (
@@ -73,39 +74,43 @@ export default function AITutorPage() {
         <div className="flex flex-wrap gap-4 mb-4">
           {/* Language Selector */}
           <div className="flex gap-2">
-            {(['en', 'hi', 'as'] as const).map((lang) => (
+            {(["en", "hi", "as"] as const).map((lang) => (
               <button
                 key={lang}
                 onClick={() => setLanguage(lang)}
                 className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                   language === lang
-                    ? 'bg-primary text-white'
-                    : 'bg-white text-text-secondary hover:bg-primary-light'
+                    ? "bg-primary text-white"
+                    : "bg-white text-text-secondary hover:bg-primary-light"
                 }`}
               >
-                {lang === 'en' ? 'English' : lang === 'hi' ? 'हिंदी' : 'অসমীয়া'}
+                {lang === "en"
+                  ? "English"
+                  : lang === "hi"
+                    ? "हिंदी"
+                    : "অসমীয়া"}
               </button>
             ))}
           </div>
-          
+
           {/* Input Mode Toggle */}
           <div className="flex gap-2 ml-auto">
             <button
-              onClick={() => setInputMode('text')}
+              onClick={() => setInputMode("text")}
               className={`px-3 py-1 rounded-full text-sm font-medium transition-colors flex items-center gap-1 ${
-                inputMode === 'text'
-                  ? 'bg-primary text-white'
-                  : 'bg-white text-text-secondary hover:bg-primary-light'
+                inputMode === "text"
+                  ? "bg-primary text-white"
+                  : "bg-white text-text-secondary hover:bg-primary-light"
               }`}
             >
               📝 Text
             </button>
             <button
-              onClick={() => setInputMode('voice')}
+              onClick={() => setInputMode("voice")}
               className={`px-3 py-1 rounded-full text-sm font-medium transition-colors flex items-center gap-1 ${
-                inputMode === 'voice'
-                  ? 'bg-primary text-white'
-                  : 'bg-white text-text-secondary hover:bg-primary-light'
+                inputMode === "voice"
+                  ? "bg-primary text-white"
+                  : "bg-white text-text-secondary hover:bg-primary-light"
               }`}
             >
               🎤 Voice
@@ -118,7 +123,7 @@ export default function AITutorPage() {
           <Card className="mb-4 border-error bg-error/10">
             <CardContent className="p-4">
               <p className="text-sm text-error">
-                ⚠️ {error.message || 'An error occurred. Please try again.'}
+                ⚠️ {error.message || "An error occurred. Please try again."}
               </p>
             </CardContent>
           </Card>
@@ -137,7 +142,11 @@ export default function AITutorPage() {
                     {suggestedQuestions.map((q) => (
                       <button
                         key={q}
-                        onClick={() => handleInputChange({ target: { value: q } } as React.ChangeEvent<HTMLInputElement>)}
+                        onClick={() =>
+                          handleInputChange({
+                            target: { value: q },
+                          } as React.ChangeEvent<HTMLInputElement>)
+                        }
                         className="px-3 py-2 bg-primary-light text-primary rounded-lg text-sm hover:bg-primary-lighter transition-colors"
                       >
                         {q}
@@ -150,17 +159,19 @@ export default function AITutorPage() {
                   <div
                     key={message.id}
                     className={`flex ${
-                      message.role === 'user' ? 'justify-end' : 'justify-start'
+                      message.role === "user" ? "justify-end" : "justify-start"
                     }`}
                   >
                     <div
                       className={`max-w-[80%] rounded-lg p-3 ${
-                        message.role === 'user'
-                          ? 'bg-primary text-white'
-                          : 'bg-white border border-border'
+                        message.role === "user"
+                          ? "bg-primary text-white"
+                          : "bg-white border border-border"
                       }`}
                     >
-                      <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+                      <p className="whitespace-pre-wrap text-sm">
+                        {message.content}
+                      </p>
                     </div>
                   </div>
                 ))
@@ -180,18 +191,22 @@ export default function AITutorPage() {
             </div>
 
             {/* Input Form - Conditional based on mode */}
-            {inputMode === 'voice' ? (
+            {inputMode === "voice" ? (
               <VoiceChat
                 language={language}
                 onTranscript={(transcript) => {
-                  handleInputChange({ target: { value: transcript } } as React.ChangeEvent<HTMLInputElement>)
+                  handleInputChange({
+                    target: { value: transcript },
+                  } as React.ChangeEvent<HTMLInputElement>);
                   // Auto-submit after voice input
                   setTimeout(() => {
-                    const form = document.querySelector('form') as HTMLFormElement
+                    const form = document.querySelector(
+                      "form",
+                    ) as HTMLFormElement;
                     if (form) {
-                      form.requestSubmit()
+                      form.requestSubmit();
                     }
-                  }, 100)
+                  }, 100);
                 }}
                 disabled={isLoading}
               />
@@ -206,7 +221,7 @@ export default function AITutorPage() {
                   disabled={isLoading}
                 />
                 <Button type="submit" disabled={isLoading || !input.trim()}>
-                  {isLoading ? 'Sending...' : 'Send'}
+                  {isLoading ? "Sending..." : "Send"}
                 </Button>
               </form>
             )}
@@ -216,7 +231,9 @@ export default function AITutorPage() {
         {/* Tips */}
         <Card className="bg-primary-light border-primary/20">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-primary">💡 Tips for better answers</CardTitle>
+            <CardTitle className="text-sm text-primary">
+              💡 Tips for better answers
+            </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
             <ul className="text-xs text-text-secondary space-y-1">
@@ -229,5 +246,5 @@ export default function AITutorPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

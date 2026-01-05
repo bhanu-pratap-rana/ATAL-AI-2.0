@@ -1,13 +1,13 @@
-'use client'
+"use client";
 
-import React from 'react'
-import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { validateEmail } from '@/lib/validation-utils'
-import { requestOtp } from '@/app/actions/auth'
-import { authLogger } from '@/lib/auth-logger'
+import React from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { validateEmail } from "@/lib/validation-utils";
+import { requestOtp } from "@/app/actions/auth";
+import { authLogger } from "@/lib/auth-logger";
 
 /**
  * EmailOTPForm - Reusable email OTP send form
@@ -15,14 +15,14 @@ import { authLogger } from '@/lib/auth-logger'
  * Reduces code duplication between student and teacher auth flows
  */
 export interface EmailOTPFormProps {
-  readonly email: string
-  readonly onEmailChange: (email: string) => void
-  readonly onOtpSent: () => void
-  readonly isLoading: boolean
-  readonly error?: string
-  readonly onErrorChange: (error: string | null) => void
-  readonly submitButtonLabel?: string
-  readonly helperText?: string
+  readonly email: string;
+  readonly onEmailChange: (email: string) => void;
+  readonly onOtpSent: () => void;
+  readonly isLoading: boolean;
+  readonly error?: string;
+  readonly onErrorChange: (error: string | null) => void;
+  readonly submitButtonLabel?: string;
+  readonly helperText?: string;
 }
 
 export function EmailOTPForm({
@@ -32,38 +32,38 @@ export function EmailOTPForm({
   isLoading,
   error,
   onErrorChange,
-  submitButtonLabel = 'Send OTP',
-  helperText = 'Enter your email to receive an OTP',
+  submitButtonLabel = "Send OTP",
+  helperText = "Enter your email to receive an OTP",
 }: EmailOTPFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    onErrorChange(null)
+    e.preventDefault();
+    onErrorChange(null);
 
     // Validate email
-    const emailValidation = validateEmail(email)
+    const emailValidation = validateEmail(email);
     if (!emailValidation.valid) {
-      onErrorChange(emailValidation.error || 'Invalid email')
-      return
+      onErrorChange(emailValidation.error || "Invalid email");
+      return;
     }
 
     try {
-      authLogger.debug('[EmailOTPForm] Requesting OTP for email')
-      const result = await requestOtp(email.trim())
+      authLogger.debug("[EmailOTPForm] Requesting OTP for email");
+      const result = await requestOtp(email.trim());
 
       if (!result.success) {
-        onErrorChange(result.error || 'Failed to send OTP')
-        toast.error(result.error || 'Failed to send OTP')
+        onErrorChange(result.error || "Failed to send OTP");
+        toast.error(result.error || "Failed to send OTP");
       } else {
-        authLogger.success('[EmailOTPForm] OTP sent successfully')
-        toast.success('OTP sent to your email!')
-        onOtpSent()
+        authLogger.success("[EmailOTPForm] OTP sent successfully");
+        toast.success("OTP sent to your email!");
+        onOtpSent();
       }
     } catch (err) {
-      authLogger.error('[EmailOTPForm] Failed to send OTP', err)
-      onErrorChange('Failed to send OTP')
-      toast.error('Failed to send OTP')
+      authLogger.error("[EmailOTPForm] Failed to send OTP", err);
+      onErrorChange("Failed to send OTP");
+      toast.error("Failed to send OTP");
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -77,7 +77,7 @@ export function EmailOTPForm({
           onChange={(e) => onEmailChange(e.target.value)}
           disabled={isLoading}
           required
-          aria-describedby={error ? 'email-error' : 'email-helper'}
+          aria-describedby={error ? "email-error" : "email-helper"}
         />
         {error ? (
           <p id="email-error" className="text-sm text-error" role="alert">
@@ -96,8 +96,8 @@ export function EmailOTPForm({
         className="w-full"
         aria-busy={isLoading}
       >
-        {isLoading ? 'Sending...' : submitButtonLabel}
+        {isLoading ? "Sending..." : submitButtonLabel}
       </Button>
     </form>
-  )
+  );
 }

@@ -1,23 +1,23 @@
-'use client'
+"use client";
 
-import { FormEvent } from 'react'
-import { AuthCard } from '@/components/auth/AuthCard'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Phone, CheckCircle, ArrowLeft, AlertCircle } from 'lucide-react'
+import { FormEvent } from "react";
+import { AuthCard } from "@/components/auth/AuthCard";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Phone, CheckCircle, ArrowLeft, AlertCircle } from "lucide-react";
 
 interface TeacherSignupPhoneFlowProps {
-  readonly phoneNumber: string
-  readonly phoneError: string
-  readonly phoneOtp: string
-  readonly phoneOtpSent: boolean
-  readonly loading: boolean
-  readonly onPhoneNumberChange: (value: string) => void
-  readonly onPhoneOtpChange: (value: string) => void
-  readonly onSendOtp: (e: FormEvent) => void
-  readonly onVerifyOtp: (e: FormEvent) => void
-  readonly onBack: () => void
+  readonly phoneNumber: string;
+  readonly phoneError: string;
+  readonly phoneOtp: string;
+  readonly phoneOtpSent: boolean;
+  readonly loading: boolean;
+  readonly onPhoneNumberChange: (value: string) => void;
+  readonly onPhoneOtpChange: (value: string) => void;
+  readonly onSendOtp: (e: FormEvent) => void;
+  readonly onVerifyOtp: (e: FormEvent) => void;
+  readonly onBack: () => void;
 }
 
 export function TeacherSignupPhoneFlow({
@@ -34,7 +34,10 @@ export function TeacherSignupPhoneFlow({
 }: TeacherSignupPhoneFlowProps) {
   if (!phoneOtpSent) {
     return (
-      <AuthCard title="Sign Up with Phone" description="Step 1 of 4: Verify your phone number">
+      <AuthCard
+        title="Sign Up with Phone"
+        description="Step 1 of 4: Verify your phone number"
+      >
         <form onSubmit={onSendOtp} className="space-y-4">
           {phoneError && (
             <div className="bg-error-light border border-error/30 rounded-md p-3">
@@ -46,20 +49,30 @@ export function TeacherSignupPhoneFlow({
           <div className="bg-warning-light border border-warning/30 rounded-md p-3 flex gap-2">
             <AlertCircle className="h-5 w-5 text-warning-dark flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-xs font-semibold text-warning-dark">Phone signup coming soon!</p>
-              <p className="text-xs text-warning-dark/80">Please use email signup for now</p>
+              <p className="text-xs font-semibold text-warning-dark">
+                Phone signup coming soon!
+              </p>
+              <p className="text-xs text-warning-dark/80">
+                Please use email signup for now
+              </p>
             </div>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="signup-phone">Phone Number (India)</Label>
             <div className="relative">
-              <span className="absolute left-3 top-3 text-text-secondary text-sm font-medium">+91</span>
+              <span className="absolute left-3 top-3 text-text-secondary text-sm font-medium">
+                +91
+              </span>
               <Input
                 id="signup-phone"
                 type="tel"
                 value={phoneNumber}
-                onChange={(e) => onPhoneNumberChange(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                onChange={(e) =>
+                  onPhoneNumberChange(
+                    e.target.value.replace(/\D/g, "").slice(0, 10),
+                  )
+                }
                 placeholder="Enter 10-digit phone number"
                 disabled={loading || true}
                 maxLength={10}
@@ -67,15 +80,12 @@ export function TeacherSignupPhoneFlow({
                 autoComplete="tel"
               />
             </div>
-            <p className="text-xs text-text-secondary">We&apos;ll send you an SMS verification code</p>
+            <p className="text-xs text-text-secondary">
+              We&apos;ll send you an SMS verification code
+            </p>
           </div>
 
-          <Button
-            type="submit"
-            disabled={true}
-            size="lg"
-            className="w-full"
-          >
+          <Button type="submit" disabled={true} size="lg" className="w-full">
             <Phone className="mr-2 h-4 w-4" />
             Send OTP (Coming Soon)
           </Button>
@@ -92,7 +102,7 @@ export function TeacherSignupPhoneFlow({
           </Button>
         </form>
       </AuthCard>
-    )
+    );
   }
 
   return (
@@ -103,7 +113,9 @@ export function TeacherSignupPhoneFlow({
             <CheckCircle className="h-5 w-5 text-success mt-0.5 flex-shrink-0" />
             <div>
               <p className="text-sm font-semibold text-success">SMS Sent</p>
-              <p className="text-xs text-success-dark">Check your phone for the 6-digit code</p>
+              <p className="text-xs text-success-dark">
+                Check your phone for the 6-digit code
+              </p>
             </div>
           </div>
         </div>
@@ -114,7 +126,9 @@ export function TeacherSignupPhoneFlow({
             id="phone-otp"
             type="text"
             value={phoneOtp}
-            onChange={(e) => onPhoneOtpChange(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            onChange={(e) =>
+              onPhoneOtpChange(e.target.value.replace(/\D/g, "").slice(0, 6))
+            }
             placeholder="Enter 6-digit OTP"
             disabled={true}
             maxLength={6}
@@ -123,13 +137,8 @@ export function TeacherSignupPhoneFlow({
           <p className="text-xs text-text-secondary">From: +91 {phoneNumber}</p>
         </div>
 
-        <Button
-          type="submit"
-          disabled={true}
-          size="lg"
-          className="w-full"
-        >
-          {loading ? 'Verifying...' : 'Verify OTP'}
+        <Button type="submit" disabled={true} size="lg" className="w-full">
+          {loading ? "Verifying..." : "Verify OTP"}
         </Button>
 
         <Button
@@ -144,5 +153,5 @@ export function TeacherSignupPhoneFlow({
         </Button>
       </form>
     </AuthCard>
-  )
+  );
 }

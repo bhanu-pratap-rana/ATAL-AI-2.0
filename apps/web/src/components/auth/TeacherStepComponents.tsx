@@ -3,20 +3,20 @@
  * Extracted to reduce cognitive complexity of TeacherStartPage
  */
 
-'use client'
+"use client";
 
-import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { AuthCard } from '@/components/auth/AuthCard'
-import { validatePassword } from '@/lib/validation-utils'
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { AuthCard } from "@/components/auth/AuthCard";
+import { validatePassword } from "@/lib/validation-utils";
 
 interface StepComponentProps {
-  loading: boolean
-  setStep: (step: string) => void
-  router: ReturnType<typeof useRouter>
+  loading: boolean;
+  setStep: (step: string) => void;
+  router: ReturnType<typeof useRouter>;
 }
 
 interface ChoiceStepProps extends StepComponentProps {}
@@ -30,7 +30,7 @@ export function ChoiceStep({ setStep, router }: ChoiceStepProps) {
       >
         <div className="space-y-3 sm:space-y-4">
           <Button
-            onClick={() => setStep('auth')}
+            onClick={() => setStep("auth")}
             className="w-full h-14 text-base shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5 transition-all"
             variant="default"
           >
@@ -44,7 +44,7 @@ export function ChoiceStep({ setStep, router }: ChoiceStepProps) {
           </Button>
 
           <Button
-            onClick={() => setStep('login')}
+            onClick={() => setStep("login")}
             className="w-full h-14 text-base border-2 hover:border-primary hover:shadow-[var(--shadow-primary-sm)] hover:-translate-y-0.5 transition-all"
             variant="outline"
           >
@@ -62,14 +62,15 @@ export function ChoiceStep({ setStep, router }: ChoiceStepProps) {
               <strong>💡 Choose your option:</strong>
               <br />
               <span className="text-xs">
-                New teachers need school verification. Existing teachers can login with email & password.
+                New teachers need school verification. Existing teachers can
+                login with email & password.
               </span>
             </p>
           </div>
 
           <div className="text-center pt-2">
             <button
-              onClick={() => router.push('/')}
+              onClick={() => router.push("/")}
               className="text-sm text-text-secondary hover:text-primary hover:underline"
             >
               ← Back to home
@@ -78,17 +79,17 @@ export function ChoiceStep({ setStep, router }: ChoiceStepProps) {
         </div>
       </AuthCard>
     </div>
-  )
+  );
 }
 
 interface LoginStepProps extends StepComponentProps {
-  loginEmail: string
-  setLoginEmail: (email: string) => void
-  loginPassword: string
-  setLoginPassword: (password: string) => void
-  loginError: string
-  handleTeacherLogin: (e: React.FormEvent) => Promise<void>
-  setForgotEmail: (email: string) => void
+  loginEmail: string;
+  setLoginEmail: (email: string) => void;
+  loginPassword: string;
+  setLoginPassword: (password: string) => void;
+  loginError: string;
+  handleTeacherLogin: (e: React.FormEvent) => Promise<void>;
+  setForgotEmail: (email: string) => void;
 }
 
 export function LoginStep({
@@ -137,9 +138,7 @@ export function LoginStep({
               required
               disabled={loading}
             />
-            {loginError && (
-              <p className="text-sm text-error">{loginError}</p>
-            )}
+            {loginError && <p className="text-sm text-error">{loginError}</p>}
           </div>
 
           <Button
@@ -148,15 +147,15 @@ export function LoginStep({
             disabled={loading || !loginEmail || !loginPassword}
             loading={loading}
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? "Signing in..." : "Sign In"}
           </Button>
 
           <div className="space-y-2 pt-4">
             <button
               type="button"
               onClick={() => {
-                setForgotEmail(loginEmail)
-                setStep('forgot-password')
+                setForgotEmail(loginEmail);
+                setStep("forgot-password");
               }}
               className="text-sm text-primary hover:text-primary-dark hover:underline w-full text-center"
               disabled={loading}
@@ -165,7 +164,7 @@ export function LoginStep({
             </button>
             <button
               type="button"
-              onClick={() => setStep('choice')}
+              onClick={() => setStep("choice")}
               className="text-sm text-primary hover:underline w-full text-center"
               disabled={loading}
             >
@@ -173,7 +172,7 @@ export function LoginStep({
             </button>
             <button
               type="button"
-              onClick={() => router.push('/')}
+              onClick={() => router.push("/")}
               className="text-sm text-text-secondary hover:text-primary hover:underline w-full text-center"
               disabled={loading}
             >
@@ -183,7 +182,7 @@ export function LoginStep({
         </form>
       </AuthCard>
     </div>
-  )
+  );
 }
 
 interface CompleteStepProps extends StepComponentProps {}
@@ -201,16 +200,16 @@ export function CompleteStep({}: CompleteStepProps) {
         </div>
       </AuthCard>
     </div>
-  )
+  );
 }
 
 interface SetPasswordStepProps extends StepComponentProps {
-  password: string
-  passwordConfirm: string
-  passwordStrength: number
-  handlePasswordChange: (value: string) => void
-  setPasswordConfirm: (value: string) => void
-  handleSetPassword: (e: React.FormEvent) => Promise<void>
+  password: string;
+  passwordConfirm: string;
+  passwordStrength: number;
+  handlePasswordChange: (value: string) => void;
+  setPasswordConfirm: (value: string) => void;
+  handleSetPassword: (e: React.FormEvent) => Promise<void>;
 }
 
 export function SetPasswordStep({
@@ -223,21 +222,21 @@ export function SetPasswordStep({
   handleSetPassword,
 }: SetPasswordStepProps) {
   const getPasswordStrengthLabel = () => {
-    if (password.length === 0) return ''
-    const labels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong']
-    return labels[passwordStrength] || ''
-  }
+    if (password.length === 0) return "";
+    const labels = ["Very Weak", "Weak", "Fair", "Good", "Strong"];
+    return labels[passwordStrength] || "";
+  };
 
   const getPasswordStrengthColor = () => {
     const colors = [
-      'bg-error',
-      'bg-warning',
-      'bg-warning',
-      'bg-cyan',
-      'bg-success',
-    ]
-    return colors[passwordStrength] || 'bg-surface-dark'
-  }
+      "bg-error",
+      "bg-warning",
+      "bg-warning",
+      "bg-cyan",
+      "bg-success",
+    ];
+    return colors[passwordStrength] || "bg-surface-dark";
+  };
 
   return (
     <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
@@ -267,7 +266,7 @@ export function SetPasswordStep({
                       className={`h-1 flex-1 rounded ${
                         i <= passwordStrength
                           ? getPasswordStrengthColor()
-                          : 'bg-surface-dark'
+                          : "bg-surface-dark"
                       }`}
                     />
                   ))}
@@ -276,15 +275,15 @@ export function SetPasswordStep({
                   Strength: {getPasswordStrengthLabel()}
                 </p>
                 {(() => {
-                  const validation = validatePassword(password)
+                  const validation = validatePassword(password);
                   if (!validation.valid && validation.errors.length > 0) {
                     return (
                       <p className="text-xs text-error">
-                        {validation.errors.join(', ')}
+                        {validation.errors.join(", ")}
                       </p>
-                    )
+                    );
                   }
-                  return null
+                  return null;
                 })()}
               </div>
             )}
@@ -307,9 +306,8 @@ export function SetPasswordStep({
           <div className="bg-cyan-lightest border-l-4 border-cyan p-3 rounded-xl">
             <p className="text-xs text-cyan-darkest">
               <strong>🔒 Why a password?</strong>
-              <br />
-              A password enables account recovery and allows you to access your
-              account from multiple devices securely.
+              <br />A password enables account recovery and allows you to access
+              your account from multiple devices securely.
             </p>
           </div>
 
@@ -328,15 +326,15 @@ export function SetPasswordStep({
         </form>
       </AuthCard>
     </div>
-  )
+  );
 }
 
 interface VerifySchoolStepProps extends StepComponentProps {
-  schoolCode: string
-  setSchoolCode: (value: string) => void
-  staffPin: string
-  setStaffPin: (value: string) => void
-  handleSchoolVerification: (e: React.FormEvent) => Promise<void>
+  schoolCode: string;
+  setSchoolCode: (value: string) => void;
+  staffPin: string;
+  setStaffPin: (value: string) => void;
+  handleSchoolVerification: (e: React.FormEvent) => Promise<void>;
 }
 
 export function VerifySchoolStep({
@@ -409,22 +407,22 @@ export function VerifySchoolStep({
         </form>
       </AuthCard>
     </div>
-  )
+  );
 }
 
 interface ProfileStepProps extends StepComponentProps {
-  verifiedSchoolName: string
-  schoolCode: string
-  teacherName: string
-  setTeacherName: (value: string) => void
-  teacherGender: 'male' | 'female' | ''
-  setTeacherGender: (value: 'male' | 'female') => void
-  phone: string
-  setPhone: (value: string) => void
-  village: string
-  setVillage: (value: string) => void
-  handleProfileSubmit: (e: React.FormEvent) => Promise<void>
-  sanitizeProfilePhone: (value: string) => string
+  verifiedSchoolName: string;
+  schoolCode: string;
+  teacherName: string;
+  setTeacherName: (value: string) => void;
+  teacherGender: "male" | "female" | "";
+  setTeacherGender: (value: "male" | "female") => void;
+  phone: string;
+  setPhone: (value: string) => void;
+  village: string;
+  setVillage: (value: string) => void;
+  handleProfileSubmit: (e: React.FormEvent) => Promise<void>;
+  sanitizeProfilePhone: (value: string) => string;
 }
 
 export function ProfileStep({
@@ -482,8 +480,8 @@ export function ProfileStep({
                   type="radio"
                   name="teacher-gender"
                   value="male"
-                  checked={teacherGender === 'male'}
-                  onChange={() => setTeacherGender('male')}
+                  checked={teacherGender === "male"}
+                  onChange={() => setTeacherGender("male")}
                   disabled={loading}
                   className="w-4 h-4 text-primary"
                 />
@@ -494,8 +492,8 @@ export function ProfileStep({
                   type="radio"
                   name="teacher-gender"
                   value="female"
-                  checked={teacherGender === 'female'}
-                  onChange={() => setTeacherGender('female')}
+                  checked={teacherGender === "female"}
+                  onChange={() => setTeacherGender("female")}
                   disabled={loading}
                   className="w-4 h-4 text-primary"
                 />
@@ -519,7 +517,9 @@ export function ProfileStep({
               Enter 10-digit Indian mobile number (e.g., 9876543210)
             </p>
             {phone && phone.length > 0 && phone.length < 10 && (
-              <p className="text-xs text-warning">{10 - phone.length} more digits needed</p>
+              <p className="text-xs text-warning">
+                {10 - phone.length} more digits needed
+              </p>
             )}
           </div>
 
@@ -546,31 +546,31 @@ export function ProfileStep({
         </form>
       </AuthCard>
     </div>
-  )
+  );
 }
 
 interface AuthStepProps extends StepComponentProps {
-  signupMethod: 'email' | 'phone'
-  setSignupMethod: (method: 'email' | 'phone') => void
-  email: string
-  setEmail: (value: string) => void
-  emailError: string
-  setEmailError: (value: string) => void
-  emailSuggestion: string
-  otp: string
-  setOtp: (value: string) => void
-  otpSent: boolean
-  setOtpSent: (sent: boolean) => void
-  phoneNumber: string
-  setPhoneNumber: (value: string) => void
-  phoneError: string
-  setPhoneError: (value: string) => void
-  phoneOtp: string
-  setPhoneOtp: (value: string) => void
-  phoneOtpSent: boolean
-  setPhoneOtpSent: (sent: boolean) => void
-  handleSendOTP: (e: React.FormEvent) => Promise<void>
-  handleVerifyOTP: (e: React.FormEvent) => Promise<void>
+  signupMethod: "email" | "phone";
+  setSignupMethod: (method: "email" | "phone") => void;
+  email: string;
+  setEmail: (value: string) => void;
+  emailError: string;
+  setEmailError: (value: string) => void;
+  emailSuggestion: string;
+  otp: string;
+  setOtp: (value: string) => void;
+  otpSent: boolean;
+  setOtpSent: (sent: boolean) => void;
+  phoneNumber: string;
+  setPhoneNumber: (value: string) => void;
+  phoneError: string;
+  setPhoneError: (value: string) => void;
+  phoneOtp: string;
+  setPhoneOtp: (value: string) => void;
+  phoneOtpSent: boolean;
+  setPhoneOtpSent: (sent: boolean) => void;
+  handleSendOTP: (e: React.FormEvent) => Promise<void>;
+  handleVerifyOTP: (e: React.FormEvent) => Promise<void>;
 }
 
 export function AuthStep({
@@ -609,14 +609,14 @@ export function AuthStep({
           <div className="flex gap-2 sm:gap-3">
             <button
               onClick={() => {
-                setSignupMethod('email')
-                setPhoneError('')
-                setEmailError('')
+                setSignupMethod("email");
+                setPhoneError("");
+                setEmailError("");
               }}
               className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-colors text-xs sm:text-sm ${
-                signupMethod === 'email'
-                  ? 'bg-primary text-white shadow-md'
-                  : 'bg-muted text-text-secondary hover:bg-muted/80'
+                signupMethod === "email"
+                  ? "bg-primary text-white shadow-md"
+                  : "bg-muted text-text-secondary hover:bg-muted/80"
               }`}
               disabled={loading}
             >
@@ -624,14 +624,14 @@ export function AuthStep({
             </button>
             <button
               onClick={() => {
-                setSignupMethod('phone')
-                setPhoneError('')
-                setEmailError('')
+                setSignupMethod("phone");
+                setPhoneError("");
+                setEmailError("");
               }}
               className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-colors text-xs sm:text-sm ${
-                signupMethod === 'phone'
-                  ? 'bg-primary text-white shadow-md'
-                  : 'bg-muted text-text-secondary hover:bg-muted/80'
+                signupMethod === "phone"
+                  ? "bg-primary text-white shadow-md"
+                  : "bg-muted text-text-secondary hover:bg-muted/80"
               }`}
               disabled={loading}
             >
@@ -639,7 +639,7 @@ export function AuthStep({
             </button>
           </div>
 
-          {signupMethod === 'email' && (
+          {signupMethod === "email" && (
             <>
               {otpSent ? (
                 <form onSubmit={handleVerifyOTP} className="space-y-4">
@@ -651,7 +651,7 @@ export function AuthStep({
                       placeholder="123456"
                       value={otp}
                       onChange={(e) =>
-                        setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))
+                        setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
                       }
                       required
                       disabled={loading}
@@ -684,8 +684,8 @@ export function AuthStep({
                     <button
                       type="button"
                       onClick={() => {
-                        setOtpSent(false)
-                        setOtp('')
+                        setOtpSent(false);
+                        setOtp("");
                       }}
                       className="text-sm text-primary hover:underline"
                       disabled={loading}
@@ -740,13 +740,14 @@ export function AuthStep({
             </>
           )}
 
-          {signupMethod === 'phone' && (
+          {signupMethod === "phone" && (
             <div className="space-y-4">
               <div className="bg-cyan-lightest border-l-4 border-cyan p-3 rounded-xl">
                 <p className="text-xs text-cyan-darkest">
                   <strong>📱 Phone Verification</strong>
                   <br />
-                  Enter your 10-digit phone number. We&apos;ll send a verification code via OTP.
+                  Enter your 10-digit phone number. We&apos;ll send a
+                  verification code via OTP.
                 </p>
               </div>
               <form className="space-y-4">
@@ -754,7 +755,9 @@ export function AuthStep({
                   <Label htmlFor="phone">Phone Number</Label>
                   <div className="flex gap-2">
                     <div className="flex items-center px-3 bg-muted rounded-lg">
-                      <span className="text-sm font-medium text-text-secondary">+91</span>
+                      <span className="text-sm font-medium text-text-secondary">
+                        +91
+                      </span>
                     </div>
                     <Input
                       id="phone"
@@ -762,9 +765,11 @@ export function AuthStep({
                       placeholder="9876543210"
                       value={phoneNumber}
                       onChange={(e) => {
-                        const digits = e.target.value.replace(/\D/g, '').slice(0, 10)
-                        setPhoneNumber(digits)
-                        setPhoneError('')
+                        const digits = e.target.value
+                          .replace(/\D/g, "")
+                          .slice(0, 10);
+                        setPhoneNumber(digits);
+                        setPhoneError("");
                       }}
                       required
                       disabled={loading}
@@ -783,10 +788,10 @@ export function AuthStep({
                   type="button"
                   onClick={() => {
                     if (phoneNumber.length === 10) {
-                      setPhoneOtpSent(true)
-                      toast.success('OTP sent to your phone!')
+                      setPhoneOtpSent(true);
+                      toast.success("OTP sent to your phone!");
                     } else {
-                      setPhoneError('Phone number must be 10 digits')
+                      setPhoneError("Phone number must be 10 digits");
                     }
                   }}
                   className="w-full shadow-[var(--shadow-primary)]"
@@ -807,7 +812,9 @@ export function AuthStep({
                       placeholder="123456"
                       value={phoneOtp}
                       onChange={(e) =>
-                        setPhoneOtp(e.target.value.replace(/\D/g, '').slice(0, 6))
+                        setPhoneOtp(
+                          e.target.value.replace(/\D/g, "").slice(0, 6),
+                        )
                       }
                       required
                       disabled={loading}
@@ -823,10 +830,10 @@ export function AuthStep({
                     type="button"
                     onClick={() => {
                       if (phoneOtp.length === 6) {
-                        toast.success('Phone verified!')
-                        setStep('set-password')
+                        toast.success("Phone verified!");
+                        setStep("set-password");
                       } else {
-                        toast.error('Please enter 6-digit code')
+                        toast.error("Please enter 6-digit code");
                       }
                     }}
                     className="w-full shadow-[var(--shadow-primary)]"
@@ -839,8 +846,8 @@ export function AuthStep({
                   <button
                     type="button"
                     onClick={() => {
-                      setPhoneOtpSent(false)
-                      setPhoneOtp('')
+                      setPhoneOtpSent(false);
+                      setPhoneOtp("");
                     }}
                     className="text-sm text-primary hover:underline block w-full text-center"
                     disabled={loading}
@@ -855,7 +862,7 @@ export function AuthStep({
           <div className="text-center pt-2">
             <button
               type="button"
-              onClick={() => setStep('choice')}
+              onClick={() => setStep("choice")}
               className="text-sm text-primary hover:underline"
               disabled={loading}
             >
@@ -865,14 +872,14 @@ export function AuthStep({
         </div>
       </AuthCard>
     </div>
-  )
+  );
 }
 
 interface ForgotPasswordRequestStepProps extends StepComponentProps {
-  forgotEmail: string
-  setForgotEmail: (value: string) => void
-  handleForgotPasswordOtp: (e: React.FormEvent) => Promise<void>
-  setForgotOtpSent: (sent: boolean) => void
+  forgotEmail: string;
+  setForgotEmail: (value: string) => void;
+  handleForgotPasswordOtp: (e: React.FormEvent) => Promise<void>;
+  setForgotOtpSent: (sent: boolean) => void;
 }
 
 export function ForgotPasswordRequestStep({
@@ -912,16 +919,16 @@ export function ForgotPasswordRequestStep({
             disabled={loading || !forgotEmail}
             loading={loading}
           >
-            {loading ? 'Sending...' : 'Send Recovery Code'}
+            {loading ? "Sending..." : "Send Recovery Code"}
           </Button>
 
           <div className="space-y-2 pt-2">
             <button
               type="button"
               onClick={() => {
-                setStep('login')
-                setForgotEmail('')
-                setForgotOtpSent(false)
+                setStep("login");
+                setForgotEmail("");
+                setForgotOtpSent(false);
               }}
               className="text-sm text-primary hover:underline w-full text-center"
               disabled={loading}
@@ -932,21 +939,21 @@ export function ForgotPasswordRequestStep({
         </form>
       </AuthCard>
     </div>
-  )
+  );
 }
 
 interface ForgotPasswordResetStepProps extends StepComponentProps {
-  forgotEmail: string
-  forgotOtp: string
-  setForgotOtp: (value: string) => void
-  forgotNewPassword: string
-  setForgotNewPassword: (value: string) => void
-  forgotConfirmPassword: string
-  setForgotConfirmPassword: (value: string) => void
-  handleResetPassword: (e: React.FormEvent) => Promise<void>
-  handleForgotPasswordOtp: (e: React.FormEvent) => Promise<void>
-  setForgotOtpSent: (sent: boolean) => void
-  setForgotEmail: (value: string) => void
+  forgotEmail: string;
+  forgotOtp: string;
+  setForgotOtp: (value: string) => void;
+  forgotNewPassword: string;
+  setForgotNewPassword: (value: string) => void;
+  forgotConfirmPassword: string;
+  setForgotConfirmPassword: (value: string) => void;
+  handleResetPassword: (e: React.FormEvent) => Promise<void>;
+  handleForgotPasswordOtp: (e: React.FormEvent) => Promise<void>;
+  setForgotOtpSent: (sent: boolean) => void;
+  setForgotEmail: (value: string) => void;
 }
 
 export function ForgotPasswordResetStep({
@@ -978,7 +985,9 @@ export function ForgotPasswordResetStep({
               type="text"
               placeholder="123456"
               value={forgotOtp}
-              onChange={(e) => setForgotOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              onChange={(e) =>
+                setForgotOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
+              }
               required
               disabled={loading}
               maxLength={6}
@@ -1001,17 +1010,18 @@ export function ForgotPasswordResetStep({
               disabled={loading}
               minLength={8}
             />
-            {forgotNewPassword.length > 0 && (() => {
-              const validation = validatePassword(forgotNewPassword)
-              if (!validation.valid && validation.errors.length > 0) {
-                return (
-                  <p className="text-xs text-error">
-                    {validation.errors.join(', ')}
-                  </p>
-                )
-              }
-              return null
-            })()}
+            {forgotNewPassword.length > 0 &&
+              (() => {
+                const validation = validatePassword(forgotNewPassword);
+                if (!validation.valid && validation.errors.length > 0) {
+                  return (
+                    <p className="text-xs text-error">
+                      {validation.errors.join(", ")}
+                    </p>
+                  );
+                }
+                return null;
+              })()}
           </div>
 
           <div className="space-y-2">
@@ -1031,10 +1041,15 @@ export function ForgotPasswordResetStep({
           <Button
             type="submit"
             className="w-full shadow-[var(--shadow-primary)]"
-            disabled={loading || forgotOtp.length !== 6 || !validatePassword(forgotNewPassword).valid || forgotNewPassword !== forgotConfirmPassword}
+            disabled={
+              loading ||
+              forgotOtp.length !== 6 ||
+              !validatePassword(forgotNewPassword).valid ||
+              forgotNewPassword !== forgotConfirmPassword
+            }
             loading={loading}
           >
-            {loading ? 'Resetting...' : 'Reset Password'}
+            {loading ? "Resetting..." : "Reset Password"}
           </Button>
 
           <div className="space-y-2 pt-2">
@@ -1049,8 +1064,8 @@ export function ForgotPasswordResetStep({
             <button
               type="button"
               onClick={() => {
-                setForgotOtp('')
-                setForgotOtpSent(false)
+                setForgotOtp("");
+                setForgotOtpSent(false);
               }}
               className="text-sm text-primary hover:underline w-full text-center"
               disabled={loading}
@@ -1060,12 +1075,12 @@ export function ForgotPasswordResetStep({
             <button
               type="button"
               onClick={() => {
-                setStep('login')
-                setForgotEmail('')
-                setForgotOtp('')
-                setForgotNewPassword('')
-                setForgotConfirmPassword('')
-                setForgotOtpSent(false)
+                setStep("login");
+                setForgotEmail("");
+                setForgotOtp("");
+                setForgotNewPassword("");
+                setForgotConfirmPassword("");
+                setForgotOtpSent(false);
               }}
               className="text-sm text-text-secondary hover:underline w-full text-center"
               disabled={loading}
@@ -1076,5 +1091,5 @@ export function ForgotPasswordResetStep({
         </form>
       </AuthCard>
     </div>
-  )
+  );
 }

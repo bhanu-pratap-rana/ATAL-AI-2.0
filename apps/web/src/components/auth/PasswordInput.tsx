@@ -1,19 +1,19 @@
-import { useState } from 'react'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface PasswordInputProps {
-  readonly id: string
-  readonly label?: string
-  readonly value: string
-  readonly onChange: (value: string) => void
-  readonly error?: string
-  readonly disabled?: boolean
-  readonly placeholder?: string
-  readonly helperText?: string
-  readonly autoFocus?: boolean
-  readonly required?: boolean
-  readonly showToggle?: boolean
+  readonly id: string;
+  readonly label?: string;
+  readonly value: string;
+  readonly onChange: (value: string) => void;
+  readonly error?: string;
+  readonly disabled?: boolean;
+  readonly placeholder?: string;
+  readonly helperText?: string;
+  readonly autoFocus?: boolean;
+  readonly required?: boolean;
+  readonly showToggle?: boolean;
 }
 
 /**
@@ -22,18 +22,18 @@ interface PasswordInputProps {
  */
 export function PasswordInput({
   id,
-  label = 'Password',
+  label = "Password",
   value,
   onChange,
   error,
   disabled = false,
-  placeholder = '••••••••',
+  placeholder = "••••••••",
   helperText,
   autoFocus = false,
   required = true,
   showToggle = true,
 }: PasswordInputProps) {
-  const [showPassword, setShowPassword] = useState(false)
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div className="space-y-2">
@@ -41,7 +41,7 @@ export function PasswordInput({
       <div className="relative">
         <Input
           id={id}
-          type={showPassword ? 'text' : 'password'}
+          type={showPassword ? "text" : "password"}
           placeholder={placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
@@ -50,14 +50,16 @@ export function PasswordInput({
           required={required}
           className="bg-muted pr-10"
           aria-label={label}
-          aria-describedby={error ? `${id}-error` : helperText ? `${id}-helper` : undefined}
+          aria-describedby={
+            error ? `${id}-error` : helperText ? `${id}-helper` : undefined
+          }
         />
         {showToggle && (
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary transition-colors"
-            aria-label={showPassword ? 'Hide password' : 'Show password'}
+            aria-label={showPassword ? "Hide password" : "Show password"}
             disabled={disabled}
           >
             {showPassword ? (
@@ -108,5 +110,5 @@ export function PasswordInput({
         </p>
       ) : null}
     </div>
-  )
+  );
 }

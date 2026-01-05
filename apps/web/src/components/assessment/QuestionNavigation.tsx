@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { Button } from '@/components/ui/button'
+import { Button } from "@/components/ui/button";
 
 /**
  * ATAL AI Assessment Question Navigation - Jyoti Theme
@@ -13,16 +13,16 @@ import { Button } from '@/components/ui/button'
  */
 
 interface QuestionNavigationProps {
-  readonly currentIndex: number
-  readonly totalQuestions: number
-  readonly hasSelectedAnswer: boolean
-  readonly isSubmitting: boolean
-  readonly canGoBack: boolean
-  readonly isReviewingHistory: boolean
-  readonly onPrevious: () => void
-  readonly onSkip: () => void
-  readonly onClear: () => void
-  readonly onNext: () => void
+  readonly currentIndex: number;
+  readonly totalQuestions: number;
+  readonly hasSelectedAnswer: boolean;
+  readonly isSubmitting: boolean;
+  readonly canGoBack: boolean;
+  readonly isReviewingHistory: boolean;
+  readonly onPrevious: () => void;
+  readonly onSkip: () => void;
+  readonly onClear: () => void;
+  readonly onNext: () => void;
 }
 
 export function QuestionNavigation({
@@ -37,17 +37,17 @@ export function QuestionNavigation({
   onClear,
   onNext,
 }: QuestionNavigationProps) {
-  const isFirstQuestion = currentIndex === 0 && !canGoBack
-  const isLastQuestion = currentIndex >= totalQuestions - 1
+  const isFirstQuestion = currentIndex === 0 && !canGoBack;
+  const isLastQuestion = currentIndex >= totalQuestions - 1;
 
   // Determine button text based on state
   const nextButtonText = isSubmitting
-    ? 'Submitting...'
+    ? "Submitting..."
     : isLastQuestion && !isReviewingHistory
-      ? 'Complete Assessment'
+      ? "Complete Assessment"
       : hasSelectedAnswer
-        ? 'Submit & Next'
-        : 'Next'
+        ? "Submit & Next"
+        : "Next";
 
   return (
     <div className="mt-6">
@@ -75,7 +75,11 @@ export function QuestionNavigation({
             disabled={isSubmitting}
             loading={isSubmitting}
             className="flex-1 min-h-[2.75rem]"
-            aria-label={hasSelectedAnswer ? 'Submit answer and go to next question' : 'Go to next question'}
+            aria-label={
+              hasSelectedAnswer
+                ? "Submit answer and go to next question"
+                : "Go to next question"
+            }
           >
             {nextButtonText}
             {!isLastQuestion && <span className="ml-1">→</span>}
@@ -162,12 +166,16 @@ export function QuestionNavigation({
           loading={isSubmitting}
           size="lg"
           className="min-w-[160px]"
-          aria-label={hasSelectedAnswer ? 'Submit answer and go to next question' : 'Go to next question'}
+          aria-label={
+            hasSelectedAnswer
+              ? "Submit answer and go to next question"
+              : "Go to next question"
+          }
         >
           {nextButtonText}
           {!isLastQuestion && <span className="ml-2">→</span>}
         </Button>
       </div>
     </div>
-  )
+  );
 }

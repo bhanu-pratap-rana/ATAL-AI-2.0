@@ -1,17 +1,17 @@
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface EmailInputProps {
-  readonly id: string
-  readonly label?: string
-  readonly value: string
-  readonly onChange: (value: string) => void
-  readonly error?: string
-  readonly disabled?: boolean
-  readonly placeholder?: string
-  readonly helperText?: string
-  readonly autoFocus?: boolean
-  readonly required?: boolean
+  readonly id: string;
+  readonly label?: string;
+  readonly value: string;
+  readonly onChange: (value: string) => void;
+  readonly error?: string;
+  readonly disabled?: boolean;
+  readonly placeholder?: string;
+  readonly helperText?: string;
+  readonly autoFocus?: boolean;
+  readonly required?: boolean;
 }
 
 /**
@@ -20,12 +20,12 @@ interface EmailInputProps {
  */
 export function EmailInput({
   id,
-  label = 'Email Address',
+  label = "Email Address",
   value,
   onChange,
   error,
   disabled = false,
-  placeholder = 'you@example.com',
+  placeholder = "you@example.com",
   helperText,
   autoFocus = false,
   required = true,
@@ -44,7 +44,9 @@ export function EmailInput({
         required={required}
         className="bg-muted"
         aria-label={label}
-        aria-describedby={error ? `${id}-error` : helperText ? `${id}-helper` : undefined}
+        aria-describedby={
+          error ? `${id}-error` : helperText ? `${id}-helper` : undefined
+        }
       />
       {error ? (
         <p id={`${id}-error`} className="text-sm text-error" role="alert">
@@ -56,5 +58,5 @@ export function EmailInput({
         </p>
       ) : null}
     </div>
-  )
+  );
 }

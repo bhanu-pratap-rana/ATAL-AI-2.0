@@ -1,19 +1,19 @@
-'use client'
+"use client";
 
-import { FormEvent } from 'react'
-import { AuthCard } from '@/components/auth/AuthCard'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Shield, Building2 } from 'lucide-react'
+import { FormEvent } from "react";
+import { AuthCard } from "@/components/auth/AuthCard";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Shield, Building2 } from "lucide-react";
 
 interface TeacherSchoolVerificationFormProps {
-  readonly schoolCode: string
-  readonly staffPin: string
-  readonly loading: boolean
-  readonly onSchoolCodeChange: (value: string) => void
-  readonly onStaffPinChange: (value: string) => void
-  readonly onSubmit: (e: FormEvent) => void
+  readonly schoolCode: string;
+  readonly staffPin: string;
+  readonly loading: boolean;
+  readonly onSchoolCodeChange: (value: string) => void;
+  readonly onStaffPinChange: (value: string) => void;
+  readonly onSubmit: (e: FormEvent) => void;
 }
 
 export function TeacherSchoolVerificationForm({
@@ -44,7 +44,9 @@ export function TeacherSchoolVerificationForm({
             required
             autoComplete="off"
           />
-          <p className="text-xs text-text-secondary">You can get this from your school administrator</p>
+          <p className="text-xs text-text-secondary">
+            You can get this from your school administrator
+          </p>
         </div>
 
         {/* Staff PIN Input */}
@@ -55,13 +57,17 @@ export function TeacherSchoolVerificationForm({
             type="password"
             placeholder="Enter your staff PIN (4-8 digits)"
             value={staffPin}
-            onChange={(e) => onStaffPinChange(e.target.value.replace(/\D/g, '').slice(0, 8))}
+            onChange={(e) =>
+              onStaffPinChange(e.target.value.replace(/\D/g, "").slice(0, 8))
+            }
             disabled={loading}
             maxLength={8}
             required
             autoComplete="off"
           />
-          <p className="text-xs text-text-secondary">This is provided by your school administrator</p>
+          <p className="text-xs text-text-secondary">
+            This is provided by your school administrator
+          </p>
         </div>
 
         {/* Security Info Box - Uses success colors */}
@@ -70,7 +76,8 @@ export function TeacherSchoolVerificationForm({
             <Shield className="inline-block h-3 w-3 mr-1 text-success" />
             <strong className="text-success">Secure Verification</strong>
             <br />
-            Your school code and PIN are encrypted and secure. They are only used to verify your affiliation with your school.
+            Your school code and PIN are encrypted and secure. They are only
+            used to verify your affiliation with your school.
           </p>
         </div>
 
@@ -83,9 +90,9 @@ export function TeacherSchoolVerificationForm({
           className="w-full"
         >
           <Building2 className="mr-2 h-4 w-4" />
-          {loading ? 'Verifying...' : 'Verify School & Continue'}
+          {loading ? "Verifying..." : "Verify School & Continue"}
         </Button>
       </form>
     </AuthCard>
-  )
+  );
 }

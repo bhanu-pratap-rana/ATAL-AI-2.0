@@ -1,22 +1,22 @@
-'use client'
+"use client";
 
-import { FormEvent } from 'react'
-import { AuthCard } from '@/components/auth/AuthCard'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { ArrowLeft } from 'lucide-react'
+import { FormEvent } from "react";
+import { AuthCard } from "@/components/auth/AuthCard";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ArrowLeft } from "lucide-react";
 
 interface TeacherLoginFormProps {
-  readonly email: string
-  readonly password: string
-  readonly error: string
-  readonly loading: boolean
-  readonly onEmailChange: (value: string) => void
-  readonly onPasswordChange: (value: string) => void
-  readonly onSubmit: (e: FormEvent) => void
-  readonly onForgotPassword: () => void
-  readonly onBack: () => void
+  readonly email: string;
+  readonly password: string;
+  readonly error: string;
+  readonly loading: boolean;
+  readonly onEmailChange: (value: string) => void;
+  readonly onPasswordChange: (value: string) => void;
+  readonly onSubmit: (e: FormEvent) => void;
+  readonly onForgotPassword: () => void;
+  readonly onBack: () => void;
 }
 
 export function TeacherLoginForm({
@@ -31,7 +31,10 @@ export function TeacherLoginForm({
   onBack,
 }: TeacherLoginFormProps) {
   return (
-    <AuthCard title="Login to Your Account" description="Enter your credentials">
+    <AuthCard
+      title="Login to Your Account"
+      description="Enter your credentials"
+    >
       <form onSubmit={onSubmit} className="space-y-4">
         {error && (
           <div className="bg-error-light border border-error/30 rounded-md p-3">
@@ -77,7 +80,7 @@ export function TeacherLoginForm({
           size="lg"
           className="w-full"
         >
-          {loading ? 'Signing in...' : 'Sign In'}
+          {loading ? "Signing in..." : "Sign In"}
         </Button>
 
         {/* Forgot Password Link - Uses primary color */}
@@ -105,5 +108,5 @@ export function TeacherLoginForm({
         </Button>
       </form>
     </AuthCard>
-  )
+  );
 }

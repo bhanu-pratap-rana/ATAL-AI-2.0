@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * Global Error Boundary
@@ -7,9 +7,9 @@
  * Provides a generic fallback UI with recovery options.
  */
 
-import React from 'react';
-import Link from 'next/link';
-import { clientLogger } from '@/lib/client-logger';
+import React from "react";
+import Link from "next/link";
+import { clientLogger } from "@/lib/client-logger";
 
 interface Props {
   children: React.ReactNode;
@@ -31,7 +31,7 @@ export class GlobalErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    clientLogger.error('[Global] Unhandled component error:', {
+    clientLogger.error("[Global] Unhandled component error:", {
       error: error.message,
       stack: error.stack,
       componentStack: errorInfo.componentStack,
@@ -57,8 +57,8 @@ export class GlobalErrorBoundary extends React.Component<Props, State> {
               Something Went Wrong
             </h1>
             <p className="text-text-secondary mb-8">
-              We encountered an unexpected error. Don't worry, your data is safe. 
-              Please try reloading the page or go back to the dashboard.
+              We encountered an unexpected error. Don't worry, your data is
+              safe. Please try reloading the page or go back to the dashboard.
             </p>
 
             {/* Error Details (collapsed by default) */}
@@ -69,7 +69,7 @@ export class GlobalErrorBoundary extends React.Component<Props, State> {
                 </summary>
                 <pre className="text-xs text-error overflow-auto max-h-40">
                   {this.state.error.message}
-                  {'\n\n'}
+                  {"\n\n"}
                   {this.state.error.stack}
                 </pre>
               </details>
@@ -93,9 +93,7 @@ export class GlobalErrorBoundary extends React.Component<Props, State> {
 
             {/* Support Link */}
             <div className="pt-6 border-t border-border">
-              <p className="text-sm text-muted-foreground mb-2">
-                Need help?
-              </p>
+              <p className="text-sm text-muted-foreground mb-2">Need help?</p>
               <Link
                 href="/app/settings"
                 className="text-primary hover:underline text-sm font-medium"
@@ -111,4 +109,3 @@ export class GlobalErrorBoundary extends React.Component<Props, State> {
     return this.props.children;
   }
 }
-

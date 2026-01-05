@@ -1,144 +1,151 @@
-'use client'
+"use client";
 
-import { Suspense, useEffect, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { toast } from 'sonner'
-import { createClient } from '@/lib/supabase-browser'
-import { resetPasswordWithOtp } from '@/app/actions/auth'
-import { useOTPInput } from '@/hooks/useOTPInput'
-import {
-  validateEmail,
-  validatePasswordMatch,
-} from '@/lib/validation-utils'
-import {
-  getPasswordValidationError,
-} from '@/lib/password-utils'
-import {
-  OTP_LENGTH,
-} from '@/lib/auth-constants'
-import { AuthCard } from '@/components/auth/AuthCard'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { authLogger } from '@/lib/auth-logger'
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
+import { createClient } from "@/lib/supabase-browser";
+import { resetPasswordWithOtp } from "@/app/actions/auth";
+import { useOTPInput } from "@/hooks/useOTPInput";
+import { validateEmail, validatePasswordMatch } from "@/lib/validation-utils";
+import { getPasswordValidationError } from "@/lib/password-utils";
+import { OTP_LENGTH } from "@/lib/auth-constants";
+import { AuthCard } from "@/components/auth/AuthCard";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { authLogger } from "@/lib/auth-logger";
 
 function ResetPasswordContent() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const supabase = createClient()
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const supabase = createClient();
 
   // Get email from URL param (set by password reset flow)
-  const emailFromUrl = searchParams.get('email') || ''
+  const emailFromUrl = searchParams.get("email") || "";
 
   // Form state
-  const [email, setEmail] = useState(emailFromUrl)
-  const [otp, setOtp] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [email, setEmail] = useState(emailFromUrl);
+  const [otp, setOtp] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Initialize OTP input hook
-  const otpInput = useOTPInput(otp)
+  const otpInput = useOTPInput(otp);
 
   // Check if already authenticated - redirect to dashboard
   useEffect(() => {
     async function checkAuth() {
-      const { data: { session } } = await supabase.auth.getSession()
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (session) {
-        router.push('/app/dashboard')
+        router.push("/app/dashboard");
       }
     }
-    checkAuth()
-  }, [supabase, router])
+    checkAuth();
+  }, [supabase, router]);
 
   // Handle OTP input change (max 6 digits)
   const handleOtpChange = (value: string) => {
-    const cleanValue = value.replace(/\D/g, '').slice(0, OTP_LENGTH)
-    setOtp(cleanValue)
-  }
+    const cleanValue = value.replace(/\D/g, "").slice(0, OTP_LENGTH);
+    setOtp(cleanValue);
+  };
 
   // Handle form submission
   async function handleResetPassword(e: React.FormEvent) {
-    e.preventDefault()
-    setError(null)
-    setIsLoading(true)
+    e.preventDefault();
+    setError(null);
+    setIsLoading(true);
 
     try {
       // Validation
       if (!email.trim()) {
-        setError('Email is required')
-        setIsLoading(false)
-        return
+        setError("Email is required");
+        setIsLoading(false);
+        return;
       }
 
       if (otp.length !== OTP_LENGTH) {
-        setError(`Verification code must be ${OTP_LENGTH} digits`)
-        setIsLoading(false)
-        return
+        setError(`Verification code must be ${OTP_LENGTH} digits`);
+        setIsLoading(false);
+        return;
       }
 
       if (!newPassword) {
-        setError('Password is required')
-        setIsLoading(false)
-        return
+        setError("Password is required");
+        setIsLoading(false);
+        return;
       }
 
       if (newPassword !== confirmPassword) {
-        setError('Passwords do not match')
-        setIsLoading(false)
-        return
+        setError("Passwords do not match");
+        setIsLoading(false);
+        return;
       }
 
       // Validate email format
-      const emailValidation = validateEmail(email)
+      const emailValidation = validateEmail(email);
       if (!emailValidation.valid) {
-        setError(emailValidation.error || 'Invalid email')
-        setIsLoading(false)
-        return
+        setError(emailValidation.error || "Invalid email");
+        setIsLoading(false);
+        return;
       }
 
       // Validate password (min 8 chars, max 64 chars, no complexity rules)
-      const passwordError = getPasswordValidationError(newPassword)
+      const passwordError = getPasswordValidationError(newPassword);
       if (passwordError) {
-        setError(passwordError)
-        setIsLoading(false)
-        return
+        setError(passwordError);
+        setIsLoading(false);
+        return;
       }
 
       // Validate password match
-      const matchValidation = validatePasswordMatch(newPassword, confirmPassword)
+      const matchValidation = validatePasswordMatch(
+        newPassword,
+        confirmPassword,
+      );
       if (!matchValidation.valid) {
-        setError(matchValidation.error || 'Passwords do not match')
-        setIsLoading(false)
-        return
+        setError(matchValidation.error || "Passwords do not match");
+        setIsLoading(false);
+        return;
       }
 
-      authLogger.debug('[ResetPassword] Attempting password reset', { email: email.substring(0, 5) + '...' })
+      authLogger.debug("[ResetPassword] Attempting password reset", {
+        email: email.substring(0, 5) + "...",
+      });
 
       // Call server action to reset password with OTP
-      const result = await resetPasswordWithOtp(email.trim(), otp, newPassword)
+      const result = await resetPasswordWithOtp(email.trim(), otp, newPassword);
 
       if (result.success) {
-        authLogger.success('[ResetPassword] Password reset successful')
-        toast.success('Password reset successfully! Please log in with your new password.')
+        authLogger.success("[ResetPassword] Password reset successful");
+        toast.success(
+          "Password reset successfully! Please log in with your new password.",
+        );
 
         // Redirect to student login or check role
         setTimeout(() => {
-          router.push('/student/start')
-        }, 2000)
+          router.push("/student/start");
+        }, 2000);
       } else {
-        authLogger.error('[ResetPassword] Password reset failed', { error: result.error })
-        setError(result.error || 'Failed to reset password')
-        toast.error(result.error || 'Failed to reset password. Please try again.')
+        authLogger.error("[ResetPassword] Password reset failed", {
+          error: result.error,
+        });
+        setError(result.error || "Failed to reset password");
+        toast.error(
+          result.error || "Failed to reset password. Please try again.",
+        );
       }
     } catch (err) {
-      authLogger.error('[ResetPassword] Unexpected error', err)
-      const errorMsg = err instanceof Error ? err.message : 'An unexpected error occurred'
-      setError(errorMsg)
-      toast.error(errorMsg)
+      authLogger.error("[ResetPassword] Unexpected error", err);
+      const errorMsg =
+        err instanceof Error ? err.message : "An unexpected error occurred";
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
@@ -199,9 +206,7 @@ function ResetPasswordContent() {
               disabled={isLoading}
               className="w-full"
             />
-            <p className="text-xs text-gray-600">
-              Minimum 8 characters
-            </p>
+            <p className="text-xs text-gray-600">Minimum 8 characters</p>
           </div>
 
           {/* Confirm Password Field */}
@@ -230,19 +235,25 @@ function ResetPasswordContent() {
           {/* Submit Button */}
           <Button
             type="submit"
-            disabled={isLoading || !email || otp.length !== OTP_LENGTH || !newPassword || !confirmPassword}
+            disabled={
+              isLoading ||
+              !email ||
+              otp.length !== OTP_LENGTH ||
+              !newPassword ||
+              !confirmPassword
+            }
             className="w-full mt-6"
           >
-            {isLoading ? 'Resetting Password...' : 'Reset Password'}
+            {isLoading ? "Resetting Password..." : "Reset Password"}
           </Button>
 
           {/* Back to Login Link */}
           <div className="text-center">
             <p className="text-sm text-gray-600">
-              Remember your password?{' '}
+              Remember your password?{" "}
               <button
                 type="button"
-                onClick={() => router.push('/student/start')}
+                onClick={() => router.push("/student/start")}
                 className="text-blue-600 hover:underline font-medium"
               >
                 Sign in here
@@ -252,17 +263,19 @@ function ResetPasswordContent() {
         </form>
       </AuthCard>
     </div>
-  )
+  );
 }
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="animate-pulse text-text-secondary">Loading...</div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+          <div className="animate-pulse text-text-secondary">Loading...</div>
+        </div>
+      }
+    >
       <ResetPasswordContent />
     </Suspense>
-  )
+  );
 }

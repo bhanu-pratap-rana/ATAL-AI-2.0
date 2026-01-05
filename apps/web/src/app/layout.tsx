@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
-import { Nunito, Noto_Sans_Devanagari, Noto_Sans_Bengali } from "next/font/google";
+import {
+  Nunito,
+  Noto_Sans_Devanagari,
+  Noto_Sans_Bengali,
+} from "next/font/google";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { PageTransition } from "@/components/ui/page-transition";
@@ -44,7 +48,8 @@ const notoSansBengali = Noto_Sans_Bengali({
 
 export const metadata: Metadata = {
   title: "ATAL AI - Digital Empowerment Platform",
-  description: "Empowering education through AI & technology - Jyoti (ज्योति) brings light to learning",
+  description:
+    "Empowering education through AI & technology - Jyoti (ज्योति) brings light to learning",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -61,7 +66,14 @@ export const metadata: Metadata = {
       { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
     ],
   },
-  keywords: ["ATAL AI", "digital literacy", "education", "India", "Northeast", "Jyoti"],
+  keywords: [
+    "ATAL AI",
+    "digital literacy",
+    "education",
+    "India",
+    "Northeast",
+    "Jyoti",
+  ],
   authors: [{ name: "ATAL AI Team" }],
 };
 
@@ -85,7 +97,11 @@ export default function RootLayout({
       <head>
         {/* Preconnect to Google Fonts for faster loading */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
         {/* Baloo 2 for display headings - loaded via CSS for flexibility */}
         <link
           href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap"
@@ -107,9 +123,7 @@ export default function RootLayout({
           <GlobalErrorBoundary>
             <BackgroundSyncInitializer />
             <OfflineBanner position="top" />
-            <PageTransition>
-              {children}
-            </PageTransition>
+            <PageTransition>{children}</PageTransition>
             <Toaster />
           </GlobalErrorBoundary>
         </ThemeProvider>

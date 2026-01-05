@@ -1,21 +1,21 @@
-'use client'
+"use client";
 
-import { FormEvent } from 'react'
-import { AuthCard } from '@/components/auth/AuthCard'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { User, CheckCircle } from 'lucide-react'
+import { FormEvent } from "react";
+import { AuthCard } from "@/components/auth/AuthCard";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { User, CheckCircle } from "lucide-react";
 
 interface TeacherProfileFormProps {
-  readonly teacherName: string
-  readonly phone: string
-  readonly verifiedSchoolName: string
-  readonly verifiedSchoolCode: string
-  readonly loading: boolean
-  readonly onNameChange: (value: string) => void
-  readonly onPhoneChange: (value: string) => void
-  readonly onSubmit: (e: FormEvent) => void
+  readonly teacherName: string;
+  readonly phone: string;
+  readonly verifiedSchoolName: string;
+  readonly verifiedSchoolCode: string;
+  readonly loading: boolean;
+  readonly onNameChange: (value: string) => void;
+  readonly onPhoneChange: (value: string) => void;
+  readonly onSubmit: (e: FormEvent) => void;
 }
 
 export function TeacherProfileForm({
@@ -40,8 +40,12 @@ export function TeacherProfileForm({
             <div className="flex items-start gap-2">
               <CheckCircle className="h-5 w-5 text-success mt-0.5 flex-shrink-0" />
               <div>
-                <p className="text-sm font-semibold text-success">{verifiedSchoolName}</p>
-                <p className="text-xs text-success-dark">School Code: {verifiedSchoolCode}</p>
+                <p className="text-sm font-semibold text-success">
+                  {verifiedSchoolName}
+                </p>
+                <p className="text-xs text-success-dark">
+                  School Code: {verifiedSchoolCode}
+                </p>
               </div>
             </div>
           </div>
@@ -62,7 +66,9 @@ export function TeacherProfileForm({
             required
             autoComplete="name"
           />
-          <p className="text-xs text-text-secondary">This will be visible to your students</p>
+          <p className="text-xs text-text-secondary">
+            This will be visible to your students
+          </p>
         </div>
 
         {/* Phone Input */}
@@ -77,13 +83,17 @@ export function TeacherProfileForm({
               type="tel"
               placeholder="Enter your phone number"
               value={phone}
-              onChange={(e) => onPhoneChange(e.target.value.replace(/\D/g, '').slice(0, 10))}
+              onChange={(e) =>
+                onPhoneChange(e.target.value.replace(/\D/g, "").slice(0, 10))
+              }
               disabled={loading}
               autoComplete="tel"
               className="rounded-l-none"
             />
           </div>
-          <p className="text-xs text-text-secondary">We&apos;ll use this for important notifications</p>
+          <p className="text-xs text-text-secondary">
+            We&apos;ll use this for important notifications
+          </p>
         </div>
 
         {/* Info Box - Uses primary-light */}
@@ -91,8 +101,8 @@ export function TeacherProfileForm({
           <p className="text-xs text-text-primary">
             <strong className="text-primary">📝 Profile Information</strong>
             <br />
-            Only your name is required. Phone helps us provide important notifications.
-            You can set subject when creating classes.
+            Only your name is required. Phone helps us provide important
+            notifications. You can set subject when creating classes.
           </p>
         </div>
 
@@ -105,9 +115,9 @@ export function TeacherProfileForm({
           className="w-full"
         >
           <User className="mr-2 h-4 w-4" />
-          {loading ? 'Completing...' : 'Complete Registration'}
+          {loading ? "Completing..." : "Complete Registration"}
         </Button>
       </form>
     </AuthCard>
-  )
+  );
 }

@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * Voice Chat Component
@@ -13,18 +13,18 @@
  * - as-IN: Assamese
  */
 
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { clientLogger } from '@/lib/client-logger';
+import { useState, useRef, useCallback, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { clientLogger } from "@/lib/client-logger";
 
 // Language codes for Web Speech API
 const SPEECH_LANG_CODES = {
-  en: 'en-IN',
-  hi: 'hi-IN',
-  as: 'as-IN', // Assamese supported!
+  en: "en-IN",
+  hi: "hi-IN",
+  as: "as-IN", // Assamese supported!
 } as const;
 
-type Language = 'en' | 'hi' | 'as';
+type Language = "en" | "hi" | "as";
 
 interface VoiceChatProps {
   readonly language: Language;
@@ -35,8 +35,10 @@ interface VoiceChatProps {
 }
 
 // Check for browser support
-const isSpeechSupported = typeof globalThis !== 'undefined' &&
-  ('SpeechRecognition' in globalThis || 'webkitSpeechRecognition' in globalThis);
+const isSpeechSupported =
+  typeof globalThis !== "undefined" &&
+  ("SpeechRecognition" in globalThis ||
+    "webkitSpeechRecognition" in globalThis);
 
 export function VoiceChat({
   language,
@@ -47,7 +49,7 @@ export function VoiceChat({
 }: VoiceChatProps) {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [interimTranscript, setInterimTranscript] = useState('');
+  const [interimTranscript, setInterimTranscript] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
@@ -68,7 +70,7 @@ export function VoiceChat({
   // Start listening with Web Speech API
   const startListening = useCallback(() => {
     if (!isSpeechSupported) {
-      setError('Speech recognition not supported in this browser');
+      setError("Speech recognition not supported in this browser");
       return;
     }
 
@@ -78,10 +80,11 @@ export function VoiceChat({
       SpeechRecognition?: new () => SpeechRecognition;
       webkitSpeechRecognition?: new () => SpeechRecognition;
     };
-    const SpeechRecognitionAPI = global.SpeechRecognition || global.webkitSpeechRecognition;
+    const SpeechRecognitionAPI =
+      global.SpeechRecognition || global.webkitSpeechRecognition;
 
     if (!SpeechRecognitionAPI) {
-      setError('Speech Recognition API is not supported in your browser');
+      setError("Speech Recognition API is not supported in your browser");
       return;
     }
 
@@ -94,12 +97,12 @@ export function VoiceChat({
 
     recognition.onstart = () => {
       setIsListening(true);
-      setInterimTranscript('');
+      setInterimTranscript("");
     };
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
-      let interim = '';
-      let final = '';
+      let interim = "";
+      let final = "";
 
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const result = event.results[i];
@@ -114,22 +117,26 @@ export function VoiceChat({
 
       if (final) {
         onTranscript(final);
-        setInterimTranscript('');
+        setInterimTranscript("");
       }
     };
 
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      clientLogger.error('[VoiceChat] Speech recognition error:', { errorCode: event.error });
+      clientLogger.error("[VoiceChat] Speech recognition error:", {
+        errorCode: event.error,
+      });
 
       switch (event.error) {
-        case 'no-speech':
-          setError('No speech detected. Please try again.');
+        case "no-speech":
+          setError("No speech detected. Please try again.");
           break;
-        case 'audio-capture':
-          setError('Microphone not found. Please check your device.');
+        case "audio-capture":
+          setError("Microphone not found. Please check your device.");
           break;
-        case 'not-allowed':
-          setError('Microphone access denied. Please enable in browser settings.');
+        case "not-allowed":
+          setError(
+            "Microphone access denied. Please enable in browser settings.",
+          );
           break;
         default:
           setError(`Speech recognition error: ${event.error}`);
@@ -140,7 +147,7 @@ export function VoiceChat({
 
     recognition.onend = () => {
       setIsListening(false);
-      setInterimTranscript('');
+      setInterimTranscript("");
     };
 
     recognition.start();
@@ -156,36 +163,42 @@ export function VoiceChat({
   }, []);
 
   // Browser TTS fallback using Web Speech Synthesis
-  const speakWithBrowser = useCallback((text: string) => {
-    if (typeof globalThis === 'undefined' || !('speechSynthesis' in globalThis)) {
-      setError('Browser TTS not supported');
-      return;
-    }
+  const speakWithBrowser = useCallback(
+    (text: string) => {
+      if (
+        typeof globalThis === "undefined" ||
+        !("speechSynthesis" in globalThis)
+      ) {
+        setError("Browser TTS not supported");
+        return;
+      }
 
-    const utterance = new SpeechSynthesisUtterance(text);
+      const utterance = new SpeechSynthesisUtterance(text);
 
-    // Map language to browser TTS language codes
-    const langMap = {
-      en: 'en-IN',
-      hi: 'hi-IN',
-      as: 'as-IN', // May fall back to Hindi if Assamese not available
-    };
-    utterance.lang = langMap[language] || 'en-IN';
-    utterance.rate = 0.9;
-    utterance.pitch = 1.0;
+      // Map language to browser TTS language codes
+      const langMap = {
+        en: "en-IN",
+        hi: "hi-IN",
+        as: "as-IN", // May fall back to Hindi if Assamese not available
+      };
+      utterance.lang = langMap[language] || "en-IN";
+      utterance.rate = 0.9;
+      utterance.pitch = 1.0;
 
-    utterance.onend = () => {
-      setIsSpeaking(false);
-      onSpeakEnd?.();
-    };
+      utterance.onend = () => {
+        setIsSpeaking(false);
+        onSpeakEnd?.();
+      };
 
-    utterance.onerror = () => {
-      setIsSpeaking(false);
-      onSpeakEnd?.();
-    };
+      utterance.onerror = () => {
+        setIsSpeaking(false);
+        onSpeakEnd?.();
+      };
 
-    globalThis.speechSynthesis?.speak(utterance);
-  }, [language, onSpeakEnd]);
+      globalThis.speechSynthesis?.speak(utterance);
+    },
+    [language, onSpeakEnd],
+  );
 
   // Speak text using AI4Bharat TTS with browser fallback
   const speakText = useCallback(
@@ -196,15 +209,17 @@ export function VoiceChat({
       onSpeakStart?.();
 
       try {
-        const response = await fetch('/api/voice/tts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const response = await fetch("/api/voice/tts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ text, language }),
         });
 
         if (!response.ok) {
           // Use browser TTS as fallback
-          clientLogger.warn('[VoiceChat] TTS API failed, using browser fallback');
+          clientLogger.warn(
+            "[VoiceChat] TTS API failed, using browser fallback",
+          );
           speakWithBrowser(text);
           return;
         }
@@ -223,19 +238,24 @@ export function VoiceChat({
 
         audio.onerror = () => {
           // Fallback to browser TTS on playback error
-          clientLogger.warn('[VoiceChat] Audio playback failed, using browser fallback');
+          clientLogger.warn(
+            "[VoiceChat] Audio playback failed, using browser fallback",
+          );
           URL.revokeObjectURL(audioUrl);
           speakWithBrowser(text);
         };
 
         await audio.play();
       } catch (err) {
-        clientLogger.error('[VoiceChat] TTS error:', err instanceof Error ? err : undefined);
+        clientLogger.error(
+          "[VoiceChat] TTS error:",
+          err instanceof Error ? err : undefined,
+        );
         // Fallback to browser TTS
         speakWithBrowser(text);
       }
     },
-    [language, isSpeaking, onSpeakStart, onSpeakEnd, speakWithBrowser]
+    [language, isSpeaking, onSpeakStart, onSpeakEnd, speakWithBrowser],
   );
 
   // Stop speaking (handles both audio element and browser TTS)
@@ -246,7 +266,7 @@ export function VoiceChat({
       audioRef.current = null;
     }
     // Stop browser speech synthesis if active
-    if (typeof globalThis !== 'undefined' && 'speechSynthesis' in globalThis) {
+    if (typeof globalThis !== "undefined" && "speechSynthesis" in globalThis) {
       globalThis.speechSynthesis?.cancel();
     }
     setIsSpeaking(false);
@@ -267,9 +287,9 @@ export function VoiceChat({
       {/* Mic Button */}
       <Button
         size="lg"
-        variant={isListening ? 'destructive' : 'default'}
+        variant={isListening ? "destructive" : "default"}
         className={`w-20 h-20 rounded-full transition-all ${
-          isListening ? 'animate-pulse scale-110' : ''
+          isListening ? "animate-pulse scale-110" : ""
         }`}
         onClick={toggleListening}
         disabled={disabled || isSpeaking}
@@ -335,13 +355,13 @@ export function useTTS(language: Language) {
       setIsSpeaking(true);
 
       try {
-        const response = await fetch('/api/voice/tts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const response = await fetch("/api/voice/tts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ text, language }),
         });
 
-        if (!response.ok) throw new Error('TTS failed');
+        if (!response.ok) throw new Error("TTS failed");
 
         const audioBlob = await response.blob();
         const audioUrl = URL.createObjectURL(audioBlob);
@@ -361,11 +381,14 @@ export function useTTS(language: Language) {
 
         await audio.play();
       } catch (err) {
-        clientLogger.error('[useTTS] TTS error:', err instanceof Error ? err : undefined);
+        clientLogger.error(
+          "[useTTS] TTS error:",
+          err instanceof Error ? err : undefined,
+        );
         setIsSpeaking(false);
       }
     },
-    [language, isSpeaking]
+    [language, isSpeaking],
   );
 
   const stop = useCallback(() => {
@@ -452,14 +475,14 @@ interface SpeechRecognitionErrorEvent extends Event {
 }
 
 type SpeechRecognitionErrorCode =
-  | 'no-speech'
-  | 'aborted'
-  | 'audio-capture'
-  | 'network'
-  | 'not-allowed'
-  | 'service-not-allowed'
-  | 'bad-grammar'
-  | 'language-not-supported';
+  | "no-speech"
+  | "aborted"
+  | "audio-capture"
+  | "network"
+  | "not-allowed"
+  | "service-not-allowed"
+  | "bad-grammar"
+  | "language-not-supported";
 
 interface SpeechRecognitionResultList {
   readonly length: number;
@@ -489,9 +512,15 @@ interface SpeechRecognition extends EventTarget {
   onaudioend: ((this: SpeechRecognition, ev: Event) => void) | null;
   onaudiostart: ((this: SpeechRecognition, ev: Event) => void) | null;
   onend: ((this: SpeechRecognition, ev: Event) => void) | null;
-  onerror: ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => void) | null;
-  onnomatch: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => void) | null;
-  onresult: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => void) | null;
+  onerror:
+    | ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => void)
+    | null;
+  onnomatch:
+    | ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => void)
+    | null;
+  onresult:
+    | ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => void)
+    | null;
   onsoundend: ((this: SpeechRecognition, ev: Event) => void) | null;
   onsoundstart: ((this: SpeechRecognition, ev: Event) => void) | null;
   onspeechend: ((this: SpeechRecognition, ev: Event) => void) | null;

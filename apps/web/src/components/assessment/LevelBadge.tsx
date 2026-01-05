@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 /**
  * ATAL AI Assessment Level Badge - Jyoti Theme
@@ -12,84 +12,85 @@
  * - Based on score thresholds
  */
 
-type SkillLevel = 'beginner' | 'intermediate' | 'advanced'
+type SkillLevel = "beginner" | "intermediate" | "advanced";
 
 interface LevelBadgeProps {
   /** Score percentage (0-100) to determine level */
-  readonly score?: number
+  readonly score?: number;
   /** Direct level specification (overrides score) */
-  readonly level?: SkillLevel
+  readonly level?: SkillLevel;
   /** Size variant */
-  readonly size?: 'sm' | 'md' | 'lg'
+  readonly size?: "sm" | "md" | "lg";
   /** Custom class name */
-  readonly className?: string
+  readonly className?: string;
 }
 
 const LEVEL_CONFIG: Record<
   SkillLevel,
   {
-    label: string
-    icon: string
-    description: string
-    colorClass: string
-    bgClass: string
+    label: string;
+    icon: string;
+    description: string;
+    colorClass: string;
+    bgClass: string;
   }
 > = {
   beginner: {
-    label: 'Beginner',
-    icon: '🌱',
-    description: 'Just starting your digital journey',
-    colorClass: 'text-primary',
-    bgClass: 'bg-primary-light',
+    label: "Beginner",
+    icon: "🌱",
+    description: "Just starting your digital journey",
+    colorClass: "text-primary",
+    bgClass: "bg-primary-light",
   },
   intermediate: {
-    label: 'Intermediate',
-    icon: '🌿',
-    description: 'Growing your digital skills',
-    colorClass: 'text-success',
-    bgClass: 'bg-success-light',
+    label: "Intermediate",
+    icon: "🌿",
+    description: "Growing your digital skills",
+    colorClass: "text-success",
+    bgClass: "bg-success-light",
   },
   advanced: {
-    label: 'Advanced',
-    icon: '🌳',
-    description: 'Mastering digital literacy',
-    colorClass: 'text-cyan',
-    bgClass: 'bg-cyan-light',
+    label: "Advanced",
+    icon: "🌳",
+    description: "Mastering digital literacy",
+    colorClass: "text-cyan",
+    bgClass: "bg-cyan-light",
   },
-}
+};
 
 /**
  * Determine skill level from percentage score
  * Thresholds: <50% Beginner, 50-79% Intermediate, ≥80% Advanced
  */
 const getLevelFromScore = (score: number): SkillLevel => {
-  if (score >= 80) return 'advanced'
-  if (score >= 50) return 'intermediate'
-  return 'beginner'
-}
+  if (score >= 80) return "advanced";
+  if (score >= 50) return "intermediate";
+  return "beginner";
+};
 
 export function LevelBadge({
   score,
   level,
-  size = 'md',
-  className = '',
+  size = "md",
+  className = "",
 }: LevelBadgeProps) {
   // Determine level from score or prop
-  const skillLevel = level || (score !== undefined ? getLevelFromScore(score) : 'beginner')
-  const config = LEVEL_CONFIG[skillLevel]
+  const skillLevel =
+    level || (score !== undefined ? getLevelFromScore(score) : "beginner");
+  const config = LEVEL_CONFIG[skillLevel];
 
   // Size classes
   const sizeClasses = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-base',
-    lg: 'px-6 py-3 text-lg',
-  }
+    sm: "px-3 py-1.5 text-sm",
+    md: "px-4 py-2 text-base",
+    lg: "px-6 py-3 text-lg",
+  };
 
   const iconSizes = {
-    sm: 'text-lg',
-    md: 'text-xl',
-    lg: 'text-2xl',
-  }
+    sm: "text-lg",
+    md: "text-xl",
+    lg: "text-2xl",
+  };
 
   return (
     <div
@@ -107,7 +108,7 @@ export function LevelBadge({
       </span>
       <span>{config.label}</span>
     </div>
-  )
+  );
 }
 
 /**
@@ -116,10 +117,11 @@ export function LevelBadge({
 export function LevelCard({
   score,
   level,
-  className = '',
-}: Omit<LevelBadgeProps, 'size'>) {
-  const skillLevel = level || (score !== undefined ? getLevelFromScore(score) : 'beginner')
-  const config = LEVEL_CONFIG[skillLevel]
+  className = "",
+}: Omit<LevelBadgeProps, "size">) {
+  const skillLevel =
+    level || (score !== undefined ? getLevelFromScore(score) : "beginner");
+  const config = LEVEL_CONFIG[skillLevel];
 
   return (
     <div
@@ -137,7 +139,7 @@ export function LevelCard({
       </h3>
       <p className="text-sm text-text-secondary mt-1">{config.description}</p>
     </div>
-  )
+  );
 }
 
 /**
@@ -145,46 +147,46 @@ export function LevelCard({
  */
 export function LevelProgress({
   score,
-  className = '',
+  className = "",
 }: {
-  score: number
-  className?: string
+  score: number;
+  className?: string;
 }) {
-  const currentLevel = getLevelFromScore(score)
+  const currentLevel = getLevelFromScore(score);
 
-  const levels: SkillLevel[] = ['beginner', 'intermediate', 'advanced']
-  const currentIndex = levels.indexOf(currentLevel)
+  const levels: SkillLevel[] = ["beginner", "intermediate", "advanced"];
+  const currentIndex = levels.indexOf(currentLevel);
 
   return (
     <div className={`space-y-2 ${className}`}>
       <div className="flex items-center justify-between">
         {levels.map((level, index) => {
-          const config = LEVEL_CONFIG[level]
-          const isActive = index <= currentIndex
-          const isCurrent = index === currentIndex
+          const config = LEVEL_CONFIG[level];
+          const isActive = index <= currentIndex;
+          const isCurrent = index === currentIndex;
 
           return (
             <div
               key={level}
               className={`
                 flex flex-col items-center gap-1
-                ${isActive ? config.colorClass : 'text-text-muted'}
+                ${isActive ? config.colorClass : "text-text-muted"}
               `}
             >
               <div
                 className={`
                   w-10 h-10 rounded-full flex items-center justify-center text-xl
                   transition-all duration-300
-                  ${isCurrent ? `${config.bgClass} ring-2 ring-offset-2 ring-current` : ''}
-                  ${isActive && !isCurrent ? config.bgClass : ''}
-                  ${isActive ? '' : 'bg-border'}
+                  ${isCurrent ? `${config.bgClass} ring-2 ring-offset-2 ring-current` : ""}
+                  ${isActive && !isCurrent ? config.bgClass : ""}
+                  ${isActive ? "" : "bg-border"}
                 `}
               >
                 {config.icon}
               </div>
               <span className="text-xs font-medium">{config.label}</span>
             </div>
-          )
+          );
         })}
       </div>
 
@@ -193,22 +195,22 @@ export function LevelProgress({
         <div
           className={`
             h-full rounded-full transition-all duration-500 ease-out
-            ${LEVEL_CONFIG[currentLevel].bgClass.replace('bg-', 'bg-').replace('-light', '')}
+            ${LEVEL_CONFIG[currentLevel].bgClass.replace("bg-", "bg-").replace("-light", "")}
           `}
           style={{
             width: `${Math.min(100, Math.max(0, (currentIndex + 1) * 33.33))}%`,
             backgroundColor:
-              currentLevel === 'beginner'
-                ? 'var(--color-primary)'
-                : currentLevel === 'intermediate'
-                  ? 'var(--color-success)'
-                  : 'var(--color-cyan)',
+              currentLevel === "beginner"
+                ? "var(--color-primary)"
+                : currentLevel === "intermediate"
+                  ? "var(--color-success)"
+                  : "var(--color-cyan)",
           }}
         />
       </div>
     </div>
-  )
+  );
 }
 
 // Export utility function for external use
-export { getLevelFromScore }
+export { getLevelFromScore };

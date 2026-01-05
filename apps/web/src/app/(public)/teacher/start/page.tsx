@@ -1,19 +1,19 @@
-'use client'
+"use client";
 
-import { useTeacherOnboarding } from '@/hooks/useTeacherOnboarding'
-import { AuthCard } from '@/components/auth/AuthCard'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { validatePassword, sanitizeProfilePhone } from '@/lib/validation-utils'
-import { useRouter } from 'next/navigation'
+import { useTeacherOnboarding } from "@/hooks/useTeacherOnboarding";
+import { AuthCard } from "@/components/auth/AuthCard";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { validatePassword, sanitizeProfilePhone } from "@/lib/validation-utils";
+import { useRouter } from "next/navigation";
 
 export default function TeacherStartPage() {
-  const router = useRouter()
-  const { state, actions } = useTeacherOnboarding()
+  const router = useRouter();
+  const { state, actions } = useTeacherOnboarding();
 
   // Render based on current step
-  if (state.step === 'choice') {
+  if (state.step === "choice") {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
         <AuthCard
@@ -23,7 +23,7 @@ export default function TeacherStartPage() {
           <div className="space-y-3 sm:space-y-4">
             {/* Create Account Button */}
             <Button
-              onClick={() => actions.setStep('auth')}
+              onClick={() => actions.setStep("auth")}
               className="w-full h-14 text-base shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5 transition-all"
               variant="default"
             >
@@ -38,7 +38,7 @@ export default function TeacherStartPage() {
 
             {/* Login Button */}
             <Button
-              onClick={() => actions.setStep('login')}
+              onClick={() => actions.setStep("login")}
               className="w-full h-14 text-base border-2 hover:border-primary hover:shadow-[var(--shadow-primary-sm)] hover:-translate-y-0.5 transition-all"
               variant="outline"
             >
@@ -57,7 +57,8 @@ export default function TeacherStartPage() {
                 <strong>💡 Choose your option:</strong>
                 <br />
                 <span className="text-xs">
-                  New teachers need school verification. Existing teachers can login with email & password.
+                  New teachers need school verification. Existing teachers can
+                  login with email & password.
                 </span>
               </p>
             </div>
@@ -65,7 +66,7 @@ export default function TeacherStartPage() {
             {/* Back Button */}
             <div className="text-center pt-2">
               <button
-                onClick={() => router.push('/')}
+                onClick={() => router.push("/")}
                 className="text-sm text-text-secondary hover:text-primary hover:underline"
               >
                 ← Back to home
@@ -74,17 +75,20 @@ export default function TeacherStartPage() {
           </div>
         </AuthCard>
       </div>
-    )
+    );
   }
 
-  if (state.step === 'login') {
+  if (state.step === "login") {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
         <AuthCard
           title="Teacher Login"
           description="Sign in with your registered email and password"
         >
-          <form onSubmit={actions.handleTeacherLogin} className="space-y-3 sm:space-y-4">
+          <form
+            onSubmit={actions.handleTeacherLogin}
+            className="space-y-3 sm:space-y-4"
+          >
             <div className="space-y-2">
               <Label htmlFor="login-email">Email Address</Label>
               <Input
@@ -120,18 +124,20 @@ export default function TeacherStartPage() {
             <Button
               type="submit"
               className="w-full shadow-[var(--shadow-primary)]"
-              disabled={state.loading || !state.loginEmail || !state.loginPassword}
+              disabled={
+                state.loading || !state.loginEmail || !state.loginPassword
+              }
               loading={state.loading}
             >
-              {state.loading ? 'Signing in...' : 'Sign In'}
+              {state.loading ? "Signing in..." : "Sign In"}
             </Button>
 
             <div className="space-y-2 pt-4">
               <button
                 type="button"
                 onClick={() => {
-                  actions.setForgotEmail(state.loginEmail)
-                  actions.setStep('forgot-password')
+                  actions.setForgotEmail(state.loginEmail);
+                  actions.setStep("forgot-password");
                 }}
                 className="text-sm text-primary hover:text-primary-dark hover:underline w-full text-center"
                 disabled={state.loading}
@@ -140,7 +146,7 @@ export default function TeacherStartPage() {
               </button>
               <button
                 type="button"
-                onClick={() => actions.setStep('choice')}
+                onClick={() => actions.setStep("choice")}
                 className="text-sm text-primary hover:underline w-full text-center"
                 disabled={state.loading}
               >
@@ -148,7 +154,7 @@ export default function TeacherStartPage() {
               </button>
               <button
                 type="button"
-                onClick={() => router.push('/')}
+                onClick={() => router.push("/")}
                 className="text-sm text-text-secondary hover:text-primary hover:underline w-full text-center"
                 disabled={state.loading}
               >
@@ -158,10 +164,10 @@ export default function TeacherStartPage() {
           </form>
         </AuthCard>
       </div>
-    )
+    );
   }
 
-  if (state.step === 'auth') {
+  if (state.step === "auth") {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
         <AuthCard
@@ -173,14 +179,14 @@ export default function TeacherStartPage() {
             <div className="flex gap-2 sm:gap-3">
               <button
                 onClick={() => {
-                  actions.setSignupMethod('email')
-                  actions.setPhoneError('')
-                  actions.setEmailError('')
+                  actions.setSignupMethod("email");
+                  actions.setPhoneError("");
+                  actions.setEmailError("");
                 }}
                 className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-colors text-xs sm:text-sm ${
-                  state.signupMethod === 'email'
-                    ? 'bg-primary text-white shadow-md'
-                    : 'bg-muted text-text-secondary hover:bg-muted/80'
+                  state.signupMethod === "email"
+                    ? "bg-primary text-white shadow-md"
+                    : "bg-muted text-text-secondary hover:bg-muted/80"
                 }`}
                 disabled={state.loading}
               >
@@ -188,14 +194,14 @@ export default function TeacherStartPage() {
               </button>
               <button
                 onClick={() => {
-                  actions.setSignupMethod('phone')
-                  actions.setPhoneError('')
-                  actions.setEmailError('')
+                  actions.setSignupMethod("phone");
+                  actions.setPhoneError("");
+                  actions.setEmailError("");
                 }}
                 className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-colors text-xs sm:text-sm ${
-                  state.signupMethod === 'phone'
-                    ? 'bg-primary text-white shadow-md'
-                    : 'bg-muted text-text-secondary hover:bg-muted/80'
+                  state.signupMethod === "phone"
+                    ? "bg-primary text-white shadow-md"
+                    : "bg-muted text-text-secondary hover:bg-muted/80"
                 }`}
                 disabled={state.loading}
               >
@@ -204,10 +210,13 @@ export default function TeacherStartPage() {
             </div>
 
             {/* Email Method */}
-            {state.signupMethod === 'email' && (
+            {state.signupMethod === "email" && (
               <>
                 {state.otpSent ? (
-                  <form onSubmit={actions.handleVerifyOTP} className="space-y-4">
+                  <form
+                    onSubmit={actions.handleVerifyOTP}
+                    className="space-y-4"
+                  >
                     <div className="space-y-2">
                       <Label htmlFor="otp">Verification Code</Label>
                       <Input
@@ -216,7 +225,9 @@ export default function TeacherStartPage() {
                         placeholder="123456"
                         value={state.otp}
                         onChange={(e) =>
-                          actions.setOtp(e.target.value.replaceAll(/\D/g, '').slice(0, 6))
+                          actions.setOtp(
+                            e.target.value.replaceAll(/\D/g, "").slice(0, 6),
+                          )
                         }
                         required
                         disabled={state.loading}
@@ -249,8 +260,8 @@ export default function TeacherStartPage() {
                       <button
                         type="button"
                         onClick={() => {
-                          actions.setOtpSent(false)
-                          actions.setOtp('')
+                          actions.setOtpSent(false);
+                          actions.setOtp("");
                         }}
                         className="text-sm text-primary hover:underline"
                         disabled={state.loading}
@@ -274,11 +285,15 @@ export default function TeacherStartPage() {
                       />
                       {state.emailError && (
                         <div className="space-y-2">
-                          <p className="text-sm text-error">{state.emailError}</p>
+                          <p className="text-sm text-error">
+                            {state.emailError}
+                          </p>
                           {state.emailSuggestion && (
                             <button
                               type="button"
-                              onClick={() => actions.setEmail(state.emailSuggestion)}
+                              onClick={() =>
+                                actions.setEmail(state.emailSuggestion)
+                              }
                               className="text-sm text-cyan hover:text-cyan-dark hover:underline"
                               disabled={state.loading}
                             >
@@ -306,13 +321,14 @@ export default function TeacherStartPage() {
             )}
 
             {/* Phone Method */}
-            {state.signupMethod === 'phone' && (
+            {state.signupMethod === "phone" && (
               <div className="space-y-4">
                 <div className="bg-cyan-lightest border-l-4 border-cyan p-3 rounded-xl">
                   <p className="text-xs text-cyan-darkest">
                     <strong>📱 Phone Verification</strong>
                     <br />
-                    Enter your 10-digit phone number. We&apos;ll send a verification code via OTP.
+                    Enter your 10-digit phone number. We&apos;ll send a
+                    verification code via OTP.
                   </p>
                 </div>
                 <form className="space-y-4">
@@ -320,7 +336,9 @@ export default function TeacherStartPage() {
                     <Label htmlFor="phone">Phone Number</Label>
                     <div className="flex gap-2">
                       <div className="flex items-center px-3 bg-muted rounded-lg">
-                        <span className="text-sm font-medium text-text-secondary">+91</span>
+                        <span className="text-sm font-medium text-text-secondary">
+                          +91
+                        </span>
                       </div>
                       <Input
                         id="phone"
@@ -328,9 +346,11 @@ export default function TeacherStartPage() {
                         placeholder="9876543210"
                         value={state.phoneNumber}
                         onChange={(e) => {
-                          const digits = e.target.value.replaceAll(/\D/g, '').slice(0, 10)
-                          actions.setPhoneNumber(digits)
-                          actions.setPhoneError('')
+                          const digits = e.target.value
+                            .replaceAll(/\D/g, "")
+                            .slice(0, 10);
+                          actions.setPhoneNumber(digits);
+                          actions.setPhoneError("");
                         }}
                         required
                         disabled={state.loading}
@@ -350,9 +370,9 @@ export default function TeacherStartPage() {
                     onClick={() => {
                       if (state.phoneNumber.length === 10) {
                         // Phone OTP will be sent here
-                        actions.setPhoneOtpSent(true)
+                        actions.setPhoneOtpSent(true);
                       } else {
-                        actions.setPhoneError('Phone number must be 10 digits')
+                        actions.setPhoneError("Phone number must be 10 digits");
                       }
                     }}
                     className="w-full shadow-[var(--shadow-primary)]"
@@ -373,7 +393,9 @@ export default function TeacherStartPage() {
                         placeholder="123456"
                         value={state.phoneOtp}
                         onChange={(e) =>
-                          actions.setPhoneOtp(e.target.value.replaceAll(/\D/g, '').slice(0, 6))
+                          actions.setPhoneOtp(
+                            e.target.value.replaceAll(/\D/g, "").slice(0, 6),
+                          )
                         }
                         required
                         disabled={state.loading}
@@ -390,7 +412,7 @@ export default function TeacherStartPage() {
                       onClick={() => {
                         if (state.phoneOtp.length === 6) {
                           // Phone verification would happen here
-                          actions.setStep('set-password')
+                          actions.setStep("set-password");
                         } else {
                           // toast.error handled in hook
                         }
@@ -405,8 +427,8 @@ export default function TeacherStartPage() {
                     <button
                       type="button"
                       onClick={() => {
-                        actions.setPhoneOtpSent(false)
-                        actions.setPhoneOtp('')
+                        actions.setPhoneOtpSent(false);
+                        actions.setPhoneOtp("");
                       }}
                       className="text-sm text-primary hover:underline block w-full text-center"
                       disabled={state.loading}
@@ -421,7 +443,7 @@ export default function TeacherStartPage() {
             <div className="text-center pt-2">
               <button
                 type="button"
-                onClick={() => actions.setStep('choice')}
+                onClick={() => actions.setStep("choice")}
                 className="text-sm text-primary hover:underline"
                 disabled={state.loading}
               >
@@ -431,26 +453,26 @@ export default function TeacherStartPage() {
           </div>
         </AuthCard>
       </div>
-    )
+    );
   }
 
-  if (state.step === 'set-password') {
+  if (state.step === "set-password") {
     const getPasswordStrengthLabel = () => {
-      if (state.password.length === 0) return ''
-      const labels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong']
-      return labels[state.passwordStrength] || ''
-    }
+      if (state.password.length === 0) return "";
+      const labels = ["Very Weak", "Weak", "Fair", "Good", "Strong"];
+      return labels[state.passwordStrength] || "";
+    };
 
     const getPasswordStrengthColor = () => {
       const colors = [
-        'bg-error',
-        'bg-warning',
-        'bg-warning',
-        'bg-cyan',
-        'bg-success',
-      ]
-      return colors[state.passwordStrength] || 'bg-surface-dark'
-    }
+        "bg-error",
+        "bg-warning",
+        "bg-warning",
+        "bg-cyan",
+        "bg-success",
+      ];
+      return colors[state.passwordStrength] || "bg-surface-dark";
+    };
 
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
@@ -458,7 +480,10 @@ export default function TeacherStartPage() {
           title="Create Password"
           description="Step 2 of 4: Secure your account"
         >
-          <form onSubmit={actions.handleSetPassword} className="space-y-3 sm:space-y-4">
+          <form
+            onSubmit={actions.handleSetPassword}
+            className="space-y-3 sm:space-y-4"
+          >
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
@@ -480,7 +505,7 @@ export default function TeacherStartPage() {
                         className={`h-1 flex-1 rounded ${
                           strength <= state.passwordStrength
                             ? getPasswordStrengthColor()
-                            : 'bg-surface-dark'
+                            : "bg-surface-dark"
                         }`}
                       />
                     ))}
@@ -490,15 +515,15 @@ export default function TeacherStartPage() {
                   </p>
                   {/* Show validation errors */}
                   {(() => {
-                    const validation = validatePassword(state.password)
+                    const validation = validatePassword(state.password);
                     if (!validation.valid && validation.errors.length > 0) {
                       return (
                         <p className="text-xs text-error">
-                          {validation.errors.join(', ')}
+                          {validation.errors.join(", ")}
                         </p>
-                      )
+                      );
                     }
-                    return null
+                    return null;
                   })()}
                 </div>
               )}
@@ -521,9 +546,8 @@ export default function TeacherStartPage() {
             <div className="bg-cyan-lightest border-l-4 border-cyan p-3 rounded-xl">
               <p className="text-xs text-cyan-darkest">
                 <strong>🔒 Why a password?</strong>
-                <br />
-                A password enables account recovery and allows you to access your
-                account from multiple devices securely.
+                <br />A password enables account recovery and allows you to
+                access your account from multiple devices securely.
               </p>
             </div>
 
@@ -542,17 +566,20 @@ export default function TeacherStartPage() {
           </form>
         </AuthCard>
       </div>
-    )
+    );
   }
 
-  if (state.step === 'verify-school') {
+  if (state.step === "verify-school") {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
         <AuthCard
           title="School Verification"
           description="Step 3 of 4: Verify your school credentials"
         >
-          <form onSubmit={actions.handleSchoolVerification} className="space-y-4">
+          <form
+            onSubmit={actions.handleSchoolVerification}
+            className="space-y-4"
+          >
             <div className="space-y-2">
               <Label htmlFor="school-code">School Code</Label>
               <Input
@@ -560,7 +587,9 @@ export default function TeacherStartPage() {
                 type="text"
                 placeholder="14H0182"
                 value={state.schoolCode}
-                onChange={(e) => actions.setSchoolCode(e.target.value.toUpperCase())}
+                onChange={(e) =>
+                  actions.setSchoolCode(e.target.value.toUpperCase())
+                }
                 required
                 disabled={state.loading}
                 maxLength={10}
@@ -592,8 +621,8 @@ export default function TeacherStartPage() {
               <p className="text-xs text-cyan-darkest">
                 <strong>🔒 Secure Verification</strong>
                 <br />
-                Your credentials are verified using bcrypt encryption. Staff PINs
-                are never exposed to clients.
+                Your credentials are verified using bcrypt encryption. Staff
+                PINs are never exposed to clients.
               </p>
             </div>
 
@@ -608,10 +637,10 @@ export default function TeacherStartPage() {
           </form>
         </AuthCard>
       </div>
-    )
+    );
   }
 
-  if (state.step === 'profile') {
+  if (state.step === "profile") {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
         <AuthCard
@@ -626,7 +655,8 @@ export default function TeacherStartPage() {
                   <strong>✓ School Verified</strong>
                   <br />
                   <span className="text-xs">
-                    {state.verifiedSchoolName} ({state.schoolCode.toUpperCase()})
+                    {state.verifiedSchoolName} ({state.schoolCode.toUpperCase()}
+                    )
                   </span>
                 </p>
               </div>
@@ -654,8 +684,8 @@ export default function TeacherStartPage() {
                     type="radio"
                     name="teacher-gender"
                     value="male"
-                    checked={state.teacherGender === 'male'}
-                    onChange={() => actions.setTeacherGender('male')}
+                    checked={state.teacherGender === "male"}
+                    onChange={() => actions.setTeacherGender("male")}
                     disabled={state.loading}
                     className="w-4 h-4 text-primary"
                   />
@@ -666,8 +696,8 @@ export default function TeacherStartPage() {
                     type="radio"
                     name="teacher-gender"
                     value="female"
-                    checked={state.teacherGender === 'female'}
-                    onChange={() => actions.setTeacherGender('female')}
+                    checked={state.teacherGender === "female"}
+                    onChange={() => actions.setTeacherGender("female")}
                     disabled={state.loading}
                     className="w-4 h-4 text-primary"
                   />
@@ -683,16 +713,22 @@ export default function TeacherStartPage() {
                 type="tel"
                 placeholder="10-digit mobile number"
                 value={state.phone}
-                onChange={(e) => actions.setPhone(sanitizeProfilePhone(e.target.value))}
+                onChange={(e) =>
+                  actions.setPhone(sanitizeProfilePhone(e.target.value))
+                }
                 disabled={state.loading}
                 maxLength={10}
               />
               <p className="text-xs text-text-secondary">
                 Enter 10-digit Indian mobile number (e.g., 9876543210)
               </p>
-              {state.phone && state.phone.length > 0 && state.phone.length < 10 && (
-                <p className="text-xs text-warning">{10 - state.phone.length} more digits needed</p>
-              )}
+              {state.phone &&
+                state.phone.length > 0 &&
+                state.phone.length < 10 && (
+                  <p className="text-xs text-warning">
+                    {10 - state.phone.length} more digits needed
+                  </p>
+                )}
             </div>
 
             <div className="space-y-2">
@@ -710,7 +746,9 @@ export default function TeacherStartPage() {
             <Button
               type="submit"
               className="w-full shadow-[var(--shadow-primary)]"
-              disabled={state.loading || !state.teacherName || !state.teacherGender}
+              disabled={
+                state.loading || !state.teacherName || !state.teacherGender
+              }
               loading={state.loading}
             >
               Complete Registration
@@ -718,18 +756,21 @@ export default function TeacherStartPage() {
           </form>
         </AuthCard>
       </div>
-    )
+    );
   }
 
   // Forgot Password: Request OTP
-  if (state.step === 'forgot-password' && !state.forgotOtpSent) {
+  if (state.step === "forgot-password" && !state.forgotOtpSent) {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
         <AuthCard
           title="Reset Password"
           description="Enter your email to receive a recovery code"
         >
-          <form onSubmit={actions.handleForgotPasswordOtp} className="space-y-4">
+          <form
+            onSubmit={actions.handleForgotPasswordOtp}
+            className="space-y-4"
+          >
             <div className="space-y-2">
               <Label htmlFor="forgot-email">Email Address</Label>
               <Input
@@ -752,16 +793,16 @@ export default function TeacherStartPage() {
               disabled={state.loading || !state.forgotEmail}
               loading={state.loading}
             >
-              {state.loading ? 'Sending...' : 'Send Recovery Code'}
+              {state.loading ? "Sending..." : "Send Recovery Code"}
             </Button>
 
             <div className="space-y-2 pt-2">
               <button
                 type="button"
                 onClick={() => {
-                  actions.setStep('login')
-                  actions.setForgotEmail('')
-                  actions.setForgotOtpSent(false)
+                  actions.setStep("login");
+                  actions.setForgotEmail("");
+                  actions.setForgotOtpSent(false);
                 }}
                 className="text-sm text-primary hover:underline w-full text-center"
                 disabled={state.loading}
@@ -772,11 +813,11 @@ export default function TeacherStartPage() {
           </form>
         </AuthCard>
       </div>
-    )
+    );
   }
 
   // Forgot Password: Verify OTP and Reset
-  if (state.step === 'forgot-password' && state.forgotOtpSent) {
+  if (state.step === "forgot-password" && state.forgotOtpSent) {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
         <AuthCard
@@ -791,7 +832,11 @@ export default function TeacherStartPage() {
                 type="text"
                 placeholder="123456"
                 value={state.forgotOtp}
-                onChange={(e) => actions.setForgotOtp(e.target.value.replaceAll(/\D/g, '').slice(0, 6))}
+                onChange={(e) =>
+                  actions.setForgotOtp(
+                    e.target.value.replaceAll(/\D/g, "").slice(0, 6),
+                  )
+                }
                 required
                 disabled={state.loading}
                 maxLength={6}
@@ -815,17 +860,18 @@ export default function TeacherStartPage() {
                 minLength={8}
               />
               {/* Show validation errors for forgot password */}
-              {state.forgotNewPassword.length > 0 && (() => {
-                const validation = validatePassword(state.forgotNewPassword)
-                if (!validation.valid && validation.errors.length > 0) {
-                  return (
-                    <p className="text-xs text-error">
-                      {validation.errors.join(', ')}
-                    </p>
-                  )
-                }
-                return null
-              })()}
+              {state.forgotNewPassword.length > 0 &&
+                (() => {
+                  const validation = validatePassword(state.forgotNewPassword);
+                  if (!validation.valid && validation.errors.length > 0) {
+                    return (
+                      <p className="text-xs text-error">
+                        {validation.errors.join(", ")}
+                      </p>
+                    );
+                  }
+                  return null;
+                })()}
             </div>
 
             <div className="space-y-2">
@@ -835,7 +881,9 @@ export default function TeacherStartPage() {
                 type="password"
                 placeholder="Re-enter password"
                 value={state.forgotConfirmPassword}
-                onChange={(e) => actions.setForgotConfirmPassword(e.target.value)}
+                onChange={(e) =>
+                  actions.setForgotConfirmPassword(e.target.value)
+                }
                 required
                 disabled={state.loading}
                 minLength={8}
@@ -845,10 +893,15 @@ export default function TeacherStartPage() {
             <Button
               type="submit"
               className="w-full shadow-[var(--shadow-primary)]"
-              disabled={state.loading || state.forgotOtp.length !== 6 || !validatePassword(state.forgotNewPassword).valid || state.forgotNewPassword !== state.forgotConfirmPassword}
+              disabled={
+                state.loading ||
+                state.forgotOtp.length !== 6 ||
+                !validatePassword(state.forgotNewPassword).valid ||
+                state.forgotNewPassword !== state.forgotConfirmPassword
+              }
               loading={state.loading}
             >
-              {state.loading ? 'Resetting...' : 'Reset Password'}
+              {state.loading ? "Resetting..." : "Reset Password"}
             </Button>
 
             <div className="space-y-2 pt-2">
@@ -863,8 +916,8 @@ export default function TeacherStartPage() {
               <button
                 type="button"
                 onClick={() => {
-                  actions.setForgotOtp('')
-                  actions.setForgotOtpSent(false)
+                  actions.setForgotOtp("");
+                  actions.setForgotOtpSent(false);
                 }}
                 className="text-sm text-primary hover:underline w-full text-center"
                 disabled={state.loading}
@@ -874,12 +927,12 @@ export default function TeacherStartPage() {
               <button
                 type="button"
                 onClick={() => {
-                  actions.setStep('login')
-                  actions.setForgotEmail('')
-                  actions.setForgotOtp('')
-                  actions.setForgotNewPassword('')
-                  actions.setForgotConfirmPassword('')
-                  actions.setForgotOtpSent(false)
+                  actions.setStep("login");
+                  actions.setForgotEmail("");
+                  actions.setForgotOtp("");
+                  actions.setForgotNewPassword("");
+                  actions.setForgotConfirmPassword("");
+                  actions.setForgotOtpSent(false);
                 }}
                 className="text-sm text-text-secondary hover:underline w-full text-center"
                 disabled={state.loading}
@@ -890,13 +943,16 @@ export default function TeacherStartPage() {
           </form>
         </AuthCard>
       </div>
-    )
+    );
   }
 
-  if (state.step === 'complete') {
+  if (state.step === "complete") {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
-        <AuthCard title="Registration Complete!" description="Welcome to ATAL AI">
+        <AuthCard
+          title="Registration Complete!"
+          description="Welcome to ATAL AI"
+        >
           <div className="text-center space-y-4">
             <div className="text-6xl">🎉</div>
             <p className="text-lg font-semibold">You&apos;re all set!</p>
@@ -906,8 +962,8 @@ export default function TeacherStartPage() {
           </div>
         </AuthCard>
       </div>
-    )
+    );
   }
 
-  return null
+  return null;
 }

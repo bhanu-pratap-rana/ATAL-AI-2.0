@@ -11,44 +11,52 @@
  * - Type-safe message types
  */
 
-import { MessageType } from '@/hooks/useFormHandler'
+import { MessageType } from "@/hooks/useFormHandler";
 
 interface FormMessageProps {
-  readonly type: MessageType
-  readonly text: string
-  readonly onClose?: () => void
-  readonly className?: string
+  readonly type: MessageType;
+  readonly text: string;
+  readonly onClose?: () => void;
+  readonly className?: string;
 }
 
-const messageStyles: Record<MessageType, { bg: string; text: string; border: string; icon: string }> = {
+const messageStyles: Record<
+  MessageType,
+  { bg: string; text: string; border: string; icon: string }
+> = {
   success: {
-    bg: 'bg-success/10',
-    text: 'text-success-dark',
-    border: 'border-success/30',
-    icon: '✓',
+    bg: "bg-success/10",
+    text: "text-success-dark",
+    border: "border-success/30",
+    icon: "✓",
   },
   error: {
-    bg: 'bg-error/10',
-    text: 'text-error',
-    border: 'border-error/30',
-    icon: '✕',
+    bg: "bg-error/10",
+    text: "text-error",
+    border: "border-error/30",
+    icon: "✕",
   },
   info: {
-    bg: 'bg-info/10',
-    text: 'text-info-dark',
-    border: 'border-info/30',
-    icon: 'ℹ',
+    bg: "bg-info/10",
+    text: "text-info-dark",
+    border: "border-info/30",
+    icon: "ℹ",
   },
   warning: {
-    bg: 'bg-warning/10',
-    text: 'text-warning-dark',
-    border: 'border-warning/30',
-    icon: '⚠',
+    bg: "bg-warning/10",
+    text: "text-warning-dark",
+    border: "border-warning/30",
+    icon: "⚠",
   },
-}
+};
 
-export function FormMessage({ type, text, onClose, className = '' }: FormMessageProps) {
-  const styles = messageStyles[type]
+export function FormMessage({
+  type,
+  text,
+  onClose,
+  className = "",
+}: FormMessageProps) {
+  const styles = messageStyles[type];
 
   return (
     <div
@@ -73,5 +81,5 @@ export function FormMessage({ type, text, onClose, className = '' }: FormMessage
         </button>
       )}
     </div>
-  )
+  );
 }

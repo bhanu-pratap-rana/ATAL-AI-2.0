@@ -1,12 +1,12 @@
-'use client'
+"use client";
 
-import { AuthCard } from '@/components/auth/AuthCard'
-import { Button } from '@/components/ui/button'
-import { ArrowRight, LogIn } from 'lucide-react'
+import { AuthCard } from "@/components/auth/AuthCard";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, LogIn } from "lucide-react";
 
 /**
  * ATAL AI Teacher Choice Step - Jyoti Theme
- * 
+ *
  * Design Rules Applied:
  * - Primary button: gradient (Create Account)
  * - Outline button: primary border (Login)
@@ -14,17 +14,23 @@ import { ArrowRight, LogIn } from 'lucide-react'
  */
 
 interface TeacherChoiceStepProps {
-  readonly loading: boolean
-  readonly onChoice: (choice: 'auth' | 'login') => void
+  readonly loading: boolean;
+  readonly onChoice: (choice: "auth" | "login") => void;
 }
 
-export function TeacherChoiceStep({ loading, onChoice }: TeacherChoiceStepProps) {
+export function TeacherChoiceStep({
+  loading,
+  onChoice,
+}: TeacherChoiceStepProps) {
   return (
-    <AuthCard title="Welcome Back, Educators!" description="Select an option to get started">
+    <AuthCard
+      title="Welcome Back, Educators!"
+      description="Select an option to get started"
+    >
       <div className="space-y-4">
         {/* Create Account Button - Primary Gradient */}
         <Button
-          onClick={() => onChoice('auth')}
+          onClick={() => onChoice("auth")}
           disabled={loading}
           size="lg"
           variant="default"
@@ -46,7 +52,7 @@ export function TeacherChoiceStep({ loading, onChoice }: TeacherChoiceStepProps)
 
         {/* Login Button - Outline Variant */}
         <Button
-          onClick={() => onChoice('login')}
+          onClick={() => onChoice("login")}
           disabled={loading}
           variant="outline"
           size="lg"
@@ -59,10 +65,11 @@ export function TeacherChoiceStep({ loading, onChoice }: TeacherChoiceStepProps)
         {/* Info Box - Primary Light Background */}
         <div className="bg-primary-light border border-primary/20 rounded-md p-4 mt-6">
           <p className="text-sm text-primary-dark">
-            <span className="font-semibold">New teacher?</span> Create an account to access your dashboard and manage your classes.
+            <span className="font-semibold">New teacher?</span> Create an
+            account to access your dashboard and manage your classes.
           </p>
         </div>
       </div>
     </AuthCard>
-  )
+  );
 }

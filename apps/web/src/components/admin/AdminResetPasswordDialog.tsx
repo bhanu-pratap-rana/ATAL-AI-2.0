@@ -1,21 +1,28 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { resetAdminPassword } from '@/app/actions/admin-management'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { AlertCircle, CheckCircle, Loader2, X, Eye, EyeOff } from 'lucide-react'
-import { toast } from 'sonner'
-import { FORM_TIMING } from '@/lib/constants/ui-timings'
-import { clientLogger } from '@/lib/client-logger'
+import { useState } from "react";
+import { resetAdminPassword } from "@/app/actions/admin-management";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  AlertCircle,
+  CheckCircle,
+  Loader2,
+  X,
+  Eye,
+  EyeOff,
+} from "lucide-react";
+import { toast } from "sonner";
+import { FORM_TIMING } from "@/lib/constants/ui-timings";
+import { clientLogger } from "@/lib/client-logger";
 
 interface AdminResetPasswordDialogProps {
-  readonly adminId: string
-  readonly adminEmail: string
-  readonly isOpen: boolean
-  readonly onClose: () => void
-  readonly onSuccess?: () => void
+  readonly adminId: string;
+  readonly adminEmail: string;
+  readonly isOpen: boolean;
+  readonly onClose: () => void;
+  readonly onSuccess?: () => void;
 }
 
 /**
@@ -28,70 +35,83 @@ export function AdminResetPasswordDialog({
   onClose,
   onSuccess,
 }: AdminResetPasswordDialogProps) {
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
   if (!isOpen) {
-    return null
+    return null;
   }
 
   async function handleResetPassword() {
     if (!newPassword) {
-      setMessage({ type: 'error', text: 'Please enter a new password' })
-      return
+      setMessage({ type: "error", text: "Please enter a new password" });
+      return;
     }
 
     if (newPassword.length < 8) {
-      setMessage({ type: 'error', text: 'Password must be at least 8 characters' })
-      return
+      setMessage({
+        type: "error",
+        text: "Password must be at least 8 characters",
+      });
+      return;
     }
 
     if (newPassword !== confirmPassword) {
-      setMessage({ type: 'error', text: 'Passwords do not match' })
-      return
+      setMessage({ type: "error", text: "Passwords do not match" });
+      return;
     }
 
-    setIsLoading(true)
-    setMessage(null)
+    setIsLoading(true);
+    setMessage(null);
 
     try {
-      const result = await resetAdminPassword(adminId, newPassword)
+      const result = await resetAdminPassword(adminId, newPassword);
 
       if (result.success) {
-        setMessage({ type: 'success', text: 'Password reset successfully' })
-        toast.success('Password reset successfully')
+        setMessage({ type: "success", text: "Password reset successfully" });
+        toast.success("Password reset successfully");
 
         setTimeout(() => {
-          setNewPassword('')
-          setConfirmPassword('')
-          onClose()
+          setNewPassword("");
+          setConfirmPassword("");
+          onClose();
           if (onSuccess) {
-            onSuccess()
+            onSuccess();
           }
-        }, FORM_TIMING.successCallback)
+        }, FORM_TIMING.successCallback);
       } else {
-        setMessage({ type: 'error', text: result.error || 'Failed to reset password' })
-        toast.error(result.error || 'Failed to reset password')
+        setMessage({
+          type: "error",
+          text: result.error || "Failed to reset password",
+        });
+        toast.error(result.error || "Failed to reset password");
       }
     } catch (error) {
-      clientLogger.error('[AdminResetPasswordDialog] Error resetting password', error instanceof Error ? error : { error: String(error) })
-      const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred'
-      setMessage({ type: 'error', text: errorMsg })
-      toast.error(errorMsg)
+      clientLogger.error(
+        "[AdminResetPasswordDialog] Error resetting password",
+        error instanceof Error ? error : { error: String(error) },
+      );
+      const errorMsg =
+        error instanceof Error ? error.message : "An unexpected error occurred";
+      setMessage({ type: "error", text: errorMsg });
+      toast.error(errorMsg);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
   function handleClose() {
     if (!isLoading) {
-      setNewPassword('')
-      setConfirmPassword('')
-      setMessage(null)
-      onClose()
+      setNewPassword("");
+      setConfirmPassword("");
+      setMessage(null);
+      onClose();
     }
   }
 
@@ -128,7 +148,7 @@ export function AdminResetPasswordDialog({
           <div className="relative">
             <Input
               id="new-password"
-              type={showPassword ? 'text' : 'password'}
+              type={showPassword ? "text" : "password"}
               placeholder="Enter new password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
@@ -141,7 +161,11 @@ export function AdminResetPasswordDialog({
               className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text"
               disabled={isLoading}
             >
-              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              {showPassword ? (
+                <EyeOff className="w-4 h-4" />
+              ) : (
+                <Eye className="w-4 h-4" />
+              )}
             </button>
           </div>
         </div>
@@ -153,7 +177,7 @@ export function AdminResetPasswordDialog({
           </Label>
           <Input
             id="confirm-password"
-            type={showPassword ? 'text' : 'password'}
+            type={showPassword ? "text" : "password"}
             placeholder="Confirm password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
@@ -166,15 +190,19 @@ export function AdminResetPasswordDialog({
         {message && (
           <div
             className={`flex gap-3 p-3 rounded-lg border mb-4 ${
-              message.type === 'success' ? 'bg-success-light border-success/30' : 'bg-error-light border-error/30'
+              message.type === "success"
+                ? "bg-success-light border-success/30"
+                : "bg-error-light border-error/30"
             }`}
           >
-            {message.type === 'success' ? (
+            {message.type === "success" ? (
               <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
             ) : (
               <AlertCircle className="w-5 h-5 text-error flex-shrink-0 mt-0.5" />
             )}
-            <span className={`text-sm ${message.type === 'success' ? 'text-success' : 'text-error'}`}>
+            <span
+              className={`text-sm ${message.type === "success" ? "text-success" : "text-error"}`}
+            >
               {message.text}
             </span>
           </div>
@@ -201,11 +229,11 @@ export function AdminResetPasswordDialog({
                 Resetting...
               </>
             ) : (
-              'Reset Password'
+              "Reset Password"
             )}
           </Button>
         </div>
       </div>
     </div>
-  )
+  );
 }

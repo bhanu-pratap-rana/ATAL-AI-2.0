@@ -1,19 +1,22 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Image from 'next/image'
-import { motion } from 'framer-motion'
-import { createClient } from '@/lib/supabase-browser'
-import { Button } from '@/components/ui/button'
-import { authLogger } from '@/lib/auth-logger'
-import { isTeacherOrHigher } from '@/lib/auth/role-utils'
-import type { User } from '@supabase/supabase-js'
-import { LogOut } from 'lucide-react'
-import { getDashboardStats, type DashboardStats } from '@/app/actions/dashboard-stats'
-import { SyncStatusIndicator } from '@/components/offline/SyncStatusIndicator'
-import { BadgesDisplay } from '@/components/gamification/BadgesDisplay'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { motion } from "framer-motion";
+import { createClient } from "@/lib/supabase-browser";
+import { Button } from "@/components/ui/button";
+import { authLogger } from "@/lib/auth-logger";
+import { isTeacherOrHigher } from "@/lib/auth/role-utils";
+import type { User } from "@supabase/supabase-js";
+import { LogOut } from "lucide-react";
+import {
+  getDashboardStats,
+  type DashboardStats,
+} from "@/app/actions/dashboard-stats";
+import { SyncStatusIndicator } from "@/components/offline/SyncStatusIndicator";
+import { BadgesDisplay } from "@/components/gamification/BadgesDisplay";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 // Animation variants
 const containerVariants = {
@@ -21,58 +24,67 @@ const containerVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1
-    }
-  }
-}
+      staggerChildren: 0.1,
+    },
+  },
+};
 
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-}
+  visible: { opacity: 1, y: 0 },
+};
 
 // Feature card data
 const getFeatureCards = (isTeacher: boolean) => [
   {
-    title: 'Curriculum',
-    description: 'Access digital literacy curriculum and educational resources.',
-    emoji: '📚',
-    href: '/app/curriculum'
+    title: "Curriculum",
+    description:
+      "Access digital literacy curriculum and educational resources.",
+    emoji: "📚",
+    href: "/app/curriculum",
   },
   {
-    title: 'Classes',
-    description: 'Manage your classes and student enrollments.',
-    emoji: '👥',
-    href: isTeacher ? '/app/teacher/classes' : '/app/student/classes'
+    title: "Classes",
+    description: "Manage your classes and student enrollments.",
+    emoji: "👥",
+    href: isTeacher ? "/app/teacher/classes" : "/app/student/classes",
   },
   {
-    title: 'Progress',
-    description: 'Track student progress and performance metrics.',
-    emoji: '📊',
-    href: '/app/progress'
+    title: "Progress",
+    description: "Track student progress and performance metrics.",
+    emoji: "📊",
+    href: "/app/progress",
   },
   {
-    title: 'AI Tools',
-    description: 'Leverage AI-powered tools for personalized learning.',
-    emoji: '🤖',
-    href: '/app/ai-tools'
+    title: "AI Tools",
+    description: "Leverage AI-powered tools for personalized learning.",
+    emoji: "🤖",
+    href: "/app/ai-tools",
   },
   {
-    title: 'Assessments',
-    description: 'Create and manage assessments and quizzes.',
-    emoji: '📝',
-    href: isTeacher ? '/app/teacher/assessments' : '/app/student/assessments'
+    title: "Assessments",
+    description: "Create and manage assessments and quizzes.",
+    emoji: "📝",
+    href: isTeacher ? "/app/teacher/assessments" : "/app/student/assessments",
   },
   {
-    title: 'Profile',
-    description: 'View and manage your profile information.',
-    emoji: '👤',
-    href: '/app/settings'
-  }
-]
+    title: "Profile",
+    description: "View and manage your profile information.",
+    emoji: "👤",
+    href: "/app/settings",
+  },
+];
 
 // Stat Card Component
-function StatCard({ icon, value, label }: { icon: string; value: string | number; label: string }) {
+function StatCard({
+  icon,
+  value,
+  label,
+}: {
+  icon: string;
+  value: string | number;
+  label: string;
+}) {
   return (
     <motion.div
       variants={itemVariants}
@@ -86,7 +98,7 @@ function StatCard({ icon, value, label }: { icon: string; value: string | number
         <p className="text-sm text-text-secondary">{label}</p>
       </div>
     </motion.div>
-  )
+  );
 }
 
 // Feature Card Component
@@ -94,17 +106,17 @@ function FeatureCard({
   title,
   description,
   emoji,
-  onClick
+  onClick,
 }: {
-  title: string
-  description: string
-  emoji: string
-  onClick: () => void
+  title: string;
+  description: string;
+  emoji: string;
+  onClick: () => void;
 }) {
   return (
     <motion.div
       variants={itemVariants}
-      whileHover={{ y: -4, boxShadow: 'var(--shadow-primary)' }}
+      whileHover={{ y: -4, boxShadow: "var(--shadow-primary)" }}
       className="p-[3px] rounded-2xl bg-gradient-primary shadow-[var(--shadow-primary-sm)] cursor-pointer"
       onClick={onClick}
     >
@@ -120,78 +132,85 @@ function FeatureCard({
         </p>
       </div>
     </motion.div>
-  )
+  );
 }
 
 export default function DashboardPage() {
-  const router = useRouter()
-  const [user, setUser] = useState<User | null>(null)
-  const [profileName, setProfileName] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [stats, setStats] = useState<DashboardStats | null>(null)
-  const supabase = createClient()
+  const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
+  const [profileName, setProfileName] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const supabase = createClient();
 
   // Check app_metadata.role (set during teacher registration via admin API)
   // This is reliable as it's set server-side and cannot be modified by client
-  const appRole = user?.app_metadata?.role
-  const isTeacherOrAdmin = isTeacherOrHigher(appRole)
+  const appRole = user?.app_metadata?.role;
+  const isTeacherOrAdmin = isTeacherOrHigher(appRole);
 
   // Use profile name if available, otherwise fall back to user metadata or email
-  const userName = profileName || user?.user_metadata?.full_name || user?.app_metadata?.full_name || user?.email?.split('@')[0] || 'User'
+  const userName =
+    profileName ||
+    user?.user_metadata?.full_name ||
+    user?.app_metadata?.full_name ||
+    user?.email?.split("@")[0] ||
+    "User";
 
   useEffect(() => {
     async function getUserAndProfile() {
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
 
       if (user) {
-        const role = user.app_metadata?.role
+        const role = user.app_metadata?.role;
         // Check for teacher, admin, AND super_admin roles
-        const isTeacher = isTeacherOrHigher(role)
+        const isTeacher = isTeacherOrHigher(role);
 
         if (isTeacher) {
           // Fetch teacher profile name
           const { data: teacherProfile } = await supabase
-            .from('teacher_profiles')
-            .select('name')
-            .eq('user_id', user.id)
-            .maybeSingle()
+            .from("teacher_profiles")
+            .select("name")
+            .eq("user_id", user.id)
+            .maybeSingle();
 
           if (teacherProfile?.name) {
-            setProfileName(teacherProfile.name)
+            setProfileName(teacherProfile.name);
           }
         } else {
           // Fetch student profile name
           const { data: studentProfile } = await supabase
-            .from('student_profiles')
-            .select('name')
-            .eq('user_id', user.id)
-            .maybeSingle()
+            .from("student_profiles")
+            .select("name")
+            .eq("user_id", user.id)
+            .maybeSingle();
 
           if (studentProfile?.name) {
-            setProfileName(studentProfile.name)
+            setProfileName(studentProfile.name);
           }
         }
 
         // Fetch real dashboard stats
-        const statsResult = await getDashboardStats()
+        const statsResult = await getDashboardStats();
         if (statsResult.success && statsResult.data) {
-          setStats(statsResult.data)
+          setStats(statsResult.data);
         }
       }
 
-      setLoading(false)
+      setLoading(false);
     }
-    getUserAndProfile()
-  }, [])
+    getUserAndProfile();
+  }, []);
 
   async function handleSignOut() {
     try {
-      await supabase.auth.signOut()
-      router.refresh()
-      router.push('/student/start')
+      await supabase.auth.signOut();
+      router.refresh();
+      router.push("/student/start");
     } catch (error) {
-      authLogger.error('[Dashboard] Sign out failed', error)
+      authLogger.error("[Dashboard] Sign out failed", error);
     }
   }
 
@@ -203,10 +222,10 @@ export default function DashboardPage() {
           <p className="text-text-secondary">Loading...</p>
         </div>
       </div>
-    )
+    );
   }
 
-  const featureCards = getFeatureCards(isTeacherOrAdmin)
+  const featureCards = getFeatureCards(isTeacherOrAdmin);
 
   return (
     <div className="min-h-screen bg-cream">
@@ -228,7 +247,7 @@ export default function DashboardPage() {
                       0 0 0 2px white,
                       0 0 0 3px var(--color-primary),
                       0 2px 8px var(--shadow-primary-sm)
-                    `
+                    `,
                   }}
                   priority
                 />
@@ -237,7 +256,9 @@ export default function DashboardPage() {
                 <h1 className="text-xl md:text-2xl font-bold text-text-primary">
                   ATAL AI Tutorial
                 </h1>
-                <p className="text-xs md:text-sm text-text-secondary">Smart Learning Platform</p>
+                <p className="text-xs md:text-sm text-text-secondary">
+                  Smart Learning Platform
+                </p>
               </div>
             </div>
 
@@ -273,17 +294,19 @@ export default function DashboardPage() {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
                 <h2 className="text-2xl md:text-3xl font-bold mb-1 text-white drop-shadow-sm">
-                  {isTeacherOrAdmin ? `Welcome, ${userName}!` : `Hello, ${userName}!`}
+                  {isTeacherOrAdmin
+                    ? `Welcome, ${userName}!`
+                    : `Hello, ${userName}!`}
                 </h2>
                 <p className="text-sm md:text-base text-white/90">
                   {isTeacherOrAdmin
-                    ? 'Manage your classes and track student progress from your dashboard.'
-                    : 'Explore your classes and start your learning journey.'}
+                    ? "Manage your classes and track student progress from your dashboard."
+                    : "Explore your classes and start your learning journey."}
                 </p>
               </div>
               {isTeacherOrAdmin && (
                 <Button
-                  onClick={() => router.push('/app/teacher/classes')}
+                  onClick={() => router.push("/app/teacher/classes")}
                   variant="secondary"
                   className="bg-white text-primary hover:bg-surface shrink-0"
                 >
@@ -307,7 +330,9 @@ export default function DashboardPage() {
             />
             <StatCard
               icon="🎯"
-              value={stats?.averageScore != null ? `${stats.averageScore}%` : '--'}
+              value={
+                stats?.averageScore != null ? `${stats.averageScore}%` : "--"
+              }
               label="Avg Score"
             />
             <StatCard
@@ -318,27 +343,39 @@ export default function DashboardPage() {
           </div>
 
           {/* Empty State Message for New Users */}
-          {stats && stats.classesCount === 0 && stats.assessmentsCount === 0 && (
-            <motion.div
-              variants={itemVariants}
-              className="bg-info-light border border-info/30 rounded-xl p-6 mb-8 text-center"
-            >
-              <p className="text-lg font-medium text-info-dark mb-2">
-                {isTeacherOrAdmin ? "🎉 Welcome! Let's get started" : "👋 Welcome to ATAL AI!"}
-              </p>
-              <p className="text-sm text-text-secondary mb-4">
-                {isTeacherOrAdmin
-                  ? "Create your first class to start inviting students and tracking their progress."
-                  : "Join a class or take an assessment to begin your learning journey."}
-              </p>
-              <Button
-                onClick={() => router.push(isTeacherOrAdmin ? '/app/teacher/classes' : '/app/assessment/start')}
-                variant="default"
+          {stats &&
+            stats.classesCount === 0 &&
+            stats.assessmentsCount === 0 && (
+              <motion.div
+                variants={itemVariants}
+                className="bg-info-light border border-info/30 rounded-xl p-6 mb-8 text-center"
               >
-                {isTeacherOrAdmin ? "Create Your First Class" : "Start an Assessment"}
-              </Button>
-            </motion.div>
-          )}
+                <p className="text-lg font-medium text-info-dark mb-2">
+                  {isTeacherOrAdmin
+                    ? "🎉 Welcome! Let's get started"
+                    : "👋 Welcome to ATAL AI!"}
+                </p>
+                <p className="text-sm text-text-secondary mb-4">
+                  {isTeacherOrAdmin
+                    ? "Create your first class to start inviting students and tracking their progress."
+                    : "Join a class or take an assessment to begin your learning journey."}
+                </p>
+                <Button
+                  onClick={() =>
+                    router.push(
+                      isTeacherOrAdmin
+                        ? "/app/teacher/classes"
+                        : "/app/assessment/start",
+                    )
+                  }
+                  variant="default"
+                >
+                  {isTeacherOrAdmin
+                    ? "Create Your First Class"
+                    : "Start an Assessment"}
+                </Button>
+              </motion.div>
+            )}
 
           {/* Gamification Section - Badges */}
           {!isTeacherOrAdmin && user && (
@@ -350,7 +387,11 @@ export default function DashboardPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <BadgesDisplay studentId={user.id} language="en" showAll={true} />
+                  <BadgesDisplay
+                    studentId={user.id}
+                    language="en"
+                    showAll={true}
+                  />
                 </CardContent>
               </Card>
             </motion.div>
@@ -358,7 +399,9 @@ export default function DashboardPage() {
 
           {/* Feature Cards Grid */}
           <div className="mb-6">
-            <h3 className="text-lg font-bold text-text-primary mb-4">Quick Actions</h3>
+            <h3 className="text-lg font-bold text-text-primary mb-4">
+              Quick Actions
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {featureCards.map((card) => (
                 <FeatureCard
@@ -374,5 +417,5 @@ export default function DashboardPage() {
         </motion.div>
       </main>
     </div>
-  )
+  );
 }
