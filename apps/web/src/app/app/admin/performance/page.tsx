@@ -164,7 +164,7 @@ export default function PerformanceMonitoringPage() {
             <div className="space-y-3">
               {poolAlerts.slice(0, 5).map((alert, idx) => (
                 <div
-                  key={idx}
+                  key={`pool-alert-${idx}-${alert.timestamp}`}
                   className={`p-3 rounded border-l-4 ${
                     alert.level === 'critical'
                       ? 'border-red-600 bg-red-100 text-red-800'
@@ -198,7 +198,7 @@ export default function PerformanceMonitoringPage() {
           ) : (
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {slowQueries.map((query, idx) => (
-                <div key={idx} className="border-l-4 border-orange-500 pl-4 py-3 bg-orange-50 rounded">
+                <div key={`slow-query-${idx}-${query.queryName}`} className="border-l-4 border-orange-500 pl-4 py-3 bg-orange-50 rounded">
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="font-semibold text-sm">{query.queryName}</p>
@@ -237,7 +237,7 @@ export default function PerformanceMonitoringPage() {
           <CardContent>
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {failedQueries.map((query, idx) => (
-                <div key={idx} className="border-l-4 border-red-500 pl-4 py-3 bg-red-50 rounded">
+                <div key={`failed-query-${idx}-${query.queryName}`} className="border-l-4 border-red-500 pl-4 py-3 bg-red-50 rounded">
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="font-semibold text-sm">{query.queryName}</p>
