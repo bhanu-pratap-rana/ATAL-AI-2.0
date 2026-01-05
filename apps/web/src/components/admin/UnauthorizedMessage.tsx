@@ -5,10 +5,10 @@ import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
 
 interface UnauthorizedMessageProps {
-  title?: string
-  message?: string
-  showLoginButton?: boolean
-  onDismiss?: () => void
+  readonly title?: string
+  readonly message?: string
+  readonly showLoginButton?: boolean
+  readonly onDismiss?: () => void
 }
 
 /**

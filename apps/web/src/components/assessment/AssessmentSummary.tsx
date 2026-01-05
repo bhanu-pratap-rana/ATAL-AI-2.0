@@ -22,18 +22,18 @@ import { LevelBadge, LevelCard } from './LevelBadge'
  */
 
 interface IRTCategoryScore {
-  theta: number
-  score: number
-  proficiency: string
-  correct: number
-  total: number
+  readonly theta: number
+  readonly score: number
+  readonly proficiency: string
+  readonly correct: number
+  readonly total: number
 }
 
 interface IRTData {
-  theta: number
-  standardError: number
-  proficiencyLevel: string
-  categoryScores: Record<string, IRTCategoryScore>
+  readonly theta: number
+  readonly standardError: number
+  readonly proficiencyLevel: string
+  readonly categoryScores: Record<string, IRTCategoryScore>
 }
 
 interface AssessmentSummaryProps {
