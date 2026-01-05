@@ -150,7 +150,7 @@ export function BadgesDisplay({
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="animate-pulse">
+          <div key={`badge-skeleton-${i}`} className="animate-pulse">
             <div className="w-20 h-20 mx-auto bg-muted rounded-full" />
             <div className="h-4 bg-muted rounded mt-2 mx-4" />
           </div>

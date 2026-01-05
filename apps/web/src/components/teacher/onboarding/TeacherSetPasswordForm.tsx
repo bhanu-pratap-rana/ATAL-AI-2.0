@@ -68,7 +68,7 @@ export function TeacherSetPasswordForm({
               <div className="flex gap-1">
                 {[0, 1, 2, 3, 4].map((i) => (
                   <div
-                    key={i}
+                    key={`strength-bar-${i}`}
                     className={`h-1.5 flex-1 rounded-full transition-colors ${
                       i <= passwordStrength
                         ? getPasswordStrengthColor(passwordStrength)
