@@ -82,7 +82,7 @@ export default function AdminSetupPage() {
     <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface flex items-center justify-center p-4">
       <div className="absolute top-4 left-4">
         <Button
-          onClick={() => (window.location.href = '/admin/login')}
+          onClick={() => (globalThis.location.href = '/admin/login')}
           variant="outline"
           size="sm"
           className="text-sm border-primary text-primary hover:bg-primary/10"

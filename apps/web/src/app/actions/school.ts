@@ -36,6 +36,195 @@ export interface VerifyTeacherResult {
  * Verify teacher credentials using School Code + Staff PIN
  * This elevates the authenticated user's role to 'teacher'
  */
+/**
+ * Helper: Validate and parse input parameters
+ */
+function validateVerifyTeacherInput(
+  schoolCode: string,
+  staffPin: string,
+  teacherName?: string,
+  phone?: string
+): { success: true; data: { schoolCode: string; staffPin: string; teacherName?: string; phone?: string } } | { success: false; error: string } {
+  try {
+    const validatedSchoolCode = SchoolCodeSchema.parse(schoolCode)
+    const validatedStaffPin = StaffPinSchema.parse(staffPin)
+    const validatedTeacherName = teacherName ? TeacherNameSchema.parse(teacherName) : undefined
+    const validatedPhone = phone ? PhoneSchema.parse(phone) : undefined
+
+    return {
+      success: true,
+      data: {
+        schoolCode: validatedSchoolCode,
+        staffPin: validatedStaffPin,
+        teacherName: validatedTeacherName,
+        phone: validatedPhone,
+      },
+    }
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      const firstError = error.issues[0]
+      return { success: false, error: firstError?.message || 'Invalid input' }
+    }
+    return { success: false, error: 'Validation failed' }
+  }
+}
+
+/**
+ * Helper: Check if user can register as teacher
+ */
+async function canUserRegisterAsTeacher(
+  user: Awaited<ReturnType<typeof getCurrentUser>>,
+  adminClient: Awaited<ReturnType<typeof createAdminClient>>
+): Promise<{ canRegister: true } | { canRegister: false; error: string }> {
+  if (!user) {
+    return { canRegister: false, error: 'Not authenticated' }
+  }
+
+  const isAnonymous = user.is_anonymous || false
+  if (isAnonymous) {
+    return {
+      canRegister: false,
+      error: 'Anonymous users cannot register as teachers. Please sign in with email or phone.',
+    }
+  }
+
+  const { data: existingTeacher, error: existingTeacherError } = await adminClient
+    .from('teacher_profiles')
+    .select('user_id')
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  if (existingTeacherError) {
+    authLogger.error('[verifyTeacher] Error checking existing teacher profile', existingTeacherError)
+  }
+
+  if (existingTeacher) {
+    return { canRegister: false, error: 'You are already registered as a teacher' }
+  }
+
+  return { canRegister: true }
+}
+
+/**
+ * Helper: Lookup school by code
+ */
+async function lookupSchoolByCode(
+  adminClient: Awaited<ReturnType<typeof createAdminClient>>,
+  schoolCode: string
+): Promise<{ success: true; school: { id: string; school_code: string; school_name: string } } | { success: false; error: string }> {
+  const { data: school, error: schoolError } = await adminClient
+    .from('schools')
+    .select('id, school_code, school_name')
+    .eq('school_code', schoolCode.toUpperCase().trim())
+    .maybeSingle()
+
+  if (schoolError) {
+    authLogger.error('[verifyTeacher] Error looking up school', schoolError)
+    return {
+      success: false,
+      error: 'Failed to lookup school. Please try again.',
+    }
+  }
+
+  if (!school) {
+    authLogger.debug('[verifyTeacher] School code not found', { schoolCode })
+    return {
+      success: false,
+      error: 'Invalid school code. Please verify and try again.',
+    }
+  }
+
+  return { success: true, school }
+}
+
+/**
+ * Helper: Verify staff PIN via RPC
+ */
+async function verifyStaffPinRPC(
+  adminClient: Awaited<ReturnType<typeof createAdminClient>>,
+  schoolId: string,
+  staffPin: string
+): Promise<{ success: true; pinMatch: boolean } | { success: false; error: string }> {
+  const { data: verifyResult, error: verifyError } = await adminClient.rpc('verify_staff_pin', {
+    p_school_id: schoolId,
+    p_pin: staffPin,
+  })
+
+  if (verifyError) {
+    authLogger.error('[verifyTeacher] RPC error during PIN verification', {
+      message: verifyError.message,
+      code: verifyError.code,
+      details: verifyError.details,
+      hint: verifyError.hint
+    })
+    return {
+      success: false,
+      error: 'Unable to verify PIN. Please try again.',
+    }
+  }
+
+  let pinMatch = false
+  if (verifyResult && Array.isArray(verifyResult) && verifyResult.length > 0) {
+    pinMatch = verifyResult[0].is_valid === true
+    authLogger.debug('[verifyTeacher] PIN match result', { is_valid: verifyResult[0].is_valid, pinMatch })
+  } else {
+    authLogger.warn('[verifyTeacher] No PIN record found for school', { schoolId })
+  }
+
+  return { success: true, pinMatch }
+}
+
+/**
+ * Helper: Create teacher profile and update user metadata
+ */
+async function createTeacherProfile(
+  adminClient: Awaited<ReturnType<typeof createAdminClient>>,
+  userId: string,
+  schoolId: string,
+  schoolCode: string,
+  teacherName: string,
+  phone?: string,
+  subject?: string
+): Promise<{ success: true } | { success: false; error: string }> {
+  const { error: insertError } = await adminClient.from('teacher_profiles').insert({
+    user_id: userId,
+    school_id: schoolId,
+    name: teacherName,
+    phone,
+    subject,
+    school_code: schoolCode,
+  })
+
+  if (insertError) {
+    authLogger.error('[verifyTeacher] Failed to create teacher profile', insertError)
+    return {
+      success: false,
+      error: 'Failed to create teacher profile. Please try again.',
+    }
+  }
+
+  const { error: updateError } = await adminClient.auth.admin.updateUserById(
+    userId,
+    {
+      app_metadata: {
+        role: 'teacher',
+        school_id: schoolId,
+        school_code: schoolCode,
+      },
+    }
+  )
+
+  if (updateError) {
+    authLogger.warn('[verifyTeacher] Failed to update app_metadata (non-critical)', updateError)
+  }
+
+  return { success: true }
+}
+
+/**
+ * Verify teacher credentials and create profile (refactored to reduce cognitive complexity)
+ * CRITICAL FIX: Reduced complexity from 23 to <15 by extracting helper functions
+ */
 export async function verifyTeacher({
   schoolCode,
   staffPin,
@@ -44,20 +233,22 @@ export async function verifyTeacher({
   subject,
 }: VerifyTeacherParams): Promise<VerifyTeacherResult> {
   try {
-    schoolCode = SchoolCodeSchema.parse(schoolCode)
-    staffPin = StaffPinSchema.parse(staffPin)
-    if (teacherName) {
-      teacherName = TeacherNameSchema.parse(teacherName)
+    const inputValidation = validateVerifyTeacherInput(schoolCode, staffPin, teacherName, phone)
+    if (!inputValidation.success) {
+      return inputValidation
     }
-    if (phone) phone = PhoneSchema.parse(phone)
 
     const user = await getCurrentUser()
+    const adminClient = await createAdminClient()
+
+    const registrationCheck = await canUserRegisterAsTeacher(user, adminClient)
+    if (!registrationCheck.canRegister) {
+      return { success: false, error: registrationCheck.error }
+    }
 
     if (!user) {
       return { success: false, error: 'Not authenticated' }
     }
-
-    const supabase = await createClient()
 
     const isAllowed = await checkRateLimit(`verify-teacher:${user.id}`, VERIFY_TEACHER_RATE_LIMIT)
     if (!isAllowed) {
@@ -68,145 +259,51 @@ export async function verifyTeacher({
       }
     }
 
-    const isAnonymous = user.is_anonymous || false
-    if (isAnonymous) {
-      return {
-        success: false,
-        error: 'Anonymous users cannot register as teachers. Please sign in with email or phone.',
-      }
+    const schoolLookup = await lookupSchoolByCode(adminClient, inputValidation.data.schoolCode)
+    if (!schoolLookup.success) {
+      return schoolLookup
     }
 
-    // Use admin client for all database operations to bypass RLS restrictions
-    const adminClient = await createAdminClient()
+    authLogger.debug('[verifyTeacher] School found', { schoolId: schoolLookup.school.id, schoolName: schoolLookup.school.school_name })
 
-    // Check if user already has a teacher profile using admin client
-    const { data: existingTeacher, error: existingTeacherError } = await adminClient
-      .from('teacher_profiles')
-      .select('user_id')
-      .eq('user_id', user.id)
-      .maybeSingle()
-
-    if (existingTeacherError) {
-      authLogger.error('[verifyTeacher] Error checking existing teacher profile', existingTeacherError)
+    const pinVerification = await verifyStaffPinRPC(
+      adminClient,
+      schoolLookup.school.id,
+      inputValidation.data.staffPin
+    )
+    if (!pinVerification.success) {
+      return pinVerification
     }
 
-    if (existingTeacher) {
-      return { success: false, error: 'You are already registered as a teacher' }
-    }
-
-    // Get school by code using admin client
-    // Use .maybeSingle() - school code may not exist
-    const { data: school, error: schoolError } = await adminClient
-      .from('schools')
-      .select('id, school_code, school_name')
-      .eq('school_code', schoolCode.toUpperCase().trim())
-      .maybeSingle()
-
-    if (schoolError) {
-      authLogger.error('[verifyTeacher] Error looking up school', schoolError)
-      return {
-        success: false,
-        error: 'Failed to lookup school. Please try again.',
-      }
-    }
-
-    if (!school) {
-      authLogger.debug('[verifyTeacher] School code not found', { schoolCode })
-      return {
-        success: false,
-        error: 'Invalid school code. Please verify and try again.',
-      }
-    }
-
-    authLogger.debug('[verifyTeacher] School found', { schoolId: school.id, schoolName: school.school_name })
-
-    // Verify staff PIN using the secure RPC function
-    authLogger.debug('[verifyTeacher] Calling verify_staff_pin RPC', { schoolId: school.id, pinLength: staffPin.length })
-
-    const { data: verifyResult, error: verifyError } = await adminClient.rpc('verify_staff_pin', {
-      p_school_id: school.id,
-      p_pin: staffPin,
-    })
-
-    authLogger.debug('[verifyTeacher] PIN verification RPC response', {
-      hasData: !!verifyResult,
-      dataLength: Array.isArray(verifyResult) ? verifyResult.length : 0,
-      verifyResult: JSON.stringify(verifyResult),
-      verifyError: verifyError ? { message: verifyError.message, code: verifyError.code, details: verifyError.details } : null,
-      schoolId: school.id
-    })
-
-    // Handle RPC errors
-    if (verifyError) {
-      authLogger.error('[verifyTeacher] RPC error during PIN verification', {
-        message: verifyError.message,
-        code: verifyError.code,
-        details: verifyError.details,
-        hint: verifyError.hint
-      })
-      return {
-        success: false,
-        error: 'Unable to verify PIN. Please try again.',
-      }
-    }
-
-    let pinMatch = false
-    if (verifyResult && Array.isArray(verifyResult) && verifyResult.length > 0) {
-      pinMatch = verifyResult[0].is_valid === true
-      authLogger.debug('[verifyTeacher] PIN match result', { is_valid: verifyResult[0].is_valid, pinMatch })
-    } else {
-      authLogger.warn('[verifyTeacher] No PIN record found for school', { schoolId: school.id })
-    }
-
-    if (!pinMatch) {
-      authLogger.warn('[verifyTeacher] Invalid PIN attempt', { schoolCode, schoolId: school.id, hasResult: !!verifyResult })
+    if (!pinVerification.pinMatch) {
+      authLogger.warn('[verifyTeacher] Invalid PIN attempt', { schoolCode: inputValidation.data.schoolCode, schoolId: schoolLookup.school.id })
       return {
         success: false,
         error: 'Invalid PIN. Please verify and try again.',
       }
     }
 
-    authLogger.info('[verifyTeacher] PIN verified successfully', { schoolId: school.id })
+    authLogger.info('[verifyTeacher] PIN verified successfully', { schoolId: schoolLookup.school.id })
 
-    if (teacherName && teacherName.trim()) {
-      const { error: insertError } = await adminClient.from('teacher_profiles').insert({
-        user_id: user.id,
-        school_id: school.id,
-        name: teacherName,
-        phone,
-        subject,
-        school_code: school.school_code,
-      })
-
-      if (insertError) {
-        authLogger.error('[verifyTeacher] Failed to create teacher profile', insertError)
-        return {
-          success: false,
-          error: 'Failed to create teacher profile. Please try again.',
-        }
-      }
-
-      // Update user app_metadata to include role using the already-initialized admin client
-      const { error: updateError } = await adminClient.auth.admin.updateUserById(
+    if (inputValidation.data.teacherName && inputValidation.data.teacherName.trim()) {
+      const profileResult = await createTeacherProfile(
+        adminClient,
         user.id,
-        {
-          app_metadata: {
-            role: 'teacher',
-            school_id: school.id,
-            school_code: school.school_code,
-          },
-        }
+        schoolLookup.school.id,
+        schoolLookup.school.school_code,
+        inputValidation.data.teacherName,
+        inputValidation.data.phone,
+        subject
       )
-
-      if (updateError) {
-        authLogger.warn('[verifyTeacher] Failed to update app_metadata (non-critical)', updateError)
+      if (!profileResult.success) {
+        return profileResult
       }
     }
 
     return {
       success: true,
-      schoolId: school.id,
-      schoolName: school.school_name,
+      schoolId: schoolLookup.school.id,
+      schoolName: schoolLookup.school.school_name,
     }
   } catch (error) {
     authLogger.error('[verifyTeacher] Unexpected error', error)
@@ -288,8 +385,165 @@ async function getSchoolByCode(schoolCode: string) {
 }
 
 /**
- * Rotate Staff PIN for a school (Admin only)
+ * Helper: Validate PIN input
+ */
+function validatePinInput(newPin: string): { valid: true } | { valid: false; error: string } {
+  if (!newPin || newPin.length < 4) {
+    return {
+      valid: false,
+      error: 'PIN must be at least 4 characters long',
+    }
+  }
+  return { valid: true }
+}
+
+/**
+ * Helper: Check if user is authorized to rotate PINs
+ */
+async function checkPinRotationAuthorization(
+  user: Awaited<ReturnType<typeof getCurrentUser>>,
+  supabase: Awaited<ReturnType<typeof createClient>>
+): Promise<{ authorized: true; user: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>; userRole: string | undefined } | { authorized: false; error: string }> {
+  if (!user) {
+    authLogger.warn('[rotateStaffPin] Unauthenticated access attempt')
+    return { authorized: false, error: 'Not authenticated' }
+  }
+
+  const userRole = user.app_metadata?.role
+  let isAuthorized = userRole === 'admin' || userRole === 'super_admin' || userRole === 'teacher'
+
+  if (!isAuthorized && !userRole) {
+    const { data: teacherProfile, error: profileError } = await supabase
+      .from('teacher_profiles')
+      .select('user_id, school_id')
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    if (profileError) {
+      authLogger.error('[rotateStaffPin] Error checking teacher profile', profileError)
+      return { authorized: false, error: 'Failed to verify authorization' }
+    }
+
+    isAuthorized = !!teacherProfile
+  }
+
+  if (!isAuthorized) {
+    authLogger.warn('[rotateStaffPin] Unauthorized role access attempt', { userId: user.id, role: userRole })
+    return { authorized: false, error: 'Unauthorized: Teacher or Admin access required' }
+  }
+
+  return { authorized: true, user, userRole }
+}
+
+/**
+ * Helper: Check if user is authorized for specific school
+ */
+async function checkSchoolAuthorization(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  user: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>,
+  schoolId: string,
+  userRole: string | undefined
+): Promise<{ authorized: true } | { authorized: false; error: string }> {
+  if (userRole === 'admin' || userRole === 'super_admin') {
+    return { authorized: true }
+  }
+
+  const { data: teacherProfile, error: teacherError } = await supabase
+    .from('teacher_profiles')
+    .select('school_id')
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  if (teacherError) {
+    authLogger.error('[rotateStaffPin] Error checking teacher school authorization', teacherError)
+    return { authorized: false, error: 'Failed to verify school authorization' }
+  }
+
+  const isAuthorizedForSchool = !!(teacherProfile && schoolId === teacherProfile.school_id)
+  if (!isAuthorizedForSchool) {
+    authLogger.warn('[rotateStaffPin] User not authorized for school', { userId: user.id, schoolId })
+    return { authorized: false, error: 'Unauthorized: You can only rotate PINs for your own school.' }
+  }
+
+  return { authorized: true }
+}
+
+/**
+ * Helper: Lookup school and verify authorization
+ */
+async function lookupSchoolAndVerifyAuth(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  user: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>,
+  schoolCode: string,
+  userRole: string | undefined
+): Promise<{ success: true; school: { id: string; school_code: string; school_name: string } } | { success: false; error: string }> {
+  const { data: schoolData, error: schoolError } = await supabase
+    .from('schools')
+    .select('id, school_code, school_name')
+    .eq('school_code', schoolCode.toUpperCase().trim())
+    .maybeSingle()
+
+  if (schoolError) {
+    authLogger.error('[rotateStaffPin] Error looking up school', schoolError)
+    return { success: false, error: 'Failed to lookup school' }
+  }
+
+  if (!schoolData) {
+    authLogger.warn('[rotateStaffPin] School code not found or not provided', { schoolCode })
+    return {
+      success: false,
+      error: 'Unable to rotate PIN. Please verify your school code and try again.',
+    }
+  }
+
+  const authCheck = await checkSchoolAuthorization(supabase, user, schoolData.id, userRole)
+  if (!authCheck.authorized) {
+    return { success: false, error: authCheck.error }
+  }
+
+  return { success: true, school: schoolData }
+}
+
+/**
+ * Helper: Call RPC to rotate PIN
+ */
+async function rotatePinViaRPC(
+  adminClient: Awaited<ReturnType<typeof createAdminClient>>,
+  schoolId: string,
+  newPin: string
+): Promise<{ success: true; rotatedAt: string } | { success: false; error: string }> {
+  const { data: rotateResult, error: rotateError } = await adminClient.rpc('rotate_staff_pin', {
+    p_school_id: schoolId,
+    p_new_pin: newPin,
+  })
+
+  if (rotateError) {
+    authLogger.error('[rotateStaffPin] Failed to rotate PIN via RPC', rotateError)
+    return {
+      success: false,
+      error: 'Failed to rotate PIN. Please try again.',
+    }
+  }
+
+  if (!rotateResult || !rotateResult[0]?.success) {
+    const errorMsg = rotateResult?.[0]?.error_message || 'Failed to rotate PIN'
+    authLogger.error('[rotateStaffPin] RPC rotation failed', { error: errorMsg })
+    return {
+      success: false,
+      error: errorMsg,
+    }
+  }
+
+  return {
+    success: true,
+    rotatedAt: new Date().toISOString(),
+  }
+}
+
+/**
+ * Rotate Staff PIN for a school (refactored to reduce cognitive complexity)
  * Generates new bcrypt hash and updates school_staff_credentials
+ * CRITICAL FIX: Reduced complexity from 24 to <15 by extracting helper functions
  *
  * @param schoolCode - The school code (e.g., "14H0182")
  * @param newPin - The new staff PIN (will be hashed)
@@ -297,134 +551,50 @@ async function getSchoolByCode(schoolCode: string) {
  */
 export async function rotateStaffPin(schoolCode: string, newPin: string) {
   try {
-    schoolCode = SchoolCodeSchema.parse(schoolCode)
-    newPin = StaffPinSchema.parse(newPin)
+    const validatedSchoolCode = SchoolCodeSchema.parse(schoolCode)
+    const validatedNewPin = StaffPinSchema.parse(newPin)
+
+    const pinValidation = validatePinInput(validatedNewPin)
+    if (!pinValidation.valid) {
+      return { success: false, error: pinValidation.error }
+    }
 
     const user = await getCurrentUser()
-
-    if (!user) {
-      authLogger.warn('[rotateStaffPin] Unauthenticated access attempt')
-      return { success: false, error: 'Not authenticated' }
-    }
-
     const supabase = await createClient()
-    const userRole = user.app_metadata?.role
 
-    let isAuthorized = userRole === 'admin' || userRole === 'super_admin' || userRole === 'teacher'
-
-    if (!isAuthorized && !userRole) {
-      // Use .maybeSingle() - user may not have a teacher profile
-      const { data: teacherProfile, error: profileError } = await supabase
-        .from('teacher_profiles')
-        .select('user_id, school_id')
-        .eq('user_id', user.id)
-        .maybeSingle()
-
-      if (profileError) {
-        authLogger.error('[rotateStaffPin] Error checking teacher profile', profileError)
-        return { success: false, error: 'Failed to verify authorization' }
-      }
-
-      isAuthorized = !!teacherProfile
+    const authCheck = await checkPinRotationAuthorization(user, supabase)
+    if (!authCheck.authorized) {
+      return { success: false, error: authCheck.error }
     }
 
-    if (!isAuthorized) {
-      authLogger.warn('[rotateStaffPin] Unauthorized role access attempt', { userId: user.id, role: userRole })
-      return { success: false, error: 'Unauthorized: Teacher or Admin access required' }
+    const schoolLookup = await lookupSchoolAndVerifyAuth(
+      supabase,
+      authCheck.user,
+      validatedSchoolCode,
+      authCheck.userRole
+    )
+    if (!schoolLookup.success) {
+      return schoolLookup
     }
 
-    if (!newPin || newPin.length < 4) {
-      return {
-        success: false,
-        error: 'PIN must be at least 4 characters long',
-      }
-    }
-
-    let school = null
-    let isAuthorizedForSchool = false
-
-    // Use .maybeSingle() - school code may not exist
-    const { data: schoolData, error: schoolError } = await supabase
-      .from('schools')
-      .select('id, school_code, school_name')
-      .eq('school_code', schoolCode.toUpperCase().trim())
-      .maybeSingle()
-
-    if (schoolError) {
-      authLogger.error('[rotateStaffPin] Error looking up school', schoolError)
-      return { success: false, error: 'Failed to lookup school' }
-    }
-
-    if (schoolData) {
-      school = schoolData
-
-      if (userRole !== 'admin' && userRole !== 'super_admin') {
-        // Use .maybeSingle() - user may not have a teacher profile
-        const { data: teacherProfile, error: teacherError } = await supabase
-          .from('teacher_profiles')
-          .select('school_id')
-          .eq('user_id', user.id)
-          .maybeSingle()
-
-        if (teacherError) {
-          authLogger.error('[rotateStaffPin] Error checking teacher school authorization', teacherError)
-          return { success: false, error: 'Failed to verify school authorization' }
-        }
-
-        isAuthorizedForSchool = !!(teacherProfile && school.id === teacherProfile.school_id)
-      } else {
-        // Admins and super_admins can rotate any school's PIN
-        isAuthorizedForSchool = true
-      }
-    }
-
-    if (!school || !isAuthorizedForSchool) {
-      if (!school) {
-        authLogger.warn('[rotateStaffPin] School code not found or not provided', { schoolCode })
-      } else {
-        authLogger.warn('[rotateStaffPin] User not authorized for school', { userId: user.id, schoolId: school.id })
-      }
-      return {
-        success: false,
-        error: 'Unable to rotate PIN. Please verify your school code and try again.',
-      }
-    }
-
-    // Use admin client to call the secure rotate_staff_pin RPC function
-    // The RLS policy only allows service_role to write to school_staff_credentials
     const adminClient = await createAdminClient()
-
-    const { data: rotateResult, error: rotateError } = await adminClient.rpc('rotate_staff_pin', {
-      p_school_id: school.id,
-      p_new_pin: newPin,
-    })
-
-    if (rotateError) {
-      authLogger.error('[rotateStaffPin] Failed to rotate PIN via RPC', rotateError)
-      return {
-        success: false,
-        error: 'Failed to rotate PIN. Please try again.',
-      }
+    const rotateResult = await rotatePinViaRPC(adminClient, schoolLookup.school.id, validatedNewPin)
+    if (!rotateResult.success) {
+      return rotateResult
     }
 
-    // Check RPC result
-    if (!rotateResult || !rotateResult[0]?.success) {
-      const errorMsg = rotateResult?.[0]?.error_message || 'Failed to rotate PIN'
-      authLogger.error('[rotateStaffPin] RPC rotation failed', { error: errorMsg })
-      return {
-        success: false,
-        error: errorMsg,
-      }
-    }
-
-    authLogger.success('[rotateStaffPin] PIN rotated successfully', { schoolId: school.id })
+    authLogger.success('[rotateStaffPin] PIN rotated successfully', { schoolId: schoolLookup.school.id })
     return {
       success: true,
-      schoolCode: school.school_code,
-      schoolName: school.school_name,
-      rotatedAt: new Date().toISOString(),
+      schoolCode: schoolLookup.school.school_code,
+      schoolName: schoolLookup.school.school_name,
+      rotatedAt: rotateResult.rotatedAt,
     }
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      const firstError = error.issues[0]
+      return { success: false, error: firstError?.message || 'Invalid input' }
+    }
     authLogger.error('[rotateStaffPin] Unexpected error', error)
     return {
       success: false,

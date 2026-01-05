@@ -255,24 +255,137 @@ interface JoinClassParams {
   pin: string
 }
 
+/**
+ * Helper: Verify PIN using constant-time comparison
+ */
+function verifyPin(pin: string, storedPin: string | null): boolean {
+  if (!storedPin) {
+    return false
+  }
+  try {
+    return timingSafeEqual(Buffer.from(pin), Buffer.from(storedPin))
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Helper: Lookup class by code
+ */
+async function lookupClassByCode(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  classCode: string
+): Promise<{ success: true; classData: { id: string; name: string; class_code: string; join_pin: string | null } } | { success: false; error: string }> {
+  const { data: classData, error: classError } = await supabase
+    .from('classes')
+    .select('id, name, class_code, join_pin')
+    .eq('class_code', classCode)
+    .maybeSingle()
+
+  if (classError) {
+    authLogger.error('[joinClass] Error looking up class', classError)
+    return { success: false, error: 'Failed to lookup class' }
+  }
+
+  if (!classData) {
+    authLogger.debug('[joinClass] Class not found', { classCode })
+    return { success: false, error: 'Invalid class code or PIN' }
+  }
+
+  return { success: true, classData }
+}
+
+/**
+ * Helper: Check if student is already enrolled
+ */
+async function checkExistingEnrollment(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  classId: string,
+  studentId: string
+): Promise<{ enrolled: true } | { enrolled: false; error?: string }> {
+  const { data: existingEnrollment, error: enrollmentCheckError } = await supabase
+    .from('enrollments')
+    .select('id')
+    .eq('class_id', classId)
+    .eq('student_id', studentId)
+    .maybeSingle()
+
+  if (enrollmentCheckError) {
+    authLogger.error('[joinClass] Error checking existing enrollment', enrollmentCheckError)
+    return { enrolled: false, error: 'Failed to check enrollment status' }
+  }
+
+  if (existingEnrollment) {
+    return { enrolled: true }
+  }
+
+  return { enrolled: false }
+}
+
+/**
+ * Helper: Create enrollment
+ */
+async function createEnrollment(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  classId: string,
+  studentId: string,
+  className: string
+): Promise<{ success: true; data: { className: string; [key: string]: unknown } } | { success: false; error: string }> {
+  const { data, error } = await supabase
+    .from('enrollments')
+    .insert({
+      class_id: classId,
+      student_id: studentId,
+    })
+    .select()
+    .single()
+
+  if (error) {
+    authLogger.error('[joinClass] Failed to create enrollment', {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      classId,
+      studentId,
+    })
+
+    if (error.code === '23505') {
+      return { success: false, error: 'Already enrolled in this class' }
+    }
+
+    return { success: false, error: 'Failed to enroll in class. Please try again.' }
+  }
+
+  return {
+    success: true,
+    data: {
+      ...(data || {}),
+      className,
+    },
+  }
+}
+
+/**
+ * Join a class using class code and PIN (refactored to reduce cognitive complexity)
+ * CRITICAL FIX: Reduced complexity from 16 to <15 by extracting helper functions
+ */
 export async function joinClass({ classCode, pin }: JoinClassParams) {
   try {
-    // Validate inputs
     const validatedInput = JoinClassSchema.parse({ classCode, pin })
-    classCode = validatedInput.classCode
-    pin = validatedInput.pin
+    const validatedClassCode = validatedInput.classCode
+    const validatedPin = validatedInput.pin
 
-    // SECURITY: Verify caller is authenticated and is a student
     const auth = await verifyStudentAuth('joinClass')
     if (!auth.authorized) {
       return auth.error
     }
 
-    // SECURITY: Rate limit to prevent PIN brute force attacks
-    // Uses dedicated class join limits (5 attempts per hour per class)
-    const isAllowed = await checkRateLimit(`join-class:${auth.user.id}:${classCode}`, RATE_LIMITS.classJoinAttempts)
+    const isAllowed = await checkRateLimit(
+      `join-class:${auth.user.id}:${validatedClassCode}`,
+      RATE_LIMITS.classJoinAttempts
+    )
     if (!isAllowed) {
-      authLogger.warn('[joinClass] Rate limit exceeded', { userId: auth.user.id, classCode })
+      authLogger.warn('[joinClass] Rate limit exceeded', { userId: auth.user.id, classCode: validatedClassCode })
       return {
         success: false,
         error: 'Too many join attempts. Please wait before trying again.',
@@ -281,95 +394,47 @@ export async function joinClass({ classCode, pin }: JoinClassParams) {
 
     const supabase = await createClient()
 
-    // Find class by code and verify PIN - use .maybeSingle() since class may not exist
-    const { data: classData, error: classError } = await supabase
-      .from('classes')
-      .select('id, name, class_code, join_pin')
-      .eq('class_code', classCode)
-      .maybeSingle()
-
-    if (classError) {
-      authLogger.error('[joinClass] Error looking up class', classError)
-      return { success: false, error: 'Failed to lookup class' }
+    const classLookup = await lookupClassByCode(supabase, validatedClassCode)
+    if (!classLookup.success) {
+      return { success: false, error: classLookup.error }
     }
 
-    if (!classData) {
-      authLogger.debug('[joinClass] Class not found', { classCode })
+    const pinValid = verifyPin(validatedPin, classLookup.classData.join_pin)
+    if (!pinValid) {
+      authLogger.warn('[joinClass] Invalid PIN attempt', { classCode: validatedClassCode, userId: auth.user.id })
       return { success: false, error: 'Invalid class code or PIN' }
     }
 
-    // Verify PIN using constant-time comparison to prevent timing attacks
-    let pinMatch = false
-    if (classData.join_pin) {
-      try {
-        pinMatch = timingSafeEqual(Buffer.from(pin), Buffer.from(classData.join_pin))
-      } catch {
-        // timingSafeEqual throws if buffers are different lengths
-        pinMatch = false
-      }
-    }
-
-    if (!pinMatch) {
-      authLogger.warn('[joinClass] Invalid PIN attempt', { classCode, userId: auth.user.id })
-      return { success: false, error: 'Invalid class code or PIN' }
-    }
-
-    // Check if already enrolled
-    // Use .maybeSingle() instead of .single() - .single() throws PGRST116 when no rows found
-    const { data: existingEnrollment, error: enrollmentCheckError } = await supabase
-      .from('enrollments')
-      .select('id')
-      .eq('class_id', classData.id)
-      .eq('student_id', auth.user.id)
-      .maybeSingle()
-
-    if (enrollmentCheckError) {
-      authLogger.error('[joinClass] Error checking existing enrollment', enrollmentCheckError)
-      return { success: false, error: 'Failed to check enrollment status' }
-    }
-
-    if (existingEnrollment) {
+    const enrollmentCheck = await checkExistingEnrollment(
+      supabase,
+      classLookup.classData.id,
+      auth.user.id
+    )
+    if (enrollmentCheck.enrolled) {
       return { success: false, error: 'Already enrolled in this class' }
     }
-
-    // Create enrollment
-    const { data, error } = await supabase
-      .from('enrollments')
-      .insert({
-        class_id: classData.id,
-        student_id: auth.user.id,
-      })
-      .select()
-      .single()
-
-    if (error) {
-      // Don't expose raw Supabase error to client
-      authLogger.error('[joinClassWithPIN] Failed to create enrollment', {
-        code: error.code,
-        message: error.message,
-        details: error.details,
-        classId: classData.id,
-        studentId: auth.user.id,
-      })
-
-      // Return generic error message
-      if (error.code === '23505') {
-        // Unique constraint violation (already enrolled)
-        return { success: false, error: 'Already enrolled in this class' }
-      }
-
-      return { success: false, error: 'Failed to enroll in class. Please try again.' }
+    if (enrollmentCheck.error) {
+      return { success: false, error: enrollmentCheck.error }
     }
 
-    revalidatePath('/app/student/classes')
-    return {
-      success: true,
-      data: {
-        ...data,
-        className: classData.name,
-      },
+    const enrollmentResult = await createEnrollment(
+      supabase,
+      classLookup.classData.id,
+      auth.user.id,
+      classLookup.classData.name
+    )
+
+    if (enrollmentResult.success) {
+      revalidatePath('/app/student/classes')
     }
+
+    return enrollmentResult
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      const firstError = error.issues[0]
+      return { success: false, error: firstError?.message || 'Invalid input' }
+    }
+    authLogger.error('[joinClass] Unexpected error', error)
     return {
       success: false,
       error: error instanceof Error ? error.message : 'An unexpected error occurred',

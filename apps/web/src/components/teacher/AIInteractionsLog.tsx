@@ -181,9 +181,11 @@ function groupBySession(interactions: AIInteraction[]): Session[] {
       });
     }
 
-    const session = sessionMap.get(interaction.session_id)!;
-    session.messages.push(interaction);
-    session.totalTokens += interaction.tokens_used || 0;
+    const session = sessionMap.get(interaction.session_id);
+    if (session) {
+      session.messages.push(interaction);
+      session.totalTokens += interaction.tokens_used || 0;
+    }
   }
 
   // Sort sessions by start time (newest first)

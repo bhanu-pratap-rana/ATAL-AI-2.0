@@ -488,7 +488,11 @@ export class RateLimitManager {
     if (!this.limiters.has(name)) {
       this.limiters.set(name, createRateLimiter(config, this.redisClient))
     }
-    return this.limiters.get(name)!
+    const limiter = this.limiters.get(name)
+    if (!limiter) {
+      throw new Error(`Rate limiter "${name}" not found after creation`)
+    }
+    return limiter
   }
 
   /**

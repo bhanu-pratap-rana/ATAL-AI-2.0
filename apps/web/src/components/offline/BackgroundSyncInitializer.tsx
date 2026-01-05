@@ -48,17 +48,17 @@ export function BackgroundSyncInitializer() {
         case 'BACKGROUND_SYNC':
           // Service worker detected connectivity restored
           // Trigger manual sync in all SyncQueue instances
-          window.dispatchEvent(new CustomEvent('SW_SYNC_TRIGGERED', { detail: { tag } }));
+          globalThis.dispatchEvent(new CustomEvent('SW_SYNC_TRIGGERED', { detail: { tag } }));
           break;
 
         case 'SYNC_COMPLETE':
           // Service worker completed sync
-          window.dispatchEvent(new CustomEvent('SW_SYNC_COMPLETE', { detail: { tag } }));
+          globalThis.dispatchEvent(new CustomEvent('SW_SYNC_COMPLETE', { detail: { tag } }));
           break;
 
         case 'PERIODIC_SYNC':
           // Periodic sync triggered
-          window.dispatchEvent(new CustomEvent('SW_PERIODIC_SYNC', { detail: { tag } }));
+          globalThis.dispatchEvent(new CustomEvent('SW_PERIODIC_SYNC', { detail: { tag } }));
           break;
 
         default:

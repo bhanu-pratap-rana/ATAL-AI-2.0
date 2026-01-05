@@ -26,7 +26,7 @@ export function InvitePanel({ classCode, joinPin, className }: InvitePanelProps)
         pin: joinPin,
         via: 'invite',
       })
-      const joinUrl = `${window.location.origin}/join?${params.toString()}`
+      const joinUrl = `${globalThis.location.origin}/join?${params.toString()}`
 
       // Generate QR code with high error correction for better scanning reliability
       QRCode.toCanvas(
@@ -59,7 +59,7 @@ export function InvitePanel({ classCode, joinPin, className }: InvitePanelProps)
       pin: joinPin,
       via: 'invite',
     })
-    return `${window.location.origin}/join?${params.toString()}`
+    return `${globalThis.location.origin}/join?${params.toString()}`
   }
 
   const copyInviteLink = async () => {
@@ -75,7 +75,7 @@ export function InvitePanel({ classCode, joinPin, className }: InvitePanelProps)
     const inviteLink = getInviteLink()
     const message = `Join my ${className} class on ATAL AI!\n\n🔗 Click here to join: ${inviteLink}\n\nOr use:\n📝 Class Code: ${classCode}\n🔒 PIN: ${joinPin}`
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`
-    window.open(whatsappUrl, '_blank')
+    globalThis.open(whatsappUrl, '_blank')
   }
 
   const copyToClipboard = async (text: string, label: string) => {

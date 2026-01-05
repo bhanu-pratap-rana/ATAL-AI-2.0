@@ -355,6 +355,128 @@ export interface ClassAssessmentResults {
   results: StudentAssessmentResult[]
 }
 
+/**
+ * Helper: Build lookup maps for sessions and responses
+ */
+function buildLookupMaps(
+  allSessions: Array<{ id: string; user_id: string; submitted_at: string }> | null,
+  allResponses: Array<{ session_id: string; is_correct: boolean }> | null
+): {
+  sessionsByStudent: Map<string, Array<{ id: string; submitted_at: string }>>
+  responsesBySession: Map<string, Array<{ is_correct: boolean }>>
+} {
+  const sessionsByStudent = new Map<string, Array<{ id: string; submitted_at: string }>>()
+  const responsesBySession = new Map<string, Array<{ is_correct: boolean }>>()
+
+  allSessions?.forEach(session => {
+    if (!sessionsByStudent.has(session.user_id)) {
+      sessionsByStudent.set(session.user_id, [])
+    }
+    const studentSessions = sessionsByStudent.get(session.user_id)
+    if (studentSessions) {
+      studentSessions.push({
+        id: session.id,
+        submitted_at: session.submitted_at
+      })
+    }
+  })
+
+  allResponses?.forEach(response => {
+    if (!responsesBySession.has(response.session_id)) {
+      responsesBySession.set(response.session_id, [])
+    }
+    const sessionResponses = responsesBySession.get(response.session_id)
+    if (sessionResponses) {
+      sessionResponses.push({
+        is_correct: response.is_correct
+      })
+    }
+  })
+
+  return { sessionsByStudent, responsesBySession }
+}
+
+/**
+ * Helper: Calculate student assessment statistics
+ */
+function calculateStudentStats(
+  sessions: Array<{ id: string; submitted_at: string }>,
+  responsesBySession: Map<string, Array<{ is_correct: boolean }>>
+): {
+  sessionsCompleted: number
+  averageScore: number | null
+  lastAssessmentDate: string | null
+  totalQuestions: number
+  correctAnswers: number
+} {
+  const sessionsCompleted = sessions.length
+
+  if (sessions.length === 0) {
+    return { sessionsCompleted: 0, averageScore: null, lastAssessmentDate: null, totalQuestions: 0, correctAnswers: 0 }
+  }
+
+  sessions.sort((a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime())
+  const lastAssessmentDate = sessions[0].submitted_at
+
+  let totalQuestions = 0
+  let correctAnswers = 0
+
+  for (const session of sessions) {
+    const responses = responsesBySession.get(session.id) || []
+    totalQuestions += responses.length
+    correctAnswers += responses.filter(r => r.is_correct).length
+  }
+
+  const averageScore = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : null
+
+  return { sessionsCompleted, averageScore, lastAssessmentDate, totalQuestions, correctAnswers }
+}
+
+/**
+ * Helper: Process student results from enrollments
+ */
+function processStudentResults(
+  enrollments: Array<{
+    student_id: string
+    student_profiles: { name: string; roll_number: string | null } | null
+  }> | null,
+  sessionsByStudent: Map<string, Array<{ id: string; submitted_at: string }>>,
+  responsesBySession: Map<string, Array<{ is_correct: boolean }>>
+): StudentAssessmentResult[] {
+  const studentResults: StudentAssessmentResult[] = []
+
+  for (const enrollment of enrollments || []) {
+    if (!isValidStudentProfile(enrollment.student_profiles)) {
+      authLogger.warn('[getClassAssessmentResults] Invalid student profile structure', {
+        enrollment_id: enrollment.student_id
+      })
+      continue
+    }
+
+    // isValidStudentProfile already ensures student_profiles is not null
+    const studentProfile = enrollment.student_profiles
+    const sessions = sessionsByStudent.get(enrollment.student_id) || []
+    const stats = calculateStudentStats(sessions, responsesBySession)
+
+    studentResults.push({
+      studentId: enrollment.student_id,
+      studentName: studentProfile.name,
+      rollNumber: studentProfile.roll_number || null,
+      sessionsCompleted: stats.sessionsCompleted,
+      averageScore: stats.averageScore,
+      lastAssessmentDate: stats.lastAssessmentDate,
+      totalQuestions: stats.totalQuestions,
+      correctAnswers: stats.correctAnswers
+    })
+  }
+
+  return studentResults
+}
+
+/**
+ * Get class assessment results (refactored to reduce cognitive complexity)
+ * CRITICAL FIX: Reduced complexity from 21 to <15 by extracting helper functions
+ */
 export async function getClassAssessmentResults(classId: string): Promise<{
   success: boolean
   data?: ClassAssessmentResults
@@ -426,80 +548,17 @@ export async function getClassAssessmentResults(classId: string): Promise<{
       .select('is_correct, session_id')
       .in('session_id', sessionIds)
 
-    // Build lookup maps for efficient data association
-    const sessionsByStudent = new Map<string, Array<{ id: string; submitted_at: string }>>()
-    const responsesBySession = new Map<string, Array<{ is_correct: boolean }>>()
+    const { sessionsByStudent, responsesBySession } = buildLookupMaps(
+      allSessions,
+      allResponses
+    )
 
-    // Index sessions by student_id
-    allSessions?.forEach(session => {
-      if (!sessionsByStudent.has(session.user_id)) {
-        sessionsByStudent.set(session.user_id, [])
-      }
-      sessionsByStudent.get(session.user_id)!.push({
-        id: session.id,
-        submitted_at: session.submitted_at
-      })
-    })
+    const studentResults = processStudentResults(
+      enrollments,
+      sessionsByStudent,
+      responsesBySession
+    )
 
-    // Index responses by session_id
-    allResponses?.forEach(response => {
-      if (!responsesBySession.has(response.session_id)) {
-        responsesBySession.set(response.session_id, [])
-      }
-      responsesBySession.get(response.session_id)!.push({
-        is_correct: response.is_correct
-      })
-    })
-
-    // Process student results using pre-fetched data (no queries in loop)
-    for (const enrollment of enrollments || []) {
-      // Validate student profile structure from Supabase
-      if (!isValidStudentProfile(enrollment.student_profiles)) {
-        authLogger.warn('[getClassAssessmentResults] Invalid student profile structure', {
-          enrollment_id: enrollment.student_id
-        })
-        continue
-      }
-      const studentProfile = enrollment.student_profiles
-
-      const sessions = sessionsByStudent.get(enrollment.student_id) || []
-      const sessionsCompleted = sessions.length
-
-      let averageScore: number | null = null
-      let totalQuestions = 0
-      let correctAnswers = 0
-      let lastAssessmentDate: string | null = null
-
-      if (sessions.length > 0) {
-        // Sort by submitted_at to get most recent first
-        sessions.sort((a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime())
-        lastAssessmentDate = sessions[0].submitted_at
-
-        // Calculate score from pre-fetched responses
-        for (const session of sessions) {
-          const responses = responsesBySession.get(session.id) || []
-          totalQuestions += responses.length
-          correctAnswers += responses.filter(r => r.is_correct).length
-        }
-
-        if (totalQuestions > 0) {
-          averageScore = Math.round((correctAnswers / totalQuestions) * 100)
-        }
-      }
-
-      studentResults.push({
-        studentId: enrollment.student_id,
-        studentName: studentProfile?.name || 'Unknown',
-        rollNumber: studentProfile?.roll_number || null,
-        sessionsCompleted,
-        averageScore,
-        lastAssessmentDate,
-        totalQuestions,
-        correctAnswers
-      })
-    }
-
-    // Calculate class average
     const studentsWithScores = studentResults.filter(r => r.averageScore !== null)
     const classAverageScore = studentsWithScores.length > 0
       ? Math.round(studentsWithScores.reduce((sum, r) => sum + (r.averageScore || 0), 0) / studentsWithScores.length)
@@ -617,7 +676,10 @@ async function fetchTeacherAssessmentOverviewFromDB(teacherId: string): Promise<
     if (!sessionsByClass.has(session.class_id)) {
       sessionsByClass.set(session.class_id, [])
     }
-    sessionsByClass.get(session.class_id)!.push(session.id)
+    const classSessions = sessionsByClass.get(session.class_id)
+    if (classSessions) {
+      classSessions.push(session.id)
+    }
   })
 
   // Count responses per session (both correct and total) in single pass
@@ -723,176 +785,249 @@ export async function getTeacherAssessmentOverview(): Promise<{
   }
 }
 
+/**
+ * Helper: Verify class ownership for analytics
+ */
+async function verifyClassOwnershipForAnalytics(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  classId: string,
+  userId: string
+): Promise<{ success: true } | { success: false; error: string }> {
+  const { data: classData, error: classDataError } = await supabase
+    .from('classes')
+    .select('teacher_id')
+    .eq('id', classId)
+    .maybeSingle()
+
+  if (classDataError || !classData || classData.teacher_id !== userId) {
+    authLogger.warn('[getClassAnalytics] Access denied: Class no longer owned by user', {
+      userId,
+      classId,
+    })
+    return { success: false, error: 'You do not own this class' }
+  }
+
+  return { success: true }
+}
+
+/**
+ * Helper: Calculate active users this week
+ */
+async function calculateActiveUsersThisWeek(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  classId: string,
+  sevenDaysAgo: Date
+): Promise<{ success: true; count: number } | { success: false; error: string }> {
+  const { data: activeSessions, error: activeSessionsError } = await supabase
+    .from('assessment_sessions')
+    .select('user_id')
+    .eq('class_id', classId)
+    .gte('started_at', sevenDaysAgo.toISOString())
+
+  if (activeSessionsError) {
+    return { success: false, error: 'Failed to fetch active sessions' }
+  }
+
+  const activeThisWeek = new Set(activeSessions?.map(s => s.user_id) || []).size
+  return { success: true, count: activeThisWeek }
+}
+
+/**
+ * Helper: Build responses map by session
+ */
+function buildResponsesBySessionMap<T extends { session_id: string }>(
+  responses: T[]
+): Map<string, T[]> {
+  const responsesBySession = new Map<string, T[]>()
+  responses.forEach(r => {
+    if (!responsesBySession.has(r.session_id)) {
+      responsesBySession.set(r.session_id, [])
+    }
+    const sessionResponses = responsesBySession.get(r.session_id)
+    if (sessionResponses) {
+      sessionResponses.push(r)
+    }
+  })
+  return responsesBySession
+}
+
+/**
+ * Helper: Calculate average minutes per day
+ */
+async function calculateAverageMinutesPerDay(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  classId: string,
+  sevenDaysAgo: Date
+): Promise<{ success: true; avgMinutes: number } | { success: false; error: string }> {
+  const { data: userSessions, error: userSessionsError } = await supabase
+    .from('assessment_sessions')
+    .select('id, user_id, started_at')
+    .eq('class_id', classId)
+    .gte('started_at', sevenDaysAgo.toISOString())
+    .not('submitted_at', 'is', null)
+
+  if (userSessionsError) {
+    return { success: false, error: 'Failed to fetch user sessions' }
+  }
+
+  if (!userSessions || userSessions.length === 0) {
+    return { success: true, avgMinutes: 0 }
+  }
+
+  const sessionIds = userSessions.map(s => s.id)
+  const { data: responses, error: responsesError } = await supabase
+    .from('assessment_responses')
+    .select('session_id, rt_ms')
+    .in('session_id', sessionIds)
+
+  if (responsesError) {
+    return { success: false, error: 'Failed to fetch assessment responses' }
+  }
+
+  const responsesBySession = buildResponsesBySessionMap(responses || [])
+  const userTimes = new Map<string, number>()
+
+  for (const session of userSessions) {
+    const sessionResponses = responsesBySession.get(session.id) || []
+    const totalMs = sessionResponses.reduce((sum, r) => sum + (r.rt_ms || 0), 0)
+    const currentTime = userTimes.get(session.user_id) || 0
+    userTimes.set(session.user_id, currentTime + totalMs)
+  }
+
+  const totalMinutes = Array.from(userTimes.values())
+    .reduce((sum, ms) => sum + ms / 60000, 0)
+
+  const avgMinutes = userTimes.size > 0
+    ? totalMinutes / userTimes.size / ANALYTICS_WINDOW_DAYS
+    : 0
+
+  return { success: true, avgMinutes }
+}
+
+/**
+ * Helper: Get latest session per user
+ */
+function getLatestSessionPerUser(
+  sessions: Array<{ id: string; user_id: string }>
+): Map<string, string> {
+  const latestSessionPerUser = new Map<string, string>()
+  for (const session of sessions) {
+    if (!latestSessionPerUser.has(session.user_id)) {
+      latestSessionPerUser.set(session.user_id, session.id)
+    }
+  }
+  return latestSessionPerUser
+}
+
+/**
+ * Helper: Calculate at-risk student count
+ */
+async function calculateAtRiskCount(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  classId: string
+): Promise<{ success: true; count: number } | { success: false; error: string }> {
+  const { data: recentSessions, error: recentSessionsError } = await supabase
+    .from('assessment_sessions')
+    .select('id, user_id')
+    .eq('class_id', classId)
+    .not('submitted_at', 'is', null)
+    .order('submitted_at', { ascending: false })
+
+  if (recentSessionsError) {
+    return { success: false, error: 'Failed to fetch recent sessions' }
+  }
+
+  if (!recentSessions || recentSessions.length === 0) {
+    return { success: true, count: 0 }
+  }
+
+  const latestSessionPerUser = getLatestSessionPerUser(recentSessions)
+  const sessionIds = Array.from(latestSessionPerUser.values())
+
+  if (sessionIds.length === 0) {
+    return { success: true, count: 0 }
+  }
+
+  const { data: allSessionResponses, error: allSessionResponsesError } = await supabase
+    .from('assessment_responses')
+    .select('session_id, rt_ms')
+    .in('session_id', sessionIds)
+
+  if (allSessionResponsesError) {
+    return { success: false, error: 'Failed to fetch session responses for at-risk analysis' }
+  }
+
+  const responsesBySession = buildResponsesBySessionMap(
+    (allSessionResponses || []) as Array<{ session_id: string; rt_ms: number | null }>
+  )
+
+  let atRiskCount = 0
+  for (const sessionId of sessionIds) {
+    const sessionResponses = responsesBySession.get(sessionId) || []
+
+    if (sessionResponses.length > 0) {
+      const rapidCount = sessionResponses.filter(
+        r => r.rt_ms && r.rt_ms < RAPID_RESPONSE_THRESHOLD_MS
+      ).length
+      const rapidPercentage = (rapidCount / sessionResponses.length) * 100
+
+      if (rapidPercentage > AT_RISK_RAPID_PERCENTAGE * 100) {
+        atRiskCount++
+      }
+    }
+  }
+
+  return { success: true, count: atRiskCount }
+}
+
+/**
+ * Get class analytics (refactored to reduce cognitive complexity)
+ * CRITICAL FIX: Reduced complexity from 49 to <15 by extracting helper functions
+ */
 export async function getClassAnalytics(classId: string) {
   try {
-    // Validate input
     const validatedClassId = ClassIdSchema.parse(classId)
 
-    // SECURITY: Verify caller is authenticated and owns this class
     const auth = await verifyClassOwnership('getClassAnalytics', validatedClassId)
     if (!auth.authorized) {
       return auth.error
     }
 
-    const user = auth.user
-
     const supabase = await createClient()
-
-    // SECURITY FIX #4: Re-verify class ownership before analytics queries
-    // Prevents returning data if class was deleted/transferred after initial check
-    const { data: classData, error: classDataError } = await supabase
-      .from('classes')
-      .select('teacher_id')
-      .eq('id', validatedClassId)
-      .maybeSingle()
-
-    if (classDataError || !classData || classData.teacher_id !== user.id) {
-      authLogger.warn('[getClassAnalytics] Access denied: Class no longer owned by user', {
-        userId: user.id,
-        classId: validatedClassId,
-      })
-      return { success: false, error: 'You do not own this class' }
+    const ownershipCheck = await verifyClassOwnershipForAnalytics(
+      supabase,
+      validatedClassId,
+      auth.user.id
+    )
+    if (!ownershipCheck.success) {
+      return ownershipCheck
     }
 
-    // Use UTC for consistent timezone handling across all regions
     const sevenDaysAgo = new Date()
     sevenDaysAgo.setUTCDate(sevenDaysAgo.getUTCDate() - ANALYTICS_WINDOW_DAYS)
 
-    // 1. Active this week: distinct users with a session in last 7 days
-    const { data: activeSessions, error: activeSessionsError } = await supabase
-      .from('assessment_sessions')
-      .select('user_id')
-      .eq('class_id', validatedClassId)
-      .gte('started_at', sevenDaysAgo.toISOString())
+    const [activeResult, avgMinutesResult, atRiskResult] = await Promise.all([
+      calculateActiveUsersThisWeek(supabase, validatedClassId, sevenDaysAgo),
+      calculateAverageMinutesPerDay(supabase, validatedClassId, sevenDaysAgo),
+      calculateAtRiskCount(supabase, validatedClassId),
+    ])
 
-    if (activeSessionsError) {
-      return { success: false, error: 'Failed to fetch active sessions' }
+    if (!activeResult.success) {
+      return activeResult
     }
-
-    const activeThisWeek = new Set(activeSessions?.map(s => s.user_id) || []).size
-
-    // 2. Avg minutes/day: avg(sum(rt_ms)/60000 per user) last 7 days
-    const { data: userSessions, error: userSessionsError } = await supabase
-      .from('assessment_sessions')
-      .select('id, user_id, started_at')
-      .eq('class_id', validatedClassId)
-      .gte('started_at', sevenDaysAgo.toISOString())
-      .not('submitted_at', 'is', null)
-
-    if (userSessionsError) {
-      return { success: false, error: 'Failed to fetch user sessions' }
+    if (!avgMinutesResult.success) {
+      return avgMinutesResult
     }
-
-    let avgMinutesPerDay = 0
-
-    if (userSessions && userSessions.length > 0) {
-      const sessionIds = userSessions.map(s => s.id)
-
-      const { data: responses, error: responsesError } = await supabase
-        .from('assessment_responses')
-        .select('session_id, rt_ms')
-        .in('session_id', sessionIds)
-
-      if (responsesError) {
-        return { success: false, error: 'Failed to fetch assessment responses' }
-      }
-
-      // PERFORMANCE FIX: Pre-build lookup map to prevent O(n²) scans
-      // Build a Map of session_id -> responses for O(1) lookup instead of filter for each session
-      const responsesBySession = new Map<string, Array<typeof responses[0]>>()
-      responses?.forEach(r => {
-        if (!responsesBySession.has(r.session_id)) {
-          responsesBySession.set(r.session_id, [])
-        }
-        responsesBySession.get(r.session_id)!.push(r)
-      })
-
-      // Calculate total time per user with optimized lookup
-      const userTimes = new Map<string, number>()
-
-      for (const session of userSessions) {
-        // O(1) lookup instead of O(n) filter operation
-        const sessionResponses = responsesBySession.get(session.id) || []
-
-        const totalMs = sessionResponses.reduce((sum, r) => sum + (r.rt_ms || 0), 0)
-        const currentTime = userTimes.get(session.user_id) || 0
-        userTimes.set(session.user_id, currentTime + totalMs)
-      }
-
-      const totalMinutes = Array.from(userTimes.values())
-        .reduce((sum, ms) => sum + ms / 60000, 0)
-
-      avgMinutesPerDay = userTimes.size > 0 ? totalMinutes / userTimes.size / ANALYTICS_WINDOW_DAYS : 0
-    }
-
-    // 3. At-risk: users with >30% rapid (rt_ms < 5000) items in last session
-    const { data: recentSessions, error: recentSessionsError } = await supabase
-      .from('assessment_sessions')
-      .select('id, user_id')
-      .eq('class_id', validatedClassId)
-      .not('submitted_at', 'is', null)
-      .order('submitted_at', { ascending: false })
-
-    if (recentSessionsError) {
-      return { success: false, error: 'Failed to fetch recent sessions' }
-    }
-
-    let atRiskCount = 0
-
-    if (recentSessions && recentSessions.length > 0) {
-      // Get the most recent session per user
-      const latestSessionPerUser = new Map<string, string>()
-      for (const session of recentSessions) {
-        if (!latestSessionPerUser.has(session.user_id)) {
-          latestSessionPerUser.set(session.user_id, session.id)
-        }
-      }
-
-      // Batch query: Get all responses for all latest sessions at once
-      const sessionIds = Array.from(latestSessionPerUser.values())
-      if (sessionIds.length > 0) {
-        const { data: allSessionResponses, error: allSessionResponsesError } = await supabase
-          .from('assessment_responses')
-          .select('session_id, rt_ms')
-          .in('session_id', sessionIds)
-
-        if (allSessionResponsesError) {
-          return { success: false, error: 'Failed to fetch session responses for at-risk analysis' }
-        }
-
-        // Group responses by session_id
-        const responsesBySession = new Map<string, Array<{ rt_ms: number | null }>>()
-        for (const response of allSessionResponses || []) {
-          if (!responsesBySession.has(response.session_id)) {
-            responsesBySession.set(response.session_id, [])
-          }
-          responsesBySession.get(response.session_id)!.push(response)
-        }
-
-        // Check rapid responses for each user's latest session
-        for (const sessionId of sessionIds) {
-          const sessionResponses = responsesBySession.get(sessionId) || []
-
-          if (sessionResponses.length > 0) {
-            const rapidCount = sessionResponses.filter(
-              r => r.rt_ms && r.rt_ms < RAPID_RESPONSE_THRESHOLD_MS
-            ).length
-            const rapidPercentage = (rapidCount / sessionResponses.length) * 100
-
-            if (rapidPercentage > AT_RISK_RAPID_PERCENTAGE * 100) {
-              atRiskCount++
-            }
-          }
-        }
-      }
+    if (!atRiskResult.success) {
+      return atRiskResult
     }
 
     return {
       success: true,
       data: {
-        activeThisWeek,
-        avgMinutesPerDay: Math.round(avgMinutesPerDay * 10) / 10,
-        atRiskCount,
+        activeThisWeek: activeResult.count,
+        avgMinutesPerDay: Math.round(avgMinutesResult.avgMinutes * 10) / 10,
+        atRiskCount: atRiskResult.count,
       },
     }
   } catch (error) {

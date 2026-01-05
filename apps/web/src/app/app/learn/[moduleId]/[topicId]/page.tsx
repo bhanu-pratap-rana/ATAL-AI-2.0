@@ -69,13 +69,83 @@ export default function LessonPage() {
   const [lesson, setLesson] = useState<LessonContent>(DEFAULT_LESSON);
   const [loading, setLoading] = useState(true);
 
-  // Fetch lesson content from database
+  /**
+   * Helper: Fetch practice questions for topic
+   */
+  async function fetchPracticeQuestions(
+    supabase: ReturnType<typeof createClient>,
+    topicId: string
+  ): Promise<Array<{
+    id: string;
+    question: string;
+    options: string[];
+    correct: number;
+    explanation: string;
+  }>> {
+    const { data: questionsData, error: questionsError } = await supabase
+      .from('practice_questions')
+      .select('*')
+      .eq('topic_id', topicId)
+      .order('order_index', { ascending: true });
+
+    if (questionsError) {
+      clientLogger.error('[LessonPage] Error fetching practice questions', questionsError instanceof Error ? questionsError : { error: String(questionsError) });
+    }
+
+    return (questionsData || []).map((q) => ({
+      id: q.id,
+      question: q.question,
+      options: q.options || [],
+      correct: q.correct_index || 0,
+      explanation: q.explanation || '',
+    }));
+  }
+
+  /**
+   * Helper: Build lesson content from database data
+   */
+  function buildLessonFromData(
+    contentData: Array<{
+      content_type: string;
+      content: string;
+      metadata?: { title_en?: string; title_as?: string; image_url?: string };
+    }>,
+    questions: Array<{
+      id: string;
+      question: string;
+      options: string[];
+      correct: number;
+      explanation: string;
+    }>,
+    topicId: string
+  ): LessonContent {
+    const sections = contentData.map((c) => ({
+      type: c.content_type as LessonContent['sections'][0]['type'],
+      content: c.content,
+      image_url: c.metadata?.image_url,
+    }));
+
+    const firstContent = contentData[0].content || '';
+    const firstLine = firstContent.split('\n')[0].trim();
+    const extractedTitle = firstLine.replace(/^#*\s*/, '');
+
+    return {
+      title_en: contentData[0].metadata?.title_en || extractedTitle || `Topic ${topicId}`,
+      title_as: contentData[0].metadata?.title_as || topicId,
+      sections,
+      practice_questions: questions,
+    };
+  }
+
+  /**
+   * Fetch lesson content from database (refactored to reduce cognitive complexity)
+   * CRITICAL FIX: Reduced complexity from 26 to <15 by extracting helper functions
+   */
   useEffect(() => {
     const fetchLessonContent = async () => {
       try {
         const supabase = createClient();
 
-        // Fetch lesson content from curriculum_content table
         const { data: contentData, error: contentError } = await supabase
           .from('curriculum_content')
           .select('*')
@@ -89,46 +159,12 @@ export default function LessonPage() {
           return;
         }
 
-        // Fetch practice questions for this topic
-        const { data: questionsData, error: questionsError } = await supabase
-          .from('practice_questions')
-          .select('*')
-          .eq('topic_id', topicId)
-          .order('order_index', { ascending: true });
-
-        if (questionsError) {
-          clientLogger.error('[LessonPage] Error fetching practice questions', questionsError instanceof Error ? questionsError : { error: String(questionsError) });
-        }
+        const questions = await fetchPracticeQuestions(supabase, topicId);
 
         if (contentData && contentData.length > 0) {
-          // Build lesson from database content
-          const sections = contentData.map((c) => ({
-            type: c.content_type as LessonContent['sections'][0]['type'],
-            content: c.content,
-            image_url: c.metadata?.image_url,
-          }));
-
-          const questions = (questionsData || []).map((q) => ({
-            id: q.id,
-            question: q.question,
-            options: q.options || [],
-            correct: q.correct_index || 0,
-            explanation: q.explanation || '',
-          }));
-
-          // Extract title from first line of content or metadata
-          const firstContent = contentData[0].content || '';
-          const firstLine = firstContent.split('\n')[0].trim();
-          const extractedTitle = firstLine.replace(/^#*\s*/, ''); // Remove markdown headers
-
-          setLesson({
-            title_en: contentData[0].metadata?.title_en || extractedTitle || `Topic ${topicId}`,
-            title_as: contentData[0].metadata?.title_as || topicId,
-            sections,
-            practice_questions: questions,
-          });
+          const lesson = buildLessonFromData(contentData, questions, topicId);
+          setLesson(lesson);
         } else {
-          // No content in database yet
           setLesson(DEFAULT_LESSON);
         }
 

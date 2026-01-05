@@ -70,7 +70,7 @@ export async function getSchoolPINInfo(schoolId: string): Promise<AdminPINAction
     // SECURITY: Verify admin authorization
     const authCheck = await verifyAdminAuth('getSchoolPINInfo')
     if (!authCheck.authorized) {
-      return authCheck.error!
+      return authCheck.error
     }
 
     if (!schoolId) {
@@ -167,7 +167,7 @@ export async function rotateSchoolPIN(schoolId: string, customPIN?: string): Pro
     // SECURITY: Verify admin authorization
     const authCheck = await verifyAdminAuth('rotateSchoolPIN')
     if (!authCheck.authorized) {
-      return authCheck.error!
+      return authCheck.error
     }
 
     if (!schoolId) {
@@ -177,11 +177,14 @@ export async function rotateSchoolPIN(schoolId: string, customPIN?: string): Pro
       }
     }
 
+    // TypeScript now knows authCheck.user exists due to discriminated union
+    const user = authCheck.user
+
     // SECURITY: Rate limit PIN rotation to prevent abuse
-    const rateLimitKey = `pin-rotation:${authCheck.user!.id}`
+    const rateLimitKey = `pin-rotation:${user.id}`
     const isAllowed = await checkRateLimit(rateLimitKey, RATE_LIMITS.pinRotation)
     if (!isAllowed) {
-      authLogger.warn('[rotateSchoolPIN] Rate limit exceeded', { userId: authCheck.user!.id, schoolId })
+      authLogger.warn('[rotateSchoolPIN] Rate limit exceeded', { userId: user.id, schoolId })
       return {
         success: false,
         error: 'Too many PIN rotation requests. Please wait before trying again.',
@@ -253,7 +256,7 @@ export async function getAllSchoolsWithPINs(): Promise<AdminPINActionResult> {
     // SECURITY: Verify admin authorization
     const authCheck = await verifyAdminAuth('getAllSchoolsWithPINs')
     if (!authCheck.authorized) {
-      return authCheck.error!
+      return authCheck.error
     }
 
     const supabase = await createClient()
@@ -324,7 +327,7 @@ export async function getPINStatistics(): Promise<AdminPINActionResult> {
     // SECURITY: Verify admin authorization
     const authCheck = await verifyAdminAuth('getPINStatistics')
     if (!authCheck.authorized) {
-      return authCheck.error!
+      return authCheck.error
     }
 
     const supabase = await createClient()

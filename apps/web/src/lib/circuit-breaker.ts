@@ -186,7 +186,11 @@ export class CircuitBreakerFactory {
     if (!this.breakers.has(name)) {
       this.breakers.set(name, new CircuitBreaker(options));
     }
-    return this.breakers.get(name)!;
+    const breaker = this.breakers.get(name);
+    if (!breaker) {
+      throw new Error(`Circuit breaker for ${name} not found after creation`);
+    }
+    return breaker;
   }
 
   /**

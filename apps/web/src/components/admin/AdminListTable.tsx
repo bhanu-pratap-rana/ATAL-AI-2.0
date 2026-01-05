@@ -55,7 +55,7 @@ export function AdminListTable({ refreshTrigger = 0, onAdminDeleted }: AdminList
   }
 
   async function handleDeleteAdmin(adminId: string, email: string) {
-    if (!window.confirm(`Are you sure you want to delete ${email}? This cannot be undone.`)) {
+    if (!globalThis.confirm(`Are you sure you want to delete ${email}? This cannot be undone.`)) {
       return
     }
 
