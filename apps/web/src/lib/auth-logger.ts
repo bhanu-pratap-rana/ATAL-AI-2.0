@@ -30,8 +30,8 @@ interface WindowWithSentry extends Window {
  * Get Sentry instance from window (client-side only)
  */
 function getSentry(): WindowWithSentry['Sentry'] | undefined {
-  if (typeof window === 'undefined') return undefined
-  return (window as WindowWithSentry).Sentry
+  if (typeof globalThis === 'undefined') return undefined
+  return (globalThis as unknown as WindowWithSentry).Sentry
 }
 
 /**

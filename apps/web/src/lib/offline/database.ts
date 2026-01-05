@@ -109,7 +109,7 @@ export const offlineDB = new ATALOfflineDB();
  */
 export function isOfflineStorageAvailable(): boolean {
   try {
-    return typeof window !== 'undefined' && 'indexedDB' in window;
+    return typeof globalThis !== 'undefined' && 'indexedDB' in globalThis;
   } catch {
     return false;
   }
