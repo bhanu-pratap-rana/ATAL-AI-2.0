@@ -18,11 +18,11 @@ import { useCallback } from 'react'
 export type QuestionStatus = 'current' | 'answered' | 'skipped' | 'unanswered'
 
 interface QuestionPaginationProps {
-  totalQuestions: number
-  currentIndex: number
-  questionStatuses: QuestionStatus[]
-  historyLength: number
-  onJumpTo: (index: number) => void
+  readonly totalQuestions: number
+  readonly currentIndex: number
+  readonly questionStatuses: QuestionStatus[]
+  readonly historyLength: number
+  readonly onJumpTo: (index: number) => void
 }
 
 export function QuestionPagination({

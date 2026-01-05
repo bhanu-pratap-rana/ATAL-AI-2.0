@@ -51,9 +51,9 @@ interface SpeechRecognition extends EventTarget {
 }
 
 interface VoiceChatProps {
-  language: 'en' | 'hi' | 'as';
-  onTranscript: (transcript: string) => void;
-  disabled?: boolean;
+  readonly language: 'en' | 'hi' | 'as';
+  readonly onTranscript: (transcript: string) => void;
+  readonly disabled?: boolean;
 }
 
 export function VoiceChat({ language, onTranscript, disabled = false }: VoiceChatProps) {

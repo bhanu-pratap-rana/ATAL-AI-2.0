@@ -9,9 +9,9 @@ import { authLogger } from '@/lib/auth-logger'
 import { QR_CODE_COLORS } from '@/lib/constants/theme-colors'
 
 interface InvitePanelProps {
-  classCode: string
-  joinPin: string
-  className: string
+  readonly classCode: string
+  readonly joinPin: string
+  readonly className: string
 }
 
 export function InvitePanel({ classCode, joinPin, className }: InvitePanelProps) {
