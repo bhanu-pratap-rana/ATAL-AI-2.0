@@ -562,7 +562,38 @@ export default function AdminSchoolsPage() {
             </h2>
 
             <div className="space-y-4">
-              {!pinStatus ? (
+              {pinStatus ? (
+                pinStatus.exists ? (
+                  <div className="bg-cyan-lightest border-l-4 border-cyan p-4 rounded">
+                    <p className="text-xs text-cyan-darkest font-semibold">✓ PIN Exists</p>
+                    <p className="text-sm text-cyan-darkest mt-2">
+                      <strong>Created:</strong>{' '}
+                      {pinStatus.createdAt
+                        ? new Date(pinStatus.createdAt).toLocaleDateString()
+                        : 'N/A'}
+                    </p>
+                    {pinStatus.lastRotatedAt && (
+                      <p className="text-sm text-cyan-darkest">
+                        <strong>Last Rotated:</strong>{' '}
+                        {new Date(pinStatus.lastRotatedAt).toLocaleDateString()}
+                      </p>
+                    )}
+                    <p className="text-xs text-cyan-dark mt-3 font-semibold">
+                      👇 Scroll down to Step 3 to rotate the PIN
+                    </p>
+                  </div>
+                ) : (
+                  <div className="bg-warning-light border-l-4 border-warning p-4 rounded">
+                    <p className="text-xs text-warning-dark font-semibold">⚠ No PIN Found</p>
+                    <p className="text-sm text-warning-dark mt-2">
+                      This school doesn&apos;t have a PIN yet. Create one in Step 3.
+                    </p>
+                    <p className="text-xs text-warning mt-3 font-semibold">
+                      👇 Scroll down to Step 3 to create the PIN
+                    </p>
+                  </div>
+                )
+              ) : (
                 <Button
                   onClick={() => handleGetPinStatus(schoolCode)}
                   variant="outline"
@@ -571,35 +602,6 @@ export default function AdminSchoolsPage() {
                 >
                   Check PIN Status
                 </Button>
-              ) : pinStatus.exists ? (
-                <div className="bg-cyan-lightest border-l-4 border-cyan p-4 rounded">
-                  <p className="text-xs text-cyan-darkest font-semibold">✓ PIN Exists</p>
-                  <p className="text-sm text-cyan-darkest mt-2">
-                    <strong>Created:</strong>{' '}
-                    {pinStatus.createdAt
-                      ? new Date(pinStatus.createdAt).toLocaleDateString()
-                      : 'N/A'}
-                  </p>
-                  {pinStatus.lastRotatedAt && (
-                    <p className="text-sm text-cyan-darkest">
-                      <strong>Last Rotated:</strong>{' '}
-                      {new Date(pinStatus.lastRotatedAt).toLocaleDateString()}
-                    </p>
-                  )}
-                  <p className="text-xs text-cyan-dark mt-3 font-semibold">
-                    👇 Scroll down to Step 3 to rotate the PIN
-                  </p>
-                </div>
-              ) : (
-                <div className="bg-warning-light border-l-4 border-warning p-4 rounded">
-                  <p className="text-xs text-warning-dark font-semibold">⚠ No PIN Found</p>
-                  <p className="text-sm text-warning-dark mt-2">
-                    This school doesn&apos;t have a PIN yet. Create one in Step 3.
-                  </p>
-                  <p className="text-xs text-warning mt-3 font-semibold">
-                    👇 Scroll down to Step 3 to create the PIN
-                  </p>
-                </div>
               )}
             </div>
           </div>
