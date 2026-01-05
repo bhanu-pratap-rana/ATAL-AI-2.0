@@ -8,12 +8,12 @@ import { Label } from '@/components/ui/label'
 import { Shield, Building2 } from 'lucide-react'
 
 interface TeacherSchoolVerificationFormProps {
-  schoolCode: string
-  staffPin: string
-  loading: boolean
-  onSchoolCodeChange: (value: string) => void
-  onStaffPinChange: (value: string) => void
-  onSubmit: (e: FormEvent) => void
+  readonly schoolCode: string
+  readonly staffPin: string
+  readonly loading: boolean
+  readonly onSchoolCodeChange: (value: string) => void
+  readonly onStaffPinChange: (value: string) => void
+  readonly onSubmit: (e: FormEvent) => void
 }
 
 export function TeacherSchoolVerificationForm({
