@@ -33,8 +33,8 @@ interface AIInteraction {
 }
 
 interface AIInteractionsLogProps {
-  classId: string;
-  limit?: number;
+  readonly classId: string;
+  readonly limit?: number;
 }
 
 export function AIInteractionsLog({ classId, limit = 20 }: AIInteractionsLogProps) {
@@ -194,7 +194,7 @@ function groupBySession(interactions: AIInteraction[]): Session[] {
     .slice(0, 10);
 }
 
-function SessionCard({ session }: { session: Session }) {
+function SessionCard({ session }: { readonly session: Session }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const languageEmoji = {

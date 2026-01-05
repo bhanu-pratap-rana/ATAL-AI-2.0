@@ -8,15 +8,15 @@ import { Label } from '@/components/ui/label'
 import { ArrowLeft } from 'lucide-react'
 
 interface TeacherLoginFormProps {
-  email: string
-  password: string
-  error: string
-  loading: boolean
-  onEmailChange: (value: string) => void
-  onPasswordChange: (value: string) => void
-  onSubmit: (e: FormEvent) => void
-  onForgotPassword: () => void
-  onBack: () => void
+  readonly email: string
+  readonly password: string
+  readonly error: string
+  readonly loading: boolean
+  readonly onEmailChange: (value: string) => void
+  readonly onPasswordChange: (value: string) => void
+  readonly onSubmit: (e: FormEvent) => void
+  readonly onForgotPassword: () => void
+  readonly onBack: () => void
 }
 
 export function TeacherLoginForm({
