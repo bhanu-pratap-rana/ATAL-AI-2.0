@@ -189,8 +189,8 @@ export function useNetworkStatus(): NetworkStatus {
     };
 
     // Add event listeners
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    globalThis.addEventListener('online', handleOnline);
+    globalThis.addEventListener('offline', handleOffline);
 
     // Add NetworkInformation API listener if available
     const connection = navigator.connection;
@@ -203,8 +203,8 @@ export function useNetworkStatus(): NetworkStatus {
 
     // Cleanup
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+      globalThis.removeEventListener('online', handleOnline);
+      globalThis.removeEventListener('offline', handleOffline);
 
       if (connection) {
         connection.removeEventListener('change', handleConnectionChange);

@@ -112,10 +112,12 @@ async function getModuleProgress(userId: string): Promise<Map<string, ModuleProg
     if (!moduleData.has(state.module_id)) {
       moduleData.set(state.module_id, { mastery: [], completed: 0 });
     }
-    const mod = moduleData.get(state.module_id)!;
-    mod.mastery.push(state.mastery_score || 0);
-    if (state.status === 'mastered' || (state.mastery_score || 0) >= 70) {
-      mod.completed++;
+    const mod = moduleData.get(state.module_id);
+    if (mod) {
+      mod.mastery.push(state.mastery_score || 0);
+      if (state.status === 'mastered' || (state.mastery_score || 0) >= 70) {
+        mod.completed++;
+      }
     }
   }
 
@@ -259,7 +261,8 @@ export default async function LearnPage() {
         {/* Module Cards */}
         <div className="space-y-4">
           {MODULES.map((module, index) => {
-            const progress = progressMap.get(module.id)!;
+            const progress = progressMap.get(module.id);
+            if (!progress) continue;
             const previousModule = index > 0 ? progressMap.get(MODULES[index - 1].id) : null;
             const isUnlocked = index === 0 || (previousModule?.is_complete ?? false);
             const progressPercent = Math.round((progress.topics_completed / module.topics) * 100);

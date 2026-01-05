@@ -167,14 +167,17 @@ export async function getDashboardMetrics(): Promise<{ success: boolean; data?: 
     // SECURITY: Verify admin authorization
     const authCheck = await verifyAdminAuth('getDashboardMetrics')
     if (!authCheck.authorized) {
-      return authCheck.error!
+      return authCheck.error
     }
 
+    // TypeScript now knows authCheck.user exists due to discriminated union
+    const user = authCheck.user
+
     // SECURITY: Rate limit admin metrics to prevent abuse
-    const rateLimitKey = `admin-metrics:${authCheck.user!.id}`
+    const rateLimitKey = `admin-metrics:${user.id}`
     const isAllowed = await checkRateLimit(rateLimitKey, RATE_LIMITS.adminMetrics)
     if (!isAllowed) {
-      authLogger.warn('[getDashboardMetrics] Rate limit exceeded', { userId: authCheck.user!.id })
+      authLogger.warn('[getDashboardMetrics] Rate limit exceeded', { userId: user.id })
       return { success: false, error: 'Too many requests. Please wait before trying again.' }
     }
 
@@ -218,14 +221,17 @@ export async function getSchoolStatsByDistrict(): Promise<{
     // SECURITY: Verify admin authorization
     const authCheck = await verifyAdminAuth('getSchoolStatsByDistrict')
     if (!authCheck.authorized) {
-      return authCheck.error!
+      return authCheck.error
     }
 
+    // TypeScript now knows authCheck.user exists due to discriminated union
+    const user = authCheck.user
+
     // SECURITY: Rate limit admin metrics to prevent abuse
-    const rateLimitKey = `admin-school-stats:${authCheck.user!.id}`
+    const rateLimitKey = `admin-school-stats:${user.id}`
     const isAllowed = await checkRateLimit(rateLimitKey, RATE_LIMITS.adminMetrics)
     if (!isAllowed) {
-      authLogger.warn('[getSchoolStatsByDistrict] Rate limit exceeded', { userId: authCheck.user!.id })
+      authLogger.warn('[getSchoolStatsByDistrict] Rate limit exceeded', { userId: user.id })
       return { success: false, error: 'Too many requests. Please wait before trying again.' }
     }
 
@@ -336,14 +342,17 @@ export async function getSchoolsWithActivePINs(): Promise<{
     // SECURITY: Verify admin authorization
     const authCheck = await verifyAdminAuth('getSchoolsWithActivePINs')
     if (!authCheck.authorized) {
-      return authCheck.error!
+      return authCheck.error
     }
 
+    // TypeScript now knows authCheck.user exists due to discriminated union
+    const user = authCheck.user
+
     // SECURITY: Rate limit admin metrics to prevent abuse
-    const rateLimitKey = `admin-active-pins:${authCheck.user!.id}`
+    const rateLimitKey = `admin-active-pins:${user.id}`
     const isAllowed = await checkRateLimit(rateLimitKey, RATE_LIMITS.adminMetrics)
     if (!isAllowed) {
-      authLogger.warn('[getSchoolsWithActivePINs] Rate limit exceeded', { userId: authCheck.user!.id })
+      authLogger.warn('[getSchoolsWithActivePINs] Rate limit exceeded', { userId: user.id })
       return { success: false, error: 'Too many requests. Please wait before trying again.' }
     }
 
@@ -431,14 +440,17 @@ export async function getRecentActivityCount(days: number = 7): Promise<{
     // SECURITY: Verify admin authorization
     const authCheck = await verifyAdminAuth('getRecentActivityCount')
     if (!authCheck.authorized) {
-      return authCheck.error!
+      return authCheck.error
     }
 
+    // TypeScript now knows authCheck.user exists due to discriminated union
+    const user = authCheck.user
+
     // SECURITY: Rate limit admin metrics to prevent abuse
-    const rateLimitKey = `admin-activity:${authCheck.user!.id}`
+    const rateLimitKey = `admin-activity:${user.id}`
     const isAllowed = await checkRateLimit(rateLimitKey, RATE_LIMITS.adminMetrics)
     if (!isAllowed) {
-      authLogger.warn('[getRecentActivityCount] Rate limit exceeded', { userId: authCheck.user!.id })
+      authLogger.warn('[getRecentActivityCount] Rate limit exceeded', { userId: user.id })
       return { success: false, error: 'Too many requests. Please wait before trying again.' }
     }
 
@@ -524,14 +536,17 @@ export async function getAllSchools(): Promise<{
     // SECURITY: Verify admin authorization
     const authCheck = await verifyAdminAuth('getAllSchools')
     if (!authCheck.authorized) {
-      return authCheck.error!
+      return authCheck.error
     }
 
+    // TypeScript now knows authCheck.user exists due to discriminated union
+    const user = authCheck.user
+
     // SECURITY: Rate limit admin metrics to prevent abuse
-    const rateLimitKey = `admin-all-schools:${authCheck.user!.id}`
+    const rateLimitKey = `admin-all-schools:${user.id}`
     const isAllowed = await checkRateLimit(rateLimitKey, RATE_LIMITS.adminMetrics)
     if (!isAllowed) {
-      authLogger.warn('[getAllSchools] Rate limit exceeded', { userId: authCheck.user!.id })
+      authLogger.warn('[getAllSchools] Rate limit exceeded', { userId: user.id })
       return { success: false, error: 'Too many requests. Please wait before trying again.' }
     }
 
@@ -598,14 +613,17 @@ export async function getAllTeachers(): Promise<{
     // SECURITY: Verify admin authorization
     const authCheck = await verifyAdminAuth('getAllTeachers')
     if (!authCheck.authorized) {
-      return authCheck.error!
+      return authCheck.error
     }
 
+    // TypeScript now knows authCheck.user exists due to discriminated union
+    const user = authCheck.user
+
     // SECURITY: Rate limit admin metrics to prevent abuse
-    const rateLimitKey = `admin-all-teachers:${authCheck.user!.id}`
+    const rateLimitKey = `admin-all-teachers:${user.id}`
     const isAllowed = await checkRateLimit(rateLimitKey, RATE_LIMITS.adminMetrics)
     if (!isAllowed) {
-      authLogger.warn('[getAllTeachers] Rate limit exceeded', { userId: authCheck.user!.id })
+      authLogger.warn('[getAllTeachers] Rate limit exceeded', { userId: user.id })
       return { success: false, error: 'Too many requests. Please wait before trying again.' }
     }
 
@@ -717,14 +735,17 @@ export async function getAllStudents(): Promise<{
     // SECURITY: Verify admin authorization
     const authCheck = await verifyAdminAuth('getAllStudents')
     if (!authCheck.authorized) {
-      return authCheck.error!
+      return authCheck.error
     }
 
+    // TypeScript now knows authCheck.user exists due to discriminated union
+    const user = authCheck.user
+
     // SECURITY: Rate limit admin metrics to prevent abuse
-    const rateLimitKey = `admin-all-students:${authCheck.user!.id}`
+    const rateLimitKey = `admin-all-students:${user.id}`
     const isAllowed = await checkRateLimit(rateLimitKey, RATE_LIMITS.adminMetrics)
     if (!isAllowed) {
-      authLogger.warn('[getAllStudents] Rate limit exceeded', { userId: authCheck.user!.id })
+      authLogger.warn('[getAllStudents] Rate limit exceeded', { userId: user.id })
       return { success: false, error: 'Too many requests. Please wait before trying again.' }
     }
 
@@ -830,14 +851,17 @@ export async function getSchoolsWithoutPINs(): Promise<{
     // SECURITY: Verify admin authorization
     const authCheck = await verifyAdminAuth('getSchoolsWithoutPINs')
     if (!authCheck.authorized) {
-      return authCheck.error!
+      return authCheck.error
     }
 
+    // TypeScript now knows authCheck.user exists due to discriminated union
+    const user = authCheck.user
+
     // SECURITY: Rate limit admin metrics to prevent abuse
-    const rateLimitKey = `admin-no-pins:${authCheck.user!.id}`
+    const rateLimitKey = `admin-no-pins:${user.id}`
     const isAllowed = await checkRateLimit(rateLimitKey, RATE_LIMITS.adminMetrics)
     if (!isAllowed) {
-      authLogger.warn('[getSchoolsWithoutPINs] Rate limit exceeded', { userId: authCheck.user!.id })
+      authLogger.warn('[getSchoolsWithoutPINs] Rate limit exceeded', { userId: user.id })
       return { success: false, error: 'Too many requests. Please wait before trying again.' }
     }
 

@@ -108,7 +108,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
                 Try Again
               </button>
               <button
-                onClick={() => (window.location.href = '/')}
+                onClick={() => (globalThis.location.href = '/')}
                 style={{
                   padding: '0.75rem 1.5rem',
                   backgroundColor: 'transparent',
@@ -123,7 +123,13 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
                 onMouseOver={(e) => {
                   e.currentTarget.style.backgroundColor = `var(--color-primary-lightest, ${THEME.primaryLightest})`
                 }}
+                onFocus={(e) => {
+                  e.currentTarget.style.backgroundColor = `var(--color-primary-lightest, ${THEME.primaryLightest})`
+                }}
                 onMouseOut={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent'
+                }}
+                onBlur={(e) => {
                   e.currentTarget.style.backgroundColor = 'transparent'
                 }}
               >

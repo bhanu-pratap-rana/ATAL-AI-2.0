@@ -114,7 +114,7 @@ export default function OfflinePage() {
         >
           {/* Primary Action - Try Again */}
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => globalThis.location.reload()}
             style={{
               width: '100%',
               minHeight: '2.75rem', // 44px touch target (PWA requirement)
@@ -133,7 +133,15 @@ export default function OfflinePage() {
               e.currentTarget.style.transform = 'translateY(-2px)'
               e.currentTarget.style.boxShadow = '0 6px 16px rgba(249, 136, 25, 0.35)'
             }}
+            onFocus={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)'
+              e.currentTarget.style.boxShadow = '0 6px 16px rgba(249, 136, 25, 0.35)'
+            }}
             onMouseOut={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(249, 136, 25, 0.25)'
+            }}
+            onBlur={(e) => {
               e.currentTarget.style.transform = 'translateY(0)'
               e.currentTarget.style.boxShadow = '0 4px 12px rgba(249, 136, 25, 0.25)'
             }}
@@ -150,7 +158,7 @@ export default function OfflinePage() {
           {/* Secondary Action - Go Home */}
           <button
             onClick={() => {
-              window.location.href = '/'
+              globalThis.location.href = '/'
             }}
             style={{
               width: '100%',
@@ -168,7 +176,13 @@ export default function OfflinePage() {
             onMouseOver={(e) => {
               e.currentTarget.style.backgroundColor = `var(--color-primary-light, ${THEME.primaryLight})`
             }}
+            onFocus={(e) => {
+              e.currentTarget.style.backgroundColor = `var(--color-primary-light, ${THEME.primaryLight})`
+            }}
             onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent'
+            }}
+            onBlur={(e) => {
               e.currentTarget.style.backgroundColor = 'transparent'
             }}
             onTouchStart={(e) => {

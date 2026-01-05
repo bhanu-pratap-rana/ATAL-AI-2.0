@@ -51,17 +51,56 @@ export default function AdminManagePage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [completed, setCompleted] = useState(false)
 
+  /**
+   * Helper: Validate email for deletion
+   */
+  function validateEmailForDeletion(emailValue: string): { valid: true } | { valid: false; error: string } {
+    if (!emailValue.trim()) {
+      return { valid: false, error: 'Please enter an email address' }
+    }
+    return { valid: true }
+  }
+
+  /**
+   * Helper: Confirm deletion with user
+   */
+  function confirmDeletion(emailValue: string): boolean {
+    return globalThis.confirm(
+      `Are you sure you want to DELETE the user ${emailValue}?\n\nThis action cannot be undone!`
+    )
+  }
+
+  /**
+   * Helper: Handle successful deletion
+   */
+  function handleDeletionSuccess() {
+    setMessage({
+      type: 'success',
+      text: `✓ User deleted! You can now create a new admin account.`,
+    })
+    toast.success('User deleted successfully')
+    setTimeout(() => {
+      setStep('create')
+      setMessage(null)
+    }, FORM_TIMING.nextStepsDelay)
+  }
+
+  /**
+   * Helper: Handle deletion error
+   */
+  function handleDeletionError(error: string) {
+    setMessage({ type: 'error', text: error })
+    toast.error(error)
+  }
+
   async function handleDeleteUser() {
-    if (!email.trim()) {
-      setMessage({ type: 'error', text: 'Please enter an email address' })
+    const emailValidation = validateEmailForDeletion(email)
+    if (!emailValidation.valid) {
+      setMessage({ type: 'error', text: emailValidation.error })
       return
     }
 
-    if (
-      !window.confirm(
-        `Are you sure you want to DELETE the user ${email}?\n\nThis action cannot be undone!`
-      )
-    ) {
+    if (!confirmDeletion(email)) {
       return
     }
 
@@ -70,50 +109,64 @@ export default function AdminManagePage() {
 
     try {
       const result = await deleteUserByEmail(email.trim().toLowerCase())
-
       if (result.success) {
-        setMessage({
-          type: 'success',
-          text: `✓ User deleted! You can now create a new admin account.`,
-        })
-        toast.success('User deleted successfully')
-
-        // Move to next step after brief delay
-        setTimeout(() => {
-          setStep('create')
-          setMessage(null)
-        }, FORM_TIMING.nextStepsDelay)
+        handleDeletionSuccess()
       } else {
-        setMessage({ type: 'error', text: result.error || 'Failed to delete user' })
-        toast.error(result.error || 'Failed to delete user')
+        handleDeletionError(result.error || 'Failed to delete user')
       }
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred'
-      setMessage({ type: 'error', text: errorMsg })
-      toast.error(errorMsg)
+      handleDeletionError(errorMsg)
     } finally {
       setIsLoading(false)
     }
   }
 
+  /**
+   * Helper: Validate admin creation form
+   */
+  function validateAdminForm(emailValue: string, passwordValue: string, confirmPasswordValue: string): { valid: true } | { valid: false; error: string } {
+    if (!emailValue.trim()) {
+      return { valid: false, error: 'Please enter an email address' }
+    }
+    if (!passwordValue) {
+      return { valid: false, error: 'Please enter a password' }
+    }
+    if (passwordValue.length < 8) {
+      return { valid: false, error: 'Password must be at least 8 characters' }
+    }
+    if (passwordValue !== confirmPasswordValue) {
+      return { valid: false, error: 'Passwords do not match' }
+    }
+    return { valid: true }
+  }
+
+  /**
+   * Helper: Handle successful admin creation
+   */
+  function handleAdminCreationSuccess(emailValue: string) {
+    setMessage({
+      type: 'success',
+      text: `✓ Admin account created!\n\nEmail: ${emailValue}\n\nTip: Use a password manager to securely store your credentials. Login at /admin/login`,
+    })
+    toast.success(`Admin account created for ${emailValue}`)
+    setCompleted(true)
+    setPassword('')
+    setConfirmPassword('')
+  }
+
+  /**
+   * Helper: Handle admin creation error
+   */
+  function handleAdminCreationError(error: string) {
+    setMessage({ type: 'error', text: error })
+    toast.error(error)
+  }
+
   async function handleCreateAdmin() {
-    if (!email.trim()) {
-      setMessage({ type: 'error', text: 'Please enter an email address' })
-      return
-    }
-
-    if (!password) {
-      setMessage({ type: 'error', text: 'Please enter a password' })
-      return
-    }
-
-    if (password.length < 8) {
-      setMessage({ type: 'error', text: 'Password must be at least 8 characters' })
-      return
-    }
-
-    if (password !== confirmPassword) {
-      setMessage({ type: 'error', text: 'Passwords do not match' })
+    const validation = validateAdminForm(email, password, confirmPassword)
+    if (!validation.valid) {
+      setMessage({ type: 'error', text: validation.error })
       return
     }
 
@@ -122,29 +175,14 @@ export default function AdminManagePage() {
 
     try {
       const result = await createAdminUser(email.trim().toLowerCase(), password)
-
       if (result.success) {
-        // SECURITY: Never display passwords in messages - recommend password manager
-        setMessage({
-          type: 'success',
-          text: `✓ Admin account created!\n\nEmail: ${email}\n\nTip: Use a password manager to securely store your credentials. Login at /admin/login`,
-        })
-        toast.success(`Admin account created for ${email}`)
-
-        // Mark as completed
-        setCompleted(true)
-
-        // Clear form
-        setPassword('')
-        setConfirmPassword('')
+        handleAdminCreationSuccess(email)
       } else {
-        setMessage({ type: 'error', text: result.error || 'Failed to create admin account' })
-        toast.error(result.error || 'Failed to create admin account')
+        handleAdminCreationError(result.error || 'Failed to create admin account')
       }
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred'
-      setMessage({ type: 'error', text: errorMsg })
-      toast.error(errorMsg)
+      handleAdminCreationError(errorMsg)
     } finally {
       setIsLoading(false)
     }
@@ -168,7 +206,7 @@ export default function AdminManagePage() {
       <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface flex items-center justify-center p-4">
         <div className="absolute top-4 left-4">
           <Button
-            onClick={() => (window.location.href = '/admin/login')}
+            onClick={() => (globalThis.location.href = '/admin/login')}
             variant="outline"
             size="sm"
             className="text-sm border-primary text-primary hover:bg-primary/10"
@@ -204,7 +242,7 @@ export default function AdminManagePage() {
             </div>
 
             <Button
-              onClick={() => (window.location.href = '/admin/login')}
+              onClick={() => (globalThis.location.href = '/admin/login')}
               className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary"
             >
               Go to Admin Login
@@ -219,7 +257,7 @@ export default function AdminManagePage() {
     <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface flex items-center justify-center p-4">
       <div className="absolute top-4 left-4">
         <Button
-          onClick={() => (window.location.href = '/admin/login')}
+              onClick={() => (globalThis.location.href = '/admin/login')}
           variant="outline"
           size="sm"
           className="text-sm border-primary text-primary hover:bg-primary/10"
@@ -235,23 +273,41 @@ export default function AdminManagePage() {
         <div className="space-y-6">
           {/* Step Indicator */}
           <div className="flex gap-4">
-            <div
+            <button
+              type="button"
               className={`flex-1 p-3 rounded-lg text-center cursor-pointer transition ${
                 step === 'delete'
                   ? 'bg-primary text-white'
                   : 'bg-surface text-text-secondary hover:bg-surface-dark'
               }`}
               onClick={() => !completed && setStep('delete')}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  if (!completed) {
+                    setStep('delete')
+                  }
+                }
+              }}
+              aria-label="Step 1: Delete admin account"
             >
               <p className="text-sm font-semibold">Step 1: Delete</p>
-            </div>
-            <div
+            </button>
+            <button
+              type="button"
               className={`flex-1 p-3 rounded-lg text-center cursor-pointer transition ${
                 step === 'create'
                   ? 'bg-primary text-white'
                   : 'bg-surface text-text-secondary hover:bg-surface-dark'
               }`}
               onClick={() => setStep('create')}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  setStep('create')
+                }
+              }}
+              aria-label="Step 2: Create admin account"
             >
               <p className="text-sm font-semibold">Step 2: Create</p>
             </div>
@@ -451,7 +507,7 @@ export default function AdminManagePage() {
                 </Button>
               ) : (
                 <Button
-                  onClick={() => (window.location.href = '/admin/login')}
+                  onClick={() => (globalThis.location.href = '/admin/login')}
                   className="w-full bg-success hover:bg-success/90"
                 >
                   Go to Login Page

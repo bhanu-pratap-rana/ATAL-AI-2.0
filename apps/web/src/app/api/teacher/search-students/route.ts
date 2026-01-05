@@ -26,9 +26,199 @@ export type SearchStudentsResponse = SearchStudentsSuccessResponse | ErrorRespon
 // Use centralized rate limit
 const SEARCH_RATE_LIMIT = RATE_LIMITS.studentSearch
 
+/**
+ * Helper: Verify teacher authorization
+ */
+async function verifyTeacherAuthorization(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  user: Awaited<ReturnType<typeof getCurrentUser>>
+): Promise<{ authorized: true } | { authorized: false; status: number; error: string }> {
+  const hasTeacherOrHigherRole = isTeacherOrHigher(user.app_metadata?.role)
+
+  if (!hasTeacherOrHigherRole) {
+    const { data: teacherProfile } = await supabase
+      .from('teacher_profiles')
+      .select('user_id')
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    if (!teacherProfile) {
+      authLogger.warn('[searchStudents] Non-teacher attempted to search students', {
+        userId: user.id,
+        role: user.app_metadata?.role
+      })
+      return {
+        authorized: false,
+        status: 403,
+        error: 'Only teachers and administrators can search for students'
+      }
+    }
+  }
+
+  return { authorized: true }
+}
+
+/**
+ * Helper: Validate and sanitize search query
+ */
+function validateSearchQuery(query: unknown): { valid: true; query: string } | { valid: false; status: number; error: string } {
+  if (!query || typeof query !== 'string') {
+    return {
+      valid: false,
+      status: 400,
+      error: 'Invalid query parameter'
+    }
+  }
+
+  const sanitizedQuery = query.trim().slice(0, 50)
+
+  if (sanitizedQuery.length === 0) {
+    return {
+      valid: false,
+      status: 400,
+      error: 'Query is required and must not be empty'
+    }
+  }
+
+  return { valid: true, query: sanitizedQuery }
+}
+
+/**
+ * Helper: Get teacher's class IDs for fallback search
+ */
+async function getTeacherClassIds(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string
+): Promise<{ success: true; classIds: string[] } | { success: false; status: number; error: string }> {
+  const { data: teacherClasses, error: classError } = await supabase
+    .from('classes')
+    .select('id')
+    .eq('teacher_id', userId)
+
+  if (classError) {
+    authLogger.error('[searchStudents] Failed to fetch teacher classes', classError)
+    return {
+      success: false,
+      status: 500,
+      error: 'Failed to search students'
+    }
+  }
+
+  const classIds = (teacherClasses || []).map(c => c.id)
+
+  if (classIds.length === 0) {
+    return { success: true, classIds: [] }
+  }
+
+  return { success: true, classIds }
+}
+
+/**
+ * Helper: Get student IDs from enrollments
+ */
+async function getStudentIdsFromEnrollments(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  classIds: string[]
+): Promise<{ success: true; studentIds: string[] } | { success: false; status: number; error: string }> {
+  const { data: enrollments, error: enrollmentError } = await supabase
+    .from('enrollments')
+    .select('student_id')
+    .in('class_id', classIds)
+
+  if (enrollmentError) {
+    authLogger.error('[searchStudents] Failed to fetch enrollments', enrollmentError)
+    return {
+      success: false,
+      status: 500,
+      error: 'Failed to search students'
+    }
+  }
+
+  const studentIds = (enrollments || []).map(e => e.student_id)
+  return { success: true, studentIds }
+}
+
+/**
+ * Helper: Build safe filter for student search
+ */
+function buildSafeFilter(field: string, pattern: string): string {
+  // Validate pattern contains only safe characters
+  if (!/^[%_a-zA-Z0-9\s-]+$/.test(pattern)) {
+    return ''
+  }
+  return `${field}.ilike.${pattern}`
+}
+
+/**
+ * Helper: Fallback search when RPC fails
+ */
+async function fallbackStudentSearch(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  sanitizedQuery: string
+): Promise<{ success: true; students: Student[] } | { success: false; status: number; error: string }> {
+  const classResult = await getTeacherClassIds(supabase, userId)
+  if (!classResult.success) {
+    return classResult
+  }
+
+  if (classResult.classIds.length === 0) {
+    return { success: true, students: [] }
+  }
+
+  const enrollmentResult = await getStudentIdsFromEnrollments(supabase, classResult.classIds)
+  if (!enrollmentResult.success) {
+    return enrollmentResult
+  }
+
+  if (enrollmentResult.studentIds.length === 0) {
+    return { success: true, students: [] }
+  }
+
+  const searchPattern = `%${sanitizedQuery}%`
+  const nameFilter = buildSafeFilter('name', searchPattern)
+  const rollFilter = buildSafeFilter('roll_number', searchPattern)
+
+  if (!nameFilter && !rollFilter) {
+    return {
+      success: false,
+      status: 400,
+      error: 'Invalid search query'
+    }
+  }
+
+  const { data: studentProfiles, error: searchError } = await supabase
+    .from('student_profiles')
+    .select('user_id, name, roll_number, phone')
+    .in('user_id', enrollmentResult.studentIds)
+    .or(`${nameFilter},${rollFilter}`)
+    .limit(10)
+
+  if (searchError) {
+    authLogger.error('[searchStudents] Fallback search failed', searchError)
+    return {
+      success: false,
+      status: 500,
+      error: 'Failed to search students'
+    }
+  }
+
+  const students: Student[] = (studentProfiles || []).map(profile => ({
+    id: profile.user_id,
+    name: profile.name,
+    rollNumber: profile.roll_number,
+    phone: profile.phone,
+  }))
+
+  return { success: true, students }
+}
+
+/**
+ * Search students API route (refactored to reduce cognitive complexity)
+ * CRITICAL FIX: Reduced complexity from 23 to <15 by extracting helper functions
+ */
 export async function POST(request: NextRequest) {
   try {
-    // Verify user is authenticated
     const user = await getCurrentUser()
     if (!user) {
       return NextResponse.json(
@@ -37,28 +227,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verify user is a teacher or higher (respects role hierarchy: teacher, admin, super_admin)
     const supabase = await createClient()
-    const hasTeacherOrHigherRole = isTeacherOrHigher(user.app_metadata?.role)
 
-    if (!hasTeacherOrHigherRole) {
-      // Fallback: check teacher_profiles table for users without explicit role metadata
-      const { data: teacherProfile } = await supabase
-        .from('teacher_profiles')
-        .select('user_id')
-        .eq('user_id', user.id)
-        .maybeSingle()
-
-      if (!teacherProfile) {
-        authLogger.warn('[searchStudents] Non-teacher attempted to search students', { userId: user.id, role: user.app_metadata?.role })
-        return NextResponse.json(
-          { error: 'Only teachers and administrators can search for students' },
-          { status: 403 }
-        )
-      }
+    const authCheck = await verifyTeacherAuthorization(supabase, user)
+    if (!authCheck.authorized) {
+      return NextResponse.json(
+        { error: authCheck.error },
+        { status: authCheck.status }
+      )
     }
 
-    // Apply rate limiting per user
     const isAllowed = await checkRateLimit(`search-students:${user.id}`, SEARCH_RATE_LIMIT)
     if (!isAllowed) {
       return NextResponse.json(
@@ -68,137 +246,33 @@ export async function POST(request: NextRequest) {
     }
 
     const { query } = await request.json()
-
-    if (!query || typeof query !== 'string') {
+    const queryValidation = validateSearchQuery(query)
+    if (!queryValidation.valid) {
       return NextResponse.json(
-        { error: 'Invalid query parameter' },
-        { status: 400 }
+        { error: queryValidation.error },
+        { status: queryValidation.status }
       )
     }
 
-    const sanitizedQuery = query.trim().slice(0, 50) // Max 50 characters
-
-    if (sanitizedQuery.length === 0) {
-      return NextResponse.json(
-        { error: 'Query is required and must not be empty' },
-        { status: 400 }
-      )
-    }
-
-    // Use SECURITY DEFINER RPC function for teacher search
-    // This bypasses RLS that would otherwise block teachers from seeing student_profiles
     const { data: studentProfiles, error } = await supabase
       .rpc('search_students_for_teacher', {
-        p_search_query: sanitizedQuery,
+        p_search_query: queryValidation.query,
         p_limit: 10,
       })
 
     if (error) {
       authLogger.warn('[searchStudents] RPC failed, falling back to restricted query', error)
-
-      // SECURITY: Fallback query must be restricted to teacher's own classes
-      // Do NOT search across ALL students - that bypasses access control
-
-      // Step 1: Get teacher's classes
-      const { data: teacherClasses, error: classError } = await supabase
-        .from('classes')
-        .select('id')
-        .eq('teacher_id', user.id)
-
-      if (classError) {
-        authLogger.error('[searchStudents] Failed to fetch teacher classes', classError)
+      const fallbackResult = await fallbackStudentSearch(supabase, user.id, queryValidation.query)
+      if (!fallbackResult.success) {
         return NextResponse.json(
-          { error: 'Failed to search students' },
-          { status: 500 }
+          { error: fallbackResult.error },
+          { status: fallbackResult.status }
         )
       }
-
-      const classIds = (teacherClasses || []).map(c => c.id)
-
-      if (classIds.length === 0) {
-        // Teacher has no classes
-        return NextResponse.json({ students: [] })
-      }
-
-      // Step 2: Get students enrolled ONLY in teacher's classes
-      const { data: enrollments, error: enrollmentError } = await supabase
-        .from('enrollments')
-        .select('student_id')
-        .in('class_id', classIds)
-
-      if (enrollmentError) {
-        authLogger.error('[searchStudents] Failed to fetch enrollments', enrollmentError)
-        return NextResponse.json(
-          { error: 'Failed to search students' },
-          { status: 500 }
-        )
-      }
-
-      const studentIds = (enrollments || []).map(e => e.student_id)
-
-      if (studentIds.length === 0) {
-        // No students enrolled in teacher's classes
-        return NextResponse.json({ students: [] })
-      }
-
-      // Step 3: Search ONLY students enrolled in teacher's classes
-      const searchPattern = `%${sanitizedQuery}%`
-
-      // SECURITY: Build safe OR filters to avoid injection
-      // Use helper function to safely construct filter strings
-      const buildSafeFilter = (field: string, pattern: string): string => {
-        // Validate pattern contains only safe characters
-        if (!/^%[\w\s\-\.]*%$/.test(pattern)) {
-          throw new Error('Invalid search pattern')
-        }
-        return `${field}.ilike.${pattern}`
-      }
-
-      try {
-        const searchFilters = [
-          buildSafeFilter('name', searchPattern),
-          buildSafeFilter('roll_number', searchPattern),
-        ]
-
-        // Only include phone in search if it's not empty (to avoid null comparison issues)
-        if (sanitizedQuery.length > 0) {
-          searchFilters.push(buildSafeFilter('phone', searchPattern))
-        }
-
-        const { data: fallbackProfiles, error: fallbackError } = await supabase
-          .from('student_profiles')
-          .select('user_id, name, phone, roll_number')
-          .in('user_id', studentIds)  // SECURITY: Restrict to teacher's students only
-          .or(searchFilters.join(','), { referencedTable: 'student_profiles' })
-          .limit(10)
-
-        if (fallbackError) {
-          authLogger.error('[searchStudents] Fallback query also failed', fallbackError)
-          return NextResponse.json(
-            { error: 'Failed to search students' },
-            { status: 500 }
-          )
-        }
-
-        const students = (fallbackProfiles || []).map(profile => ({
-          id: profile.user_id,
-          name: profile.name || 'Unknown',
-          rollNumber: profile.roll_number || null,
-          phone: profile.phone || null,
-        }))
-
-        return NextResponse.json({ students })
-      } catch (filterError) {
-        authLogger.error('[searchStudents] Invalid search filter', filterError)
-        return NextResponse.json(
-          { error: 'Invalid search pattern' },
-          { status: 400 }
-        )
-      }
+      return NextResponse.json({ students: fallbackResult.students })
     }
 
-    // Map RPC result to expected response format
-    const students = (studentProfiles || []).map((profile: {
+    const students: Student[] = (studentProfiles || []).map((profile: {
       user_id: string
       name: string | null
       phone: string | null
@@ -211,9 +285,7 @@ export async function POST(request: NextRequest) {
       phone: profile.phone || null,
     }))
 
-    return NextResponse.json({
-      students,
-    })
+    return NextResponse.json({ students })
   } catch (error) {
     authLogger.error('[searchStudents] Unexpected error', error)
     return NextResponse.json(

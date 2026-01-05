@@ -32,6 +32,45 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { authLogger } from '@/lib/auth-logger'
+import { ChoiceStep } from '@/components/auth/StudentStepComponents'
+
+/**
+ * Helper: Check if user is teacher/admin and handle redirect
+ * Extracted to reduce cognitive complexity
+ */
+async function checkAndHandleTeacherRedirect(
+  supabase: ReturnType<typeof createClient>,
+  user: { id: string; app_metadata?: { role?: string } },
+  setError: (error: string | null) => void,
+  context: string
+): Promise<boolean> {
+  const appRole = user.app_metadata?.role
+  const isTeacherOrAdmin = appRole === 'teacher' || appRole === 'admin' || appRole === 'super_admin'
+
+  if (!isTeacherOrAdmin) {
+    const { data: teacherProfile } = await supabase
+      .from('teacher_profiles')
+      .select('user_id')
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    if (teacherProfile) {
+      authLogger.warn(`[${context}] Teacher (via profile) tried to login via student page`)
+      await supabase.auth.signOut()
+      setError('This account is registered as a teacher. Please use the teacher login page.')
+      toast.error('This is a teacher account. Please use the teacher login page.')
+      return true
+    }
+  } else {
+    authLogger.warn(`[${context}] Teacher/Admin/SuperAdmin tried to login via student page`)
+    await supabase.auth.signOut()
+    setError('This account is registered as a teacher/admin. Please use the teacher login page.')
+    toast.error('This is a teacher/admin account. Please use the teacher login page.')
+    return true
+  }
+
+  return false
+}
 
 export default function StudentStartPage() {
   const router = useRouter()
@@ -93,30 +132,13 @@ export default function StudentStartPage() {
         actions.setSigninEmailError(error.message || 'Invalid email or password')
         toast.error('Login failed: ' + (error.message || 'Invalid credentials'))
       } else if (data.user) {
-        // Check if user is a teacher/admin via app_metadata OR has teacher_profiles record
-        const appRole = data.user.app_metadata?.role
-        const isTeacherOrAdmin = appRole === 'teacher' || appRole === 'admin' || appRole === 'super_admin'
-
-        // Also check teacher_profiles table as fallback
-        if (!isTeacherOrAdmin) {
-          const { data: teacherProfile } = await supabase
-            .from('teacher_profiles')
-            .select('user_id')
-            .eq('user_id', data.user.id)
-            .maybeSingle()
-
-          if (teacherProfile) {
-            authLogger.warn('[SignIn Email] Teacher (via profile) tried to login via student page')
-            await supabase.auth.signOut()
-            actions.setSigninEmailError('This account is registered as a teacher. Please use the teacher login page.')
-            toast.error('This is a teacher account. Please use the teacher login page.')
-            return
-          }
-        } else {
-          authLogger.warn('[SignIn Email] Teacher/Admin/SuperAdmin tried to login via student page')
-          await supabase.auth.signOut()
-          actions.setSigninEmailError('This account is registered as a teacher/admin. Please use the teacher login page.')
-          toast.error('This is a teacher/admin account. Please use the teacher login page.')
+        const isTeacher = await checkAndHandleTeacherRedirect(
+          supabase,
+          data.user,
+          actions.setSigninEmailError,
+          'SignIn Email'
+        )
+        if (isTeacher) {
           return
         }
 
@@ -161,30 +183,13 @@ export default function StudentStartPage() {
         actions.setSigninPhoneError(error.message || 'Invalid phone or password')
         toast.error('Login failed: ' + (error.message || 'Invalid credentials'))
       } else if (data.user) {
-        // Check if user is a teacher/admin via app_metadata OR has teacher_profiles record
-        const appRole = data.user.app_metadata?.role
-        const isTeacherOrAdmin = appRole === 'teacher' || appRole === 'admin' || appRole === 'super_admin'
-
-        // Also check teacher_profiles table as fallback
-        if (!isTeacherOrAdmin) {
-          const { data: teacherProfile } = await supabase
-            .from('teacher_profiles')
-            .select('user_id')
-            .eq('user_id', data.user.id)
-            .maybeSingle()
-
-          if (teacherProfile) {
-            authLogger.warn('[SignIn Phone] Teacher (via profile) tried to login via student page')
-            await supabase.auth.signOut()
-            actions.setSigninPhoneError('This account is registered as a teacher. Please use the teacher login page.')
-            toast.error('This is a teacher account. Please use the teacher login page.')
-            return
-          }
-        } else {
-          authLogger.warn('[SignIn Phone] Teacher/Admin/SuperAdmin tried to login via student page')
-          await supabase.auth.signOut()
-          actions.setSigninPhoneError('This account is registered as a teacher/admin. Please use the teacher login page.')
-          toast.error('This is a teacher/admin account. Please use the teacher login page.')
+        const isTeacher = await checkAndHandleTeacherRedirect(
+          supabase,
+          data.user,
+          actions.setSigninPhoneError,
+          'SignIn Phone'
+        )
+        if (isTeacher) {
           return
         }
 
@@ -792,50 +797,10 @@ export default function StudentStartPage() {
 
   // ========================================
   // RENDER: CHOICE (Create Account / Login)
+  // CRITICAL FIX: Extracted step component to reduce cognitive complexity
   // ========================================
   if (state.mainStep === 'choice') {
-    return (
-      <AuthCard
-        title="Welcome, Student!"
-        description="Choose an option to continue"
-      >
-        <div className="space-y-4">
-          {/* Create Account Button */}
-          <Button
-            onClick={() => actions.setMainStep('signup')}
-            className="w-full h-14 text-base text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5 transition-all"
-            variant="default"
-          >
-            <span className="text-xl mr-2">✨</span>
-            Create Account
-          </Button>
-
-          {/* Login Button */}
-          <Button
-            onClick={() => actions.setMainStep('signin')}
-            className="w-full h-14 text-base text-[17px] border-2 hover:border-primary hover:shadow-[var(--shadow-primary-sm)] hover:-translate-y-0.5 transition-all"
-            variant="outline"
-          >
-            <span className="text-xl mr-2">🔑</span>
-            Login
-          </Button>
-
-          {/* Info Box - Cyan themed */}
-          <div className="bg-cyan-lightest border-l-4 border-cyan p-3 rounded-xl">
-            <p className="text-xs text-cyan-darkest">
-              <strong>💡 New Student?</strong> Create an account to join classes and track your learning progress.
-            </p>
-          </div>
-
-          {/* Link to Teacher Login */}
-          <div className="text-center pt-2">
-            <a href="/teacher/start" className="text-sm text-primary hover:underline">
-              Are you a teacher? Login here
-            </a>
-          </div>
-        </div>
-      </AuthCard>
-    )
+    return <ChoiceStep loading={state.isLoading} actions={actions} state={state} />
   }
 
   // ========================================

@@ -49,7 +49,11 @@ function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array]
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
-    ;[shuffled[i], shuffled[j]] = [shuffled[j]!, shuffled[i]!]
+    const temp = shuffled[i]
+    if (temp !== undefined && shuffled[j] !== undefined) {
+      shuffled[i] = shuffled[j]
+      shuffled[j] = temp
+    }
   }
   return shuffled
 }
@@ -192,8 +196,8 @@ export function AssessmentRunner({
       setFocusBlurCount((prev) => prev + 1)
     }
 
-    window.addEventListener('blur', handleBlur)
-    return () => window.removeEventListener('blur', handleBlur)
+    globalThis.addEventListener('blur', handleBlur)
+    return () => globalThis.removeEventListener('blur', handleBlur)
   }, [])
 
   // Submit assessment data
@@ -440,8 +444,8 @@ export function AssessmentRunner({
       }
     }
 
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    globalThis.addEventListener('keydown', handleKeyDown)
+    return () => globalThis.removeEventListener('keydown', handleKeyDown)
   }, [selectedOption, shuffledOptions.length, isSubmitting, handleOptionSelect, handleNext])
 
   if (!currentQuestion) {

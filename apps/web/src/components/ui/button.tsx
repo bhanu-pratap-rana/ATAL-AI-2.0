@@ -31,7 +31,7 @@ const isTestEnvironment = () => {
       navigator.webdriver === true ||
       navigator.userAgent.includes('HeadlessChrome') ||
       // Now properly typed (see browser-apis.d.ts)
-      window.__PLAYWRIGHT_TEST__ === true
+      globalThis.__PLAYWRIGHT_TEST__ === true
     )) ||
     // Check for test globals that might be set (see browser-apis.d.ts)
     (typeof globalThis !== 'undefined' && globalThis.__PLAYWRIGHT__ === true)

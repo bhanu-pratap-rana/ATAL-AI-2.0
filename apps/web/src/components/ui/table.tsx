@@ -7,9 +7,14 @@ const Table = React.forwardRef<
   React.HTMLAttributes<HTMLTableElement>
 >(({ className, ...props }, ref) => (
   <div className="relative w-full overflow-auto">
+    {/* 
+      SonarQube S5256: Tables should include a <thead> with <th> elements for accessibility.
+      Use TableHeader and TableHead components to add proper headers.
+    */}
     <table
       ref={ref}
       className={cn("w-full caption-bottom text-sm", className)}
+      role="table"
       {...props}
     />
   </div>

@@ -168,6 +168,105 @@ export async function getDashboardStats(): Promise<{
 /**
  * Get detailed progress stats for progress page
  */
+/**
+ * Helper: Calculate average score and total time from responses
+ */
+function calculateScoreAndTime(
+  responses: Array<{ is_correct: boolean; rt_ms: number | null }> | null
+): { averageScore: number | null; totalTimeSpent: number } {
+  if (!responses || responses.length === 0) {
+    return { averageScore: null, totalTimeSpent: 0 }
+  }
+
+  const correctCount = responses.filter(r => r.is_correct).length
+  const averageScore = Math.round((correctCount / responses.length) * 100)
+  const totalTimeSpent = Math.round(responses.reduce((sum, r) => sum + (r.rt_ms || 0), 0) / 60000) // Convert to minutes
+
+  return { averageScore, totalTimeSpent }
+}
+
+/**
+ * Helper: Calculate module breakdown from responses
+ */
+function calculateModuleBreakdown(
+  responses: Array<{ module: string | null; is_correct: boolean }> | null
+): ModuleProgress[] {
+  if (!responses || responses.length === 0) {
+    return []
+  }
+
+  const moduleMap = new Map<string, { attempted: number; correct: number }>()
+
+  for (const response of responses) {
+    const module = response.module || 'Unknown'
+    const current = moduleMap.get(module) || { attempted: 0, correct: 0 }
+    current.attempted++
+    if (response.is_correct) current.correct++
+    moduleMap.set(module, current)
+  }
+
+  const moduleBreakdown: ModuleProgress[] = []
+  for (const [module, stats] of moduleMap) {
+    moduleBreakdown.push({
+      module,
+      questionsAttempted: stats.attempted,
+      correctAnswers: stats.correct,
+      averageScore: Math.round((stats.correct / stats.attempted) * 100)
+    })
+  }
+
+  return moduleBreakdown
+}
+
+/**
+ * Helper: Build responses map by session for O(1) lookup
+ */
+function buildResponsesBySessionMap<T extends { session_id: string }>(
+  responses: T[] | null
+): Map<string, T[]> {
+  const responsesBySession = new Map<string, T[]>()
+  responses?.forEach(r => {
+    const existing = responsesBySession.get(r.session_id) || []
+    existing.push(r)
+    responsesBySession.set(r.session_id, existing)
+  })
+  return responsesBySession
+}
+
+/**
+ * Helper: Calculate recent assessments from sessions and responses
+ */
+function calculateRecentAssessments(
+  sessions: Array<{ id: string; started_at: string; submitted_at: string | null }> | null,
+  responsesBySession: Map<string, Array<{ is_correct: boolean; rt_ms: number | null }>>
+): AssessmentResult[] {
+  if (!sessions || sessions.length === 0) {
+    return []
+  }
+
+  const recentAssessments: AssessmentResult[] = []
+  for (const session of sessions.slice(0, 5)) {
+    const sessionResponses = responsesBySession.get(session.id) || []
+    const correctCount = sessionResponses.filter(r => r.is_correct).length
+    const totalQuestions = sessionResponses.length
+    const timeSpent = sessionResponses.reduce((sum, r) => sum + (r.rt_ms || 0), 0) / 1000 // seconds
+
+    recentAssessments.push({
+      id: session.id,
+      completedAt: session.submitted_at || session.started_at,
+      score: totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0,
+      totalQuestions,
+      timeSpent: Math.round(timeSpent)
+    })
+  }
+
+  return recentAssessments
+}
+
+/**
+ * Get progress statistics (refactored to reduce cognitive complexity)
+ * CRITICAL FIX: Reduced complexity from 23 to <15 by extracting helper functions
+ */
 export async function getProgressStats(): Promise<{
   success: boolean
   data?: ProgressStats
@@ -175,12 +274,10 @@ export async function getProgressStats(): Promise<{
 }> {
   try {
     const user = await getCurrentUser()
-
     if (!user) {
       return { success: false, error: 'Not authenticated' }
     }
 
-    // SECURITY: Rate limit progress stats to prevent abuse
     const rateLimitKey = `progress-stats:${user.id}`
     const isAllowed = await checkRateLimit(rateLimitKey, RATE_LIMITS.dashboardStats)
     if (!isAllowed) {
@@ -190,82 +287,27 @@ export async function getProgressStats(): Promise<{
 
     const supabase = await createClient()
 
-    // Get completed assessments count
-    const { data: sessions } = await supabase
-      .from('assessment_sessions')
-      .select('id, started_at, submitted_at')
-      .eq('user_id', user.id)
-      .not('submitted_at', 'is', null)
-      .order('submitted_at', { ascending: false })
+    const [sessionsResult, responsesResult] = await Promise.all([
+      supabase
+        .from('assessment_sessions')
+        .select('id, started_at, submitted_at')
+        .eq('user_id', user.id)
+        .not('submitted_at', 'is', null)
+        .order('submitted_at', { ascending: false }),
+      supabase
+        .from('assessment_responses')
+        .select('is_correct, module, rt_ms, session_id')
+        .eq('user_id', user.id),
+    ])
 
+    const sessions = sessionsResult.data
+    const responses = responsesResult.data
     const assessmentsTaken = sessions?.length || 0
 
-    // Get all responses for score calculation
-    const { data: responses } = await supabase
-      .from('assessment_responses')
-      .select('is_correct, module, rt_ms, session_id')
-      .eq('user_id', user.id)
-
-    // Calculate average score
-    let averageScore: number | null = null
-    let totalTimeSpent = 0
-    if (responses && responses.length > 0) {
-      const correctCount = responses.filter(r => r.is_correct).length
-      averageScore = Math.round((correctCount / responses.length) * 100)
-      totalTimeSpent = Math.round(responses.reduce((sum, r) => sum + (r.rt_ms || 0), 0) / 60000) // Convert to minutes
-    }
-
-    // Calculate module breakdown
-    const moduleBreakdown: ModuleProgress[] = []
-    if (responses && responses.length > 0) {
-      const moduleMap = new Map<string, { attempted: number; correct: number }>()
-
-      for (const response of responses) {
-        const module = response.module || 'Unknown'
-        const current = moduleMap.get(module) || { attempted: 0, correct: 0 }
-        current.attempted++
-        if (response.is_correct) current.correct++
-        moduleMap.set(module, current)
-      }
-
-      for (const [module, stats] of moduleMap) {
-        moduleBreakdown.push({
-          module,
-          questionsAttempted: stats.attempted,
-          correctAnswers: stats.correct,
-          averageScore: Math.round((stats.correct / stats.attempted) * 100)
-        })
-      }
-    }
-
-    // Get recent assessment results
-    // OPTIMIZATION: Pre-build Map for O(1) lookup instead of O(n×m) filtering
-    const responsesBySession = new Map<string, typeof responses[0][]>()
-    responses?.forEach(r => {
-      const existing = responsesBySession.get(r.session_id) || []
-      existing.push(r)
-      responsesBySession.set(r.session_id, existing)
-    })
-
-    const recentAssessments: AssessmentResult[] = []
-    if (sessions && sessions.length > 0) {
-      for (const session of sessions.slice(0, 5)) {
-        const sessionResponses = responsesBySession.get(session.id) || []
-        const correctCount = sessionResponses.filter(r => r.is_correct).length
-        const totalQuestions = sessionResponses.length
-        const timeSpent = sessionResponses.reduce((sum, r) => sum + (r.rt_ms || 0), 0) / 1000 // seconds
-
-        recentAssessments.push({
-          id: session.id,
-          completedAt: session.submitted_at || session.started_at,
-          score: totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0,
-          totalQuestions,
-          timeSpent: Math.round(timeSpent)
-        })
-      }
-    }
-
-    // Courses completed = unique assessments with score >= 60%
+    const { averageScore, totalTimeSpent } = calculateScoreAndTime(responses)
+    const moduleBreakdown = calculateModuleBreakdown(responses)
+    const responsesBySession = buildResponsesBySessionMap(responses)
+    const recentAssessments = calculateRecentAssessments(sessions, responsesBySession)
     const coursesCompleted = recentAssessments.filter(a => a.score >= 60).length
 
     return {
@@ -333,106 +375,139 @@ async function calculateStreak(supabase: Awaited<ReturnType<typeof createClient>
 }
 
 /**
- * Get recent activity for the user
+ * Helper: Build responses map by session
+ */
+function buildResponsesBySession(
+  responses: Array<{ session_id: string; is_correct: boolean }>
+): Map<string, Array<{ is_correct: boolean }>> {
+  const responsesBySession = new Map<string, Array<{ is_correct: boolean }>>()
+  for (const response of responses) {
+    if (!responsesBySession.has(response.session_id)) {
+      responsesBySession.set(response.session_id, [])
+    }
+    const sessionResponses = responsesBySession.get(response.session_id)
+    if (sessionResponses) {
+      sessionResponses.push({ is_correct: response.is_correct })
+    }
+  }
+  return responsesBySession
+}
+
+/**
+ * Helper: Get assessment activities from sessions
+ */
+async function getAssessmentActivities(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string
+): Promise<RecentActivity[]> {
+  const { data: sessions, error: sessionError } = await supabase
+    .from('assessment_sessions')
+    .select('id, started_at, submitted_at')
+    .eq('user_id', userId)
+    .not('submitted_at', 'is', null)
+    .order('submitted_at', { ascending: false })
+    .limit(5)
+
+  if (sessionError) {
+    authLogger.error('[getRecentActivity] Failed to fetch sessions', sessionError)
+    return []
+  }
+
+  if (!sessions || sessions.length === 0) {
+    return []
+  }
+
+  const sessionIds = sessions.map(s => s.id)
+  const { data: allResponses, error: responseError } = await supabase
+    .from('assessment_responses')
+    .select('session_id, is_correct')
+    .in('session_id', sessionIds)
+
+  if (responseError) {
+    authLogger.error('[getRecentActivity] Failed to fetch responses', responseError)
+  }
+
+  const responsesBySession = buildResponsesBySession(allResponses || [])
+  const activities: RecentActivity[] = []
+
+  for (const session of sessions) {
+    const responses = responsesBySession.get(session.id) || []
+    const total = responses.length
+    const correct = responses.filter(r => r.is_correct).length
+    const score = total > 0 ? Math.round((correct / total) * 100) : 0
+
+    activities.push({
+      id: session.id,
+      type: 'assessment',
+      title: 'Completed Assessment',
+      description: `Scored ${score}% (${correct}/${total} correct)`,
+      timestamp: session.submitted_at || session.started_at,
+      score
+    })
+  }
+
+  return activities
+}
+
+/**
+ * Helper: Get class join activities for students
+ */
+async function getClassJoinActivities(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string
+): Promise<RecentActivity[]> {
+  const { data: enrollments } = await supabase
+    .from('enrollments')
+    .select(`
+      id,
+      enrolled_at,
+      classes (name)
+    `)
+    .eq('student_id', userId)
+    .order('enrolled_at', { ascending: false })
+    .limit(3)
+
+  if (!enrollments) {
+    return []
+  }
+
+  const activities: RecentActivity[] = []
+  for (const enrollment of enrollments) {
+    const classData = enrollment.classes && typeof enrollment.classes === 'object' && 'name' in enrollment.classes
+      ? { name: String(enrollment.classes.name) }
+      : null
+    const className = classData?.name || 'Unknown Class'
+    activities.push({
+      id: enrollment.id,
+      type: 'class_join',
+      title: 'Joined Class',
+      description: className,
+      timestamp: enrollment.enrolled_at
+    })
+  }
+
+  return activities
+}
+
+/**
+ * Get recent activity for the user (refactored to reduce cognitive complexity)
+ * CRITICAL FIX: Reduced complexity from 31 to <15 by extracting helper functions
  */
 async function getRecentActivity(
   supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
   isTeacher: boolean
 ): Promise<RecentActivity[]> {
-  const activities: RecentActivity[] = []
-
   try {
-    // Get recent assessment completions
-    const { data: sessions, error: sessionError } = await supabase
-      .from('assessment_sessions')
-      .select('id, started_at, submitted_at')
-      .eq('user_id', userId)
-      .not('submitted_at', 'is', null)
-      .order('submitted_at', { ascending: false })
-      .limit(5)
+    const [assessmentActivities, classJoinActivities] = await Promise.all([
+      getAssessmentActivities(supabase, userId),
+      isTeacher ? Promise.resolve([]) : getClassJoinActivities(supabase, userId),
+    ])
 
-    if (sessionError) {
-      authLogger.error('[getRecentActivity] Failed to fetch sessions', sessionError)
-    }
+    const allActivities = [...assessmentActivities, ...classJoinActivities]
+    allActivities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
 
-    if (sessions && sessions.length > 0) {
-      // OPTIMIZATION: Batch fetch all responses instead of per-session loop (N+1 fix)
-      const sessionIds = sessions.map(s => s.id)
-      const { data: allResponses, error: responseError } = await supabase
-        .from('assessment_responses')
-        .select('session_id, is_correct')
-        .in('session_id', sessionIds)
-
-      if (responseError) {
-        authLogger.error('[getRecentActivity] Failed to fetch responses', responseError)
-      }
-
-      // Build map of responses by session for O(1) lookup
-      const responsesBySession = new Map<string, Array<{ is_correct: boolean }>>()
-      if (allResponses) {
-        for (const response of allResponses) {
-          if (!responsesBySession.has(response.session_id)) {
-            responsesBySession.set(response.session_id, [])
-          }
-          responsesBySession.get(response.session_id)!.push({ is_correct: response.is_correct })
-        }
-      }
-
-      // Process sessions using pre-fetched responses
-      for (const session of sessions) {
-        const responses = responsesBySession.get(session.id) || []
-        const total = responses.length
-        const correct = responses.filter(r => r.is_correct).length
-        const score = total > 0 ? Math.round((correct / total) * 100) : 0
-
-        activities.push({
-          id: session.id,
-          type: 'assessment',
-          title: 'Completed Assessment',
-          description: `Scored ${score}% (${correct}/${total} correct)`,
-          timestamp: session.submitted_at || session.started_at,
-          score
-        })
-      }
-    }
-
-    // Get recent class joins (for students)
-    if (!isTeacher) {
-      const { data: enrollments } = await supabase
-        .from('enrollments')
-        .select(`
-          id,
-          enrolled_at,
-          classes (name)
-        `)
-        .eq('student_id', userId)
-        .order('enrolled_at', { ascending: false })
-        .limit(3)
-
-      if (enrollments) {
-        for (const enrollment of enrollments) {
-          // Supabase returns single related record as object, not array (one-to-one via foreign key)
-          // Type-safe access to related class data
-          const classData = enrollment.classes && typeof enrollment.classes === 'object' && 'name' in enrollment.classes
-            ? { name: String(enrollment.classes.name) }
-            : null
-          const className = classData?.name || 'Unknown Class'
-          activities.push({
-            id: enrollment.id,
-            type: 'class_join',
-            title: 'Joined Class',
-            description: className,
-            timestamp: enrollment.enrolled_at
-          })
-        }
-      }
-    }
-
-    // Sort by timestamp descending
-    activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-
-    return activities.slice(0, 5)
+    return allActivities.slice(0, 5)
   } catch (error) {
     authLogger.error('[getRecentActivity] Error fetching recent activity', error)
     return []

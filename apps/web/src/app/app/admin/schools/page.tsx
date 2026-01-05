@@ -425,14 +425,14 @@ export default function AdminSchoolsPage() {
           </p>
           <div className="space-y-3">
             <Button
-              onClick={() => (window.location.href = '/admin/login')}
+              onClick={() => (globalThis.location.href = '/admin/login')}
               className="w-full"
               variant="default"
             >
               Admin Login
             </Button>
             <Button
-              onClick={() => (window.location.href = '/')}
+              onClick={() => (globalThis.location.href = '/')}
               variant="outline"
               className="w-full"
             >

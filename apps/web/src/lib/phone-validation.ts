@@ -130,7 +130,7 @@ export function validateOptionalPhone(phone: string | undefined | null): {
 
   // Valid Indian mobile numbers start with 6, 7, 8, or 9
   const firstDigit = digitsOnly[0]
-  if (!['6', '7', '8', '9'].includes(firstDigit)) {
+  if (!firstDigit || !['6', '7', '8', '9'].includes(firstDigit)) {
     return {
       valid: false,
       error: 'Please enter a valid Indian mobile number'

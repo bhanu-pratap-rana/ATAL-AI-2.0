@@ -100,7 +100,10 @@ export async function batchQueryWithError<TData extends unknown[]>(
       authLogger.error('[batchQuery] Some queries failed', {
         totalQueries: queries.length,
         failedQueries: rejectedQueries.length,
-        errors: rejectedQueries.map((r: any) => r.reason?.message || String(r.reason))
+        errors: rejectedQueries.map((r) => {
+          const reason = r.reason
+          return reason instanceof Error ? reason.message : String(reason)
+        })
       })
     }
 

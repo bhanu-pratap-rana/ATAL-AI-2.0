@@ -184,23 +184,30 @@ export class SyncQueue {
       const pending = await offlineDB.syncQueue.toArray();
 
       for (const item of pending) {
+        if (!item.id) {
+          clientLogger.warn('[SyncQueue] Item missing id, skipping', { type: item.type, timestamp: item.timestamp });
+          continue;
+        }
+
         const result = await this.syncItem(item);
 
         if (result.success) {
-          await offlineDB.syncQueue.delete(item.id!);
+          await offlineDB.syncQueue.delete(item.id);
           success++;
         } else if (item.retries >= MAX_RETRIES) {
           // Max retries exceeded - move to failed state
           clientLogger.error('[SyncQueue] Max retries exceeded', { itemId: item.id, type: item.type, retries: item.retries });
-          await offlineDB.syncQueue.delete(item.id!);
+          await offlineDB.syncQueue.delete(item.id);
           failed++;
-          errors.push({ id: item.id!, error: result.error || 'Max retries exceeded' });
+          errors.push({ id: item.id, error: result.error || 'Max retries exceeded' });
         } else {
           // Increment retry count
-          await offlineDB.syncQueue.update(item.id!, {
-            retries: item.retries + 1,
-            lastError: result.error,
-          });
+          if (item.id) {
+            await offlineDB.syncQueue.update(item.id, {
+              retries: item.retries + 1,
+              lastError: result.error,
+            });
+          }
         }
       }
 
@@ -255,22 +262,29 @@ export class SyncQueue {
         // Report progress
         onProgress?.(i + 1, total);
 
+        if (!item.id) {
+          clientLogger.warn('[SyncQueue] Item missing id, skipping', { type: item.type, timestamp: item.timestamp });
+          continue;
+        }
+
         const result = await this.syncItem(item);
 
         if (result.success) {
-          await offlineDB.syncQueue.delete(item.id!);
+          await offlineDB.syncQueue.delete(item.id);
           success++;
         } else if (item.retries >= MAX_RETRIES) {
-          await offlineDB.syncQueue.delete(item.id!);
+          await offlineDB.syncQueue.delete(item.id);
           failed++;
-          errors.push({ id: item.id!, error: result.error || 'Max retries exceeded' });
+          errors.push({ id: item.id, error: result.error || 'Max retries exceeded' });
         } else {
-          await offlineDB.syncQueue.update(item.id!, {
-            retries: item.retries + 1,
-            lastError: result.error,
-          });
-          failed++;
-          errors.push({ id: item.id!, error: result.error || 'Unknown error' });
+          if (item.id) {
+            await offlineDB.syncQueue.update(item.id, {
+              retries: item.retries + 1,
+              lastError: result.error,
+            });
+            failed++;
+            errors.push({ id: item.id, error: result.error || 'Unknown error' });
+          }
         }
       }
 
@@ -414,7 +428,9 @@ export class SyncQueue {
   async clearFailed(): Promise<void> {
     const failedItems = await this.getFailedItems();
     for (const item of failedItems) {
-      await offlineDB.syncQueue.delete(item.id!);
+      if (item.id) {
+        await offlineDB.syncQueue.delete(item.id);
+      }
     }
     await this.notifySubscribers();
   }
@@ -441,7 +457,7 @@ if (typeof window !== 'undefined') {
     syncQueue.syncAll();
   };
 
-  window.addEventListener('online', onlineHandler);
+  globalThis.addEventListener('online', onlineHandler);
 
   // Initialize periodic sync (5 minutes when online)
   syncIntervalId = setInterval(
@@ -461,14 +477,14 @@ if (typeof window !== 'undefined') {
       clientLogger.debug('[SyncQueue] Interval cleared');
     }
     if (onlineHandler) {
-      window.removeEventListener('online', onlineHandler);
+      globalThis.removeEventListener('online', onlineHandler);
       onlineHandler = null;
       clientLogger.debug('[SyncQueue] Event listener removed');
     }
   };
 
   // Cleanup on page unload
-  window.addEventListener('beforeunload', cleanup);
+  globalThis.addEventListener('beforeunload', cleanup);
   
   // Cleanup on visibility change (tab hidden for long time)
   document.addEventListener('visibilitychange', () => {

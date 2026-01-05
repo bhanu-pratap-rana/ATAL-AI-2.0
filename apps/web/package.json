@@ -33,7 +33,9 @@
     "test:e2e:all": "playwright test",
     "test:e2e:quick": "playwright test smoke.spec.ts comprehensive.spec.ts --workers=4",
     "verify": "npm run build && npm run test:e2e:quick",
-    "verify:full": "npm run build && npm run test:e2e:flows"
+    "verify:full": "npm run build && npm run test:e2e:flows",
+    "sonar": "cd ../.. && sonar-scanner",
+    "sonar:local": "cd ../.. && sonar-scanner -Dsonar.host.url=http://localhost:9000"
   },
   "dependencies": {
     "@ai-sdk/google": "^1.2.0",

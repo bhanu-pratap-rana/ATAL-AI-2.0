@@ -225,7 +225,10 @@ export class GamificationService {
           if (!moduleProgress.has(state.module_id)) {
             moduleProgress.set(state.module_id, []);
           }
-          moduleProgress.get(state.module_id)!.push(state.mastery_score);
+          const moduleScores = moduleProgress.get(state.module_id);
+          if (moduleScores) {
+            moduleScores.push(state.mastery_score);
+          }
         }
 
         // Count modules with all topics mastered (avg >= 70)

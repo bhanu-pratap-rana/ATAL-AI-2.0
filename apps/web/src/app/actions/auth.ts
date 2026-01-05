@@ -127,139 +127,187 @@ export async function checkEmailExistsInAuth(email: string): Promise<{
  * }
  * ```
  */
+/**
+ * Helper: Validate and parse email input
+ */
+function validateEmailInput(email: string): { success: true; email: string } | { success: false; error: string } {
+  try {
+    const trimmedEmail = AuthEmailSchema.parse(email)
+    return { success: true, email: trimmedEmail }
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      const firstError = error.issues[0]
+      authLogger.debug('[requestOtp] Invalid email format', { error: firstError?.message })
+      return { success: false, error: firstError?.message || 'Please enter a valid email address.' }
+    }
+    throw error
+  }
+}
+
+/**
+ * Helper: Validate email domain
+ */
+function validateEmailDomain(email: string): { valid: true } | { valid: false; error: string } {
+  const emailDomain = email.split('@')[1]
+  if (!emailDomain || !isValidEmailDomain(emailDomain)) {
+    authLogger.debug('[requestOtp] Invalid email domain')
+    return {
+      valid: false,
+      error: 'Please enter a valid email address from a recognized email provider.'
+    }
+  }
+  return { valid: true }
+}
+
+/**
+ * Helper: Check rate limits (OTP and enumeration)
+ */
+async function checkRateLimits(email: string): Promise<{ allowed: true } | { allowed: false; error: string }> {
+  if (!(await checkOtpRateLimit(email))) {
+    authLogger.warn('[requestOtp] Rate limit exceeded', { type: 'otp_limit' })
+    return {
+      allowed: false,
+      error: 'Too many OTP requests. Please wait an hour before requesting again.',
+    }
+  }
+
+  const enumerationKey = `email:check:${email}`
+  if (!(await checkEnumerationRateLimit(enumerationKey))) {
+    authLogger.warn('[requestOtp] Email enumeration rate limit exceeded', {
+      email,
+      limitType: 'enumeration'
+    })
+    return {
+      allowed: false,
+      error: 'If this email is registered, check your inbox for a login link. If you don\'t have an account, you can create one.',
+    }
+  }
+
+  return { allowed: true }
+}
+
+/**
+ * Helper: Check for blocked domains and suspicious patterns
+ */
+function validateEmailSecurity(email: string): { valid: true } | { valid: false; error: string } {
+  const domain = email.split('@')[1]
+  
+  if (domain && BLOCKED_EMAIL_DOMAINS.has(domain.toLowerCase())) {
+    authLogger.debug('[requestOtp] Blocked domain detected')
+
+    if (COMMON_DOMAIN_TYPOS[domain]) {
+      const suggestedEmail = email.replace(domain, COMMON_DOMAIN_TYPOS[domain])
+      authLogger.warn('[requestOtp] Possible typo detected in email domain')
+      return {
+        valid: false,
+        error: `Did you mean ${suggestedEmail}? Please check your email address.`
+      }
+    }
+
+    return {
+      valid: false,
+      error: 'Please enter a valid email address from a recognized email provider.'
+    }
+  }
+
+  const suspiciousPatterns = ['test@', 'fake@', 'example@', 'spam@', 'temp@', 'disposable@']
+  if (suspiciousPatterns.some(pattern => email.startsWith(pattern))) {
+    authLogger.debug('[requestOtp] Suspicious email pattern detected')
+    return {
+      valid: false,
+      error: 'Please use a valid email address.'
+    }
+  }
+
+  return { valid: true }
+}
+
+/**
+ * Helper: Handle email enumeration check
+ */
+async function handleEmailEnumerationCheck(email: string): Promise<{ shouldProceed: true } | { shouldProceed: false; error: string }> {
+  const emailCheck = await checkEmailExistsInAuth(email)
+  if (emailCheck.exists) {
+    authLogger.warn('[requestOtp] Email already registered - enumeration attempt detected', {
+      email,
+      role: emailCheck.role,
+      sourceIP: '[IP_ADDRESS]'
+    })
+
+    return {
+      shouldProceed: false,
+      error: 'If this email is registered, check your inbox for a login link. If you don\'t have an account, you can create one.',
+    }
+  }
+
+  return { shouldProceed: true }
+}
+
+/**
+ * Helper: Handle Supabase OTP request errors
+ */
+function handleOtpRequestError(error: { message: string; status?: number; name?: string }): string {
+  authLogger.error('[requestOtp] Supabase error', error, {
+    status: error.status,
+    name: error.name,
+  })
+
+  if (error.message.includes('rate limit')) {
+    return 'Too many requests. Please wait a few minutes and try again.'
+  }
+  if (error.message.includes('Email provider') || error.message.includes('email')) {
+    return 'Email service issue. Please check Supabase dashboard Auth settings.'
+  }
+  if (error.message.includes('Invalid email')) {
+    return 'Please enter a valid email address.'
+  }
+
+  return error.message
+}
+
+/**
+ * Request OTP for email authentication (refactored to reduce cognitive complexity)
+ * CRITICAL FIX: Reduced complexity from 20 to <15 by extracting helper functions
+ */
 export async function requestOtp(email: string) {
   try {
-    // Validate email format using Zod schema
-    let trimmedEmail: string
-    try {
-      trimmedEmail = AuthEmailSchema.parse(email)
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const firstError = error.issues[0]
-        authLogger.debug('[requestOtp] Invalid email format', { error: firstError?.message })
-        return { success: false, error: firstError?.message || 'Please enter a valid email address.' }
-      }
-      throw error
+    const emailValidation = validateEmailInput(email)
+    if (!emailValidation.success) {
+      return emailValidation
     }
 
-    // Validate email domain
-    const emailDomain = trimmedEmail.split('@')[1]
-    if (!emailDomain || !isValidEmailDomain(emailDomain)) {
-      authLogger.debug('[requestOtp] Invalid email domain')
-      return {
-        success: false,
-        error: 'Please enter a valid email address from a recognized email provider.'
-      }
+    const domainValidation = validateEmailDomain(emailValidation.email)
+    if (!domainValidation.valid) {
+      return { success: false, error: domainValidation.error }
     }
 
-    // Check rate limit - prevent brute force attacks
-    if (!(await checkOtpRateLimit(trimmedEmail))) {
-      authLogger.warn('[requestOtp] Rate limit exceeded', { type: 'otp_limit' })
-      return {
-        success: false,
-        error: 'Too many OTP requests. Please wait an hour before requesting again.',
-      }
+    const rateLimitCheck = await checkRateLimits(emailValidation.email)
+    if (!rateLimitCheck.allowed) {
+      return { success: false, error: rateLimitCheck.error }
     }
 
-    // SECURITY FIX #1 ENHANCEMENT: Email enumeration rate limit
-    // Separate rate limit on email enumeration attempts to prevent discovery attacks
-    // Even if attacker can't brute force OTP, they could enumerate valid emails
-    const enumerationKey = `email:check:${trimmedEmail}`
-    if (!(await checkEnumerationRateLimit(enumerationKey))) {
-      authLogger.warn('[requestOtp] Email enumeration rate limit exceeded', {
-        email: trimmedEmail,
-        limitType: 'enumeration'
-      })
-      return {
-        success: false,
-        error: 'If this email is registered, check your inbox for a login link. If you don\'t have an account, you can create one.',
-      }
+    const securityValidation = validateEmailSecurity(emailValidation.email)
+    if (!securityValidation.valid) {
+      return { success: false, error: securityValidation.error }
     }
 
-    // Check if email already exists in the system
-    const emailCheck = await checkEmailExistsInAuth(trimmedEmail)
-    if (emailCheck.exists) {
-      // SECURITY FIX: Enhanced email enumeration prevention
-      // Don't reveal whether email exists or what role it has
-      authLogger.warn('[requestOtp] Email already registered - enumeration attempt detected', {
-        email: trimmedEmail,
-        role: emailCheck.role,
-        sourceIP: '[IP_ADDRESS]' // In real implementation, get from request headers
-      })
-
-      // SECURITY: Return generic error that doesn't reveal account existence
-      // No 'exists' field that could be parsed by attackers
-      // Response is timing-consistent regardless of email status
-      return {
-        success: false,
-        error: 'If this email is registered, check your inbox for a login link. If you don\'t have an account, you can create one.',
-        // REMOVED: 'exists' field (prevented client-side enumeration)
-        // REMOVED: 'role' field (prevents role enumeration)
-      }
-    }
-
-    // Check for blocked/fake domains first
-    const domain = trimmedEmail.split('@')[1]
-    if (domain && BLOCKED_EMAIL_DOMAINS.has(domain.toLowerCase())) {
-      authLogger.debug('[requestOtp] Blocked domain detected')
-
-      // Check if it's a typo and suggest correction using centralized constant
-      if (COMMON_DOMAIN_TYPOS[domain]) {
-        const suggestedEmail = trimmedEmail.replace(domain, COMMON_DOMAIN_TYPOS[domain])
-        authLogger.warn('[requestOtp] Possible typo detected in email domain')
-        return {
-          success: false,
-          error: `Did you mean ${suggestedEmail}? Please check your email address.`
-        }
-      }
-
-      return {
-        success: false,
-        error: 'Please enter a valid email address from a recognized email provider.'
-      }
-    }
-
-    // Additional check: reject obviously fake emails
-    const suspiciousPatterns = ['test@', 'fake@', 'example@', 'spam@', 'temp@', 'disposable@']
-    if (suspiciousPatterns.some(pattern => trimmedEmail.startsWith(pattern))) {
-      authLogger.debug('[requestOtp] Suspicious email pattern detected')
-      return {
-        success: false,
-        error: 'Please use a valid email address.'
-      }
+    const enumerationCheck = await handleEmailEnumerationCheck(emailValidation.email)
+    if (!enumerationCheck.shouldProceed) {
+      return { success: false, error: enumerationCheck.error }
     }
 
     authLogger.debug('[requestOtp] Starting OTP request')
 
     const supabase = await createClient()
-
-    // Note: Using manual OTP entry (not magic link), so emailRedirectTo is not needed
     const { data, error } = await supabase.auth.signInWithOtp({
-      email: trimmedEmail,
+      email: emailValidation.email,
       options: {
-        shouldCreateUser: true, // Auto-create user if doesn't exist
+        shouldCreateUser: true,
       },
     })
 
     if (error) {
-      const errorStatus = (error as { status?: number }).status
-      const errorName = (error as { name?: string }).name
-      authLogger.error('[requestOtp] Supabase error', error, {
-        status: errorStatus,
-        name: errorName,
-      })
-
-      // Provide more specific error messages
-      let userMessage = error.message
-      if (error.message.includes('rate limit')) {
-        userMessage = 'Too many requests. Please wait a few minutes and try again.'
-      } else if (error.message.includes('Email provider') || error.message.includes('email')) {
-        userMessage = 'Email service issue. Please check Supabase dashboard Auth settings.'
-      } else if (error.message.includes('Invalid email')) {
-        userMessage = 'Please enter a valid email address.'
-      }
-
-      return { success: false, error: userMessage }
+      return { success: false, error: handleOtpRequestError(error) }
     }
 
     authLogger.success('[requestOtp] OTP sent successfully')

@@ -129,37 +129,54 @@ export default function AdminSchoolPINsPage() {
     }
   }
 
+  /**
+   * Helper: Reload all data after PIN rotation
+   */
+  async function reloadAllDataAfterPinRotation(schoolId: string) {
+    const [schoolsResult, statsResult, schoolResult] = await Promise.all([
+      getAllSchoolsWithPINs(),
+      getPINStatistics(),
+      getSchoolPINInfo(schoolId),
+    ])
+
+    if (schoolsResult.success && Array.isArray(schoolsResult.data)) {
+      setAllSchools(schoolsResult.data as SchoolListItem[])
+    }
+
+    if (statsResult.success && statsResult.data) {
+      setStats(statsResult.data as PINStatistics)
+    }
+
+    if (schoolResult.success && schoolResult.data) {
+      setSelectedSchool(schoolResult.data as SchoolPINInfo)
+    }
+  }
+
+  /**
+   * Helper: Handle successful PIN rotation
+   */
+  async function handlePinRotationSuccess(schoolId: string, newPinValue: string, wasRotated: boolean) {
+    setNewPin(newPinValue)
+    setShowNewPin(true)
+    toast.success(`PIN ${wasRotated ? 'rotated' : 'generated'}! New PIN: ${newPinValue}`)
+    await reloadAllDataAfterPinRotation(schoolId)
+  }
+
   async function handleRotatePin(customPin?: string) {
     if (!selectedSchool) return
 
     const pinToUse = customPin || generateRandomPIN()
-
     setRotatingId(selectedSchool.schoolId)
+
     try {
       const result = await rotateSchoolPIN(selectedSchool.schoolId, pinToUse)
       if (result.success && result.data) {
         const newPinValue = (result.data as { newPIN: string }).newPIN || pinToUse
-        setNewPin(newPinValue)
-        setShowNewPin(true)
-        toast.success(`PIN ${selectedSchool.lastRotatedAt ? 'rotated' : 'generated'}! New PIN: ${newPinValue}`)
-
-        // Reload all schools
-        const schoolsResult = await getAllSchoolsWithPINs()
-        if (schoolsResult.success && Array.isArray(schoolsResult.data)) {
-          setAllSchools(schoolsResult.data as SchoolListItem[])
-        }
-
-        // Reload stats
-        const statsResult = await getPINStatistics()
-        if (statsResult.success && statsResult.data) {
-          setStats(statsResult.data as PINStatistics)
-        }
-
-        // Reload selected school
-        const schoolResult = await getSchoolPINInfo(selectedSchool.schoolId)
-        if (schoolResult.success && schoolResult.data) {
-          setSelectedSchool(schoolResult.data as SchoolPINInfo)
-        }
+        await handlePinRotationSuccess(
+          selectedSchool.schoolId,
+          newPinValue,
+          !!selectedSchool.lastRotatedAt
+        )
       } else {
         toast.error(result.error || 'Failed to generate PIN')
       }

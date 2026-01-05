@@ -132,8 +132,161 @@ export async function getCurrentAdminRole(): Promise<'super_admin' | 'admin' | n
 }
 
 /**
- * Create a new admin account
+ * Helper: Check if user can be promoted to admin (not a student-only account)
+ */
+async function canPromoteToAdmin(
+  adminClient: Awaited<ReturnType<typeof createAdminClient>>,
+  userId: string
+): Promise<{ canPromote: true } | { canPromote: false; error: string }> {
+  const [studentProfileResult, teacherProfileResult] = await Promise.all([
+    adminClient.from('student_profiles').select('user_id').eq('user_id', userId).maybeSingle(),
+    adminClient.from('teacher_profiles').select('user_id').eq('user_id', userId).maybeSingle(),
+  ])
+
+  const studentProfile = studentProfileResult.data
+  const teacherProfile = teacherProfileResult.data
+
+  if (studentProfile && !teacherProfile) {
+    authLogger.warn('[createAdminAccount] Blocked: Cannot promote student to admin', {
+      userId,
+    })
+    return {
+      canPromote: false,
+      error: 'This email is registered as a student account. Only teachers can be promoted to admin.',
+    }
+  }
+
+  return { canPromote: true }
+}
+
+/**
+ * Helper: Promote existing user to admin role
+ */
+async function promoteExistingUserToAdmin(
+  adminClient: Awaited<ReturnType<typeof createAdminClient>>,
+  userId: string,
+  email: string,
+  role: 'admin' | 'super_admin',
+  currentRole: string | undefined
+): Promise<AdminActionResult> {
+  const { data, error: recheckError } = await adminClient.auth.admin.getUserById(userId)
+  const recheck = data?.user
+
+  if (recheckError || !recheck) {
+    authLogger.warn('[createAdminAccount] User disappeared during operation', { userId })
+    return {
+      success: false,
+      error: 'User no longer exists. Please try again.',
+    }
+  }
+
+  const recheckRole = recheck.app_metadata?.role as string
+  if (recheckRole === 'admin' || recheckRole === 'super_admin') {
+    authLogger.warn('[createAdminAccount] User already promoted by concurrent request', {
+      email,
+      userId,
+      role: recheckRole,
+    })
+    return {
+      success: true,
+      message: `${email} is already an ${recheckRole === 'super_admin' ? 'Super Admin' : 'Admin'}`,
+      data: { userId, promoted: false },
+    }
+  }
+
+  const { error: updateError } = await adminClient.auth.admin.updateUserById(userId, {
+    app_metadata: {
+      ...recheck.app_metadata,
+      role: role,
+    },
+  })
+
+  if (updateError) {
+    authLogger.error('[createAdminAccount] Failed to promote user to admin', updateError)
+    return {
+      success: false,
+      error: 'Failed to promote user to admin',
+    }
+  }
+
+  authLogger.success('[createAdminAccount] User promoted to admin', {
+    email,
+    role,
+    previousRole: currentRole || 'user',
+  })
+  return {
+    success: true,
+    message: `${email} has been promoted to ${role === 'super_admin' ? 'Super Admin' : 'Admin'}`,
+    data: { userId, promoted: true },
+  }
+}
+
+/**
+ * Helper: Create new admin user account
+ */
+async function createNewAdminUser(
+  adminClient: Awaited<ReturnType<typeof createAdminClient>>,
+  email: string,
+  password: string,
+  role: 'admin' | 'super_admin'
+): Promise<AdminActionResult> {
+  const { data, error: createError } = await adminClient.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+  })
+
+  if (createError || !data.user) {
+    authLogger.error('[createAdminAccount] Failed to create user', createError)
+    return {
+      success: false,
+      error: createError?.message || 'Failed to create user account',
+    }
+  }
+
+  const newUserId = data.user.id
+
+  const { error: updateError } = await adminClient.auth.admin.updateUserById(newUserId, {
+    app_metadata: {
+      role: role,
+    },
+  })
+
+  if (updateError) {
+    authLogger.error('[createAdminAccount] Failed to set admin role, initiating rollback', updateError)
+
+    const { error: deleteError } = await adminClient.auth.admin.deleteUser(newUserId)
+    if (deleteError) {
+      authLogger.error('[createAdminAccount] CRITICAL: Rollback failed, orphaned user created', {
+        userId: newUserId,
+        email,
+        deleteError: deleteError.message,
+      })
+      return {
+        success: false,
+        error: 'Failed to configure admin account and rollback failed. Manual intervention required.',
+      }
+    }
+
+    authLogger.warn('[createAdminAccount] Rollback successful, user deleted', { userId: newUserId })
+    return {
+      success: false,
+      error: 'Failed to set admin role. Account creation rolled back.',
+    }
+  }
+
+  authLogger.success('[createAdminAccount] Admin account created', { email, role })
+  return {
+    success: true,
+    message: `Admin account created for ${email}`,
+    data: { userId: newUserId },
+  }
+}
+
+/**
+ * Create a new admin account (refactored to reduce cognitive complexity)
  * SECURITY: Only super_admin can create new admins
+ * CRITICAL FIX: Reduced complexity from 29 to <15 by extracting helper functions
  */
 export async function createAdminAccount(
   email: string,
@@ -141,17 +294,14 @@ export async function createAdminAccount(
   role: 'admin' | 'super_admin' = 'admin'
 ): Promise<AdminActionResult> {
   try {
-    // Validate inputs using Zod schemas
     const normalizedEmail = AdminEmailSchema.parse(email)
     AdminPasswordSchema.parse(password)
 
-    // SECURITY: Verify caller is authenticated and authorized as super_admin
     const auth = await verifySuperAdminAuth('createAdminAccount')
     if (!auth.authorized) {
       return auth.error
     }
 
-    // Rate limiting using distributed rate limiter
     const rateLimitKey = `admin:create:${normalizedEmail}`
     const isAllowed = await checkDistributedRateLimit(rateLimitKey, ADMIN_RATE_LIMIT)
     if (!isAllowed) {
@@ -162,13 +312,10 @@ export async function createAdminAccount(
     }
 
     const adminClient = await createAdminClient()
-
-    // Check if user already exists (using pagination helper for large user bases)
     const allUsers = await fetchAllAdminUsers(adminClient)
     const existingUser = allUsers.find((u) => u.email?.toLowerCase() === normalizedEmail)
 
     if (existingUser) {
-      // User exists - check if already an admin
       const currentRole = existingUser.app_metadata?.role as string
       if (currentRole === 'admin' || currentRole === 'super_admin') {
         return {
@@ -177,137 +324,24 @@ export async function createAdminAccount(
         }
       }
 
-      // SECURITY: Check if user is a student - students cannot be promoted to admin
-      // Only teachers can be promoted to admin role
-      const { data: studentProfile } = await adminClient
-        .from('student_profiles')
-        .select('user_id')
-        .eq('user_id', existingUser.id)
-        .maybeSingle()
-
-      const { data: teacherProfile } = await adminClient
-        .from('teacher_profiles')
-        .select('user_id')
-        .eq('user_id', existingUser.id)
-        .maybeSingle()
-
-      // Block: Student email cannot become admin (has student profile but no teacher profile)
-      if (studentProfile && !teacherProfile) {
-        authLogger.warn('[createAdminAccount] Blocked: Cannot promote student to admin', {
-          email: normalizedEmail,
-          userId: existingUser.id,
-        })
+      const promotionCheck = await canPromoteToAdmin(adminClient, existingUser.id)
+      if (!promotionCheck.canPromote) {
         return {
           success: false,
-          error: 'This email is registered as a student account. Only teachers can be promoted to admin.',
+          error: promotionCheck.error,
         }
       }
 
-      // Promote existing user to admin (teacher becoming admin)
-      // SECURITY: Re-check user state to prevent race condition
-      // (Another concurrent request might have changed the user's role)
-      const { data, error: recheckError } = await adminClient.auth.admin.getUserById(existingUser.id)
-      const recheck = data?.user
-
-      if (recheckError || !recheck) {
-        authLogger.warn('[createAdminAccount] User disappeared during operation', { userId: existingUser.id })
-        return {
-          success: false,
-          error: 'User no longer exists. Please try again.',
-        }
-      }
-
-      const recheckRole = recheck.app_metadata?.role as string
-      if (recheckRole === 'admin' || recheckRole === 'super_admin') {
-        authLogger.warn('[createAdminAccount] User already promoted by concurrent request', {
-          email: normalizedEmail,
-          userId: existingUser.id,
-          role: recheckRole,
-        })
-        return {
-          success: true,
-          message: `${email} is already an ${recheckRole === 'super_admin' ? 'Super Admin' : 'Admin'}`,
-          data: { userId: existingUser.id, promoted: false },
-        }
-      }
-
-      const { error: updateError } = await adminClient.auth.admin.updateUserById(existingUser.id, {
-        app_metadata: {
-          ...recheck.app_metadata,  // Use rechecked metadata, not stale data
-          role: role,
-        },
-      })
-
-      if (updateError) {
-        authLogger.error('[createAdminAccount] Failed to promote user to admin', updateError)
-        return {
-          success: false,
-          error: 'Failed to promote user to admin',
-        }
-      }
-
-      authLogger.success('[createAdminAccount] User promoted to admin', { email: normalizedEmail, role, previousRole: currentRole || 'user' })
-      return {
-        success: true,
-        message: `${email} has been promoted to ${role === 'super_admin' ? 'Super Admin' : 'Admin'}`,
-        data: { userId: existingUser.id, promoted: true },
-      }
+      return await promoteExistingUserToAdmin(
+        adminClient,
+        existingUser.id,
+        email,
+        role,
+        currentRole
+      )
     }
 
-    // Create new user
-    const { data, error: createError } = await adminClient.auth.admin.createUser({
-      email: normalizedEmail,
-      password,
-      email_confirm: true,
-    })
-
-    if (createError || !data.user) {
-      authLogger.error('[createAdminAccount] Failed to create user', createError)
-      return {
-        success: false,
-        error: createError?.message || 'Failed to create user account',
-      }
-    }
-
-    const newUserId = data.user.id
-
-    // Set admin role
-    const { error: updateError } = await adminClient.auth.admin.updateUserById(newUserId, {
-      app_metadata: {
-        role: role,
-      },
-    })
-
-    if (updateError) {
-      // ERROR RECOVERY: Rollback - delete created user since role update failed
-      authLogger.error('[createAdminAccount] Failed to set admin role, initiating rollback', updateError)
-
-      const { error: deleteError } = await adminClient.auth.admin.deleteUser(newUserId)
-      if (deleteError) {
-        authLogger.error('[createAdminAccount] CRITICAL: Rollback failed, orphaned user created', {
-          userId: newUserId,
-          email: normalizedEmail,
-          deleteError: deleteError.message,
-        })
-        return {
-          success: false,
-          error: 'Failed to configure admin account and rollback failed. Manual intervention required.',
-        }
-      }
-
-      authLogger.warn('[createAdminAccount] Rollback successful, user deleted', { userId: newUserId })
-      return {
-        success: false,
-        error: 'Failed to set admin role. Account creation rolled back.',
-      }
-    }
-
-    authLogger.success('[createAdminAccount] Admin account created', { email: normalizedEmail, role })
-    return {
-      success: true,
-      message: `Admin account created for ${email}`,
-      data: { userId: newUserId },
-    }
+    return await createNewAdminUser(adminClient, normalizedEmail, password, role)
   } catch (error) {
     if (error instanceof z.ZodError) {
       const firstError = error.issues[0]
