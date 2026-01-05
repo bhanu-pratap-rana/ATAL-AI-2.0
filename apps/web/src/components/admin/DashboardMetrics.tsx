@@ -186,7 +186,7 @@ export function DashboardMetrics() {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         {[...Array(5)].map((_, i) => (
-          <div key={i} className="bg-border-light rounded-lg p-4 h-24 animate-pulse"></div>
+          <div key={`skeleton-${i}`} className="bg-border-light rounded-lg p-4 h-24 animate-pulse"></div>
         ))}
       </div>
     )

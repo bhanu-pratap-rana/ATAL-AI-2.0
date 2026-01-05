@@ -95,8 +95,8 @@ export function Leaderboard({ classId, currentUserId, limit = 10 }: LeaderboardP
   if (loading) {
     return (
       <div className="space-y-3">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="animate-pulse flex items-center gap-3 p-3 rounded-lg bg-muted">
+        {[1, 2, 3, 4, 5].map((position) => (
+          <div key={`position-${position}`} className="animate-pulse flex items-center gap-3 p-3 rounded-lg bg-muted">
             <div className="w-8 h-8 bg-muted-foreground/20 rounded-full" />
             <div className="flex-1 space-y-2">
               <div className="h-4 bg-muted-foreground/20 rounded w-1/3" />

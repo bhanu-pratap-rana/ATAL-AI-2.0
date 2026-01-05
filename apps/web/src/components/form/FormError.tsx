@@ -201,8 +201,8 @@ export function FormErrorList({
     >
       {title && <p className="font-medium">{title}</p>}
       <ul className="list-disc list-inside space-y-1">
-        {errors.map((error, index) => (
-          <li key={index}>{error}</li>
+        {errors.map((error) => (
+          <li key={error}>{error}</li>
         ))}
       </ul>
     </div>
