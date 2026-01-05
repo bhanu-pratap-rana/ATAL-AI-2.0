@@ -3,9 +3,9 @@ import { cn } from "@/lib/utils"
 type BadgeVariant = 'default' | 'success' | 'warning' | 'error' | 'info' | 'accent' | 'secondary'
 
 interface BadgeProps {
-  children: React.ReactNode
-  variant?: BadgeVariant
-  className?: string
+  readonly children: React.ReactNode
+  readonly variant?: BadgeVariant
+  readonly className?: string
 }
 
 const variants: Record<BadgeVariant, string> = {
