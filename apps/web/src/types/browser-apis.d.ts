@@ -12,7 +12,7 @@
 interface SpeechRecognitionEvent extends Event {
   readonly results: SpeechRecognitionResultList;
   readonly resultIndex: number;
-  readonly interpretation: any;
+  readonly interpretation: Record<string, unknown>;
   readonly emma: Document | null;
 }
 
@@ -57,17 +57,17 @@ interface SpeechRecognition extends EventTarget {
   serviceURI: string;
 
   // Event handlers
-  onaudiostart: ((this: SpeechRecognition, ev: Event) => any) | null;
-  onaudioend: ((this: SpeechRecognition, ev: Event) => any) | null;
-  onend: ((this: SpeechRecognition, ev: Event) => any) | null;
-  onerror: ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => any) | null;
-  onnomatch: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => any) | null;
-  onresult: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => any) | null;
-  onsoundstart: ((this: SpeechRecognition, ev: Event) => any) | null;
-  onsoundend: ((this: SpeechRecognition, ev: Event) => any) | null;
-  onspeechstart: ((this: SpeechRecognition, ev: Event) => any) | null;
-  onspeechend: ((this: SpeechRecognition, ev: Event) => any) | null;
-  onstart: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onaudiostart: ((this: SpeechRecognition, ev: Event) => void) | null;
+  onaudioend: ((this: SpeechRecognition, ev: Event) => void) | null;
+  onend: ((this: SpeechRecognition, ev: Event) => void) | null;
+  onerror: ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => void) | null;
+  onnomatch: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => void) | null;
+  onresult: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => void) | null;
+  onsoundstart: ((this: SpeechRecognition, ev: Event) => void) | null;
+  onsoundend: ((this: SpeechRecognition, ev: Event) => void) | null;
+  onspeechstart: ((this: SpeechRecognition, ev: Event) => void) | null;
+  onspeechend: ((this: SpeechRecognition, ev: Event) => void) | null;
+  onstart: ((this: SpeechRecognition, ev: Event) => void) | null;
 
   // Methods
   start(): void;
@@ -149,7 +149,7 @@ interface NetworkInformation extends EventTarget {
   /**
    * Event handler for when connection information changes
    */
-  onchange: ((this: NetworkInformation, ev: Event) => any) | null;
+  onchange: ((this: NetworkInformation, ev: Event) => void) | null;
 }
 
 // Extend Navigator interface with connection properties
@@ -208,7 +208,12 @@ export function isNetworkInformationSupported(): boolean {
  */
 export function getSpeechRecognition(): typeof SpeechRecognition | null {
   if (typeof window === 'undefined') return null;
-  return (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition || null;
+
+  const win = window as Window & {
+    webkitSpeechRecognition?: typeof SpeechRecognition;
+  };
+
+  return win.SpeechRecognition || win.webkitSpeechRecognition || null;
 }
 
 /**

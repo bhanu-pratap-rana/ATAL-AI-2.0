@@ -224,17 +224,17 @@ export function useNetworkStatus(): NetworkStatus {
  */
 export function hasNetworkInformation(): boolean {
   if (typeof navigator === 'undefined') return false;
-  
+
   const nav = navigator as Navigator & {
-    connection?: any;
-    mozConnection?: any;
-    webkitConnection?: any;
+    connection?: NetworkInformation;
+    mozConnection?: NetworkInformation;
+    webkitConnection?: NetworkInformation;
   };
-  
+
   return (
     ('connection' in nav || 'mozConnection' in nav || 'webkitConnection' in nav) &&
-    (nav.connection !== undefined || 
-     nav.mozConnection !== undefined || 
+    (nav.connection !== undefined ||
+     nav.mozConnection !== undefined ||
      nav.webkitConnection !== undefined)
   );
 }

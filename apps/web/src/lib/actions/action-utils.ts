@@ -180,7 +180,7 @@ export function validateRequired(
  * ```
  */
 export async function executeQuery<T>(
-  fn: () => Promise<{ data: T; error: any }>,
+  fn: () => Promise<{ data: T; error: Error | null }>,
   context: string
 ): Promise<T> {
   const { data, error } = await fn()
