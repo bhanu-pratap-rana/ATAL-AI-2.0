@@ -17,6 +17,7 @@ import {
   ClassIdSchema,
 } from '@/lib/validation-schemas'
 import { authLogger } from '@/lib/auth-logger'
+import { handleZodError } from '@/lib/action-error-handler'
 
 /**
  * Type definitions for Supabase responses
@@ -104,7 +105,12 @@ function isValidStudentProfile(data: unknown): data is { name: string; roll_numb
 export async function createClass(name: string, subject?: string) {
   try {
     // Validate input
-    const validatedInput = CreateClassSchema.parse({ name, subject })
+    let validatedInput
+    try {
+      validatedInput = CreateClassSchema.parse({ name, subject })
+    } catch (error) {
+      return handleZodError(error)
+    }
     name = validatedInput.name
     subject = validatedInput.subject
 
@@ -149,7 +155,12 @@ export async function createClass(name: string, subject?: string) {
 export async function updateClass(classId: string, name: string, subject?: string) {
   try {
     // Validate inputs
-    const validatedInput = UpdateClassSchema.parse({ classId, name, subject })
+    let validatedInput
+    try {
+      validatedInput = UpdateClassSchema.parse({ classId, name, subject })
+    } catch (error) {
+      return handleZodError(error)
+    }
 
     // SECURITY: Verify caller is authenticated and owns this class
     const auth = await verifyClassOwnership('updateClass', validatedInput.classId)
@@ -196,7 +207,12 @@ export async function updateClass(classId: string, name: string, subject?: strin
 export async function deleteClass(classId: string) {
   try {
     // Validate input
-    const validatedClassId = ClassIdSchema.parse(classId)
+    let validatedClassId
+    try {
+      validatedClassId = ClassIdSchema.parse(classId)
+    } catch (error) {
+      return handleZodError(error)
+    }
 
     // SECURITY: Verify caller is authenticated and owns this class
     const auth = await verifyClassOwnership('deleteClass', validatedClassId)
@@ -224,10 +240,6 @@ export async function deleteClass(classId: string) {
     revalidatePath('/app/teacher/classes')
     return { success: true }
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      const firstError = error.issues[0]
-      return { success: false, error: firstError?.message || 'Invalid input' }
-    }
     authLogger.error('[deleteClass] Unexpected error', error)
     return {
       success: false,
@@ -239,7 +251,12 @@ export async function deleteClass(classId: string) {
 export async function enrollStudent(classId: string, studentId: string) {
   try {
     // Validate inputs
-    const validatedInput = EnrollmentSchema.parse({ classId, studentId })
+    let validatedInput
+    try {
+      validatedInput = EnrollmentSchema.parse({ classId, studentId })
+    } catch (error) {
+      return handleZodError(error)
+    }
 
     // SECURITY: Verify caller is authenticated and owns this class
     const auth = await verifyClassOwnership('enrollStudent', validatedInput.classId)
@@ -275,10 +292,6 @@ export async function enrollStudent(classId: string, studentId: string) {
     revalidatePath(`/app/teacher/classes/${validatedInput.classId}`)
     return { success: true, data }
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      const firstError = error.issues[0]
-      return { success: false, error: firstError?.message || 'Invalid input' }
-    }
     authLogger.error('[enrollStudent] Unexpected error', error)
     return {
       success: false,
@@ -290,7 +303,12 @@ export async function enrollStudent(classId: string, studentId: string) {
 export async function removeStudent(classId: string, studentId: string) {
   try {
     // Validate inputs
-    const validatedInput = EnrollmentSchema.parse({ classId, studentId })
+    let validatedInput
+    try {
+      validatedInput = EnrollmentSchema.parse({ classId, studentId })
+    } catch (error) {
+      return handleZodError(error)
+    }
 
     // SECURITY: Verify caller is authenticated and owns this class
     const auth = await verifyClassOwnership('removeStudent', validatedInput.classId)
@@ -319,10 +337,6 @@ export async function removeStudent(classId: string, studentId: string) {
     revalidatePath(`/app/teacher/classes/${validatedInput.classId}`)
     return { success: true }
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      const firstError = error.issues[0]
-      return { success: false, error: firstError?.message || 'Invalid input' }
-    }
     authLogger.error('[removeStudent] Unexpected error', error)
     return {
       success: false,
@@ -484,7 +498,13 @@ export async function getClassAssessmentResults(classId: string): Promise<{
 }> {
   try {
     // Validate input
-    const validatedClassId = ClassIdSchema.parse(classId)
+    let validatedClassId
+    try {
+      validatedClassId = ClassIdSchema.parse(classId)
+    } catch (error) {
+      const zodError = handleZodError(error)
+      return { success: zodError.success, error: zodError.error }
+    }
 
     // SECURITY: Verify caller is authenticated and owns this class
     const auth = await verifyClassOwnership('getClassAssessmentResults', validatedClassId)
@@ -984,7 +1004,12 @@ async function calculateAtRiskCount(
  */
 export async function getClassAnalytics(classId: string) {
   try {
-    const validatedClassId = ClassIdSchema.parse(classId)
+    let validatedClassId
+    try {
+      validatedClassId = ClassIdSchema.parse(classId)
+    } catch (error) {
+      return handleZodError(error)
+    }
 
     const auth = await verifyClassOwnership('getClassAnalytics', validatedClassId)
     if (!auth.authorized) {
