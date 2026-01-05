@@ -348,11 +348,11 @@ export default function TeacherStartPage() {
                   <Button
                     type="button"
                     onClick={() => {
-                      if (state.phoneNumber.length !== 10) {
-                        actions.setPhoneError('Phone number must be 10 digits')
-                      } else {
+                      if (state.phoneNumber.length === 10) {
                         // Phone OTP will be sent here
                         actions.setPhoneOtpSent(true)
+                      } else {
+                        actions.setPhoneError('Phone number must be 10 digits')
                       }
                     }}
                     className="w-full shadow-[var(--shadow-primary)]"
@@ -388,11 +388,11 @@ export default function TeacherStartPage() {
                     <Button
                       type="button"
                       onClick={() => {
-                        if (state.phoneOtp.length !== 6) {
-                          // toast.error handled in hook
-                        } else {
+                        if (state.phoneOtp.length === 6) {
                           // Phone verification would happen here
                           actions.setStep('set-password')
+                        } else {
+                          // toast.error handled in hook
                         }
                       }}
                       className="w-full shadow-[var(--shadow-primary)]"
