@@ -64,12 +64,16 @@ export function VoiceChat({ language, onTranscript, disabled = false }: VoiceCha
 
   // Initialize speech recognition
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof globalThis === 'undefined') return;
 
     // Check browser support
-    const SpeechRecognitionConstructor: new () => SpeechRecognition = 
-      (window as any).SpeechRecognition ||
-      (window as any).webkitSpeechRecognition;
+    const global = globalThis as typeof globalThis & {
+      SpeechRecognition?: new () => SpeechRecognition;
+      webkitSpeechRecognition?: new () => SpeechRecognition;
+    };
+    const SpeechRecognitionConstructor: new () => SpeechRecognition =
+      global.SpeechRecognition ||
+      global.webkitSpeechRecognition;
     
     if (!SpeechRecognitionConstructor) {
       setIsSupported(false);

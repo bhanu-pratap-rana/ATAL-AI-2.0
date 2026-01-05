@@ -189,8 +189,8 @@ declare global {
  * Type guard to check if Speech Recognition API is available
  */
 export function isSpeechRecognitionSupported(): boolean {
-  return typeof window !== 'undefined' && 
-         ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
+  return typeof globalThis !== 'undefined' &&
+         ('SpeechRecognition' in globalThis || 'webkitSpeechRecognition' in globalThis);
 }
 
 /**
@@ -207,13 +207,14 @@ export function isNetworkInformationSupported(): boolean {
  * Get Speech Recognition constructor (handles prefixes)
  */
 export function getSpeechRecognition(): typeof SpeechRecognition | null {
-  if (typeof window === 'undefined') return null;
+  if (typeof globalThis === 'undefined') return null;
 
-  const win = window as Window & {
+  const global = globalThis as typeof globalThis & {
+    SpeechRecognition?: typeof SpeechRecognition;
     webkitSpeechRecognition?: typeof SpeechRecognition;
   };
 
-  return win.SpeechRecognition || win.webkitSpeechRecognition || null;
+  return global.SpeechRecognition || global.webkitSpeechRecognition || null;
 }
 
 /**

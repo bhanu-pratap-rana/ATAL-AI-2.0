@@ -38,11 +38,11 @@ export class AssessmentErrorBoundary extends React.Component<Props, State> {
   }
 
   handleReload = () => {
-    window.location.reload();
+    globalThis.location?.reload();
   };
 
   handleGoBack = () => {
-    window.history.back();
+    globalThis.history?.back();
   };
 
   render() {
