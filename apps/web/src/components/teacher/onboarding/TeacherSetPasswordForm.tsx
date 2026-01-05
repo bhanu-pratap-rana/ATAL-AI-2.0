@@ -8,13 +8,13 @@ import { Label } from '@/components/ui/label'
 import { Lock } from 'lucide-react'
 
 interface TeacherSetPasswordFormProps {
-  password: string
-  passwordConfirm: string
-  passwordStrength: number
-  loading: boolean
-  onPasswordChange: (value: string) => void
-  onConfirmPasswordChange: (value: string) => void
-  onSubmit: (e: FormEvent) => void
+  readonly password: string
+  readonly passwordConfirm: string
+  readonly passwordStrength: number
+  readonly loading: boolean
+  readonly onPasswordChange: (value: string) => void
+  readonly onConfirmPasswordChange: (value: string) => void
+  readonly onSubmit: (e: FormEvent) => void
 }
 
 function getPasswordStrengthLabel(strength: number): string {
