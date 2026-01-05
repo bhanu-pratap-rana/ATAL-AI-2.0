@@ -8,14 +8,14 @@ import { Label } from '@/components/ui/label'
 import { User, CheckCircle } from 'lucide-react'
 
 interface TeacherProfileFormProps {
-  teacherName: string
-  phone: string
-  verifiedSchoolName: string
-  verifiedSchoolCode: string
-  loading: boolean
-  onNameChange: (value: string) => void
-  onPhoneChange: (value: string) => void
-  onSubmit: (e: FormEvent) => void
+  readonly teacherName: string
+  readonly phone: string
+  readonly verifiedSchoolName: string
+  readonly verifiedSchoolCode: string
+  readonly loading: boolean
+  readonly onNameChange: (value: string) => void
+  readonly onPhoneChange: (value: string) => void
+  readonly onSubmit: (e: FormEvent) => void
 }
 
 export function TeacherProfileForm({

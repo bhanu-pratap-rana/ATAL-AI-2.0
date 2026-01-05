@@ -33,8 +33,8 @@ interface StudentProgress {
 }
 
 interface StudentProgressGridProps {
-  classId: string;
-  teacherId: string;
+  readonly classId: string;
+  readonly teacherId: string;
 }
 
 export function StudentProgressGrid({ classId, teacherId }: StudentProgressGridProps) {
@@ -216,7 +216,7 @@ export function StudentProgressGrid({ classId, teacherId }: StudentProgressGridP
 /**
  * Individual Student Progress Card
  */
-function StudentProgressCard({ student }: { student: StudentProgress }) {
+function StudentProgressCard({ student }: { readonly student: StudentProgress }) {
   const progressPercent = Math.round(
     (student.topics_mastered / student.total_topics) * 100
   );
