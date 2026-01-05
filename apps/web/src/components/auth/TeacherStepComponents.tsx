@@ -641,49 +641,7 @@ export function AuthStep({
 
           {signupMethod === 'email' && (
             <>
-              {!otpSent ? (
-                <form onSubmit={handleSendOTP} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email Address</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="teacher@school.edu"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      disabled={loading}
-                    />
-                    {emailError && (
-                      <div className="space-y-2">
-                        <p className="text-sm text-error">{emailError}</p>
-                        {emailSuggestion && (
-                          <button
-                            type="button"
-                            onClick={() => setEmail(emailSuggestion)}
-                            className="text-sm text-cyan hover:text-cyan-dark hover:underline"
-                            disabled={loading}
-                          >
-                            ✓ Use suggested: {emailSuggestion}
-                          </button>
-                        )}
-                      </div>
-                    )}
-                    <p className="text-xs text-text-secondary">
-                      We&apos;ll send a 6-digit code to this email
-                    </p>
-                  </div>
-
-                  <Button
-                    type="submit"
-                    className="w-full shadow-[var(--shadow-primary)]"
-                    disabled={loading || !email}
-                    loading={loading}
-                  >
-                    Send Verification Code
-                  </Button>
-                </form>
-              ) : (
+              {otpSent ? (
                 <form onSubmit={handleVerifyOTP} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="otp">Verification Code</Label>
@@ -735,6 +693,48 @@ export function AuthStep({
                       Use different email
                     </button>
                   </div>
+                </form>
+              ) : (
+                <form onSubmit={handleSendOTP} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email Address</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="teacher@school.edu"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      disabled={loading}
+                    />
+                    {emailError && (
+                      <div className="space-y-2">
+                        <p className="text-sm text-error">{emailError}</p>
+                        {emailSuggestion && (
+                          <button
+                            type="button"
+                            onClick={() => setEmail(emailSuggestion)}
+                            className="text-sm text-cyan hover:text-cyan-dark hover:underline"
+                            disabled={loading}
+                          >
+                            ✓ Use suggested: {emailSuggestion}
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    <p className="text-xs text-text-secondary">
+                      We&apos;ll send a 6-digit code to this email
+                    </p>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full shadow-[var(--shadow-primary)]"
+                    disabled={loading || !email}
+                    loading={loading}
+                  >
+                    Send Verification Code
+                  </Button>
                 </form>
               )}
             </>
