@@ -146,7 +146,7 @@ export function useNetworkStatus(): NetworkStatus {
   }, []);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof globalThis === 'undefined') return;
 
     let reconnectTimeout: NodeJS.Timeout | undefined;
 

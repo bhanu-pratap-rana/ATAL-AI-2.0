@@ -35,8 +35,8 @@ interface VoiceChatProps {
 }
 
 // Check for browser support
-const isSpeechSupported = typeof window !== 'undefined' &&
-  ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
+const isSpeechSupported = typeof globalThis !== 'undefined' &&
+  ('SpeechRecognition' in globalThis || 'webkitSpeechRecognition' in globalThis);
 
 export function VoiceChat({
   language,
@@ -74,7 +74,11 @@ export function VoiceChat({
 
     setError(null);
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const global = globalThis as typeof globalThis & {
+      SpeechRecognition?: new () => SpeechRecognition;
+      webkitSpeechRecognition?: new () => SpeechRecognition;
+    };
+    const SpeechRecognition = global.SpeechRecognition || global.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
 
     recognition.lang = SPEECH_LANG_CODES[language];
@@ -147,7 +151,7 @@ export function VoiceChat({
 
   // Browser TTS fallback using Web Speech Synthesis
   const speakWithBrowser = useCallback((text: string) => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+    if (typeof globalThis === 'undefined' || !('speechSynthesis' in globalThis)) {
       setError('Browser TTS not supported');
       return;
     }
@@ -174,7 +178,7 @@ export function VoiceChat({
       onSpeakEnd?.();
     };
 
-    window.speechSynthesis.speak(utterance);
+    globalThis.speechSynthesis?.speak(utterance);
   }, [language, onSpeakEnd]);
 
   // Speak text using AI4Bharat TTS with browser fallback
@@ -236,8 +240,8 @@ export function VoiceChat({
       audioRef.current = null;
     }
     // Stop browser speech synthesis if active
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
+    if (typeof globalThis !== 'undefined' && 'speechSynthesis' in globalThis) {
+      globalThis.speechSynthesis?.cancel();
     }
     setIsSpeaking(false);
     onSpeakEnd?.();

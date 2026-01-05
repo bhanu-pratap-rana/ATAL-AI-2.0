@@ -39,7 +39,7 @@ export class GlobalErrorBoundary extends React.Component<Props, State> {
   }
 
   handleReload = () => {
-    window.location.reload();
+    globalThis.location?.reload();
   };
 
   render() {
