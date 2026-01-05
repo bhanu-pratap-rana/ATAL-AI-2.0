@@ -18,7 +18,7 @@ import { toast } from 'sonner'
 import { authLogger } from '@/lib/auth-logger'
 
 interface DeleteAccountButtonProps {
-  userEmail: string
+  readonly userEmail: string
 }
 
 export function DeleteAccountButton({ userEmail }: DeleteAccountButtonProps) {
