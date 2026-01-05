@@ -5,8 +5,8 @@ import { motion, AnimatePresence } from "framer-motion"
 import { usePathname } from "next/navigation"
 
 interface PageTransitionProps {
-  children: React.ReactNode
-  className?: string
+  readonly children: React.ReactNode
+  readonly className?: string
 }
 
 export function PageTransition({ children, className }: PageTransitionProps) {

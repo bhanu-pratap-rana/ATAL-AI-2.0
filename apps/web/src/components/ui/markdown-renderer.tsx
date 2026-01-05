@@ -7,20 +7,20 @@ import rehypeSanitize from 'rehype-sanitize';
 import rehypeRaw from 'rehype-raw';
 
 interface MarkdownRendererProps {
-  content: string;
-  className?: string;
+  readonly content: string;
+  readonly className?: string;
 }
 
 // React Markdown component prop types
 interface CodeProps {
-  node?: unknown;
-  inline?: boolean;
-  className?: string;
-  children?: ReactNode;
+  readonly node?: unknown;
+  readonly inline?: boolean;
+  readonly className?: string;
+  readonly children?: ReactNode;
 }
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
-  node?: unknown;
+  readonly node?: unknown;
 }
 
 /**
