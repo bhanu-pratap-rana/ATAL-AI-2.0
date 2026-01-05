@@ -815,7 +815,7 @@ export async function registerWithUsername(
 
     // Create student profile atomically using UPSERT RPC
     // This prevents orphaned users if profile creation fails
-    const { data: profileResult, error: profileError } = await adminClient.rpc(
+    const { error: profileError } = await adminClient.rpc(
       'upsert_student_profile',
       {
         p_user_id: authData.user.id,

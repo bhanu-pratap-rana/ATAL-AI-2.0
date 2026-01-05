@@ -7,7 +7,7 @@
  * Uses Groq in development, configurable for OpenAI in production.
  */
 
-import { createClient, getCurrentUser } from '@/lib/supabase-server'
+import { getCurrentUser } from '@/lib/supabase-server'
 import { authLogger } from '@/lib/auth-logger'
 import { checkRateLimit } from '@/lib/rate-limiter-distributed'
 import {

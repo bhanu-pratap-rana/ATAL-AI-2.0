@@ -1,7 +1,7 @@
 'use server'
 
 import { z } from 'zod'
-import { createAdminClient, verifySuperAdminAuth, getCurrentUser } from '@/lib/supabase-server'
+import { createAdminClient, verifySuperAdminAuth } from '@/lib/supabase-server'
 import { authLogger } from '@/lib/auth-logger'
 import { isAdmin } from '@/lib/auth/role-utils'
 import { AdminEmailSchema, AdminPasswordSchema } from '@/lib/validation-schemas'

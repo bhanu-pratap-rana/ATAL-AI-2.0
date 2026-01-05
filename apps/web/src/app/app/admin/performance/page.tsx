@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 import { queryMonitor } from '@/lib/supabase-query-wrapper';
 import { connectionPoolMonitor } from '@/lib/monitoring/connection-pool-monitor';
-import type { QueryMetric, ConnectionPoolMetrics, PoolAlert } from '@/types/monitoring';
+import type { ConnectionPoolMetrics, PoolAlert } from '@/types/monitoring';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle, TrendingDown, TrendingUp, Zap } from 'lucide-react';
+import { AlertCircle, TrendingDown, Zap } from 'lucide-react';
 
 export default function PerformanceMonitoringPage() {
   const [stats, setStats] = useState(queryMonitor.getStats());

@@ -59,13 +59,6 @@ interface IRTItem {
   guessing: number        // c parameter (0 to 0.5)
 }
 
-interface AdaptiveState {
-  theta: number           // Current ability estimate
-  se: number              // Standard error
-  answeredItems: string[] // IDs of answered items
-  responses: boolean[]    // Correct/incorrect for each answered
-}
-
 // Assessment categories - 5 digital literacy domains
 const CATEGORIES = [
   'contextual_application',
