@@ -348,7 +348,7 @@ export default function LessonPage() {
                 <div className="flex gap-2 mt-4">
                   {lesson.sections.map((_, idx) => (
                     <button
-                      key={idx}
+                      key={`section-${idx}`}
                       onClick={() => {
                         setCurrentSection(idx);
                         setShowPractice(false);
