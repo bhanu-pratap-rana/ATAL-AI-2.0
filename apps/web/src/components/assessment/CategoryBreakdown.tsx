@@ -39,7 +39,7 @@ const CATEGORY_CONFIG: Record<string, { label: string; icon: string }> = {
 
 const getCategoryConfig = (key: string) => {
   return CATEGORY_CONFIG[key] || {
-    label: key.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+    label: key.replaceAll('-', ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
     icon: '📝',
   }
 }
