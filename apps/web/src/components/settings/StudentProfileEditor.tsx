@@ -194,11 +194,15 @@ export function StudentProfileEditor({
         <div className="space-y-4">
           {/* Name */}
           <div>
-            <label className="text-sm font-medium text-text-secondary">
+            <label
+              htmlFor="student-name"
+              className="text-sm font-medium text-text-secondary"
+            >
               Name *
             </label>
             {isEditing ? (
               <input
+                id="student-name"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -212,21 +216,26 @@ export function StudentProfileEditor({
 
           {/* Gender */}
           <div>
-            <label className="text-sm font-medium text-text-secondary">
+            <label
+              id="gender-group"
+              className="text-sm font-medium text-text-secondary"
+            >
               Gender *
             </label>
             {isEditing ? (
               <div
                 className="flex gap-4 mt-1"
                 role="radiogroup"
-                aria-label="Gender selection"
+                aria-labelledby="gender-group"
               >
                 {(["male", "female"] as const).map((g) => (
                   <label
                     key={g}
+                    htmlFor={`gender-${g}`}
                     className="flex items-center gap-2 cursor-pointer"
                   >
                     <input
+                      id={`gender-${g}`}
                       type="radio"
                       name="gender"
                       value={g}
@@ -235,7 +244,6 @@ export function StudentProfileEditor({
                         setGender(e.target.value as "male" | "female")
                       }
                       className="text-primary focus:ring-primary"
-                      aria-label={`Gender: ${g}`}
                     />
                     <span className="capitalize">{g}</span>
                   </label>
@@ -269,12 +277,16 @@ export function StudentProfileEditor({
 
           {/* Phone */}
           <div>
-            <label className="text-sm font-medium text-text-secondary">
+            <label
+              htmlFor="student-phone"
+              className="text-sm font-medium text-text-secondary"
+            >
               Phone
             </label>
             {isEditing ? (
               <>
                 <input
+                  id="student-phone"
                   type="tel"
                   value={phone}
                   onChange={(e) =>
@@ -283,8 +295,12 @@ export function StudentProfileEditor({
                   className="w-full mt-1 px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   placeholder="10-digit mobile number"
                   maxLength={10}
+                  aria-describedby="student-phone-helper"
                 />
-                <p className="text-xs text-text-secondary mt-1">
+                <p
+                  id="student-phone-helper"
+                  className="text-xs text-text-secondary mt-1"
+                >
                   Enter 10-digit Indian mobile number
                 </p>
                 {phone && phone.length > 0 && phone.length < 10 && (
@@ -300,11 +316,15 @@ export function StudentProfileEditor({
 
           {/* Roll Number */}
           <div>
-            <label className="text-sm font-medium text-text-secondary">
+            <label
+              htmlFor="student-rollnumber"
+              className="text-sm font-medium text-text-secondary"
+            >
               Roll Number
             </label>
             {isEditing ? (
               <input
+                id="student-rollnumber"
                 type="text"
                 value={rollNumber}
                 onChange={(e) => setRollNumber(e.target.value)}
@@ -318,11 +338,15 @@ export function StudentProfileEditor({
 
           {/* School Name */}
           <div>
-            <label className="text-sm font-medium text-text-secondary">
+            <label
+              htmlFor="student-schoolname"
+              className="text-sm font-medium text-text-secondary"
+            >
               School Name
             </label>
             {isEditing ? (
               <input
+                id="student-schoolname"
                 type="text"
                 value={schoolName}
                 onChange={(e) => setSchoolName(e.target.value)}
@@ -336,11 +360,15 @@ export function StudentProfileEditor({
 
           {/* Class Name */}
           <div>
-            <label className="text-sm font-medium text-text-secondary">
+            <label
+              htmlFor="student-class"
+              className="text-sm font-medium text-text-secondary"
+            >
               Class
             </label>
             {isEditing ? (
               <input
+                id="student-class"
                 type="text"
                 value={className}
                 onChange={(e) => setClassName(e.target.value)}
@@ -354,11 +382,15 @@ export function StudentProfileEditor({
 
           {/* Village */}
           <div>
-            <label className="text-sm font-medium text-text-secondary">
+            <label
+              htmlFor="student-village"
+              className="text-sm font-medium text-text-secondary"
+            >
               Village/Location
             </label>
             {isEditing ? (
               <input
+                id="student-village"
                 type="text"
                 value={village}
                 onChange={(e) => setVillage(e.target.value)}
