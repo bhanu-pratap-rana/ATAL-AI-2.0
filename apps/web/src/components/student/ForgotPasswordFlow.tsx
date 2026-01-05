@@ -26,11 +26,11 @@ import type { UseOTPInputReturn } from '@/hooks/useOTPInput'
  */
 
 interface ForgotPasswordFlowProps {
-  state: AuthState
-  actions: AuthActions
-  otpInput: UseOTPInputReturn
-  isLoading: boolean
-  onSuccess: () => void
+  readonly state: AuthState
+  readonly actions: AuthActions
+  readonly otpInput: UseOTPInputReturn
+  readonly isLoading: boolean
+  readonly onSuccess: () => void
 }
 
 export function ForgotPasswordFlow({

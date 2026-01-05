@@ -18,11 +18,11 @@ interface Tab {
 }
 
 interface TabNavigationProps {
-  tabs: Tab[]
-  activeTab: string
-  onTabChange: (tabId: string) => void
-  disabled?: boolean
-  size?: 'sm' | 'default' | 'lg'
+  readonly tabs: Tab[]
+  readonly activeTab: string
+  readonly onTabChange: (tabId: string) => void
+  readonly disabled?: boolean
+  readonly size?: 'sm' | 'default' | 'lg'
 }
 
 export function TabNavigation({ 

@@ -33,11 +33,11 @@ import { formatTimeTidyCompact } from '@/lib/time-utils'
 const RESEND_COOLDOWN_SECONDS = 60
 
 interface SignUpEmailFlowProps {
-  state: AuthState
-  actions: AuthActions
-  otpInput: UseOTPInputReturn
-  isLoading: boolean
-  onSuccess: () => void
+  readonly state: AuthState
+  readonly actions: AuthActions
+  readonly otpInput: UseOTPInputReturn
+  readonly isLoading: boolean
+  readonly onSuccess: () => void
 }
 
 export function SignUpEmailFlow({
