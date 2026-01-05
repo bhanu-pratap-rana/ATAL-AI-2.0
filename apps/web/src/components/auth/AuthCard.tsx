@@ -1,9 +1,9 @@
 import Image from 'next/image'
 
 interface AuthCardProps {
-  children: React.ReactNode
-  title: string
-  description?: string
+  readonly children: React.ReactNode
+  readonly title: string
+  readonly description?: string
 }
 
 export function AuthCard({ children, title, description }: AuthCardProps) {

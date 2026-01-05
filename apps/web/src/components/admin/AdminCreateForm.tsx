@@ -11,8 +11,8 @@ import { FORM_TIMING } from '@/lib/constants/ui-timings'
 import { clientLogger } from '@/lib/client-logger'
 
 interface AdminCreateFormProps {
-  onSuccess?: () => void
-  adminRole?: 'admin' | 'super_admin'
+  readonly onSuccess?: () => void
+  readonly adminRole?: 'admin' | 'super_admin'
 }
 
 /**
