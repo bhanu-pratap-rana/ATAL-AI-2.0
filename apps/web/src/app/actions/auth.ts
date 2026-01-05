@@ -18,6 +18,26 @@ import {
 } from '@/lib/validation-schemas'
 
 /**
+ * Helper: Validate input with Zod schema
+ * Eliminates duplicated Zod error handling across auth functions
+ */
+function validateWithSchema<T>(
+  input: unknown,
+  schema: z.ZodSchema<T>,
+): { success: true; data: T } | { success: false; error: string } {
+  try {
+    const validated = schema.parse(input)
+    return { success: true, data: validated }
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      const firstError = error.issues[0]
+      return { success: false, error: firstError?.message || 'Invalid input' }
+    }
+    throw error
+  }
+}
+
+/**
  * Check if email exists in the system and determine role
  *
  * Role hierarchy:
@@ -131,17 +151,11 @@ export async function checkEmailExistsInAuth(email: string): Promise<{
  * Helper: Validate and parse email input
  */
 function validateEmailInput(email: string): { success: true; email: string } | { success: false; error: string } {
-  try {
-    const trimmedEmail = AuthEmailSchema.parse(email)
-    return { success: true, email: trimmedEmail }
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      const firstError = error.issues[0]
-      authLogger.debug('[requestOtp] Invalid email format', { error: firstError?.message })
-      return { success: false, error: firstError?.message || 'Please enter a valid email address.' }
-    }
-    throw error
+  const result = validateWithSchema(email, AuthEmailSchema)
+  if (!result.success) {
+    authLogger.debug('[requestOtp] Invalid email format', { error: result.error })
   }
+  return result.success ? { success: true, email: result.data } : result
 }
 
 /**
@@ -324,18 +338,14 @@ export async function requestOtp(email: string) {
 export async function verifyOtp(email: string, token: string) {
   try {
     // Validate inputs
-    let validatedEmail: string
-    let validatedToken: string
-    try {
-      validatedEmail = AuthEmailSchema.parse(email)
-      validatedToken = OtpTokenSchema.parse(token)
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const firstError = error.issues[0]
-        return { success: false, error: firstError?.message || 'Invalid input' }
-      }
-      throw error
-    }
+    const emailResult = validateWithSchema(email, AuthEmailSchema)
+    if (!emailResult.success) return emailResult
+
+    const tokenResult = validateWithSchema(token, OtpTokenSchema)
+    if (!tokenResult.success) return tokenResult
+
+    const validatedEmail = emailResult.data
+    const validatedToken = tokenResult.data
 
     authLogger.debug('[verifyOtp] Starting OTP verification')
 
@@ -421,16 +431,10 @@ export async function verifyOtp(email: string, token: string) {
 export async function sendForgotPasswordOtp(email: string) {
   try {
     // Validate email format using Zod schema
-    let trimmedEmail: string
-    try {
-      trimmedEmail = AuthEmailSchema.parse(email)
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const firstError = error.issues[0]
-        return { success: false, error: firstError?.message || 'Please enter a valid email address.' }
-      }
-      throw error
-    }
+    const emailResult = validateWithSchema(email, AuthEmailSchema)
+    if (!emailResult.success) return emailResult
+
+    const trimmedEmail = emailResult.data
 
     // Check rate limit - prevent password reset spam/abuse
     if (!(await checkPasswordResetRateLimit(trimmedEmail))) {
@@ -543,19 +547,17 @@ export async function signOutUser(): Promise<{ success: boolean; error?: string 
 export async function resetPasswordWithOtp(email: string, token: string, newPassword: string) {
   try {
     // Validate inputs using Zod schemas (NIST 2025 compliant)
-    let validatedEmail: string
-    let validatedToken: string
-    try {
-      validatedEmail = AuthEmailSchema.parse(email)
-      validatedToken = OtpTokenSchema.parse(token)
-      AuthPasswordSchema.parse(newPassword) // Validates min 8, max 64 chars
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const firstError = error.issues[0]
-        return { success: false, error: firstError?.message || 'Invalid input' }
-      }
-      throw error
-    }
+    const emailResult = validateWithSchema(email, AuthEmailSchema)
+    if (!emailResult.success) return emailResult
+
+    const tokenResult = validateWithSchema(token, OtpTokenSchema)
+    if (!tokenResult.success) return tokenResult
+
+    const passwordResult = validateWithSchema(newPassword, AuthPasswordSchema)
+    if (!passwordResult.success) return passwordResult
+
+    const validatedEmail = emailResult.data
+    const validatedToken = tokenResult.data
 
     authLogger.debug('[resetPasswordWithOtp] Starting password reset', {
       email: validatedEmail.substring(0, 5) + '...',
@@ -691,16 +693,11 @@ export async function checkUsernameAvailable(username: string): Promise<{
     }
 
     // Validate username format using Zod schema
-    let validatedUsername: string
-    try {
-      validatedUsername = UsernameSchema.parse(username)
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const firstError = error.issues[0]
-        return { available: false, error: firstError?.message || 'Invalid username format' }
-      }
-      throw error
+    const usernameResult = validateWithSchema(username, UsernameSchema)
+    if (!usernameResult.success) {
+      return { available: false, error: usernameResult.error }
     }
+    const validatedUsername = usernameResult.data
 
     const adminClient = await createAdminClient()
 
@@ -737,17 +734,13 @@ export async function registerWithUsername(
 }> {
   try {
     // Validate username and password using Zod schemas
-    let trimmedUsername: string
-    try {
-      trimmedUsername = UsernameSchema.parse(username)
-      AuthPasswordSchema.parse(password)
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const firstError = error.issues[0]
-        return { success: false, error: firstError?.message || 'Invalid input' }
-      }
-      throw error
-    }
+    const usernameResult = validateWithSchema(username, UsernameSchema)
+    if (!usernameResult.success) return usernameResult
+
+    const passwordResult = validateWithSchema(password, AuthPasswordSchema)
+    if (!passwordResult.success) return passwordResult
+
+    const trimmedUsername = usernameResult.data
 
     // Rate limit check
     if (!(await checkOtpRateLimit(`username:${trimmedUsername}`))) {
@@ -866,16 +859,12 @@ export async function signInWithUsername(
 }> {
   try {
     // Validate inputs - username is required, password is required but we don't validate format on login
-    let trimmedUsername: string
-    try {
-      trimmedUsername = UsernameSchema.parse(username)
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        // For login, return generic error to avoid leaking username format requirements
-        return { success: false, error: 'Invalid username or password' }
-      }
-      throw error
+    const usernameResult = validateWithSchema(username, UsernameSchema)
+    if (!usernameResult.success) {
+      // For login, return generic error to avoid leaking username format requirements
+      return { success: false, error: 'Invalid username or password' }
     }
+    const trimmedUsername = usernameResult.data
 
     if (!password) {
       return { success: false, error: 'Password is required' }
