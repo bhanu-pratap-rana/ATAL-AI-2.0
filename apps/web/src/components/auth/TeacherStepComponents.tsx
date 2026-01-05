@@ -782,11 +782,11 @@ export function AuthStep({
                 <Button
                   type="button"
                   onClick={() => {
-                    if (phoneNumber.length !== 10) {
-                      setPhoneError('Phone number must be 10 digits')
-                    } else {
+                    if (phoneNumber.length === 10) {
                       setPhoneOtpSent(true)
                       toast.success('OTP sent to your phone!')
+                    } else {
+                      setPhoneError('Phone number must be 10 digits')
                     }
                   }}
                   className="w-full shadow-[var(--shadow-primary)]"
@@ -822,11 +822,11 @@ export function AuthStep({
                   <Button
                     type="button"
                     onClick={() => {
-                      if (phoneOtp.length !== 6) {
-                        toast.error('Please enter 6-digit code')
-                      } else {
+                      if (phoneOtp.length === 6) {
                         toast.success('Phone verified!')
                         setStep('set-password')
+                      } else {
+                        toast.error('Please enter 6-digit code')
                       }
                     }}
                     className="w-full shadow-[var(--shadow-primary)]"
