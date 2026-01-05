@@ -28,11 +28,11 @@ import { cn } from '@/lib/utils';
 
 interface SyncStatusIndicatorProps {
   /** Additional CSS classes */
-  className?: string;
+  readonly className?: string;
   /** Show pending count badge */
-  showBadge?: boolean;
+  readonly showBadge?: boolean;
   /** Compact mode (icon only) */
-  compact?: boolean;
+  readonly compact?: boolean;
 }
 
 /**

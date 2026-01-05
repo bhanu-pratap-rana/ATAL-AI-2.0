@@ -9,9 +9,9 @@ import type { AdminRole } from '@/types/auth'
 import { clientLogger } from '@/lib/client-logger'
 
 interface RoleGuardProps {
-  children: ReactNode
-  requiredRole: 'super_admin' | 'admin' | 'teacher'
-  fallback?: ReactNode
+  readonly children: ReactNode
+  readonly requiredRole: 'super_admin' | 'admin' | 'teacher'
+  readonly fallback?: ReactNode
 }
 
 /**

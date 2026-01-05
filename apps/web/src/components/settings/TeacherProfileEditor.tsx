@@ -26,8 +26,8 @@ interface TeacherProfile {
 }
 
 interface TeacherProfileEditorProps {
-  profile: TeacherProfile
-  userEmail: string
+  readonly profile: TeacherProfile
+  readonly userEmail: string
 }
 
 export function TeacherProfileEditor({ profile, userEmail }: TeacherProfileEditorProps) {
