@@ -11,11 +11,11 @@ import { FORM_TIMING } from '@/lib/constants/ui-timings'
 import { clientLogger } from '@/lib/client-logger'
 
 interface AdminDeleteDialogProps {
-  adminId: string
-  adminEmail: string
-  isOpen: boolean
-  onClose: () => void
-  onSuccess?: () => void
+  readonly adminId: string
+  readonly adminEmail: string
+  readonly isOpen: boolean
+  readonly onClose: () => void
+  readonly onSuccess?: () => void
 }
 
 /**

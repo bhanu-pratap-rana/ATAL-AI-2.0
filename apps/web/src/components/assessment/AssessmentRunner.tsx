@@ -59,9 +59,9 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 interface AssessmentRunnerProps {
-  sessionId: string
-  questions: Question[]
-  language: 'en' | 'hi' | 'as'
+  readonly sessionId: string
+  readonly questions: Question[]
+  readonly language: 'en' | 'hi' | 'as'
 }
 
 interface ResponseData {

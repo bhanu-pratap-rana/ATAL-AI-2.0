@@ -10,8 +10,8 @@ import { toast } from 'sonner'
 import { clientLogger } from '@/lib/client-logger'
 
 interface AdminListTableProps {
-  refreshTrigger?: number
-  onAdminDeleted?: () => void
+  readonly refreshTrigger?: number
+  readonly onAdminDeleted?: () => void
 }
 
 /**
