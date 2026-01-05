@@ -52,6 +52,17 @@ const getPercentageColor = (percentage: number) => {
   return "bg-error";
 };
 
+const getPercentageTextColor = (percentage: number) => {
+  if (percentage >= 80) return "text-success";
+  if (percentage >= 60) return "text-warning";
+  return "text-error";
+};
+
+const getCategoryBadgeStyle = (type: "strengths" | "weaknesses") => {
+  if (type === "strengths") return "bg-success-light text-success-dark";
+  return "bg-warning-light text-warning-dark";
+};
+
 export function CategoryBreakdown({
   categories,
   className = "",
@@ -103,13 +114,7 @@ export function CategoryBreakdown({
                     {correct}/{total}
                   </span>
                   <span
-                    className={`text-sm font-semibold ${
-                      percentage >= 80
-                        ? "text-success"
-                        : percentage >= 60
-                          ? "text-warning"
-                          : "text-error"
-                    }`}
+                    className={`text-sm font-semibold ${getPercentageTextColor(percentage)}`}
                   >
                     {percentage}%
                   </span>
@@ -173,11 +178,7 @@ export function CategoryStrengths({
           return (
             <span
               key={name}
-              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${
-                type === "strengths"
-                  ? "bg-success-light text-success-dark"
-                  : "bg-warning-light text-warning-dark"
-              }`}
+              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${getCategoryBadgeStyle(type)}`}
             >
               <span aria-hidden="true">{config.icon}</span>
               {config.label}
