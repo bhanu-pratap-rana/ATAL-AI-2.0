@@ -30,11 +30,11 @@ const isTestEnvironment = () => {
     (typeof navigator !== 'undefined' && (
       navigator.webdriver === true ||
       navigator.userAgent.includes('HeadlessChrome') ||
-      // Now properly typed (see browser-apis.d.ts)
-      globalThis.__PLAYWRIGHT_TEST__ === true
+      // Check for test globals
+      (globalThis as any).__PLAYWRIGHT_TEST__ === true
     )) ||
-    // Check for test globals that might be set (see browser-apis.d.ts)
-    (typeof globalThis !== 'undefined' && globalThis.__PLAYWRIGHT__ === true)
+    // Check for test globals that might be set
+    (typeof globalThis !== 'undefined' && (globalThis as any).__PLAYWRIGHT__ === true)
   )
 }
 

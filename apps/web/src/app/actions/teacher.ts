@@ -526,8 +526,6 @@ export async function getClassAssessmentResults(classId: string): Promise<{
       return { success: false, error: 'Failed to fetch enrolled students' }
     }
 
-    const studentResults: StudentAssessmentResult[] = []
-
     // OPTIMIZATION: Batch fetch all assessment data instead of looping (prevents N+1 queries)
     const studentIds = (enrollments || []).map(e => e.student_id)
 
@@ -554,7 +552,7 @@ export async function getClassAssessmentResults(classId: string): Promise<{
     )
 
     const studentResults = processStudentResults(
-      enrollments,
+      enrollments as unknown as Array<{ student_id: string; student_profiles: { name: string; roll_number: string | null } | null }>,
       sessionsByStudent,
       responsesBySession
     )

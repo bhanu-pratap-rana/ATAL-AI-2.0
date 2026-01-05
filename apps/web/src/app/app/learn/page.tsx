@@ -262,7 +262,7 @@ export default async function LearnPage() {
         <div className="space-y-4">
           {MODULES.map((module, index) => {
             const progress = progressMap.get(module.id);
-            if (!progress) continue;
+            if (!progress) return null;
             const previousModule = index > 0 ? progressMap.get(MODULES[index - 1].id) : null;
             const isUnlocked = index === 0 || (previousModule?.is_complete ?? false);
             const progressPercent = Math.round((progress.topics_completed / module.topics) * 100);

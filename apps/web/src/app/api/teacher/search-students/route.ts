@@ -33,6 +33,10 @@ async function verifyTeacherAuthorization(
   supabase: Awaited<ReturnType<typeof createClient>>,
   user: Awaited<ReturnType<typeof getCurrentUser>>
 ): Promise<{ authorized: true } | { authorized: false; status: number; error: string }> {
+  if (!user) {
+    return { authorized: false, status: 401, error: 'Not authenticated' }
+  }
+
   const hasTeacherOrHigherRole = isTeacherOrHigher(user.app_metadata?.role)
 
   if (!hasTeacherOrHigherRole) {

@@ -78,8 +78,14 @@ export function VoiceChat({
       SpeechRecognition?: new () => SpeechRecognition;
       webkitSpeechRecognition?: new () => SpeechRecognition;
     };
-    const SpeechRecognition = global.SpeechRecognition || global.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
+    const SpeechRecognitionAPI = global.SpeechRecognition || global.webkitSpeechRecognition;
+
+    if (!SpeechRecognitionAPI) {
+      setError('Speech Recognition API is not supported in your browser');
+      return;
+    }
+
+    const recognition = new SpeechRecognitionAPI();
 
     recognition.lang = SPEECH_LANG_CODES[language];
     recognition.continuous = false;

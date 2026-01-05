@@ -71,9 +71,8 @@ export function VoiceChat({ language, onTranscript, disabled = false }: VoiceCha
       SpeechRecognition?: new () => SpeechRecognition;
       webkitSpeechRecognition?: new () => SpeechRecognition;
     };
-    const SpeechRecognitionConstructor: new () => SpeechRecognition =
-      global.SpeechRecognition ||
-      global.webkitSpeechRecognition;
+    const SpeechRecognitionConstructor = (global.SpeechRecognition ||
+      global.webkitSpeechRecognition) as new () => SpeechRecognition | undefined;
     
     if (!SpeechRecognitionConstructor) {
       setIsSupported(false);
@@ -82,8 +81,8 @@ export function VoiceChat({ language, onTranscript, disabled = false }: VoiceCha
     }
 
     // Create recognition instance
-    const rec = new SpeechRecognitionConstructor();
-    
+    const rec = new SpeechRecognitionConstructor!() as SpeechRecognition;
+
     // Configure recognition
     rec.continuous = false; // Stop after one result
     rec.interimResults = false; // Only final results

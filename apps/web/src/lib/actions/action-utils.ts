@@ -1,6 +1,6 @@
 'use server'
 
-import { createServerClient } from '@/lib/supabase-server'
+import { createClient } from '@/lib/supabase-server'
 import { authLogger } from '@/lib/auth-logger'
 
 /**
@@ -78,7 +78,7 @@ export async function verifyAuth(): Promise<
   | { success: false; error: string }
 > {
   try {
-    const supabase = createServerClient()
+    const supabase = await createClient()
     const {
       data: { user },
       error,
@@ -115,7 +115,7 @@ export async function verifyRole(
   | { success: false; error: string }
 > {
   try {
-    const supabase = createServerClient()
+    const supabase = await createClient()
     const {
       data: { user },
       error,
