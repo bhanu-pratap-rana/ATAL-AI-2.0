@@ -11,18 +11,18 @@ import { formatTimeTidyCompact } from '@/lib/time-utils'
 const RESEND_COOLDOWN_SECONDS = 60 // 60 seconds cooldown
 
 interface TeacherSignupEmailFlowProps {
-  email: string
-  emailError: string
-  emailSuggestion: string
-  otp: string
-  otpSent: boolean
-  loading: boolean
-  onEmailChange: (value: string) => void
-  onOtpChange: (value: string) => void
-  onSendOtp: (e: FormEvent) => void
-  onVerifyOtp: (e: FormEvent) => void
-  onSuggestionAccept: (suggestion: string) => void
-  onBack: () => void
+  readonly email: string
+  readonly emailError: string
+  readonly emailSuggestion: string
+  readonly otp: string
+  readonly otpSent: boolean
+  readonly loading: boolean
+  readonly onEmailChange: (value: string) => void
+  readonly onOtpChange: (value: string) => void
+  readonly onSendOtp: (e: FormEvent) => void
+  readonly onVerifyOtp: (e: FormEvent) => void
+  readonly onSuggestionAccept: (suggestion: string) => void
+  readonly onBack: () => void
 }
 
 export function TeacherSignupEmailFlow({
