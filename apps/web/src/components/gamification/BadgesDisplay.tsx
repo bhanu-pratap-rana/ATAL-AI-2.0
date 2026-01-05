@@ -23,8 +23,8 @@ import type { Badge as BaseBadge } from '@/lib/services/gamification-service';
  * and adds earned_at for tracking when the badge was earned
  */
 interface DisplayBadge extends Omit<BaseBadge, 'unlock_criteria' | 'cultural_note'> {
-  cultural_note: string | null;
-  earned_at?: string;
+  readonly cultural_note: string | null;
+  readonly earned_at?: string;
 }
 
 interface BadgesDisplayProps {
