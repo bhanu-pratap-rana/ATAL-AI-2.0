@@ -28,12 +28,12 @@ import type { AuthState, AuthActions } from '@/hooks/useAuthState'
  */
 
 interface SignUpPhoneFlowProps {
-  state: AuthState
-  actions: AuthActions
-  phoneInput: UsePhoneInputReturn
-  otpInput: UseOTPInputReturn
-  isLoading: boolean
-  onSuccess: () => void
+  readonly state: AuthState
+  readonly actions: AuthActions
+  readonly phoneInput: UsePhoneInputReturn
+  readonly otpInput: UseOTPInputReturn
+  readonly isLoading: boolean
+  readonly onSuccess: () => void
 }
 
 export function SignUpPhoneFlow({
