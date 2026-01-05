@@ -13,6 +13,7 @@
  */
 
 import { maskSensitiveData, type LogContext } from './masking-utils'
+import { getMaskedContext } from './form-utils'
 
 const isDevelopment = process.env.NODE_ENV === 'development'
 
@@ -77,7 +78,7 @@ export const clientLogger = {
    * Log error messages
    */
   error: (message: string, context?: LogContext | Error) => {
-    const maskedContext = context instanceof Error ? context : (context ? maskSensitiveData(context) : undefined)
+    const maskedContext = getMaskedContext(context, maskSensitiveData)
     console.error(`[ERROR] ${message}`, maskedContext)
 
     // In production, send to Sentry (when configured)
@@ -97,7 +98,7 @@ export const clientLogger = {
    * Log critical errors that need immediate attention
    */
   critical: (message: string, context?: LogContext | Error) => {
-    const maskedContext = context instanceof Error ? context : (context ? maskSensitiveData(context) : undefined)
+    const maskedContext = getMaskedContext(context, maskSensitiveData)
     console.error(`[CRITICAL] ${message}`, maskedContext)
 
     // Always send critical errors to Sentry

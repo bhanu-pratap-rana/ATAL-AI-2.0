@@ -14,6 +14,7 @@
 import { authLogger } from './auth-logger'
 import { AI_DEFAULTS, AI_FEATURES, AI_PROVIDERS } from './constants/ai-config'
 import type { AIProviderKey } from './constants/ai-config'
+import { getLanguageLabelForAI } from './form-utils'
 
 type AIProvider = AIProviderKey
 
@@ -240,7 +241,7 @@ Analyze the essay and provide feedback in JSON format:
 
 Be constructive and encouraging. Focus on how to improve, not just what's wrong.
 ${topic ? `Essay topic: ${topic}` : ''}
-Essay language: ${language === 'en' ? 'English' : language === 'hi' ? 'Hindi' : 'Assamese'}`
+Essay language: ${getLanguageLabelForAI(language)}`
 
   const messages: ChatMessage[] = [
     { role: 'system', content: systemPrompt },

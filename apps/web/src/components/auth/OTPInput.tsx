@@ -1,5 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getInputDescriptionId } from "@/lib/form-utils";
 
 interface OTPInputProps {
   readonly id: string;
@@ -52,9 +53,7 @@ export function OTPInput({
         required
         className="text-center text-2xl font-mono tracking-widest"
         aria-label={label}
-        aria-describedby={
-          error ? `${id}-error` : helperText ? `${id}-helper` : undefined
-        }
+        aria-describedby={getInputDescriptionId(id, error, helperText)}
       />
       {error ? (
         <p id={`${id}-error`} className="text-sm text-error" role="alert">
