@@ -181,14 +181,21 @@ export default async function ClassDetailPage({
 
   // Fetch analytics
   const analyticsResult = await getClassAnalytics(id);
-  const analytics: { activeThisWeek: number; avgMinutesPerDay: number; atRiskCount: number } =
-    analyticsResult.success
-      ? (analyticsResult.data as { activeThisWeek: number; avgMinutesPerDay: number; atRiskCount: number })
-      : {
-          activeThisWeek: 0,
-          avgMinutesPerDay: 0,
-          atRiskCount: 0,
-        };
+  const analytics: {
+    activeThisWeek: number;
+    avgMinutesPerDay: number;
+    atRiskCount: number;
+  } = analyticsResult.success
+    ? (analyticsResult.data as {
+        activeThisWeek: number;
+        avgMinutesPerDay: number;
+        atRiskCount: number;
+      })
+    : {
+        activeThisWeek: 0,
+        avgMinutesPerDay: 0,
+        atRiskCount: 0,
+      };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream via-surface to-cyan-lightest page-layout">
