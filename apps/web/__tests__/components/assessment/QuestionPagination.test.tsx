@@ -3,7 +3,6 @@
  * Tests for the assessment question pagination with status indicators
  */
 
-import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { QuestionPagination, PaginationLegend, type QuestionStatus } from '@/components/assessment/QuestionPagination'
 

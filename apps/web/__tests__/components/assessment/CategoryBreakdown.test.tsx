@@ -3,7 +3,6 @@
  * Tests for the assessment category/module breakdown display
  */
 
-import React from 'react'
 import { render, screen } from '@testing-library/react'
 import { CategoryBreakdown, CategoryStrengths } from '@/components/assessment/CategoryBreakdown'
 

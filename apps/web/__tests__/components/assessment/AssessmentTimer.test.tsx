@@ -3,7 +3,6 @@
  * Tests for the assessment elapsed time display
  */
 
-import React from 'react'
 import { render, screen, act } from '@testing-library/react'
 import { AssessmentTimer, CompactTimer } from '@/components/assessment/AssessmentTimer'
 

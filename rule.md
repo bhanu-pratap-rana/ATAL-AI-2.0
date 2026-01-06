@@ -1560,6 +1560,159 @@ list_dir({ target_directory: "apps/web/src/lib/ai" })
    - Use `supabase` to verify database state
    - Use `run_terminal_cmd` to test builds
 
+## ATAL AI - Full Code Scan Profile (Vulnerabilities, Maintainability, Performance)
+
+When you say "run full code scan according to `rule.md`", follow this exact MCP-driven workflow for the ATAL AI project:
+
+### Step 0 – Plan & Context
+- Use **Sequential Thinking MCP** to plan the scan:
+  ```typescript
+  sequentialthinking({
+    thought: "Plan a full-code scan for ATAL AI focusing on security, maintainability, and performance.",
+    thoughtNumber: 1,
+    totalThoughts: 5,
+    nextThoughtNeeded: true
+  })
+  ```
+- Use **Filesystem MCP** to confirm project roots:
+  ```typescript
+  list_dir({ target_directory: "apps/web" })
+  list_dir({ target_directory: "apps/db" })
+  ```
+
+### Step 1 – SonarQube MCP (Global Quality & Security)
+- Get current **issues** (security + reliability + maintainability):
+  ```typescript
+  issues({
+    project_key: "Atal-AI",
+    page: 1,
+    page_size: 500,
+    scopes: ["MAIN"]
+  })
+  ```
+- Check **quality gate** and high-level risk:
+  ```typescript
+  quality_gate_status({ project_key: "Atal-AI" })
+  ```
+- Pull **metrics** for hotspots (cognitive complexity, duplication, coverage):
+  ```typescript
+  measures_component({
+    component: "Atal-AI",
+    metric_keys: [
+      "bugs",
+      "vulnerabilities",
+      "code_smells",
+      "cognitive_complexity",
+      "duplicated_lines_density",
+      "coverage"
+    ]
+  })
+  ```
+- If SonarQube is unreachable, use the CSV export that already exists in this repo:
+  ```typescript
+  read_file({ target_file: "sonarqube-export/issues.csv" })
+  ```
+
+### Step 2 – PMD MCP (Static Analysis & Duplicate Code)
+- Run **ECMAScript/TypeScript** rules over the web app source:
+  ```typescript
+  pmd_check({
+    path: "apps/web/src",
+    language_version: "ecmascript-ES2022",
+    rulesets: [
+      "rulesets/java/quickstart.xml",
+      "category/ecmascript/bestpractices.xml",
+      "category/ecmascript/errorprone.xml",
+      "category/ecmascript/performance.xml"
+    ],
+    minimum_priority: 5
+  })
+  ```
+- Detect **copy-paste** / duplication in UI + libs:
+  ```typescript
+  pmd_cpd({
+    path: "apps/web/src",
+    language: "typescript",
+    minimum_tokens: 50,
+    ignore_literals: true,
+    ignore_identifiers: true
+  })
+  ```
+
+### Step 3 – Supabase MCP (Schema, Security, Performance)
+- Confirm **migrations** and schema alignment:
+  ```typescript
+  list_migrations()
+  list_tables()
+  ```
+- Run **key health queries** (replace with specific checks as needed):
+  ```typescript
+  execute_sql({ query: "SELECT COUNT(*) FROM curriculum_content" })
+  execute_sql({ query: "SELECT COUNT(*) FROM student_profiles" })
+  ```
+- Get **Supabase advisors** for security/performance:
+  ```typescript
+  get_advisors()
+  ```
+
+### Step 4 – Filesystem + Grep MCP (Local Code Smell Sweep)
+- Use **glob + grep** to find high-risk patterns:
+  ```typescript
+  glob_file_search({ glob_pattern: "apps/web/src/**/*.ts" })
+  grep({
+    pattern: ": any",
+    path: "apps/web/src",
+    type: "js",
+    output_mode: "content"
+  })
+  grep({
+    pattern: "console\\.(log|warn|error)",
+    path: "apps/web/src",
+    type: "js",
+    output_mode: "content"
+  })
+  grep({
+    pattern: "catch\\s*\\(\\s*\\)\\s*\\{",
+    path: "apps/web/src",
+    type: "js",
+    output_mode: "content"
+  })
+  ```
+
+### Step 5 – Library Best Practices (Context7 MCP)
+- For any library under review (for example **Next.js**, **Supabase**, **Vercel AI SDK**), pull **latest** usage and best practices:
+  ```typescript
+  resolve_library_id({ libraryName: "next.js" })
+  get_library_docs({
+    context7CompatibleLibraryID: "/vercel/next.js",
+    topic: "app-router",
+    page: 1
+  })
+  ```
+
+### Step 6 – Aggregate Findings (Memory MCP)
+- Store the structured scan summary so the next analysis can build on it:
+  ```typescript
+  mcp_memory_create_entities({
+    entities: [{
+      name: "ATAL_AI_FULL_SCAN_YYYYMMDD",
+      entityType: "ScanRun",
+      observations: [
+        "SonarQube: 752 issues, 13 bugs, 692 code smells",
+        "PMD: duplicate UI card patterns in assessment components",
+        "Supabase advisors: RLS and index health OK, see advisor notes"
+      ]
+    }]
+  })
+  ```
+
+### Step 7 – Output & Approval
+- Present results using the **OUTPUT FORMAT** defined earlier in this file:
+  - Issue summary table
+  - Root cause analysis per major issue
+  - Proposed fix plan (grouped by security, maintainability, performance)
+- **Ask for explicit approval** before modifying any files.
+
 ## MCP Best Practices
 
 1. **Always verify MCP availability** before using
