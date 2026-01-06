@@ -118,10 +118,10 @@ async function getEmbedding(text: string, apiKey: string): Promise<number[]> {
 function extractMetadata(chunk: string, language: string): { moduleId: string; topicId: string; title: string } {
   // First, normalize the chunk by removing markdown formatting artifacts
   const normalizedChunk = chunk
-    .replace(/\{\.mark\}/g, '')
-    .replace(/\[\s*/g, '')
-    .replace(/\s*\]/g, '')
-    .replace(/\*\*/g, '');
+    .replaceAll('{.mark}', '')
+    .replaceAll(/\[\s*/g, '')
+    .replaceAll(/\s*\]/g, '')
+    .replaceAll('**', '');
 
   // Try to extract module number (multilingual patterns)
   // Order matters - most specific patterns first
@@ -186,10 +186,10 @@ function extractMetadata(chunk: string, language: string): { moduleId: string; t
     if (headerMatch) {
       // Clean up the header
       let headerText = headerMatch[1]
-        .replace(/\{\.mark\}/g, '')
-        .replace(/\[\s*/g, '')
-        .replace(/\s*\]/g, '')
-        .replace(/\*\*/g, '')
+        .replaceAll('{.mark}', '')
+        .replaceAll(/\[\s*/g, '')
+        .replaceAll(/\s*\]/g, '')
+        .replaceAll('**', '')
         .trim();
       if (headerText.length >= 5) {
         title = headerText.slice(0, 80);

@@ -54,7 +54,7 @@ export function validateEmailSecurity(email: string): { valid: true } | { valid:
     authLogger.debug('[requestOtp] Blocked domain detected')
 
     if (COMMON_DOMAIN_TYPOS[domain]) {
-      const suggestedEmail = email.replace(domain, COMMON_DOMAIN_TYPOS[domain])
+      const suggestedEmail = email.replaceAll(domain, COMMON_DOMAIN_TYPOS[domain])
       authLogger.warn('[requestOtp] Possible typo detected in email domain')
       return {
         valid: false,
