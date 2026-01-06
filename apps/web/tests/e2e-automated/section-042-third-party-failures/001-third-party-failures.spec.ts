@@ -214,7 +214,7 @@ test('TC-42.1.3: Database Connection Failure', async ({ page }) => {
   const findings: string[] = [];
   const errors: string[] = [];
   const screenshots: string[] = [];
-  let testStatus: 'pass' | 'fail' = 'pass';
+  const testStatus: 'pass' | 'fail' = 'pass';
 
   try {
     // Try to navigate to a page requiring database (pre-authenticated)
@@ -337,7 +337,7 @@ test('TC-42.1.5: Supabase Outage', async ({ page }) => {
   const findings: string[] = [];
   const errors: string[] = [];
   const screenshots: string[] = [];
-  let testStatus: 'pass' | 'fail' = 'pass';
+  const testStatus: 'pass' | 'fail' = 'pass';
 
   try {
     // Navigate to application (pre-authenticated)

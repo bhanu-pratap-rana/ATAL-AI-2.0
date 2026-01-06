@@ -430,7 +430,7 @@ test('TC-34.1.5: CAT Termination Conditions', async ({ page }) => {
     console.log('  Step 3: Answering questions...');
 
     let questionsAnswered = 0;
-    let maxQuestions = 15;
+    const maxQuestions = 15;
 
     for (let i = 0; i < maxQuestions; i++) {
       const question = page.locator('[class*="question"]').first();

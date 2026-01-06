@@ -168,13 +168,13 @@ describe('Roll Number Validation', () => {
     })
 
     it('should reject null or undefined input', () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       const result = validateRollNumber(null as unknown as string)
       expect(result.valid).toBe(false)
     })
 
     it('should reject non-string input', () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       const result = validateRollNumber(123 as unknown as string)
       expect(result.valid).toBe(false)
     })

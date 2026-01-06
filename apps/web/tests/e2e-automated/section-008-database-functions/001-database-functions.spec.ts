@@ -16,7 +16,7 @@ interface TestResult {
   steps: string[];
 }
 
-let testResults: TestResult[] = [];
+const testResults: TestResult[] = [];
 
 const resultsDir = path.join(__dirname, 'results');
 const screenshotsDir = path.join(resultsDir, 'screenshots');

@@ -967,7 +967,7 @@ test.afterAll(async () => {
   const resultsPath = path.join(SCREENSHOT_DIR, 'results.md')
   const timestamp = new Date().toISOString()
 
-  let resultsContent = `# E2E Test Results - Real Data Flows
+  const resultsContent = `# E2E Test Results - Real Data Flows
 
 Generated: ${timestamp}
 

@@ -13,7 +13,7 @@ import {
 } from './test-utils';
 import { TEST_CONFIG, TEST_SECTIONS } from './test-config';
 
-let testResults: TestResult[] = [];
+const testResults: TestResult[] = [];
 const startTime = Date.now();
 
 // Test Case 16.1.1: Keyboard Navigation
@@ -31,7 +31,7 @@ test('16.1.1 - Keyboard Navigation', async ({ page }) => {
     screenshots.push(await takeScreenshot(page, testName, 'signin-page'));
 
     // Start tabbing through elements
-    let focusedElements: string[] = [];
+    const focusedElements: string[] = [];
 
     // Focus first element
     await page.press('body', 'Tab');

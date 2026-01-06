@@ -61,7 +61,7 @@ describe('Email Validation', () => {
       const result1 = validateEmail('')
       expect(result1.valid).toBe(false)
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       const result2 = validateEmail(null as unknown as string)
       expect(result2.valid).toBe(false)
     })

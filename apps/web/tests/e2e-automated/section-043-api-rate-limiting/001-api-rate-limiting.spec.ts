@@ -165,7 +165,7 @@ test('TC-43.1.2: Assessment Submission Rate Limit', async ({ page }) => {
   const findings: string[] = [];
   const errors: string[] = [];
   const screenshots: string[] = [];
-  let testStatus: 'pass' | 'fail' = 'pass';
+  const testStatus: 'pass' | 'fail' = 'pass';
 
   try {
     // Navigate to assessment (pre-authenticated)
@@ -339,7 +339,7 @@ test('TC-43.1.4: Cross-Endpoint Rate Limiting', async ({ page }) => {
   const findings: string[] = [];
   const errors: string[] = [];
   const screenshots: string[] = [];
-  let testStatus: 'pass' | 'fail' = 'pass';
+  const testStatus: 'pass' | 'fail' = 'pass';
 
   try {
     // Navigate to app (pre-authenticated)

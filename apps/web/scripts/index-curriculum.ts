@@ -185,7 +185,7 @@ function extractMetadata(chunk: string, language: string): { moduleId: string; t
     const headerMatch = line.match(/^#{1,3}\s*(.+)/);
     if (headerMatch) {
       // Clean up the header
-      let headerText = headerMatch[1]
+      const headerText = headerMatch[1]
         .replaceAll('{.mark}', '')
         .replaceAll(/\[\s*/g, '')
         .replaceAll(/\s*\]/g, '')
