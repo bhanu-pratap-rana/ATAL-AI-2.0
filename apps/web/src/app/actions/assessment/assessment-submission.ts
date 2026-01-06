@@ -9,7 +9,6 @@ import { checkRateLimit } from '@/lib/rate-limiter-distributed'
 import { queryCache } from '@/lib/cache/query-cache'
 import { RATE_LIMITS } from '@/lib/constants/rate-limits'
 import { validateSubmitAssessmentResponse } from '@/lib/rpc-validators'
-import { gamificationService } from '@/lib/services/gamification-service'
 import { handleZodError } from '@/lib/action-error-handler'
 import { updateTheta, CATEGORIES, CAT_CONFIG } from './irt-models'
 
@@ -272,4 +271,28 @@ export async function submitAssessment(
 
     if (!rpcResult.success) {
       const errorMessage = rpcResult.error || 'Unknown error during assessment submission'
-      authLogger.warn('[submitAssessment] RPC function returned error
+      authLogger.warn('[submitAssessment] RPC function returned error', { errorMessage })
+      return { success: false, error: errorMessage }
+    }
+
+    const scoreResult = await calculateIRTScore(rpcResult.responses || [])
+
+    authLogger.info('[submitAssessment] Assessment submitted successfully', {
+      userId: auth.user.id,
+      sessionId: validatedData.sessionId,
+      score: scoreResult.overallScore,
+    })
+
+    revalidatePath('/app/dashboard')
+    revalidatePath('/app/progress')
+
+    return {
+      success: true,
+      score: scoreResult.overallScore,
+      level: scoreResult.proficiencyLevel,
+      categoryScores: scoreResult.categoryScores,
+    }
+  } catch (error) {
+    return handleZodError(error)
+  }
+}
