@@ -7,21 +7,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { validateEmail } from "@/lib/validation-utils";
 import { requestOtp } from "@/app/actions/auth";
-import { authLogger } from "@/lib/auth-logger";
+import { BaseFormComponentProps, useFormSubmission, validateAndHandleError, FORM_TOAST_MESSAGES } from "@/lib/form-component-utils";
+import { FormErrorHelper } from "@/components/form/FormErrorHelper";
 
 /**
  * EmailOTPForm - Reusable email OTP send form
  * Handles email validation and OTP request
  * Reduces code duplication between student and teacher auth flows
  */
-export interface EmailOTPFormProps {
+export interface EmailOTPFormProps extends BaseFormComponentProps {
   readonly email: string;
   readonly onEmailChange: (email: string) => void;
   readonly onOtpSent: () => void;
-  readonly isLoading: boolean;
-  readonly error?: string;
-  readonly onErrorChange: (error: string | null) => void;
-  readonly submitButtonLabel?: string;
   readonly helperText?: string;
 }
 
@@ -35,35 +32,27 @@ export function EmailOTPForm({
   submitButtonLabel = "Send OTP",
   helperText = "Enter your email to receive an OTP",
 }: EmailOTPFormProps) {
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    onErrorChange(null);
+  const handleSubmit = useFormSubmission(
+    async () => {
+      // Validate email
+      const emailValidation = validateEmail(email);
+      if (!emailValidation.valid) {
+        throw new Error(emailValidation.error || "Invalid email");
+      }
 
-    // Validate email
-    const emailValidation = validateEmail(email);
-    if (!emailValidation.valid) {
-      onErrorChange(emailValidation.error || "Invalid email");
-      return;
-    }
-
-    try {
-      authLogger.debug("[EmailOTPForm] Requesting OTP for email");
       const result = await requestOtp(email.trim());
 
       if (!result.success) {
-        onErrorChange(result.error || "Failed to send OTP");
-        toast.error(result.error || "Failed to send OTP");
-      } else {
-        authLogger.success("[EmailOTPForm] OTP sent successfully");
-        toast.success("OTP sent to your email!");
-        onOtpSent();
+        throw new Error(result.error || "Failed to send OTP");
       }
-    } catch (err) {
-      authLogger.error("[EmailOTPForm] Failed to send OTP", err);
-      onErrorChange("Failed to send OTP");
-      toast.error("Failed to send OTP");
-    }
-  };
+
+      toast.success(FORM_TOAST_MESSAGES.EMAIL_OTP_SENT);
+      return result;
+    },
+    onErrorChange,
+    "[EmailOTPForm]",
+    () => onOtpSent()
+  );
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -79,15 +68,12 @@ export function EmailOTPForm({
           required
           aria-describedby={error ? "email-error" : "email-helper"}
         />
-        {error ? (
-          <p id="email-error" className="text-sm text-error" role="alert">
-            {error}
-          </p>
-        ) : (
-          <p id="email-helper" className="text-xs text-text-secondary">
-            {helperText}
-          </p>
-        )}
+        <FormErrorHelper
+          error={error}
+          helperText={helperText}
+          errorId="email-error"
+          helperId="email-helper"
+        />
       </div>
 
       <Button
