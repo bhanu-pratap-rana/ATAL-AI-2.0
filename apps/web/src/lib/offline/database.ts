@@ -10,14 +10,18 @@
  * offline-first is critical for rural education.
  */
 
-import Dexie, { Table } from 'dexie';
+import Dexie, { Table } from "dexie";
 
 /**
  * Queued mutation for offline sync
  */
 export interface QueuedMutation {
   id?: number;
-  type: 'assessment_submit' | 'progress_update' | 'chat_message' | 'points_award';
+  type:
+    | "assessment_submit"
+    | "progress_update"
+    | "chat_message"
+    | "points_award";
   payload: Record<string, unknown>;
   timestamp: number;
   retries: number;
@@ -30,7 +34,7 @@ export interface QueuedMutation {
 export interface CachedLesson {
   topic_id: string;
   module_id: string;
-  language: 'en' | 'hi' | 'as';
+  language: "en" | "hi" | "as";
   content: {
     title: string;
     description: string;
@@ -57,7 +61,7 @@ export interface CachedProgress {
   student_id: string;
   module_id: string;
   mastery_score: number;
-  status: 'not_started' | 'in_progress' | 'mastered';
+  status: "not_started" | "in_progress" | "mastered";
   last_synced: number;
 }
 
@@ -67,12 +71,12 @@ export interface CachedProgress {
 export interface CachedConversation {
   session_id: string;
   messages: Array<{
-    role: 'user' | 'assistant';
+    role: "user" | "assistant";
     content: string;
     timestamp: number;
   }>;
   topic_id?: string;
-  language: 'en' | 'hi' | 'as';
+  language: "en" | "hi" | "as";
   last_updated: number;
 }
 
@@ -86,17 +90,17 @@ class ATALOfflineDB extends Dexie {
   conversations!: Table<CachedConversation, string>;
 
   constructor() {
-    super('ATAL_Offline');
+    super("ATAL_Offline");
 
     this.version(1).stores({
       // Auto-incrementing id for sync queue
-      syncQueue: '++id, timestamp, type, retries',
+      syncQueue: "++id, timestamp, type, retries",
       // Composite key for lessons (topic + language)
-      lessons: 'topic_id, module_id, language, cached_at, expires_at',
+      lessons: "topic_id, module_id, language, cached_at, expires_at",
       // Composite key for progress (topic + student)
-      progress: '[topic_id+student_id], module_id, last_synced',
+      progress: "[topic_id+student_id], module_id, last_synced",
       // Session id for conversations
-      conversations: 'session_id, topic_id, language, last_updated',
+      conversations: "session_id, topic_id, language, last_updated",
     });
   }
 }
@@ -109,7 +113,7 @@ export const offlineDB = new ATALOfflineDB();
  */
 export function isOfflineStorageAvailable(): boolean {
   try {
-    return typeof globalThis !== 'undefined' && 'indexedDB' in globalThis;
+    return typeof globalThis !== "undefined" && "indexedDB" in globalThis;
   } catch {
     return false;
   }
@@ -123,7 +127,7 @@ export async function getStorageUsage(): Promise<{
   quota: number;
   percentUsed: number;
 }> {
-  if (typeof navigator === 'undefined' || !navigator.storage) {
+  if (typeof navigator === "undefined" || !navigator.storage) {
     return { used: 0, quota: 0, percentUsed: 0 };
   }
 
@@ -147,14 +151,14 @@ export async function clearExpiredCache(): Promise<number> {
 
   // Clear expired lessons
   const expiredLessons = await offlineDB.lessons
-    .where('expires_at')
+    .where("expires_at")
     .below(now)
     .delete();
 
   // Clear old conversations (older than 7 days)
   const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
   const oldConversations = await offlineDB.conversations
-    .where('last_updated')
+    .where("last_updated")
     .below(weekAgo)
     .delete();
 

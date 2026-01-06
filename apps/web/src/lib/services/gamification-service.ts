@@ -41,8 +41,8 @@
  * See: /src/lib/offline/mutation-queue.ts for sync implementation.
  */
 
-import { createClient } from '@/lib/supabase-server';
-import { authLogger } from '@/lib/auth-logger';
+import { createClient } from "@/lib/supabase-server";
+import { authLogger } from "@/lib/auth-logger";
 
 /**
  * Badge definition
@@ -56,7 +56,7 @@ export interface Badge {
   icon: string;
   unlock_criteria: BadgeCriteria;
   cultural_note: string;
-  rarity: 'common' | 'uncommon' | 'rare' | 'legendary';
+  rarity: "common" | "uncommon" | "rare" | "legendary";
   points_value: number;
 }
 
@@ -65,16 +65,16 @@ export interface Badge {
  */
 export interface BadgeCriteria {
   type:
-    | 'lessons_completed'
-    | 'high_score'
-    | 'weekly_streak'
-    | 'modules_mastered'
-    | 'perfect_score'
-    | 'voice_interactions'
-    | 'first_lesson'
-    | 'questions_asked'
-    | 'night_activity'
-    | 'early_activity';
+    | "lessons_completed"
+    | "high_score"
+    | "weekly_streak"
+    | "modules_mastered"
+    | "perfect_score"
+    | "voice_interactions"
+    | "first_lesson"
+    | "questions_asked"
+    | "night_activity"
+    | "early_activity";
   threshold?: number;
 }
 
@@ -117,12 +117,12 @@ export class GamificationService {
       // Old pattern: 12-102 queries (1 + 10 badges × 1-10 criteria checks each)
       // New pattern: 1 query (batch RPC function)
       const { data: awardedBadges, error } = await supabase.rpc(
-        'batch_check_and_award_badges',
-        { p_student_id: studentId }
+        "batch_check_and_award_badges",
+        { p_student_id: studentId },
       );
 
       if (error) {
-        authLogger.error('[Gamification] Batch badge check failed:', error);
+        authLogger.error("[Gamification] Batch badge check failed:", error);
         return [];
       }
 
@@ -132,27 +132,32 @@ export class GamificationService {
 
       // Transform RPC response to Badge objects
       // Type: BatchCheckAwardBadgesResponse from apps/db/migrations/123_batch_check_award_badges.sql
-      return awardedBadges.map((b: {
-        badge_id: string;
-        badge_name_en: string;
-        badge_name_hi: string;
-        badge_name_as: string;
-        points_awarded: number;
-      }) => ({
-        id: b.badge_id,
-        name_en: b.badge_name_en,
-        name_hi: b.badge_name_hi,
-        name_as: b.badge_name_as,
-        points_value: b.points_awarded,
-        description_en: '',
-        description_hi: '',
-        description_as: '',
-        icon: '',
-        unlock_criteria: {},
-        created_at: new Date().toISOString(),
-      }));
+      return awardedBadges.map(
+        (b: {
+          badge_id: string;
+          badge_name_en: string;
+          badge_name_hi: string;
+          badge_name_as: string;
+          points_awarded: number;
+        }) => ({
+          id: b.badge_id,
+          name_en: b.badge_name_en,
+          name_hi: b.badge_name_hi,
+          name_as: b.badge_name_as,
+          points_value: b.points_awarded,
+          description_en: "",
+          description_hi: "",
+          description_as: "",
+          icon: "",
+          unlock_criteria: {},
+          created_at: new Date().toISOString(),
+        }),
+      );
     } catch (error) {
-      authLogger.error('[Gamification] Error checking badges:', error instanceof Error ? error : { error: String(error) });
+      authLogger.error(
+        "[Gamification] Error checking badges:",
+        error instanceof Error ? error : { error: String(error) },
+      );
       return [];
     }
   }
@@ -162,59 +167,65 @@ export class GamificationService {
    */
   private async checkCriteria(
     studentId: string,
-    criteria: BadgeCriteria
+    criteria: BadgeCriteria,
   ): Promise<boolean> {
     const supabase = await createClient();
 
     switch (criteria.type) {
-      case 'lessons_completed': {
+      case "lessons_completed": {
         const { count } = await supabase
-          .from('student_knowledge_state')
-          .select('*', { count: 'exact', head: true })
-          .eq('student_id', studentId)
-          .gte('mastery_score', 70);
+          .from("student_knowledge_state")
+          .select("*", { count: "exact", head: true })
+          .eq("student_id", studentId)
+          .gte("mastery_score", 70);
         return (count || 0) >= (criteria.threshold || 10);
       }
 
-      case 'high_score': {
+      case "high_score": {
         const { data, error } = await supabase
-          .from('summative_results')
-          .select('total_score')
-          .eq('student_id', studentId)
-          .gte('total_score', criteria.threshold || 90)
-          .limit(1)
+          .from("summative_results")
+          .select("total_score")
+          .eq("student_id", studentId)
+          .gte("total_score", criteria.threshold || 90)
+          .limit(1);
 
         if (error) {
-          authLogger.error('[checkBadgeCriteria] Failed to fetch high score', { error: error.message, studentId })
-          return false
+          authLogger.error("[checkBadgeCriteria] Failed to fetch high score", {
+            error: error.message,
+            studentId,
+          });
+          return false;
         }
         return (data?.length || 0) > 0;
       }
 
-      case 'weekly_streak': {
+      case "weekly_streak": {
         // Check lessons completed this week
         const weekAgo = new Date();
         weekAgo.setDate(weekAgo.getDate() - 7);
 
         const { count } = await supabase
-          .from('student_knowledge_state')
-          .select('*', { count: 'exact', head: true })
-          .eq('student_id', studentId)
-          .gte('last_attempt_at', weekAgo.toISOString())
-          .gte('mastery_score', 70);
+          .from("student_knowledge_state")
+          .select("*", { count: "exact", head: true })
+          .eq("student_id", studentId)
+          .gte("last_attempt_at", weekAgo.toISOString())
+          .gte("mastery_score", 70);
         return (count || 0) >= (criteria.threshold || 3);
       }
 
-      case 'modules_mastered': {
+      case "modules_mastered": {
         // Count modules where all topics are mastered
         const { data, error } = await supabase
-          .from('student_knowledge_state')
-          .select('module_id, mastery_score')
-          .eq('student_id', studentId);
-        
+          .from("student_knowledge_state")
+          .select("module_id, mastery_score")
+          .eq("student_id", studentId);
+
         if (error) {
-          authLogger.error('[checkBadgeCriteria] Failed to fetch knowledge state', { error: error.message, studentId })
-          return false
+          authLogger.error(
+            "[checkBadgeCriteria] Failed to fetch knowledge state",
+            { error: error.message, studentId },
+          );
+          return false;
         }
 
         if (!data) return false;
@@ -244,53 +255,56 @@ export class GamificationService {
         return masteredModules >= (criteria.threshold || 5);
       }
 
-      case 'perfect_score': {
+      case "perfect_score": {
         const { data } = await supabase
-          .from('summative_results')
-          .select('total_score')
-          .eq('student_id', studentId)
-          .eq('total_score', 100)
+          .from("summative_results")
+          .select("total_score")
+          .eq("student_id", studentId)
+          .eq("total_score", 100)
           .limit(1);
         return (data?.length || 0) > 0;
       }
 
-      case 'voice_interactions': {
+      case "voice_interactions": {
         const { count } = await supabase
-          .from('ai_tutor_interactions')
-          .select('*', { count: 'exact', head: true })
-          .eq('student_id', studentId)
-          .eq('input_mode', 'voice');
+          .from("ai_tutor_interactions")
+          .select("*", { count: "exact", head: true })
+          .eq("student_id", studentId)
+          .eq("input_mode", "voice");
         return (count || 0) >= (criteria.threshold || 10);
       }
 
-      case 'first_lesson': {
+      case "first_lesson": {
         const { count } = await supabase
-          .from('student_knowledge_state')
-          .select('*', { count: 'exact', head: true })
-          .eq('student_id', studentId);
+          .from("student_knowledge_state")
+          .select("*", { count: "exact", head: true })
+          .eq("student_id", studentId);
         return (count || 0) >= 1;
       }
 
-      case 'questions_asked': {
+      case "questions_asked": {
         const { count } = await supabase
-          .from('ai_tutor_interactions')
-          .select('*', { count: 'exact', head: true })
-          .eq('student_id', studentId)
-          .eq('message_role', 'user');
+          .from("ai_tutor_interactions")
+          .select("*", { count: "exact", head: true })
+          .eq("student_id", studentId)
+          .eq("message_role", "user");
         return (count || 0) >= (criteria.threshold || 20);
       }
 
-      case 'night_activity': {
+      case "night_activity": {
         // Check for activity between 9 PM and 6 AM
         const { data, error } = await supabase
-          .from('ai_tutor_interactions')
-          .select('created_at')
-          .eq('student_id', studentId)
+          .from("ai_tutor_interactions")
+          .select("created_at")
+          .eq("student_id", studentId)
           .limit(100);
-        
+
         if (error) {
-          authLogger.error('[checkBadgeCriteria] Failed to fetch night activity', { error: error.message, studentId })
-          return false
+          authLogger.error(
+            "[checkBadgeCriteria] Failed to fetch night activity",
+            { error: error.message, studentId },
+          );
+          return false;
         }
 
         const nightActivities =
@@ -302,17 +316,20 @@ export class GamificationService {
         return nightActivities.length >= (criteria.threshold || 5);
       }
 
-      case 'early_activity': {
+      case "early_activity": {
         // Check for activity between 5 AM and 7 AM
         const { data, error } = await supabase
-          .from('ai_tutor_interactions')
-          .select('created_at')
-          .eq('student_id', studentId)
+          .from("ai_tutor_interactions")
+          .select("created_at")
+          .eq("student_id", studentId)
           .limit(100);
 
         if (error) {
-          authLogger.error('[checkBadgeCriteria] Failed to fetch early activity', { error: error.message, studentId })
-          return false
+          authLogger.error(
+            "[checkBadgeCriteria] Failed to fetch early activity",
+            { error: error.message, studentId },
+          );
+          return false;
         }
 
         const earlyActivities =
@@ -336,19 +353,22 @@ export class GamificationService {
     studentId: string,
     points: number,
     source: string,
-    description?: string
+    description?: string,
   ): Promise<void> {
     try {
       const supabase = await createClient();
 
-      await supabase.from('points_history').insert({
+      await supabase.from("points_history").insert({
         student_id: studentId,
         points,
         source,
         description,
       });
     } catch (error) {
-      authLogger.error('[Gamification] Error awarding points:', error instanceof Error ? error : { error: String(error) });
+      authLogger.error(
+        "[Gamification] Error awarding points:",
+        error instanceof Error ? error : { error: String(error) },
+      );
     }
   }
 
@@ -360,13 +380,16 @@ export class GamificationService {
       const supabase = await createClient();
 
       const { data } = await supabase
-        .from('points_history')
-        .select('points')
-        .eq('student_id', studentId);
+        .from("points_history")
+        .select("points")
+        .eq("student_id", studentId);
 
       return data?.reduce((sum, entry) => sum + entry.points, 0) || 0;
     } catch (error) {
-      authLogger.error('[Gamification] Error getting points:', error instanceof Error ? error : { error: String(error) });
+      authLogger.error(
+        "[Gamification] Error getting points:",
+        error instanceof Error ? error : { error: String(error) },
+      );
       return 0;
     }
   }
@@ -379,19 +402,22 @@ export class GamificationService {
       const supabase = await createClient();
 
       const { data, error } = await supabase
-        .from('student_badges')
+        .from("student_badges")
         .select(
           `
           *,
           badge:badges(*)
-        `
+        `,
         )
-        .eq('student_id', studentId)
-        .order('earned_at', { ascending: false });
+        .eq("student_id", studentId)
+        .order("earned_at", { ascending: false });
 
       return (data || []) as StudentBadge[];
     } catch (error) {
-      authLogger.error('[Gamification] Error getting badges:', error instanceof Error ? error : { error: String(error) });
+      authLogger.error(
+        "[Gamification] Error getting badges:",
+        error instanceof Error ? error : { error: String(error) },
+      );
       return [];
     }
   }
@@ -399,21 +425,27 @@ export class GamificationService {
   /**
    * Get points history for a student
    */
-  async getPointsHistory(studentId: string, limit = 20): Promise<PointsEntry[]> {
+  async getPointsHistory(
+    studentId: string,
+    limit = 20,
+  ): Promise<PointsEntry[]> {
     try {
       const supabase = await createClient();
 
       // OPTIMIZATION: Select only needed columns instead of *
       const { data } = await supabase
-        .from('points_history')
-        .select('id, student_id, points, reason, description, created_at')
-        .eq('student_id', studentId)
-        .order('created_at', { ascending: false })
+        .from("points_history")
+        .select("id, student_id, points, reason, description, created_at")
+        .eq("student_id", studentId)
+        .order("created_at", { ascending: false })
         .limit(limit);
 
       return (data || []) as unknown as PointsEntry[];
     } catch (error) {
-      authLogger.error('[Gamification] Error getting points history:', error instanceof Error ? error : { error: String(error) });
+      authLogger.error(
+        "[Gamification] Error getting points history:",
+        error instanceof Error ? error : { error: String(error) },
+      );
       return [];
     }
   }
@@ -423,16 +455,18 @@ export class GamificationService {
    */
   async getClassLeaderboard(
     classId: string,
-    limit = 10
-  ): Promise<{ studentId: string; name: string; points: number; rank: number }[]> {
+    limit = 10,
+  ): Promise<
+    { studentId: string; name: string; points: number; rank: number }[]
+  > {
     try {
       const supabase = await createClient();
 
       // Get enrolled students
       const { data: enrollments } = await supabase
-        .from('enrollments')
-        .select('student_id')
-        .eq('class_id', classId);
+        .from("enrollments")
+        .select("student_id")
+        .eq("class_id", classId);
 
       if (!enrollments) return [];
 
@@ -440,16 +474,16 @@ export class GamificationService {
 
       // Get points for each student
       const { data: pointsData } = await supabase
-        .from('points_history')
-        .select('student_id, points')
-        .in('student_id', studentIds);
+        .from("points_history")
+        .select("student_id, points")
+        .in("student_id", studentIds);
 
       // Aggregate points
       const pointsMap = new Map<string, number>();
       for (const entry of pointsData || []) {
         pointsMap.set(
           entry.student_id,
-          (pointsMap.get(entry.student_id) || 0) + entry.points
+          (pointsMap.get(entry.student_id) || 0) + entry.points,
         );
       }
 
@@ -466,7 +500,10 @@ export class GamificationService {
 
       return leaderboard;
     } catch (error) {
-      authLogger.error('[Gamification] Error getting leaderboard:', error instanceof Error ? error : { error: String(error) });
+      authLogger.error(
+        "[Gamification] Error getting leaderboard:",
+        error instanceof Error ? error : { error: String(error) },
+      );
       return [];
     }
   }
@@ -477,7 +514,7 @@ export class GamificationService {
    */
   async triggerActivityCheck(
     studentId: string,
-    activityType: 'lesson' | 'question' | 'assessment' | 'voice'
+    activityType: "lesson" | "question" | "assessment" | "voice",
   ): Promise<Badge[]> {
     // Award points for activity
     const pointsMap = {
@@ -491,7 +528,7 @@ export class GamificationService {
       studentId,
       pointsMap[activityType],
       activityType,
-      `Completed ${activityType}`
+      `Completed ${activityType}`,
     );
 
     // Check for new badges

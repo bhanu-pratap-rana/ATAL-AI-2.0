@@ -1,15 +1,15 @@
 /**
  * useTimer Hook
- * 
+ *
  * Reusable timer hook for tracking elapsed time
  * Handles pause/resume and automatic cleanup
- * 
+ *
  * Replaces duplicate timer logic in:
  * - AssessmentTimer component
  * - CompactTimer component
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 
 export interface UseTimerOptions {
   initialSeconds?: number;
@@ -19,14 +19,14 @@ export interface UseTimerOptions {
 
 /**
  * Timer hook for tracking elapsed time
- * 
+ *
  * @param options - Configuration options
  * @param options.initialSeconds - Starting time in seconds (default: 0)
  * @param options.isPaused - Whether timer is paused (default: false)
  * @param options.onTimeUpdate - Callback fired every second with elapsed time
- * 
+ *
  * @returns Current elapsed time in seconds
- * 
+ *
  * @example
  * ```tsx
  * function MyTimer() {
@@ -35,7 +35,7 @@ export interface UseTimerOptions {
  *     isPaused,
  *     onTimeUpdate: (seconds) => console.log('Elapsed:', seconds)
  *   });
- *   
+ *
  *   return <div>{elapsedSeconds}s</div>;
  * }
  * ```
@@ -87,10 +87,10 @@ export function useTimer({
 
 /**
  * Format seconds into MM:SS format
- * 
+ *
  * @param seconds - Total seconds
  * @returns Formatted time string (e.g., "05:23")
- * 
+ *
  * @example
  * ```tsx
  * formatTimeMMSS(323); // "05:23"
@@ -100,6 +100,5 @@ export function useTimer({
 export function formatTimeMMSS(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
-  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
 }
-

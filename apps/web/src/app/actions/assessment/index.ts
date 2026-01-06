@@ -12,15 +12,15 @@ export {
   fisherInformation,
   stratifyByDiscrimination,
   updateTheta,
-  selectNextItem
-} from './irt-models'
+  selectNextItem,
+} from "./irt-models";
 
 // Adaptive question selection
-export { getAdaptiveQuestions } from './adaptive-selection'
+export { getAdaptiveQuestions } from "./adaptive-selection";
 
 // Assessment submission and scoring
 export {
   submitAssessment,
   calculateIRTScore,
-  startAssessment
-} from './assessment-submission'
+  startAssessment,
+} from "./assessment-submission";

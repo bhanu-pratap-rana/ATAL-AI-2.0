@@ -13,17 +13,17 @@
  * 4. Adapt to learning style (visual/text/auditory)
  */
 
-import type { LearningStyle } from '../services/adaptive-service';
+import type { LearningStyle } from "../services/adaptive-service";
 
 /**
  * Placeholder tokens for dynamic content injection
  */
 const PLACEHOLDERS = {
-  context: '{context}',
-  learningStyle: '{learning_style}',
-  showImages: '{show_images}',
-  topic: '{topic}',
-  module: '{module}',
+  context: "{context}",
+  learningStyle: "{learning_style}",
+  showImages: "{show_images}",
+  topic: "{topic}",
+  module: "{module}",
 } as const;
 
 /**
@@ -174,7 +174,7 @@ ${PLACEHOLDERS.context}
 /**
  * Get Socratic prompt for language
  */
-export function getSocraticPrompt(language: 'en' | 'hi' | 'as'): string {
+export function getSocraticPrompt(language: "en" | "hi" | "as"): string {
   const prompts = {
     en: SOCRATIC_PROMPT_EN,
     hi: SOCRATIC_PROMPT_HI,
@@ -187,7 +187,7 @@ export function getSocraticPrompt(language: 'en' | 'hi' | 'as'): string {
  * Build complete system prompt with context
  */
 export function buildSystemPrompt(params: {
-  language: 'en' | 'hi' | 'as';
+  language: "en" | "hi" | "as";
   context: string;
   learningStyle: LearningStyle;
   showImages: boolean;
@@ -198,7 +198,10 @@ export function buildSystemPrompt(params: {
 
   // Replace placeholders
   prompt = prompt
-    .replaceAll(PLACEHOLDERS.context, params.context || 'No specific context provided.')
+    .replaceAll(
+      PLACEHOLDERS.context,
+      params.context || "No specific context provided.",
+    )
     .replaceAll(PLACEHOLDERS.learningStyle, params.learningStyle)
     .replaceAll(PLACEHOLDERS.showImages, String(params.showImages));
 
@@ -247,7 +250,7 @@ Keep feedback brief (2-3 sentences). Never give away the answer directly.`,
 /**
  * Get feedback prompt for language
  */
-export function getFeedbackPrompt(language: 'en' | 'hi' | 'as'): string {
+export function getFeedbackPrompt(language: "en" | "hi" | "as"): string {
   return FEEDBACK_PROMPT[language] || FEEDBACK_PROMPT.en;
 }
 

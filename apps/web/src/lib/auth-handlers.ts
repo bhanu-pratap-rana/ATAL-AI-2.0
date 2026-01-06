@@ -13,34 +13,38 @@
  * Follows rule.md: NO DUPLICATION, ARCHITECTURAL CONSISTENCY
  */
 
-import { SupabaseClient, User, AuthError } from '@supabase/supabase-js'
-import { validateEmail, validatePhone, validatePassword } from './validation-utils'
-import { checkOtpRateLimit } from './rate-limiter-distributed'
-import { authLogger } from './auth-logger'
-import type { SignInResult as BaseSignInResult } from '@/types/auth'
+import { SupabaseClient, User, AuthError } from "@supabase/supabase-js";
+import {
+  validateEmail,
+  validatePhone,
+  validatePassword,
+} from "./validation-utils";
+import { checkOtpRateLimit } from "./rate-limiter-distributed";
+import { authLogger } from "./auth-logger";
+import type { SignInResult as BaseSignInResult } from "@/types/auth";
 
 /**
  * Extended signin result type for internal use
  * Extends the base type with additional fields needed by handlers
  */
 export interface SignInResult {
-  success: boolean
-  error?: string
-  user?: User
-  requiresProfileCheck?: boolean
+  success: boolean;
+  error?: string;
+  user?: User;
+  requiresProfileCheck?: boolean;
 }
 
 // Re-export for consumers who need the base type
-export type { BaseSignInResult }
+export type { BaseSignInResult };
 
 /**
  * Generic OTP result type
  */
 export interface OTPResult {
-  success: boolean
-  error?: string
-  user?: User
-  token?: string
+  success: boolean;
+  error?: string;
+  user?: User;
+  token?: string;
 }
 
 /**
@@ -60,29 +64,32 @@ export async function handleSignIn(
   supabase: SupabaseClient,
   credentials: { email?: string; phone?: string; password: string },
   options?: {
-    validatorFn?: (val: string) => { valid: boolean; error?: string }
-    requireProfileCheck?: boolean // For teacher role
-    profileTable?: string // Table to check (teacher_profiles, student_profiles, etc)
-  }
+    validatorFn?: (val: string) => { valid: boolean; error?: string };
+    requireProfileCheck?: boolean; // For teacher role
+    profileTable?: string; // Table to check (teacher_profiles, student_profiles, etc)
+  },
 ): Promise<SignInResult> {
   try {
     // Validate identifier (email or phone)
-    const identifier = credentials.email || credentials.phone
+    const identifier = credentials.email || credentials.phone;
     if (!identifier) {
-      return { success: false, error: 'Email or phone is required' }
+      return { success: false, error: "Email or phone is required" };
     }
 
     // Use provided validator or skip validation
     if (options?.validatorFn) {
-      const validation = options.validatorFn(identifier)
+      const validation = options.validatorFn(identifier);
       if (!validation.valid) {
-        return { success: false, error: validation.error || 'Invalid identifier' }
+        return {
+          success: false,
+          error: validation.error || "Invalid identifier",
+        };
       }
     }
 
-    authLogger.debug('[handleSignIn] Attempting signin', {
-      type: credentials.email ? 'email' : 'phone',
-    })
+    authLogger.debug("[handleSignIn] Attempting signin", {
+      type: credentials.email ? "email" : "phone",
+    });
 
     // Call Supabase signin
     const result = credentials.email
@@ -95,68 +102,68 @@ export async function handleSignIn(
             phone: credentials.phone,
             password: credentials.password,
           })
-        : null
+        : null;
 
     if (!result) {
-      return { success: false, error: 'Email or phone is required' }
+      return { success: false, error: "Email or phone is required" };
     }
 
-    const { data, error } = result
+    const { data, error } = result;
 
     if (error) {
-      authLogger.warn('[handleSignIn] Authentication failed', error)
+      authLogger.warn("[handleSignIn] Authentication failed", error);
       return {
         success: false,
-        error: error.message || 'Invalid credentials',
-      }
+        error: error.message || "Invalid credentials",
+      };
     }
 
     if (!data.user) {
       return {
         success: false,
-        error: 'Authentication failed - no user returned',
-      }
+        error: "Authentication failed - no user returned",
+      };
     }
 
-    authLogger.success('[handleSignIn] Authentication successful')
+    authLogger.success("[handleSignIn] Authentication successful");
 
     // Check profile if required (e.g., teacher role)
     if (options?.requireProfileCheck && options?.profileTable) {
       const { data: profile, error: profileError } = await supabase
         .from(options.profileTable)
-        .select('*')
-        .eq('user_id', data.user.id)
-        .maybeSingle()
+        .select("*")
+        .eq("user_id", data.user.id)
+        .maybeSingle();
 
       if (profileError || !profile) {
-        authLogger.warn('[handleSignIn] Profile not found', {
+        authLogger.warn("[handleSignIn] Profile not found", {
           userId: data.user.id,
           table: options.profileTable,
-        })
+        });
         return {
           success: true,
           user: data.user,
-          error: 'Profile not found',
+          error: "Profile not found",
           requiresProfileCheck: true,
-        }
+        };
       }
 
       return {
         success: true,
         user: data.user,
-      }
+      };
     }
 
     return {
       success: true,
       user: data.user,
-    }
+    };
   } catch (error) {
-    authLogger.error('[handleSignIn] Unexpected error', error)
+    authLogger.error("[handleSignIn] Unexpected error", error);
     return {
       success: false,
-      error: 'An unexpected error occurred',
-    }
+      error: "An unexpected error occurred",
+    };
   }
 }
 
@@ -176,92 +183,92 @@ export async function handleSignIn(
 export async function handleSendOTP(
   supabase: SupabaseClient,
   identifier: string,
-  channel: 'email' | 'phone',
+  channel: "email" | "phone",
   options?: {
-    skipRateLimit?: boolean
-    redirectUrl?: string
-    shouldCreateUser?: boolean
-  }
+    skipRateLimit?: boolean;
+    redirectUrl?: string;
+    shouldCreateUser?: boolean;
+  },
 ): Promise<OTPResult> {
   try {
     // Validate identifier based on channel
-    if (channel === 'email') {
-      const validation = validateEmail(identifier)
+    if (channel === "email") {
+      const validation = validateEmail(identifier);
       if (!validation.valid) {
-        return { success: false, error: validation.error || 'Invalid email' }
+        return { success: false, error: validation.error || "Invalid email" };
       }
 
       // Check rate limit for OTP requests
       if (!options?.skipRateLimit && !(await checkOtpRateLimit(identifier))) {
-        authLogger.warn('[handleSendOTP] Rate limit exceeded', { identifier })
+        authLogger.warn("[handleSendOTP] Rate limit exceeded", { identifier });
         return {
           success: false,
-          error: 'Too many OTP requests. Please wait before trying again.',
-        }
+          error: "Too many OTP requests. Please wait before trying again.",
+        };
       }
 
-      authLogger.debug('[handleSendOTP] Sending email OTP', {
+      authLogger.debug("[handleSendOTP] Sending email OTP", {
         identifier,
-      })
-    } else if (channel === 'phone') {
-      const validation = validatePhone(identifier)
+      });
+    } else if (channel === "phone") {
+      const validation = validatePhone(identifier);
       if (!validation.valid) {
-        return { success: false, error: validation.error || 'Invalid phone' }
+        return { success: false, error: validation.error || "Invalid phone" };
       }
 
       if (!options?.skipRateLimit && !(await checkOtpRateLimit(identifier))) {
-        authLogger.warn('[handleSendOTP] Rate limit exceeded', { identifier })
+        authLogger.warn("[handleSendOTP] Rate limit exceeded", { identifier });
         return {
           success: false,
-          error: 'Too many OTP requests. Please wait before trying again.',
-        }
+          error: "Too many OTP requests. Please wait before trying again.",
+        };
       }
 
-      authLogger.debug('[handleSendOTP] Sending phone OTP', {
+      authLogger.debug("[handleSendOTP] Sending phone OTP", {
         identifier,
-      })
+      });
     }
 
     // Call Supabase OTP send
-    let error: AuthError | null = null
+    let error: AuthError | null = null;
 
-    if (channel === 'email') {
+    if (channel === "email") {
       const result = await supabase.auth.signInWithOtp({
         email: identifier.trim().toLowerCase(),
         options: {
           ...(options?.redirectUrl && { emailRedirectTo: options.redirectUrl }),
           shouldCreateUser: options?.shouldCreateUser ?? true,
         },
-      })
-      error = result.error
-    } else if (channel === 'phone') {
+      });
+      error = result.error;
+    } else if (channel === "phone") {
       const result = await supabase.auth.signInWithOtp({
         phone: identifier,
         options: {
           shouldCreateUser: options?.shouldCreateUser ?? true,
         },
-      })
-      error = result.error
+      });
+      error = result.error;
     } else {
-      return { success: false, error: 'Invalid OTP channel' }
+      return { success: false, error: "Invalid OTP channel" };
     }
 
     if (error) {
-      authLogger.warn('[handleSendOTP] OTP send failed', error)
+      authLogger.warn("[handleSendOTP] OTP send failed", error);
       return {
         success: false,
-        error: error.message || 'Failed to send OTP',
-      }
+        error: error.message || "Failed to send OTP",
+      };
     }
 
-    authLogger.success('[handleSendOTP] OTP sent successfully', { channel })
-    return { success: true }
+    authLogger.success("[handleSendOTP] OTP sent successfully", { channel });
+    return { success: true };
   } catch (error) {
-    authLogger.error('[handleSendOTP] Unexpected error', error)
+    authLogger.error("[handleSendOTP] Unexpected error", error);
     return {
       success: false,
-      error: 'An unexpected error occurred',
-    }
+      error: "An unexpected error occurred",
+    };
   }
 }
 
@@ -284,89 +291,89 @@ export async function handleVerifyOTP(
   supabase: SupabaseClient,
   identifier: { email?: string; phone?: string },
   token: string,
-  channel: 'email' | 'sms',
+  channel: "email" | "sms",
   options?: {
-    returnUser?: boolean
-  }
+    returnUser?: boolean;
+  },
 ): Promise<OTPResult> {
   try {
-    const id = identifier.email || identifier.phone
+    const id = identifier.email || identifier.phone;
     if (!id) {
-      return { success: false, error: 'Email or phone is required' }
+      return { success: false, error: "Email or phone is required" };
     }
 
-    authLogger.debug('[handleVerifyOTP] Verifying OTP', { channel })
+    authLogger.debug("[handleVerifyOTP] Verifying OTP", { channel });
 
     // Call Supabase OTP verification
-    let data: { user: User | null; session: unknown } | null = null
-    let error: AuthError | null = null
+    let data: { user: User | null; session: unknown } | null = null;
+    let error: AuthError | null = null;
 
     if (identifier.email) {
       const result = await supabase.auth.verifyOtp({
         email: identifier.email.toLowerCase(),
         token: token.trim(),
-        type: channel as 'email' | 'signup',
-      })
-      data = result.data
-      error = result.error
+        type: channel as "email" | "signup",
+      });
+      data = result.data;
+      error = result.error;
     } else if (identifier.phone) {
       const result = await supabase.auth.verifyOtp({
         phone: identifier.phone,
         token: token.trim(),
-        type: 'sms',
-      })
-      data = result.data
-      error = result.error
+        type: "sms",
+      });
+      data = result.data;
+      error = result.error;
     } else {
-      return { success: false, error: 'Email or phone is required' }
+      return { success: false, error: "Email or phone is required" };
     }
 
     if (error) {
-      authLogger.warn('[handleVerifyOTP] OTP verification failed', error)
+      authLogger.warn("[handleVerifyOTP] OTP verification failed", error);
 
       // Provide better error messages for common cases
-      if (error.message.includes('expired')) {
+      if (error.message.includes("expired")) {
         return {
           success: false,
           error: "That code has expired. Request a new one.",
-        }
+        };
       }
-      if (error.message.includes('invalid')) {
+      if (error.message.includes("invalid")) {
         return {
           success: false,
           error: "That code didn't work. Please check and try again.",
-        }
+        };
       }
 
       return {
         success: false,
-        error: error.message || 'OTP verification failed',
-      }
+        error: error.message || "OTP verification failed",
+      };
     }
 
     if (!data.user) {
       return {
         success: false,
-        error: 'Verification failed - no user data',
-      }
+        error: "Verification failed - no user data",
+      };
     }
 
-    authLogger.success('[handleVerifyOTP] OTP verification successful')
+    authLogger.success("[handleVerifyOTP] OTP verification successful");
 
     if (options?.returnUser) {
       return {
         success: true,
         user: data.user,
-      }
+      };
     }
 
-    return { success: true }
+    return { success: true };
   } catch (error) {
-    authLogger.error('[handleVerifyOTP] Unexpected error', error)
+    authLogger.error("[handleVerifyOTP] Unexpected error", error);
     return {
       success: false,
-      error: 'An unexpected error occurred',
-    }
+      error: "An unexpected error occurred",
+    };
   }
 }
 
@@ -385,43 +392,43 @@ export async function handleVerifyOTP(
 export async function handleSetPassword(
   supabase: SupabaseClient,
   password: string,
-  validate: boolean = true
+  validate: boolean = true,
 ): Promise<OTPResult> {
   try {
     // Validate password if requested
     if (validate) {
-      const validation = validatePassword(password)
+      const validation = validatePassword(password);
       if (!validation.valid) {
         return {
           success: false,
-          error: validation.errors.join(', ') || 'Invalid password',
-        }
+          error: validation.errors.join(", ") || "Invalid password",
+        };
       }
     }
 
-    authLogger.debug('[handleSetPassword] Setting password')
+    authLogger.debug("[handleSetPassword] Setting password");
 
     // Update user password
     const { error } = await supabase.auth.updateUser({
       password,
-    })
+    });
 
     if (error) {
-      authLogger.warn('[handleSetPassword] Password update failed', error)
+      authLogger.warn("[handleSetPassword] Password update failed", error);
       return {
         success: false,
-        error: error.message || 'Failed to set password',
-      }
+        error: error.message || "Failed to set password",
+      };
     }
 
-    authLogger.success('[handleSetPassword] Password set successfully')
-    return { success: true }
+    authLogger.success("[handleSetPassword] Password set successfully");
+    return { success: true };
   } catch (error) {
-    authLogger.error('[handleSetPassword] Unexpected error', error)
+    authLogger.error("[handleSetPassword] Unexpected error", error);
     return {
       success: false,
-      error: 'An unexpected error occurred',
-    }
+      error: "An unexpected error occurred",
+    };
   }
 }
 
@@ -436,28 +443,28 @@ export async function handleSetPassword(
  * Centralizing ensures consistent behavior.
  */
 export async function handleAnonymousSignIn(
-  supabase: SupabaseClient
+  supabase: SupabaseClient,
 ): Promise<SignInResult> {
   try {
-    authLogger.debug('[handleAnonymousSignIn] Attempting anonymous signin')
+    authLogger.debug("[handleAnonymousSignIn] Attempting anonymous signin");
 
-    const { error } = await supabase.auth.signInAnonymously()
+    const { error } = await supabase.auth.signInAnonymously();
 
     if (error) {
-      authLogger.warn('[handleAnonymousSignIn] Anonymous signin failed', error)
+      authLogger.warn("[handleAnonymousSignIn] Anonymous signin failed", error);
       return {
         success: false,
-        error: error.message || 'Failed to sign in as guest',
-      }
+        error: error.message || "Failed to sign in as guest",
+      };
     }
 
-    authLogger.success('[handleAnonymousSignIn] Anonymous signin successful')
-    return { success: true }
+    authLogger.success("[handleAnonymousSignIn] Anonymous signin successful");
+    return { success: true };
   } catch (error) {
-    authLogger.error('[handleAnonymousSignIn] Unexpected error', error)
+    authLogger.error("[handleAnonymousSignIn] Unexpected error", error);
     return {
       success: false,
-      error: 'An unexpected error occurred',
-    }
+      error: "An unexpected error occurred",
+    };
   }
 }

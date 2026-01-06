@@ -3,8 +3,8 @@
  * Centralizes error handling patterns used across all action files
  */
 
-import { z } from 'zod';
-import { authLogger } from './auth-logger';
+import { z } from "zod";
+import { authLogger } from "./auth-logger";
 
 /**
  * Standard response type for all server actions
@@ -24,7 +24,7 @@ export function handleZodError(error: unknown): ActionResponse {
     const firstError = error.errors[0];
     return {
       success: false,
-      error: firstError?.message || 'Invalid input',
+      error: firstError?.message || "Invalid input",
     };
   }
   throw error; // Re-throw if not a ZodError
@@ -46,7 +46,7 @@ export function handleUnexpectedError(
 
   return {
     success: false,
-    error: 'An unexpected error occurred. Please try again.',
+    error: "An unexpected error occurred. Please try again.",
   };
 }
 
@@ -64,7 +64,7 @@ export function handleDatabaseError(
 
   return {
     success: false,
-    error: 'Database operation failed. Please try again.',
+    error: "Database operation failed. Please try again.",
   };
 }
 
@@ -74,7 +74,7 @@ export function handleDatabaseError(
 export function handleAuthError(reason: string): ActionResponse {
   return {
     success: false,
-    error: reason || 'Authentication failed. Please login again.',
+    error: reason || "Authentication failed. Please login again.",
   };
 }
 
@@ -89,7 +89,7 @@ export function handleRateLimitError(
 
   return {
     success: false,
-    error: 'Too many requests. Please try again later.',
+    error: "Too many requests. Please try again later.",
   };
 }
 

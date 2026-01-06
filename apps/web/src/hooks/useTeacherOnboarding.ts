@@ -1,39 +1,39 @@
-'use client'
+"use client";
 
-import { useState, useCallback, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
-import { createClient } from '@/lib/supabase-browser'
-import zxcvbn from 'zxcvbn'
+import { useState, useCallback, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { createClient } from "@/lib/supabase-browser";
+import zxcvbn from "zxcvbn";
 import {
   sendEmailOtp,
   verifyEmailOtp,
   setPassword as setUserPassword,
   saveTeacherProfile,
-} from '@/app/actions/teacher-onboard'
+} from "@/app/actions/teacher-onboard";
 import {
   sendForgotPasswordOtp,
   resetPasswordWithOtp,
-} from '@/app/actions/auth'
-import { verifyTeacher } from '@/app/actions/school'
+} from "@/app/actions/auth";
+import { verifyTeacher } from "@/app/actions/school";
 import {
   validateEmail,
   validatePassword,
   validatePasswordMatch,
   validateOptionalPhone,
-} from '@/lib/validation-utils'
-import { authLogger } from '@/lib/auth-logger'
+} from "@/lib/validation-utils";
+import { authLogger } from "@/lib/auth-logger";
 
 type Step =
-  | 'choice'
-  | 'login'
-  | 'forgot-password'
-  | 'reset-password'
-  | 'auth'
-  | 'set-password'
-  | 'verify-school'
-  | 'profile'
-  | 'complete'
+  | "choice"
+  | "login"
+  | "forgot-password"
+  | "reset-password"
+  | "auth"
+  | "set-password"
+  | "verify-school"
+  | "profile"
+  | "complete";
 
 /**
  * Unified state interface for teacher onboarding flow
@@ -41,52 +41,52 @@ type Step =
  */
 export interface TeacherOnboardingState {
   // Flow state
-  step: Step
-  loading: boolean
-  signupMethod: 'email' | 'phone'
-  authChecked: boolean
+  step: Step;
+  loading: boolean;
+  signupMethod: "email" | "phone";
+  authChecked: boolean;
 
   // Login flow
-  loginEmail: string
-  loginPassword: string
-  loginError: string
+  loginEmail: string;
+  loginPassword: string;
+  loginError: string;
 
   // Forgot password flow
-  forgotEmail: string
-  forgotOtp: string
-  forgotOtpSent: boolean
-  forgotNewPassword: string
-  forgotConfirmPassword: string
+  forgotEmail: string;
+  forgotOtp: string;
+  forgotOtpSent: boolean;
+  forgotNewPassword: string;
+  forgotConfirmPassword: string;
 
   // Email OTP signup
-  email: string
-  emailError: string
-  emailSuggestion: string
-  otp: string
-  otpSent: boolean
+  email: string;
+  emailError: string;
+  emailSuggestion: string;
+  otp: string;
+  otpSent: boolean;
 
   // Phone OTP signup
-  phoneNumber: string
-  phoneError: string
-  phoneOtp: string
-  phoneOtpSent: boolean
+  phoneNumber: string;
+  phoneError: string;
+  phoneOtp: string;
+  phoneOtpSent: boolean;
 
   // Password creation
-  password: string
-  passwordConfirm: string
-  passwordStrength: number
+  password: string;
+  passwordConfirm: string;
+  passwordStrength: number;
 
   // School verification
-  schoolCode: string
-  staffPin: string
-  verifiedSchoolName: string
-  verifiedSchoolId: string
+  schoolCode: string;
+  staffPin: string;
+  verifiedSchoolName: string;
+  verifiedSchoolId: string;
 
   // Teacher profile
-  teacherName: string
-  teacherGender: 'male' | 'female' | ''
-  phone: string
-  village: string
+  teacherName: string;
+  teacherGender: "male" | "female" | "";
+  phone: string;
+  village: string;
 }
 
 /**
@@ -95,68 +95,68 @@ export interface TeacherOnboardingState {
  */
 export interface TeacherOnboardingActions {
   // Flow control
-  setStep: (step: Step) => void
-  setLoading: (loading: boolean) => void
-  setSignupMethod: (method: 'email' | 'phone') => void
-  setAuthChecked: (checked: boolean) => void
+  setStep: (step: Step) => void;
+  setLoading: (loading: boolean) => void;
+  setSignupMethod: (method: "email" | "phone") => void;
+  setAuthChecked: (checked: boolean) => void;
 
   // Login flow
-  setLoginEmail: (email: string) => void
-  setLoginPassword: (password: string) => void
-  setLoginError: (error: string) => void
+  setLoginEmail: (email: string) => void;
+  setLoginPassword: (password: string) => void;
+  setLoginError: (error: string) => void;
 
   // Forgot password flow
-  setForgotEmail: (email: string) => void
-  setForgotOtp: (otp: string) => void
-  setForgotOtpSent: (sent: boolean) => void
-  setForgotNewPassword: (password: string) => void
-  setForgotConfirmPassword: (password: string) => void
+  setForgotEmail: (email: string) => void;
+  setForgotOtp: (otp: string) => void;
+  setForgotOtpSent: (sent: boolean) => void;
+  setForgotNewPassword: (password: string) => void;
+  setForgotConfirmPassword: (password: string) => void;
 
   // Email OTP signup
-  setEmail: (email: string) => void
-  setEmailError: (error: string) => void
-  setEmailSuggestion: (suggestion: string) => void
-  setOtp: (otp: string) => void
-  setOtpSent: (sent: boolean) => void
+  setEmail: (email: string) => void;
+  setEmailError: (error: string) => void;
+  setEmailSuggestion: (suggestion: string) => void;
+  setOtp: (otp: string) => void;
+  setOtpSent: (sent: boolean) => void;
 
   // Phone OTP signup
-  setPhoneNumber: (number: string) => void
-  setPhoneError: (error: string) => void
-  setPhoneOtp: (otp: string) => void
-  setPhoneOtpSent: (sent: boolean) => void
+  setPhoneNumber: (number: string) => void;
+  setPhoneError: (error: string) => void;
+  setPhoneOtp: (otp: string) => void;
+  setPhoneOtpSent: (sent: boolean) => void;
 
   // Password creation
-  setPassword: (password: string) => void
-  setPasswordConfirm: (password: string) => void
-  setPasswordStrength: (strength: number) => void
+  setPassword: (password: string) => void;
+  setPasswordConfirm: (password: string) => void;
+  setPasswordStrength: (strength: number) => void;
 
   // School verification
-  setSchoolCode: (code: string) => void
-  setStaffPin: (pin: string) => void
-  setVerifiedSchoolName: (name: string) => void
-  setVerifiedSchoolId: (id: string) => void
+  setSchoolCode: (code: string) => void;
+  setStaffPin: (pin: string) => void;
+  setVerifiedSchoolName: (name: string) => void;
+  setVerifiedSchoolId: (id: string) => void;
 
   // Teacher profile
-  setTeacherName: (name: string) => void
-  setTeacherGender: (gender: 'male' | 'female' | '') => void
-  setPhone: (phone: string) => void
-  setVillage: (village: string) => void
+  setTeacherName: (name: string) => void;
+  setTeacherGender: (gender: "male" | "female" | "") => void;
+  setPhone: (phone: string) => void;
+  setVillage: (village: string) => void;
 
   // Handlers
-  handleTeacherLogin: (e: React.FormEvent) => Promise<void>
-  handleForgotPasswordOtp: (e: React.FormEvent) => Promise<void>
-  handleResetPassword: (e: React.FormEvent) => Promise<void>
-  handleSendOTP: (e: React.FormEvent) => Promise<void>
-  handleVerifyOTP: (e: React.FormEvent) => Promise<void>
-  handleSetPassword: (e: React.FormEvent) => Promise<void>
-  handlePasswordChange: (password: string) => void
-  handleSchoolVerification: (e: React.FormEvent) => Promise<void>
-  handleProfileSubmit: (e: React.FormEvent) => Promise<void>
+  handleTeacherLogin: (e: React.FormEvent) => Promise<void>;
+  handleForgotPasswordOtp: (e: React.FormEvent) => Promise<void>;
+  handleResetPassword: (e: React.FormEvent) => Promise<void>;
+  handleSendOTP: (e: React.FormEvent) => Promise<void>;
+  handleVerifyOTP: (e: React.FormEvent) => Promise<void>;
+  handleSetPassword: (e: React.FormEvent) => Promise<void>;
+  handlePasswordChange: (password: string) => void;
+  handleSchoolVerification: (e: React.FormEvent) => Promise<void>;
+  handleProfileSubmit: (e: React.FormEvent) => Promise<void>;
 
   // Utility
-  resetForgotPassword: () => void
-  resetSignupEmail: () => void
-  resetAll: () => void
+  resetForgotPassword: () => void;
+  resetSignupEmail: () => void;
+  resetAll: () => void;
 }
 
 /**
@@ -179,536 +179,657 @@ export interface TeacherOnboardingActions {
  * ```
  */
 export function useTeacherOnboarding() {
-  const router = useRouter()
-  const supabase = createClient()
+  const router = useRouter();
+  const supabase = createClient();
 
   // UNIFIED STATE OBJECT - All form inputs grouped logically
   const [state, setState] = useState<TeacherOnboardingState>({
     // Flow state
-    step: 'choice',
+    step: "choice",
     loading: false,
-    signupMethod: 'email',
+    signupMethod: "email",
     authChecked: false,
 
     // Login
-    loginEmail: '',
-    loginPassword: '',
-    loginError: '',
+    loginEmail: "",
+    loginPassword: "",
+    loginError: "",
 
     // Forgot password
-    forgotEmail: '',
-    forgotOtp: '',
+    forgotEmail: "",
+    forgotOtp: "",
     forgotOtpSent: false,
-    forgotNewPassword: '',
-    forgotConfirmPassword: '',
+    forgotNewPassword: "",
+    forgotConfirmPassword: "",
 
     // Email OTP signup
-    email: '',
-    emailError: '',
-    emailSuggestion: '',
-    otp: '',
+    email: "",
+    emailError: "",
+    emailSuggestion: "",
+    otp: "",
     otpSent: false,
 
     // Phone OTP signup
-    phoneNumber: '',
-    phoneError: '',
-    phoneOtp: '',
+    phoneNumber: "",
+    phoneError: "",
+    phoneOtp: "",
     phoneOtpSent: false,
 
     // Password
-    password: '',
-    passwordConfirm: '',
+    password: "",
+    passwordConfirm: "",
     passwordStrength: 0,
 
     // School verification
-    schoolCode: '',
-    staffPin: '',
-    verifiedSchoolName: '',
-    verifiedSchoolId: '',
+    schoolCode: "",
+    staffPin: "",
+    verifiedSchoolName: "",
+    verifiedSchoolId: "",
 
     // Profile
-    teacherName: '',
-    teacherGender: '',
-    phone: '',
-    village: '',
-  })
+    teacherName: "",
+    teacherGender: "",
+    phone: "",
+    village: "",
+  });
 
   // Helper to update state (immutable pattern)
   const updateState = useCallback(
     (updates: Partial<TeacherOnboardingState>) => {
-      setState((prev) => ({ ...prev, ...updates }))
+      setState((prev) => ({ ...prev, ...updates }));
     },
-    []
-  )
+    [],
+  );
 
   // FLOW CONTROL ACTIONS
-  const setStep = useCallback((step: Step) => updateState({ step }), [updateState])
-  const setLoading = useCallback((loading: boolean) => updateState({ loading }), [updateState])
+  const setStep = useCallback(
+    (step: Step) => updateState({ step }),
+    [updateState],
+  );
+  const setLoading = useCallback(
+    (loading: boolean) => updateState({ loading }),
+    [updateState],
+  );
   const setSignupMethod = useCallback(
-    (method: 'email' | 'phone') => updateState({ signupMethod: method }),
-    [updateState]
-  )
-  const setAuthChecked = useCallback((checked: boolean) => updateState({ authChecked: checked }), [updateState])
+    (method: "email" | "phone") => updateState({ signupMethod: method }),
+    [updateState],
+  );
+  const setAuthChecked = useCallback(
+    (checked: boolean) => updateState({ authChecked: checked }),
+    [updateState],
+  );
 
   // LOGIN FLOW ACTIONS
-  const setLoginEmail = useCallback((email: string) => updateState({ loginEmail: email }), [updateState])
-  const setLoginPassword = useCallback((password: string) => updateState({ loginPassword: password }), [updateState])
-  const setLoginError = useCallback((error: string) => updateState({ loginError: error }), [updateState])
+  const setLoginEmail = useCallback(
+    (email: string) => updateState({ loginEmail: email }),
+    [updateState],
+  );
+  const setLoginPassword = useCallback(
+    (password: string) => updateState({ loginPassword: password }),
+    [updateState],
+  );
+  const setLoginError = useCallback(
+    (error: string) => updateState({ loginError: error }),
+    [updateState],
+  );
 
   // FORGOT PASSWORD FLOW ACTIONS
-  const setForgotEmail = useCallback((email: string) => updateState({ forgotEmail: email }), [updateState])
-  const setForgotOtp = useCallback((otp: string) => updateState({ forgotOtp: otp }), [updateState])
-  const setForgotOtpSent = useCallback((sent: boolean) => updateState({ forgotOtpSent: sent }), [updateState])
+  const setForgotEmail = useCallback(
+    (email: string) => updateState({ forgotEmail: email }),
+    [updateState],
+  );
+  const setForgotOtp = useCallback(
+    (otp: string) => updateState({ forgotOtp: otp }),
+    [updateState],
+  );
+  const setForgotOtpSent = useCallback(
+    (sent: boolean) => updateState({ forgotOtpSent: sent }),
+    [updateState],
+  );
   const setForgotNewPassword = useCallback(
     (password: string) => updateState({ forgotNewPassword: password }),
-    [updateState]
-  )
+    [updateState],
+  );
   const setForgotConfirmPassword = useCallback(
     (password: string) => updateState({ forgotConfirmPassword: password }),
-    [updateState]
-  )
+    [updateState],
+  );
 
   // EMAIL OTP SIGNUP ACTIONS
-  const setEmail = useCallback((email: string) => updateState({ email }), [updateState])
-  const setEmailError = useCallback((error: string) => updateState({ emailError: error }), [updateState])
+  const setEmail = useCallback(
+    (email: string) => updateState({ email }),
+    [updateState],
+  );
+  const setEmailError = useCallback(
+    (error: string) => updateState({ emailError: error }),
+    [updateState],
+  );
   const setEmailSuggestion = useCallback(
     (suggestion: string) => updateState({ emailSuggestion: suggestion }),
-    [updateState]
-  )
-  const setOtp = useCallback((otp: string) => updateState({ otp }), [updateState])
-  const setOtpSent = useCallback((sent: boolean) => updateState({ otpSent: sent }), [updateState])
+    [updateState],
+  );
+  const setOtp = useCallback(
+    (otp: string) => updateState({ otp }),
+    [updateState],
+  );
+  const setOtpSent = useCallback(
+    (sent: boolean) => updateState({ otpSent: sent }),
+    [updateState],
+  );
 
   // PHONE OTP SIGNUP ACTIONS
-  const setPhoneNumber = useCallback((number: string) => updateState({ phoneNumber: number }), [updateState])
-  const setPhoneError = useCallback((error: string) => updateState({ phoneError: error }), [updateState])
-  const setPhoneOtp = useCallback((otp: string) => updateState({ phoneOtp: otp }), [updateState])
-  const setPhoneOtpSent = useCallback((sent: boolean) => updateState({ phoneOtpSent: sent }), [updateState])
+  const setPhoneNumber = useCallback(
+    (number: string) => updateState({ phoneNumber: number }),
+    [updateState],
+  );
+  const setPhoneError = useCallback(
+    (error: string) => updateState({ phoneError: error }),
+    [updateState],
+  );
+  const setPhoneOtp = useCallback(
+    (otp: string) => updateState({ phoneOtp: otp }),
+    [updateState],
+  );
+  const setPhoneOtpSent = useCallback(
+    (sent: boolean) => updateState({ phoneOtpSent: sent }),
+    [updateState],
+  );
 
   // PASSWORD CREATION ACTIONS
-  const setPassword = useCallback((password: string) => updateState({ password }), [updateState])
-  const setPasswordConfirm = useCallback((password: string) => updateState({ passwordConfirm: password }), [updateState])
-  const setPasswordStrength = useCallback((strength: number) => updateState({ passwordStrength: strength }), [updateState])
+  const setPassword = useCallback(
+    (password: string) => updateState({ password }),
+    [updateState],
+  );
+  const setPasswordConfirm = useCallback(
+    (password: string) => updateState({ passwordConfirm: password }),
+    [updateState],
+  );
+  const setPasswordStrength = useCallback(
+    (strength: number) => updateState({ passwordStrength: strength }),
+    [updateState],
+  );
 
   // SCHOOL VERIFICATION ACTIONS
-  const setSchoolCode = useCallback((code: string) => updateState({ schoolCode: code }), [updateState])
-  const setStaffPin = useCallback((pin: string) => updateState({ staffPin: pin }), [updateState])
+  const setSchoolCode = useCallback(
+    (code: string) => updateState({ schoolCode: code }),
+    [updateState],
+  );
+  const setStaffPin = useCallback(
+    (pin: string) => updateState({ staffPin: pin }),
+    [updateState],
+  );
   const setVerifiedSchoolName = useCallback(
     (name: string) => updateState({ verifiedSchoolName: name }),
-    [updateState]
-  )
-  const setVerifiedSchoolId = useCallback((id: string) => updateState({ verifiedSchoolId: id }), [updateState])
+    [updateState],
+  );
+  const setVerifiedSchoolId = useCallback(
+    (id: string) => updateState({ verifiedSchoolId: id }),
+    [updateState],
+  );
 
   // PROFILE ACTIONS
-  const setTeacherName = useCallback((name: string) => updateState({ teacherName: name }), [updateState])
+  const setTeacherName = useCallback(
+    (name: string) => updateState({ teacherName: name }),
+    [updateState],
+  );
   const setTeacherGender = useCallback(
-    (gender: 'male' | 'female' | '') => updateState({ teacherGender: gender }),
-    [updateState]
-  )
-  const setPhone = useCallback((phone: string) => updateState({ phone }), [updateState])
-  const setVillage = useCallback((village: string) => updateState({ village }), [updateState])
+    (gender: "male" | "female" | "") => updateState({ teacherGender: gender }),
+    [updateState],
+  );
+  const setPhone = useCallback(
+    (phone: string) => updateState({ phone }),
+    [updateState],
+  );
+  const setVillage = useCallback(
+    (village: string) => updateState({ village }),
+    [updateState],
+  );
 
   // AUTHENTICATION CHECK - Runs on component mount (when step is 'choice')
   useEffect(() => {
-    if (state.authChecked || state.step !== 'choice') return
+    if (state.authChecked || state.step !== "choice") return;
 
     async function checkAuth() {
-      setAuthChecked(true)
+      setAuthChecked(true);
 
       try {
         const {
           data: { session },
-        } = await supabase.auth.getSession()
+        } = await supabase.auth.getSession();
 
         if (session) {
           const { data: profile } = await supabase
-            .from('teacher_profiles')
-            .select('*')
-            .eq('user_id', session.user.id)
-            .maybeSingle()
+            .from("teacher_profiles")
+            .select("*")
+            .eq("user_id", session.user.id)
+            .maybeSingle();
 
           if (profile) {
             // Already registered, redirect
-            toast.success('You are already registered!')
-            router.push('/app/teacher/classes')
+            toast.success("You are already registered!");
+            router.push("/app/teacher/classes");
           } else {
             // Has session but no profile - sign them out
-            await supabase.auth.signOut()
+            await supabase.auth.signOut();
           }
         }
       } catch (error) {
-        authLogger.error('[Teacher Auth Check] Exception', error instanceof Error ? error : { error })
+        authLogger.error(
+          "[Teacher Auth Check] Exception",
+          error instanceof Error ? error : { error },
+        );
       }
     }
 
-    checkAuth()
-  }, [state.authChecked, state.step, supabase, router])
+    checkAuth();
+  }, [state.authChecked, state.step, supabase, router]);
 
   // HANDLER: Email/Password Login
   const handleTeacherLogin = useCallback(
     async (e: React.FormEvent) => {
-      e.preventDefault()
-      setLoginError('')
-      setLoading(true)
+      e.preventDefault();
+      setLoginError("");
+      setLoading(true);
 
       try {
-        authLogger.debug('[Teacher Login] Attempting login')
+        authLogger.debug("[Teacher Login] Attempting login");
 
         const { data, error } = await supabase.auth.signInWithPassword({
           email: state.loginEmail.trim(),
           password: state.loginPassword,
-        })
+        });
 
-        authLogger.debug('[Teacher Login] Auth response received')
+        authLogger.debug("[Teacher Login] Auth response received");
 
         if (error) {
-          authLogger.error('[Teacher Login] Authentication failed', error)
-          let errorMsg = 'Invalid email or password'
-          if (error.message?.includes('Invalid login credentials')) {
-            errorMsg = 'Invalid email or password. Please check your credentials and try again.'
+          authLogger.error("[Teacher Login] Authentication failed", error);
+          let errorMsg = "Invalid email or password";
+          if (error.message?.includes("Invalid login credentials")) {
+            errorMsg =
+              "Invalid email or password. Please check your credentials and try again.";
           } else if (error.message) {
-            errorMsg = error.message
+            errorMsg = error.message;
           }
-          setLoginError(errorMsg)
-          toast.error(errorMsg)
+          setLoginError(errorMsg);
+          toast.error(errorMsg);
         } else if (data.user) {
-          authLogger.debug('[Teacher Login] User authenticated')
+          authLogger.debug("[Teacher Login] User authenticated");
 
           try {
             const { data: profile, error: profileError } = await supabase
-              .from('teacher_profiles')
-              .select('*')
-              .eq('user_id', data.user.id)
-              .maybeSingle()
+              .from("teacher_profiles")
+              .select("*")
+              .eq("user_id", data.user.id)
+              .maybeSingle();
 
-            authLogger.debug('[Teacher Login] Profile fetch complete')
+            authLogger.debug("[Teacher Login] Profile fetch complete");
 
             if (profileError) {
-              authLogger.error('[Teacher Login] Profile fetch error', profileError)
-              toast.error('Error checking profile: ' + profileError.message)
-              await supabase.auth.signOut()
+              authLogger.error(
+                "[Teacher Login] Profile fetch error",
+                profileError,
+              );
+              toast.error("Error checking profile: " + profileError.message);
+              await supabase.auth.signOut();
             } else if (profile) {
-              authLogger.success('[Teacher Login] Profile found, redirecting')
-              toast.success('Login successful!')
-              router.push('/app/teacher/classes')
+              authLogger.success("[Teacher Login] Profile found, redirecting");
+              toast.success("Login successful!");
+              router.push("/app/teacher/classes");
             } else {
               const { data: studentProfile } = await supabase
-                .from('student_profiles')
-                .select('user_id')
-                .eq('user_id', data.user.id)
-                .maybeSingle()
+                .from("student_profiles")
+                .select("user_id")
+                .eq("user_id", data.user.id)
+                .maybeSingle();
 
               if (studentProfile) {
-                authLogger.error('[Teacher Login] This is a student account')
-                setLoginError('This email is registered as a student account. Please use the student login page.')
-                toast.error('This is a student account. Please use the student login page.')
+                authLogger.error("[Teacher Login] This is a student account");
+                setLoginError(
+                  "This email is registered as a student account. Please use the student login page.",
+                );
+                toast.error(
+                  "This is a student account. Please use the student login page.",
+                );
               } else {
-                authLogger.error('[Teacher Login] Profile not found - incomplete registration')
-                setLoginError('No teacher profile found. Please complete your registration first.')
-                toast.error('No teacher profile found. Please complete registration.')
+                authLogger.error(
+                  "[Teacher Login] Profile not found - incomplete registration",
+                );
+                setLoginError(
+                  "No teacher profile found. Please complete your registration first.",
+                );
+                toast.error(
+                  "No teacher profile found. Please complete registration.",
+                );
               }
-              await supabase.auth.signOut()
+              await supabase.auth.signOut();
             }
           } catch (profileErr) {
-            authLogger.error('[Teacher Login] Exception checking profile', profileErr)
-            toast.error('Error checking profile')
-            await supabase.auth.signOut()
+            authLogger.error(
+              "[Teacher Login] Exception checking profile",
+              profileErr,
+            );
+            toast.error("Error checking profile");
+            await supabase.auth.signOut();
           }
         }
       } catch (error) {
-        authLogger.error('[Teacher Login] Unexpected error', error)
-        setLoginError('An unexpected error occurred')
-        toast.error('An unexpected error occurred')
+        authLogger.error("[Teacher Login] Unexpected error", error);
+        setLoginError("An unexpected error occurred");
+        toast.error("An unexpected error occurred");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     },
-    [state.loginEmail, state.loginPassword, supabase, router]
-  )
+    [state.loginEmail, state.loginPassword, supabase, router],
+  );
 
   // HANDLER: Send Forgot Password OTP
   const handleForgotPasswordOtp = useCallback(
     async (e: React.FormEvent) => {
-      e.preventDefault()
-      setLoading(true)
+      e.preventDefault();
+      setLoading(true);
 
       try {
-        const result = await sendForgotPasswordOtp(state.forgotEmail)
+        const result = await sendForgotPasswordOtp(state.forgotEmail);
 
         if (result.success) {
-          toast.success('Recovery code sent to your email!')
-          setForgotOtpSent(true)
+          toast.success("Recovery code sent to your email!");
+          setForgotOtpSent(true);
         } else {
-          toast.error(result.error || 'Failed to send recovery code')
+          toast.error(result.error || "Failed to send recovery code");
         }
       } catch (error) {
-        authLogger.error('[Teacher Forgot Password] Error sending OTP', error)
-        toast.error('Failed to send recovery code')
+        authLogger.error("[Teacher Forgot Password] Error sending OTP", error);
+        toast.error("Failed to send recovery code");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     },
-    [state.forgotEmail]
-  )
+    [state.forgotEmail],
+  );
 
   // HANDLER: Reset Password with OTP
   const handleResetPassword = useCallback(
     async (e: React.FormEvent) => {
-      e.preventDefault()
+      e.preventDefault();
 
-      const passwordValidation = validatePassword(state.forgotNewPassword)
+      const passwordValidation = validatePassword(state.forgotNewPassword);
       if (!passwordValidation.valid) {
-        toast.error(passwordValidation.errors.join(', ') || 'Invalid password')
-        return
+        toast.error(passwordValidation.errors.join(", ") || "Invalid password");
+        return;
       }
 
-      const matchValidation = validatePasswordMatch(state.forgotNewPassword, state.forgotConfirmPassword)
+      const matchValidation = validatePasswordMatch(
+        state.forgotNewPassword,
+        state.forgotConfirmPassword,
+      );
       if (!matchValidation.valid) {
-        toast.error(matchValidation.error || 'Passwords do not match')
-        return
+        toast.error(matchValidation.error || "Passwords do not match");
+        return;
       }
 
-      setLoading(true)
+      setLoading(true);
 
       try {
-        const result = await resetPasswordWithOtp(state.forgotEmail, state.forgotOtp, state.forgotNewPassword)
+        const result = await resetPasswordWithOtp(
+          state.forgotEmail,
+          state.forgotOtp,
+          state.forgotNewPassword,
+        );
 
         if (result.success) {
-          toast.success('Password reset successfully! ✓')
+          toast.success("Password reset successfully! ✓");
           // Reset form and go back to login
-          resetForgotPassword()
-          setStep('login')
-          setLoginEmail(state.forgotEmail)
+          resetForgotPassword();
+          setStep("login");
+          setLoginEmail(state.forgotEmail);
         } else {
-          toast.error(result.error || 'Failed to reset password')
+          toast.error(result.error || "Failed to reset password");
         }
       } catch (error) {
-        authLogger.error('[Teacher Reset Password] Error', error)
-        toast.error('Failed to reset password')
+        authLogger.error("[Teacher Reset Password] Error", error);
+        toast.error("Failed to reset password");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     },
-    [state.forgotNewPassword, state.forgotConfirmPassword, state.forgotEmail, state.forgotOtp]
-  )
+    [
+      state.forgotNewPassword,
+      state.forgotConfirmPassword,
+      state.forgotEmail,
+      state.forgotOtp,
+    ],
+  );
 
   // HANDLER: Send Email OTP
   const handleSendOTP = useCallback(
     async (e: React.FormEvent) => {
-      e.preventDefault()
-      setLoading(true)
-      setEmailError('')
-      setEmailSuggestion('')
+      e.preventDefault();
+      setLoading(true);
+      setEmailError("");
+      setEmailSuggestion("");
 
       try {
-        const emailValidation = validateEmail(state.email)
+        const emailValidation = validateEmail(state.email);
 
         if (!emailValidation.valid) {
           if (emailValidation.suggestion) {
-            setEmailError(emailValidation.error || 'Invalid email')
-            setEmailSuggestion(emailValidation.suggestion)
-            toast.error(emailValidation.error || 'Invalid email')
+            setEmailError(emailValidation.error || "Invalid email");
+            setEmailSuggestion(emailValidation.suggestion);
+            toast.error(emailValidation.error || "Invalid email");
           } else {
-            setEmailError(emailValidation.error || 'Invalid email')
-            toast.error(emailValidation.error || 'Invalid email')
+            setEmailError(emailValidation.error || "Invalid email");
+            toast.error(emailValidation.error || "Invalid email");
           }
-          setLoading(false)
-          return
+          setLoading(false);
+          return;
         }
 
-        const result = await sendEmailOtp(state.email)
+        const result = await sendEmailOtp(state.email);
 
         if (result.success) {
-          toast.success('OTP sent to your email!')
-          setOtpSent(true)
+          toast.success("OTP sent to your email!");
+          setOtpSent(true);
         } else {
           if (result.exists) {
-            toast.error(result.error || 'This email is already registered')
-            authLogger.debug('[Teacher Signup] Email already exists, redirecting to login')
-            setLoginEmail(state.email)
-            resetSignupEmail()
-            setStep('login')
+            toast.error(result.error || "This email is already registered");
+            authLogger.debug(
+              "[Teacher Signup] Email already exists, redirecting to login",
+            );
+            setLoginEmail(state.email);
+            resetSignupEmail();
+            setStep("login");
           } else {
-            setEmailError(result.error || 'Failed to send OTP')
-            toast.error(result.error || 'Failed to send OTP')
+            setEmailError(result.error || "Failed to send OTP");
+            toast.error(result.error || "Failed to send OTP");
           }
         }
       } catch (error) {
-        authLogger.error('[Teacher Signup] Failed to send OTP', error)
-        setEmailError('An unexpected error occurred')
-        toast.error('Failed to send OTP')
+        authLogger.error("[Teacher Signup] Failed to send OTP", error);
+        setEmailError("An unexpected error occurred");
+        toast.error("Failed to send OTP");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     },
-    [state.email]
-  )
+    [state.email],
+  );
 
   // HANDLER: Verify Email OTP
   const handleVerifyOTP = useCallback(
     async (e: React.FormEvent) => {
-      e.preventDefault()
-      setLoading(true)
+      e.preventDefault();
+      setLoading(true);
 
       try {
-        const result = await verifyEmailOtp({ email: state.email, token: state.otp })
+        const result = await verifyEmailOtp({
+          email: state.email,
+          token: state.otp,
+        });
 
         if (result.success) {
-          toast.success('Email verified! ✓')
-          setStep('set-password')
+          toast.success("Email verified! ✓");
+          setStep("set-password");
         } else {
-          toast.error(result.error || 'Failed to verify OTP')
+          toast.error(result.error || "Failed to verify OTP");
         }
       } catch (error) {
-        authLogger.error('[Teacher Verify OTP] Error', error)
-        toast.error('Failed to verify OTP')
+        authLogger.error("[Teacher Verify OTP] Error", error);
+        toast.error("Failed to verify OTP");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     },
-    [state.email, state.otp]
-  )
+    [state.email, state.otp],
+  );
 
   // HANDLER: Set Password
   const handleSetPassword = useCallback(
     async (e: React.FormEvent) => {
-      e.preventDefault()
-      setLoading(true)
+      e.preventDefault();
+      setLoading(true);
 
       try {
-        const passwordValidation = validatePassword(state.password)
+        const passwordValidation = validatePassword(state.password);
         if (!passwordValidation.valid) {
-          toast.error(passwordValidation.errors.join(', ') || 'Invalid password')
-          setLoading(false)
-          return
+          toast.error(
+            passwordValidation.errors.join(", ") || "Invalid password",
+          );
+          setLoading(false);
+          return;
         }
 
-        const matchValidation = validatePasswordMatch(state.password, state.passwordConfirm)
+        const matchValidation = validatePasswordMatch(
+          state.password,
+          state.passwordConfirm,
+        );
         if (!matchValidation.valid) {
-          toast.error(matchValidation.error || 'Passwords do not match')
-          setLoading(false)
-          return
+          toast.error(matchValidation.error || "Passwords do not match");
+          setLoading(false);
+          return;
         }
 
-        const result = await setUserPassword(state.password)
+        const result = await setUserPassword(state.password);
 
         if (result.success) {
-          toast.success('Password set successfully! ✓')
-          setStep('verify-school')
+          toast.success("Password set successfully! ✓");
+          setStep("verify-school");
         } else {
-          toast.error(result.error || 'Failed to set password')
+          toast.error(result.error || "Failed to set password");
         }
       } catch (error) {
-        authLogger.error('[Teacher Set Password] Error', error)
-        toast.error('Failed to set password')
+        authLogger.error("[Teacher Set Password] Error", error);
+        toast.error("Failed to set password");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     },
-    [state.password, state.passwordConfirm]
-  )
+    [state.password, state.passwordConfirm],
+  );
 
   // HANDLER: Password Change (updates strength)
-  const handlePasswordChange = useCallback(
-    (password: string) => {
-      setPassword(password)
-      if (password.length > 0) {
-        const result = zxcvbn(password)
-        setPasswordStrength(result.score)
-      } else {
-        setPasswordStrength(0)
-      }
-    },
-    []
-  )
+  const handlePasswordChange = useCallback((password: string) => {
+    setPassword(password);
+    if (password.length > 0) {
+      const result = zxcvbn(password);
+      setPasswordStrength(result.score);
+    } else {
+      setPasswordStrength(0);
+    }
+  }, []);
 
   // HANDLER: School Verification
   const handleSchoolVerification = useCallback(
     async (e: React.FormEvent) => {
-      e.preventDefault()
-      setLoading(true)
+      e.preventDefault();
+      setLoading(true);
 
       try {
         const result = await verifyTeacher({
           schoolCode: state.schoolCode.toUpperCase().trim(),
           staffPin: state.staffPin.trim(),
-          teacherName: '',
-          phone: '',
-        })
+          teacherName: "",
+          phone: "",
+        });
 
         if (result.success && result.schoolId && result.schoolName) {
-          setVerifiedSchoolName(result.schoolName)
-          setVerifiedSchoolId(result.schoolId)
-          toast.success(`School verified: ${result.schoolName}`)
-          setStep('profile')
+          setVerifiedSchoolName(result.schoolName);
+          setVerifiedSchoolId(result.schoolId);
+          toast.success(`School verified: ${result.schoolName}`);
+          setStep("profile");
         } else {
-          toast.error(result.error || 'Verification failed')
+          toast.error(result.error || "Verification failed");
         }
       } catch (error) {
-        authLogger.error('[Teacher School Verification] Error', error)
-        toast.error('An unexpected error occurred')
+        authLogger.error("[Teacher School Verification] Error", error);
+        toast.error("An unexpected error occurred");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     },
-    [state.schoolCode, state.staffPin]
-  )
+    [state.schoolCode, state.staffPin],
+  );
 
   // HANDLER: Profile Submit
   const handleProfileSubmit = useCallback(
     async (e: React.FormEvent) => {
-      e.preventDefault()
-      setLoading(true)
+      e.preventDefault();
+      setLoading(true);
 
       if (!state.teacherGender) {
-        toast.error('Please select your gender')
-        setLoading(false)
-        return
+        toast.error("Please select your gender");
+        setLoading(false);
+        return;
       }
 
-      const phoneValidation = validateOptionalPhone(state.phone)
+      const phoneValidation = validateOptionalPhone(state.phone);
       if (!phoneValidation.valid) {
-        toast.error(phoneValidation.error || 'Invalid phone number')
-        setLoading(false)
-        return
+        toast.error(phoneValidation.error || "Invalid phone number");
+        setLoading(false);
+        return;
       }
 
       try {
         const result = await saveTeacherProfile({
           name: state.teacherName.trim(),
-          gender: state.teacherGender as 'male' | 'female',
+          gender: state.teacherGender as "male" | "female",
           phone: state.phone.trim() || undefined,
           village: state.village.trim() || undefined,
           schoolId: state.verifiedSchoolId,
           schoolCode: state.schoolCode.toUpperCase().trim(),
-        })
+        });
 
         if (result.success) {
-          toast.success('Teacher registration complete! 🎉')
-          setStep('complete')
+          toast.success("Teacher registration complete! 🎉");
+          setStep("complete");
 
           try {
-            const { error: refreshError } = await supabase.auth.refreshSession()
+            const { error: refreshError } =
+              await supabase.auth.refreshSession();
             if (refreshError) {
-              authLogger.warn('[Teacher Registration] Session refresh failed', refreshError)
+              authLogger.warn(
+                "[Teacher Registration] Session refresh failed",
+                refreshError,
+              );
             }
           } catch (refreshErr) {
             authLogger.warn(
-              '[Teacher Registration] Session refresh exception',
-              refreshErr instanceof Error ? refreshErr : { error: refreshErr }
-            )
+              "[Teacher Registration] Session refresh exception",
+              refreshErr instanceof Error ? refreshErr : { error: refreshErr },
+            );
           }
 
           setTimeout(() => {
-            router.push('/app/teacher/classes')
-          }, 1500)
+            router.push("/app/teacher/classes");
+          }, 1500);
         } else {
-          toast.error(result.error || 'Profile creation failed')
+          toast.error(result.error || "Profile creation failed");
         }
       } catch (error) {
-        authLogger.error('[Teacher Profile Submit] Error', error)
-        toast.error('An unexpected error occurred')
+        authLogger.error("[Teacher Profile Submit] Error", error);
+        toast.error("An unexpected error occurred");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     },
     [
@@ -720,68 +841,68 @@ export function useTeacherOnboarding() {
       state.schoolCode,
       supabase,
       router,
-    ]
-  )
+    ],
+  );
 
   // UTILITY: Reset forgot password flow
   const resetForgotPassword = useCallback(() => {
     updateState({
-      forgotEmail: '',
-      forgotOtp: '',
+      forgotEmail: "",
+      forgotOtp: "",
       forgotOtpSent: false,
-      forgotNewPassword: '',
-      forgotConfirmPassword: '',
-    })
-  }, [updateState])
+      forgotNewPassword: "",
+      forgotConfirmPassword: "",
+    });
+  }, [updateState]);
 
   // UTILITY: Reset email signup flow
   const resetSignupEmail = useCallback(() => {
     updateState({
-      email: '',
-      emailError: '',
-      emailSuggestion: '',
-      otp: '',
+      email: "",
+      emailError: "",
+      emailSuggestion: "",
+      otp: "",
       otpSent: false,
-    })
-  }, [updateState])
+    });
+  }, [updateState]);
 
   // UTILITY: Reset all state
   const resetAll = useCallback(() => {
     setState({
-      step: 'choice',
+      step: "choice",
       loading: false,
-      signupMethod: 'email',
+      signupMethod: "email",
       authChecked: false,
-      loginEmail: '',
-      loginPassword: '',
-      loginError: '',
-      forgotEmail: '',
-      forgotOtp: '',
+      loginEmail: "",
+      loginPassword: "",
+      loginError: "",
+      forgotEmail: "",
+      forgotOtp: "",
       forgotOtpSent: false,
-      forgotNewPassword: '',
-      forgotConfirmPassword: '',
-      email: '',
-      emailError: '',
-      emailSuggestion: '',
-      otp: '',
+      forgotNewPassword: "",
+      forgotConfirmPassword: "",
+      email: "",
+      emailError: "",
+      emailSuggestion: "",
+      otp: "",
       otpSent: false,
-      phoneNumber: '',
-      phoneError: '',
-      phoneOtp: '',
+      phoneNumber: "",
+      phoneError: "",
+      phoneOtp: "",
       phoneOtpSent: false,
-      password: '',
-      passwordConfirm: '',
+      password: "",
+      passwordConfirm: "",
       passwordStrength: 0,
-      schoolCode: '',
-      staffPin: '',
-      verifiedSchoolName: '',
-      verifiedSchoolId: '',
-      teacherName: '',
-      teacherGender: '',
-      phone: '',
-      village: '',
-    })
-  }, [])
+      schoolCode: "",
+      staffPin: "",
+      verifiedSchoolName: "",
+      verifiedSchoolId: "",
+      teacherName: "",
+      teacherGender: "",
+      phone: "",
+      village: "",
+    });
+  }, []);
 
   // Build unified actions object
   const actions: TeacherOnboardingActions = {
@@ -829,10 +950,10 @@ export function useTeacherOnboarding() {
     resetForgotPassword,
     resetSignupEmail,
     resetAll,
-  }
+  };
 
   return {
     state,
     actions,
-  }
+  };
 }

@@ -21,33 +21,33 @@
  */
 export const THEME_COLORS = {
   /** Primary brand color */
-  primary: '#F98819',
+  primary: "#F98819",
   /** Dark variant of primary */
-  primaryDark: '#E07510',
+  primaryDark: "#E07510",
   /** Light variant of primary */
-  primaryLight: '#FFCFA3',
+  primaryLight: "#FFCFA3",
   /** Lightest variant of primary */
-  primaryLightest: '#FFF5EB',
+  primaryLightest: "#FFF5EB",
 
   /** Surface color (backgrounds) */
-  surface: '#FFFBF7',
+  surface: "#FFFBF7",
   /** White color */
-  white: '#FFFFFF',
+  white: "#FFFFFF",
 
   /** Text colors */
-  textPrimary: '#2D2A26',
-  textSecondary: '#57534E',
-  textMuted: '#A8A29E',
+  textPrimary: "#2D2A26",
+  textSecondary: "#57534E",
+  textMuted: "#A8A29E",
 
   /** Status colors */
-  error: '#DC2626',
-  success: '#16A34A',
-  warning: '#D97706',
-  info: '#0284C7',
+  error: "#DC2626",
+  success: "#16A34A",
+  warning: "#D97706",
+  info: "#0284C7",
 
   /** Gradient */
-  gradientPrimary: 'linear-gradient(135deg, #F98819 0%, #FFAB4A 100%)',
-} as const
+  gradientPrimary: "linear-gradient(135deg, #F98819 0%, #FFAB4A 100%)",
+} as const;
 
 /**
  * QR Code specific color configuration
@@ -55,8 +55,8 @@ export const THEME_COLORS = {
  */
 export const QR_CODE_COLORS = {
   dark: THEME_COLORS.primary, // QR code foreground
-  light: THEME_COLORS.white,  // QR code background
-} as const
+  light: THEME_COLORS.white, // QR code background
+} as const;
 
-export type ThemeColorKey = keyof typeof THEME_COLORS
-export type QRColorKey = keyof typeof QR_CODE_COLORS
+export type ThemeColorKey = keyof typeof THEME_COLORS;
+export type QRColorKey = keyof typeof QR_CODE_COLORS;

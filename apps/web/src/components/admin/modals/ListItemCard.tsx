@@ -50,11 +50,7 @@ interface ActivePINSchool {
 }
 
 interface ListItemCardProps {
-  readonly item:
-    | SchoolItem
-    | TeacherItem
-    | StudentItem
-    | ActivePINSchool;
+  readonly item: SchoolItem | TeacherItem | StudentItem | ActivePINSchool;
   readonly modalType: ModalType;
 }
 
@@ -67,7 +63,9 @@ export function ListItemCard({ item, modalType }: ListItemCardProps) {
           <p className="text-sm text-text-secondary">{school.district}</p>
         </div>
         <div className="text-right">
-          <p className="text-sm font-mono text-text-primary">{school.schoolCode}</p>
+          <p className="text-sm font-mono text-text-primary">
+            {school.schoolCode}
+          </p>
           <p className="text-xs text-text-tertiary">
             {school.hasPIN ? "PIN Active" : "No PIN"}
           </p>
@@ -94,7 +92,9 @@ export function ListItemCard({ item, modalType }: ListItemCardProps) {
         </div>
       </div>
       {teacher.phone && (
-        <p className="text-xs text-text-tertiary mt-2">Phone: {teacher.phone}</p>
+        <p className="text-xs text-text-tertiary mt-2">
+          Phone: {teacher.phone}
+        </p>
       )}
       <p className="text-xs text-text-tertiary mt-1">
         Joined: {new Date(teacher.createdAt).toLocaleDateString()}
@@ -115,8 +115,7 @@ export function ListItemCard({ item, modalType }: ListItemCardProps) {
       </p>
       {student.lastSignIn && (
         <p className="text-xs text-text-tertiary">
-          Last Sign In:{" "}
-          {new Date(student.lastSignIn).toLocaleDateString()}
+          Last Sign In: {new Date(student.lastSignIn).toLocaleDateString()}
         </p>
       )}
     </>
@@ -126,17 +125,16 @@ export function ListItemCard({ item, modalType }: ListItemCardProps) {
     <>
       <div className="flex items-center justify-between">
         <div>
-          <h4 className="font-medium text-text-primary">
-            {school.schoolName}
-          </h4>
+          <h4 className="font-medium text-text-primary">{school.schoolName}</h4>
           <p className="text-sm text-text-secondary">{school.districtName}</p>
         </div>
-        <p className="text-sm font-mono text-text-primary">{school.schoolCode}</p>
+        <p className="text-sm font-mono text-text-primary">
+          {school.schoolCode}
+        </p>
       </div>
       {school.lastRotatedAt && (
         <p className="text-xs text-text-tertiary mt-2">
-          Last Rotated:{" "}
-          {new Date(school.lastRotatedAt).toLocaleDateString()}
+          Last Rotated: {new Date(school.lastRotatedAt).toLocaleDateString()}
         </p>
       )}
     </>
@@ -146,12 +144,12 @@ export function ListItemCard({ item, modalType }: ListItemCardProps) {
     <>
       <div className="flex items-center justify-between">
         <div>
-          <h4 className="font-medium text-text-primary">
-            {school.schoolName}
-          </h4>
+          <h4 className="font-medium text-text-primary">{school.schoolName}</h4>
           <p className="text-sm text-text-secondary">{school.district}</p>
         </div>
-        <p className="text-sm font-mono text-text-primary">{school.schoolCode}</p>
+        <p className="text-sm font-mono text-text-primary">
+          {school.schoolCode}
+        </p>
       </div>
       <p className="text-xs text-error mt-2">No active PIN</p>
     </>
@@ -162,8 +160,10 @@ export function ListItemCard({ item, modalType }: ListItemCardProps) {
       {modalType === "schools" && renderSchoolItem(item as SchoolItem)}
       {modalType === "teachers" && renderTeacherItem(item as TeacherItem)}
       {modalType === "students" && renderStudentItem(item as StudentItem)}
-      {modalType === "activePINs" && renderActivePINItem(item as ActivePINSchool)}
-      {modalType === "inactivePINs" && renderInactivePINItem(item as SchoolItem)}
+      {modalType === "activePINs" &&
+        renderActivePINItem(item as ActivePINSchool)}
+      {modalType === "inactivePINs" &&
+        renderInactivePINItem(item as SchoolItem)}
     </div>
   );
 }

@@ -12,22 +12,22 @@
  * Production: Logs to Sentry (when configured)
  */
 
-import { maskSensitiveData, type LogContext } from './masking-utils'
-import { getMaskedContext } from './form-utils'
+import { maskSensitiveData, type LogContext } from "./masking-utils";
+import { getMaskedContext } from "./form-utils";
 
-const isDevelopment = process.env.NODE_ENV === 'development'
+const isDevelopment = process.env.NODE_ENV === "development";
 
 // Type for window with optional Sentry
 interface WindowWithSentry extends Window {
   Sentry?: {
-    captureMessage: (message: string, level: string) => void
-    captureException: (error: Error, options?: { level: string }) => void
-  }
+    captureMessage: (message: string, level: string) => void;
+    captureException: (error: Error, options?: { level: string }) => void;
+  };
 }
 
-function getSentry(): WindowWithSentry['Sentry'] | undefined {
-  if (typeof globalThis === 'undefined') return undefined
-  return (globalThis as unknown as WindowWithSentry).Sentry
+function getSentry(): WindowWithSentry["Sentry"] | undefined {
+  if (typeof globalThis === "undefined") return undefined;
+  return (globalThis as unknown as WindowWithSentry).Sentry;
 }
 
 /**
@@ -39,8 +39,8 @@ export const clientLogger = {
    */
   debug: (message: string, context?: LogContext) => {
     if (isDevelopment) {
-      const maskedContext = context ? maskSensitiveData(context) : undefined
-      console.log(`[DEBUG] ${message}`, maskedContext)
+      const maskedContext = context ? maskSensitiveData(context) : undefined;
+      console.log(`[DEBUG] ${message}`, maskedContext);
     }
   },
 
@@ -49,8 +49,8 @@ export const clientLogger = {
    */
   info: (message: string, context?: LogContext) => {
     if (isDevelopment) {
-      const maskedContext = context ? maskSensitiveData(context) : undefined
-      console.info(`[INFO] ${message}`, maskedContext)
+      const maskedContext = context ? maskSensitiveData(context) : undefined;
+      console.info(`[INFO] ${message}`, maskedContext);
     }
   },
 
@@ -58,15 +58,15 @@ export const clientLogger = {
    * Log warning messages
    */
   warn: (message: string, context?: LogContext) => {
-    const maskedContext = context ? maskSensitiveData(context) : undefined
-    console.warn(`[WARN] ${message}`, maskedContext)
+    const maskedContext = context ? maskSensitiveData(context) : undefined;
+    console.warn(`[WARN] ${message}`, maskedContext);
 
     // In production, send to Sentry (when configured)
     if (!isDevelopment) {
       try {
-        const sentry = getSentry()
+        const sentry = getSentry();
         if (sentry) {
-          sentry.captureMessage(message, 'warning')
+          sentry.captureMessage(message, "warning");
         }
       } catch {
         // Silently fail if Sentry not available
@@ -78,15 +78,17 @@ export const clientLogger = {
    * Log error messages
    */
   error: (message: string, context?: LogContext | Error) => {
-    const maskedContext = getMaskedContext(context, maskSensitiveData)
-    console.error(`[ERROR] ${message}`, maskedContext)
+    const maskedContext = getMaskedContext(context, maskSensitiveData);
+    console.error(`[ERROR] ${message}`, maskedContext);
 
     // In production, send to Sentry (when configured)
     if (!isDevelopment) {
       try {
-        const sentry = getSentry()
+        const sentry = getSentry();
         if (sentry) {
-          sentry.captureException(context instanceof Error ? context : new Error(message))
+          sentry.captureException(
+            context instanceof Error ? context : new Error(message),
+          );
         }
       } catch {
         // Silently fail if Sentry not available
@@ -98,17 +100,17 @@ export const clientLogger = {
    * Log critical errors that need immediate attention
    */
   critical: (message: string, context?: LogContext | Error) => {
-    const maskedContext = getMaskedContext(context, maskSensitiveData)
-    console.error(`[CRITICAL] ${message}`, maskedContext)
+    const maskedContext = getMaskedContext(context, maskSensitiveData);
+    console.error(`[CRITICAL] ${message}`, maskedContext);
 
     // Always send critical errors to Sentry
     try {
-      const sentry = getSentry()
+      const sentry = getSentry();
       if (sentry) {
         sentry.captureException(
           context instanceof Error ? context : new Error(message),
-          { level: 'fatal' }
-        )
+          { level: "fatal" },
+        );
       }
     } catch {
       // Silently fail if Sentry not available
@@ -120,8 +122,8 @@ export const clientLogger = {
    */
   success: (message: string, context?: LogContext) => {
     if (isDevelopment) {
-      const maskedContext = context ? maskSensitiveData(context) : undefined
-      console.log(`[SUCCESS] ${message}`, maskedContext)
+      const maskedContext = context ? maskSensitiveData(context) : undefined;
+      console.log(`[SUCCESS] ${message}`, maskedContext);
     }
   },
-}
+};

@@ -19,12 +19,12 @@
  */
 export function getFontClass(language: string | null): string {
   switch (language) {
-    case 'hi':
-      return 'font-devanagari'
-    case 'as':
-      return 'font-bengali'
+    case "hi":
+      return "font-devanagari";
+    case "as":
+      return "font-bengali";
     default:
-      return ''
+      return "";
   }
 }
 
@@ -34,20 +34,20 @@ export function getFontClass(language: string | null): string {
  */
 export function getStatusColor(status: string): string {
   switch (status) {
-    case 'completed':
-    case 'mastered':
-      return 'bg-success text-white'
-    case 'in_progress':
-    case 'attempted':
-      return 'bg-info text-white'
-    case 'pending':
-    case 'not_started':
-      return 'bg-border text-text-secondary'
-    case 'failed':
-    case 'locked':
-      return 'bg-error/10 text-error'
+    case "completed":
+    case "mastered":
+      return "bg-success text-white";
+    case "in_progress":
+    case "attempted":
+      return "bg-info text-white";
+    case "pending":
+    case "not_started":
+      return "bg-border text-text-secondary";
+    case "failed":
+    case "locked":
+      return "bg-error/10 text-error";
     default:
-      return 'bg-muted text-text-secondary'
+      return "bg-muted text-text-secondary";
   }
 }
 
@@ -55,12 +55,12 @@ export function getStatusColor(status: string): string {
  * Assessment progress label
  */
 export function getProgressLabel(progress: number): string {
-  if (progress === 0) return 'Not started'
-  if (progress < 25) return 'Just started'
-  if (progress < 50) return 'Halfway there'
-  if (progress < 75) return 'Almost done'
-  if (progress < 100) return 'Nearly complete'
-  return 'Complete'
+  if (progress === 0) return "Not started";
+  if (progress < 25) return "Just started";
+  if (progress < 50) return "Halfway there";
+  if (progress < 75) return "Almost done";
+  if (progress < 100) return "Nearly complete";
+  return "Complete";
 }
 
 /**
@@ -69,33 +69,42 @@ export function getProgressLabel(progress: number): string {
 export function getButtonVariant(
   isLoading: boolean,
   isDisabled: boolean,
-  hasError: boolean
-): 'default' | 'outline' | 'secondary' | 'destructive' {
-  if (isLoading) return 'secondary'
-  if (isDisabled) return 'outline'
-  if (hasError) return 'destructive'
-  return 'default'
+  hasError: boolean,
+): "default" | "outline" | "secondary" | "destructive" {
+  if (isLoading) return "secondary";
+  if (isDisabled) return "outline";
+  if (hasError) return "destructive";
+  return "default";
 }
 
 /**
  * Button text based on loading state
  */
-export function getButtonText(isLoading: boolean, loadingText: string, defaultText: string): string {
-  return isLoading ? loadingText : defaultText
+export function getButtonText(
+  isLoading: boolean,
+  loadingText: string,
+  defaultText: string,
+): string {
+  return isLoading ? loadingText : defaultText;
 }
 
 /**
  * Opacity class based on disabled state
  */
 export function getOpacityClass(isDisabled: boolean): string {
-  return isDisabled ? 'opacity-50 cursor-not-allowed' : 'opacity-100 cursor-pointer'
+  return isDisabled
+    ? "opacity-50 cursor-not-allowed"
+    : "opacity-100 cursor-pointer";
 }
 
 /**
  * Error message visibility
  */
-export function shouldShowError(error: string | null, touched: boolean): boolean {
-  return !!error && touched
+export function shouldShowError(
+  error: string | null,
+  touched: boolean,
+): boolean {
+  return !!error && touched;
 }
 
 /**
@@ -104,27 +113,30 @@ export function shouldShowError(error: string | null, touched: boolean): boolean
 export function getInputBorderClass(
   hasError: boolean,
   isFocused: boolean,
-  isValid: boolean
+  isValid: boolean,
 ): string {
-  if (hasError) return 'border-error focus:border-error focus:ring-error/50'
-  if (isFocused) return 'border-primary focus:border-primary focus:ring-primary/50'
-  if (isValid) return 'border-success'
-  return 'border-border'
+  if (hasError) return "border-error focus:border-error focus:ring-error/50";
+  if (isFocused)
+    return "border-primary focus:border-primary focus:ring-primary/50";
+  if (isValid) return "border-success";
+  return "border-border";
 }
 
 /**
  * Icon based on result status
  */
-export function getResultIcon(status: 'success' | 'error' | 'warning' | 'info'): string {
+export function getResultIcon(
+  status: "success" | "error" | "warning" | "info",
+): string {
   switch (status) {
-    case 'success':
-      return '✓'
-    case 'error':
-      return '✕'
-    case 'warning':
-      return '⚠'
-    case 'info':
-      return 'ℹ'
+    case "success":
+      return "✓";
+    case "error":
+      return "✕";
+    case "warning":
+      return "⚠";
+    case "info":
+      return "ℹ";
   }
 }
 
@@ -132,22 +144,22 @@ export function getResultIcon(status: 'success' | 'error' | 'warning' | 'info'):
  * Mastery level label
  */
 export function getMasteryLabel(score: number): string {
-  if (score >= 90) return 'Expert'
-  if (score >= 75) return 'Proficient'
-  if (score >= 60) return 'Developing'
-  if (score >= 40) return 'Emerging'
-  return 'Beginning'
+  if (score >= 90) return "Expert";
+  if (score >= 75) return "Proficient";
+  if (score >= 60) return "Developing";
+  if (score >= 40) return "Emerging";
+  return "Beginning";
 }
 
 /**
  * Score color based on performance
  */
 export function getScoreColor(score: number | null): string {
-  if (score === null) return 'bg-surface text-text-tertiary'
-  if (score >= 85) return 'bg-success/10 text-success'
-  if (score >= 70) return 'bg-info/10 text-info'
-  if (score >= 50) return 'bg-warning/10 text-warning'
-  return 'bg-error/10 text-error'
+  if (score === null) return "bg-surface text-text-tertiary";
+  if (score >= 85) return "bg-success/10 text-success";
+  if (score >= 70) return "bg-info/10 text-info";
+  if (score >= 50) return "bg-warning/10 text-warning";
+  return "bg-error/10 text-error";
 }
 
 /**
@@ -158,24 +170,24 @@ export function getScoreColor(score: number | null): string {
  *
  * @see {@link @/lib/auth/role-utils#getRoleDisplayName} for the canonical implementation
  */
-export { getRoleDisplayName } from '@/lib/auth/role-utils'
+export { getRoleDisplayName } from "@/lib/auth/role-utils";
 
 /**
  * Permission label
  */
 export function getPermissionLabel(permission: string): string {
   switch (permission) {
-    case 'create':
-      return 'Can Create'
-    case 'read':
-      return 'Can View'
-    case 'update':
-      return 'Can Edit'
-    case 'delete':
-      return 'Can Delete'
-    case 'admin':
-      return 'Full Access'
+    case "create":
+      return "Can Create";
+    case "read":
+      return "Can View";
+    case "update":
+      return "Can Edit";
+    case "delete":
+      return "Can Delete";
+    case "admin":
+      return "Full Access";
     default:
-      return permission
+      return permission;
   }
 }

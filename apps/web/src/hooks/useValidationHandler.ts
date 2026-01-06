@@ -13,33 +13,33 @@
  * 7. Finally: Set loading: false
  */
 
-import { useCallback, useState } from 'react'
+import { useCallback, useState } from "react";
 
 export interface ValidationResult {
-  valid: boolean
-  error?: string | string[]
-  errors?: string[]
+  valid: boolean;
+  error?: string | string[];
+  errors?: string[];
 }
 
 export interface UseValidationHandlerOptions {
   /** Called to validate input before async operation */
-  validators: (() => ValidationResult | Promise<ValidationResult>)[]
+  validators: (() => ValidationResult | Promise<ValidationResult>)[];
   /** Called after validation passes */
-  onValid: () => Promise<void> | void
+  onValid: () => Promise<void> | void;
   /** Called on validation error */
-  onValidationError?: (error: string | string[]) => void
+  onValidationError?: (error: string | string[]) => void;
   /** Called on async operation error */
-  onError?: (error: unknown) => void
+  onError?: (error: unknown) => void;
   /** Called on success */
-  onSuccess?: () => void
+  onSuccess?: () => void;
   /** Optional callback after async operation completes (success or error) */
-  onFinally?: () => void
+  onFinally?: () => void;
 }
 
 export interface ValidationHandlerState {
-  isLoading: boolean
-  error: string | null
-  success: boolean
+  isLoading: boolean;
+  error: string | null;
+  success: boolean;
 }
 
 /**
@@ -85,27 +85,34 @@ export interface ValidationHandlerState {
  * ```
  */
 export function useValidationHandler(options: UseValidationHandlerOptions) {
-  const { validators, onValid, onValidationError, onError, onSuccess, onFinally } = options
+  const {
+    validators,
+    onValid,
+    onValidationError,
+    onError,
+    onSuccess,
+    onFinally,
+  } = options;
 
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   /**
    * Clear validation error
    */
   const clearError = useCallback(() => {
-    setError(null)
-    setSuccess(false)
-  }, [])
+    setError(null);
+    setSuccess(false);
+  }, []);
 
   /**
    * Clear error with dependency array support
    * Useful for useEffect cleanup or dependency tracking
    */
   const clearErrorCallback = useCallback(() => {
-    clearError()
-  }, [clearError])
+    clearError();
+  }, [clearError]);
 
   /**
    * Execute validation and async operation
@@ -114,50 +121,53 @@ export function useValidationHandler(options: UseValidationHandlerOptions) {
     async (e?: React.FormEvent) => {
       // Prevent default form submission if event is provided
       if (e) {
-        e.preventDefault()
+        e.preventDefault();
       }
 
       // Start loading and clear previous state
-      setIsLoading(true)
-      setError(null)
-      setSuccess(false)
+      setIsLoading(true);
+      setError(null);
+      setSuccess(false);
 
       try {
         // Run all validators
         for (const validator of validators) {
-          const result = await Promise.resolve(validator())
+          const result = await Promise.resolve(validator());
 
           if (!result.valid) {
             // Format error message
             const errorMessage = Array.isArray(result.error)
-              ? result.error.join(', ')
+              ? result.error.join(", ")
               : Array.isArray(result.errors)
-                ? result.errors.join(', ')
-                : result.error || 'Validation failed'
+                ? result.errors.join(", ")
+                : result.error || "Validation failed";
 
-            setError(errorMessage)
-            onValidationError?.(result.error || result.errors || 'Validation failed')
-            return
+            setError(errorMessage);
+            onValidationError?.(
+              result.error || result.errors || "Validation failed",
+            );
+            return;
           }
         }
 
         // All validators passed - execute the main operation
-        await onValid()
+        await onValid();
 
-        setSuccess(true)
-        onSuccess?.()
+        setSuccess(true);
+        onSuccess?.();
       } catch (err) {
         // Handle async operation error
-        const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred'
-        setError(errorMessage)
-        onError?.(err)
+        const errorMessage =
+          err instanceof Error ? err.message : "An unexpected error occurred";
+        setError(errorMessage);
+        onError?.(err);
       } finally {
-        setIsLoading(false)
-        onFinally?.()
+        setIsLoading(false);
+        onFinally?.();
       }
     },
-    [validators, onValid, onValidationError, onError, onSuccess, onFinally]
-  )
+    [validators, onValid, onValidationError, onError, onSuccess, onFinally],
+  );
 
   return {
     state: {
@@ -170,7 +180,7 @@ export function useValidationHandler(options: UseValidationHandlerOptions) {
     clearErrorCallback,
     setError,
     setIsLoading,
-  }
+  };
 }
 
 /**
@@ -192,13 +202,13 @@ export function useSimpleValidation(
   input: string | undefined,
   validator: () => ValidationResult | Promise<ValidationResult>,
   onValid: () => Promise<void> | void,
-  options?: Partial<UseValidationHandlerOptions>
+  options?: Partial<UseValidationHandlerOptions>,
 ) {
   return useValidationHandler({
     validators: [validator],
     onValid,
     ...options,
-  })
+  });
 }
 
 /**
@@ -219,11 +229,11 @@ export function useMultiFieldValidation(
   inputs: (string | undefined)[],
   validator: () => ValidationResult | Promise<ValidationResult>,
   onValid: () => Promise<void> | void,
-  options?: Partial<UseValidationHandlerOptions>
+  options?: Partial<UseValidationHandlerOptions>,
 ) {
   return useValidationHandler({
     validators: [validator],
     onValid,
     ...options,
-  })
+  });
 }

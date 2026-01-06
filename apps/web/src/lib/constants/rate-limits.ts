@@ -20,18 +20,18 @@
  */
 export interface RateLimitConfig {
   /** Maximum tokens in bucket */
-  maxTokens: number
+  maxTokens: number;
   /** Tokens per second (e.g., 30/3600 = 30 per hour) */
-  refillRate: number
+  refillRate: number;
   /** Refill check interval in milliseconds */
-  refillInterval: number
+  refillInterval: number;
 }
 
 /**
  * Time constants for readability
  */
-const SECONDS_PER_MINUTE = 60
-const SECONDS_PER_HOUR = 3600
+const SECONDS_PER_MINUTE = 60;
+const SECONDS_PER_HOUR = 3600;
 
 /**
  * Search rate limits
@@ -141,7 +141,7 @@ export const RATE_LIMITS = {
     refillRate: 20 / SECONDS_PER_HOUR,
     refillInterval: 1000,
   } as RateLimitConfig,
-} as const
+} as const;
 
 /**
  * OTP-specific constants (used by auth-constants.ts)
@@ -151,7 +151,7 @@ export const OTP_LIMITS = {
   requestCooldownSeconds: 60,
   /** Maximum failed OTP attempts before lockout */
   maxAttempts: 5,
-} as const
+} as const;
 
 /**
  * Window-based rate limits (for simple counters)
@@ -163,6 +163,6 @@ export const WINDOW_LIMITS = {
   adminWindowMs: 60 * 1000,
   /** Max requests per admin window */
   adminMaxRequests: 10,
-} as const
+} as const;
 
-export type RateLimitKey = keyof typeof RATE_LIMITS
+export type RateLimitKey = keyof typeof RATE_LIMITS;

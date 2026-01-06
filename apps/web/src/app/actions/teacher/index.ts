@@ -4,10 +4,10 @@
  */
 
 // Class management
-export { createClass, updateClass, deleteClass } from './teacher-class'
+export { createClass, updateClass, deleteClass } from "./teacher-class";
 
 // Student enrollment
-export { enrollStudent, removeStudent } from './teacher-enrollment'
+export { enrollStudent, removeStudent } from "./teacher-enrollment";
 
 // Assessment results
 export {
@@ -15,11 +15,11 @@ export {
   getTeacherAssessmentOverview,
   type StudentAssessmentResult,
   type ClassAssessmentResults,
-} from './teacher-assessment'
+} from "./teacher-assessment";
 
 // Analytics and exports
 export {
   getClassAnalytics,
   exportStudentProgress,
-  exportAIInteractions
-} from './teacher-analytics-export'
+  exportAIInteractions,
+} from "./teacher-analytics-export";

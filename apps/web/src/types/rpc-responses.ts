@@ -1,6 +1,6 @@
 /**
  * RPC Response Type Definitions
- * 
+ *
  * Type definitions for all Supabase RPC (Remote Procedure Call) function responses
  * These match the RETURNS TABLE definitions in the database migrations
  */
@@ -69,9 +69,9 @@ export interface SearchCurriculumContentResponse {
   topic_id: string;
   topic_name: string;
   module_name: string;
-  content_type: 'text' | 'example' | 'practice';
+  content_type: "text" | "example" | "practice";
   content: string;
-  language: 'en' | 'hi' | 'as';
+  language: "en" | "hi" | "as";
   similarity: number;
 }
 
@@ -84,9 +84,9 @@ export interface HybridSearchResponse {
   topic_id: string;
   topic_name: string;
   module_name: string;
-  content_type: 'text' | 'example' | 'practice';
+  content_type: "text" | "example" | "practice";
   content: string;
-  language: 'en' | 'hi' | 'as';
+  language: "en" | "hi" | "as";
   similarity: number;
   rank: number;
 }
@@ -102,7 +102,7 @@ export interface SubmitAssessmentResponse {
   score_percentage: number;
   time_taken_seconds: number;
   ability_estimate: number;
-  mastery_level: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+  mastery_level: "beginner" | "intermediate" | "advanced" | "expert";
 }
 
 /**
@@ -120,27 +120,29 @@ export interface RPCErrorResponse {
  */
 export function isRPCError(response: unknown): response is RPCErrorResponse {
   return (
-    typeof response === 'object' &&
+    typeof response === "object" &&
     response !== null &&
-    'error' in response &&
-    typeof (response as RPCErrorResponse).error === 'string'
+    "error" in response &&
+    typeof (response as RPCErrorResponse).error === "string"
   );
 }
 
 /**
  * Type for RPC call result (success or error)
  */
-export type RPCResult<T> = 
+export type RPCResult<T> =
   | { success: true; data: T }
   | { success: false; error: string };
 
 /**
  * Helper to wrap RPC responses in result type
  */
-export function wrapRPCResult<T>(data: T | null, error: string | null): RPCResult<T> {
+export function wrapRPCResult<T>(
+  data: T | null,
+  error: string | null,
+): RPCResult<T> {
   if (error || !data) {
-    return { success: false, error: error || 'Unknown RPC error' };
+    return { success: false, error: error || "Unknown RPC error" };
   }
   return { success: true, data };
 }
-

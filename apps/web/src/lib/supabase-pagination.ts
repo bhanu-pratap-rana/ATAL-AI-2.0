@@ -4,27 +4,27 @@
  * Uses cursor-based pagination and timestamp snapshots
  */
 
-import { SupabaseClient } from '@supabase/supabase-js'
-import { authLogger } from './auth-logger'
+import { SupabaseClient } from "@supabase/supabase-js";
+import { authLogger } from "./auth-logger";
 
 /**
  * Cursor-based pagination result
  * Allows safe multi-page iteration without data duplication/loss
  */
 export interface PaginationResult<T> {
-  data: T[]
-  nextCursor: string | null
-  hasMore: boolean
-  total?: number
+  data: T[];
+  nextCursor: string | null;
+  hasMore: boolean;
+  total?: number;
 }
 
 /**
  * Pagination options
  */
 export interface PaginationOptions {
-  pageSize?: number
-  orderBy?: { column: string; ascending: boolean }
-  cursorColumn?: string // Column to use for cursor (should be unique, e.g., id or created_at)
+  pageSize?: number;
+  orderBy?: { column: string; ascending: boolean };
+  cursorColumn?: string; // Column to use for cursor (should be unique, e.g., id or created_at)
 }
 
 /**
@@ -41,46 +41,53 @@ export async function fetchPaginatedWithCursor<T>(
   supabase: SupabaseClient,
   table: string,
   cursor: string | null = null,
-  options: PaginationOptions = {}
+  options: PaginationOptions = {},
 ): Promise<PaginationResult<T>> {
-  const pageSize = options.pageSize || 100
-  const cursorColumn = options.cursorColumn || 'id'
-  const orderBy = options.orderBy || { column: cursorColumn, ascending: true }
+  const pageSize = options.pageSize || 100;
+  const cursorColumn = options.cursorColumn || "id";
+  const orderBy = options.orderBy || { column: cursorColumn, ascending: true };
 
   try {
     // Start with base query
-    let query = supabase.from(table).select('*', { count: 'exact' })
+    let query = supabase.from(table).select("*", { count: "exact" });
 
     // Apply cursor if provided (skip past last item)
     if (cursor) {
-      const comparison = orderBy.ascending ? 'gt' : 'lt'
-      query = query.gt(cursorColumn, cursor)
+      const comparison = orderBy.ascending ? "gt" : "lt";
+      query = query.gt(cursorColumn, cursor);
     }
 
     // Order by cursor column
-    query = query.order(cursorColumn, { ascending: orderBy.ascending })
+    query = query.order(cursorColumn, { ascending: orderBy.ascending });
 
     // Fetch pageSize + 1 to detect if there are more results
-    const { data, error, count } = await query.limit(pageSize + 1)
+    const { data, error, count } = await query.limit(pageSize + 1);
 
     if (error) {
-      authLogger.error('[fetchPaginatedWithCursor] Query failed', { table, error: error.message })
-      return { data: [], nextCursor: null, hasMore: false }
+      authLogger.error("[fetchPaginatedWithCursor] Query failed", {
+        table,
+        error: error.message,
+      });
+      return { data: [], nextCursor: null, hasMore: false };
     }
 
-    const items = (data || []) as T[]
-    const hasMore = items.length > pageSize
-    const pageItems = hasMore ? items.slice(0, pageSize) : items
+    const items = (data || []) as T[];
+    const hasMore = items.length > pageSize;
+    const pageItems = hasMore ? items.slice(0, pageSize) : items;
 
     // Calculate next cursor from last item
-    let nextCursor: string | null = null
+    let nextCursor: string | null = null;
     if (hasMore && pageItems.length > 0) {
-      const lastItem = pageItems[pageItems.length - 1]
+      const lastItem = pageItems[pageItems.length - 1];
       // Type-safe cursor extraction - cursorColumn must exist on T
-      if (lastItem && typeof lastItem === 'object' && cursorColumn in lastItem) {
-        const cursorValue = (lastItem as Record<string, unknown>)[cursorColumn]
-        if (typeof cursorValue === 'string') {
-          nextCursor = cursorValue
+      if (
+        lastItem &&
+        typeof lastItem === "object" &&
+        cursorColumn in lastItem
+      ) {
+        const cursorValue = (lastItem as Record<string, unknown>)[cursorColumn];
+        if (typeof cursorValue === "string") {
+          nextCursor = cursorValue;
         }
       }
     }
@@ -90,10 +97,13 @@ export async function fetchPaginatedWithCursor<T>(
       nextCursor,
       hasMore,
       total: count ?? undefined,
-    }
+    };
   } catch (error) {
-    authLogger.error('[fetchPaginatedWithCursor] Unexpected error', { table, error })
-    return { data: [], nextCursor: null, hasMore: false }
+    authLogger.error("[fetchPaginatedWithCursor] Unexpected error", {
+      table,
+      error,
+    });
+    return { data: [], nextCursor: null, hasMore: false };
   }
 }
 
@@ -109,57 +119,68 @@ export async function fetchPaginatedWithCursor<T>(
 export async function fetchAllWithSnapshot<T>(
   supabase: SupabaseClient,
   table: string,
-  createdBeforeTimestamp?: string
+  createdBeforeTimestamp?: string,
 ): Promise<T[]> {
-  const snapshotTime = createdBeforeTimestamp || new Date().toISOString()
-  const allData: T[] = []
-  let cursor: string | null = null
-  let hasMore = true
+  const snapshotTime = createdBeforeTimestamp || new Date().toISOString();
+  const allData: T[] = [];
+  let cursor: string | null = null;
+  let hasMore = true;
 
   try {
     while (hasMore) {
-      const result: PaginationResult<T> = await fetchPaginatedWithCursor<T>(supabase, table, cursor, {
-        pageSize: 1000,
-        cursorColumn: 'created_at',
-        orderBy: { column: 'created_at', ascending: true },
-      })
+      const result: PaginationResult<T> = await fetchPaginatedWithCursor<T>(
+        supabase,
+        table,
+        cursor,
+        {
+          pageSize: 1000,
+          cursorColumn: "created_at",
+          orderBy: { column: "created_at", ascending: true },
+        },
+      );
 
-      allData.push(...result.data)
-      cursor = result.nextCursor
+      allData.push(...result.data);
+      cursor = result.nextCursor;
 
       // Only fetch items created before snapshot time
       if (result.data.length > 0) {
-        const lastItem = result.data[result.data.length - 1]
+        const lastItem = result.data[result.data.length - 1];
         // Type-safe created_at check
-        if (lastItem && typeof lastItem === 'object' && 'created_at' in lastItem) {
-          const createdAt = (lastItem as { created_at?: string }).created_at
+        if (
+          lastItem &&
+          typeof lastItem === "object" &&
+          "created_at" in lastItem
+        ) {
+          const createdAt = (lastItem as { created_at?: string }).created_at;
           if (createdAt && createdAt > snapshotTime) {
             // We've gone past the snapshot time, remove items after snapshot
-            const snapshotIndex = allData.findIndex(
-              (item) => {
-                if (item && typeof item === 'object' && 'created_at' in item) {
-                  const itemCreatedAt = (item as { created_at?: string }).created_at
-                  return itemCreatedAt && itemCreatedAt > snapshotTime
-                }
-                return false
+            const snapshotIndex = allData.findIndex((item) => {
+              if (item && typeof item === "object" && "created_at" in item) {
+                const itemCreatedAt = (item as { created_at?: string })
+                  .created_at;
+                return itemCreatedAt && itemCreatedAt > snapshotTime;
               }
-            )
+              return false;
+            });
             if (snapshotIndex >= 0) {
-              allData.length = snapshotIndex
+              allData.length = snapshotIndex;
             }
-            hasMore = false
-            break
+            hasMore = false;
+            break;
           }
         }
       }
 
-      hasMore = result.hasMore
+      hasMore = result.hasMore;
     }
 
-    return allData
+    return allData;
   } catch (error) {
-    authLogger.error('[fetchAllWithSnapshot] Failed to fetch all data', { table, error })
-    return allData // Return what we got so far
+    authLogger.error("[fetchAllWithSnapshot] Failed to fetch all data", {
+      table,
+      error,
+    });
+    return allData; // Return what we got so far
   }
 }
 
@@ -168,18 +189,22 @@ export async function fetchAllWithSnapshot<T>(
  * Automatically handles cursor management and snapshot isolation
  */
 export class PaginatedIterator<T> {
-  private table: string
-  private supabase: SupabaseClient
-  private options: PaginationOptions
-  private cursor: string | null = null
-  private hasMore: boolean = true
-  private currentPage: T[] = []
-  private currentIndex: number = 0
+  private table: string;
+  private supabase: SupabaseClient;
+  private options: PaginationOptions;
+  private cursor: string | null = null;
+  private hasMore: boolean = true;
+  private currentPage: T[] = [];
+  private currentIndex: number = 0;
 
-  constructor(supabase: SupabaseClient, table: string, options?: PaginationOptions) {
-    this.supabase = supabase
-    this.table = table
-    this.options = options || {}
+  constructor(
+    supabase: SupabaseClient,
+    table: string,
+    options?: PaginationOptions,
+  ) {
+    this.supabase = supabase;
+    this.table = table;
+    this.options = options || {};
   }
 
   /**
@@ -192,27 +217,27 @@ export class PaginatedIterator<T> {
         this.supabase,
         this.table,
         this.cursor,
-        this.options
-      )
+        this.options,
+      );
 
-      this.currentPage = result.data
-      this.currentIndex = 0
-      this.cursor = result.nextCursor
-      this.hasMore = result.hasMore
+      this.currentPage = result.data;
+      this.currentIndex = 0;
+      this.cursor = result.nextCursor;
+      this.hasMore = result.hasMore;
 
       // If no more data
       if (this.currentPage.length === 0) {
-        return { value: null, done: true }
+        return { value: null, done: true };
       }
     }
 
     // If still no data, we're done
     if (this.currentIndex >= this.currentPage.length) {
-      return { value: null, done: true }
+      return { value: null, done: true };
     }
 
-    const item = this.currentPage[this.currentIndex++]
-    return { value: item, done: false }
+    const item = this.currentPage[this.currentIndex++];
+    return { value: item, done: false };
   }
 
   /**
@@ -220,9 +245,9 @@ export class PaginatedIterator<T> {
    */
   async *[Symbol.asyncIterator](): AsyncIterator<T> {
     while (true) {
-      const { value, done } = await this.next()
-      if (done) break
-      if (value !== null) yield value
+      const { value, done } = await this.next();
+      if (done) break;
+      if (value !== null) yield value;
     }
   }
 }

@@ -1,16 +1,20 @@
-'use server'
+"use server";
 
-import { revalidatePath } from 'next/cache'
-import { z } from 'zod'
-import { createClient, verifyTeacherAuth, verifyClassOwnership } from '@/lib/supabase-server'
-import { checkTeacherMutationRateLimit } from '@/lib/rate-limiter-distributed'
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import {
+  createClient,
+  verifyTeacherAuth,
+  verifyClassOwnership,
+} from "@/lib/supabase-server";
+import { checkTeacherMutationRateLimit } from "@/lib/rate-limiter-distributed";
 import {
   CreateClassSchema,
   UpdateClassSchema,
   ClassIdSchema,
-} from '@/lib/validation-schemas'
-import { authLogger } from '@/lib/auth-logger'
-import { handleZodError } from '@/lib/action-error-handler'
+} from "@/lib/validation-schemas";
+import { authLogger } from "@/lib/auth-logger";
+import { handleZodError } from "@/lib/action-error-handler";
 
 /**
  * Class CRUD operations for teachers
@@ -20,148 +24,169 @@ import { handleZodError } from '@/lib/action-error-handler'
 export async function createClass(name: string, subject?: string) {
   try {
     // Validate input
-    let validatedInput
+    let validatedInput;
     try {
-      validatedInput = CreateClassSchema.parse({ name, subject })
+      validatedInput = CreateClassSchema.parse({ name, subject });
     } catch (error) {
-      return handleZodError(error)
+      return handleZodError(error);
     }
-    name = validatedInput.name
-    subject = validatedInput.subject
+    name = validatedInput.name;
+    subject = validatedInput.subject;
 
     // SECURITY: Verify caller is authenticated and is a teacher
-    const auth = await verifyTeacherAuth('createClass')
+    const auth = await verifyTeacherAuth("createClass");
     if (!auth.authorized) {
-      return auth.error
+      return auth.error;
     }
 
     // SECURITY: Rate limit teacher mutations to prevent abuse
-    const rateLimitAllowed = await checkTeacherMutationRateLimit(auth.user.id)
+    const rateLimitAllowed = await checkTeacherMutationRateLimit(auth.user.id);
     if (!rateLimitAllowed) {
-      return { success: false, error: 'Too many requests. Please try again later.' }
+      return {
+        success: false,
+        error: "Too many requests. Please try again later.",
+      };
     }
 
-    const supabase = await createClient()
+    const supabase = await createClient();
 
     const { data, error } = await supabase
-      .from('classes')
+      .from("classes")
       .insert({
         name,
         subject: subject || null,
         teacher_id: auth.user.id,
       })
       .select()
-      .single()
+      .single();
 
     if (error) {
-      return { success: false, error: error.message }
+      return { success: false, error: error.message };
     }
 
-    revalidatePath('/app/teacher/classes')
-    return { success: true, data }
+    revalidatePath("/app/teacher/classes");
+    return { success: true, data };
   } catch (error) {
-    authLogger.error('[createClass] Unexpected error', error)
+    authLogger.error("[createClass] Unexpected error", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'An unexpected error occurred',
-    }
+      error:
+        error instanceof Error ? error.message : "An unexpected error occurred",
+    };
   }
 }
 
-export async function updateClass(classId: string, name: string, subject?: string) {
+export async function updateClass(
+  classId: string,
+  name: string,
+  subject?: string,
+) {
   try {
     // Validate inputs
-    let validatedInput
+    let validatedInput;
     try {
-      validatedInput = UpdateClassSchema.parse({ classId, name, subject })
+      validatedInput = UpdateClassSchema.parse({ classId, name, subject });
     } catch (error) {
-      return handleZodError(error)
+      return handleZodError(error);
     }
 
     // SECURITY: Verify caller is authenticated and owns this class
-    const auth = await verifyClassOwnership('updateClass', validatedInput.classId)
+    const auth = await verifyClassOwnership(
+      "updateClass",
+      validatedInput.classId,
+    );
     if (!auth.authorized) {
-      return auth.error
+      return auth.error;
     }
 
     // SECURITY: Rate limit teacher mutations to prevent abuse
-    const rateLimitAllowed = await checkTeacherMutationRateLimit(auth.user.id)
+    const rateLimitAllowed = await checkTeacherMutationRateLimit(auth.user.id);
     if (!rateLimitAllowed) {
-      return { success: false, error: 'Too many requests. Please try again later.' }
+      return {
+        success: false,
+        error: "Too many requests. Please try again later.",
+      };
     }
 
-    const supabase = await createClient()
+    const supabase = await createClient();
 
     const { data, error } = await supabase
-      .from('classes')
+      .from("classes")
       .update({
         name: validatedInput.name,
         subject: validatedInput.subject || null,
       })
-      .eq('id', validatedInput.classId)
+      .eq("id", validatedInput.classId)
       .select()
-      .single()
+      .single();
 
     if (error) {
-      return { success: false, error: error.message }
+      return { success: false, error: error.message };
     }
 
-    revalidatePath('/app/teacher/classes')
-    return { success: true, data }
+    revalidatePath("/app/teacher/classes");
+    return { success: true, data };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const firstError = error.issues[0]
-      return { success: false, error: firstError?.message || 'Invalid input' }
+      const firstError = error.issues[0];
+      return { success: false, error: firstError?.message || "Invalid input" };
     }
-    authLogger.error('[updateClass] Unexpected error', error)
+    authLogger.error("[updateClass] Unexpected error", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'An unexpected error occurred',
-    }
+      error:
+        error instanceof Error ? error.message : "An unexpected error occurred",
+    };
   }
 }
 
 export async function deleteClass(classId: string) {
   try {
     // Validate input
-    let validatedClassId
+    let validatedClassId;
     try {
-      validatedClassId = ClassIdSchema.parse(classId)
+      validatedClassId = ClassIdSchema.parse(classId);
     } catch (error) {
-      return handleZodError(error)
+      return handleZodError(error);
     }
 
     // SECURITY: Verify caller is authenticated and owns this class
-    const auth = await verifyClassOwnership('deleteClass', validatedClassId)
+    const auth = await verifyClassOwnership("deleteClass", validatedClassId);
     if (!auth.authorized) {
-      return auth.error
+      return auth.error;
     }
 
     // SECURITY: Rate limit teacher mutations to prevent abuse
-    const deletionAllowed = await checkTeacherMutationRateLimit(auth.user.id)
+    const deletionAllowed = await checkTeacherMutationRateLimit(auth.user.id);
     if (!deletionAllowed) {
-      authLogger.warn('[deleteClass] Rate limit exceeded', { userId: auth.user.id })
-      return { success: false, error: 'Too many requests. Please try again later.' }
+      authLogger.warn("[deleteClass] Rate limit exceeded", {
+        userId: auth.user.id,
+      });
+      return {
+        success: false,
+        error: "Too many requests. Please try again later.",
+      };
     }
 
-    const supabase = await createClient()
+    const supabase = await createClient();
 
     const { error } = await supabase
-      .from('classes')
+      .from("classes")
       .delete()
-      .eq('id', validatedClassId)
+      .eq("id", validatedClassId);
 
     if (error) {
-      return { success: false, error: error.message }
+      return { success: false, error: error.message };
     }
 
-    revalidatePath('/app/teacher/classes')
-    return { success: true }
+    revalidatePath("/app/teacher/classes");
+    return { success: true };
   } catch (error) {
-    authLogger.error('[deleteClass] Unexpected error', error)
+    authLogger.error("[deleteClass] Unexpected error", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'An unexpected error occurred',
-    }
+      error:
+        error instanceof Error ? error.message : "An unexpected error occurred",
+    };
   }
 }

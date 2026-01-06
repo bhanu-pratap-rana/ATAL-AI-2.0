@@ -12,28 +12,28 @@
  * - https://blog.logrocket.com/offline-first-frontend-apps-2025-indexeddb-sqlite/
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { clientLogger } from '@/lib/client-logger';
+import { useState, useEffect, useCallback } from "react";
+import { clientLogger } from "@/lib/client-logger";
 
 /**
  * Network connection type
  * Combines NetworkInformation API types with effective connection types
  */
 export type ConnectionType =
-  | 'wifi'
-  | 'ethernet'
-  | 'cellular'
-  | 'bluetooth'
-  | 'wimax'
-  | 'mixed'
-  | 'other'
-  | 'unknown'
-  | '4g'
-  | '3g'
-  | '2g'
-  | 'slow-2g';
+  | "wifi"
+  | "ethernet"
+  | "cellular"
+  | "bluetooth"
+  | "wimax"
+  | "mixed"
+  | "other"
+  | "unknown"
+  | "4g"
+  | "3g"
+  | "2g"
+  | "slow-2g";
 
 /**
  * NetworkInformation API type definition
@@ -41,10 +41,18 @@ export type ConnectionType =
  */
 interface NetworkInformation extends EventTarget {
   downlink?: number;
-  effectiveType?: 'slow-2g' | '2g' | '3g' | '4g';
+  effectiveType?: "slow-2g" | "2g" | "3g" | "4g";
   rtt?: number;
   saveData?: boolean;
-  type?: 'bluetooth' | 'cellular' | 'ethernet' | 'mixed' | 'other' | 'unknown' | 'wifi' | 'wimax';
+  type?:
+    | "bluetooth"
+    | "cellular"
+    | "ethernet"
+    | "mixed"
+    | "other"
+    | "unknown"
+    | "wifi"
+    | "wimax";
   onchange?: ((this: NetworkInformation, ev: Event) => void) | null;
 }
 
@@ -83,7 +91,7 @@ export interface NetworkStatus {
 const DEFAULT_STATUS: NetworkStatus = {
   isOnline: true,
   isSlowConnection: false,
-  connectionType: 'unknown',
+  connectionType: "unknown",
   effectiveType: null,
   downlink: null,
   rtt: null,
@@ -115,7 +123,7 @@ const RECONNECTION_DEBOUNCE = 2000;
 export function useNetworkStatus(): NetworkStatus {
   const [status, setStatus] = useState<NetworkStatus>(() => {
     // Initialize with navigator.onLine if available
-    if (typeof navigator !== 'undefined') {
+    if (typeof navigator !== "undefined") {
       return {
         ...DEFAULT_STATUS,
         isOnline: navigator.onLine,
@@ -125,19 +133,19 @@ export function useNetworkStatus(): NetworkStatus {
   });
 
   const updateStatus = useCallback(() => {
-    if (typeof navigator === 'undefined') return;
+    if (typeof navigator === "undefined") return;
 
     // Get NetworkInformation API if available
     const connection = navigator.connection;
 
     const effectiveType = connection?.effectiveType || null;
     const isSlowConnection =
-      effectiveType === '2g' || effectiveType === 'slow-2g';
+      effectiveType === "2g" || effectiveType === "slow-2g";
 
     setStatus({
       isOnline: navigator.onLine,
       isSlowConnection,
-      connectionType: connection?.type || 'unknown',
+      connectionType: connection?.type || "unknown",
       effectiveType,
       downlink: connection?.downlink || null,
       rtt: connection?.rtt || null,
@@ -146,7 +154,7 @@ export function useNetworkStatus(): NetworkStatus {
   }, []);
 
   useEffect(() => {
-    if (typeof globalThis === 'undefined') return;
+    if (typeof globalThis === "undefined") return;
 
     let reconnectTimeout: NodeJS.Timeout | undefined;
 
@@ -162,7 +170,7 @@ export function useNetworkStatus(): NetworkStatus {
 
       // Debounce reconnection confirmation
       reconnectTimeout = setTimeout(() => {
-        clientLogger.debug('[useNetworkStatus] Online confirmed');
+        clientLogger.debug("[useNetworkStatus] Online confirmed");
         updateStatus();
       }, RECONNECTION_DEBOUNCE);
     };
@@ -176,7 +184,7 @@ export function useNetworkStatus(): NetworkStatus {
         clearTimeout(reconnectTimeout);
       }
 
-      clientLogger.debug('[useNetworkStatus] Offline detected');
+      clientLogger.debug("[useNetworkStatus] Offline detected");
       updateStatus();
     };
 
@@ -184,18 +192,18 @@ export function useNetworkStatus(): NetworkStatus {
      * Handle connection quality changes
      */
     const handleConnectionChange = () => {
-      clientLogger.debug('[useNetworkStatus] Connection changed');
+      clientLogger.debug("[useNetworkStatus] Connection changed");
       updateStatus();
     };
 
     // Add event listeners
-    globalThis.addEventListener('online', handleOnline);
-    globalThis.addEventListener('offline', handleOffline);
+    globalThis.addEventListener("online", handleOnline);
+    globalThis.addEventListener("offline", handleOffline);
 
     // Add NetworkInformation API listener if available
     const connection = navigator.connection;
     if (connection) {
-      connection.addEventListener('change', handleConnectionChange);
+      connection.addEventListener("change", handleConnectionChange);
     }
 
     // Initial status update
@@ -203,11 +211,11 @@ export function useNetworkStatus(): NetworkStatus {
 
     // Cleanup
     return () => {
-      globalThis.removeEventListener('online', handleOnline);
-      globalThis.removeEventListener('offline', handleOffline);
+      globalThis.removeEventListener("online", handleOnline);
+      globalThis.removeEventListener("offline", handleOffline);
 
       if (connection) {
-        connection.removeEventListener('change', handleConnectionChange);
+        connection.removeEventListener("change", handleConnectionChange);
       }
 
       if (reconnectTimeout) {
@@ -223,7 +231,7 @@ export function useNetworkStatus(): NetworkStatus {
  * Type guard to check if NetworkInformation API is available
  */
 export function hasNetworkInformation(): boolean {
-  if (typeof navigator === 'undefined') return false;
+  if (typeof navigator === "undefined") return false;
 
   const nav = navigator as Navigator & {
     connection?: NetworkInformation;
@@ -232,9 +240,11 @@ export function hasNetworkInformation(): boolean {
   };
 
   return (
-    ('connection' in nav || 'mozConnection' in nav || 'webkitConnection' in nav) &&
+    ("connection" in nav ||
+      "mozConnection" in nav ||
+      "webkitConnection" in nav) &&
     (nav.connection !== undefined ||
-     nav.mozConnection !== undefined ||
-     nav.webkitConnection !== undefined)
+      nav.mozConnection !== undefined ||
+      nav.webkitConnection !== undefined)
   );
 }

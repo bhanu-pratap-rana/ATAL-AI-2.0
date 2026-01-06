@@ -4,10 +4,23 @@
  */
 
 // OTP-based authentication
-export { requestOtp, verifyOtp, sendForgotPasswordOtp, resetPasswordWithOtp } from './auth-otp'
+export {
+  requestOtp,
+  verifyOtp,
+  sendForgotPasswordOtp,
+  resetPasswordWithOtp,
+} from "./auth-otp";
 
 // Username-based authentication
-export { checkUsernameAvailable, registerWithUsername, signInWithUsername } from './auth-username'
+export {
+  checkUsernameAvailable,
+  registerWithUsername,
+  signInWithUsername,
+} from "./auth-username";
 
 // Verification and role management
-export { checkEmailExistsInAuth, checkUserIsTeacher, signOutUser } from './auth-verification'
+export {
+  checkEmailExistsInAuth,
+  checkUserIsTeacher,
+  signOutUser,
+} from "./auth-verification";

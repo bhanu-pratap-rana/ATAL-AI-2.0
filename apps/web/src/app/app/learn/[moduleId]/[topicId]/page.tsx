@@ -286,7 +286,9 @@ export default function LessonPage() {
       if (isCorrect) return "bg-success-light border-success";
       return isSelected ? "bg-error-light border-error" : "bg-muted";
     }
-    return isSelected ? "border-primary bg-primary/10" : "hover:border-primary/50";
+    return isSelected
+      ? "border-primary bg-primary/10"
+      : "hover:border-primary/50";
   };
 
   // Helper: Get progress bar color based on section state

@@ -23,14 +23,14 @@ export {
   validateEmail,
   normalizeEmail,
   maskEmail,
-} from './email-validation'
+} from "./email-validation";
 
 // Password validation - NIST 2025 Compliant
 import {
   getPasswordValidationError,
   estimatePasswordStrengthNist2025,
   getPasswordStrengthLabelNist2025,
-} from './password-utils'
+} from "./password-utils";
 
 export {
   validatePasswordNist2025,
@@ -40,50 +40,56 @@ export {
   isPasswordBreached,
   NIST_2025_PASSWORD_RULES,
   NIST_2025_MIN_PASSWORD_LENGTH,
-} from './password-utils'
+} from "./password-utils";
 
 // Backward compatibility wrappers for legacy code
-export function validatePassword(password: string): { valid: boolean; errors: string[] } {
-  const error = getPasswordValidationError(password)
+export function validatePassword(password: string): {
+  valid: boolean;
+  errors: string[];
+} {
+  const error = getPasswordValidationError(password);
   return {
     valid: !error,
     errors: error ? [error] : [],
-  }
+  };
 }
 
 export function calculatePasswordStrength(password: string): number {
-  return estimatePasswordStrengthNist2025(password)
+  return estimatePasswordStrengthNist2025(password);
 }
 
 export function getPasswordStrengthLabel(score: number): string {
-  return getPasswordStrengthLabelNist2025(score)
+  return getPasswordStrengthLabelNist2025(score);
 }
 
-export function validatePasswordSimple(password: string): { valid: boolean; error?: string } {
-  const error = getPasswordValidationError(password)
+export function validatePasswordSimple(password: string): {
+  valid: boolean;
+  error?: string;
+} {
+  const error = getPasswordValidationError(password);
   return {
     valid: !error,
     error: error ?? undefined,
-  }
+  };
 }
 
 export function validatePasswordMatch(
   password: string,
-  confirmPassword: string
+  confirmPassword: string,
 ): { valid: boolean; error?: string } {
   if (password !== confirmPassword) {
-    return { valid: false, error: 'Passwords do not match' }
+    return { valid: false, error: "Passwords do not match" };
   }
-  return { valid: true }
+  return { valid: true };
 }
 
 // Legacy type export for backward compatibility
 export interface PasswordRequirements {
-  minLength: number
-  requireUppercase: boolean
-  requireLowercase: boolean
-  requireNumber: boolean
-  requireSpecial: boolean
+  minLength: number;
+  requireUppercase: boolean;
+  requireLowercase: boolean;
+  requireNumber: boolean;
+  requireSpecial: boolean;
 }
 
 export const DEFAULT_PASSWORD_REQUIREMENTS: PasswordRequirements = {
@@ -92,9 +98,9 @@ export const DEFAULT_PASSWORD_REQUIREMENTS: PasswordRequirements = {
   requireLowercase: false,
   requireNumber: false,
   requireSpecial: false,
-}
+};
 
-export const PASSWORD_SPECIAL_CHARS = '!@#$%^&*()_+-=[]{}|;:,.<>?'
+export const PASSWORD_SPECIAL_CHARS = "!@#$%^&*()_+-=[]{}|;:,.<>?";
 
 export {
   validatePhoneNumber,
@@ -103,7 +109,7 @@ export {
   maskPhoneNumber,
   validateOptionalPhone,
   sanitizeProfilePhone,
-} from './phone-validation'
+} from "./phone-validation";
 
 export {
   validateSchoolCode,
@@ -113,10 +119,10 @@ export {
   sanitizePIN,
   sanitizeOTP,
   validateOTP,
-} from './code-validation'
+} from "./code-validation";
 
 export {
   validateName,
   validateRollNumber,
   sanitizeString,
-} from './name-validation'
+} from "./name-validation";

@@ -154,10 +154,7 @@ export function AdminCreateForm({
             )}
           </button>
         </div>
-        <p
-          id="password-requirements"
-          className="text-xs text-text-secondary"
-        >
+        <p id="password-requirements" className="text-xs text-text-secondary">
           Minimum 8 characters required
         </p>
       </div>
