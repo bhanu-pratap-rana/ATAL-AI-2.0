@@ -5,7 +5,6 @@ import { revalidatePath } from 'next/cache'
 import { authLogger } from '@/lib/auth-logger'
 import { findAuthUserByEmail } from '@/lib/admin-utils'
 import { AuthEmailSchema } from '@/lib/validation-schemas'
-import { validateWithSchema } from './auth-common'
 
 /**
  * Authentication verification and role management
