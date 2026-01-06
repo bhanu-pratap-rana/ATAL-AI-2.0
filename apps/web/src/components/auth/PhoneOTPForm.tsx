@@ -7,21 +7,17 @@ import { Label } from "@/components/ui/label";
 import { PhoneInputWithPrefix } from "@/components/auth/PhoneInputWithPrefix";
 import { validatePhone } from "@/lib/validation-utils";
 import { requestOtp } from "@/app/actions/auth";
-import { authLogger } from "@/lib/auth-logger";
+import { BaseFormComponentProps, useFormSubmission, FORM_TOAST_MESSAGES } from "@/lib/form-component-utils";
 
 /**
  * PhoneOTPForm - Reusable phone OTP send form
  * Handles phone validation and OTP request via phone
  * Reduces code duplication between student and teacher auth flows
  */
-export interface PhoneOTPFormProps {
+export interface PhoneOTPFormProps extends BaseFormComponentProps {
   readonly phone: string;
   readonly onPhoneChange: (phone: string) => void;
   readonly onOtpSent: () => void;
-  readonly isLoading: boolean;
-  readonly error?: string;
-  readonly onErrorChange: (error: string | null) => void;
-  readonly submitButtonLabel?: string;
   readonly helperText?: string;
 }
 
@@ -37,35 +33,27 @@ export function PhoneOTPForm({
 }: PhoneOTPFormProps) {
   const fullPhone = `+91${phone}`;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    onErrorChange(null);
+  const handleSubmit = useFormSubmission(
+    async () => {
+      // Validate phone
+      const phoneValidation = validatePhone(fullPhone);
+      if (!phoneValidation.valid) {
+        throw new Error(phoneValidation.error || "Invalid phone number");
+      }
 
-    // Validate phone
-    const phoneValidation = validatePhone(fullPhone);
-    if (!phoneValidation.valid) {
-      onErrorChange(phoneValidation.error || "Invalid phone number");
-      return;
-    }
-
-    try {
-      authLogger.debug("[PhoneOTPForm] Requesting OTP for phone");
       const result = await requestOtp(fullPhone);
 
       if (!result.success) {
-        onErrorChange(result.error || "Failed to send OTP");
-        toast.error(result.error || "Failed to send OTP");
-      } else {
-        authLogger.success("[PhoneOTPForm] OTP sent successfully");
-        toast.success("OTP sent to your phone!");
-        onOtpSent();
+        throw new Error(result.error || "Failed to send OTP");
       }
-    } catch (err) {
-      authLogger.error("[PhoneOTPForm] Failed to send OTP", err);
-      onErrorChange("Failed to send OTP");
-      toast.error("Failed to send OTP");
-    }
-  };
+
+      toast.success(FORM_TOAST_MESSAGES.PHONE_OTP_SENT);
+      return result;
+    },
+    onErrorChange,
+    "[PhoneOTPForm]",
+    () => onOtpSent()
+  );
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
