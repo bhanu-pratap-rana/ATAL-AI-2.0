@@ -1,7 +1,5 @@
 "use client";
 
-import React from "react";
-
 /**
  * Reusable list item card component for displaying modal content
  * Consolidates 80+ lines of duplicated item rendering patterns
