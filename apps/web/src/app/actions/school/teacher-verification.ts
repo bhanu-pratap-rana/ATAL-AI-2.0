@@ -137,7 +137,7 @@ async function verifyStaffPinRPC(
   }
 
   let pinMatch = false
-  if (verifyResult && Array.isArray(verifyResult) && verifyResult.length > 0) {
+  if (verifyResult?.[0]) {
     pinMatch = verifyResult[0].is_valid === true
     authLogger.debug('[verifyTeacher] PIN match result', { is_valid: verifyResult[0].is_valid, pinMatch })
   } else {
