@@ -10,10 +10,11 @@ import {
   getAllStudents,
   getSchoolsWithoutPINs,
 } from "@/app/actions/admin-metrics";
-import { School, Users, Lock, X, GraduationCap } from "lucide-react";
+import { School, Users, Lock, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { clientLogger } from "@/lib/client-logger";
+import { DataModal } from "@/components/admin/modals/DataModal";
+import { ListItemCard } from "@/components/admin/modals/ListItemCard";
 
 /**
  * ATAL AI Dashboard Metrics - Jyoti Theme
@@ -196,213 +197,49 @@ export function DashboardMetrics() {
   }
 
   /**
-   * Helper: Render modal content based on type (extracted to reduce cognitive complexity)
+   * Helper: Render modal content based on type
+   * Refactored to use ListItemCard component (consolidated 80+ lines)
    */
   function renderModalContent(): React.ReactElement {
-    if (modalLoading) {
-      return (
-        <div className="text-center py-8">
-          <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="mt-2 text-text-tertiary">Loading...</p>
-        </div>
-      );
-    }
+    let items: any[] = [];
+    let emptyMessage = "No content";
 
     switch (activeModal) {
       case "schools":
-        return filteredSchools.length === 0 ? (
-          <p className="text-center text-text-tertiary py-8">
-            No schools found
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {filteredSchools.map((school) => (
-              <div
-                key={school.id}
-                className="bg-surface rounded-md p-4 border border-border"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-semibold text-text-primary">
-                      {school.schoolName}
-                    </p>
-                    <p className="text-sm text-text-secondary">
-                      {school.district}
-                    </p>
-                    {school.block && (
-                      <p className="text-xs text-text-tertiary">
-                        Block: {school.block}
-                      </p>
-                    )}
-                  </div>
-                  <div className="text-right">
-                    <span className="text-xs bg-border-light text-text-secondary px-2 py-1 rounded-full font-mono">
-                      {school.schoolCode}
-                    </span>
-                    {school.hasPIN !== undefined && (
-                      <p
-                        className={`text-xs mt-1 ${school.hasPIN ? "text-success" : "text-error"}`}
-                      >
-                        {school.hasPIN ? "✓ PIN Active" : "✗ No PIN"}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        );
+        items = filteredSchools;
+        emptyMessage = "No schools found";
+        break;
       case "teachers":
-        return filteredTeachers.length === 0 ? (
-          <p className="text-center text-text-tertiary py-8">
-            No teachers found
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {filteredTeachers.map((teacher) => (
-              <div
-                key={teacher.id}
-                className="bg-surface rounded-md p-4 border border-border"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-semibold text-text-primary">
-                      {teacher.name}
-                    </p>
-                    <p className="text-sm text-text-secondary">
-                      {teacher.email}
-                    </p>
-                    {teacher.phone && (
-                      <p className="text-sm text-text-secondary">
-                        {teacher.phone}
-                      </p>
-                    )}
-                    <p className="text-xs text-text-tertiary mt-1">
-                      School: {teacher.schoolName}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-xs bg-success-light text-success px-2 py-1 rounded-full font-mono">
-                      {teacher.schoolCode}
-                    </span>
-                    <p className="text-xs text-text-tertiary mt-1">
-                      Joined: {new Date(teacher.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        );
+        items = filteredTeachers;
+        emptyMessage = "No teachers found";
+        break;
       case "students":
-        return filteredStudents.length === 0 ? (
-          <p className="text-center text-text-tertiary py-8">
-            No students found
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {filteredStudents.map((student) => (
-              <div
-                key={student.id}
-                className="bg-surface rounded-md p-4 border border-border"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-semibold text-text-primary">
-                      {student.email || "No email"}
-                    </p>
-                    {student.phone && (
-                      <p className="text-sm text-text-secondary">
-                        {student.phone}
-                      </p>
-                    )}
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs text-text-tertiary">
-                      Joined: {new Date(student.createdAt).toLocaleDateString()}
-                    </p>
-                    {student.lastSignIn && (
-                      <p className="text-xs text-text-tertiary">
-                        Last login:{" "}
-                        {new Date(student.lastSignIn).toLocaleDateString()}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        );
+        items = filteredStudents;
+        emptyMessage = "No students found";
+        break;
       case "activePINs":
-        return filteredActivePINs.length === 0 ? (
-          <p className="text-center text-text-tertiary py-8">
-            No schools with active PINs
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {filteredActivePINs.map((school) => (
-              <div
-                key={school.schoolId}
-                className="bg-surface rounded-md p-4 border border-border"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-semibold text-text-primary">
-                      {school.schoolName}
-                    </p>
-                    <p className="text-sm text-text-secondary">
-                      {school.districtName}
-                    </p>
-                  </div>
-                  <span className="text-xs bg-primary-light text-primary px-2 py-1 rounded-full font-mono">
-                    {school.schoolCode}
-                  </span>
-                </div>
-                {school.lastRotatedAt && (
-                  <p className="text-xs text-text-tertiary mt-2">
-                    Last rotated:{" "}
-                    {new Date(school.lastRotatedAt).toLocaleString()}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
-        );
+        items = filteredActivePINs;
+        emptyMessage = "No schools with active PINs";
+        break;
       case "inactivePINs":
-        return filteredInactivePINs.length === 0 ? (
-          <p className="text-center text-text-tertiary py-8">
-            All schools have active PINs
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {filteredInactivePINs.map((school) => (
-              <div
-                key={school.id}
-                className="bg-surface rounded-md p-4 border border-border"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-semibold text-text-primary">
-                      {school.schoolName}
-                    </p>
-                    <p className="text-sm text-text-secondary">
-                      {school.district}
-                    </p>
-                  </div>
-                  <span className="text-xs bg-border-light text-text-secondary px-2 py-1 rounded-full font-mono">
-                    {school.schoolCode}
-                  </span>
-                </div>
-                <p className="text-xs text-error mt-2">No PIN configured</p>
-              </div>
-            ))}
-          </div>
-        );
-      default:
-        return (
-          <p className="text-center text-text-tertiary py-8">No content</p>
-        );
+        items = filteredInactivePINs;
+        emptyMessage = "All schools have active PINs";
+        break;
     }
+
+    return items.length === 0 ? (
+      <p className="text-center text-text-tertiary py-8">{emptyMessage}</p>
+    ) : (
+      <div className="space-y-3">
+        {items.map((item) => (
+          <ListItemCard
+            key={item.id || item.schoolId}
+            item={item}
+            modalType={activeModal}
+          />
+        ))}
+      </div>
+    );
   }
 
   // Filter functions
@@ -539,48 +376,17 @@ export function DashboardMetrics() {
         })}
       </div>
 
-      {/* Universal Modal */}
-      {activeModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[85vh] overflow-hidden">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-border bg-surface">
-              <h2 className="text-xl font-bold text-text-primary">
-                {getModalTitle()}
-              </h2>
-              <button
-                onClick={closeModal}
-                className="text-text-tertiary hover:text-text-primary transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            {/* Search Bar */}
-            <div className="p-4 border-b border-border">
-              <Input
-                type="text"
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full"
-              />
-            </div>
-
-            {/* Modal Content */}
-            <div className="p-6 overflow-y-auto max-h-[55vh]">
-              {renderModalContent()}
-            </div>
-
-            {/* Modal Footer */}
-            <div className="p-4 border-t border-border bg-surface">
-              <Button onClick={closeModal} className="w-full" variant="outline">
-                Close
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Data Display Modal (refactored to use reusable DataModal component) */}
+      <DataModal
+        isOpen={activeModal !== null}
+        title={getModalTitle()}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onClose={closeModal}
+        isLoading={modalLoading}
+      >
+        {renderModalContent()}
+      </DataModal>
     </>
   );
 }
