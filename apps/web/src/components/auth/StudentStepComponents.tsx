@@ -5,25 +5,11 @@
 
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { validatePassword } from "@/lib/validation-utils";
 import type { UseAuthStateReturn } from "@/hooks/useAuthState";
 import type { UseOTPInputReturn } from "@/hooks/useOTPInput";
 import type { UsePhoneInputReturn } from "@/hooks/usePhoneInput";
-import {
-  PHONE_DIGIT_LENGTH,
-  OTP_LENGTH,
-  PIN_LENGTH,
-  CLASS_CODE_LENGTH,
-} from "@/lib/auth-constants";
-import {
-  sanitizePIN,
-  sanitizeClassCode,
-  sanitizeProfilePhone,
-} from "@/lib/validation-utils";
 
 interface StepComponentProps {
   loading: boolean;

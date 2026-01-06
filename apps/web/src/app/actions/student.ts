@@ -2,7 +2,6 @@
 
 import { revalidatePath } from 'next/cache'
 import { timingSafeEqual } from 'crypto'
-import { z } from 'zod'
 import { createClient, getCurrentUser, verifyStudentAuth } from '@/lib/supabase-server'
 import { authLogger } from '@/lib/auth-logger'
 import { checkRateLimit, checkStudentMutationRateLimit } from '@/lib/rate-limiter-distributed'

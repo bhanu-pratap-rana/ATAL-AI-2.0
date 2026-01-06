@@ -314,7 +314,7 @@ class RedisRateLimiter implements IRateLimiter {
       )
 
       return result === 1
-    } catch (error) {
+    } catch (_error) {
       // If Lua script fails (e.g., Redis version < 2.6), fallback to non-atomic approach
       // This is acceptable as it degrades gracefully
       try {
@@ -377,7 +377,7 @@ class RedisRateLimiter implements IRateLimiter {
 
       const entry: RateLimitEntry = JSON.parse(data)
       return Math.floor(entry.tokens)
-    } catch (error) {
+    } catch (_error) {
       // Mark Redis as unavailable and use fallback
       this.redisAvailable = false
       return this.fallbackLimiter.getRemaining(key)
@@ -395,7 +395,7 @@ class RedisRateLimiter implements IRateLimiter {
 
     try {
       await this.redisClient.del(redisKey)
-    } catch (error) {
+    } catch (_error) {
       // Mark Redis as unavailable
       this.redisAvailable = false
     }
@@ -415,7 +415,7 @@ class RedisRateLimiter implements IRateLimiter {
       if (keys.length > 0) {
         await this.redisClient.del(...keys)
       }
-    } catch (error) {
+    } catch (_error) {
       // Mark Redis as unavailable
       this.redisAvailable = false
     }
@@ -431,7 +431,7 @@ class RedisRateLimiter implements IRateLimiter {
       const pattern = `${this.prefix}*`
       const keys = await this.redisClient.keys(pattern)
       return keys.length
-    } catch (error) {
+    } catch (_error) {
       // Mark Redis as unavailable and use fallback
       this.redisAvailable = false
       return this.fallbackLimiter.getSize()
@@ -450,7 +450,7 @@ class RedisRateLimiter implements IRateLimiter {
       const data = await this.redisClient.get(redisKey)
       if (!data) return null
       return JSON.parse(data)
-    } catch (error) {
+    } catch (_error) {
       // Mark Redis as unavailable and use fallback
       this.redisAvailable = false
       return this.fallbackLimiter.getStatus(key)
