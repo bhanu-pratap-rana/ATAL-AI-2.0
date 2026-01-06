@@ -36,7 +36,8 @@ export async function createClass(name: string, subject?: string) {
     }
 
     // SECURITY: Rate limit teacher mutations to prevent abuse
-    if (!(await checkTeacherMutationRateLimit(auth.user.id))) {
+    const rateLimitAllowed = await checkTeacherMutationRateLimit(auth.user.id)
+    if (!rateLimitAllowed) {
       return { success: false, error: 'Too many requests. Please try again later.' }
     }
 
@@ -84,7 +85,8 @@ export async function updateClass(classId: string, name: string, subject?: strin
     }
 
     // SECURITY: Rate limit teacher mutations to prevent abuse
-    if (!(await checkTeacherMutationRateLimit(auth.user.id))) {
+    const rateLimitAllowed = await checkTeacherMutationRateLimit(auth.user.id)
+    if (!rateLimitAllowed) {
       return { success: false, error: 'Too many requests. Please try again later.' }
     }
 
