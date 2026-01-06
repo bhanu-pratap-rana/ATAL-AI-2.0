@@ -42,8 +42,10 @@ export function CreateClassDialog() {
         });
         toast.success("Class created successfully!");
         // Don't close dialog yet - show codes first
-      } else {
+      } else if ("error" in result) {
         toast.error(result.error || "Failed to create class");
+      } else {
+        toast.error("Failed to create class");
       }
     } catch {
       toast.error("An unexpected error occurred");

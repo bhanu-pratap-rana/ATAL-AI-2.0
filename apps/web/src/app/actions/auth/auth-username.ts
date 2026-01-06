@@ -8,6 +8,7 @@ import {
 } from "@/lib/rate-limiter-distributed";
 import { UsernameSchema, AuthPasswordSchema } from "@/lib/validation-schemas";
 import { authLogger } from "@/lib/auth-logger";
+import { validateWithSchema } from "./auth-common";
 
 /**
  * Username-based authentication
