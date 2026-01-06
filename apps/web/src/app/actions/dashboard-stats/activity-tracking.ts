@@ -61,7 +61,9 @@ async function getAssessmentActivities(
     return [];
   }
 
-  const sessionIds = sessions.map((s: { id: string; started_at?: string; submitted_at?: string }) => s.id);
+  const sessionIds = sessions.map(
+    (s: { id: string; started_at?: string; submitted_at?: string }) => s.id,
+  );
   const { data: allResponses, error: responseError } = await supabase
     .from("assessment_responses")
     .select("session_id, is_correct")
