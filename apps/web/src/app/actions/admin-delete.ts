@@ -53,7 +53,8 @@ export async function deleteUserByEmail(email: string): Promise<DeleteUserResult
     }
 
     // SECURITY: Rate limit admin operations to prevent abuse
-    if (!(await checkAdminOperationRateLimit(auth.user.id))) {
+    const deleteAllowed = await checkAdminOperationRateLimit(auth.user.id)
+    if (!deleteAllowed) {
       authLogger.warn('[deleteUserByEmail] Rate limit exceeded', { userId: auth.user.id })
       return { success: false, error: 'Too many requests. Please try again later.' }
     }

@@ -197,9 +197,10 @@ export function buildSystemPrompt(params: {
   let prompt = getSocraticPrompt(params.language);
 
   // Replace placeholders
-  prompt = prompt.replace(PLACEHOLDERS.context, params.context || 'No specific context provided.');
-  prompt = prompt.replace(PLACEHOLDERS.learningStyle, params.learningStyle);
-  prompt = prompt.replace(PLACEHOLDERS.showImages, String(params.showImages));
+  prompt = prompt
+    .replaceAll(PLACEHOLDERS.context, params.context || 'No specific context provided.')
+    .replaceAll(PLACEHOLDERS.learningStyle, params.learningStyle)
+    .replaceAll(PLACEHOLDERS.showImages, String(params.showImages));
 
   if (params.topic) {
     prompt += `\n\n## Current Topic: ${params.topic}`;

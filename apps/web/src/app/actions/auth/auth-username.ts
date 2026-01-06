@@ -84,7 +84,8 @@ export async function registerWithUsername(
     const trimmedUsername = usernameResult.data
 
     // Rate limit check
-    if (!(await checkOtpRateLimit(`username:${trimmedUsername}`))) {
+    const registerAllowed = await checkOtpRateLimit(`username:${trimmedUsername}`)
+    if (!registerAllowed) {
       authLogger.warn('[registerWithUsername] Rate limit exceeded', { username: trimmedUsername })
       return {
         success: false,
@@ -212,7 +213,8 @@ export async function signInWithUsername(
     }
 
     // Rate limit check
-    if (!(await checkOtpRateLimit(`signin:${trimmedUsername}`))) {
+    const signinAllowed = await checkOtpRateLimit(`signin:${trimmedUsername}`)
+    if (!signinAllowed) {
       authLogger.warn('[signInWithUsername] Rate limit exceeded', { username: trimmedUsername })
       return {
         success: false,

@@ -680,8 +680,8 @@ export async function getAllTeachers(): Promise<{
         // Validate required fields exist
         // INNER JOIN guarantees schools is not empty, but check first element
         if (!profile || typeof profile !== 'object') return false
-        if (!('user_id' in profile) || typeof profile.user_id !== 'string') return false
-        if (!('schools' in profile) || !Array.isArray(profile.schools)) return false
+        if (typeof profile.user_id !== 'string') return false
+        if (!Array.isArray(profile.schools)) return false
         if (profile.schools.length === 0 || !profile.schools[0]?.school_name) {
           authLogger.warn('[getAllTeachers] Skipping profile with missing school data', {
             userId: profile.user_id,
