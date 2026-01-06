@@ -192,7 +192,7 @@ export function selectNextItem(
   itemPool: IRTItem[],
   answeredIds: Set<string>,
   answeredByCategory: Record<string, number>,
-  questionIndex: number,
+  _questionIndex: number,
 ): IRTItem | null {
   // Filter out already answered items
   const remainingItems = itemPool.filter(item => !answeredIds.has(item.id))
