@@ -6,7 +6,11 @@ import { Label } from "@/components/ui/label";
 import { PhoneInputWithPrefix } from "@/components/auth/PhoneInputWithPrefix";
 import { validatePhone } from "@/lib/validation-utils";
 import { requestOtp } from "@/app/actions/auth";
-import { BaseFormComponentProps, useFormSubmission, FORM_TOAST_MESSAGES } from "@/lib/form-component-utils";
+import {
+  BaseFormComponentProps,
+  useFormSubmission,
+  FORM_TOAST_MESSAGES,
+} from "@/lib/form-component-utils";
 
 /**
  * PhoneOTPForm - Reusable phone OTP send form
@@ -51,7 +55,7 @@ export function PhoneOTPForm({
     },
     onErrorChange,
     "[PhoneOTPForm]",
-    () => onOtpSent()
+    () => onOtpSent(),
   );
 
   return (

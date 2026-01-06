@@ -1,18 +1,27 @@
-'use server'
+"use server";
 
-import { z } from 'zod'
-import { createAdminClient, verifySuperAdminAuth, verifyAdminAuth, getCurrentUser } from '@/lib/supabase-server'
-import { authLogger } from '@/lib/auth-logger'
-import { RATE_LIMITS } from '@/lib/constants/rate-limits'
-import { checkRateLimit as checkDistributedRateLimit } from '@/lib/rate-limiter-distributed'
-import { isSuperAdmin, isAdmin } from '@/lib/auth/role-utils'
-import { AdminEmailSchema, AdminPasswordSchema, UserIdSchema } from '@/lib/validation-schemas'
-import type { SupabaseAuthUser } from '@/lib/admin-utils'
-import { validateSupabaseAuthUsers } from '@/lib/validation/rpc-schemas'
-import { handleZodError } from '@/lib/action-error-handler'
+import { z } from "zod";
+import {
+  createAdminClient,
+  verifySuperAdminAuth,
+  verifyAdminAuth,
+  getCurrentUser,
+} from "@/lib/supabase-server";
+import { authLogger } from "@/lib/auth-logger";
+import { RATE_LIMITS } from "@/lib/constants/rate-limits";
+import { checkRateLimit as checkDistributedRateLimit } from "@/lib/rate-limiter-distributed";
+import { isSuperAdmin, isAdmin } from "@/lib/auth/role-utils";
+import {
+  AdminEmailSchema,
+  AdminPasswordSchema,
+  UserIdSchema,
+} from "@/lib/validation-schemas";
+import type { SupabaseAuthUser } from "@/lib/admin-utils";
+import { validateSupabaseAuthUsers } from "@/lib/validation/rpc-schemas";
+import { handleZodError } from "@/lib/action-error-handler";
 
 // Use centralized rate limit config for admin operations
-const ADMIN_RATE_LIMIT = RATE_LIMITS.adminOperations
+const ADMIN_RATE_LIMIT = RATE_LIMITS.adminOperations;
 
 /**
  * Validate input using Zod schema and return AdminActionResult on error
@@ -23,32 +32,32 @@ function validateAdminInput<T>(
   data: unknown,
 ): { valid: true; data: T } | { valid: false; error: AdminActionResult } {
   try {
-    return { valid: true, data: schema.parse(data) }
+    return { valid: true, data: schema.parse(data) };
   } catch (error) {
-    const zodError = handleZodError(error) as any
+    const zodError = handleZodError(error) as any;
     return {
       valid: false,
       error: {
         success: false,
-        error: zodError.error || 'Invalid input',
+        error: zodError.error || "Invalid input",
       },
-    }
+    };
   }
 }
 
 export interface AdminUser {
-  id: string
-  email: string
-  role: 'super_admin' | 'admin'
-  created_at: unknown
-  last_sign_in_at?: unknown
+  id: string;
+  email: string;
+  role: "super_admin" | "admin";
+  created_at: unknown;
+  last_sign_in_at?: unknown;
 }
 
 export interface AdminActionResult {
-  success: boolean
-  message?: string
-  error?: string
-  data?: unknown
+  success: boolean;
+  message?: string;
+  error?: string;
+  data?: unknown;
 }
 
 /**
@@ -56,54 +65,56 @@ export interface AdminActionResult {
  * Supabase admin API has 1000 user limit per request, so we need to paginate
  * @internal
  */
-async function fetchAllAdminUsers(adminClient: Awaited<ReturnType<typeof createAdminClient>>) {
-  const allUsers: SupabaseAuthUser[] = []
-  let page = 1
-  const perPage = 1000
+async function fetchAllAdminUsers(
+  adminClient: Awaited<ReturnType<typeof createAdminClient>>,
+) {
+  const allUsers: SupabaseAuthUser[] = [];
+  let page = 1;
+  const perPage = 1000;
 
   try {
     while (true) {
       const { data, error } = await adminClient.auth.admin.listUsers({
         perPage,
         page,
-      })
+      });
 
       if (error) {
-        authLogger.error('[fetchAllAdminUsers] Error fetching users page', {
+        authLogger.error("[fetchAllAdminUsers] Error fetching users page", {
           page,
           error: error.message,
-        })
-        break
+        });
+        break;
       }
 
       if (!data?.users || data.users.length === 0) {
-        break
+        break;
       }
 
       // Validate and type-check users from Supabase admin API
       try {
-        const validatedUsers = validateSupabaseAuthUsers(data.users)
-        allUsers.push(...validatedUsers)
+        const validatedUsers = validateSupabaseAuthUsers(data.users);
+        allUsers.push(...validatedUsers);
       } catch (error) {
-        authLogger.error('[fetchAllAuthUsers] Failed to validate users', {
+        authLogger.error("[fetchAllAuthUsers] Failed to validate users", {
           error: error instanceof Error ? error.message : String(error),
-        })
+        });
         // Continue with next page instead of failing completely
-        break
+        break;
       }
 
       // If we got fewer users than requested, we've reached the end
       if (data.users.length < perPage) {
-        break
+        break;
       }
 
-      page++
+      page++;
     }
 
-    return allUsers
+    return allUsers;
   } catch (error) {
-    authLogger.error('[fetchAllAdminUsers] Unexpected error', error)
-    return allUsers // Return what we got so far
+    authLogger.error("[fetchAllAdminUsers] Unexpected error", error);
+    return allUsers; // Return what we got so far
   }
 }
 
@@ -116,16 +127,19 @@ async function fetchAllAdminUsers(adminClient: Awaited<ReturnType<typeof createA
  */
 export async function isCurrentUserSuperAdmin(): Promise<boolean> {
   try {
-    const currentUser = await getCurrentUser()
+    const currentUser = await getCurrentUser();
     if (!currentUser) {
-      return false
+      return false;
     }
 
-    const role = currentUser.app_metadata?.role as string | null | undefined
-    return isSuperAdmin(role)
+    const role = currentUser.app_metadata?.role as string | null | undefined;
+    return isSuperAdmin(role);
   } catch (error) {
-    authLogger.error('[isCurrentUserSuperAdmin] Error checking super admin status', error)
-    return false
+    authLogger.error(
+      "[isCurrentUserSuperAdmin] Error checking super admin status",
+      error,
+    );
+    return false;
   }
 }
 
@@ -136,21 +150,23 @@ export async function isCurrentUserSuperAdmin(): Promise<boolean> {
  * @internal Reserved for future role-based UI rendering
  * @returns 'super_admin', 'admin', or null if not an admin
  */
-export async function getCurrentAdminRole(): Promise<'super_admin' | 'admin' | null> {
+export async function getCurrentAdminRole(): Promise<
+  "super_admin" | "admin" | null
+> {
   try {
-    const currentUser = await getCurrentUser()
+    const currentUser = await getCurrentUser();
     if (!currentUser) {
-      return null
+      return null;
     }
 
-    const role = currentUser.app_metadata?.role as string | null | undefined
+    const role = currentUser.app_metadata?.role as string | null | undefined;
     if (isAdmin(role)) {
-      return role as 'admin' | 'super_admin'
+      return role as "admin" | "super_admin";
     }
-    return null
+    return null;
   } catch (error) {
-    authLogger.error('[getCurrentAdminRole] Error getting admin role', error)
-    return null
+    authLogger.error("[getCurrentAdminRole] Error getting admin role", error);
+    return null;
   }
 }
 
@@ -159,27 +175,39 @@ export async function getCurrentAdminRole(): Promise<'super_admin' | 'admin' | n
  */
 async function canPromoteToAdmin(
   adminClient: Awaited<ReturnType<typeof createAdminClient>>,
-  userId: string
+  userId: string,
 ): Promise<{ canPromote: true } | { canPromote: false; error: string }> {
   const [studentProfileResult, teacherProfileResult] = await Promise.all([
-    adminClient.from('student_profiles').select('user_id').eq('user_id', userId).maybeSingle(),
-    adminClient.from('teacher_profiles').select('user_id').eq('user_id', userId).maybeSingle(),
-  ])
+    adminClient
+      .from("student_profiles")
+      .select("user_id")
+      .eq("user_id", userId)
+      .maybeSingle(),
+    adminClient
+      .from("teacher_profiles")
+      .select("user_id")
+      .eq("user_id", userId)
+      .maybeSingle(),
+  ]);
 
-  const studentProfile = studentProfileResult.data
-  const teacherProfile = teacherProfileResult.data
+  const studentProfile = studentProfileResult.data;
+  const teacherProfile = teacherProfileResult.data;
 
   if (studentProfile && !teacherProfile) {
-    authLogger.warn('[createAdminAccount] Blocked: Cannot promote student to admin', {
-      userId,
-    })
+    authLogger.warn(
+      "[createAdminAccount] Blocked: Cannot promote student to admin",
+      {
+        userId,
+      },
+    );
     return {
       canPromote: false,
-      error: 'This email is registered as a student account. Only teachers can be promoted to admin.',
-    }
+      error:
+        "This email is registered as a student account. Only teachers can be promoted to admin.",
+    };
   }
 
-  return { canPromote: true }
+  return { canPromote: true };
 }
 
 /**
@@ -189,59 +217,71 @@ async function promoteExistingUserToAdmin(
   adminClient: Awaited<ReturnType<typeof createAdminClient>>,
   userId: string,
   email: string,
-  role: 'admin' | 'super_admin',
-  currentRole: string | undefined
+  role: "admin" | "super_admin",
+  currentRole: string | undefined,
 ): Promise<AdminActionResult> {
-  const { data, error: recheckError } = await adminClient.auth.admin.getUserById(userId)
-  const recheck = data?.user
+  const { data, error: recheckError } =
+    await adminClient.auth.admin.getUserById(userId);
+  const recheck = data?.user;
 
   if (recheckError || !recheck) {
-    authLogger.warn('[createAdminAccount] User disappeared during operation', { userId })
+    authLogger.warn("[createAdminAccount] User disappeared during operation", {
+      userId,
+    });
     return {
       success: false,
-      error: 'User no longer exists. Please try again.',
-    }
+      error: "User no longer exists. Please try again.",
+    };
   }
 
-  const recheckRole = recheck.app_metadata?.role as string
-  if (recheckRole === 'admin' || recheckRole === 'super_admin') {
-    authLogger.warn('[createAdminAccount] User already promoted by concurrent request', {
-      email,
-      userId,
-      role: recheckRole,
-    })
+  const recheckRole = recheck.app_metadata?.role as string;
+  if (recheckRole === "admin" || recheckRole === "super_admin") {
+    authLogger.warn(
+      "[createAdminAccount] User already promoted by concurrent request",
+      {
+        email,
+        userId,
+        role: recheckRole,
+      },
+    );
     return {
       success: true,
-      message: `${email} is already an ${recheckRole === 'super_admin' ? 'Super Admin' : 'Admin'}`,
+      message: `${email} is already an ${recheckRole === "super_admin" ? "Super Admin" : "Admin"}`,
       data: { userId, promoted: false },
-    }
+    };
   }
 
-  const { error: updateError } = await adminClient.auth.admin.updateUserById(userId, {
-    app_metadata: {
-      ...recheck.app_metadata,
-      role: role,
+  const { error: updateError } = await adminClient.auth.admin.updateUserById(
+    userId,
+    {
+      app_metadata: {
+        ...recheck.app_metadata,
+        role: role,
+      },
     },
-  })
+  );
 
   if (updateError) {
-    authLogger.error('[createAdminAccount] Failed to promote user to admin', updateError)
+    authLogger.error(
+      "[createAdminAccount] Failed to promote user to admin",
+      updateError,
+    );
     return {
       success: false,
-      error: 'Failed to promote user to admin',
-    }
+      error: "Failed to promote user to admin",
+    };
   }
 
-  authLogger.success('[createAdminAccount] User promoted to admin', {
+  authLogger.success("[createAdminAccount] User promoted to admin", {
     email,
     role,
-    previousRole: currentRole || 'user',
-  })
+    previousRole: currentRole || "user",
+  });
   return {
     success: true,
-    message: `${email} has been promoted to ${role === 'super_admin' ? 'Super Admin' : 'Admin'}`,
+    message: `${email} has been promoted to ${role === "super_admin" ? "Super Admin" : "Admin"}`,
     data: { userId, promoted: true },
-  }
+  };
 }
 
 /**
@@ -251,59 +291,75 @@ async function createNewAdminUser(
   adminClient: Awaited<ReturnType<typeof createAdminClient>>,
   email: string,
   password: string,
-  role: 'admin' | 'super_admin'
+  role: "admin" | "super_admin",
 ): Promise<AdminActionResult> {
   const { data, error: createError } = await adminClient.auth.admin.createUser({
     email,
     password,
     email_confirm: true,
-  })
+  });
 
   if (createError || !data.user) {
-    authLogger.error('[createAdminAccount] Failed to create user', createError)
+    authLogger.error("[createAdminAccount] Failed to create user", createError);
     return {
       success: false,
-      error: createError?.message || 'Failed to create user account',
-    }
+      error: createError?.message || "Failed to create user account",
+    };
   }
 
-  const newUserId = data.user.id
+  const newUserId = data.user.id;
 
-  const { error: updateError } = await adminClient.auth.admin.updateUserById(newUserId, {
-    app_metadata: {
-      role: role,
+  const { error: updateError } = await adminClient.auth.admin.updateUserById(
+    newUserId,
+    {
+      app_metadata: {
+        role: role,
+      },
     },
-  })
+  );
 
   if (updateError) {
-    authLogger.error('[createAdminAccount] Failed to set admin role, initiating rollback', updateError)
+    authLogger.error(
+      "[createAdminAccount] Failed to set admin role, initiating rollback",
+      updateError,
+    );
 
-    const { error: deleteError } = await adminClient.auth.admin.deleteUser(newUserId)
+    const { error: deleteError } =
+      await adminClient.auth.admin.deleteUser(newUserId);
     if (deleteError) {
-      authLogger.error('[createAdminAccount] CRITICAL: Rollback failed, orphaned user created', {
-        userId: newUserId,
-        email,
-        deleteError: deleteError.message,
-      })
+      authLogger.error(
+        "[createAdminAccount] CRITICAL: Rollback failed, orphaned user created",
+        {
+          userId: newUserId,
+          email,
+          deleteError: deleteError.message,
+        },
+      );
       return {
         success: false,
-        error: 'Failed to configure admin account and rollback failed. Manual intervention required.',
-      }
+        error:
+          "Failed to configure admin account and rollback failed. Manual intervention required.",
+      };
     }
 
-    authLogger.warn('[createAdminAccount] Rollback successful, user deleted', { userId: newUserId })
+    authLogger.warn("[createAdminAccount] Rollback successful, user deleted", {
+      userId: newUserId,
+    });
     return {
       success: false,
-      error: 'Failed to set admin role. Account creation rolled back.',
-    }
+      error: "Failed to set admin role. Account creation rolled back.",
+    };
   }
 
-  authLogger.success('[createAdminAccount] Admin account created', { email, role })
+  authLogger.success("[createAdminAccount] Admin account created", {
+    email,
+    role,
+  });
   return {
     success: true,
     message: `Admin account created for ${email}`,
     data: { userId: newUserId },
-  }
+  };
 }
 
 /**
@@ -314,53 +370,64 @@ async function createNewAdminUser(
 export async function createAdminAccount(
   email: string,
   password: string,
-  role: 'admin' | 'super_admin' = 'admin'
+  role: "admin" | "super_admin" = "admin",
 ): Promise<AdminActionResult> {
   try {
-    const emailValidation = validateAdminInput(AdminEmailSchema, email)
+    const emailValidation = validateAdminInput(AdminEmailSchema, email);
     if (!emailValidation.valid) {
-      return emailValidation.error
+      return emailValidation.error;
     }
-    const normalizedEmail = emailValidation.data
+    const normalizedEmail = emailValidation.data;
 
-    const passwordValidation = validateAdminInput(AdminPasswordSchema, password)
+    const passwordValidation = validateAdminInput(
+      AdminPasswordSchema,
+      password,
+    );
     if (!passwordValidation.valid) {
-      return passwordValidation.error
+      return passwordValidation.error;
     }
 
-    const auth = await verifySuperAdminAuth('createAdminAccount')
+    const auth = await verifySuperAdminAuth("createAdminAccount");
     if (!auth.authorized) {
-      return auth.error
+      return auth.error;
     }
 
-    const rateLimitKey = `admin:create:${normalizedEmail}`
-    const isAllowed = await checkDistributedRateLimit(rateLimitKey, ADMIN_RATE_LIMIT)
+    const rateLimitKey = `admin:create:${normalizedEmail}`;
+    const isAllowed = await checkDistributedRateLimit(
+      rateLimitKey,
+      ADMIN_RATE_LIMIT,
+    );
     if (!isAllowed) {
       return {
         success: false,
-        error: 'Too many requests. Please try again later.',
-      }
+        error: "Too many requests. Please try again later.",
+      };
     }
 
-    const adminClient = await createAdminClient()
-    const allUsers = await fetchAllAdminUsers(adminClient)
-    const existingUser = allUsers.find((u) => u.email?.toLowerCase() === normalizedEmail)
+    const adminClient = await createAdminClient();
+    const allUsers = await fetchAllAdminUsers(adminClient);
+    const existingUser = allUsers.find(
+      (u) => u.email?.toLowerCase() === normalizedEmail,
+    );
 
     if (existingUser) {
-      const currentRole = existingUser.app_metadata?.role as string
-      if (currentRole === 'admin' || currentRole === 'super_admin') {
+      const currentRole = existingUser.app_metadata?.role as string;
+      if (currentRole === "admin" || currentRole === "super_admin") {
         return {
           success: false,
-          error: `User ${email} is already an ${currentRole === 'super_admin' ? 'Super Admin' : 'Admin'}`,
-        }
+          error: `User ${email} is already an ${currentRole === "super_admin" ? "Super Admin" : "Admin"}`,
+        };
       }
 
-      const promotionCheck = await canPromoteToAdmin(adminClient, existingUser.id)
+      const promotionCheck = await canPromoteToAdmin(
+        adminClient,
+        existingUser.id,
+      );
       if (!promotionCheck.canPromote) {
         return {
           success: false,
           error: promotionCheck.error,
-        }
+        };
       }
 
       return await promoteExistingUserToAdmin(
@@ -368,17 +435,22 @@ export async function createAdminAccount(
         existingUser.id,
         email,
         role,
-        currentRole
-      )
+        currentRole,
+      );
     }
 
-    return await createNewAdminUser(adminClient, normalizedEmail, password, role)
+    return await createNewAdminUser(
+      adminClient,
+      normalizedEmail,
+      password,
+      role,
+    );
   } catch (error) {
-    authLogger.error('[createAdminAccount] Unexpected error', error)
+    authLogger.error("[createAdminAccount] Unexpected error", error);
     return {
       success: false,
-      error: 'An unexpected error occurred',
-    }
+      error: "An unexpected error occurred",
+    };
   }
 }
 
@@ -389,46 +461,48 @@ export async function createAdminAccount(
 export async function listAdminAccounts(): Promise<AdminActionResult> {
   try {
     // SECURITY: Verify caller is authenticated and authorized as super_admin
-    const auth = await verifySuperAdminAuth('listAdminAccounts')
+    const auth = await verifySuperAdminAuth("listAdminAccounts");
     if (!auth.authorized) {
-      return auth.error
+      return auth.error;
     }
 
-    const adminClient = await createAdminClient()
+    const adminClient = await createAdminClient();
     // List all users with full pagination support
-    const allUsers = await fetchAllAdminUsers(adminClient)
+    const allUsers = await fetchAllAdminUsers(adminClient);
 
     if (!allUsers || allUsers.length === 0) {
       return {
         success: true,
         data: [],
-      }
+      };
     }
 
     // Filter for admins only
     const admins: AdminUser[] = allUsers
       .filter((user) => {
-        const role = user.app_metadata?.role as string | null | undefined
-        return isAdmin(role)
+        const role = user.app_metadata?.role as string | null | undefined;
+        return isAdmin(role);
       })
       .map((user) => ({
         id: user.id,
-        email: user.email || '',
-        role: ((user.app_metadata?.role as string) || 'admin') as 'admin' | 'super_admin',
+        email: user.email || "",
+        role: ((user.app_metadata?.role as string) || "admin") as
+          | "admin"
+          | "super_admin",
         created_at: user.created_at,
         last_sign_in_at: user.last_sign_in_at,
-      }))
+      }));
 
     return {
       success: true,
       data: admins,
-    }
+    };
   } catch (error) {
-    authLogger.error('[listAdminAccounts] Unexpected error', error)
+    authLogger.error("[listAdminAccounts] Unexpected error", error);
     return {
       success: false,
-      error: 'An unexpected error occurred',
-    }
+      error: "An unexpected error occurred",
+    };
   }
 }
 
@@ -436,86 +510,100 @@ export async function listAdminAccounts(): Promise<AdminActionResult> {
  * Delete an admin account
  * SECURITY: Only super_admin can delete, cannot delete themselves or other super admins
  */
-export async function deleteAdminAccount(adminId: string): Promise<AdminActionResult> {
+export async function deleteAdminAccount(
+  adminId: string,
+): Promise<AdminActionResult> {
   try {
     // Validate input
-    const idValidation = validateAdminInput(UserIdSchema, adminId)
+    const idValidation = validateAdminInput(UserIdSchema, adminId);
     if (!idValidation.valid) {
-      return idValidation.error
+      return idValidation.error;
     }
-    const validatedId = idValidation.data
+    const validatedId = idValidation.data;
 
     // SECURITY: Verify caller is authenticated and authorized as super_admin
-    const auth = await verifySuperAdminAuth('deleteAdminAccount')
+    const auth = await verifySuperAdminAuth("deleteAdminAccount");
     if (!auth.authorized) {
-      return auth.error
+      return auth.error;
     }
 
     // SECURITY: Prevent self-deletion
     if (validatedId === auth.user.id) {
-      authLogger.warn('[deleteAdminAccount] Forbidden: Cannot delete own account', {
-        userId: auth.user.id,
-      })
+      authLogger.warn(
+        "[deleteAdminAccount] Forbidden: Cannot delete own account",
+        {
+          userId: auth.user.id,
+        },
+      );
       return {
         success: false,
-        error: 'Cannot delete your own account',
-      }
+        error: "Cannot delete your own account",
+      };
     }
 
     // Rate limiting using distributed rate limiter
-    const isAllowed = await checkDistributedRateLimit(`admin:delete:${validatedId}`, ADMIN_RATE_LIMIT)
+    const isAllowed = await checkDistributedRateLimit(
+      `admin:delete:${validatedId}`,
+      ADMIN_RATE_LIMIT,
+    );
     if (!isAllowed) {
       return {
         success: false,
-        error: 'Too many requests. Please try again later.',
-      }
+        error: "Too many requests. Please try again later.",
+      };
     }
 
-    const adminClient = await createAdminClient()
+    const adminClient = await createAdminClient();
 
     // Get the user to check role (with full pagination support for large user bases)
-    const allUsers = await fetchAllAdminUsers(adminClient)
-    const userToDelete = allUsers.find((u) => u.id === validatedId)
+    const allUsers = await fetchAllAdminUsers(adminClient);
+    const userToDelete = allUsers.find((u) => u.id === validatedId);
 
     if (!userToDelete) {
       return {
         success: false,
-        error: 'Admin account not found',
-      }
+        error: "Admin account not found",
+      };
     }
 
-    const role = userToDelete.app_metadata?.role as string | null | undefined
+    const role = userToDelete.app_metadata?.role as string | null | undefined;
 
     // Prevent deletion of super admins
     if (isSuperAdmin(role)) {
       return {
         success: false,
-        error: 'Cannot delete super admin accounts',
-      }
+        error: "Cannot delete super admin accounts",
+      };
     }
 
     // Delete the user
-    const { error: deleteError } = await adminClient.auth.admin.deleteUser(validatedId)
+    const { error: deleteError } =
+      await adminClient.auth.admin.deleteUser(validatedId);
 
     if (deleteError) {
-      authLogger.error('[deleteAdminAccount] Failed to delete user', deleteError)
+      authLogger.error(
+        "[deleteAdminAccount] Failed to delete user",
+        deleteError,
+      );
       return {
         success: false,
-        error: deleteError.message || 'Failed to delete admin account',
-      }
+        error: deleteError.message || "Failed to delete admin account",
+      };
     }
 
-    authLogger.success('[deleteAdminAccount] Admin account deleted', { adminId: validatedId })
+    authLogger.success("[deleteAdminAccount] Admin account deleted", {
+      adminId: validatedId,
+    });
     return {
       success: true,
       message: `Admin account deleted successfully`,
-    }
+    };
   } catch (error) {
-    authLogger.error('[deleteAdminAccount] Unexpected error', error)
+    authLogger.error("[deleteAdminAccount] Unexpected error", error);
     return {
       success: false,
-      error: 'An unexpected error occurred',
-    }
+      error: "An unexpected error occurred",
+    };
   }
 }
 
@@ -523,74 +611,94 @@ export async function deleteAdminAccount(adminId: string): Promise<AdminActionRe
  * Reset admin password
  * SECURITY: Super_admin can reset any admin's password, regular admins only their own
  */
-export async function resetAdminPassword(adminId: string, newPassword: string): Promise<AdminActionResult> {
+export async function resetAdminPassword(
+  adminId: string,
+  newPassword: string,
+): Promise<AdminActionResult> {
   try {
     // Validate inputs using Zod schemas
-    const idValidation = validateAdminInput(UserIdSchema, adminId)
+    const idValidation = validateAdminInput(UserIdSchema, adminId);
     if (!idValidation.valid) {
-      return idValidation.error
+      return idValidation.error;
     }
-    const validatedId = idValidation.data
+    const validatedId = idValidation.data;
 
-    const passwordValidation = validateAdminInput(AdminPasswordSchema, newPassword)
+    const passwordValidation = validateAdminInput(
+      AdminPasswordSchema,
+      newPassword,
+    );
     if (!passwordValidation.valid) {
-      return passwordValidation.error
+      return passwordValidation.error;
     }
 
     // SECURITY: Verify caller is authenticated and is an admin
-    const auth = await verifyAdminAuth('resetAdminPassword')
+    const auth = await verifyAdminAuth("resetAdminPassword");
     if (!auth.authorized) {
-      return auth.error
+      return auth.error;
     }
 
     // Regular admins can only reset their own password
-    const currentRole = auth.user.app_metadata?.role
-    if (currentRole === 'admin' && validatedId !== auth.user.id) {
-      authLogger.warn('[resetAdminPassword] Forbidden: Admin cannot reset other passwords', {
-        userId: auth.user.id,
-        targetId: validatedId,
-      })
+    const currentRole = auth.user.app_metadata?.role;
+    if (currentRole === "admin" && validatedId !== auth.user.id) {
+      authLogger.warn(
+        "[resetAdminPassword] Forbidden: Admin cannot reset other passwords",
+        {
+          userId: auth.user.id,
+          targetId: validatedId,
+        },
+      );
       return {
         success: false,
-        error: 'You can only reset your own password',
-      }
+        error: "You can only reset your own password",
+      };
     }
 
     // Rate limiting using distributed rate limiter
-    const isAllowed = await checkDistributedRateLimit(`admin:reset:${validatedId}`, ADMIN_RATE_LIMIT)
+    const isAllowed = await checkDistributedRateLimit(
+      `admin:reset:${validatedId}`,
+      ADMIN_RATE_LIMIT,
+    );
     if (!isAllowed) {
       return {
         success: false,
-        error: 'Too many password reset attempts. Please try again later.',
-      }
+        error: "Too many password reset attempts. Please try again later.",
+      };
     }
 
-    const adminClient = await createAdminClient()
+    const adminClient = await createAdminClient();
 
     // Update password
-    const { error: updateError } = await adminClient.auth.admin.updateUserById(validatedId, {
-      password: newPassword,
-    })
+    const { error: updateError } = await adminClient.auth.admin.updateUserById(
+      validatedId,
+      {
+        password: newPassword,
+      },
+    );
 
     if (updateError) {
-      authLogger.error('[resetAdminPassword] Failed to reset password', updateError)
+      authLogger.error(
+        "[resetAdminPassword] Failed to reset password",
+        updateError,
+      );
       return {
         success: false,
-        error: updateError.message || 'Failed to reset password',
-      }
+        error: updateError.message || "Failed to reset password",
+      };
     }
 
-    authLogger.success('[resetAdminPassword] Admin password reset', { adminId: validatedId })
+    authLogger.success("[resetAdminPassword] Admin password reset", {
+      adminId: validatedId,
+    });
     return {
       success: true,
-      message: 'Password reset successfully',
-    }
+      message: "Password reset successfully",
+    };
   } catch (error) {
-    authLogger.error('[resetAdminPassword] Unexpected error', error)
+    authLogger.error("[resetAdminPassword] Unexpected error", error);
     return {
       success: false,
-      error: 'An unexpected error occurred',
-    }
+      error: "An unexpected error occurred",
+    };
   }
 }
 
@@ -600,30 +708,35 @@ export async function resetAdminPassword(adminId: string, newPassword: string): 
 export async function isSuperAdminEmail(email: string): Promise<boolean> {
   try {
     // Validate email input
-    const emailValidation = validateAdminInput(AdminEmailSchema, email)
+    const emailValidation = validateAdminInput(AdminEmailSchema, email);
     if (!emailValidation.valid) {
-      return false
+      return false;
     }
-    const normalizedEmail = emailValidation.data
+    const normalizedEmail = emailValidation.data;
 
-    const adminClient = await createAdminClient()
+    const adminClient = await createAdminClient();
     // Fetch all users with proper pagination support for scalability
-    const allUsers = await fetchAllAdminUsers(adminClient)
+    const allUsers = await fetchAllAdminUsers(adminClient);
 
     if (!allUsers || allUsers.length === 0) {
-      return false
+      return false;
     }
 
-    const user = allUsers.find((u) => u.email?.toLowerCase() === normalizedEmail)
+    const user = allUsers.find(
+      (u) => u.email?.toLowerCase() === normalizedEmail,
+    );
     if (!user) {
-      return false
+      return false;
     }
 
-    const role = user.app_metadata?.role as string | null | undefined
-    return isSuperAdmin(role)
+    const role = user.app_metadata?.role as string | null | undefined;
+    return isSuperAdmin(role);
   } catch (error) {
-    authLogger.error('[isSuperAdminEmail] Error checking super admin email', error)
-    return false
+    authLogger.error(
+      "[isSuperAdminEmail] Error checking super admin email",
+      error,
+    );
+    return false;
   }
 }
 
@@ -631,52 +744,54 @@ export async function isSuperAdminEmail(email: string): Promise<boolean> {
  * Get admin details by ID
  * SECURITY: Requires super_admin role
  */
-export async function getAdminById(adminId: string): Promise<AdminActionResult> {
+export async function getAdminById(
+  adminId: string,
+): Promise<AdminActionResult> {
   try {
     // Validate input
-    const idValidation = validateAdminInput(UserIdSchema, adminId)
+    const idValidation = validateAdminInput(UserIdSchema, adminId);
     if (!idValidation.valid) {
-      return idValidation.error
+      return idValidation.error;
     }
-    const validatedId = idValidation.data
+    const validatedId = idValidation.data;
 
     // SECURITY: Verify caller is authenticated and authorized as super_admin
-    const auth = await verifySuperAdminAuth('getAdminById')
+    const auth = await verifySuperAdminAuth("getAdminById");
     if (!auth.authorized) {
-      return auth.error
+      return auth.error;
     }
 
-    const adminClient = await createAdminClient()
+    const adminClient = await createAdminClient();
     // List users with full pagination support for scalability
-    const allUsers = await fetchAllAdminUsers(adminClient)
+    const allUsers = await fetchAllAdminUsers(adminClient);
 
-    const user = allUsers.find((u) => u.id === validatedId)
+    const user = allUsers.find((u) => u.id === validatedId);
     if (!user) {
       return {
         success: false,
-        error: 'Admin not found',
-      }
+        error: "Admin not found",
+      };
     }
 
     const admin: AdminUser = {
       id: user.id,
-      email: user.email || '',
-      role: ((user.app_metadata?.role as string) || 'admin') as 'admin' | 'super_admin',
+      email: user.email || "",
+      role: ((user.app_metadata?.role as string) || "admin") as
+        | "admin"
+        | "super_admin",
       created_at: user.created_at,
       last_sign_in_at: user.last_sign_in_at,
-    }
+    };
 
     return {
       success: true,
       data: admin,
-    }
+    };
   } catch (error) {
-    authLogger.error('[getAdminById] Unexpected error', error)
+    authLogger.error("[getAdminById] Unexpected error", error);
     return {
       success: false,
-      error: 'An unexpected error occurred',
-    }
+      error: "An unexpected error occurred",
+    };
   }
 }
-
-

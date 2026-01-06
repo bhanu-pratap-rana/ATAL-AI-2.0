@@ -4,26 +4,19 @@
  */
 
 // Teacher verification
-export {
-  verifyTeacher
-} from './teacher-verification'
+export { verifyTeacher } from "./teacher-verification";
 
 // School search
-export {
-  searchSchools,
-  getSchoolByCode
-} from './school-search'
+export { searchSchools, getSchoolByCode } from "./school-search";
 
 // Staff PIN management
 export {
   rotateStaffPin,
-  getStaffPinRotationInfo
-} from './staff-pin-management'
+  getStaffPinRotationInfo,
+} from "./staff-pin-management";
 
 // Admin authorization
-export {
-  checkAdminAuth
-} from './admin-auth'
+export { checkAdminAuth } from "./admin-auth";
 
 // Shared utilities and types
 export {
@@ -31,5 +24,5 @@ export {
   handleZodValidationError,
   type SchoolData,
   type VerifyTeacherParams,
-  type VerifyTeacherResult
-} from './school-utils'
+  type VerifyTeacherResult,
+} from "./school-utils";

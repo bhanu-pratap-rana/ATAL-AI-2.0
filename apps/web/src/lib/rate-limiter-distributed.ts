@@ -29,25 +29,25 @@
  * ```
  */
 
-import { authLogger } from './auth-logger';
+import { authLogger } from "./auth-logger";
 
 /**
  * Detect if we're running in test environment
  * Matches test detection in button.tsx for consistency
  */
 function isTestEnvironment(): boolean {
-  if (typeof process === 'undefined') return false
+  if (typeof process === "undefined") return false;
 
   return (
-    process.env.NODE_ENV === 'test' ||
-    process.env.PLAYWRIGHT_TEST === 'true' ||
-    process.env.CI === 'true'
-  )
+    process.env.NODE_ENV === "test" ||
+    process.env.PLAYWRIGHT_TEST === "true" ||
+    process.env.CI === "true"
+  );
 }
 
 interface RateLimitEntry {
-  tokens: number
-  lastRefill: number
+  tokens: number;
+  lastRefill: number;
 }
 
 /**
@@ -55,40 +55,44 @@ interface RateLimitEntry {
  * Defines the minimum required methods for rate limiting operations
  */
 interface RedisClient {
-  get(key: string): Promise<string | null>
-  set(key: string, value: string, options?: { EX?: number; ex?: number }): Promise<void | 'OK'>
-  setex(key: string, seconds: number, value: string): Promise<void | 'OK'>
-  del(...keys: string[]): Promise<number>
-  keys(pattern: string): Promise<string[]>
-  incr(key: string): Promise<number>
-  expire(key: string, seconds: number): Promise<number>
-  ttl(key: string): Promise<number>
-  flushdb(): Promise<void | 'OK'>
+  get(key: string): Promise<string | null>;
+  set(
+    key: string,
+    value: string,
+    options?: { EX?: number; ex?: number },
+  ): Promise<void | "OK">;
+  setex(key: string, seconds: number, value: string): Promise<void | "OK">;
+  del(...keys: string[]): Promise<number>;
+  keys(pattern: string): Promise<string[]>;
+  incr(key: string): Promise<number>;
+  expire(key: string, seconds: number): Promise<number>;
+  ttl(key: string): Promise<number>;
+  flushdb(): Promise<void | "OK">;
 }
 
 interface RateLimitConfig {
-  maxTokens: number // Maximum tokens in bucket
-  refillRate: number // Tokens per second (e.g., 1 token per 600 seconds = 6 per hour)
-  refillInterval: number // Refill check interval in milliseconds
-  ttl?: number // TTL in seconds for Redis keys (default: 3600)
+  maxTokens: number; // Maximum tokens in bucket
+  refillRate: number; // Tokens per second (e.g., 1 token per 600 seconds = 6 per hour)
+  refillInterval: number; // Refill check interval in milliseconds
+  ttl?: number; // TTL in seconds for Redis keys (default: 3600)
 }
 
 interface RateLimitResult {
-  allowed: boolean
-  remaining: number
-  retryAfter?: number // Seconds until next request allowed
+  allowed: boolean;
+  remaining: number;
+  retryAfter?: number; // Seconds until next request allowed
 }
 
 /**
  * Base rate limiter interface for both in-memory and Redis implementations
  */
 interface IRateLimiter {
-  isAllowed(key: string): Promise<boolean>
-  getRemaining(key: string): Promise<number>
-  reset(key: string): Promise<void>
-  clearAll(): Promise<void>
-  getSize(): Promise<number>
-  getStatus(key: string): Promise<RateLimitEntry | null>
+  isAllowed(key: string): Promise<boolean>;
+  getRemaining(key: string): Promise<number>;
+  reset(key: string): Promise<void>;
+  clearAll(): Promise<void>;
+  getSize(): Promise<number>;
+  getStatus(key: string): Promise<RateLimitEntry | null>;
 }
 
 /**
@@ -96,17 +100,17 @@ interface IRateLimiter {
  * WARNING: Not suitable for production with multiple server instances
  */
 class InMemoryRateLimiter implements IRateLimiter {
-  private store: Map<string, RateLimitEntry> = new Map()
-  private config: RateLimitConfig
+  private store: Map<string, RateLimitEntry> = new Map();
+  private config: RateLimitConfig;
   // MEDIUM #5 Fix: TTL-based cleanup for fallback limiter
   // Entries older than TTL are automatically removed to prevent memory leaks
-  private readonly ENTRY_TTL_MS = 24 * 60 * 60 * 1000 // 24 hours
-  private readonly CLEANUP_INTERVAL_MS = 60 * 60 * 1000 // Clean up every hour
-  private cleanupTimer?: NodeJS.Timeout
+  private readonly ENTRY_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+  private readonly CLEANUP_INTERVAL_MS = 60 * 60 * 1000; // Clean up every hour
+  private cleanupTimer?: NodeJS.Timeout;
 
   constructor(config: RateLimitConfig) {
-    this.config = config
-    this.startCleanupTimer()
+    this.config = config;
+    this.startCleanupTimer();
   }
 
   /**
@@ -114,18 +118,18 @@ class InMemoryRateLimiter implements IRateLimiter {
    * Prevents memory accumulation when Redis is unavailable
    */
   private startCleanupTimer(): void {
-    if (typeof setInterval === 'undefined') {
+    if (typeof setInterval === "undefined") {
       // Skip timer in non-Node environments (e.g., browsers)
-      return
+      return;
     }
 
     this.cleanupTimer = setInterval(() => {
-      this.cleanupExpiredEntries()
-    }, this.CLEANUP_INTERVAL_MS)
+      this.cleanupExpiredEntries();
+    }, this.CLEANUP_INTERVAL_MS);
 
     // Allow timer to be garbage collected if process exits
     if (this.cleanupTimer.unref) {
-      this.cleanupTimer.unref()
+      this.cleanupTimer.unref();
     }
   }
 
@@ -134,19 +138,21 @@ class InMemoryRateLimiter implements IRateLimiter {
    * Called periodically by cleanup timer
    */
   private cleanupExpiredEntries(): void {
-    const now = Date.now()
-    let removedCount = 0
+    const now = Date.now();
+    let removedCount = 0;
 
     for (const [key, entry] of this.store.entries()) {
       // Remove if not updated in ENTRY_TTL_MS
       if (now - entry.lastRefill > this.ENTRY_TTL_MS) {
-        this.store.delete(key)
-        removedCount++
+        this.store.delete(key);
+        removedCount++;
       }
     }
 
     if (removedCount > 0) {
-      authLogger.debug('[InMemoryRateLimiter] Cleaned up expired entries', { removedCount })
+      authLogger.debug("[InMemoryRateLimiter] Cleaned up expired entries", {
+        removedCount,
+      });
     }
   }
 
@@ -155,61 +161,58 @@ class InMemoryRateLimiter implements IRateLimiter {
     // Tests should verify functionality, not rate limiting behavior
     // Rate limiting is an operational concern tested separately
     if (isTestEnvironment()) {
-      return true
+      return true;
     }
 
-    const now = Date.now()
-    const entry = this.store.get(key)
+    const now = Date.now();
+    const entry = this.store.get(key);
 
     // Initialize new entry if doesn't exist
     if (!entry) {
       this.store.set(key, {
         tokens: this.config.maxTokens - 1,
         lastRefill: now,
-      })
-      return true
+      });
+      return true;
     }
 
     // Calculate tokens to add based on time elapsed
-    const timePassed = (now - entry.lastRefill) / 1000
-    const tokensToAdd = timePassed * this.config.refillRate
+    const timePassed = (now - entry.lastRefill) / 1000;
+    const tokensToAdd = timePassed * this.config.refillRate;
 
     // Update tokens and last refill time
-    entry.tokens = Math.min(
-      this.config.maxTokens,
-      entry.tokens + tokensToAdd
-    )
-    entry.lastRefill = now
+    entry.tokens = Math.min(this.config.maxTokens, entry.tokens + tokensToAdd);
+    entry.lastRefill = now;
 
     // Check if we have tokens available
     if (entry.tokens >= 1) {
-      entry.tokens -= 1
-      return true
+      entry.tokens -= 1;
+      return true;
     }
 
-    return false
+    return false;
   }
 
   async getRemaining(key: string): Promise<number> {
-    const entry = this.store.get(key)
-    if (!entry) return this.config.maxTokens
-    return Math.floor(entry.tokens)
+    const entry = this.store.get(key);
+    if (!entry) return this.config.maxTokens;
+    return Math.floor(entry.tokens);
   }
 
   async reset(key: string): Promise<void> {
-    this.store.delete(key)
+    this.store.delete(key);
   }
 
   async clearAll(): Promise<void> {
-    this.store.clear()
+    this.store.clear();
   }
 
   async getSize(): Promise<number> {
-    return this.store.size
+    return this.store.size;
   }
 
   async getStatus(key: string): Promise<RateLimitEntry | null> {
-    return this.store.get(key) || null
+    return this.store.get(key) || null;
   }
 }
 
@@ -219,11 +222,11 @@ class InMemoryRateLimiter implements IRateLimiter {
  * Falls back to in-memory limiter if Redis is unavailable
  */
 class RedisRateLimiter implements IRateLimiter {
-  private redisClient: RedisClient
-  private config: RateLimitConfig
-  private prefix: string
-  private fallbackLimiter: InMemoryRateLimiter
-  private redisAvailable: boolean = true
+  private redisClient: RedisClient;
+  private config: RateLimitConfig;
+  private prefix: string;
+  private fallbackLimiter: InMemoryRateLimiter;
+  private redisAvailable: boolean = true;
 
   // Lua script for atomic rate limit check-and-update (prevents TOCTOU race condition)
   // This script is atomic at the Redis level, ensuring no concurrent requests can bypass limits
@@ -265,18 +268,22 @@ class RedisRateLimiter implements IRateLimiter {
     -- Rate limited - update expiry
     redis.call('EXPIRE', key, ttl)
     return 0  -- Not allowed
-  `
+  `;
 
-  constructor(config: RateLimitConfig, redisClient: RedisClient, prefix: string = 'ratelimit:') {
-    this.config = config
-    this.redisClient = redisClient
-    this.prefix = prefix
+  constructor(
+    config: RateLimitConfig,
+    redisClient: RedisClient,
+    prefix: string = "ratelimit:",
+  ) {
+    this.config = config;
+    this.redisClient = redisClient;
+    this.prefix = prefix;
     // Create fallback in-memory limiter for when Redis is unavailable
-    this.fallbackLimiter = new InMemoryRateLimiter(config)
+    this.fallbackLimiter = new InMemoryRateLimiter(config);
   }
 
   private getRedisKey(key: string): string {
-    return `${this.prefix}${key}`
+    return `${this.prefix}${key}`;
   }
 
   async isAllowed(key: string): Promise<boolean> {
@@ -284,81 +291,80 @@ class RedisRateLimiter implements IRateLimiter {
     // Tests should verify functionality, not rate limiting behavior
     // Rate limiting is an operational concern tested separately
     if (isTestEnvironment()) {
-      return true
+      return true;
     }
 
     // If Redis is already known to be unavailable, use fallback immediately
     if (!this.redisAvailable) {
-      return this.fallbackLimiter.isAllowed(key)
+      return this.fallbackLimiter.isAllowed(key);
     }
 
-    const redisKey = this.getRedisKey(key)
-    const now = Date.now()
+    const redisKey = this.getRedisKey(key);
+    const now = Date.now();
 
     try {
       // Use Lua script for atomic check-and-update to prevent TOCTOU race condition
       // SECURITY: This ensures only one request can decrement the token count per check
       // The script is executed atomically on the Redis server
-      const ttl = this.config.ttl || 3600
+      const ttl = this.config.ttl || 3600;
 
       // EVAL executes the Lua script atomically
       // Returns 1 if allowed, 0 if rate limited
       const result = await (this.redisClient as any).eval(
         this.rateLimitScript,
-        1,  // number of keys
-        redisKey,  // KEYS[1]
-        now.toString(),  // ARGV[1]
-        this.config.maxTokens.toString(),  // ARGV[2]
-        this.config.refillRate.toString(),  // ARGV[3]
-        ttl.toString()  // ARGV[4]
-      )
+        1, // number of keys
+        redisKey, // KEYS[1]
+        now.toString(), // ARGV[1]
+        this.config.maxTokens.toString(), // ARGV[2]
+        this.config.refillRate.toString(), // ARGV[3]
+        ttl.toString(), // ARGV[4]
+      );
 
-      return result === 1
+      return result === 1;
     } catch (_error) {
       // If Lua script fails (e.g., Redis version < 2.6), fallback to non-atomic approach
       // This is acceptable as it degrades gracefully
       try {
         // Attempt non-atomic fallback (vulnerable to race conditions but better than failing)
-        const data = await this.redisClient.get(redisKey)
-        let entry: RateLimitEntry
+        const data = await this.redisClient.get(redisKey);
+        let entry: RateLimitEntry;
 
         if (!data) {
           entry = {
             tokens: this.config.maxTokens - 1,
             lastRefill: now,
-          }
+          };
         } else {
-          entry = JSON.parse(data)
-          const timePassed = (now - entry.lastRefill) / 1000
-          const tokensToAdd = timePassed * this.config.refillRate
+          entry = JSON.parse(data);
+          const timePassed = (now - entry.lastRefill) / 1000;
+          const tokensToAdd = timePassed * this.config.refillRate;
           entry.tokens = Math.min(
             this.config.maxTokens,
-            entry.tokens + tokensToAdd
-          )
-          entry.lastRefill = now
+            entry.tokens + tokensToAdd,
+          );
+          entry.lastRefill = now;
         }
 
         if (entry.tokens >= 1) {
-          entry.tokens -= 1
-          const ttl = this.config.ttl || 3600
-          await this.redisClient.setex(
-            redisKey,
-            ttl,
-            JSON.stringify(entry)
-          )
-          return true
+          entry.tokens -= 1;
+          const ttl = this.config.ttl || 3600;
+          await this.redisClient.setex(redisKey, ttl, JSON.stringify(entry));
+          return true;
         }
 
-        const ttl = this.config.ttl || 3600
-        await this.redisClient.expire(redisKey, ttl)
-        return false
+        const ttl = this.config.ttl || 3600;
+        await this.redisClient.expire(redisKey, ttl);
+        return false;
       } catch (fallbackError) {
         // FALLBACK: Use in-memory rate limiter if Redis fails
-        this.redisAvailable = false
-        if (process.env.NODE_ENV === 'development') {
-          authLogger.error('[RedisRateLimiter] Redis unavailable - falling back to in-memory', { error: fallbackError })
+        this.redisAvailable = false;
+        if (process.env.NODE_ENV === "development") {
+          authLogger.error(
+            "[RedisRateLimiter] Redis unavailable - falling back to in-memory",
+            { error: fallbackError },
+          );
         }
-        return this.fallbackLimiter.isAllowed(key)
+        return this.fallbackLimiter.isAllowed(key);
       }
     }
   }
@@ -366,94 +372,94 @@ class RedisRateLimiter implements IRateLimiter {
   async getRemaining(key: string): Promise<number> {
     // Use fallback if Redis is unavailable
     if (!this.redisAvailable) {
-      return this.fallbackLimiter.getRemaining(key)
+      return this.fallbackLimiter.getRemaining(key);
     }
 
-    const redisKey = this.getRedisKey(key)
+    const redisKey = this.getRedisKey(key);
 
     try {
-      const data = await this.redisClient.get(redisKey)
-      if (!data) return this.config.maxTokens
+      const data = await this.redisClient.get(redisKey);
+      if (!data) return this.config.maxTokens;
 
-      const entry: RateLimitEntry = JSON.parse(data)
-      return Math.floor(entry.tokens)
+      const entry: RateLimitEntry = JSON.parse(data);
+      return Math.floor(entry.tokens);
     } catch (_error) {
       // Mark Redis as unavailable and use fallback
-      this.redisAvailable = false
-      return this.fallbackLimiter.getRemaining(key)
+      this.redisAvailable = false;
+      return this.fallbackLimiter.getRemaining(key);
     }
   }
 
   async reset(key: string): Promise<void> {
     // Reset in fallback as well
-    await this.fallbackLimiter.reset(key)
+    await this.fallbackLimiter.reset(key);
 
     // Try to reset in Redis if available
-    if (!this.redisAvailable) return
+    if (!this.redisAvailable) return;
 
-    const redisKey = this.getRedisKey(key)
+    const redisKey = this.getRedisKey(key);
 
     try {
-      await this.redisClient.del(redisKey)
+      await this.redisClient.del(redisKey);
     } catch (_error) {
       // Mark Redis as unavailable
-      this.redisAvailable = false
+      this.redisAvailable = false;
     }
   }
 
   async clearAll(): Promise<void> {
     // Clear fallback
-    await this.fallbackLimiter.clearAll()
+    await this.fallbackLimiter.clearAll();
 
     // Try to clear Redis if available
-    if (!this.redisAvailable) return
+    if (!this.redisAvailable) return;
 
     try {
-      const pattern = `${this.prefix}*`
-      const keys = await this.redisClient.keys(pattern)
+      const pattern = `${this.prefix}*`;
+      const keys = await this.redisClient.keys(pattern);
 
       if (keys.length > 0) {
-        await this.redisClient.del(...keys)
+        await this.redisClient.del(...keys);
       }
     } catch (_error) {
       // Mark Redis as unavailable
-      this.redisAvailable = false
+      this.redisAvailable = false;
     }
   }
 
   async getSize(): Promise<number> {
     // If Redis unavailable, return fallback size
     if (!this.redisAvailable) {
-      return this.fallbackLimiter.getSize()
+      return this.fallbackLimiter.getSize();
     }
 
     try {
-      const pattern = `${this.prefix}*`
-      const keys = await this.redisClient.keys(pattern)
-      return keys.length
+      const pattern = `${this.prefix}*`;
+      const keys = await this.redisClient.keys(pattern);
+      return keys.length;
     } catch (_error) {
       // Mark Redis as unavailable and use fallback
-      this.redisAvailable = false
-      return this.fallbackLimiter.getSize()
+      this.redisAvailable = false;
+      return this.fallbackLimiter.getSize();
     }
   }
 
   async getStatus(key: string): Promise<RateLimitEntry | null> {
     // Use fallback if Redis unavailable
     if (!this.redisAvailable) {
-      return this.fallbackLimiter.getStatus(key)
+      return this.fallbackLimiter.getStatus(key);
     }
 
-    const redisKey = this.getRedisKey(key)
+    const redisKey = this.getRedisKey(key);
 
     try {
-      const data = await this.redisClient.get(redisKey)
-      if (!data) return null
-      return JSON.parse(data)
+      const data = await this.redisClient.get(redisKey);
+      if (!data) return null;
+      return JSON.parse(data);
     } catch (_error) {
       // Mark Redis as unavailable and use fallback
-      this.redisAvailable = false
-      return this.fallbackLimiter.getStatus(key)
+      this.redisAvailable = false;
+      return this.fallbackLimiter.getStatus(key);
     }
   }
 }
@@ -464,12 +470,12 @@ class RedisRateLimiter implements IRateLimiter {
  */
 export function createRateLimiter(
   config: RateLimitConfig,
-  redisClient?: RedisClient
+  redisClient?: RedisClient,
 ): IRateLimiter {
   if (redisClient) {
-    return new RedisRateLimiter(config, redisClient)
+    return new RedisRateLimiter(config, redisClient);
   }
-  return new InMemoryRateLimiter(config)
+  return new InMemoryRateLimiter(config);
 }
 
 /**
@@ -477,22 +483,25 @@ export function createRateLimiter(
  * Provides convenient interface for common operations
  */
 export class RateLimitManager {
-  private limiters: Map<string, IRateLimiter> = new Map()
-  private redisClient?: RedisClient
+  private limiters: Map<string, IRateLimiter> = new Map();
+  private redisClient?: RedisClient;
 
   constructor(redisClient?: RedisClient) {
-    this.redisClient = redisClient
+    this.redisClient = redisClient;
   }
 
-  private getOrCreateLimiter(name: string, config: RateLimitConfig): IRateLimiter {
+  private getOrCreateLimiter(
+    name: string,
+    config: RateLimitConfig,
+  ): IRateLimiter {
     if (!this.limiters.has(name)) {
-      this.limiters.set(name, createRateLimiter(config, this.redisClient))
+      this.limiters.set(name, createRateLimiter(config, this.redisClient));
     }
-    const limiter = this.limiters.get(name)
+    const limiter = this.limiters.get(name);
     if (!limiter) {
-      throw new Error(`Rate limiter "${name}" not found after creation`)
+      throw new Error(`Rate limiter "${name}" not found after creation`);
     }
-    return limiter
+    return limiter;
   }
 
   /**
@@ -501,17 +510,17 @@ export class RateLimitManager {
   async checkLimit(
     limiterName: string,
     key: string,
-    config: RateLimitConfig
+    config: RateLimitConfig,
   ): Promise<RateLimitResult> {
-    const limiter = this.getOrCreateLimiter(limiterName, config)
-    const allowed = await limiter.isAllowed(key)
-    const remaining = await limiter.getRemaining(key)
+    const limiter = this.getOrCreateLimiter(limiterName, config);
+    const allowed = await limiter.isAllowed(key);
+    const remaining = await limiter.getRemaining(key);
 
     return {
       allowed,
       remaining,
       retryAfter: allowed ? undefined : Math.ceil(1 / config.refillRate),
-    }
+    };
   }
 
   /**
@@ -520,34 +529,40 @@ export class RateLimitManager {
   async getRemaining(
     limiterName: string,
     key: string,
-    config: RateLimitConfig
+    config: RateLimitConfig,
   ): Promise<number> {
-    const limiter = this.getOrCreateLimiter(limiterName, config)
-    return limiter.getRemaining(key)
+    const limiter = this.getOrCreateLimiter(limiterName, config);
+    return limiter.getRemaining(key);
   }
 
   /**
    * Reset rate limit for a key
    */
-  async reset(limiterName: string, key: string, config: RateLimitConfig): Promise<void> {
-    const limiter = this.getOrCreateLimiter(limiterName, config)
-    return limiter.reset(key)
+  async reset(
+    limiterName: string,
+    key: string,
+    config: RateLimitConfig,
+  ): Promise<void> {
+    const limiter = this.getOrCreateLimiter(limiterName, config);
+    return limiter.reset(key);
   }
 
   /**
    * Get detailed status for debugging
    */
-  async getStats(): Promise<Record<string, { entries: number; limiter: string }>> {
-    const stats: Record<string, { entries: number; limiter: string }> = {}
+  async getStats(): Promise<
+    Record<string, { entries: number; limiter: string }>
+  > {
+    const stats: Record<string, { entries: number; limiter: string }> = {};
 
     for (const [name, limiter] of this.limiters) {
       stats[name] = {
         entries: await limiter.getSize(),
-        limiter: this.redisClient ? 'Redis' : 'In-Memory',
-      }
+        limiter: this.redisClient ? "Redis" : "In-Memory",
+      };
     }
 
-    return stats
+    return stats;
   }
 }
 
@@ -555,31 +570,35 @@ export class RateLimitManager {
  * Export singleton instance
  * Can be replaced with Redis-backed instance in production
  */
-export const defaultRateLimitManager = new RateLimitManager()
+export const defaultRateLimitManager = new RateLimitManager();
 
 /**
  * Convenience functions for backward compatibility
  */
 export async function checkRateLimit(
   key: string,
-  config: RateLimitConfig
+  config: RateLimitConfig,
 ): Promise<boolean> {
-  const result = await defaultRateLimitManager.checkLimit('default', key, config)
-  return result.allowed
+  const result = await defaultRateLimitManager.checkLimit(
+    "default",
+    key,
+    config,
+  );
+  return result.allowed;
 }
 
 export async function getRateLimitStatus(
   key: string,
-  config: RateLimitConfig
+  config: RateLimitConfig,
 ): Promise<RateLimitResult> {
-  return defaultRateLimitManager.checkLimit('default', key, config)
+  return defaultRateLimitManager.checkLimit("default", key, config);
 }
 
 export async function resetRateLimit(
   key: string,
-  config: RateLimitConfig
+  config: RateLimitConfig,
 ): Promise<void> {
-  return defaultRateLimitManager.reset('default', key, config)
+  return defaultRateLimitManager.reset("default", key, config);
 }
 
 // ============================================================================
@@ -587,13 +606,13 @@ export async function resetRateLimit(
 // These use centralized configurations from constants/rate-limits.ts
 // ============================================================================
 
-import { RATE_LIMITS } from './constants/rate-limits'
+import { RATE_LIMITS } from "./constants/rate-limits";
 
 // Create dedicated limiter instances for auth operations
-const otpLimiter = createRateLimiter(RATE_LIMITS.otpRequest)
-const passwordResetLimiter = createRateLimiter(RATE_LIMITS.passwordReset)
-const ipLimiter = createRateLimiter(RATE_LIMITS.ipBased)
-const enumerationLimiter = createRateLimiter(RATE_LIMITS.emailEnumeration)
+const otpLimiter = createRateLimiter(RATE_LIMITS.otpRequest);
+const passwordResetLimiter = createRateLimiter(RATE_LIMITS.passwordReset);
+const ipLimiter = createRateLimiter(RATE_LIMITS.ipBased);
+const enumerationLimiter = createRateLimiter(RATE_LIMITS.emailEnumeration);
 
 /**
  * Check if an OTP request is allowed for an email/phone
@@ -602,8 +621,8 @@ const enumerationLimiter = createRateLimiter(RATE_LIMITS.emailEnumeration)
  * @returns Promise<boolean> - true if allowed, false if rate limited
  */
 export async function checkOtpRateLimit(identifier: string): Promise<boolean> {
-  const key = `otp:${identifier.toLowerCase()}`
-  return otpLimiter.isAllowed(key)
+  const key = `otp:${identifier.toLowerCase()}`;
+  return otpLimiter.isAllowed(key);
 }
 
 /**
@@ -612,9 +631,11 @@ export async function checkOtpRateLimit(identifier: string): Promise<boolean> {
  * @param email - Email address
  * @returns Promise<boolean> - true if allowed, false if rate limited
  */
-export async function checkPasswordResetRateLimit(email: string): Promise<boolean> {
-  const key = `reset:${email.toLowerCase()}`
-  return passwordResetLimiter.isAllowed(key)
+export async function checkPasswordResetRateLimit(
+  email: string,
+): Promise<boolean> {
+  const key = `reset:${email.toLowerCase()}`;
+  return passwordResetLimiter.isAllowed(key);
 }
 
 /**
@@ -625,7 +646,7 @@ export async function checkPasswordResetRateLimit(email: string): Promise<boolea
  * @returns Promise<boolean> - true if allowed, false if rate limited
  */
 export async function checkEnumerationRateLimit(key: string): Promise<boolean> {
-  return enumerationLimiter.isAllowed(key)
+  return enumerationLimiter.isAllowed(key);
 }
 
 /**
@@ -635,8 +656,8 @@ export async function checkEnumerationRateLimit(key: string): Promise<boolean> {
  * @returns Promise<boolean> - true if allowed, false if rate limited
  */
 export async function checkIpRateLimit(ip: string): Promise<boolean> {
-  const key = `ip:${ip}`
-  return ipLimiter.isAllowed(key)
+  const key = `ip:${ip}`;
+  return ipLimiter.isAllowed(key);
 }
 
 /**
@@ -644,9 +665,11 @@ export async function checkIpRateLimit(ip: string): Promise<boolean> {
  * @param identifier - Email or phone number
  * @returns Promise<number> - Number of remaining requests
  */
-export async function getOtpRateLimitRemaining(identifier: string): Promise<number> {
-  const key = `otp:${identifier.toLowerCase()}`
-  return otpLimiter.getRemaining(key)
+export async function getOtpRateLimitRemaining(
+  identifier: string,
+): Promise<number> {
+  const key = `otp:${identifier.toLowerCase()}`;
+  return otpLimiter.getRemaining(key);
 }
 
 /**
@@ -654,17 +677,19 @@ export async function getOtpRateLimitRemaining(identifier: string): Promise<numb
  * @param identifier - Email or phone number
  */
 export async function resetOtpRateLimit(identifier: string): Promise<void> {
-  const key = `otp:${identifier.toLowerCase()}`
-  return otpLimiter.reset(key)
+  const key = `otp:${identifier.toLowerCase()}`;
+  return otpLimiter.reset(key);
 }
 
 /**
  * Reset password reset rate limit for an email (admin operation)
  * @param email - Email address
  */
-export async function resetPasswordResetRateLimit(email: string): Promise<void> {
-  const key = `reset:${email.toLowerCase()}`
-  return passwordResetLimiter.reset(key)
+export async function resetPasswordResetRateLimit(
+  email: string,
+): Promise<void> {
+  const key = `reset:${email.toLowerCase()}`;
+  return passwordResetLimiter.reset(key);
 }
 
 /**
@@ -672,83 +697,93 @@ export async function resetPasswordResetRateLimit(email: string): Promise<void> 
  * @param ip - IP address
  */
 export async function resetIpRateLimit(ip: string): Promise<void> {
-  const key = `ip:${ip}`
-  return ipLimiter.reset(key)
+  const key = `ip:${ip}`;
+  return ipLimiter.reset(key);
 }
 
 /**
  * ===== TEACHER OPERATIONS RATE LIMITING =====
  */
-const teacherOpLimiter = createRateLimiter(RATE_LIMITS.adminOperations)
+const teacherOpLimiter = createRateLimiter(RATE_LIMITS.adminOperations);
 
 /**
  * Check if teacher mutation is allowed (create/update/delete class)
  * @param userId - Teacher user ID
  * @returns Promise<boolean> - true if allowed, false if rate limited
  */
-export async function checkTeacherMutationRateLimit(userId: string): Promise<boolean> {
-  const key = `teacher:mutation:${userId}`
-  return teacherOpLimiter.isAllowed(key)
+export async function checkTeacherMutationRateLimit(
+  userId: string,
+): Promise<boolean> {
+  const key = `teacher:mutation:${userId}`;
+  return teacherOpLimiter.isAllowed(key);
 }
 
 /**
  * ===== STUDENT OPERATIONS RATE LIMITING =====
  */
-const studentOpLimiter = createRateLimiter(RATE_LIMITS.dashboardStats)
+const studentOpLimiter = createRateLimiter(RATE_LIMITS.dashboardStats);
 
 /**
  * Check if student mutation is allowed (profile update, join class)
  * @param userId - Student user ID
  * @returns Promise<boolean> - true if allowed, false if rate limited
  */
-export async function checkStudentMutationRateLimit(userId: string): Promise<boolean> {
-  const key = `student:mutation:${userId}`
-  return studentOpLimiter.isAllowed(key)
+export async function checkStudentMutationRateLimit(
+  userId: string,
+): Promise<boolean> {
+  const key = `student:mutation:${userId}`;
+  return studentOpLimiter.isAllowed(key);
 }
 
 /**
  * ===== ADMIN OPERATIONS RATE LIMITING =====
  */
-const adminOpLimiter = createRateLimiter(RATE_LIMITS.adminOperations)
+const adminOpLimiter = createRateLimiter(RATE_LIMITS.adminOperations);
 
 /**
  * Check if admin operation is allowed (setRole, deleteUser, etc)
  * @param userId - Admin user ID
  * @returns Promise<boolean> - true if allowed, false if rate limited
  */
-export async function checkAdminOperationRateLimit(userId: string): Promise<boolean> {
-  const key = `admin:operation:${userId}`
-  return adminOpLimiter.isAllowed(key)
+export async function checkAdminOperationRateLimit(
+  userId: string,
+): Promise<boolean> {
+  const key = `admin:operation:${userId}`;
+  return adminOpLimiter.isAllowed(key);
 }
 
 /**
  * ===== SCHOOL FINDER RATE LIMITING (READ OPERATIONS) =====
  */
-const schoolFinderLimiter = createRateLimiter(RATE_LIMITS.schoolSearch)
+const schoolFinderLimiter = createRateLimiter(RATE_LIMITS.schoolSearch);
 
 /**
  * Check if school finder query is allowed (prevent scraping)
  * @param userId - User making the request
  * @returns Promise<boolean> - true if allowed, false if rate limited
  */
-export async function checkSchoolFinderRateLimit(userId: string): Promise<boolean> {
-  const key = `schoolfinder:${userId}`
-  return schoolFinderLimiter.isAllowed(key)
+export async function checkSchoolFinderRateLimit(
+  userId: string,
+): Promise<boolean> {
+  const key = `schoolfinder:${userId}`;
+  return schoolFinderLimiter.isAllowed(key);
 }
 
 /**
  * ===== TEACHER ONBOARDING RATE LIMITING =====
  */
-const teacherOnboardLimiter = createRateLimiter(RATE_LIMITS.adminOperations)
+const teacherOnboardLimiter = createRateLimiter(RATE_LIMITS.adminOperations);
 
 /**
  * Check if teacher onboarding operation is allowed (setPassword, saveProfile)
  * @param userId - Teacher user ID
  * @returns Promise<boolean> - true if allowed, false if rate limited
  */
-export async function checkTeacherOnboardRateLimit(userId: string): Promise<boolean> {
-  const key = `teacher:onboard:${userId}`
-  return teacherOnboardLimiter.isAllowed(key)
+export async function checkTeacherOnboardRateLimit(
+  userId: string,
+): Promise<boolean> {
+  const key = `teacher:onboard:${userId}`;
+  return teacherOnboardLimiter.isAllowed(key);
 }
 
 /**
@@ -758,28 +793,30 @@ const otpVerifyLimiter = createRateLimiter({
   maxTokens: 5,
   refillRate: 5 / 900, // 5 attempts per 15 minutes
   refillInterval: 1000,
-})
+});
 
 /**
  * Check if OTP verification attempt is allowed (brute force prevention)
  * @param identifier - Email or phone being verified
  * @returns Promise<boolean> - true if allowed, false if rate limited
  */
-export async function checkOtpVerifyRateLimit(identifier: string): Promise<boolean> {
-  const key = `otp:verify:${identifier.toLowerCase()}`
-  return otpVerifyLimiter.isAllowed(key)
+export async function checkOtpVerifyRateLimit(
+  identifier: string,
+): Promise<boolean> {
+  const key = `otp:verify:${identifier.toLowerCase()}`;
+  return otpVerifyLimiter.isAllowed(key);
 }
 
 /**
  * Get monitoring stats for rate limiters
  */
 export async function getRateLimiterStats(): Promise<{
-  otp: { entries: number; config: string }
-  passwordReset: { entries: number; config: string }
-  ip: { entries: number; config: string }
-  teacherOps: { entries: number; config: string }
-  studentOps: { entries: number; config: string }
-  adminOps: { entries: number; config: string }
+  otp: { entries: number; config: string };
+  passwordReset: { entries: number; config: string };
+  ip: { entries: number; config: string };
+  teacherOps: { entries: number; config: string };
+  studentOps: { entries: number; config: string };
+  adminOps: { entries: number; config: string };
 }> {
   return {
     otp: {
@@ -806,5 +843,5 @@ export async function getRateLimiterStats(): Promise<{
       entries: await adminOpLimiter.getSize(),
       config: `Max ${RATE_LIMITS.adminOperations.maxTokens} operations per minute per admin`,
     },
-  }
+  };
 }

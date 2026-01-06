@@ -44,7 +44,7 @@ export interface ConnectionPoolMetrics {
  * Connection Pool Alert
  */
 export interface PoolAlert {
-  level: 'warning' | 'error' | 'critical';
+  level: "warning" | "error" | "critical";
   message: string;
   metrics: ConnectionPoolMetrics;
   timestamp: Date;

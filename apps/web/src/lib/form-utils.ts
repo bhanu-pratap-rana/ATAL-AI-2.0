@@ -31,9 +31,7 @@ export function getLanguageLabelForAI(language: string): string {
  * Get confidence level classification from test score
  * Used for student mastery tracking
  */
-export function getConfidenceLevel(
-  score: number,
-): "high" | "medium" | "low" {
+export function getConfidenceLevel(score: number): "high" | "medium" | "low" {
   if (score >= 90) return "high";
   if (score >= 70) return "medium";
   return "low";
@@ -61,8 +59,7 @@ export function createErrorHandler(
 ): ((error: unknown) => void) | undefined {
   if (!onError) return undefined;
   return (error: unknown) => {
-    const message =
-      error instanceof Error ? error.message : String(error);
+    const message = error instanceof Error ? error.message : String(error);
     onError(message);
   };
 }

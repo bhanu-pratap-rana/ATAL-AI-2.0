@@ -3,9 +3,9 @@
  * @internal - Server-side only
  */
 
-import { createAdminClient } from '@/lib/supabase-server'
-import { authLogger } from '@/lib/auth-logger'
-import { validateSupabaseAuthUsers } from '@/lib/validation/rpc-schemas'
+import { createAdminClient } from "@/lib/supabase-server";
+import { authLogger } from "@/lib/auth-logger";
+import { validateSupabaseAuthUsers } from "@/lib/validation/rpc-schemas";
 
 /**
  * Supabase Admin API User type wrapper
@@ -13,11 +13,11 @@ import { validateSupabaseAuthUsers } from '@/lib/validation/rpc-schemas'
  * @internal
  */
 export type SupabaseAuthUser = Record<string, unknown> & {
-  id: string
-  email?: string
-  app_metadata?: Record<string, unknown>
-  user_metadata?: Record<string, unknown>
-}
+  id: string;
+  email?: string;
+  app_metadata?: Record<string, unknown>;
+  user_metadata?: Record<string, unknown>;
+};
 
 /**
  * Fetch all auth users with pagination support
@@ -27,56 +27,56 @@ export type SupabaseAuthUser = Record<string, unknown> & {
  * @returns Array of all auth users across all pages
  */
 export async function fetchAllAuthUsers(
-  adminClient: Awaited<ReturnType<typeof createAdminClient>>
+  adminClient: Awaited<ReturnType<typeof createAdminClient>>,
 ) {
-  const allUsers: SupabaseAuthUser[] = []
-  let page = 1
-  const perPage = 1000
+  const allUsers: SupabaseAuthUser[] = [];
+  let page = 1;
+  const perPage = 1000;
 
   try {
     while (true) {
       const { data, error } = await adminClient.auth.admin.listUsers({
         perPage,
         page,
-      })
+      });
 
       if (error) {
-        authLogger.error('[fetchAllAuthUsers] Error fetching auth users page', {
+        authLogger.error("[fetchAllAuthUsers] Error fetching auth users page", {
           page,
           error: error.message,
-        })
-        break
+        });
+        break;
       }
 
       if (!data?.users || data.users.length === 0) {
-        break
+        break;
       }
 
       // Validate and type-check users from Supabase admin API
       try {
-        const validatedUsers = validateSupabaseAuthUsers(data.users)
-        allUsers.push(...validatedUsers)
+        const validatedUsers = validateSupabaseAuthUsers(data.users);
+        allUsers.push(...validatedUsers);
       } catch (error) {
-        authLogger.error('[fetchAllAuthUsers] Failed to validate users', {
+        authLogger.error("[fetchAllAuthUsers] Failed to validate users", {
           error: error instanceof Error ? error.message : String(error),
           page,
-        })
+        });
         // Continue with next page instead of failing completely
-        break
+        break;
       }
 
       // Break if we got fewer users than requested (reached end)
       if (data.users.length < perPage) {
-        break
+        break;
       }
 
-      page++
+      page++;
     }
 
-    return allUsers
+    return allUsers;
   } catch (error) {
-    authLogger.error('[fetchAllAuthUsers] Unexpected error', error)
-    return allUsers // Return what we got so far
+    authLogger.error("[fetchAllAuthUsers] Unexpected error", error);
+    return allUsers; // Return what we got so far
   }
 }
 
@@ -90,11 +90,11 @@ export async function fetchAllAuthUsers(
  */
 export async function findAuthUserByEmail(
   adminClient: Awaited<ReturnType<typeof createAdminClient>>,
-  email: string
+  email: string,
 ) {
-  const normalizedEmail = email.toLowerCase()
-  const allUsers = await fetchAllAuthUsers(adminClient)
-  return allUsers.find((u) => u.email?.toLowerCase() === normalizedEmail)
+  const normalizedEmail = email.toLowerCase();
+  const allUsers = await fetchAllAuthUsers(adminClient);
+  return allUsers.find((u) => u.email?.toLowerCase() === normalizedEmail);
 }
 
 /**
@@ -107,8 +107,8 @@ export async function findAuthUserByEmail(
  */
 export async function findAuthUserById(
   adminClient: Awaited<ReturnType<typeof createAdminClient>>,
-  userId: string
+  userId: string,
 ) {
-  const allUsers = await fetchAllAuthUsers(adminClient)
-  return allUsers.find((u) => u.id === userId)
+  const allUsers = await fetchAllAuthUsers(adminClient);
+  return allUsers.find((u) => u.id === userId);
 }

@@ -14,19 +14,19 @@
  * Features: Emotion control, multiple voices
  */
 
-import { authLogger } from '@/lib/auth-logger';
+import { authLogger } from "@/lib/auth-logger";
 
 /**
  * Supported TTS languages with Assamese priority
  */
-export type TTSLanguage = 'en' | 'hi' | 'as';
+export type TTSLanguage = "en" | "hi" | "as";
 
 /**
  * Voice configuration for each language
  */
 export interface VoiceConfig {
   voice: string;
-  emotion?: 'neutral' | 'friendly' | 'encouraging' | 'calm';
+  emotion?: "neutral" | "friendly" | "encouraging" | "calm";
   speed?: number;
 }
 
@@ -34,7 +34,7 @@ export interface VoiceConfig {
  * TTS synthesis options
  */
 export interface TTSOptions {
-  emotion?: 'neutral' | 'friendly' | 'encouraging' | 'calm';
+  emotion?: "neutral" | "friendly" | "encouraging" | "calm";
   speed?: number;
 }
 
@@ -43,18 +43,18 @@ export interface TTSOptions {
  */
 const LANGUAGE_VOICE_MAP: Record<TTSLanguage, VoiceConfig> = {
   en: {
-    voice: 'en-IN-female',
-    emotion: 'friendly',
+    voice: "en-IN-female",
+    emotion: "friendly",
     speed: 1.0,
   },
   hi: {
-    voice: 'hi-IN-female',
-    emotion: 'friendly',
+    voice: "hi-IN-female",
+    emotion: "friendly",
     speed: 1.0,
   },
   as: {
-    voice: 'as-IN-female',
-    emotion: 'friendly',
+    voice: "as-IN-female",
+    emotion: "friendly",
     speed: 0.95, // Slightly slower for clarity
   },
 };
@@ -66,8 +66,8 @@ const LANGUAGE_VOICE_MAP: Record<TTSLanguage, VoiceConfig> = {
 export class TTSService {
   private huggingFaceApiUrl =
     process.env.HUGGINGFACE_TTS_URL ||
-    'https://api-inference.huggingface.co/models/ai4bharat/indic-parler-tts';
-  private renderFallbackUrl = process.env.TTS_FALLBACK_URL || '';
+    "https://api-inference.huggingface.co/models/ai4bharat/indic-parler-tts";
+  private renderFallbackUrl = process.env.TTS_FALLBACK_URL || "";
 
   /**
    * Synthesize speech from text
@@ -80,37 +80,57 @@ export class TTSService {
   async synthesize(
     text: string,
     language: TTSLanguage,
-    options: TTSOptions = {}
+    options: TTSOptions = {},
   ): Promise<ArrayBuffer> {
     if (!text || text.trim().length === 0) {
-      throw new Error('Text is required for TTS synthesis');
+      throw new Error("Text is required for TTS synthesis");
     }
 
     const voiceConfig = this.getVoiceConfig(language, options);
-    authLogger.info('[TTS] Starting synthesis', { language, textLength: text.length, voiceConfig });
+    authLogger.info("[TTS] Starting synthesis", {
+      language,
+      textLength: text.length,
+      voiceConfig,
+    });
 
     try {
       // Primary: HuggingFace Inference API
       const result = await this.callHuggingFace(text, voiceConfig);
-      authLogger.info('[TTS] Successfully synthesized via HuggingFace', { language, textLength: text.length });
+      authLogger.info("[TTS] Successfully synthesized via HuggingFace", {
+        language,
+        textLength: text.length,
+      });
       return result;
     } catch (error) {
-      authLogger.warn('[TTS] HuggingFace failed, trying fallback', { error: error instanceof Error ? error.message : String(error) });
+      authLogger.warn("[TTS] HuggingFace failed, trying fallback", {
+        error: error instanceof Error ? error.message : String(error),
+      });
 
       // Fallback: Self-hosted on Render.com
       if (this.renderFallbackUrl) {
         try {
           const result = await this.callRenderFallback(text, voiceConfig);
-          authLogger.info('[TTS] Successfully synthesized via Render fallback', { language, textLength: text.length });
+          authLogger.info(
+            "[TTS] Successfully synthesized via Render fallback",
+            { language, textLength: text.length },
+          );
           return result;
         } catch (fallbackError) {
-          authLogger.error('[TTS] Fallback failed, no alternative available', fallbackError instanceof Error ? { message: fallbackError.message } : { error: String(fallbackError) });
+          authLogger.error(
+            "[TTS] Fallback failed, no alternative available",
+            fallbackError instanceof Error
+              ? { message: fallbackError.message }
+              : { error: String(fallbackError) },
+          );
           throw fallbackError;
         }
       }
 
-      authLogger.error('[TTS] No TTS provider available', { language, renderFallbackUrl: this.renderFallbackUrl });
-      throw new Error('TTS synthesis failed: No fallback available');
+      authLogger.error("[TTS] No TTS provider available", {
+        language,
+        renderFallbackUrl: this.renderFallbackUrl,
+      });
+      throw new Error("TTS synthesis failed: No fallback available");
     }
   }
 
@@ -119,51 +139,61 @@ export class TTSService {
    */
   private async callHuggingFace(
     text: string,
-    config: VoiceConfig
+    config: VoiceConfig,
   ): Promise<ArrayBuffer> {
     const apiKey = process.env.HUGGINGFACE_API_KEY;
 
     if (!apiKey) {
-      authLogger.error('[TTS/HF] Missing HUGGINGFACE_API_KEY configuration', {});
-      throw new Error('HUGGINGFACE_API_KEY is required for TTS');
+      authLogger.error(
+        "[TTS/HF] Missing HUGGINGFACE_API_KEY configuration",
+        {},
+      );
+      throw new Error("HUGGINGFACE_API_KEY is required for TTS");
     }
 
-    authLogger.debug('[TTS/HF] Calling HuggingFace API', {
+    authLogger.debug("[TTS/HF] Calling HuggingFace API", {
       url: this.huggingFaceApiUrl,
       voice: config.voice,
       textLength: text.length,
     });
 
     const response = await fetch(this.huggingFaceApiUrl, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         inputs: text,
         parameters: {
           voice: config.voice,
-          emotion: config.emotion || 'neutral',
+          emotion: config.emotion || "neutral",
           speed: config.speed || 1.0,
         },
       }),
     });
 
     if (!response.ok) {
-      const errorText = await response.text().catch(() => 'Unknown error');
-      authLogger.error('[TTS/HF] API error response', { status: response.status, error: errorText });
+      const errorText = await response.text().catch(() => "Unknown error");
+      authLogger.error("[TTS/HF] API error response", {
+        status: response.status,
+        error: errorText,
+      });
 
       // Handle model loading state (common on HuggingFace)
       if (response.status === 503) {
-        authLogger.warn('[TTS/HF] Model loading (503), retry needed', {});
-        throw new Error('TTS model is loading, please retry');
+        authLogger.warn("[TTS/HF] Model loading (503), retry needed", {});
+        throw new Error("TTS model is loading, please retry");
       }
 
-      throw new Error(`HuggingFace TTS error: ${response.status} - ${errorText}`);
+      throw new Error(
+        `HuggingFace TTS error: ${response.status} - ${errorText}`,
+      );
     }
 
-    authLogger.debug('[TTS/HF] API call successful, returning audio buffer', { status: response.status });
+    authLogger.debug("[TTS/HF] API call successful, returning audio buffer", {
+      status: response.status,
+    });
     return response.arrayBuffer();
   }
 
@@ -172,27 +202,27 @@ export class TTSService {
    */
   private async callRenderFallback(
     text: string,
-    config: VoiceConfig
+    config: VoiceConfig,
   ): Promise<ArrayBuffer> {
     if (!this.renderFallbackUrl) {
-      throw new Error('No TTS fallback URL configured');
+      throw new Error("No TTS fallback URL configured");
     }
 
     const response = await fetch(this.renderFallbackUrl, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         text,
         voice: config.voice,
-        emotion: config.emotion || 'neutral',
+        emotion: config.emotion || "neutral",
         speed: config.speed || 1.0,
       }),
     });
 
     if (!response.ok) {
-      const errorText = await response.text().catch(() => 'Unknown error');
+      const errorText = await response.text().catch(() => "Unknown error");
       throw new Error(`Render TTS error: ${response.status} - ${errorText}`);
     }
 
@@ -202,7 +232,10 @@ export class TTSService {
   /**
    * Get voice configuration for language
    */
-  private getVoiceConfig(language: TTSLanguage, options: TTSOptions = {}): VoiceConfig {
+  private getVoiceConfig(
+    language: TTSLanguage,
+    options: TTSOptions = {},
+  ): VoiceConfig {
     const baseConfig = LANGUAGE_VOICE_MAP[language] || LANGUAGE_VOICE_MAP.en;
 
     return {
@@ -218,46 +251,61 @@ export class TTSService {
    */
   async isAvailable(): Promise<{
     available: boolean;
-    provider: 'huggingface' | 'render' | 'browser' | 'none';
+    provider: "huggingface" | "render" | "browser" | "none";
     error?: string;
   }> {
     // Check HuggingFace
     if (process.env.HUGGINGFACE_API_KEY) {
-      authLogger.info('[TTS] Checking HuggingFace API availability', { url: this.huggingFaceApiUrl });
+      authLogger.info("[TTS] Checking HuggingFace API availability", {
+        url: this.huggingFaceApiUrl,
+      });
       try {
         // Test with short text
-        await this.callHuggingFace('test', LANGUAGE_VOICE_MAP.en);
-        authLogger.info('[TTS] HuggingFace API is AVAILABLE and responding', {});
-        return { available: true, provider: 'huggingface' };
+        await this.callHuggingFace("test", LANGUAGE_VOICE_MAP.en);
+        authLogger.info(
+          "[TTS] HuggingFace API is AVAILABLE and responding",
+          {},
+        );
+        return { available: true, provider: "huggingface" };
       } catch (error) {
-        authLogger.warn('[TTS] HuggingFace API check failed', { error: error instanceof Error ? error.message : String(error) });
+        authLogger.warn("[TTS] HuggingFace API check failed", {
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
     } else {
-      authLogger.warn('[TTS] HUGGINGFACE_API_KEY not configured', {});
+      authLogger.warn("[TTS] HUGGINGFACE_API_KEY not configured", {});
     }
 
     // Check Render fallback
     if (this.renderFallbackUrl) {
-      authLogger.info('[TTS] Checking Render fallback availability', { url: this.renderFallbackUrl });
+      authLogger.info("[TTS] Checking Render fallback availability", {
+        url: this.renderFallbackUrl,
+      });
       try {
         const response = await fetch(`${this.renderFallbackUrl}/health`);
         if (response.ok) {
-          authLogger.info('[TTS] Render fallback is AVAILABLE', {});
-          return { available: true, provider: 'render' };
+          authLogger.info("[TTS] Render fallback is AVAILABLE", {});
+          return { available: true, provider: "render" };
         }
       } catch (error) {
-        authLogger.warn('[TTS] Render fallback check failed', { error: error instanceof Error ? error.message : String(error) });
+        authLogger.warn("[TTS] Render fallback check failed", {
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
     } else {
-      authLogger.debug('[TTS] No Render fallback configured (TTS_FALLBACK_URL not set)', {});
+      authLogger.debug(
+        "[TTS] No Render fallback configured (TTS_FALLBACK_URL not set)",
+        {},
+      );
     }
 
     // Browser fallback is always available (handled client-side)
-    authLogger.info('[TTS] Falling back to browser Speech Synthesis', {});
+    authLogger.info("[TTS] Falling back to browser Speech Synthesis", {});
     return {
       available: true,
-      provider: 'browser',
-      error: 'Using browser Speech Synthesis fallback (no API providers available)',
+      provider: "browser",
+      error:
+        "Using browser Speech Synthesis fallback (no API providers available)",
     };
   }
 
@@ -265,7 +313,7 @@ export class TTSService {
    * Get supported languages
    */
   getSupportedLanguages(): TTSLanguage[] {
-    return ['en', 'hi', 'as'];
+    return ["en", "hi", "as"];
   }
 
   /**
@@ -273,11 +321,11 @@ export class TTSService {
    */
   getLanguageName(language: TTSLanguage): string {
     const names: Record<TTSLanguage, string> = {
-      en: 'English',
-      hi: 'Hindi',
-      as: 'Assamese',
+      en: "English",
+      hi: "Hindi",
+      as: "Assamese",
     };
-    return names[language] || 'Unknown';
+    return names[language] || "Unknown";
   }
 
   /**

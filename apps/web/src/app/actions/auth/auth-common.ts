@@ -1,9 +1,12 @@
-'use server'
+"use server";
 
-import { z } from 'zod'
-import { BLOCKED_EMAIL_DOMAINS, COMMON_DOMAIN_TYPOS } from '@/lib/auth-constants'
-import { isValidEmailDomain } from '@/lib/email-validation'
-import { authLogger } from '@/lib/auth-logger'
+import { z } from "zod";
+import {
+  BLOCKED_EMAIL_DOMAINS,
+  COMMON_DOMAIN_TYPOS,
+} from "@/lib/auth-constants";
+import { isValidEmailDomain } from "@/lib/email-validation";
+import { authLogger } from "@/lib/auth-logger";
 
 /**
  * Shared authentication utilities and helpers
@@ -18,86 +21,109 @@ export function validateWithSchema<T>(
   schema: z.ZodSchema<T>,
 ): { success: true; data: T } | { success: false; error: string } {
   try {
-    const validated = schema.parse(input)
-    return { success: true, data: validated }
+    const validated = schema.parse(input);
+    return { success: true, data: validated };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const firstError = error.issues[0]
-      return { success: false, error: firstError?.message || 'Invalid input' }
+      const firstError = error.issues[0];
+      return { success: false, error: firstError?.message || "Invalid input" };
     }
-    throw error
+    throw error;
   }
 }
 
 /**
  * Helper: Validate email domain
  */
-export function validateEmailDomain(email: string): { valid: true } | { valid: false; error: string } {
-  const emailDomain = email.split('@')[1]
+export function validateEmailDomain(
+  email: string,
+): { valid: true } | { valid: false; error: string } {
+  const emailDomain = email.split("@")[1];
   if (!emailDomain || !isValidEmailDomain(emailDomain)) {
-    authLogger.debug('[requestOtp] Invalid email domain')
+    authLogger.debug("[requestOtp] Invalid email domain");
     return {
       valid: false,
-      error: 'Please enter a valid email address from a recognized email provider.'
-    }
+      error:
+        "Please enter a valid email address from a recognized email provider.",
+    };
   }
-  return { valid: true }
+  return { valid: true };
 }
 
 /**
  * Helper: Check for blocked domains and suspicious patterns
  */
-export function validateEmailSecurity(email: string): { valid: true } | { valid: false; error: string } {
-  const domain = email.split('@')[1]
+export function validateEmailSecurity(
+  email: string,
+): { valid: true } | { valid: false; error: string } {
+  const domain = email.split("@")[1];
 
   if (domain && BLOCKED_EMAIL_DOMAINS.has(domain.toLowerCase())) {
-    authLogger.debug('[requestOtp] Blocked domain detected')
+    authLogger.debug("[requestOtp] Blocked domain detected");
 
     if (COMMON_DOMAIN_TYPOS[domain]) {
-      const suggestedEmail = email.replaceAll(domain, COMMON_DOMAIN_TYPOS[domain])
-      authLogger.warn('[requestOtp] Possible typo detected in email domain')
+      const suggestedEmail = email.replaceAll(
+        domain,
+        COMMON_DOMAIN_TYPOS[domain],
+      );
+      authLogger.warn("[requestOtp] Possible typo detected in email domain");
       return {
         valid: false,
-        error: `Did you mean ${suggestedEmail}? Please check your email address.`
-      }
+        error: `Did you mean ${suggestedEmail}? Please check your email address.`,
+      };
     }
 
     return {
       valid: false,
-      error: 'Please enter a valid email address from a recognized email provider.'
-    }
+      error:
+        "Please enter a valid email address from a recognized email provider.",
+    };
   }
 
-  const suspiciousPatterns = ['test@', 'fake@', 'example@', 'spam@', 'temp@', 'disposable@']
-  if (suspiciousPatterns.some(pattern => email.startsWith(pattern))) {
-    authLogger.debug('[requestOtp] Suspicious email pattern detected')
+  const suspiciousPatterns = [
+    "test@",
+    "fake@",
+    "example@",
+    "spam@",
+    "temp@",
+    "disposable@",
+  ];
+  if (suspiciousPatterns.some((pattern) => email.startsWith(pattern))) {
+    authLogger.debug("[requestOtp] Suspicious email pattern detected");
     return {
       valid: false,
-      error: 'Please use a valid email address.'
-    }
+      error: "Please use a valid email address.",
+    };
   }
 
-  return { valid: true }
+  return { valid: true };
 }
 
 /**
  * Helper: Handle Supabase OTP request errors
  */
-export function handleOtpRequestError(error: { message: string; status?: number; name?: string }): string {
-  authLogger.error('[requestOtp] Supabase error', error, {
+export function handleOtpRequestError(error: {
+  message: string;
+  status?: number;
+  name?: string;
+}): string {
+  authLogger.error("[requestOtp] Supabase error", error, {
     status: error.status,
     name: error.name,
-  })
+  });
 
-  if (error.message.includes('rate limit')) {
-    return 'Too many requests. Please wait a few minutes and try again.'
+  if (error.message.includes("rate limit")) {
+    return "Too many requests. Please wait a few minutes and try again.";
   }
-  if (error.message.includes('Email provider') || error.message.includes('email')) {
-    return 'Email service issue. Please check Supabase dashboard Auth settings.'
+  if (
+    error.message.includes("Email provider") ||
+    error.message.includes("email")
+  ) {
+    return "Email service issue. Please check Supabase dashboard Auth settings.";
   }
-  if (error.message.includes('Invalid email')) {
-    return 'Please enter a valid email address.'
+  if (error.message.includes("Invalid email")) {
+    return "Please enter a valid email address.";
   }
 
-  return error.message
+  return error.message;
 }

@@ -11,18 +11,18 @@
 /**
  * Supported role types in the application
  */
-export type UserRole = 'student' | 'teacher' | 'admin' | 'super_admin'
+export type UserRole = "student" | "teacher" | "admin" | "super_admin";
 
 /**
  * Role hierarchy (higher roles have permissions of lower roles)
  * student < teacher < admin < super_admin
  */
 export const ROLE_HIERARCHY: Record<UserRole, number> = {
-  'student': 1,
-  'teacher': 2,
-  'admin': 3,
-  'super_admin': 4,
-}
+  student: 1,
+  teacher: 2,
+  admin: 3,
+  super_admin: 4,
+};
 
 /**
  * Check if a role is a teacher or higher (teacher, admin, super_admin)
@@ -37,7 +37,7 @@ export const ROLE_HIERARCHY: Record<UserRole, number> = {
  * }
  */
 export function isTeacherOrHigher(role: string | undefined | null): boolean {
-  return role === 'teacher' || role === 'admin' || role === 'super_admin'
+  return role === "teacher" || role === "admin" || role === "super_admin";
 }
 
 /**
@@ -53,7 +53,7 @@ export function isTeacherOrHigher(role: string | undefined | null): boolean {
  * }
  */
 export function isAdmin(role: string | undefined | null): boolean {
-  return role === 'admin' || role === 'super_admin'
+  return role === "admin" || role === "super_admin";
 }
 
 /**
@@ -69,7 +69,7 @@ export function isAdmin(role: string | undefined | null): boolean {
  * }
  */
 export function isSuperAdmin(role: string | undefined | null): boolean {
-  return role === 'super_admin'
+  return role === "super_admin";
 }
 
 /**
@@ -79,7 +79,7 @@ export function isSuperAdmin(role: string | undefined | null): boolean {
  * @returns true if user is exactly a teacher
  */
 export function isTeacherOnly(role: string | undefined | null): boolean {
-  return role === 'teacher'
+  return role === "teacher";
 }
 
 /**
@@ -89,7 +89,7 @@ export function isTeacherOnly(role: string | undefined | null): boolean {
  * @returns true if user is a student
  */
 export function isStudent(role: string | undefined | null): boolean {
-  return role === 'student'
+  return role === "student";
 }
 
 /**
@@ -107,16 +107,16 @@ export function isStudent(role: string | undefined | null): boolean {
  */
 export function hasMinimumRole(
   role: string | undefined | null,
-  minimumRole: UserRole
+  minimumRole: UserRole,
 ): boolean {
   if (!role || !(role in ROLE_HIERARCHY)) {
-    return false
+    return false;
   }
 
-  const userLevel = ROLE_HIERARCHY[role as UserRole]
-  const minimumLevel = ROLE_HIERARCHY[minimumRole]
+  const userLevel = ROLE_HIERARCHY[role as UserRole];
+  const minimumLevel = ROLE_HIERARCHY[minimumRole];
 
-  return userLevel >= minimumLevel
+  return userLevel >= minimumLevel;
 }
 
 /**
@@ -129,18 +129,18 @@ export function hasMinimumRole(
  * const role = getRoleFromMetadata(user.app_metadata)
  */
 export function getRoleFromMetadata(
-  appMetadata: Record<string, unknown> | undefined | null
+  appMetadata: Record<string, unknown> | undefined | null,
 ): UserRole | null {
   if (!appMetadata) {
-    return null
+    return null;
   }
 
-  const role = appMetadata.role
-  if (typeof role === 'string' && isValidRole(role)) {
-    return role as UserRole
+  const role = appMetadata.role;
+  if (typeof role === "string" && isValidRole(role)) {
+    return role as UserRole;
   }
 
-  return null
+  return null;
 }
 
 /**
@@ -156,24 +156,27 @@ export function getRoleFromMetadata(
  */
 export function isValidRole(role: unknown): role is UserRole {
   return (
-    typeof role === 'string' &&
-    ['student', 'teacher', 'admin', 'super_admin'].includes(role)
-  )
+    typeof role === "string" &&
+    ["student", "teacher", "admin", "super_admin"].includes(role)
+  );
 }
 
 /**
  * List of roles that can perform administrative functions
  */
-export const ADMIN_ROLES: readonly UserRole[] = ['admin', 'super_admin'] as const
+export const ADMIN_ROLES: readonly UserRole[] = [
+  "admin",
+  "super_admin",
+] as const;
 
 /**
  * List of roles that can create/manage classes
  */
 export const TEACHER_ROLES: readonly UserRole[] = [
-  'teacher',
-  'admin',
-  'super_admin',
-] as const
+  "teacher",
+  "admin",
+  "super_admin",
+] as const;
 
 /**
  * Check if role is in a list of allowed roles
@@ -189,9 +192,9 @@ export const TEACHER_ROLES: readonly UserRole[] = [
  */
 export function hasAllowedRole(
   role: string | undefined | null,
-  allowedRoles: readonly UserRole[]
+  allowedRoles: readonly UserRole[],
 ): boolean {
-  return allowedRoles.includes(role as UserRole)
+  return allowedRoles.includes(role as UserRole);
 }
 
 /**
@@ -205,16 +208,16 @@ export function hasAllowedRole(
  */
 export function getRoleDisplayName(role: string | undefined | null): string {
   switch (role) {
-    case 'student':
-      return 'Student'
-    case 'teacher':
-      return 'Teacher'
-    case 'admin':
-      return 'Administrator'
-    case 'super_admin':
-      return 'Super Administrator'
+    case "student":
+      return "Student";
+    case "teacher":
+      return "Teacher";
+    case "admin":
+      return "Administrator";
+    case "super_admin":
+      return "Super Administrator";
     default:
-      return 'Unknown'
+      return "Unknown";
   }
 }
 
@@ -230,12 +233,12 @@ export function getRoleDisplayName(role: string | undefined | null): string {
  */
 export function filterUsersByRole(
   users: Array<{ app_metadata?: Record<string, unknown> }>,
-  role: UserRole
+  role: UserRole,
 ): typeof users {
   return users.filter((user) => {
-    const userRole = getRoleFromMetadata(user.app_metadata)
-    return userRole === role
-  })
+    const userRole = getRoleFromMetadata(user.app_metadata);
+    return userRole === role;
+  });
 }
 
 /**
@@ -250,10 +253,10 @@ export function filterUsersByRole(
  */
 export function filterUsersByMinimumRole(
   users: Array<{ app_metadata?: Record<string, unknown> }>,
-  minimumRole: UserRole
+  minimumRole: UserRole,
 ): typeof users {
   return users.filter((user) => {
-    const userRole = getRoleFromMetadata(user.app_metadata)
-    return userRole ? hasMinimumRole(userRole, minimumRole) : false
-  })
+    const userRole = getRoleFromMetadata(user.app_metadata);
+    return userRole ? hasMinimumRole(userRole, minimumRole) : false;
+  });
 }

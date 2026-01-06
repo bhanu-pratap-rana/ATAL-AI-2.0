@@ -1,4 +1,4 @@
-'use server'
+"use server";
 
 /**
  * Centralized Action Result Types
@@ -28,20 +28,20 @@
  */
 export type ActionResult<T = void> =
   | { success: true; data: T; message?: string }
-  | { success: false; error: string; code?: ActionErrorCode }
+  | { success: false; error: string; code?: ActionErrorCode };
 
 /**
  * Standard error codes for categorizing action failures
  * Helps with client-side error handling and analytics
  */
 export type ActionErrorCode =
-  | 'UNAUTHORIZED'       // User not authenticated
-  | 'FORBIDDEN'          // User lacks permission
-  | 'NOT_FOUND'          // Resource not found
-  | 'VALIDATION_ERROR'   // Input validation failed
-  | 'RATE_LIMITED'       // Too many requests
-  | 'CONFLICT'           // Resource already exists
-  | 'INTERNAL_ERROR'     // Unexpected server error
+  | "UNAUTHORIZED" // User not authenticated
+  | "FORBIDDEN" // User lacks permission
+  | "NOT_FOUND" // Resource not found
+  | "VALIDATION_ERROR" // Input validation failed
+  | "RATE_LIMITED" // Too many requests
+  | "CONFLICT" // Resource already exists
+  | "INTERNAL_ERROR"; // Unexpected server error
 
 /**
  * Helper to create a success response
@@ -55,7 +55,7 @@ export type ActionErrorCode =
  * return successResponse({ userId: '123' }, 'User created')
  */
 export function successResponse<T>(data: T, message?: string): ActionResult<T> {
-  return { success: true, data, message }
+  return { success: true, data, message };
 }
 
 /**
@@ -68,8 +68,11 @@ export function successResponse<T>(data: T, message?: string): ActionResult<T> {
  * @example
  * return errorResponse('Email already exists', 'CONFLICT')
  */
-export function errorResponse(error: string, code?: ActionErrorCode): ActionResult<never> {
-  return { success: false, error, code }
+export function errorResponse(
+  error: string,
+  code?: ActionErrorCode,
+): ActionResult<never> {
+  return { success: false, error, code };
 }
 
 /**
@@ -78,8 +81,10 @@ export function errorResponse(error: string, code?: ActionErrorCode): ActionResu
  * @param message - Optional custom message (defaults to 'Authentication required')
  * @returns ActionResult with success: false and UNAUTHORIZED code
  */
-export function unauthorizedResponse(message = 'Authentication required'): ActionResult<never> {
-  return { success: false, error: message, code: 'UNAUTHORIZED' }
+export function unauthorizedResponse(
+  message = "Authentication required",
+): ActionResult<never> {
+  return { success: false, error: message, code: "UNAUTHORIZED" };
 }
 
 /**
@@ -88,8 +93,10 @@ export function unauthorizedResponse(message = 'Authentication required'): Actio
  * @param message - Optional custom message (defaults to 'Permission denied')
  * @returns ActionResult with success: false and FORBIDDEN code
  */
-export function forbiddenResponse(message = 'Permission denied'): ActionResult<never> {
-  return { success: false, error: message, code: 'FORBIDDEN' }
+export function forbiddenResponse(
+  message = "Permission denied",
+): ActionResult<never> {
+  return { success: false, error: message, code: "FORBIDDEN" };
 }
 
 /**
@@ -99,7 +106,7 @@ export function forbiddenResponse(message = 'Permission denied'): ActionResult<n
  * @returns ActionResult with success: false and VALIDATION_ERROR code
  */
 export function validationErrorResponse(message: string): ActionResult<never> {
-  return { success: false, error: message, code: 'VALIDATION_ERROR' }
+  return { success: false, error: message, code: "VALIDATION_ERROR" };
 }
 
 /**
@@ -109,7 +116,7 @@ export function validationErrorResponse(message: string): ActionResult<never> {
  * @returns ActionResult with success: false and NOT_FOUND code
  */
 export function notFoundResponse(resource: string): ActionResult<never> {
-  return { success: false, error: `${resource} not found`, code: 'NOT_FOUND' }
+  return { success: false, error: `${resource} not found`, code: "NOT_FOUND" };
 }
 
 /**
@@ -119,8 +126,10 @@ export function notFoundResponse(resource: string): ActionResult<never> {
  * @param message - Optional custom message (defaults to 'An unexpected error occurred')
  * @returns ActionResult with success: false and INTERNAL_ERROR code
  */
-export function internalErrorResponse(message = 'An unexpected error occurred'): ActionResult<never> {
-  return { success: false, error: message, code: 'INTERNAL_ERROR' }
+export function internalErrorResponse(
+  message = "An unexpected error occurred",
+): ActionResult<never> {
+  return { success: false, error: message, code: "INTERNAL_ERROR" };
 }
 
 /**
@@ -129,6 +138,8 @@ export function internalErrorResponse(message = 'An unexpected error occurred'):
  * @param message - Optional custom message
  * @returns ActionResult with success: false and RATE_LIMITED code
  */
-export function rateLimitResponse(message = 'Too many requests. Please try again later.'): ActionResult<never> {
-  return { success: false, error: message, code: 'RATE_LIMITED' }
+export function rateLimitResponse(
+  message = "Too many requests. Please try again later.",
+): ActionResult<never> {
+  return { success: false, error: message, code: "RATE_LIMITED" };
 }

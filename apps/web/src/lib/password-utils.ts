@@ -15,21 +15,21 @@
  * - HaveIBeenPwned API: https://haveibeenpwned.com/API/v3
  */
 
-import { authLogger } from './auth-logger';
+import { authLogger } from "./auth-logger";
 
-import * as crypto from 'crypto'
+import * as crypto from "crypto";
 
 /**
  * Password Validation Rules
  */
 export const NIST_2025_PASSWORD_RULES = {
-  minLength: 8,            // Minimum 8 characters (reasonable for educational platform)
-  maxLength: 64,           // Support long passphrases
+  minLength: 8, // Minimum 8 characters (reasonable for educational platform)
+  maxLength: 64, // Support long passphrases
   requireUppercase: false, // NOT required (prefer length over complexity)
   requireLowercase: false, // NOT required (prefer length over complexity)
-  requireNumbers: false,   // NOT required (prefer length over complexity)
+  requireNumbers: false, // NOT required (prefer length over complexity)
   requireSpecialChars: false, // NOT required (prefer length over complexity)
-} as const
+} as const;
 
 /**
  * Check if a password has been exposed in a data breach
@@ -57,57 +57,60 @@ export async function isPasswordBreached(password: string): Promise<boolean> {
   try {
     // Hash the password using SHA-1 (required by HaveIBeenPwned API)
     const sha1Hash = crypto
-      .createHash('sha1')
+      .createHash("sha1")
       .update(password)
-      .digest('hex')
-      .toUpperCase()
+      .digest("hex")
+      .toUpperCase();
 
     // Use k-anonymity: only send first 5 characters
-    const prefix = sha1Hash.substring(0, 5)
-    const suffix = sha1Hash.substring(5)
+    const prefix = sha1Hash.substring(0, 5);
+    const suffix = sha1Hash.substring(5);
 
     // Call HaveIBeenPwned API
-    const response = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`, {
-      method: 'GET',
-      headers: {
-        'User-Agent': 'Atal-AI-Educational-Platform/1.0',
+    const response = await fetch(
+      `https://api.pwnedpasswords.com/range/${prefix}`,
+      {
+        method: "GET",
+        headers: {
+          "User-Agent": "Atal-AI-Educational-Platform/1.0",
+        },
+        // Timeout after 5 seconds to not block user
+        signal: AbortSignal.timeout(5000),
       },
-      // Timeout after 5 seconds to not block user
-      signal: AbortSignal.timeout(5000),
-    })
+    );
 
     if (!response.ok) {
       // API error or rate limit - don't block user
-      authLogger.warn('[isPasswordBreached] API returned non-200 status', {
+      authLogger.warn("[isPasswordBreached] API returned non-200 status", {
         status: response.status,
         statusText: response.statusText,
-      })
-      return false
+      });
+      return false;
     }
 
     // Parse response - format is: HASH:COUNT\r\n
-    const text = await response.text()
-    const hashes = text.split('\r\n')
+    const text = await response.text();
+    const hashes = text.split("\r\n");
 
     // Check if our suffix appears in the list
     // This means our full hash has been seen in breaches
-    const isBreached = hashes.some(line => {
-      const [hashSuffix] = line.split(':')
-      return hashSuffix === suffix
-    })
+    const isBreached = hashes.some((line) => {
+      const [hashSuffix] = line.split(":");
+      return hashSuffix === suffix;
+    });
 
     if (isBreached) {
-      authLogger.info('[isPasswordBreached] Password found in breach database')
+      authLogger.info("[isPasswordBreached] Password found in breach database");
     }
 
-    return isBreached
+    return isBreached;
   } catch (error) {
     // Network error, timeout, or parsing error
     // Don't block user - let them proceed with warning
-    authLogger.warn('[isPasswordBreached] Exception checking password breach', {
+    authLogger.warn("[isPasswordBreached] Exception checking password breach", {
       error: error instanceof Error ? error.message : String(error),
-    })
-    return false
+    });
+    return false;
   }
 }
 
@@ -128,18 +131,18 @@ export async function isPasswordBreached(password: string): Promise<boolean> {
  */
 export function getPasswordValidationError(password: string): string | null {
   if (password.length < NIST_2025_PASSWORD_RULES.minLength) {
-    return `Password must be at least ${NIST_2025_PASSWORD_RULES.minLength} characters`
+    return `Password must be at least ${NIST_2025_PASSWORD_RULES.minLength} characters`;
   }
 
   if (password.length > NIST_2025_PASSWORD_RULES.maxLength) {
-    return `Password is too long (maximum ${NIST_2025_PASSWORD_RULES.maxLength} characters)`
+    return `Password is too long (maximum ${NIST_2025_PASSWORD_RULES.maxLength} characters)`;
   }
 
-  return null
+  return null;
 }
 
 // Alias for backward compatibility
-export const NIST_2025_MIN_PASSWORD_LENGTH = NIST_2025_PASSWORD_RULES.minLength
+export const NIST_2025_MIN_PASSWORD_LENGTH = NIST_2025_PASSWORD_RULES.minLength;
 
 /**
  * Validate password with optional breach checking
@@ -172,50 +175,54 @@ export const NIST_2025_MIN_PASSWORD_LENGTH = NIST_2025_PASSWORD_RULES.minLength
  */
 export async function validatePasswordNist2025(
   password: string,
-  checkBreach: boolean = false
+  checkBreach: boolean = false,
 ): Promise<{
-  valid: boolean
-  error?: string
-  isBreached?: boolean
+  valid: boolean;
+  error?: string;
+  isBreached?: boolean;
 }> {
   // Check length requirements
-  const lengthError = getPasswordValidationError(password)
+  const lengthError = getPasswordValidationError(password);
   if (lengthError) {
     return {
       valid: false,
       error: lengthError,
-    }
+    };
   }
 
   // Optional: Check against breach database
   if (checkBreach) {
     try {
-      const isBreached = await isPasswordBreached(password)
+      const isBreached = await isPasswordBreached(password);
       if (isBreached) {
         return {
           valid: false,
-          error: 'This password has been exposed in a data breach. Please choose a different password.',
+          error:
+            "This password has been exposed in a data breach. Please choose a different password.",
           isBreached: true,
-        }
+        };
       }
       return {
         valid: true,
         isBreached: false,
-      }
+      };
     } catch (error) {
       // If breach check fails, still allow password but log warning
-      authLogger.warn('[validatePasswordNist2025] Error checking breach database', error instanceof Error ? error : { error: String(error) })
+      authLogger.warn(
+        "[validatePasswordNist2025] Error checking breach database",
+        error instanceof Error ? error : { error: String(error) },
+      );
       return {
         valid: true,
         isBreached: undefined, // Unknown due to error
-      }
+      };
     }
   }
 
   return {
     valid: true,
     error: undefined,
-  }
+  };
 }
 
 /**
@@ -231,25 +238,27 @@ export async function validatePasswordNist2025(
  * @returns Strength score from 0-100
  */
 export function estimatePasswordStrengthNist2025(password: string): number {
-  let score = 0
+  let score = 0;
 
   // Length scoring (most important)
-  if (password.length >= 12) score += 30  // Minimum requirement
-  if (password.length >= 16) score += 15  // Longer passphrases
-  if (password.length >= 20) score += 15  // Very long passphrases
-  if (password.length >= 30) score += 10  // Extreme length
+  if (password.length >= 12) score += 30; // Minimum requirement
+  if (password.length >= 16) score += 15; // Longer passphrases
+  if (password.length >= 20) score += 15; // Very long passphrases
+  if (password.length >= 30) score += 10; // Extreme length
 
   // Character diversity (not required, but encouraged)
-  const hasLower = /[a-z]/.test(password)
-  const hasUpper = /[A-Z]/.test(password)
-  const hasNumber = /[0-9]/.test(password)
-  const hasSpecial = /[^a-zA-Z0-9]/.test(password)
+  const hasLower = /[a-z]/.test(password);
+  const hasUpper = /[A-Z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSpecial = /[^a-zA-Z0-9]/.test(password);
 
-  const diversity = [hasLower, hasUpper, hasNumber, hasSpecial].filter(Boolean).length
-  score += diversity * 5  // Each type adds 5 points (max 20)
+  const diversity = [hasLower, hasUpper, hasNumber, hasSpecial].filter(
+    Boolean,
+  ).length;
+  score += diversity * 5; // Each type adds 5 points (max 20)
 
   // Cap at 100
-  return Math.min(100, score)
+  return Math.min(100, score);
 }
 
 /**
@@ -259,9 +268,9 @@ export function estimatePasswordStrengthNist2025(password: string): number {
  * @returns Strength label
  */
 export function getPasswordStrengthLabelNist2025(score: number): string {
-  if (score < 30) return 'Weak'
-  if (score < 50) return 'Fair'
-  if (score < 70) return 'Good'
-  if (score < 85) return 'Strong'
-  return 'Very Strong'
+  if (score < 30) return "Weak";
+  if (score < 50) return "Fair";
+  if (score < 70) return "Good";
+  if (score < 85) return "Strong";
+  return "Very Strong";
 }

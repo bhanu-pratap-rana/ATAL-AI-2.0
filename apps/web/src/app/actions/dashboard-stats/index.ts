@@ -8,8 +8,8 @@ export {
   getDashboardStats,
   getProgressStats,
   type DashboardStats,
-  type ProgressStats
-} from './dashboard-core'
+  type ProgressStats,
+} from "./dashboard-core";
 
 // Progress analytics and calculations
 export {
@@ -19,11 +19,8 @@ export {
   calculateRecentAssessments,
   calculateStreak,
   type ModuleProgress,
-  type AssessmentResult
-} from './progress-analytics'
+  type AssessmentResult,
+} from "./progress-analytics";
 
 // Activity tracking
-export {
-  getRecentActivity,
-  type RecentActivity
-} from './activity-tracking'
+export { getRecentActivity, type RecentActivity } from "./activity-tracking";

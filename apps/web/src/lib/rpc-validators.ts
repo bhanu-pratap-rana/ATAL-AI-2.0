@@ -11,13 +11,13 @@
  * 3. Handles both success and error cases
  */
 
-import { z } from 'zod'
+import { z } from "zod";
 import type {
   SubmitAssessmentRPCResponse,
   UpdateKnowledgeStateRPCResponse,
   UpsertStudentProfileRPCResponse,
   GetAdaptiveQuestionsRPCResponse,
-} from '@/types/auth'
+} from "@/types/auth";
 
 // ============================================================================
 // RPC Response Validators
@@ -35,7 +35,7 @@ export const SubmitAssessmentResponseSchema = z.object({
   totalQuestions: z.number().optional(),
   correctAnswers: z.number().optional(),
   moduleBreakdown: z.record(z.unknown()).optional(),
-}) satisfies z.ZodType<SubmitAssessmentRPCResponse>
+}) satisfies z.ZodType<SubmitAssessmentRPCResponse>;
 
 /**
  * Validator for update_knowledge_state RPC response
@@ -45,11 +45,13 @@ export const UpdateKnowledgeStateResponseSchema = z.object({
   success: z.boolean(),
   error: z.string().optional(),
   mastery_score: z.number().min(0).max(1).optional(),
-  confidence_level: z.enum(['low', 'medium', 'high']).optional(),
+  confidence_level: z.enum(["low", "medium", "high"]).optional(),
   attempts: z.number().int().nonnegative().optional(),
-  status: z.enum(['not_started', 'in_progress', 'completed', 'mastered']).optional(),
+  status: z
+    .enum(["not_started", "in_progress", "completed", "mastered"])
+    .optional(),
   time_spent_seconds: z.number().int().nonnegative().optional(),
-}) satisfies z.ZodType<UpdateKnowledgeStateRPCResponse>
+}) satisfies z.ZodType<UpdateKnowledgeStateRPCResponse>;
 
 /**
  * Validator for upsert_student_profile RPC response
@@ -59,7 +61,7 @@ export const UpsertStudentProfileResponseSchema = z.object({
   success: z.boolean(),
   error: z.string().optional(),
   code: z.string().optional(),
-}) satisfies z.ZodType<UpsertStudentProfileRPCResponse>
+}) satisfies z.ZodType<UpsertStudentProfileRPCResponse>;
 
 /**
  * Validator for get_adaptive_questions RPC response
@@ -77,10 +79,10 @@ export const GetAdaptiveQuestionsResponseSchema = z.object({
         difficulty: z.number(),
         type: z.string(),
         text: z.string(),
-      })
+      }),
     )
     .optional(),
-}) satisfies z.ZodType<GetAdaptiveQuestionsRPCResponse>
+}) satisfies z.ZodType<GetAdaptiveQuestionsRPCResponse>;
 
 // ============================================================================
 // Validation Functions
@@ -92,14 +94,19 @@ export const GetAdaptiveQuestionsResponseSchema = z.object({
  * @returns Validated response or validation error
  */
 export function validateSubmitAssessmentResponse(
-  response: unknown
-): { success: true; data: SubmitAssessmentRPCResponse } | { success: false; error: string } {
+  response: unknown,
+):
+  | { success: true; data: SubmitAssessmentRPCResponse }
+  | { success: false; error: string } {
   try {
-    const validated = SubmitAssessmentResponseSchema.parse(response)
-    return { success: true, data: validated }
+    const validated = SubmitAssessmentResponseSchema.parse(response);
+    return { success: true, data: validated };
   } catch (error) {
-    const message = error instanceof z.ZodError ? error.errors[0]?.message : 'Invalid response'
-    return { success: false, error: `RPC validation failed: ${message}` }
+    const message =
+      error instanceof z.ZodError
+        ? error.errors[0]?.message
+        : "Invalid response";
+    return { success: false, error: `RPC validation failed: ${message}` };
   }
 }
 
@@ -109,14 +116,19 @@ export function validateSubmitAssessmentResponse(
  * @returns Validated response or validation error
  */
 export function validateUpdateKnowledgeStateResponse(
-  response: unknown
-): { success: true; data: UpdateKnowledgeStateRPCResponse } | { success: false; error: string } {
+  response: unknown,
+):
+  | { success: true; data: UpdateKnowledgeStateRPCResponse }
+  | { success: false; error: string } {
   try {
-    const validated = UpdateKnowledgeStateResponseSchema.parse(response)
-    return { success: true, data: validated }
+    const validated = UpdateKnowledgeStateResponseSchema.parse(response);
+    return { success: true, data: validated };
   } catch (error) {
-    const message = error instanceof z.ZodError ? error.errors[0]?.message : 'Invalid response'
-    return { success: false, error: `RPC validation failed: ${message}` }
+    const message =
+      error instanceof z.ZodError
+        ? error.errors[0]?.message
+        : "Invalid response";
+    return { success: false, error: `RPC validation failed: ${message}` };
   }
 }
 
@@ -126,14 +138,19 @@ export function validateUpdateKnowledgeStateResponse(
  * @returns Validated response or validation error
  */
 export function validateUpsertStudentProfileResponse(
-  response: unknown
-): { success: true; data: UpsertStudentProfileRPCResponse } | { success: false; error: string } {
+  response: unknown,
+):
+  | { success: true; data: UpsertStudentProfileRPCResponse }
+  | { success: false; error: string } {
   try {
-    const validated = UpsertStudentProfileResponseSchema.parse(response)
-    return { success: true, data: validated }
+    const validated = UpsertStudentProfileResponseSchema.parse(response);
+    return { success: true, data: validated };
   } catch (error) {
-    const message = error instanceof z.ZodError ? error.errors[0]?.message : 'Invalid response'
-    return { success: false, error: `RPC validation failed: ${message}` }
+    const message =
+      error instanceof z.ZodError
+        ? error.errors[0]?.message
+        : "Invalid response";
+    return { success: false, error: `RPC validation failed: ${message}` };
   }
 }
 
@@ -143,13 +160,18 @@ export function validateUpsertStudentProfileResponse(
  * @returns Validated response or validation error
  */
 export function validateGetAdaptiveQuestionsResponse(
-  response: unknown
-): { success: true; data: GetAdaptiveQuestionsRPCResponse } | { success: false; error: string } {
+  response: unknown,
+):
+  | { success: true; data: GetAdaptiveQuestionsRPCResponse }
+  | { success: false; error: string } {
   try {
-    const validated = GetAdaptiveQuestionsResponseSchema.parse(response)
-    return { success: true, data: validated }
+    const validated = GetAdaptiveQuestionsResponseSchema.parse(response);
+    return { success: true, data: validated };
   } catch (error) {
-    const message = error instanceof z.ZodError ? error.errors[0]?.message : 'Invalid response'
-    return { success: false, error: `RPC validation failed: ${message}` }
+    const message =
+      error instanceof z.ZodError
+        ? error.errors[0]?.message
+        : "Invalid response";
+    return { success: false, error: `RPC validation failed: ${message}` };
   }
 }

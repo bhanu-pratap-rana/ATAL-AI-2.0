@@ -15,31 +15,35 @@
  * These factories encapsulate this entire pattern
  */
 
-import { ValidationResult } from '@/hooks/useValidationHandler'
-import { validateEmail, validatePassword, validatePasswordMatch } from '@/lib/validation-utils'
-import { createErrorHandler } from '@/lib/form-utils'
+import { ValidationResult } from "@/hooks/useValidationHandler";
+import {
+  validateEmail,
+  validatePassword,
+  validatePasswordMatch,
+} from "@/lib/validation-utils";
+import { createErrorHandler } from "@/lib/form-utils";
 
 /**
  * Handler state for form operations
  */
 export interface FormHandlerState {
-  isLoading: boolean
-  error: string | null
+  isLoading: boolean;
+  error: string | null;
 }
 
 /**
  * Response types for form submission handlers
  */
 export interface EmailSubmitResponse {
-  success: boolean
-  error?: string
-  message?: string
+  success: boolean;
+  error?: string;
+  message?: string;
 }
 
 export interface PasswordSubmitResponse {
-  success: boolean
-  error?: string
-  message?: string
+  success: boolean;
+  error?: string;
+  message?: string;
 }
 
 /**
@@ -47,26 +51,29 @@ export interface PasswordSubmitResponse {
  */
 export interface FormHandlerOptions<T = void> {
   /** Validation function(s) to run before executing the handler */
-  validate: () => ValidationResult | Promise<ValidationResult> | ValidationResult[]
+  validate: () =>
+    | ValidationResult
+    | Promise<ValidationResult>
+    | ValidationResult[];
   /** The main async operation to perform */
-  onSubmit: () => Promise<T>
+  onSubmit: () => Promise<T>;
   /** Called when validation fails */
-  onValidationError?: (error: string) => void
+  onValidationError?: (error: string) => void;
   /** Called when submission fails */
-  onSubmitError?: (error: unknown) => void
+  onSubmitError?: (error: unknown) => void;
   /** Called when submission succeeds */
-  onSuccess?: (result: T) => void
+  onSuccess?: (result: T) => void;
   /** Called in finally block */
-  onFinally?: () => void
+  onFinally?: () => void;
 }
 
 /**
  * Result from executing a form handler
  */
 export interface FormHandlerResult<T = void> {
-  success: boolean
-  data?: T
-  error?: string
+  success: boolean;
+  data?: T;
+  error?: string;
 }
 
 /**
@@ -96,68 +103,69 @@ export function createFormHandler<T = void>(options: FormHandlerOptions<T>) {
   return async (
     e: React.FormEvent | undefined,
     setLoading: (loading: boolean) => void,
-    setError: (error: string | null) => void
+    setError: (error: string | null) => void,
   ): Promise<FormHandlerResult<T>> => {
     // Step 1: Prevent default form submission
     if (e) {
-      e.preventDefault()
+      e.preventDefault();
     }
 
     // Step 2: Set loading
-    setLoading(true)
+    setLoading(true);
 
     // Step 3: Clear previous error
-    setError(null)
+    setError(null);
 
     try {
       // Step 4: Validate input(s)
       const validationResults = Array.isArray(options.validate)
         ? options.validate
-        : [await Promise.resolve(options.validate())]
+        : [await Promise.resolve(options.validate())];
 
       // Step 5: Check if any validation failed
       for (const result of validationResults) {
         if (!result.valid) {
           const errorMessage = Array.isArray(result.error)
-            ? result.error.join(', ')
-            : result.error || 'Validation failed'
+            ? result.error.join(", ")
+            : result.error || "Validation failed";
 
-          setError(errorMessage)
-          options.onValidationError?.(errorMessage)
+          setError(errorMessage);
+          options.onValidationError?.(errorMessage);
 
           return {
             success: false,
             error: errorMessage,
-          }
+          };
         }
       }
 
       // Step 6 & 7: Execute async operation (try/catch)
-      const result = await options.onSubmit()
+      const result = await options.onSubmit();
 
       // Success
-      options.onSuccess?.(result)
+      options.onSuccess?.(result);
 
       return {
         success: true,
         data: result,
-      }
+      };
     } catch (error) {
       // Step 7: Handle error
-      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred'
-      setError(errorMessage)
-      options.onSubmitError?.(error)
+      const errorMessage =
+        error instanceof Error ? error.message : "An unexpected error occurred";
+      setError(errorMessage);
+      options.onSubmitError?.(error);
 
       return {
         success: false,
         error: errorMessage,
-      }
+      };
     } finally {
       // Step 8: Stop loading
-      setLoading(false)
-      options.onFinally?.()
+      setLoading(false);
+      options.onFinally?.();
     }
-  }
+  };
 }
 
 /**
@@ -177,7 +185,7 @@ export function createEmailHandler(
   email: string,
   submitFn: (email: string) => Promise<EmailSubmitResponse>,
   onError?: (error: string) => void,
-  onSuccess?: () => void
+  onSuccess?: () => void,
 ) {
   return createFormHandler({
     validate: () => validateEmail(email),
@@ -185,7 +193,7 @@ export function createEmailHandler(
     onValidationError: onError,
     onSubmitError: createErrorHandler(onError),
     onSuccess,
-  })
+  });
 }
 
 /**
@@ -207,42 +215,47 @@ export function createPasswordHandler(
   passwordConfirm: string,
   submitFn: (password: string) => Promise<PasswordSubmitResponse>,
   onError?: (error: string) => void,
-  onSuccess?: () => void
+  onSuccess?: () => void,
 ) {
   return createFormHandler({
-    validate: () => [validatePassword(password), validatePasswordMatch(password, passwordConfirm)],
+    validate: () => [
+      validatePassword(password),
+      validatePasswordMatch(password, passwordConfirm),
+    ],
     onSubmit: () => submitFn(password),
     onValidationError: onError,
     onSubmitError: createErrorHandler(onError),
     onSuccess,
-  })
+  });
 }
 
 /**
  * Reduces a validation result to a single error string
  * Handles both single errors and arrays of errors
  */
-export function getErrorMessage(result: ValidationResult | ValidationResult[]): string {
+export function getErrorMessage(
+  result: ValidationResult | ValidationResult[],
+): string {
   if (Array.isArray(result)) {
     // Multiple validation results
     for (const r of result) {
       if (!r.valid) {
-        return getErrorMessage(r)
+        return getErrorMessage(r);
       }
     }
-    return ''
+    return "";
   }
 
   // Single validation result
   if (Array.isArray(result.error)) {
-    return result.error.join(', ')
+    return result.error.join(", ");
   }
 
   if (Array.isArray(result.errors)) {
-    return result.errors.join(', ')
+    return result.errors.join(", ");
   }
 
-  return result.error || 'Validation failed'
+  return result.error || "Validation failed";
 }
 
 /**
@@ -263,25 +276,26 @@ export function getErrorMessage(result: ValidationResult | ValidationResult[]): 
  */
 export function createHandlerWrapper(
   onError?: (error: string) => void,
-  onSuccess?: (message: string) => void
+  onSuccess?: (message: string) => void,
 ) {
   return async (
     handler: () => Promise<string | void>,
-    setLoading: (loading: boolean) => void
+    setLoading: (loading: boolean) => void,
   ): Promise<boolean> => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const result = await handler()
+      const result = await handler();
       if (result) {
-        onSuccess?.(result)
+        onSuccess?.(result);
       }
-      return true
+      return true;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred'
-      onError?.(errorMessage)
-      return false
+      const errorMessage =
+        error instanceof Error ? error.message : "An unexpected error occurred";
+      onError?.(errorMessage);
+      return false;
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 }

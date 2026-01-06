@@ -1,16 +1,16 @@
-'use server'
+"use server";
 
-import { createClient } from '@/lib/supabase-server'
-import { authLogger } from '@/lib/auth-logger'
+import { createClient } from "@/lib/supabase-server";
+import { authLogger } from "@/lib/auth-logger";
 
 /**
  * Standard Action Result Format
  * All server actions should return this format for consistency
  */
 export interface ActionResult<T = unknown> {
-  success: boolean
-  data?: T
-  error?: string
+  success: boolean;
+  data?: T;
+  error?: string;
 }
 
 /**
@@ -39,15 +39,15 @@ export interface ActionResult<T = unknown> {
  */
 export async function executeAction<T>(
   handler: () => Promise<T>,
-  context: string
+  context: string,
 ): Promise<ActionResult<T>> {
   try {
-    const data = await handler()
-    return { success: true, data }
+    const data = await handler();
+    return { success: true, data };
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error'
-    authLogger.error(`${context} - Action failed`, { error: message })
-    return { success: false, error: message }
+    const message = error instanceof Error ? error.message : "Unknown error";
+    authLogger.error(`${context} - Action failed`, { error: message });
+    return { success: false, error: message };
   }
 }
 
@@ -78,20 +78,23 @@ export async function verifyAuth(): Promise<
   | { success: false; error: string }
 > {
   try {
-    const supabase = await createClient()
+    const supabase = await createClient();
     const {
       data: { user },
       error,
-    } = await supabase.auth.getUser()
+    } = await supabase.auth.getUser();
 
     if (error || !user) {
-      return { success: false, error: 'Unauthorized' }
+      return { success: false, error: "Unauthorized" };
     }
 
-    return { success: true, user: { id: user.id, email: user.email } }
+    return { success: true, user: { id: user.id, email: user.email } };
   } catch (error) {
-    authLogger.error('[verifyAuth] Exception', error instanceof Error ? error : { error })
-    return { success: false, error: 'Authentication check failed' }
+    authLogger.error(
+      "[verifyAuth] Exception",
+      error instanceof Error ? error : { error },
+    );
+    return { success: false, error: "Authentication check failed" };
   }
 }
 
@@ -109,31 +112,34 @@ export async function verifyAuth(): Promise<
  * ```
  */
 export async function verifyRole(
-  requiredRole: 'admin' | 'teacher' | 'student'
+  requiredRole: "admin" | "teacher" | "student",
 ): Promise<
   | { success: true; user: { id: string; email?: string } }
   | { success: false; error: string }
 > {
   try {
-    const supabase = await createClient()
+    const supabase = await createClient();
     const {
       data: { user },
       error,
-    } = await supabase.auth.getUser()
+    } = await supabase.auth.getUser();
 
     if (error || !user) {
-      return { success: false, error: 'Unauthorized' }
+      return { success: false, error: "Unauthorized" };
     }
 
-    const userRole = user.app_metadata?.role
+    const userRole = user.app_metadata?.role;
     if (userRole !== requiredRole) {
-      return { success: false, error: `Requires ${requiredRole} role` }
+      return { success: false, error: `Requires ${requiredRole} role` };
     }
 
-    return { success: true, user: { id: user.id, email: user.email } }
+    return { success: true, user: { id: user.id, email: user.email } };
   } catch (error) {
-    authLogger.error(`[verifyRole:${requiredRole}] Exception`, error instanceof Error ? error : { error })
-    return { success: false, error: 'Role verification failed' }
+    authLogger.error(
+      `[verifyRole:${requiredRole}] Exception`,
+      error instanceof Error ? error : { error },
+    );
+    return { success: false, error: "Role verification failed" };
   }
 }
 
@@ -153,15 +159,15 @@ export async function verifyRole(
  */
 export function validateRequired(
   data: Record<string, unknown>,
-  requiredFields: string[]
+  requiredFields: string[],
 ): boolean {
   for (const field of requiredFields) {
     if (!data[field]) {
-      authLogger.warn('[validateRequired] Missing field', { field })
-      return false
+      authLogger.warn("[validateRequired] Missing field", { field });
+      return false;
     }
   }
-  return true
+  return true;
 }
 
 /**
@@ -181,19 +187,19 @@ export function validateRequired(
  */
 export async function executeQuery<T>(
   fn: () => Promise<{ data: T; error: Error | null }>,
-  context: string
+  context: string,
 ): Promise<T> {
-  const { data, error } = await fn()
+  const { data, error } = await fn();
 
   if (error) {
-    authLogger.error(`${context} - Query failed`, { error: error.message })
-    throw new Error(error.message || 'Database query failed')
+    authLogger.error(`${context} - Query failed`, { error: error.message });
+    throw new Error(error.message || "Database query failed");
   }
 
   if (!data) {
-    authLogger.warn(`${context} - No data returned`)
-    throw new Error('No data returned from database')
+    authLogger.warn(`${context} - No data returned`);
+    throw new Error("No data returned from database");
   }
 
-  return data
+  return data;
 }

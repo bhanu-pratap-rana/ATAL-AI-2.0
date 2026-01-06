@@ -18,9 +18,9 @@
  * @returns Formatted time string (e.g., "05:30")
  */
 export function formatTimeMMSS(seconds: number): string {
-  const minutes = Math.floor(seconds / 60)
-  const secs = seconds % 60
-  return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  const minutes = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
 }
 
 /**
@@ -31,9 +31,9 @@ export function formatTimeMMSS(seconds: number): string {
  * @returns Formatted time string (e.g., "1:30" or "45s")
  */
 export function formatTimeTidyCompact(seconds: number): string {
-  const mins = Math.floor(seconds / 60)
-  const secs = seconds % 60
-  return mins > 0 ? `${mins}:${secs.toString().padStart(2, '0')}` : `${secs}s`
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return mins > 0 ? `${mins}:${secs.toString().padStart(2, "0")}` : `${secs}s`;
 }
 
 /**
@@ -45,21 +45,21 @@ export function formatTimeTidyCompact(seconds: number): string {
  */
 export function formatTimeHumanReadable(seconds: number): string {
   if (seconds < 60) {
-    return `${seconds} second${seconds !== 1 ? 's' : ''}`
+    return `${seconds} second${seconds !== 1 ? "s" : ""}`;
   }
 
-  const minutes = Math.floor(seconds / 60)
+  const minutes = Math.floor(seconds / 60);
   if (minutes < 60) {
-    return `${minutes} minute${minutes !== 1 ? 's' : ''}`
+    return `${minutes} minute${minutes !== 1 ? "s" : ""}`;
   }
 
-  const hours = Math.floor(minutes / 60)
+  const hours = Math.floor(minutes / 60);
   if (hours < 24) {
-    return `${hours} hour${hours !== 1 ? 's' : ''}`
+    return `${hours} hour${hours !== 1 ? "s" : ""}`;
   }
 
-  const days = Math.floor(hours / 24)
-  return `${days} day${days !== 1 ? 's' : ''}`
+  const days = Math.floor(hours / 24);
+  return `${days} day${days !== 1 ? "s" : ""}`;
 }
 
 /**
@@ -69,10 +69,13 @@ export function formatTimeHumanReadable(seconds: number): string {
  * @param cooldownSeconds - Cooldown period in seconds
  * @returns true if cooldown has elapsed
  */
-export function isCooldownElapsed(lastAttemptTime: Date, cooldownSeconds: number): boolean {
-  const now = new Date()
-  const elapsedSeconds = (now.getTime() - lastAttemptTime.getTime()) / 1000
-  return elapsedSeconds >= cooldownSeconds
+export function isCooldownElapsed(
+  lastAttemptTime: Date,
+  cooldownSeconds: number,
+): boolean {
+  const now = new Date();
+  const elapsedSeconds = (now.getTime() - lastAttemptTime.getTime()) / 1000;
+  return elapsedSeconds >= cooldownSeconds;
 }
 
 /**
@@ -82,10 +85,13 @@ export function isCooldownElapsed(lastAttemptTime: Date, cooldownSeconds: number
  * @param cooldownSeconds - Cooldown period in seconds
  * @returns Remaining seconds, or 0 if cooldown elapsed
  */
-export function getRemainingCooldown(lastAttemptTime: Date, cooldownSeconds: number): number {
-  const now = new Date()
-  const elapsedSeconds = (now.getTime() - lastAttemptTime.getTime()) / 1000
-  return Math.max(0, cooldownSeconds - Math.ceil(elapsedSeconds))
+export function getRemainingCooldown(
+  lastAttemptTime: Date,
+  cooldownSeconds: number,
+): number {
+  const now = new Date();
+  const elapsedSeconds = (now.getTime() - lastAttemptTime.getTime()) / 1000;
+  return Math.max(0, cooldownSeconds - Math.ceil(elapsedSeconds));
 }
 
 /**
@@ -96,14 +102,14 @@ export function getRemainingCooldown(lastAttemptTime: Date, cooldownSeconds: num
  * @returns Total seconds
  */
 export function parseDuration(durationString: string): number {
-  const hourMatch = durationString.match(/(\d+)h/)
-  const minuteMatch = durationString.match(/(\d+)m/)
-  const secondMatch = durationString.match(/(\d+)s/)
+  const hourMatch = durationString.match(/(\d+)h/);
+  const minuteMatch = durationString.match(/(\d+)m/);
+  const secondMatch = durationString.match(/(\d+)s/);
 
-  let totalSeconds = 0
-  if (hourMatch) totalSeconds += parseInt(hourMatch[1]) * 3600
-  if (minuteMatch) totalSeconds += parseInt(minuteMatch[1]) * 60
-  if (secondMatch) totalSeconds += parseInt(secondMatch[1])
+  let totalSeconds = 0;
+  if (hourMatch) totalSeconds += parseInt(hourMatch[1]) * 3600;
+  if (minuteMatch) totalSeconds += parseInt(minuteMatch[1]) * 60;
+  if (secondMatch) totalSeconds += parseInt(secondMatch[1]);
 
-  return totalSeconds
+  return totalSeconds;
 }

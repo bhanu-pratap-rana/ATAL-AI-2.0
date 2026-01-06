@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * Offline Sync Hook
@@ -19,7 +19,7 @@
  * ```
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback } from "react";
 import {
   enqueueAssessmentResponse,
   enqueueChatMessage,
@@ -30,8 +30,8 @@ import {
   type ChatMessagePayload,
   type PointsAwardPayload,
   type ProgressUpdatePayload,
-} from '@/lib/offline';
-import { clientLogger } from '@/lib/client-logger';
+} from "@/lib/offline";
+import { clientLogger } from "@/lib/client-logger";
 
 /**
  * Assessment response type for submitAssessmentWithSync
@@ -76,8 +76,8 @@ export function useOfflineSync() {
     async (sessionId: string, responses: AssessmentResponse[]) => {
       try {
         // Don't enqueue if online - let server action handle it
-        if (typeof navigator !== 'undefined' && navigator.onLine) {
-          return { success: false, error: 'Use server action when online' };
+        if (typeof navigator !== "undefined" && navigator.onLine) {
+          return { success: false, error: "Use server action when online" };
         }
 
         // Build assessment response payloads
@@ -88,7 +88,7 @@ export function useOfflineSync() {
           is_correct: r.isCorrect,
           rt_ms: r.rtMs || 0,
           focus_blur_count: r.focusBlurCount || 0,
-          chosen_option: r.chosenOption || '',
+          chosen_option: r.chosenOption || "",
         }));
 
         // Enqueue each response
@@ -107,14 +107,14 @@ export function useOfflineSync() {
           count: queuedCount,
         };
       } catch (error) {
-        clientLogger.error('[useOfflineSync] Assessment enqueue failed', {
+        clientLogger.error("[useOfflineSync] Assessment enqueue failed", {
           error: error instanceof Error ? error.message : String(error),
         });
         setIsOfflineQueued(false);
         throw error;
       }
     },
-    []
+    [],
   );
 
   /**
@@ -123,8 +123,8 @@ export function useOfflineSync() {
   const logChatMessageWithSync = useCallback(
     async (payload: ChatMessagePayload) => {
       try {
-        if (typeof navigator !== 'undefined' && navigator.onLine) {
-          return { success: false, error: 'Use TutorService when online' };
+        if (typeof navigator !== "undefined" && navigator.onLine) {
+          return { success: false, error: "Use TutorService when online" };
         }
 
         const queueId = await enqueueChatMessage(payload);
@@ -136,14 +136,14 @@ export function useOfflineSync() {
           queueId,
         };
       } catch (error) {
-        clientLogger.error('[useOfflineSync] Chat message enqueue failed', {
+        clientLogger.error("[useOfflineSync] Chat message enqueue failed", {
           error: error instanceof Error ? error.message : String(error),
         });
         setIsOfflineQueued(false);
         throw error;
       }
     },
-    []
+    [],
   );
 
   /**
@@ -152,8 +152,11 @@ export function useOfflineSync() {
   const awardPointsWithSync = useCallback(
     async (payload: PointsAwardPayload) => {
       try {
-        if (typeof navigator !== 'undefined' && navigator.onLine) {
-          return { success: false, error: 'Use GamificationService when online' };
+        if (typeof navigator !== "undefined" && navigator.onLine) {
+          return {
+            success: false,
+            error: "Use GamificationService when online",
+          };
         }
 
         const queueId = await enqueuePointsAward(payload);
@@ -165,14 +168,14 @@ export function useOfflineSync() {
           queueId,
         };
       } catch (error) {
-        clientLogger.error('[useOfflineSync] Points award enqueue failed', {
+        clientLogger.error("[useOfflineSync] Points award enqueue failed", {
           error: error instanceof Error ? error.message : String(error),
         });
         setIsOfflineQueued(false);
         throw error;
       }
     },
-    []
+    [],
   );
 
   /**
@@ -181,8 +184,8 @@ export function useOfflineSync() {
   const updateProgressWithSync = useCallback(
     async (payload: ProgressUpdatePayload) => {
       try {
-        if (typeof navigator !== 'undefined' && navigator.onLine) {
-          return { success: false, error: 'Use AdaptiveService when online' };
+        if (typeof navigator !== "undefined" && navigator.onLine) {
+          return { success: false, error: "Use AdaptiveService when online" };
         }
 
         const queueId = await enqueueProgressUpdate(payload);
@@ -194,14 +197,14 @@ export function useOfflineSync() {
           queueId,
         };
       } catch (error) {
-        clientLogger.error('[useOfflineSync] Progress update enqueue failed', {
+        clientLogger.error("[useOfflineSync] Progress update enqueue failed", {
           error: error instanceof Error ? error.message : String(error),
         });
         setIsOfflineQueued(false);
         throw error;
       }
     },
-    []
+    [],
   );
 
   return {

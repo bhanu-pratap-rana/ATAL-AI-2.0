@@ -1,18 +1,28 @@
-'use server'
+"use server";
 
-import { createClient } from '@/lib/supabase-server'
-import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
-import { checkOtpRateLimit, checkOtpVerifyRateLimit, checkPasswordResetRateLimit, checkEnumerationRateLimit } from '@/lib/rate-limiter-distributed'
-import { isTeacherOrHigher } from '@/lib/auth/role-utils'
+import { createClient } from "@/lib/supabase-server";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import {
+  checkOtpRateLimit,
+  checkOtpVerifyRateLimit,
+  checkPasswordResetRateLimit,
+  checkEnumerationRateLimit,
+} from "@/lib/rate-limiter-distributed";
+import { isTeacherOrHigher } from "@/lib/auth/role-utils";
 import {
   AuthEmailSchema,
   AuthPasswordSchema,
   OtpTokenSchema,
-} from '@/lib/validation-schemas'
-import { authLogger } from '@/lib/auth-logger'
-import { checkEmailExistsInAuth } from './auth-verification'
-import { validateWithSchema, validateEmailDomain, validateEmailSecurity, handleOtpRequestError } from './auth-common'
+} from "@/lib/validation-schemas";
+import { authLogger } from "@/lib/auth-logger";
+import { checkEmailExistsInAuth } from "./auth-verification";
+import {
+  validateWithSchema,
+  validateEmailDomain,
+  validateEmailSecurity,
+  handleOtpRequestError,
+} from "./auth-common";
 
 /**
  * OTP-based authentication flows
@@ -22,62 +32,76 @@ import { validateWithSchema, validateEmailDomain, validateEmailSecurity, handleO
 /**
  * Helper: Validate and parse email input
  */
-function validateEmailInput(email: string): { success: true; email: string } | { success: false; error: string } {
-  const result = validateWithSchema(email, AuthEmailSchema)
+function validateEmailInput(
+  email: string,
+): { success: true; email: string } | { success: false; error: string } {
+  const result = validateWithSchema(email, AuthEmailSchema);
   if (!result.success) {
-    authLogger.debug('[requestOtp] Invalid email format', { error: result.error })
+    authLogger.debug("[requestOtp] Invalid email format", {
+      error: result.error,
+    });
   }
-  return result.success ? { success: true, email: result.data } : result
+  return result.success ? { success: true, email: result.data } : result;
 }
 
 /**
  * Helper: Check rate limits (OTP and enumeration)
  */
-async function checkRateLimits(email: string): Promise<{ allowed: true } | { allowed: false; error: string }> {
-  const otpAllowed = await checkOtpRateLimit(email)
+async function checkRateLimits(
+  email: string,
+): Promise<{ allowed: true } | { allowed: false; error: string }> {
+  const otpAllowed = await checkOtpRateLimit(email);
   if (!otpAllowed) {
-    authLogger.warn('[requestOtp] Rate limit exceeded', { type: 'otp_limit' })
+    authLogger.warn("[requestOtp] Rate limit exceeded", { type: "otp_limit" });
     return {
       allowed: false,
-      error: 'Too many OTP requests. Please wait an hour before requesting again.',
-    }
+      error:
+        "Too many OTP requests. Please wait an hour before requesting again.",
+    };
   }
 
-  const enumerationKey = `email:check:${email}`
-  const enumerationAllowed = await checkEnumerationRateLimit(enumerationKey)
+  const enumerationKey = `email:check:${email}`;
+  const enumerationAllowed = await checkEnumerationRateLimit(enumerationKey);
   if (!enumerationAllowed) {
-    authLogger.warn('[requestOtp] Email enumeration rate limit exceeded', {
+    authLogger.warn("[requestOtp] Email enumeration rate limit exceeded", {
       email,
-      limitType: 'enumeration'
-    })
+      limitType: "enumeration",
+    });
     return {
       allowed: false,
-      error: 'If this email is registered, check your inbox for a login link. If you don\'t have an account, you can create one.',
-    }
+      error:
+        "If this email is registered, check your inbox for a login link. If you don't have an account, you can create one.",
+    };
   }
 
-  return { allowed: true }
+  return { allowed: true };
 }
 
 /**
  * Helper: Handle email enumeration check
  */
-async function handleEmailEnumerationCheck(email: string): Promise<{ shouldProceed: true } | { shouldProceed: false; error: string }> {
-  const emailCheck = await checkEmailExistsInAuth(email)
+async function handleEmailEnumerationCheck(
+  email: string,
+): Promise<{ shouldProceed: true } | { shouldProceed: false; error: string }> {
+  const emailCheck = await checkEmailExistsInAuth(email);
   if (emailCheck.exists) {
-    authLogger.warn('[requestOtp] Email already registered - enumeration attempt detected', {
-      email,
-      role: emailCheck.role,
-      sourceIP: '[IP_ADDRESS]'
-    })
+    authLogger.warn(
+      "[requestOtp] Email already registered - enumeration attempt detected",
+      {
+        email,
+        role: emailCheck.role,
+        sourceIP: "[IP_ADDRESS]",
+      },
+    );
 
     return {
       shouldProceed: false,
-      error: 'If this email is registered, check your inbox for a login link. If you don\'t have an account, you can create one.',
-    }
+      error:
+        "If this email is registered, check your inbox for a login link. If you don't have an account, you can create one.",
+    };
   }
 
-  return { shouldProceed: true }
+  return { shouldProceed: true };
 }
 
 /**
@@ -104,53 +128,56 @@ async function handleEmailEnumerationCheck(email: string): Promise<{ shouldProce
  */
 export async function requestOtp(email: string) {
   try {
-    const emailValidation = validateEmailInput(email)
+    const emailValidation = validateEmailInput(email);
     if (!emailValidation.success) {
-      return emailValidation
+      return emailValidation;
     }
 
-    const domainValidation = validateEmailDomain(emailValidation.email)
+    const domainValidation = validateEmailDomain(emailValidation.email);
     if (!domainValidation.valid) {
-      return { success: false, error: domainValidation.error }
+      return { success: false, error: domainValidation.error };
     }
 
-    const rateLimitCheck = await checkRateLimits(emailValidation.email)
+    const rateLimitCheck = await checkRateLimits(emailValidation.email);
     if (!rateLimitCheck.allowed) {
-      return { success: false, error: rateLimitCheck.error }
+      return { success: false, error: rateLimitCheck.error };
     }
 
-    const securityValidation = validateEmailSecurity(emailValidation.email)
+    const securityValidation = validateEmailSecurity(emailValidation.email);
     if (!securityValidation.valid) {
-      return { success: false, error: securityValidation.error }
+      return { success: false, error: securityValidation.error };
     }
 
-    const enumerationCheck = await handleEmailEnumerationCheck(emailValidation.email)
+    const enumerationCheck = await handleEmailEnumerationCheck(
+      emailValidation.email,
+    );
     if (!enumerationCheck.shouldProceed) {
-      return { success: false, error: enumerationCheck.error }
+      return { success: false, error: enumerationCheck.error };
     }
 
-    authLogger.debug('[requestOtp] Starting OTP request')
+    authLogger.debug("[requestOtp] Starting OTP request");
 
-    const supabase = await createClient()
+    const supabase = await createClient();
     const { data, error } = await supabase.auth.signInWithOtp({
       email: emailValidation.email,
       options: {
         shouldCreateUser: true,
       },
-    })
+    });
 
     if (error) {
-      return { success: false, error: handleOtpRequestError(error) }
+      return { success: false, error: handleOtpRequestError(error) };
     }
 
-    authLogger.success('[requestOtp] OTP sent successfully')
-    return { success: true, data }
+    authLogger.success("[requestOtp] OTP sent successfully");
+    return { success: true, data };
   } catch (error) {
-    authLogger.error('[requestOtp] Unexpected error', error)
+    authLogger.error("[requestOtp] Unexpected error", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'An unexpected error occurred'
-    }
+      error:
+        error instanceof Error ? error.message : "An unexpected error occurred",
+    };
   }
 }
 
@@ -160,65 +187,71 @@ export async function requestOtp(email: string) {
 export async function verifyOtp(email: string, token: string) {
   try {
     // Validate inputs
-    const emailResult = validateWithSchema(email, AuthEmailSchema)
-    if (!emailResult.success) return emailResult
+    const emailResult = validateWithSchema(email, AuthEmailSchema);
+    if (!emailResult.success) return emailResult;
 
-    const tokenResult = validateWithSchema(token, OtpTokenSchema)
-    if (!tokenResult.success) return tokenResult
+    const tokenResult = validateWithSchema(token, OtpTokenSchema);
+    if (!tokenResult.success) return tokenResult;
 
-    const validatedEmail = emailResult.data
-    const validatedToken = tokenResult.data
+    const validatedEmail = emailResult.data;
+    const validatedToken = tokenResult.data;
 
-    authLogger.debug('[verifyOtp] Starting OTP verification')
+    authLogger.debug("[verifyOtp] Starting OTP verification");
 
     // SECURITY: Rate limit OTP verification to prevent brute-force attacks
-    const verifyAllowed = await checkOtpVerifyRateLimit(validatedEmail)
+    const verifyAllowed = await checkOtpVerifyRateLimit(validatedEmail);
     if (!verifyAllowed) {
-      authLogger.warn('[verifyOtp] Rate limit exceeded', { email: validatedEmail })
-      return { success: false, error: 'Too many verification attempts. Please try again later.' }
+      authLogger.warn("[verifyOtp] Rate limit exceeded", {
+        email: validatedEmail,
+      });
+      return {
+        success: false,
+        error: "Too many verification attempts. Please try again later.",
+      };
     }
 
-    const supabase = await createClient()
+    const supabase = await createClient();
 
     const { data, error } = await supabase.auth.verifyOtp({
       email: validatedEmail,
       token: validatedToken,
-      type: 'email',
-    })
+      type: "email",
+    });
 
     if (error) {
-      authLogger.error('[verifyOtp] Verification failed', error)
-      return { success: false, error: error.message }
+      authLogger.error("[verifyOtp] Verification failed", error);
+      return { success: false, error: error.message };
     }
 
     // SECURITY: Only trust app_metadata.role (server-side set, immutable by client)
     // Never fall back to user_metadata.role as it can be client-modified
-    const role = data.user?.app_metadata?.role || 'student'
-    authLogger.success('[verifyOtp] OTP verified successfully', { role })
+    const role = data.user?.app_metadata?.role || "student";
+    authLogger.success("[verifyOtp] OTP verified successfully", { role });
 
     // Session is now created - check user role and redirect
     // Revalidate the layout to pick up the new session
-    revalidatePath('/', 'layout')
+    revalidatePath("/", "layout");
 
-    authLogger.debug('[verifyOtp] Redirecting user', { role })
+    authLogger.debug("[verifyOtp] Redirecting user", { role });
 
     // Redirect based on role - teachers, admins, and super_admins go to teacher classes
     if (isTeacherOrHigher(role)) {
-      redirect('/app/teacher/classes')
+      redirect("/app/teacher/classes");
     } else {
-      redirect('/app/dashboard')
+      redirect("/app/dashboard");
     }
   } catch (error) {
     // Next.js redirect() throws a NEXT_REDIRECT error which is expected behavior
-    if (error instanceof Error && error.message === 'NEXT_REDIRECT') {
-      throw error // Re-throw to allow the redirect to happen
+    if (error instanceof Error && error.message === "NEXT_REDIRECT") {
+      throw error; // Re-throw to allow the redirect to happen
     }
 
-    authLogger.error('[verifyOtp] Unexpected error', error)
+    authLogger.error("[verifyOtp] Unexpected error", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'An unexpected error occurred'
-    }
+      error:
+        error instanceof Error ? error.message : "An unexpected error occurred",
+    };
   }
 }
 
@@ -243,24 +276,27 @@ export async function verifyOtp(email: string, token: string) {
 export async function sendForgotPasswordOtp(email: string) {
   try {
     // Validate email format using Zod schema
-    const emailResult = validateWithSchema(email, AuthEmailSchema)
-    if (!emailResult.success) return emailResult
+    const emailResult = validateWithSchema(email, AuthEmailSchema);
+    if (!emailResult.success) return emailResult;
 
-    const trimmedEmail = emailResult.data
+    const trimmedEmail = emailResult.data;
 
     // Check rate limit - prevent password reset spam/abuse
-    const resetAllowed = await checkPasswordResetRateLimit(trimmedEmail)
+    const resetAllowed = await checkPasswordResetRateLimit(trimmedEmail);
     if (!resetAllowed) {
-      authLogger.warn('[sendForgotPasswordOtp] Rate limit exceeded', { type: 'password_reset_limit' })
+      authLogger.warn("[sendForgotPasswordOtp] Rate limit exceeded", {
+        type: "password_reset_limit",
+      });
       return {
         success: false,
-        error: 'Too many password reset requests. Please wait an hour before requesting again.',
-      }
+        error:
+          "Too many password reset requests. Please wait an hour before requesting again.",
+      };
     }
 
-    authLogger.debug('[sendForgotPasswordOtp] Sending recovery OTP')
+    authLogger.debug("[sendForgotPasswordOtp] Sending recovery OTP");
 
-    const supabase = await createClient()
+    const supabase = await createClient();
 
     // Note: Using manual OTP entry (not magic link), so emailRedirectTo is not needed
     // Email contains 6-digit OTP that user enters manually
@@ -269,31 +305,33 @@ export async function sendForgotPasswordOtp(email: string) {
       options: {
         shouldCreateUser: false, // Don't create user if doesn't exist
       },
-    })
+    });
 
     if (error) {
-      authLogger.error('[sendForgotPasswordOtp] Error', error)
+      authLogger.error("[sendForgotPasswordOtp] Error", error);
 
       // SECURITY FIX: Prevent email enumeration
       // Always return success message regardless of whether email exists
       // This prevents attackers from discovering valid email addresses
-      authLogger.info('[sendForgotPasswordOtp] Request processed', {
-        emailDomain: trimmedEmail.split('@')[1] // Log domain for monitoring, not full email
-      })
+      authLogger.info("[sendForgotPasswordOtp] Request processed", {
+        emailDomain: trimmedEmail.split("@")[1], // Log domain for monitoring, not full email
+      });
     }
 
     // Always return success message to prevent email enumeration
-    authLogger.success('[sendForgotPasswordOtp] Request completed')
+    authLogger.success("[sendForgotPasswordOtp] Request completed");
     return {
       success: true,
-      message: 'If this email is registered, you will receive a password reset code shortly.'
-    }
+      message:
+        "If this email is registered, you will receive a password reset code shortly.",
+    };
   } catch (error) {
-    authLogger.error('[sendForgotPasswordOtp] Unexpected error', error)
+    authLogger.error("[sendForgotPasswordOtp] Unexpected error", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'An unexpected error occurred'
-    }
+      error:
+        error instanceof Error ? error.message : "An unexpected error occurred",
+    };
   }
 }
 
@@ -318,87 +356,108 @@ export async function sendForgotPasswordOtp(email: string) {
  * @param newPassword - New password (must be 8-64 characters)
  * @returns Object with success status and error message if failed
  */
-export async function resetPasswordWithOtp(email: string, token: string, newPassword: string) {
+export async function resetPasswordWithOtp(
+  email: string,
+  token: string,
+  newPassword: string,
+) {
   try {
     // Validate inputs using Zod schemas (NIST 2025 compliant)
-    const emailResult = validateWithSchema(email, AuthEmailSchema)
-    if (!emailResult.success) return emailResult
+    const emailResult = validateWithSchema(email, AuthEmailSchema);
+    if (!emailResult.success) return emailResult;
 
-    const tokenResult = validateWithSchema(token, OtpTokenSchema)
-    if (!tokenResult.success) return tokenResult
+    const tokenResult = validateWithSchema(token, OtpTokenSchema);
+    if (!tokenResult.success) return tokenResult;
 
-    const passwordResult = validateWithSchema(newPassword, AuthPasswordSchema)
-    if (!passwordResult.success) return passwordResult
+    const passwordResult = validateWithSchema(newPassword, AuthPasswordSchema);
+    if (!passwordResult.success) return passwordResult;
 
-    const validatedEmail = emailResult.data
-    const validatedToken = tokenResult.data
+    const validatedEmail = emailResult.data;
+    const validatedToken = tokenResult.data;
 
-    authLogger.debug('[resetPasswordWithOtp] Starting password reset', {
-      email: validatedEmail.substring(0, 5) + '...',
-    })
+    authLogger.debug("[resetPasswordWithOtp] Starting password reset", {
+      email: validatedEmail.substring(0, 5) + "...",
+    });
 
-    const supabase = await createClient()
+    const supabase = await createClient();
 
     // First verify the OTP
     const { data, error: verifyError } = await supabase.auth.verifyOtp({
       email: validatedEmail,
       token: validatedToken,
-      type: 'email',
-    })
+      type: "email",
+    });
 
     if (verifyError) {
-      authLogger.error('[resetPasswordWithOtp] OTP verification failed', verifyError)
+      authLogger.error(
+        "[resetPasswordWithOtp] OTP verification failed",
+        verifyError,
+      );
       return {
         success: false,
-        error: "Invalid or expired recovery code. Please request a new one."
-      }
+        error: "Invalid or expired recovery code. Please request a new one.",
+      };
     }
 
     if (!data.user) {
       return {
         success: false,
-        error: 'Verification failed. Please try again.'
-      }
+        error: "Verification failed. Please try again.",
+      };
     }
 
     // Update password
     const { error: updateError } = await supabase.auth.updateUser({
       password: newPassword,
-    })
+    });
 
     if (updateError) {
-      authLogger.error('[resetPasswordWithOtp] Password update failed', updateError)
+      authLogger.error(
+        "[resetPasswordWithOtp] Password update failed",
+        updateError,
+      );
       return {
         success: false,
-        error: updateError.message
-      }
+        error: updateError.message,
+      };
     }
 
     // SECURITY: Invalidate all OTHER sessions after password reset
     // This prevents any compromised sessions from remaining active
     // Use 'others' scope to keep the current (just-authenticated) session active
     try {
-      const { error: signOutError } = await supabase.auth.signOut({ scope: 'others' })
+      const { error: signOutError } = await supabase.auth.signOut({
+        scope: "others",
+      });
       if (signOutError) {
         // Log but don't fail - password was successfully reset
-        authLogger.warn('[resetPasswordWithOtp] Failed to revoke other sessions', signOutError)
+        authLogger.warn(
+          "[resetPasswordWithOtp] Failed to revoke other sessions",
+          signOutError,
+        );
       } else {
-        authLogger.debug('[resetPasswordWithOtp] Other sessions revoked successfully')
+        authLogger.debug(
+          "[resetPasswordWithOtp] Other sessions revoked successfully",
+        );
       }
     } catch (signOutErr) {
       // Don't fail the password reset if session revocation fails
-      authLogger.warn('[resetPasswordWithOtp] Exception revoking other sessions', signOutErr instanceof Error ? signOutErr : { error: signOutErr })
+      authLogger.warn(
+        "[resetPasswordWithOtp] Exception revoking other sessions",
+        signOutErr instanceof Error ? signOutErr : { error: signOutErr },
+      );
     }
 
-    authLogger.success('[resetPasswordWithOtp] Password reset successfully')
-    revalidatePath('/', 'layout')
+    authLogger.success("[resetPasswordWithOtp] Password reset successfully");
+    revalidatePath("/", "layout");
 
-    return { success: true }
+    return { success: true };
   } catch (error) {
-    authLogger.error('[resetPasswordWithOtp] Unexpected error', error)
+    authLogger.error("[resetPasswordWithOtp] Unexpected error", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'An unexpected error occurred'
-    }
+      error:
+        error instanceof Error ? error.message : "An unexpected error occurred",
+    };
   }
 }

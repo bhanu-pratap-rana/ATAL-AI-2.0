@@ -4,7 +4,11 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { OTPInput } from "@/components/auth/OTPInput";
-import { BaseFormComponentProps, useFormSubmission, FORM_TOAST_MESSAGES } from "@/lib/form-component-utils";
+import {
+  BaseFormComponentProps,
+  useFormSubmission,
+  FORM_TOAST_MESSAGES,
+} from "@/lib/form-component-utils";
 
 /**
  * OTPVerificationForm - Reusable OTP verification form
@@ -40,7 +44,7 @@ export function OTPVerificationForm({
       toast.success(FORM_TOAST_MESSAGES.OTP_VERIFIED);
     },
     onErrorChange,
-    "[OTPVerificationForm]"
+    "[OTPVerificationForm]",
   );
 
   return (

@@ -1,6 +1,6 @@
 /**
  * Browser API Type Definitions
- * 
+ *
  * Provides TypeScript types for Web APIs that don't have complete type definitions
  * in the standard lib.dom.d.ts
  */
@@ -17,15 +17,15 @@ interface SpeechRecognitionEvent extends Event {
 }
 
 interface SpeechRecognitionErrorEvent extends Event {
-  readonly error: 
-    | 'no-speech'
-    | 'aborted'
-    | 'audio-capture'
-    | 'network'
-    | 'not-allowed'
-    | 'service-not-allowed'
-    | 'bad-grammar'
-    | 'language-not-supported';
+  readonly error:
+    | "no-speech"
+    | "aborted"
+    | "audio-capture"
+    | "network"
+    | "not-allowed"
+    | "service-not-allowed"
+    | "bad-grammar"
+    | "language-not-supported";
   readonly message: string;
 }
 
@@ -60,9 +60,15 @@ interface SpeechRecognition extends EventTarget {
   onaudiostart: ((this: SpeechRecognition, ev: Event) => void) | null;
   onaudioend: ((this: SpeechRecognition, ev: Event) => void) | null;
   onend: ((this: SpeechRecognition, ev: Event) => void) | null;
-  onerror: ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => void) | null;
-  onnomatch: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => void) | null;
-  onresult: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => void) | null;
+  onerror:
+    | ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => void)
+    | null;
+  onnomatch:
+    | ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => void)
+    | null;
+  onresult:
+    | ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => void)
+    | null;
   onsoundstart: ((this: SpeechRecognition, ev: Event) => void) | null;
   onsoundend: ((this: SpeechRecognition, ev: Event) => void) | null;
   onspeechstart: ((this: SpeechRecognition, ev: Event) => void) | null;
@@ -90,30 +96,30 @@ interface SpeechGrammar {
 
 declare var SpeechRecognition: {
   prototype: SpeechRecognition;
-  new(): SpeechRecognition;
+  new (): SpeechRecognition;
 };
 
 declare let webkitSpeechRecognition: {
   prototype: SpeechRecognition;
-  new(): SpeechRecognition;
+  new (): SpeechRecognition;
 };
 
 // ============================================================================
 // Network Information API
 // ============================================================================
 
-type EffectiveConnectionType = 'slow-2g' | '2g' | '3g' | '4g';
+type EffectiveConnectionType = "slow-2g" | "2g" | "3g" | "4g";
 
-type ConnectionType = 
-  | 'bluetooth'
-  | 'cellular'
-  | 'ethernet'
-  | 'mixed'
-  | 'none'
-  | 'other'
-  | 'unknown'
-  | 'wifi'
-  | 'wimax';
+type ConnectionType =
+  | "bluetooth"
+  | "cellular"
+  | "ethernet"
+  | "mixed"
+  | "none"
+  | "other"
+  | "unknown"
+  | "wifi"
+  | "wimax";
 
 interface NetworkInformation extends EventTarget {
   /**
@@ -158,12 +164,12 @@ interface Navigator {
    * Returns a NetworkInformation object containing information about the network connection
    */
   readonly connection?: NetworkInformation;
-  
+
   /**
    * Mozilla-prefixed version
    */
   readonly mozConnection?: NetworkInformation;
-  
+
   /**
    * WebKit-prefixed version
    */
@@ -189,25 +195,30 @@ declare global {
  * Type guard to check if Speech Recognition API is available
  */
 export function isSpeechRecognitionSupported(): boolean {
-  return typeof globalThis !== 'undefined' &&
-         ('SpeechRecognition' in globalThis || 'webkitSpeechRecognition' in globalThis);
+  return (
+    typeof globalThis !== "undefined" &&
+    ("SpeechRecognition" in globalThis ||
+      "webkitSpeechRecognition" in globalThis)
+  );
 }
 
 /**
  * Type guard to check if Network Information API is available
  */
 export function isNetworkInformationSupported(): boolean {
-  return typeof navigator !== 'undefined' && 
-         ('connection' in navigator || 
-          'mozConnection' in navigator || 
-          'webkitConnection' in navigator);
+  return (
+    typeof navigator !== "undefined" &&
+    ("connection" in navigator ||
+      "mozConnection" in navigator ||
+      "webkitConnection" in navigator)
+  );
 }
 
 /**
  * Get Speech Recognition constructor (handles prefixes)
  */
 export function getSpeechRecognition(): typeof SpeechRecognition | null {
-  if (typeof globalThis === 'undefined') return null;
+  if (typeof globalThis === "undefined") return null;
 
   const global = globalThis as typeof globalThis & {
     SpeechRecognition?: typeof SpeechRecognition;
@@ -221,12 +232,13 @@ export function getSpeechRecognition(): typeof SpeechRecognition | null {
  * Get Network Information object (handles prefixes)
  */
 export function getNetworkInformation(): NetworkInformation | null {
-  if (typeof navigator === 'undefined') return null;
-  return navigator.connection || 
-         navigator.mozConnection || 
-         navigator.webkitConnection || 
-         null;
+  if (typeof navigator === "undefined") return null;
+  return (
+    navigator.connection ||
+    navigator.mozConnection ||
+    navigator.webkitConnection ||
+    null
+  );
 }
 
 export {};
-

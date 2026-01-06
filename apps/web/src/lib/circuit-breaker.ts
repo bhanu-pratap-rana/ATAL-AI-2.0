@@ -23,7 +23,7 @@
  * ```
  */
 
-export type CircuitBreakerState = 'CLOSED' | 'OPEN' | 'HALF_OPEN';
+export type CircuitBreakerState = "CLOSED" | "OPEN" | "HALF_OPEN";
 
 export interface CircuitBreakerOptions {
   /**
@@ -54,7 +54,7 @@ export interface CircuitBreakerOptions {
  * Circuit Breaker for managing external service failures
  */
 export class CircuitBreaker {
-  private state: CircuitBreakerState = 'CLOSED';
+  private state: CircuitBreakerState = "CLOSED";
   private failureCount = 0;
   private successCount = 0;
   private lastFailureTime: number | null = null;
@@ -97,14 +97,14 @@ export class CircuitBreaker {
    */
   async execute<T>(fn: () => Promise<T>): Promise<T> {
     // Check if we should transition from OPEN to HALF_OPEN
-    if (this.state === 'OPEN') {
+    if (this.state === "OPEN") {
       if (!this.nextAttemptTime || Date.now() < this.nextAttemptTime) {
         throw new Error(
-          `Circuit breaker is OPEN. Retrying in ${Math.ceil((this.nextAttemptTime || 0) - Date.now())}ms`
+          `Circuit breaker is OPEN. Retrying in ${Math.ceil((this.nextAttemptTime || 0) - Date.now())}ms`,
         );
       }
       // Attempt recovery
-      this.setState('HALF_OPEN');
+      this.setState("HALF_OPEN");
     }
 
     try {
@@ -121,7 +121,7 @@ export class CircuitBreaker {
    * Manually reset the circuit breaker to CLOSED state
    */
   reset(): void {
-    this.setState('CLOSED');
+    this.setState("CLOSED");
     this.failureCount = 0;
     this.successCount = 0;
     this.lastFailureTime = null;
@@ -134,7 +134,7 @@ export class CircuitBreaker {
   private onSuccess(): void {
     this.failureCount = 0;
 
-    if (this.state === 'HALF_OPEN') {
+    if (this.state === "HALF_OPEN") {
       this.successCount++;
       if (this.successCount >= this.options.successThreshold) {
         this.reset();
@@ -150,12 +150,12 @@ export class CircuitBreaker {
     this.failureCount++;
 
     if (this.failureCount >= this.options.failureThreshold) {
-      this.setState('OPEN');
+      this.setState("OPEN");
       // Schedule retry attempt
       this.nextAttemptTime = Date.now() + this.options.timeout;
-    } else if (this.state === 'HALF_OPEN') {
+    } else if (this.state === "HALF_OPEN") {
       // Failure in HALF_OPEN state means service still not recovered
-      this.setState('OPEN');
+      this.setState("OPEN");
       this.nextAttemptTime = Date.now() + this.options.timeout;
     }
   }
@@ -182,7 +182,10 @@ export class CircuitBreakerFactory {
   /**
    * Get or create a circuit breaker for a service
    */
-  getBreaker(name: string, options?: Partial<CircuitBreakerOptions>): CircuitBreaker {
+  getBreaker(
+    name: string,
+    options?: Partial<CircuitBreakerOptions>,
+  ): CircuitBreaker {
     if (!this.breakers.has(name)) {
       this.breakers.set(name, new CircuitBreaker(options));
     }
@@ -210,8 +213,11 @@ export class CircuitBreakerFactory {
   /**
    * Get metrics for all breakers
    */
-  getAllMetrics(): Record<string, ReturnType<CircuitBreaker['getMetrics']>> {
-    const metrics: Record<string, ReturnType<CircuitBreaker['getMetrics']>> = {};
+  getAllMetrics(): Record<string, ReturnType<CircuitBreaker["getMetrics"]>> {
+    const metrics: Record<
+      string,
+      ReturnType<CircuitBreaker["getMetrics"]>
+    > = {};
     this.breakers.forEach((breaker, name) => {
       metrics[name] = breaker.getMetrics();
     });

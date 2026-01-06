@@ -408,9 +408,9 @@ export function AssessmentRunner({
       return {
         item: {
           id: r.itemId,
-          item_code: '',
-          category: q?.category || '',
-          question_text: q?.text || '',
+          item_code: "",
+          category: q?.category || "",
+          question_text: q?.text || "",
           options: q?.options || [],
           correct_answer: 0,
           difficulty: q?._difficulty || 0,
@@ -422,7 +422,10 @@ export function AssessmentRunner({
     });
 
     // Update theta estimate
-    const { theta: newTheta, se: newSe } = updateTheta(irtState.theta, irtResponses);
+    const { theta: newTheta, se: newSe } = updateTheta(
+      irtState.theta,
+      irtResponses,
+    );
     setIrtState({
       theta: newTheta,
       se: newSe,

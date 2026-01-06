@@ -3,11 +3,15 @@
  * Standardizes authentication and rate limiting pattern across all actions
  */
 
-import { AuthResult } from '@/lib/auth-result';
-import { checkRateLimit } from '@/lib/rate-limiter-distributed';
-import { authLogger } from '@/lib/auth-logger';
-import { handleAuthError, handleRateLimitError, ActionResponse } from './action-error-handler';
-import { RATE_LIMITS } from '@/lib/constants/rate-limits';
+import { AuthResult } from "@/lib/auth-result";
+import { checkRateLimit } from "@/lib/rate-limiter-distributed";
+import { authLogger } from "@/lib/auth-logger";
+import {
+  handleAuthError,
+  handleRateLimitError,
+  ActionResponse,
+} from "./action-error-handler";
+import { RATE_LIMITS } from "@/lib/constants/rate-limits";
 
 /**
  * Wrap a server action with auth verification and rate limiting
@@ -40,17 +44,24 @@ export async function withAuthGuard<T>(
     authLogger.warn(`[${actionName}] Unauthorized access attempt`, {
       userId: auth.user?.id,
     });
-    return handleAuthError(auth.error || 'You are not authorized to perform this action');
+    return handleAuthError(
+      auth.error || "You are not authorized to perform this action",
+    );
   }
 
   // Check rate limit
-  const rateLimitOk = await checkRateLimit(`action:${auth.user.id}`, RATE_LIMITS.dashboardStats);
+  const rateLimitOk = await checkRateLimit(
+    `action:${auth.user.id}`,
+    RATE_LIMITS.dashboardStats,
+  );
   if (!rateLimitOk) {
     return handleRateLimitError(actionName, auth.user.id);
   }
 
   // All checks passed, execute operation
-  authLogger.debug(`[${actionName}] Executing action`, { userId: auth.user.id });
+  authLogger.debug(`[${actionName}] Executing action`, {
+    userId: auth.user.id,
+  });
   return operation();
 }
 
@@ -65,7 +76,9 @@ export async function withAuthGuardCustomRateLimit<T>(
 ): Promise<T | ActionResponse> {
   // Check authorization
   if (!auth.authorized) {
-    return handleAuthError(auth.error || 'You are not authorized to perform this action');
+    return handleAuthError(
+      auth.error || "You are not authorized to perform this action",
+    );
   }
 
   // Check custom rate limit

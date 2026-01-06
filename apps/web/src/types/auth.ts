@@ -3,15 +3,15 @@
  * Centralized types to replace `any` and provide proper type safety
  */
 
-import { User } from '@supabase/supabase-js'
+import { User } from "@supabase/supabase-js";
 
 /**
  * OTP (One-Time Password) response data
  * Returned when OTP is successfully sent
  */
 export interface OTPData {
-  message: string
-  requestId: string
+  message: string;
+  requestId: string;
 }
 
 /**
@@ -20,14 +20,14 @@ export interface OTPData {
  */
 export type RequestOtpResult =
   | {
-      success: true
-      data: OTPData
+      success: true;
+      data: OTPData;
     }
   | {
-      success: false
-      error: string
-      exists?: boolean
-    }
+      success: false;
+      error: string;
+      exists?: boolean;
+    };
 
 /**
  * Result type for sign-in operations
@@ -35,42 +35,42 @@ export type RequestOtpResult =
  */
 export type SignInResult =
   | {
-      success: true
-      user: User
+      success: true;
+      user: User;
     }
   | {
-      success: false
-      error: string
-      requiresProfileCheck?: boolean
-    }
+      success: false;
+      error: string;
+      requiresProfileCheck?: boolean;
+    };
 
 /**
  * Result type for password reset operations
  */
 export type PasswordResetResult =
   | {
-      success: true
-      message: string
+      success: true;
+      message: string;
     }
   | {
-      success: false
-      error: string
-    }
+      success: false;
+      error: string;
+    };
 
 /**
  * Result type for teacher onboarding operations
  */
 export type TeacherOnboardResult =
   | {
-      success: true
-      userId?: string
-      profileId?: string
-      message?: string
+      success: true;
+      userId?: string;
+      profileId?: string;
+      message?: string;
     }
   | {
-      success: false
-      error: string
-    }
+      success: false;
+      error: string;
+    };
 
 /**
  * Enhanced User type with app metadata
@@ -78,42 +78,42 @@ export type TeacherOnboardResult =
  */
 export interface AuthenticatedUser extends User {
   app_metadata: {
-    role?: 'student' | 'teacher' | 'admin'
-    onboarded?: boolean
-    [key: string]: unknown
-  }
+    role?: "student" | "teacher" | "admin";
+    onboarded?: boolean;
+    [key: string]: unknown;
+  };
 }
 
 /**
  * Email check result from auth system
  */
 export interface EmailCheckResult {
-  exists: boolean
-  role?: 'student' | 'teacher'
-  userId?: string
+  exists: boolean;
+  role?: "student" | "teacher";
+  userId?: string;
 }
 
 /**
  * Teacher profile during onboarding
  */
 export interface TeacherProfile {
-  userId: string
-  schoolId: string
-  schoolCode: string
-  name: string
-  phone?: string
-  subject?: string
-  email: string
+  userId: string;
+  schoolId: string;
+  schoolCode: string;
+  name: string;
+  phone?: string;
+  subject?: string;
+  email: string;
 }
 
 /**
  * Student profile during enrollment
  */
 export interface StudentProfile {
-  userId: string
-  classId: string
-  name: string
-  email: string
+  userId: string;
+  classId: string;
+  name: string;
+  email: string;
 }
 
 /**
@@ -121,32 +121,32 @@ export interface StudentProfile {
  * Used consistently across all API operations
  */
 export interface ApiResponse<T = unknown> {
-  success: boolean
-  data?: T
-  error?: string
-  message?: string
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
 }
 
 /**
  * Authentication state for UI components
  */
 export interface AuthState {
-  user: AuthenticatedUser | null
-  isLoading: boolean
-  isAuthenticated: boolean
-  role?: 'student' | 'teacher' | 'admin'
-  error?: string
+  user: AuthenticatedUser | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  role?: "student" | "teacher" | "admin";
+  error?: string;
 }
 
 /**
  * Parameters for teacher verification during onboarding
  */
 export interface VerifyTeacherParams {
-  schoolCode: string
-  staffPin: string
-  teacherName: string
-  phone?: string
-  subject?: string
+  schoolCode: string;
+  staffPin: string;
+  teacherName: string;
+  phone?: string;
+  subject?: string;
 }
 
 /**
@@ -154,41 +154,41 @@ export interface VerifyTeacherParams {
  */
 export type VerifyTeacherResult =
   | {
-      success: true
-      schoolId: string
-      schoolName: string
+      success: true;
+      schoolId: string;
+      schoolName: string;
     }
   | {
-      success: false
-      error: string
-    }
+      success: false;
+      error: string;
+    };
 
 /**
  * Generic operation result for class operations
  */
 export interface OperationResult<T = unknown> {
-  success: boolean
-  data?: T
-  error?: string
+  success: boolean;
+  data?: T;
+  error?: string;
 }
 
 /**
  * Analytics data for a class
  */
 export interface ClassAnalytics {
-  activeThisWeek: number
-  avgMinutesPerDay: number
-  atRiskCount: number
+  activeThisWeek: number;
+  avgMinutesPerDay: number;
+  atRiskCount: number;
 }
 
 /**
  * School details
  */
 export interface School {
-  id: string
-  schoolCode: string
-  schoolName: string
-  district?: string
+  id: string;
+  schoolCode: string;
+  schoolName: string;
+  district?: string;
 }
 
 /**
@@ -196,7 +196,7 @@ export interface School {
  * Defines role types for admin authentication.
  * Used by RoleGuard component for access control.
  */
-export type AdminRole = 'super_admin' | 'admin' | 'teacher' | 'student'
+export type AdminRole = "super_admin" | "admin" | "teacher" | "student";
 
 // ============================================================================
 // RPC FUNCTION RESPONSE TYPES
@@ -207,13 +207,13 @@ export type AdminRole = 'super_admin' | 'admin' | 'teacher' | 'student'
  * Ensures type safety when calling the atomic assessment submission function
  */
 export interface SubmitAssessmentRPCResponse {
-  success: boolean
-  error?: string
-  alreadySubmitted?: boolean
-  score?: number
-  totalQuestions?: number
-  correctAnswers?: number
-  moduleBreakdown?: Record<string, unknown>
+  success: boolean;
+  error?: string;
+  alreadySubmitted?: boolean;
+  score?: number;
+  totalQuestions?: number;
+  correctAnswers?: number;
+  moduleBreakdown?: Record<string, unknown>;
 }
 
 /**
@@ -221,17 +221,17 @@ export interface SubmitAssessmentRPCResponse {
  * Used for type-safe role checking throughout the application
  */
 export interface SupabaseAuthUser {
-  id: string
-  email?: string
-  user_metadata?: Record<string, unknown>
+  id: string;
+  email?: string;
+  user_metadata?: Record<string, unknown>;
   app_metadata?: {
-    role?: 'student' | 'teacher' | 'admin' | 'super_admin'
-    [key: string]: unknown
-  }
-  created_at?: string
-  updated_at?: string
-  last_sign_in_at?: string | null
-  [key: string]: unknown
+    role?: "student" | "teacher" | "admin" | "super_admin";
+    [key: string]: unknown;
+  };
+  created_at?: string;
+  updated_at?: string;
+  last_sign_in_at?: string | null;
+  [key: string]: unknown;
 }
 
 /**
@@ -240,13 +240,13 @@ export interface SupabaseAuthUser {
  * Maps to: apps/db/migrations/053_add_update_knowledge_state_rpc.sql
  */
 export interface UpdateKnowledgeStateRPCResponse {
-  success: boolean
-  error?: string
-  mastery_score?: number
-  confidence_level?: 'low' | 'medium' | 'high'
-  attempts?: number
-  status?: 'not_started' | 'in_progress' | 'completed' | 'mastered'
-  time_spent_seconds?: number
+  success: boolean;
+  error?: string;
+  mastery_score?: number;
+  confidence_level?: "low" | "medium" | "high";
+  attempts?: number;
+  status?: "not_started" | "in_progress" | "completed" | "mastered";
+  time_spent_seconds?: number;
 }
 
 /**
@@ -255,9 +255,9 @@ export interface UpdateKnowledgeStateRPCResponse {
  * Maps to: apps/db/migrations/051_add_upsert_student_profile.sql
  */
 export interface UpsertStudentProfileRPCResponse {
-  success: boolean
-  error?: string
-  code?: string
+  success: boolean;
+  error?: string;
+  code?: string;
 }
 
 /**
@@ -265,16 +265,16 @@ export interface UpsertStudentProfileRPCResponse {
  * Returns questions selected by adaptive algorithm
  */
 export interface GetAdaptiveQuestionsRPCResponse {
-  success: boolean
-  error?: string
+  success: boolean;
+  error?: string;
   questions?: Array<{
-    id: string
-    itemId: string
-    module: string
-    difficulty: number
-    type: string
-    text: string
-  }>
+    id: string;
+    itemId: string;
+    module: string;
+    difficulty: number;
+    type: string;
+    text: string;
+  }>;
 }
 
 /**
@@ -283,4 +283,4 @@ export interface GetAdaptiveQuestionsRPCResponse {
  */
 export type RPCResult<T> =
   | { success: true; data: T }
-  | { success: false; error: string }
+  | { success: false; error: string };

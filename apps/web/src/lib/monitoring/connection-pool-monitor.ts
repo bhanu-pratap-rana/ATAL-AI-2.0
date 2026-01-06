@@ -3,10 +3,10 @@
  * Tracks Supabase connection pool utilization and alerts on high usage
  */
 
-import { createClient } from '@supabase/supabase-js';
-import type { SupabaseClient } from '@supabase/supabase-js';
-import { authLogger } from '@/lib/auth-logger';
-import type { Database } from '@/types/database';
+import { createClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { authLogger } from "@/lib/auth-logger";
+import type { Database } from "@/types/database";
 
 export interface ConnectionPoolMetrics {
   activeConnections: number;
@@ -16,7 +16,7 @@ export interface ConnectionPoolMetrics {
 }
 
 export interface PoolAlert {
-  level: 'warning' | 'error' | 'critical';
+  level: "warning" | "error" | "critical";
   message: string;
   metrics: ConnectionPoolMetrics;
   timestamp: Date;
@@ -42,7 +42,7 @@ export class ConnectionPoolMonitor {
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
       {
         auth: { autoRefreshToken: false, persistSession: false },
-      }
+      },
     );
   }
 
@@ -63,12 +63,14 @@ export class ConnectionPoolMonitor {
       // Try to get connection stats via RPC if function exists
       try {
         const { data, error } = await this.supabase.rpc(
-          'get_connection_stats' as any,
-          {}
+          "get_connection_stats" as any,
+          {},
         );
 
         if (error) {
-          authLogger.debug('Connection stats RPC not available', { error: error.message });
+          authLogger.debug("Connection stats RPC not available", {
+            error: error.message,
+          });
           return null;
         }
 
@@ -82,12 +84,14 @@ export class ConnectionPoolMonitor {
           };
         }
       } catch (rpcError) {
-        authLogger.debug('Could not fetch connection stats via RPC', { rpcError });
+        authLogger.debug("Could not fetch connection stats via RPC", {
+          rpcError,
+        });
       }
 
       return null;
     } catch (error) {
-      authLogger.error('Failed to get connection pool metrics', { error });
+      authLogger.error("Failed to get connection pool metrics", { error });
       return null;
     }
   }
@@ -107,7 +111,7 @@ export class ConnectionPoolMonitor {
 
     if (utilization >= this.criticalThreshold) {
       alert = {
-        level: 'critical',
+        level: "critical",
         message: `CRITICAL: Connection pool at ${utilization.toFixed(1)}% capacity (${metrics.activeConnections}/${metrics.maxConnections} connections)`,
         metrics,
         timestamp: new Date(),
@@ -115,7 +119,7 @@ export class ConnectionPoolMonitor {
       authLogger.error(alert.message);
     } else if (utilization >= this.errorThreshold) {
       alert = {
-        level: 'error',
+        level: "error",
         message: `ERROR: Connection pool at ${utilization.toFixed(1)}% capacity (${metrics.activeConnections}/${metrics.maxConnections} connections)`,
         metrics,
         timestamp: new Date(),
@@ -123,7 +127,7 @@ export class ConnectionPoolMonitor {
       authLogger.warn(alert.message);
     } else if (utilization >= this.warningThreshold) {
       alert = {
-        level: 'warning',
+        level: "warning",
         message: `WARNING: Connection pool at ${utilization.toFixed(1)}% capacity (${metrics.activeConnections}/${metrics.maxConnections} connections)`,
         metrics,
         timestamp: new Date(),
@@ -162,7 +166,7 @@ export class ConnectionPoolMonitor {
   /**
    * Get alerts by level
    */
-  getAlertsByLevel(level: 'warning' | 'error' | 'critical'): PoolAlert[] {
+  getAlertsByLevel(level: "warning" | "error" | "critical"): PoolAlert[] {
     return this.alerts.filter((a) => a.level === level);
   }
 

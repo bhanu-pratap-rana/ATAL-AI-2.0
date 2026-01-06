@@ -7,9 +7,11 @@
  * Convert array of objects to CSV format
  * Handles special characters, escaping, and UTF-8 encoding
  */
-export function convertToCSV<T extends Record<string, unknown>>(data: T[]): string {
+export function convertToCSV<T extends Record<string, unknown>>(
+  data: T[],
+): string {
   if (data.length === 0) {
-    return '';
+    return "";
   }
 
   // Get headers from first object
@@ -17,19 +19,19 @@ export function convertToCSV<T extends Record<string, unknown>>(data: T[]): stri
 
   // Create header row
   const csvRows = [
-    headers.map(header => escapeCSVField(String(header))).join(','),
+    headers.map((header) => escapeCSVField(String(header))).join(","),
   ];
 
   // Add data rows
   for (const row of data) {
-    const values = headers.map(header => {
+    const values = headers.map((header) => {
       const value = row[header];
-      return escapeCSVField(String(value ?? ''));
+      return escapeCSVField(String(value ?? ""));
     });
-    csvRows.push(values.join(','));
+    csvRows.push(values.join(","));
   }
 
-  return csvRows.join('\n');
+  return csvRows.join("\n");
 }
 
 /**
@@ -37,7 +39,7 @@ export function convertToCSV<T extends Record<string, unknown>>(data: T[]): stri
  */
 function escapeCSVField(field: string): string {
   // If field contains comma, quote, or newline, wrap in quotes and escape inner quotes
-  if (field.includes(',') || field.includes('"') || field.includes('\n')) {
+  if (field.includes(",") || field.includes('"') || field.includes("\n")) {
     return `"${field.replaceAll('"', '""')}"`;
   }
   return field;
@@ -47,12 +49,15 @@ function escapeCSVField(field: string): string {
  * Download CSV file to client
  * Adds BOM for UTF-8 to ensure proper encoding in Excel
  */
-export function downloadCSV<T extends Record<string, unknown>>(data: T[], filename: string): void {
+export function downloadCSV<T extends Record<string, unknown>>(
+  data: T[],
+  filename: string,
+): void {
   const csv = convertToCSV(data);
 
   // Add UTF-8 BOM for Excel compatibility with Assamese/Hindi characters
-  const BOM = '\uFEFF';
-  const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
+  const BOM = "\uFEFF";
+  const blob = new Blob([BOM + csv], { type: "text/csv;charset=utf-8;" });
 
   downloadFile(blob, `${filename}-${getCurrentDateString()}.csv`);
 }
@@ -62,7 +67,9 @@ export function downloadCSV<T extends Record<string, unknown>>(data: T[], filena
  */
 export function downloadJSON<T>(data: T, filename: string): void {
   const jsonContent = JSON.stringify(data, null, 2);
-  const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
+  const blob = new Blob([jsonContent], {
+    type: "application/json;charset=utf-8;",
+  });
 
   downloadFile(blob, `${filename}-${getCurrentDateString()}.json`);
 }
@@ -72,12 +79,12 @@ export function downloadJSON<T>(data: T, filename: string): void {
  * Creates blob and triggers browser download
  */
 function downloadFile(blob: Blob, filename: string): void {
-  const link = document.createElement('a');
+  const link = document.createElement("a");
   const url = URL.createObjectURL(blob);
 
-  link.setAttribute('href', url);
-  link.setAttribute('download', filename);
-  link.style.visibility = 'hidden';
+  link.setAttribute("href", url);
+  link.setAttribute("download", filename);
+  link.style.visibility = "hidden";
 
   document.body.appendChild(link);
   link.click();
@@ -91,17 +98,20 @@ function downloadFile(blob: Blob, filename: string): void {
  * Get current date in YYYY-MM-DD format
  */
 function getCurrentDateString(): string {
-  return new Date().toISOString().split('T')[0];
+  return new Date().toISOString().split("T")[0];
 }
 
 /**
  * Format data for CSV export with headers
  * Transforms nested objects to flat structure
  */
-export function formatForExport<T extends Record<string, unknown>>(data: T[], columns?: string[]): Partial<T>[] {
+export function formatForExport<T extends Record<string, unknown>>(
+  data: T[],
+  columns?: string[],
+): Partial<T>[] {
   if (!data.length) return [];
 
-  return data.map(row => {
+  return data.map((row) => {
     if (columns) {
       // Only include specified columns
       const filtered: Partial<T> = {};
@@ -121,15 +131,37 @@ export function formatForExport<T extends Record<string, unknown>>(data: T[], co
  */
 export const EXPORT_CONFIGS = {
   studentProgress: {
-    filename: 'student-progress',
-    columns: ['name', 'email', 'progress', 'mastery_score', 'last_active_at', 'at_risk'],
+    filename: "student-progress",
+    columns: [
+      "name",
+      "email",
+      "progress",
+      "mastery_score",
+      "last_active_at",
+      "at_risk",
+    ],
   },
   aiInteractions: {
-    filename: 'ai-interactions',
-    columns: ['student_name', 'topic_id', 'message', 'role', 'language', 'created_at', 'tokens_used'],
+    filename: "ai-interactions",
+    columns: [
+      "student_name",
+      "topic_id",
+      "message",
+      "role",
+      "language",
+      "created_at",
+      "tokens_used",
+    ],
   },
   assessmentResults: {
-    filename: 'assessment-results',
-    columns: ['student_name', 'session_id', 'total_questions', 'correct_answers', 'score', 'submitted_at'],
+    filename: "assessment-results",
+    columns: [
+      "student_name",
+      "session_id",
+      "total_questions",
+      "correct_answers",
+      "score",
+      "submitted_at",
+    ],
   },
 } as const;

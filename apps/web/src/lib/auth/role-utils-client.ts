@@ -11,28 +11,28 @@ import {
   isAdmin,
   isSuperAdmin,
   hasMinimumRole,
-} from './role-utils'
+} from "./role-utils";
 
 /**
  * @deprecated Use isTeacherOrHigher from role-utils instead
  * Check if a role is a teacher or higher (teacher, admin, super_admin)
  */
-export const isTeacherOrHigherClient = isTeacherOrHigher
+export const isTeacherOrHigherClient = isTeacherOrHigher;
 
 /**
  * @deprecated Use isAdmin from role-utils instead
  * Check if a role is an admin or super_admin
  */
-export const isAdminClient = isAdmin
+export const isAdminClient = isAdmin;
 
 /**
  * @deprecated Use isSuperAdmin from role-utils instead
  * Check if a role is super_admin only
  */
-export const isSuperAdminClient = isSuperAdmin
+export const isSuperAdminClient = isSuperAdmin;
 
 /**
  * @deprecated Use hasMinimumRole from role-utils instead
  * Check if user has a minimum role level using role hierarchy
  */
-export const hasMinimumRoleClient = hasMinimumRole
+export const hasMinimumRoleClient = hasMinimumRole;

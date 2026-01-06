@@ -47,19 +47,19 @@
  * See: /src/lib/offline/mutation-queue.ts for sync implementation.
  */
 
-import { createClient } from '@/lib/supabase-server';
-import { authLogger } from '@/lib/auth-logger';
-import { validateUpdateKnowledgeStateResponse } from '@/lib/rpc-validators';
+import { createClient } from "@/lib/supabase-server";
+import { authLogger } from "@/lib/auth-logger";
+import { validateUpdateKnowledgeStateResponse } from "@/lib/rpc-validators";
 
 /**
  * Learning style types (VARK model)
  */
-export type LearningStyle = 'visual' | 'text' | 'auditory';
+export type LearningStyle = "visual" | "text" | "auditory";
 
 /**
  * Confidence levels for knowledge state
  */
-export type ConfidenceLevel = 'low' | 'medium' | 'high';
+export type ConfidenceLevel = "low" | "medium" | "high";
 
 /**
  * Topic performance from assessment
@@ -82,7 +82,7 @@ export interface KnowledgeState {
   attempts: number;
   time_spent_seconds: number;
   last_attempt_at: string | null;
-  status: 'not_started' | 'in_progress' | 'mastered';
+  status: "not_started" | "in_progress" | "mastered";
 }
 
 /**
@@ -104,16 +104,21 @@ export interface LearningStyleProfile {
 export interface ContentAdaptation {
   showImages: boolean;
   enableVoice: boolean;
-  textComplexity: 'simple' | 'detailed';
+  textComplexity: "simple" | "detailed";
   preferredStyle: LearningStyle;
-  suggestedPace: 'slow' | 'normal' | 'fast';
+  suggestedPace: "slow" | "normal" | "fast";
 }
 
 /**
  * Behavior signal for learning style detection
  */
 export interface BehaviorSignal {
-  type: 'image_viewed' | 'voice_replay' | 'text_read' | 'hint_requested' | 'answer_submitted';
+  type:
+    | "image_viewed"
+    | "voice_replay"
+    | "text_read"
+    | "hint_requested"
+    | "answer_submitted";
   duration?: number;
   metadata?: Record<string, unknown>;
 }
@@ -125,48 +130,55 @@ export class AdaptiveLearningService {
   /**
    * Track behavior signals for learning style detection
    */
-  async trackBehavior(studentId: string, signal: BehaviorSignal): Promise<void> {
+  async trackBehavior(
+    studentId: string,
+    signal: BehaviorSignal,
+  ): Promise<void> {
     try {
       const supabase = await createClient();
 
       switch (signal.type) {
-        case 'image_viewed':
-          await supabase.rpc('increment_visual_score', {
+        case "image_viewed":
+          await supabase.rpc("increment_visual_score", {
             p_student_id: studentId,
             p_time_seconds: signal.duration || 5,
           });
           break;
 
-        case 'voice_replay':
-          await supabase.rpc('increment_auditory_score', {
+        case "voice_replay":
+          await supabase.rpc("increment_auditory_score", {
             p_student_id: studentId,
           });
           break;
 
-        case 'text_read':
-          await supabase.rpc('increment_text_score', {
+        case "text_read":
+          await supabase.rpc("increment_text_score", {
             p_student_id: studentId,
             p_time_seconds: signal.duration || 30,
           });
           break;
       }
     } catch (error) {
-      authLogger.error('[Adaptive] Error tracking behavior:', error);
+      authLogger.error("[Adaptive] Error tracking behavior:", error);
     }
   }
 
   /**
    * Get learning style profile for a student
    */
-  async getLearningStyleProfile(studentId: string): Promise<LearningStyleProfile | null> {
+  async getLearningStyleProfile(
+    studentId: string,
+  ): Promise<LearningStyleProfile | null> {
     try {
       const supabase = await createClient();
 
       // OPTIMIZATION: Select only needed columns instead of *
       const { data, error } = await supabase
-        .from('learning_style_profile')
-        .select('id, student_id, visual_score, text_score, auditory_score, preferred_style, images_viewed, voice_replays, text_read_time_seconds, updated_at')
-        .eq('student_id', studentId)
+        .from("learning_style_profile")
+        .select(
+          "id, student_id, visual_score, text_score, auditory_score, preferred_style, images_viewed, voice_replays, text_read_time_seconds, updated_at",
+        )
+        .eq("student_id", studentId)
         .maybeSingle();
 
       if (error) {
@@ -180,7 +192,7 @@ export class AdaptiveLearningService {
 
       return data as LearningStyleProfile;
     } catch (error) {
-      authLogger.error('[Adaptive] Error getting learning style:', error);
+      authLogger.error("[Adaptive] Error getting learning style:", error);
       return null;
     }
   }
@@ -188,7 +200,9 @@ export class AdaptiveLearningService {
   /**
    * Create default learning style profile
    */
-  private async createDefaultProfile(studentId: string): Promise<LearningStyleProfile> {
+  private async createDefaultProfile(
+    studentId: string,
+  ): Promise<LearningStyleProfile> {
     const supabase = await createClient();
 
     const defaultProfile = {
@@ -201,11 +215,11 @@ export class AdaptiveLearningService {
       text_read_time_seconds: 0,
     };
 
-    await supabase.from('learning_style_profile').insert(defaultProfile);
+    await supabase.from("learning_style_profile").insert(defaultProfile);
 
     return {
       ...defaultProfile,
-      preferred_style: 'text',
+      preferred_style: "text",
     } as LearningStyleProfile;
   }
 
@@ -214,7 +228,7 @@ export class AdaptiveLearningService {
    */
   async getAdaptedContent(
     studentId: string,
-    topicId: string
+    topicId: string,
   ): Promise<ContentAdaptation> {
     const profile = await this.getLearningStyleProfile(studentId);
     const knowledgeState = await this.getKnowledgeState(studentId, topicId);
@@ -223,9 +237,9 @@ export class AdaptiveLearningService {
     const adaptation: ContentAdaptation = {
       showImages: true,
       enableVoice: true,
-      textComplexity: 'simple',
-      preferredStyle: 'text',
-      suggestedPace: 'normal',
+      textComplexity: "simple",
+      preferredStyle: "text",
+      suggestedPace: "normal",
     };
 
     if (profile) {
@@ -236,16 +250,19 @@ export class AdaptiveLearningService {
 
       // Determine text complexity based on combined factors
       if (profile.text_score >= 50) {
-        adaptation.textComplexity = 'detailed';
+        adaptation.textComplexity = "detailed";
       }
     }
 
     if (knowledgeState) {
       // Adjust pace based on mastery and attempts
       if (knowledgeState.mastery_score >= 80) {
-        adaptation.suggestedPace = 'fast';
-      } else if (knowledgeState.attempts > 3 && knowledgeState.mastery_score < 50) {
-        adaptation.suggestedPace = 'slow';
+        adaptation.suggestedPace = "fast";
+      } else if (
+        knowledgeState.attempts > 3 &&
+        knowledgeState.mastery_score < 50
+      ) {
+        adaptation.suggestedPace = "slow";
       }
     }
 
@@ -257,17 +274,19 @@ export class AdaptiveLearningService {
    */
   async getKnowledgeState(
     studentId: string,
-    topicId: string
+    topicId: string,
   ): Promise<KnowledgeState | null> {
     try {
       const supabase = await createClient();
 
       // OPTIMIZATION: Select only needed columns instead of *
       const { data, error } = await supabase
-        .from('student_knowledge_state')
-        .select('id, student_id, topic_id, module_id, mastery_score, confidence_level, attempts, time_spent_seconds, last_attempt_at, status, created_at, updated_at')
-        .eq('student_id', studentId)
-        .eq('topic_id', topicId)
+        .from("student_knowledge_state")
+        .select(
+          "id, student_id, topic_id, module_id, mastery_score, confidence_level, attempts, time_spent_seconds, last_attempt_at, status, created_at, updated_at",
+        )
+        .eq("student_id", studentId)
+        .eq("topic_id", topicId)
         .maybeSingle();
 
       if (error) {
@@ -276,7 +295,7 @@ export class AdaptiveLearningService {
 
       return data as KnowledgeState | null;
     } catch (error) {
-      authLogger.error('[Adaptive] Error getting knowledge state:', error);
+      authLogger.error("[Adaptive] Error getting knowledge state:", error);
       return null;
     }
   }
@@ -289,41 +308,54 @@ export class AdaptiveLearningService {
     studentId: string,
     moduleId: string,
     topicId: string,
-    performance: TopicPerformance
+    performance: TopicPerformance,
   ): Promise<void> {
     try {
       const supabase = await createClient();
 
       // ATOMIC: Use RPC function for race-condition-free update
       // This performs calculation and update in single transaction with locking
-      const { data: rpcResultRaw, error } = await supabase.rpc('update_knowledge_state', {
-        p_student_id: studentId,
-        p_module_id: moduleId,
-        p_topic_id: topicId,
-        p_is_correct: performance.isCorrect,
-        p_response_time_ms: performance.responseTimeMs,
-        p_ai_hint_requested: performance.aiHintRequested,
-      });
+      const { data: rpcResultRaw, error } = await supabase.rpc(
+        "update_knowledge_state",
+        {
+          p_student_id: studentId,
+          p_module_id: moduleId,
+          p_topic_id: topicId,
+          p_is_correct: performance.isCorrect,
+          p_response_time_ms: performance.responseTimeMs,
+          p_ai_hint_requested: performance.aiHintRequested,
+        },
+      );
 
       if (error) {
-        authLogger.error('[Adaptive] RPC failed to update knowledge state:', error);
+        authLogger.error(
+          "[Adaptive] RPC failed to update knowledge state:",
+          error,
+        );
         return;
       }
 
       // SECURITY FIX: Runtime validation of RPC response structure
       // Ensures response matches expected schema before accessing properties
-      const validationResult = validateUpdateKnowledgeStateResponse(rpcResultRaw);
+      const validationResult =
+        validateUpdateKnowledgeStateResponse(rpcResultRaw);
       if (!validationResult.success) {
-        authLogger.error('[Adaptive] RPC response validation failed:', validationResult.error);
+        authLogger.error(
+          "[Adaptive] RPC response validation failed:",
+          validationResult.error,
+        );
         return;
       }
 
       const rpcResult = validationResult.data;
       if (!rpcResult.success) {
-        authLogger.error('[Adaptive] Knowledge state update failed:', rpcResult.error);
+        authLogger.error(
+          "[Adaptive] Knowledge state update failed:",
+          rpcResult.error,
+        );
       }
     } catch (error) {
-      authLogger.error('[Adaptive] Error updating knowledge state:', error);
+      authLogger.error("[Adaptive] Error updating knowledge state:", error);
     }
   }
 
@@ -336,18 +368,21 @@ export class AdaptiveLearningService {
   /**
    * Get next recommended topic based on knowledge gaps
    */
-  async getNextTopic(studentId: string, moduleId: string): Promise<string | null> {
+  async getNextTopic(
+    studentId: string,
+    moduleId: string,
+  ): Promise<string | null> {
     try {
       const supabase = await createClient();
 
       // Find topics with lowest mastery (knowledge gaps)
       const { data: weakTopics, error } = await supabase
-        .from('student_knowledge_state')
-        .select('topic_id, mastery_score')
-        .eq('student_id', studentId)
-        .eq('module_id', moduleId)
-        .lt('mastery_score', 70)
-        .order('mastery_score', { ascending: true })
+        .from("student_knowledge_state")
+        .select("topic_id, mastery_score")
+        .eq("student_id", studentId)
+        .eq("module_id", moduleId)
+        .lt("mastery_score", 70)
+        .order("mastery_score", { ascending: true })
         .limit(1);
 
       if (error) throw error;
@@ -360,7 +395,7 @@ export class AdaptiveLearningService {
       // Otherwise, find next unstarted topic
       return await this.getNextUnstartedTopic(studentId, moduleId);
     } catch (error) {
-      authLogger.error('[Adaptive] Error getting next topic:', error);
+      authLogger.error("[Adaptive] Error getting next topic:", error);
       return null;
     }
   }
@@ -370,26 +405,26 @@ export class AdaptiveLearningService {
    */
   private async getNextUnstartedTopic(
     studentId: string,
-    moduleId: string
+    moduleId: string,
   ): Promise<string | null> {
     try {
       const supabase = await createClient();
 
       // Get all topics for module from curriculum_content
       const { data: allTopics } = await supabase
-        .from('curriculum_content')
-        .select('topic_id')
-        .eq('module_id', moduleId)
-        .order('topic_id');
+        .from("curriculum_content")
+        .select("topic_id")
+        .eq("module_id", moduleId)
+        .order("topic_id");
 
       if (!allTopics) return null;
 
       // Get student's started topics
       const { data: startedTopics } = await supabase
-        .from('student_knowledge_state')
-        .select('topic_id')
-        .eq('student_id', studentId)
-        .eq('module_id', moduleId);
+        .from("student_knowledge_state")
+        .select("topic_id")
+        .eq("student_id", studentId)
+        .eq("module_id", moduleId);
 
       const startedSet = new Set(startedTopics?.map((t) => t.topic_id) || []);
 
@@ -402,7 +437,7 @@ export class AdaptiveLearningService {
 
       return null;
     } catch (error) {
-      authLogger.error('[Adaptive] Error getting unstarted topic:', error);
+      authLogger.error("[Adaptive] Error getting unstarted topic:", error);
       return null;
     }
   }
@@ -412,7 +447,7 @@ export class AdaptiveLearningService {
    */
   async getModuleProgress(
     studentId: string,
-    moduleId: string
+    moduleId: string,
   ): Promise<{
     totalTopics: number;
     masteredTopics: number;
@@ -423,10 +458,10 @@ export class AdaptiveLearningService {
       const supabase = await createClient();
 
       const { data: states } = await supabase
-        .from('student_knowledge_state')
-        .select('mastery_score, status')
-        .eq('student_id', studentId)
-        .eq('module_id', moduleId);
+        .from("student_knowledge_state")
+        .select("mastery_score, status")
+        .eq("student_id", studentId)
+        .eq("module_id", moduleId);
 
       if (!states || states.length === 0) {
         return {
@@ -437,8 +472,13 @@ export class AdaptiveLearningService {
         };
       }
 
-      const masteredTopics = states.filter((s) => s.status === 'mastered').length;
-      const totalMastery = states.reduce((sum, s) => sum + (s.mastery_score || 0), 0);
+      const masteredTopics = states.filter(
+        (s) => s.status === "mastered",
+      ).length;
+      const totalMastery = states.reduce(
+        (sum, s) => sum + (s.mastery_score || 0),
+        0,
+      );
       const averageMastery = totalMastery / states.length;
 
       return {
@@ -448,7 +488,7 @@ export class AdaptiveLearningService {
         progressPercent: Math.round((masteredTopics / 10) * 100),
       };
     } catch (error) {
-      authLogger.error('[Adaptive] Error getting module progress:', error);
+      authLogger.error("[Adaptive] Error getting module progress:", error);
       return {
         totalTopics: 10,
         masteredTopics: 0,
@@ -466,22 +506,22 @@ export class AdaptiveLearningService {
       const supabase = await createClient();
 
       const { data: states } = await supabase
-        .from('student_knowledge_state')
-        .select('mastery_score, attempts')
-        .eq('student_id', studentId)
-        .eq('module_id', moduleId)
-        .gt('attempts', 3);
+        .from("student_knowledge_state")
+        .select("mastery_score, attempts")
+        .eq("student_id", studentId)
+        .eq("module_id", moduleId)
+        .gt("attempts", 3);
 
       if (!states || states.length === 0) return false;
 
       // At-risk if multiple topics with low mastery despite many attempts
       const strugglingTopics = states.filter(
-        (s) => s.mastery_score < 40 && s.attempts > 3
+        (s) => s.mastery_score < 40 && s.attempts > 3,
       );
 
       return strugglingTopics.length >= 2;
     } catch (error) {
-      authLogger.error('[Adaptive] Error checking at-risk status:', error);
+      authLogger.error("[Adaptive] Error checking at-risk status:", error);
       return false;
     }
   }

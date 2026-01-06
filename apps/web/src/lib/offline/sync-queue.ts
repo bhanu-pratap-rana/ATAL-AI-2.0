@@ -15,9 +15,9 @@
  * - https://blog.logrocket.com/offline-first-frontend-apps-2025-indexeddb-sqlite/
  */
 
-import { offlineDB, type QueuedMutation } from './database';
-import { createClient } from '@/lib/supabase-browser';
-import { clientLogger } from '@/lib/client-logger';
+import { offlineDB, type QueuedMutation } from "./database";
+import { createClient } from "@/lib/supabase-browser";
+import { clientLogger } from "@/lib/client-logger";
 
 /**
  * Maximum retry attempts before giving up
@@ -100,14 +100,16 @@ export class SyncQueue {
     this.getStatus()
       .then((status) => callback(status))
       .catch((error) => {
-        clientLogger.error('[SyncQueue] Failed to get initial status', { error: error instanceof Error ? error.message : String(error) });
+        clientLogger.error("[SyncQueue] Failed to get initial status", {
+          error: error instanceof Error ? error.message : String(error),
+        });
         // Send default status on error
         callback({
           pendingCount: 0,
           failedCount: 0,
           isSyncing: false,
           lastSyncAt: null,
-          lastError: error instanceof Error ? error.message : 'Unknown error',
+          lastError: error instanceof Error ? error.message : "Unknown error",
         });
       });
 
@@ -126,7 +128,9 @@ export class SyncQueue {
       try {
         callback(status);
       } catch (error) {
-        clientLogger.error('[SyncQueue] Subscriber error', { error: error instanceof Error ? error.message : String(error) });
+        clientLogger.error("[SyncQueue] Subscriber error", {
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
     });
   }
@@ -135,10 +139,10 @@ export class SyncQueue {
    * Add a mutation to the queue
    */
   async enqueue(
-    type: QueuedMutation['type'],
-    payload: Record<string, unknown>
+    type: QueuedMutation["type"],
+    payload: Record<string, unknown>,
   ): Promise<number | undefined> {
-    const mutation: Omit<QueuedMutation, 'id'> = {
+    const mutation: Omit<QueuedMutation, "id"> = {
       type,
       payload,
       timestamp: Date.now(),
@@ -151,7 +155,7 @@ export class SyncQueue {
     await this.notifySubscribers();
 
     // Try to sync immediately if online
-    if (typeof navigator !== 'undefined' && navigator.onLine) {
+    if (typeof navigator !== "undefined" && navigator.onLine) {
       this.syncAll();
     }
 
@@ -185,7 +189,10 @@ export class SyncQueue {
 
       for (const item of pending) {
         if (!item.id) {
-          clientLogger.warn('[SyncQueue] Item missing id, skipping', { type: item.type, timestamp: item.timestamp });
+          clientLogger.warn("[SyncQueue] Item missing id, skipping", {
+            type: item.type,
+            timestamp: item.timestamp,
+          });
           continue;
         }
 
@@ -196,10 +203,17 @@ export class SyncQueue {
           success++;
         } else if (item.retries >= MAX_RETRIES) {
           // Max retries exceeded - move to failed state
-          clientLogger.error('[SyncQueue] Max retries exceeded', { itemId: item.id, type: item.type, retries: item.retries });
+          clientLogger.error("[SyncQueue] Max retries exceeded", {
+            itemId: item.id,
+            type: item.type,
+            retries: item.retries,
+          });
           await offlineDB.syncQueue.delete(item.id);
           failed++;
-          errors.push({ id: item.id, error: result.error || 'Max retries exceeded' });
+          errors.push({
+            id: item.id,
+            error: result.error || "Max retries exceeded",
+          });
         } else {
           // Increment retry count
           if (item.id) {
@@ -213,8 +227,10 @@ export class SyncQueue {
 
       this.lastSyncAt = Date.now();
     } catch (error) {
-      this.lastError = error instanceof Error ? error.message : 'Unknown error';
-      clientLogger.error('[SyncQueue] Sync failed', { error: error instanceof Error ? error.message : this.lastError });
+      this.lastError = error instanceof Error ? error.message : "Unknown error";
+      clientLogger.error("[SyncQueue] Sync failed", {
+        error: error instanceof Error ? error.message : this.lastError,
+      });
     } finally {
       this.isSyncing = false;
       await this.notifySubscribers();
@@ -263,7 +279,10 @@ export class SyncQueue {
         onProgress?.(i + 1, total);
 
         if (!item.id) {
-          clientLogger.warn('[SyncQueue] Item missing id, skipping', { type: item.type, timestamp: item.timestamp });
+          clientLogger.warn("[SyncQueue] Item missing id, skipping", {
+            type: item.type,
+            timestamp: item.timestamp,
+          });
           continue;
         }
 
@@ -275,7 +294,10 @@ export class SyncQueue {
         } else if (item.retries >= MAX_RETRIES) {
           await offlineDB.syncQueue.delete(item.id);
           failed++;
-          errors.push({ id: item.id, error: result.error || 'Max retries exceeded' });
+          errors.push({
+            id: item.id,
+            error: result.error || "Max retries exceeded",
+          });
         } else {
           if (item.id) {
             await offlineDB.syncQueue.update(item.id, {
@@ -283,15 +305,20 @@ export class SyncQueue {
               lastError: result.error,
             });
             failed++;
-            errors.push({ id: item.id, error: result.error || 'Unknown error' });
+            errors.push({
+              id: item.id,
+              error: result.error || "Unknown error",
+            });
           }
         }
       }
 
       this.lastSyncAt = Date.now();
     } catch (error) {
-      this.lastError = error instanceof Error ? error.message : 'Unknown error';
-      clientLogger.error('[SyncQueue] Manual sync failed', { error: error instanceof Error ? error.message : this.lastError });
+      this.lastError = error instanceof Error ? error.message : "Unknown error";
+      clientLogger.error("[SyncQueue] Manual sync failed", {
+        error: error instanceof Error ? error.message : this.lastError,
+      });
     } finally {
       this.isSyncing = false;
       await this.notifySubscribers();
@@ -335,7 +362,7 @@ export class SyncQueue {
    * Sync a single item with exponential backoff and jitter
    */
   private async syncItem(
-    item: QueuedMutation
+    item: QueuedMutation,
   ): Promise<{ success: boolean; error?: string }> {
     // Calculate backoff delay with jitter
     const delay = this.getBackoffDelay(item.retries);
@@ -349,32 +376,36 @@ export class SyncQueue {
       const supabase = createClient();
 
       switch (item.type) {
-        case 'assessment_submit':
-          await supabase.from('formative_responses').insert(item.payload);
+        case "assessment_submit":
+          await supabase.from("formative_responses").insert(item.payload);
           break;
 
-        case 'progress_update':
-          await supabase.from('student_knowledge_state').upsert(item.payload);
+        case "progress_update":
+          await supabase.from("student_knowledge_state").upsert(item.payload);
           break;
 
-        case 'chat_message':
-          await supabase.from('ai_tutor_interactions').insert(item.payload);
+        case "chat_message":
+          await supabase.from("ai_tutor_interactions").insert(item.payload);
           break;
 
-        case 'points_award':
-          await supabase.from('points_history').insert(item.payload);
+        case "points_award":
+          await supabase.from("points_history").insert(item.payload);
           break;
 
         default:
-          clientLogger.warn('[SyncQueue] Unknown mutation type', { type: item.type });
+          clientLogger.warn("[SyncQueue] Unknown mutation type", {
+            type: item.type,
+          });
           return { success: false, error: `Unknown type: ${item.type}` };
       }
 
       return { success: true };
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-      clientLogger.error('[SyncQueue] Item sync failed', { error: error instanceof Error ? error.message : errorMessage });
+        error instanceof Error ? error.message : "Unknown error";
+      clientLogger.error("[SyncQueue] Item sync failed", {
+        error: error instanceof Error ? error.message : errorMessage,
+      });
       return { success: false, error: errorMessage };
     }
   }
@@ -399,10 +430,10 @@ export class SyncQueue {
   async getStatus(): Promise<SyncStatus> {
     const allItems = await offlineDB.syncQueue.toArray();
     const pendingCount = allItems.filter(
-      (item) => item.retries < MAX_RETRIES
+      (item) => item.retries < MAX_RETRIES,
     ).length;
     const failedCount = allItems.filter(
-      (item) => item.retries >= MAX_RETRIES
+      (item) => item.retries >= MAX_RETRIES,
     ).length;
 
     return {
@@ -447,17 +478,17 @@ export class SyncQueue {
 export const syncQueue = new SyncQueue();
 
 // Auto-sync when coming online
-if (typeof globalThis !== 'undefined') {
+if (typeof globalThis !== "undefined") {
   // MEMORY LEAK FIX: Track interval ID for proper cleanup
   let syncIntervalId: NodeJS.Timeout | null = null;
   let onlineHandler: (() => void) | null = null;
 
   onlineHandler = () => {
-    clientLogger.debug('[SyncQueue] Online - starting sync');
+    clientLogger.debug("[SyncQueue] Online - starting sync");
     syncQueue.syncAll();
   };
 
-  globalThis.addEventListener('online', onlineHandler);
+  globalThis.addEventListener("online", onlineHandler);
 
   // Initialize periodic sync (5 minutes when online)
   syncIntervalId = setInterval(
@@ -466,7 +497,7 @@ if (typeof globalThis !== 'undefined') {
         syncQueue.syncAll();
       }
     },
-    5 * 60 * 1000
+    5 * 60 * 1000,
   );
 
   // Cleanup function to prevent memory leaks
@@ -474,22 +505,22 @@ if (typeof globalThis !== 'undefined') {
     if (syncIntervalId) {
       clearInterval(syncIntervalId);
       syncIntervalId = null;
-      clientLogger.debug('[SyncQueue] Interval cleared');
+      clientLogger.debug("[SyncQueue] Interval cleared");
     }
     if (onlineHandler) {
-      globalThis.removeEventListener('online', onlineHandler);
+      globalThis.removeEventListener("online", onlineHandler);
       onlineHandler = null;
-      clientLogger.debug('[SyncQueue] Event listener removed');
+      clientLogger.debug("[SyncQueue] Event listener removed");
     }
   };
 
   // Cleanup on page unload
-  globalThis.addEventListener('beforeunload', cleanup);
-  
+  globalThis.addEventListener("beforeunload", cleanup);
+
   // Cleanup on visibility change (tab hidden for long time)
-  document.addEventListener('visibilitychange', () => {
+  document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
-      clientLogger.debug('[SyncQueue] Page hidden - stopping sync');
+      clientLogger.debug("[SyncQueue] Page hidden - stopping sync");
     }
   });
 }

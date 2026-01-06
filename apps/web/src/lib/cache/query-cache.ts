@@ -1,7 +1,7 @@
-import { authLogger } from '@/lib/auth-logger';
+import { authLogger } from "@/lib/auth-logger";
 
 // FEATURE FLAG: Set to false to disable caching globally (emergency disable)
-const CACHE_ENABLED = process.env.ENABLE_QUERY_CACHE !== 'false'; // Default: enabled
+const CACHE_ENABLED = process.env.ENABLE_QUERY_CACHE !== "false"; // Default: enabled
 
 /**
  * Cache entry with metadata
@@ -62,11 +62,11 @@ export class QueryCache {
   async getOrFetch<T>(
     key: string,
     fetcher: () => Promise<T>,
-    ttl: number = 5 * 60 * 1000 // 5 minutes default
+    ttl: number = 5 * 60 * 1000, // 5 minutes default
   ): Promise<T> {
     // Check if caching is disabled via feature flag
     if (!CACHE_ENABLED) {
-      authLogger.debug('Query cache disabled by feature flag', { key });
+      authLogger.debug("Query cache disabled by feature flag", { key });
       return await fetcher();
     }
 
@@ -74,17 +74,17 @@ export class QueryCache {
     const cached = this.cache.get(key);
     if (cached && Date.now() - cached.timestamp < cached.ttl) {
       this.metrics.hits++;
-      authLogger.debug('Cache hit', {
+      authLogger.debug("Cache hit", {
         key,
         age: `${Date.now() - cached.timestamp}ms`,
-        hitRatio: `${this.getHitRatio().toFixed(1)}%`
+        hitRatio: `${this.getHitRatio().toFixed(1)}%`,
       });
       return cached.data as T;
     }
 
     // Cache miss - fetch fresh data
     this.metrics.misses++;
-    authLogger.debug('Cache miss - fetching fresh data', { key });
+    authLogger.debug("Cache miss - fetching fresh data", { key });
 
     try {
       const data = await fetcher();
@@ -94,24 +94,26 @@ export class QueryCache {
         const firstKey = this.cache.keys().next().value;
         if (firstKey) {
           this.cache.delete(firstKey);
-          authLogger.debug('Cache evicted old entry to make room', { evictedKey: firstKey });
+          authLogger.debug("Cache evicted old entry to make room", {
+            evictedKey: firstKey,
+          });
         }
       }
 
       // Store new entry
       this.cache.set(key, { data, timestamp: Date.now(), ttl });
-      authLogger.debug('Data cached', {
+      authLogger.debug("Data cached", {
         key,
         cacheSize: this.cache.size,
-        maxSize: this.maxSize
+        maxSize: this.maxSize,
       });
 
       return data;
     } catch (error) {
       // Don't cache errors - let caller handle them
-      authLogger.error('Error during cache fetch', {
+      authLogger.error("Error during cache fetch", {
         key,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : "Unknown error",
       });
       throw error;
     }
@@ -141,7 +143,10 @@ export class QueryCache {
         invalidated++;
       }
     }
-    authLogger.info('Cache invalidated', { pattern, entriesRemoved: invalidated });
+    authLogger.info("Cache invalidated", {
+      pattern,
+      entriesRemoved: invalidated,
+    });
   }
 
   /**
@@ -152,7 +157,7 @@ export class QueryCache {
     this.cache.clear();
     this.metrics.hits = 0;
     this.metrics.misses = 0;
-    authLogger.info('Cache cleared', { entriesRemoved: size });
+    authLogger.info("Cache cleared", { entriesRemoved: size });
   }
 
   /**

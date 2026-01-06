@@ -7,7 +7,11 @@ import {
   validatePassword,
   validatePasswordMatch,
 } from "@/lib/validation-utils";
-import { BaseFormComponentProps, useFormSubmission, usePasswordVisibility } from "@/lib/form-component-utils";
+import {
+  BaseFormComponentProps,
+  useFormSubmission,
+  usePasswordVisibility,
+} from "@/lib/form-component-utils";
 import { Eye, EyeOff } from "lucide-react";
 
 /**
@@ -37,14 +41,21 @@ export function PasswordValidationForm({
   submitButtonLabel = "Create Account",
   showValidation = true,
 }: PasswordValidationFormProps) {
-  const { showPassword, showConfirm, togglePasswordVisibility, toggleConfirmVisibility } = usePasswordVisibility();
+  const {
+    showPassword,
+    showConfirm,
+    togglePasswordVisibility,
+    toggleConfirmVisibility,
+  } = usePasswordVisibility();
 
   const handleSubmit = useFormSubmission(
     async () => {
       // Validate password
       const passwordValidation = validatePassword(password);
       if (!passwordValidation.valid) {
-        throw new Error(passwordValidation.errors.join(", ") || "Invalid password");
+        throw new Error(
+          passwordValidation.errors.join(", ") || "Invalid password",
+        );
       }
 
       // Validate password match
@@ -56,7 +67,7 @@ export function PasswordValidationForm({
       await onSubmit();
     },
     onErrorChange,
-    "[PasswordValidationForm]"
+    "[PasswordValidationForm]",
   );
 
   return (

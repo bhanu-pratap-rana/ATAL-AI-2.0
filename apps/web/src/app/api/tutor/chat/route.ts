@@ -12,35 +12,39 @@
  * - Learning style adaptation
  */
 
-import { streamText } from 'ai';
-import { z } from 'zod';
-import { getCurrentUser, createClient } from '@/lib/supabase-server';
-import { getAIModel, MODEL_CONFIGS } from '@/lib/ai/providers';
-import { ragService } from '@/lib/ai/services/rag-service';
-import { adaptiveService } from '@/lib/ai/services/adaptive-service';
-import { buildSystemPrompt } from '@/lib/ai/prompts/socratic-tutor';
-import { checkRateLimit } from '@/lib/rate-limiter-distributed';
-import { RATE_LIMITS } from '@/lib/constants/rate-limits';
-import { authLogger } from '@/lib/auth-logger';
+import { streamText } from "ai";
+import { z } from "zod";
+import { getCurrentUser, createClient } from "@/lib/supabase-server";
+import { getAIModel, MODEL_CONFIGS } from "@/lib/ai/providers";
+import { ragService } from "@/lib/ai/services/rag-service";
+import { adaptiveService } from "@/lib/ai/services/adaptive-service";
+import { buildSystemPrompt } from "@/lib/ai/prompts/socratic-tutor";
+import { checkRateLimit } from "@/lib/rate-limiter-distributed";
+import { RATE_LIMITS } from "@/lib/constants/rate-limits";
+import { authLogger } from "@/lib/auth-logger";
 
 /**
  * Request body schema for tutor chat API
  * SECURITY: Includes bounds validation to prevent DoS attacks via large payloads
  */
 const ChatRequestSchema = z.object({
-  messages: z.array(z.object({
-    role: z.enum(['user', 'assistant', 'system']),
-    content: z.string()
-      .min(1, 'Message content cannot be empty')
-      .max(5000, 'Message content must be less than 5000 characters'),
-  }))
-    .min(1, 'At least one message is required')
-    .max(100, 'Conversation history must not exceed 100 messages'),
-  language: z.enum(['en', 'hi', 'as']).default('en'),
+  messages: z
+    .array(
+      z.object({
+        role: z.enum(["user", "assistant", "system"]),
+        content: z
+          .string()
+          .min(1, "Message content cannot be empty")
+          .max(5000, "Message content must be less than 5000 characters"),
+      }),
+    )
+    .min(1, "At least one message is required")
+    .max(100, "Conversation history must not exceed 100 messages"),
+  language: z.enum(["en", "hi", "as"]).default("en"),
   topicId: z.string().optional(),
   moduleId: z.string().optional(),
   sessionId: z.string().optional(),
-  inputMode: z.enum(['text', 'voice']).default('text'),
+  inputMode: z.enum(["text", "voice"]).default("text"),
 });
 
 export async function POST(request: Request) {
@@ -50,18 +54,24 @@ export async function POST(request: Request) {
     // Authenticate user
     user = await getCurrentUser();
     if (!user) {
-      return new Response('Unauthorized', { status: 401 });
+      return new Response("Unauthorized", { status: 401 });
     }
 
     // At this point, user is guaranteed to be non-null due to the guard above
     const authenticatedUser = user;
 
     // Rate limit check
-    const isAllowed = await checkRateLimit(`ai:chat:${authenticatedUser.id}`, RATE_LIMITS.aiTutorChat);
+    const isAllowed = await checkRateLimit(
+      `ai:chat:${authenticatedUser.id}`,
+      RATE_LIMITS.aiTutorChat,
+    );
     if (!isAllowed) {
-      return new Response('Rate limit exceeded. Please wait before sending another message.', {
-        status: 429,
-      });
+      return new Response(
+        "Rate limit exceeded. Please wait before sending another message.",
+        {
+          status: 429,
+        },
+      );
     }
 
     // Parse and validate request body
@@ -71,29 +81,26 @@ export async function POST(request: Request) {
     try {
       validatedData = ChatRequestSchema.parse(body);
     } catch (validationError) {
-      const errorMessage = validationError instanceof z.ZodError
-        ? validationError.errors.map(e => `${e.path.join('.')}: ${e.message}`).join('; ')
-        : 'Invalid request body';
+      const errorMessage =
+        validationError instanceof z.ZodError
+          ? validationError.errors
+              .map((e) => `${e.path.join(".")}: ${e.message}`)
+              .join("; ")
+          : "Invalid request body";
 
-      authLogger.error('[TutorChat] Request validation failed', {
+      authLogger.error("[TutorChat] Request validation failed", {
         error: errorMessage,
-        userId: authenticatedUser.id
+        userId: authenticatedUser.id,
       });
 
       return new Response(JSON.stringify({ error: errorMessage }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { "Content-Type": "application/json" },
       });
     }
 
-    const {
-      messages,
-      language,
-      topicId,
-      moduleId,
-      sessionId,
-      inputMode,
-    } = validatedData;
+    const { messages, language, topicId, moduleId, sessionId, inputMode } =
+      validatedData;
 
     // Get the latest user message for RAG
     const latestMessage = messages[messages.length - 1];
@@ -101,15 +108,19 @@ export async function POST(request: Request) {
 
     // Get curriculum context via RAG (direct pgvector - NO LangChain)
     // Uses multilingual context to prioritize same-language content
-    const context = await ragService.getMultilingualContext(userQuery, language, {
-      filterTopic: topicId || null,
-      matchCount: topicId ? 3 : 5,
-    });
+    const context = await ragService.getMultilingualContext(
+      userQuery,
+      language,
+      {
+        filterTopic: topicId || null,
+        matchCount: topicId ? 3 : 5,
+      },
+    );
 
     // Get student's learning style for personalization
     const learningProfile = await adaptiveService.getAdaptedContent(
       authenticatedUser.id,
-      topicId || 'general'
+      topicId || "general",
     );
 
     // Build personalized Socratic system prompt
@@ -123,7 +134,7 @@ export async function POST(request: Request) {
     });
 
     // Get AI model (Gemini primary, Groq fallback)
-    const model = getAIModel('gemini');
+    const model = getAIModel("gemini");
 
     // Track start time for logging
     const startTime = Date.now();
@@ -133,7 +144,7 @@ export async function POST(request: Request) {
       studentId: authenticatedUser.id,
       sessionId: sessionId || crypto.randomUUID(),
       topicId,
-      messageRole: 'user',
+      messageRole: "user",
       messageContent: userQuery,
       inputMode,
       language,
@@ -155,7 +166,7 @@ export async function POST(request: Request) {
             studentId: authenticatedUser.id,
             sessionId: sessionId || crypto.randomUUID(),
             topicId,
-            messageRole: 'assistant',
+            messageRole: "assistant",
             messageContent: text,
             inputMode,
             language,
@@ -164,11 +175,17 @@ export async function POST(request: Request) {
           });
         } catch (loggingError) {
           // Log the error but don't throw - user's response is already sent
-          authLogger.error('[TutorChat] Failed to log interaction in onFinish callback', {
-            error: loggingError instanceof Error ? loggingError.message : String(loggingError),
-            userId: authenticatedUser.id,
-            sessionId,
-          });
+          authLogger.error(
+            "[TutorChat] Failed to log interaction in onFinish callback",
+            {
+              error:
+                loggingError instanceof Error
+                  ? loggingError.message
+                  : String(loggingError),
+              userId: authenticatedUser.id,
+              sessionId,
+            },
+          );
           // Note: Response already streamed, so we can't return error to client
           // This ensures failed logging doesn't break the user's chat experience
         }
@@ -179,16 +196,19 @@ export async function POST(request: Request) {
     return result.toDataStreamResponse();
   } catch (error) {
     // Log detailed error for debugging (server-side only)
-    authLogger.error('[Tutor API] Unexpected error in chat handler', {
+    authLogger.error("[Tutor API] Unexpected error in chat handler", {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
-      userId: user?.id || 'unknown',
+      userId: user?.id || "unknown",
     });
 
     // Return generic message to client (avoid exposing sensitive error details)
     return new Response(
-      JSON.stringify({ error: 'An error occurred while processing your message. Please try again.' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+      JSON.stringify({
+        error:
+          "An error occurred while processing your message. Please try again.",
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
 }
@@ -200,17 +220,17 @@ async function logInteraction(params: {
   studentId: string;
   sessionId: string;
   topicId?: string;
-  messageRole: 'user' | 'assistant' | 'system';
+  messageRole: "user" | "assistant" | "system";
   messageContent: string;
-  inputMode: 'text' | 'voice';
-  language: 'en' | 'hi' | 'as';
+  inputMode: "text" | "voice";
+  language: "en" | "hi" | "as";
   tokensUsed: number;
   responseTimeMs: number;
 }): Promise<void> {
   try {
     const supabase = await createClient();
 
-    await supabase.from('ai_tutor_interactions').insert({
+    await supabase.from("ai_tutor_interactions").insert({
       student_id: params.studentId,
       session_id: params.sessionId,
       topic_id: params.topicId,
@@ -222,6 +242,6 @@ async function logInteraction(params: {
       response_time_ms: params.responseTimeMs,
     });
   } catch (error) {
-    authLogger.error('[Tutor API] Error logging interaction:', error);
+    authLogger.error("[Tutor API] Error logging interaction:", error);
   }
 }
