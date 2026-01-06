@@ -55,7 +55,8 @@ export async function saveStudentProfile(params: StudentProfileParams) {
     })
 
     // SECURITY: Rate limit student mutations to prevent abuse
-    if (!(await checkStudentMutationRateLimit(user.id))) {
+    const saveAllowed = await checkStudentMutationRateLimit(user.id)
+    if (!saveAllowed) {
       authLogger.warn('[saveStudentProfile] Rate limit exceeded', { userId: user.id })
       return { success: false, error: 'Too many requests. Please try again later.' }
     }
@@ -467,7 +468,8 @@ export async function leaveClass(classId: string) {
     }
 
     // SECURITY: Rate limit student mutations to prevent abuse
-    if (!(await checkStudentMutationRateLimit(auth.user.id))) {
+    const leaveAllowed = await checkStudentMutationRateLimit(auth.user.id)
+    if (!leaveAllowed) {
       authLogger.warn('[leaveClass] Rate limit exceeded', { userId: auth.user.id })
       return { success: false, error: 'Too many requests. Please try again later.' }
     }

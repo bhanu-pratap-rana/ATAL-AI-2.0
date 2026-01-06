@@ -34,7 +34,8 @@ function validateEmailInput(email: string): { success: true; email: string } | {
  * Helper: Check rate limits (OTP and enumeration)
  */
 async function checkRateLimits(email: string): Promise<{ allowed: true } | { allowed: false; error: string }> {
-  if (!(await checkOtpRateLimit(email))) {
+  const otpAllowed = await checkOtpRateLimit(email)
+  if (!otpAllowed) {
     authLogger.warn('[requestOtp] Rate limit exceeded', { type: 'otp_limit' })
     return {
       allowed: false,
@@ -43,7 +44,8 @@ async function checkRateLimits(email: string): Promise<{ allowed: true } | { all
   }
 
   const enumerationKey = `email:check:${email}`
-  if (!(await checkEnumerationRateLimit(enumerationKey))) {
+  const enumerationAllowed = await checkEnumerationRateLimit(enumerationKey)
+  if (!enumerationAllowed) {
     authLogger.warn('[requestOtp] Email enumeration rate limit exceeded', {
       email,
       limitType: 'enumeration'
@@ -170,7 +172,8 @@ export async function verifyOtp(email: string, token: string) {
     authLogger.debug('[verifyOtp] Starting OTP verification')
 
     // SECURITY: Rate limit OTP verification to prevent brute-force attacks
-    if (!(await checkOtpVerifyRateLimit(validatedEmail))) {
+    const verifyAllowed = await checkOtpVerifyRateLimit(validatedEmail)
+    if (!verifyAllowed) {
       authLogger.warn('[verifyOtp] Rate limit exceeded', { email: validatedEmail })
       return { success: false, error: 'Too many verification attempts. Please try again later.' }
     }
