@@ -8,7 +8,6 @@ import {
   AuthPasswordSchema,
 } from '@/lib/validation-schemas'
 import { authLogger } from '@/lib/auth-logger'
-import { validateWithSchema } from './auth-common'
 
 /**
  * Username-based authentication
