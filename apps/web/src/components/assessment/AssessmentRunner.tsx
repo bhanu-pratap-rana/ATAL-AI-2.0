@@ -231,8 +231,11 @@ export function AssessmentRunner({
         if (result.success) {
           toast.success("Assessment completed!");
           router.push(`/app/assessment/summary?session=${sessionId}`);
-        } else {
+        } else if ("error" in result) {
           toast.error(result.error || "Failed to submit assessment");
+          setIsSubmitting(false);
+        } else {
+          toast.error("Failed to submit assessment");
           setIsSubmitting(false);
         }
       } catch (error) {
@@ -410,7 +413,7 @@ export function AssessmentRunner({
           id: r.itemId,
           item_code: "",
           category: q?.category || "",
-          question_text: q?.text || "",
+          question_text: q?.questionText || "",
           options: q?.options || [],
           correct_answer: 0,
           difficulty: q?._difficulty || 0,

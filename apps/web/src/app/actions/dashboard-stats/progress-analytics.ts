@@ -148,7 +148,7 @@ export async function calculateStreak(
     // Old: dates.includes(dateKey) is O(n) inside 365-iteration loop = O(n²)
     // New: dateSet.has(dateKey) is O(1) inside loop = O(n)
     const dateSet = new Set(
-      sessions.map((s) => {
+      sessions.map((s: { started_at: string }) => {
         const date = new Date(s.started_at);
         return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
       }),

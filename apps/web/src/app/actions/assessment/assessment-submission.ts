@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { verifyStudentAuth } from "@/lib/supabase-server";
+import { verifyStudentAuth, createClient } from "@/lib/supabase-server";
 import { AssessmentSubmitSchema } from "@/lib/validation-schemas";
 import { authLogger } from "@/lib/auth-logger";
 import { checkRateLimit } from "@/lib/rate-limiter-distributed";

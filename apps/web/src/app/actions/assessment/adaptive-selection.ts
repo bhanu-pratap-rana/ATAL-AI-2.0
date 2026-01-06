@@ -49,7 +49,7 @@ function selectAdaptiveQuestions(itemPool: IRTItem[]): {
   const selectedQuestions: IRTItem[] = [];
   const answeredIds = new Set<string>();
   const answeredByCategory: Record<string, number> = {};
-  let currentTheta = CAT_CONFIG.INITIAL_THETA;
+  let currentTheta: number = CAT_CONFIG.INITIAL_THETA;
 
   for (let i = 0; i < CAT_CONFIG.TOTAL_QUESTIONS; i++) {
     const nextItem = selectNextItem(

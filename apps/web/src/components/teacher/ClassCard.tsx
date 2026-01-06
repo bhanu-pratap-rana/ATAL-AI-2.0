@@ -179,8 +179,10 @@ export function ClassCard({ classData }: ClassCardProps) {
                         toast.success("Class updated successfully!");
                         setShowEditDialog(false);
                         router.refresh();
-                      } else {
+                      } else if ("error" in result) {
                         toast.error(result.error || "Failed to update class");
+                      } else {
+                        toast.error("Failed to update class");
                       }
                     } catch {
                       toast.error("An unexpected error occurred");

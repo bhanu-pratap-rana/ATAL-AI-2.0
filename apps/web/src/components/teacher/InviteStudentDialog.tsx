@@ -87,8 +87,10 @@ export function InviteStudentDialog({ classId }: InviteStudentDialogProps) {
         setSearchResults([]);
         setOpen(false);
         router.refresh();
-      } else {
+      } else if ("error" in result) {
         toast.error(result.error || "Failed to enroll student");
+      } else {
+        toast.error("Failed to enroll student");
       }
     } catch {
       toast.error("An unexpected error occurred");
