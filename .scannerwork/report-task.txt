@@ -1,6 +1,0 @@
-projectKey=Atal-AI
-serverUrl=http://localhost:9000
-serverVersion=25.12.0.117093
-dashboardUrl=http://localhost:9000/dashboard?id=Atal-AI
-ceTaskId=739f5962-4b57-469d-abac-9e3a18bd37fc
-ceTaskUrl=http://localhost:9000/api/ce/task?id=739f5962-4b57-469d-abac-9e3a18bd37fc
