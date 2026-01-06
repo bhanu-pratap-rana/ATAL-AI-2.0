@@ -72,7 +72,7 @@ export class ConnectionPoolMonitor {
           return null;
         }
 
-        if (data && Array.isArray(data) && data.length > 0) {
+        if (data?.[0]) {
           const stats = data[0];
           return {
             activeConnections: stats.active_connections,

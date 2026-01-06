@@ -133,7 +133,7 @@ async function fetchDashboardMetricsFromDB(): Promise<DashboardMetrics> {
   let adminCount = 0
   let authTeacherCount = 0
   const authUsers = authUsersResult.authUsers
-  if (authUsers && authUsers.length > 0) {
+  if (authUsers?.length > 0) {
     // Count admins (admin or super_admin role)
     adminCount = authUsers.filter(
       (u: SupabaseAuthUser) => u.app_metadata?.role === 'admin' || u.app_metadata?.role === 'super_admin'

@@ -52,7 +52,7 @@ export async function getDashboardStats(): Promise<{
     const isTeacher = isTeacherOrHigher(role)
     const isStudent = role === 'student' || role === undefined // Default to student if no explicit role
 
-    if (!isTeacher && !isStudent) {
+    if (!(isTeacher || isStudent)) {
       authLogger.warn('[getDashboardStats] Unauthorized role attempted to access dashboard', {
         userId: user.id,
         role,
