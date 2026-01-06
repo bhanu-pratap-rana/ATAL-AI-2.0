@@ -81,7 +81,7 @@ function SchoolFinderModal({
       } else {
         toast.error(result.error || "Failed to load districts");
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error("An error occurred");
     } finally {
       setLoading(false);
@@ -101,7 +101,7 @@ function SchoolFinderModal({
       } else {
         toast.error(result.error || "Failed to load blocks");
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error("An error occurred");
     } finally {
       setLoading(false);
@@ -122,7 +122,7 @@ function SchoolFinderModal({
       } else {
         toast.error(result.error || "Failed to load schools");
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error("An error occurred");
     } finally {
       setLoading(false);
@@ -277,7 +277,7 @@ export default function AdminSchoolsPage() {
           setAuthorized(false);
           setAuthError(result.error || "Unauthorized");
         }
-      } catch (error) {
+      } catch (_error) {
         setAuthorized(false);
         setAuthError("Failed to verify authorization");
       }
@@ -323,7 +323,7 @@ export default function AdminSchoolsPage() {
       } else {
         toast.error(result.error || "Failed to search schools");
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error("An error occurred while searching");
     } finally {
       setLoading(false);
@@ -365,7 +365,7 @@ export default function AdminSchoolsPage() {
       } else {
         toast.error(result.error || "Failed to fetch PIN status");
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error("An error occurred");
     } finally {
       setLoading(false);
@@ -409,7 +409,7 @@ export default function AdminSchoolsPage() {
       } else {
         toast.error(result.error || "Failed to rotate PIN");
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error("An unexpected error occurred");
     } finally {
       setLoading(false);

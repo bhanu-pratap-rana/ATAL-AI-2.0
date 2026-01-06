@@ -1,16 +1,14 @@
 'use server'
 
-import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
-import { createClient, verifyStudentAuth } from '@/lib/supabase-server'
+import { verifyStudentAuth } from '@/lib/supabase-server'
 import { AssessmentSubmitSchema } from '@/lib/validation-schemas'
 import { authLogger } from '@/lib/auth-logger'
 import { checkRateLimit } from '@/lib/rate-limiter-distributed'
-import { queryCache } from '@/lib/cache/query-cache'
 import { RATE_LIMITS } from '@/lib/constants/rate-limits'
 import { validateSubmitAssessmentResponse } from '@/lib/rpc-validators'
 import { handleZodError } from '@/lib/action-error-handler'
-import { updateTheta, CATEGORIES, CAT_CONFIG } from './irt-models'
+import { updateTheta, CATEGORIES } from './irt-models'
 
 /**
  * Assessment submission and scoring logic

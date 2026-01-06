@@ -20,7 +20,7 @@
  * ```
  */
 
-import { syncQueue, type SyncQueue } from './sync-queue';
+import { syncQueue } from './sync-queue';
 import { clientLogger } from '@/lib/client-logger';
 import { validateMutationQueuePayload } from '@/lib/validation/rpc-schemas';
 
