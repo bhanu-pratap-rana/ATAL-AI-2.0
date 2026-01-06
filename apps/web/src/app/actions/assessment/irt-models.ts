@@ -168,3 +168,90 @@ export function updateTheta(
 
   return { theta, se }
 }
+
+/**
+ * Select next item for adaptive testing using Maximum Fisher Information (MFI)
+ * with a-Stratification for balanced item exposure
+ *
+ * Strategy:
+ * 1. Enforce category balance (don't exceed QUESTIONS_PER_CATEGORY per category)
+ * 2. Among eligible items, select from stratified layers to prevent greedy high-discrimination selection
+ * 3. Use Maximum Fisher Information within each stratum
+ *
+ * Based on best practices from Chang & Ying (1999) and PMC research
+ *
+ * @param currentTheta - Current ability estimate
+ * @param itemPool - Pool of available items
+ * @param answeredIds - Set of already answered question IDs
+ * @param answeredByCategory - Count of answered items per category
+ * @param questionIndex - Current question index in assessment
+ * @returns Selected item or null if no valid items remain
+ */
+export function selectNextItem(
+  currentTheta: number,
+  itemPool: IRTItem[],
+  answeredIds: Set<string>,
+  answeredByCategory: Record<string, number>,
+  questionIndex: number,
+): IRTItem | null {
+  // Filter out already answered items
+  const remainingItems = itemPool.filter(item => !answeredIds.has(item.id))
+
+  if (remainingItems.length === 0) return null
+
+  // Filter by category balance - prefer categories with fewer questions answered
+  const itemsByCategory: Record<string, IRTItem[]> = {}
+  for (const category of CATEGORIES) {
+    const answered = answeredByCategory[category] || 0
+    if (answered < CAT_CONFIG.QUESTIONS_PER_CATEGORY) {
+      itemsByCategory[category] = remainingItems.filter(item => item.category === category)
+    }
+  }
+
+  // Combine all eligible items from balanced categories
+  const balancedItems = Object.values(itemsByCategory).flat()
+
+  if (balancedItems.length === 0) {
+    // If category balance prevents selection, allow selection from any category
+    // This can happen near the end of assessment
+    return selectByFisherInformation(currentTheta, remainingItems)
+  }
+
+  // Use a-Stratification for balanced discrimination selection
+  const strata = stratifyByDiscrimination(balancedItems, CAT_CONFIG.A_STRATIFICATION_LAYERS)
+
+  // Select from middle stratum to avoid always picking highest discrimination items
+  // This prevents overexposure of high-discrimination items
+  const middleStratumIndex = Math.floor(strata.length / 2)
+  const selectedStratum = strata[middleStratumIndex] || strata[0]
+
+  if (selectedStratum.length === 0) {
+    // Fallback: select from all strata if selected stratum is empty
+    return selectByFisherInformation(currentTheta, balancedItems)
+  }
+
+  return selectByFisherInformation(currentTheta, selectedStratum)
+}
+
+/**
+ * Helper: Select item with maximum Fisher Information
+ * @param theta - Current ability estimate
+ * @param items - Pool of items to select from
+ * @returns Item with maximum information at current theta level
+ */
+function selectByFisherInformation(theta: number, items: IRTItem[]): IRTItem | null {
+  if (items.length === 0) return null
+
+  let bestItem = items[0]
+  let maxInfo = fisherInformation(theta, items[0].discrimination, items[0].difficulty, items[0].guessing)
+
+  for (let i = 1; i < items.length; i++) {
+    const info = fisherInformation(theta, items[i].discrimination, items[i].difficulty, items[i].guessing)
+    if (info > maxInfo) {
+      maxInfo = info
+      bestItem = items[i]
+    }
+  }
+
+  return bestItem
+}

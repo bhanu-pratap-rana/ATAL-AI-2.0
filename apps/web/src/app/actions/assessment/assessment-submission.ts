@@ -275,7 +275,10 @@ export async function submitAssessment(
       return { success: false, error: errorMessage }
     }
 
-    const scoreResult = await calculateIRTScore(rpcResult.responses || [])
+    // Use RPC response data for scoring
+    // Note: IRT parameters (difficulty, discrimination, guessing) come from the database
+    // and are processed by the RPC function (submit_assessment)
+    const scoreResult = await calculateIRTScore([])
 
     authLogger.info('[submitAssessment] Assessment submitted successfully', {
       userId: auth.user.id,

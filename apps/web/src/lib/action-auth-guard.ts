@@ -3,10 +3,11 @@
  * Standardizes authentication and rate limiting pattern across all actions
  */
 
-import { AuthResult } from '@/lib/auth-verify';
-import { checkRateLimit } from '@/lib/rate-limiter';
+import { AuthResult } from '@/lib/auth-result';
+import { checkRateLimit } from '@/lib/rate-limiter-distributed';
 import { authLogger } from '@/lib/auth-logger';
 import { handleAuthError, handleRateLimitError, ActionResponse } from './action-error-handler';
+import { RATE_LIMITS } from '@/lib/constants/rate-limits';
 
 /**
  * Wrap a server action with auth verification and rate limiting
@@ -43,7 +44,7 @@ export async function withAuthGuard<T>(
   }
 
   // Check rate limit
-  const rateLimitOk = await checkRateLimit(auth.user.id);
+  const rateLimitOk = await checkRateLimit(`action:${auth.user.id}`, RATE_LIMITS.dashboardStats);
   if (!rateLimitOk) {
     return handleRateLimitError(actionName, auth.user.id);
   }
