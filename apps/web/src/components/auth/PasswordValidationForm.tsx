@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,7 +8,7 @@ import {
   validatePassword,
   validatePasswordMatch,
 } from "@/lib/validation-utils";
-import { authLogger } from "@/lib/auth-logger";
+import { BaseFormComponentProps, useFormSubmission, usePasswordVisibility } from "@/lib/form-component-utils";
 import { Eye, EyeOff } from "lucide-react";
 
 /**
@@ -16,14 +16,11 @@ import { Eye, EyeOff } from "lucide-react";
  * Handles password and confirm password input with validation
  * Reduces code duplication in auth flows
  */
-export interface PasswordValidationFormProps {
+export interface PasswordValidationFormProps extends BaseFormComponentProps {
   readonly password: string;
   readonly onPasswordChange: (password: string) => void;
   readonly passwordConfirm: string;
   readonly onPasswordConfirmChange: (password: string) => void;
-  readonly isLoading: boolean;
-  readonly error?: string;
-  readonly onErrorChange: (error: string | null) => void;
   readonly onSubmit: () => Promise<void>;
   readonly submitButtonLabel?: string;
   readonly showValidation?: boolean;
@@ -41,40 +38,27 @@ export function PasswordValidationForm({
   submitButtonLabel = "Create Account",
   showValidation = true,
 }: PasswordValidationFormProps) {
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+  const { showPassword, showConfirm, togglePasswordVisibility, toggleConfirmVisibility } = usePasswordVisibility();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    onErrorChange(null);
-
-    // Validate password
-    const passwordValidation = validatePassword(password);
-    if (!passwordValidation.valid) {
-      onErrorChange(passwordValidation.errors.join(", ") || "Invalid password");
-      return;
-    }
-
-    // Validate password match
-    const matchValidation = validatePasswordMatch(password, passwordConfirm);
-    if (!matchValidation.valid) {
-      onErrorChange(matchValidation.error || "Passwords do not match");
-      return;
-    }
-
-    try {
-      authLogger.debug("[PasswordValidationForm] Validating password");
-      await onSubmit();
-    } catch (err) {
-      authLogger.error(
-        "[PasswordValidationForm] Password validation failed",
-        err,
-      );
-      if (err instanceof Error) {
-        onErrorChange(err.message || "An error occurred");
+  const handleSubmit = useFormSubmission(
+    async () => {
+      // Validate password
+      const passwordValidation = validatePassword(password);
+      if (!passwordValidation.valid) {
+        throw new Error(passwordValidation.errors.join(", ") || "Invalid password");
       }
-    }
-  };
+
+      // Validate password match
+      const matchValidation = validatePasswordMatch(password, passwordConfirm);
+      if (!matchValidation.valid) {
+        throw new Error(matchValidation.error || "Passwords do not match");
+      }
+
+      await onSubmit();
+    },
+    onErrorChange,
+    "[PasswordValidationForm]"
+  );
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -93,7 +77,7 @@ export function PasswordValidationForm({
           />
           <button
             type="button"
-            onClick={() => setShowPassword(!showPassword)}
+            onClick={togglePasswordVisibility}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-primary"
             aria-label={showPassword ? "Hide password" : "Show password"}
           >
@@ -126,7 +110,7 @@ export function PasswordValidationForm({
           />
           <button
             type="button"
-            onClick={() => setShowConfirm(!showConfirm)}
+            onClick={toggleConfirmVisibility}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-primary"
             aria-label={showConfirm ? "Hide password" : "Show password"}
           >
