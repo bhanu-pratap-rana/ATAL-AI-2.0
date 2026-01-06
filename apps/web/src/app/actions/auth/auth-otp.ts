@@ -249,7 +249,8 @@ export async function sendForgotPasswordOtp(email: string) {
     const trimmedEmail = emailResult.data
 
     // Check rate limit - prevent password reset spam/abuse
-    if (!(await checkPasswordResetRateLimit(trimmedEmail))) {
+    const resetAllowed = await checkPasswordResetRateLimit(trimmedEmail)
+    if (!resetAllowed) {
       authLogger.warn('[sendForgotPasswordOtp] Rate limit exceeded', { type: 'password_reset_limit' })
       return {
         success: false,

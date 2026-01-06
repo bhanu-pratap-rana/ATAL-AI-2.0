@@ -138,7 +138,8 @@ export async function deleteClass(classId: string) {
     }
 
     // SECURITY: Rate limit teacher mutations to prevent abuse
-    if (!(await checkTeacherMutationRateLimit(auth.user.id))) {
+    const deletionAllowed = await checkTeacherMutationRateLimit(auth.user.id)
+    if (!deletionAllowed) {
       authLogger.warn('[deleteClass] Rate limit exceeded', { userId: auth.user.id })
       return { success: false, error: 'Too many requests. Please try again later.' }
     }
