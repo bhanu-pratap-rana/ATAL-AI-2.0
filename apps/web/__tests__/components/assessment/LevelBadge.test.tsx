@@ -3,7 +3,6 @@
  * Tests for the assessment skill level badge display
  */
 
-import React from 'react'
 import { render, screen } from '@testing-library/react'
 import { LevelBadge, LevelCard, LevelProgress, getLevelFromScore } from '@/components/assessment/LevelBadge'
 

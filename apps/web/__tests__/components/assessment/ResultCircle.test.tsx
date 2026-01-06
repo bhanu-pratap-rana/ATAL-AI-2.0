@@ -3,7 +3,6 @@
  * Tests for the assessment result circular progress display
  */
 
-import React from 'react'
 import { render, screen, act } from '@testing-library/react'
 import { ResultCircle, CompactResultCircle } from '@/components/assessment/ResultCircle'
 

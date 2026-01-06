@@ -11,7 +11,7 @@
  * <FormError error={state.signinEmailError} />
  */
 
-import React from "react";
+import type { ReactNode } from "react";
 
 export interface FormErrorProps {
   /** Error message to display (null/undefined to hide) */
@@ -19,7 +19,7 @@ export interface FormErrorProps {
   /** Additional CSS classes to apply */
   readonly className?: string;
   /** Custom error icon or prefix */
-  readonly icon?: React.ReactNode;
+  readonly icon?: ReactNode;
   /** If true, shows a dismissible close button */
   readonly dismissible?: boolean;
   /** Called when close button is clicked */

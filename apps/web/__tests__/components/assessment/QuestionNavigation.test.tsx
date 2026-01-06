@@ -3,7 +3,6 @@
  * Tests for the assessment question navigation buttons
  */
 
-import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { QuestionNavigation } from '@/components/assessment/QuestionNavigation'
 
