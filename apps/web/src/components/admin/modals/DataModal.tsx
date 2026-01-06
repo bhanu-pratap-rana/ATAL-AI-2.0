@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import type { ReactNode } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
@@ -18,7 +18,7 @@ interface DataModalProps {
   readonly onSearchChange: (query: string) => void;
   readonly onClose: () => void;
   readonly isLoading: boolean;
-  readonly children: React.ReactNode;
+  readonly children: ReactNode;
   readonly searchPlaceholder?: string;
 }
 
