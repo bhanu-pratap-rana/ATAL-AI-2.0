@@ -9,9 +9,32 @@ import { isSuperAdmin, isAdmin } from '@/lib/auth/role-utils'
 import { AdminEmailSchema, AdminPasswordSchema, UserIdSchema } from '@/lib/validation-schemas'
 import type { SupabaseAuthUser } from '@/lib/admin-utils'
 import { validateSupabaseAuthUsers } from '@/lib/validation/rpc-schemas'
+import { handleZodError } from '@/lib/action-error-handler'
 
 // Use centralized rate limit config for admin operations
 const ADMIN_RATE_LIMIT = RATE_LIMITS.adminOperations
+
+/**
+ * Validate input using Zod schema and return AdminActionResult on error
+ * Eliminates duplicated try/catch blocks for Zod validation
+ */
+function validateAdminInput<T>(
+  schema: z.ZodSchema<T>,
+  data: unknown,
+): { valid: true; data: T } | { valid: false; error: AdminActionResult } {
+  try {
+    return { valid: true, data: schema.parse(data) }
+  } catch (error) {
+    const zodError = handleZodError(error) as any
+    return {
+      valid: false,
+      error: {
+        success: false,
+        error: zodError.error || 'Invalid input',
+      },
+    }
+  }
+}
 
 export interface AdminUser {
   id: string
@@ -294,8 +317,16 @@ export async function createAdminAccount(
   role: 'admin' | 'super_admin' = 'admin'
 ): Promise<AdminActionResult> {
   try {
-    const normalizedEmail = AdminEmailSchema.parse(email)
-    AdminPasswordSchema.parse(password)
+    const emailValidation = validateAdminInput(AdminEmailSchema, email)
+    if (!emailValidation.valid) {
+      return emailValidation.error
+    }
+    const normalizedEmail = emailValidation.data
+
+    const passwordValidation = validateAdminInput(AdminPasswordSchema, password)
+    if (!passwordValidation.valid) {
+      return passwordValidation.error
+    }
 
     const auth = await verifySuperAdminAuth('createAdminAccount')
     if (!auth.authorized) {
@@ -343,10 +374,6 @@ export async function createAdminAccount(
 
     return await createNewAdminUser(adminClient, normalizedEmail, password, role)
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      const firstError = error.issues[0]
-      return { success: false, error: firstError?.message || 'Invalid input' }
-    }
     authLogger.error('[createAdminAccount] Unexpected error', error)
     return {
       success: false,
@@ -412,7 +439,11 @@ export async function listAdminAccounts(): Promise<AdminActionResult> {
 export async function deleteAdminAccount(adminId: string): Promise<AdminActionResult> {
   try {
     // Validate input
-    const validatedId = UserIdSchema.parse(adminId)
+    const idValidation = validateAdminInput(UserIdSchema, adminId)
+    if (!idValidation.valid) {
+      return idValidation.error
+    }
+    const validatedId = idValidation.data
 
     // SECURITY: Verify caller is authenticated and authorized as super_admin
     const auth = await verifySuperAdminAuth('deleteAdminAccount')
@@ -480,10 +511,6 @@ export async function deleteAdminAccount(adminId: string): Promise<AdminActionRe
       message: `Admin account deleted successfully`,
     }
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      const firstError = error.issues[0]
-      return { success: false, error: firstError?.message || 'Invalid input' }
-    }
     authLogger.error('[deleteAdminAccount] Unexpected error', error)
     return {
       success: false,
@@ -499,8 +526,16 @@ export async function deleteAdminAccount(adminId: string): Promise<AdminActionRe
 export async function resetAdminPassword(adminId: string, newPassword: string): Promise<AdminActionResult> {
   try {
     // Validate inputs using Zod schemas
-    const validatedId = UserIdSchema.parse(adminId)
-    AdminPasswordSchema.parse(newPassword)
+    const idValidation = validateAdminInput(UserIdSchema, adminId)
+    if (!idValidation.valid) {
+      return idValidation.error
+    }
+    const validatedId = idValidation.data
+
+    const passwordValidation = validateAdminInput(AdminPasswordSchema, newPassword)
+    if (!passwordValidation.valid) {
+      return passwordValidation.error
+    }
 
     // SECURITY: Verify caller is authenticated and is an admin
     const auth = await verifyAdminAuth('resetAdminPassword')
@@ -551,10 +586,6 @@ export async function resetAdminPassword(adminId: string, newPassword: string): 
       message: 'Password reset successfully',
     }
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      const firstError = error.issues[0]
-      return { success: false, error: firstError?.message || 'Invalid input' }
-    }
     authLogger.error('[resetAdminPassword] Unexpected error', error)
     return {
       success: false,
@@ -569,7 +600,11 @@ export async function resetAdminPassword(adminId: string, newPassword: string): 
 export async function isSuperAdminEmail(email: string): Promise<boolean> {
   try {
     // Validate email input
-    const normalizedEmail = AdminEmailSchema.parse(email)
+    const emailValidation = validateAdminInput(AdminEmailSchema, email)
+    if (!emailValidation.valid) {
+      return false
+    }
+    const normalizedEmail = emailValidation.data
 
     const adminClient = await createAdminClient()
     // Fetch all users with proper pagination support for scalability
@@ -599,7 +634,11 @@ export async function isSuperAdminEmail(email: string): Promise<boolean> {
 export async function getAdminById(adminId: string): Promise<AdminActionResult> {
   try {
     // Validate input
-    const validatedId = UserIdSchema.parse(adminId)
+    const idValidation = validateAdminInput(UserIdSchema, adminId)
+    if (!idValidation.valid) {
+      return idValidation.error
+    }
+    const validatedId = idValidation.data
 
     // SECURITY: Verify caller is authenticated and authorized as super_admin
     const auth = await verifySuperAdminAuth('getAdminById')
@@ -632,10 +671,6 @@ export async function getAdminById(adminId: string): Promise<AdminActionResult> 
       data: admin,
     }
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      const firstError = error.issues[0]
-      return { success: false, error: firstError?.message || 'Invalid input' }
-    }
     authLogger.error('[getAdminById] Unexpected error', error)
     return {
       success: false,
