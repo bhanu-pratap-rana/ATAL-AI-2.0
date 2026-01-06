@@ -217,7 +217,7 @@ export async function getSchoolPinStatus(schoolCode: string) {
 
     return {
       success: true,
-      exists: !!credentials,
+      exists: credentials != null,
       createdAt: credentials?.created_at,
       lastRotatedAt: credentials?.rotated_at,
     }

@@ -1,6 +1,5 @@
 'use server'
 
-import { z } from 'zod'
 import { createClient, createAdminClient, getCurrentUser } from '@/lib/supabase-server'
 import { authLogger } from '@/lib/auth-logger'
 import {
@@ -49,7 +48,7 @@ async function checkPinRotationAuthorization(
       return { authorized: false, error: 'Failed to verify authorization' }
     }
 
-    isAuthorized = !!teacherProfile
+    isAuthorized = teacherProfile != null
   }
 
   if (!isAuthorized) {
@@ -84,7 +83,7 @@ async function checkSchoolAuthorization(
     return { authorized: false, error: 'Failed to verify school authorization' }
   }
 
-  const isAuthorizedForSchool = !!(teacherProfile && schoolId === teacherProfile.school_id)
+  const isAuthorizedForSchool = teacherProfile?.school_id === schoolId
   if (!isAuthorizedForSchool) {
     authLogger.warn('[rotateStaffPin] User not authorized for school', { userId: user.id, schoolId })
     return { authorized: false, error: 'Unauthorized: You can only rotate PINs for your own school.' }
@@ -150,7 +149,7 @@ async function rotatePinViaRPC(
     }
   }
 
-  if (!rotateResult || !rotateResult[0]?.success) {
+  if (!rotateResult?.[0]?.success) {
     const errorMsg = rotateResult?.[0]?.error_message || 'Failed to rotate PIN'
     authLogger.error('[rotateStaffPin] RPC rotation failed', { error: errorMsg })
     return {
