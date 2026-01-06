@@ -98,7 +98,7 @@ export function InvitePanel({
     if (canvasRef.current) {
       const url = canvasRef.current.toDataURL("image/png");
       const link = document.createElement("a");
-      link.download = `${className.replace(/\s+/g, "_")}_QR_Code.png`;
+      link.download = `${className.replaceAll(/\s+/, "_")}_QR_Code.png`;
       link.href = url;
       link.click();
       toast.success("QR code downloaded!");

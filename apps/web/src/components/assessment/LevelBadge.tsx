@@ -195,7 +195,7 @@ export function LevelProgress({
         <div
           className={`
             h-full rounded-full transition-all duration-500 ease-out
-            ${LEVEL_CONFIG[currentLevel].bgClass.replace("bg-", "bg-").replace("-light", "")}
+            ${LEVEL_CONFIG[currentLevel].bgClass.replaceAll("-light", "")}
           `}
           style={{
             width: `${Math.min(100, Math.max(0, (currentIndex + 1) * 33.33))}%`,
