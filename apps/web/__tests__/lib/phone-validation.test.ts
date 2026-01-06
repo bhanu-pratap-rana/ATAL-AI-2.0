@@ -63,7 +63,7 @@ describe('Phone Validation', () => {
     })
 
     it('should reject null or undefined input', () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       const result = validatePhone(null as unknown as string)
       expect(result.valid).toBe(false)
     })

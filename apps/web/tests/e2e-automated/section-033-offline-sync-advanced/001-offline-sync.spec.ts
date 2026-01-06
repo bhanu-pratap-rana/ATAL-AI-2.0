@@ -162,7 +162,7 @@ test('TC-33.1.2: Background Sync Queue', async ({ page, context }) => {
     // Step 2: Monitor sync requests
     console.log('  Step 2: Setting up sync monitoring...');
 
-    let syncRequests: string[] = [];
+    const syncRequests: string[] = [];
 
     page.on('response', (response) => {
       if (response.url().includes('/sync') || response.url().includes('/submit')) {

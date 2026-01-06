@@ -13,7 +13,7 @@ import {
 } from './test-utils';
 import { TEST_CONFIG, TEST_SECTIONS } from './test-config';
 
-let testResults: TestResult[] = [];
+const testResults: TestResult[] = [];
 const startTime = Date.now();
 
 // Test Case 14.1.1: Dashboard Page Load Time

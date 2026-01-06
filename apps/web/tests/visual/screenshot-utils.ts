@@ -22,7 +22,7 @@ export function ensureScreenshotDir(subDir: string = ''): string {
 }
 
 // Screenshot counter for ordering
-let screenshotCounter: Record<string, number> = {}
+const screenshotCounter: Record<string, number> = {}
 
 /**
  * Reset screenshot counter for a new test flow

@@ -421,8 +421,8 @@ test('TC-32.1.5: Multi-Role Switching Security', async ({ page }) => {
     // Step 2: Monitor authentication tokens
     console.log('  Step 2: Setting up token monitoring...');
 
-    let authTokens: string[] = [];
-    let roleHeaders: string[] = [];
+    const authTokens: string[] = [];
+    const roleHeaders: string[] = [];
 
     page.on('response', (response) => {
       if (response.url().includes('/auth') || response.url().includes('/api')) {

@@ -24,7 +24,7 @@ interface TestResult {
   steps: string[];
 }
 
-let testResults: TestResult[] = [];
+const testResults: TestResult[] = [];
 
 const resultsDir = path.join(__dirname, 'results');
 const screenshotsDir = path.join(resultsDir, 'screenshots');
@@ -615,7 +615,7 @@ test.describe('Section 16.1: Accessibility Testing', () => {
         const positions = buttons.map((btn) => (btn as HTMLElement).getBoundingClientRect());
 
         // Simple spacing check - ensure buttons aren't overlapping
-        let spacingIssues = 0;
+        const spacingIssues = 0;
         for (let i = 0; i < positions.length; i++) {
           for (let j = i + 1; j < positions.length; j++) {
             const rect1 = positions[i];

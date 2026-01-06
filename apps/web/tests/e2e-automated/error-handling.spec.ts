@@ -13,7 +13,7 @@ import {
 } from './test-utils';
 import { TEST_CONFIG, TEST_SECTIONS } from './test-config';
 
-let testResults: TestResult[] = [];
+const testResults: TestResult[] = [];
 const startTime = Date.now();
 
 // Test Case 13.1.1: Network Error Handling
@@ -225,7 +225,7 @@ test('13.1.4 - API Error Handling', async ({ page }) => {
     screenshots.push(await takeScreenshot(page, testName, 'dashboard-loaded'));
 
     // Monitor for API errors
-    let apiErrors: string[] = [];
+    const apiErrors: string[] = [];
     page.on('response', (response) => {
       if (!response.ok() && response.url().includes('api') || response.url().includes('supabase')) {
         apiErrors.push(`${response.status()} - ${response.url()}`);
