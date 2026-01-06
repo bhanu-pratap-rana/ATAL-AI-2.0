@@ -298,7 +298,7 @@ export async function getAllSchoolsWithPINs(): Promise<AdminPINActionResult> {
         schoolName: school.school_name,
         schoolCode: school.school_code || 'N/A',
         districtName: school.district || 'Unknown District',
-        hasPIN: !!pinInfo,
+        hasPIN: pinInfo != null,
         lastRotatedAt: pinInfo?.rotated_at || null,
         createdAt: pinInfo?.created_at || new Date().toISOString(),
       }
