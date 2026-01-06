@@ -5,9 +5,7 @@
 
 // Teacher verification
 export {
-  verifyTeacher,
-  type VerifyTeacherParams,
-  type VerifyTeacherResult
+  verifyTeacher
 } from './teacher-verification'
 
 // School search
@@ -32,6 +30,6 @@ export {
   normalizeSchoolCode,
   handleZodValidationError,
   type SchoolData,
-  type VerifyTeacherParams as VerifyTeacherParamsUtil,
-  type VerifyTeacherResult as VerifyTeacherResultUtil
+  type VerifyTeacherParams,
+  type VerifyTeacherResult
 } from './school-utils'

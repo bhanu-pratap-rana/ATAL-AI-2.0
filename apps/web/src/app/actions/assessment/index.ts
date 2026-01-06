@@ -11,7 +11,8 @@ export {
   probability3PL,
   fisherInformation,
   stratifyByDiscrimination,
-  updateTheta
+  updateTheta,
+  selectNextItem
 } from './irt-models'
 
 // Adaptive question selection
@@ -21,6 +22,5 @@ export { getAdaptiveQuestions } from './adaptive-selection'
 export {
   submitAssessment,
   calculateIRTScore,
-  startAssessment,
-  updateAbilityEstimate
+  startAssessment
 } from './assessment-submission'

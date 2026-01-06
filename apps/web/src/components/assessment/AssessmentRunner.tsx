@@ -7,7 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import {
   submitAssessment,
   calculateIRTScore,
-  updateAbilityEstimate,
+  updateTheta,
 } from "@/app/actions/assessment";
 import { ASSESSMENT_TIMING } from "@/lib/constants/ui-timings";
 import { QuestionNavigation } from "./QuestionNavigation";
@@ -403,32 +403,32 @@ export function AssessmentRunner({
 
     // Update IRT ability estimate (theta) after each answer
     const updatedResponses = [...responses, response];
-    const irtResponses = updatedResponses.map((r, i) => {
+    const irtResponses = updatedResponses.map((r) => {
       const q = questions.find((q) => q.id === r.itemId);
       return {
-        difficulty: q?._difficulty || 0,
-        discrimination: q?._discrimination || 1.0,
-        guessing: q?._guessing || 0.2,
-        isCorrect: r.isCorrect,
+        item: {
+          id: r.itemId,
+          item_code: '',
+          category: q?.category || '',
+          question_text: q?.text || '',
+          options: q?.options || [],
+          correct_answer: 0,
+          difficulty: q?._difficulty || 0,
+          discrimination: q?._discrimination || 1.0,
+          guessing: q?._guessing || 0.2,
+        },
+        correct: r.isCorrect,
       };
     });
 
-    // Update theta asynchronously
-    updateAbilityEstimate(irtResponses, irtState.theta)
-      .then((result) => {
-        setIrtState({
-          theta: result.theta,
-          se: result.se,
-          answeredCount: updatedResponses.length,
-          correctCount: updatedResponses.filter((r) => r.isCorrect).length,
-        });
-      })
-      .catch((err) => {
-        clientLogger.error(
-          "Failed to update IRT ability estimate",
-          err instanceof Error ? err : undefined,
-        );
-      });
+    // Update theta estimate
+    const { theta: newTheta, se: newSe } = updateTheta(irtState.theta, irtResponses);
+    setIrtState({
+      theta: newTheta,
+      se: newSe,
+      answeredCount: updatedResponses.length,
+      correctCount: updatedResponses.filter((r) => r.isCorrect).length,
+    });
 
     setSelectedOption(null);
     setResponses(updatedResponses);
