@@ -57,7 +57,8 @@ export async function sendEmailOtp(email: string): Promise<SendEmailOtpResult> {
     const supabase = await createClient()
 
     // Rate limit check - prevent OTP spam
-    if (!(await checkOtpRateLimit(trimmedEmail))) {
+    const otpAllowed = await checkOtpRateLimit(trimmedEmail)
+    if (!otpAllowed) {
       authLogger.warn('[sendEmailOtp] Rate limit exceeded', { email: trimmedEmail })
       return {
         success: false,
@@ -169,7 +170,8 @@ export async function setPassword(password: string): Promise<SetPasswordResult> 
     }
 
     // SECURITY: Rate limit onboarding operations to prevent abuse
-    if (!(await checkTeacherOnboardRateLimit(user.id))) {
+    const passwordAllowed = await checkTeacherOnboardRateLimit(user.id)
+    if (!passwordAllowed) {
       authLogger.warn('[setPassword] Rate limit exceeded', { userId: user.id })
       return { success: false, error: 'Too many requests. Please try again later.' }
     }
@@ -226,7 +228,8 @@ export async function saveTeacherProfile({
     }
 
     // SECURITY: Rate limit onboarding operations to prevent abuse
-    if (!(await checkTeacherOnboardRateLimit(user.id))) {
+    const profileAllowed = await checkTeacherOnboardRateLimit(user.id)
+    if (!profileAllowed) {
       authLogger.warn('[saveTeacherProfile] Rate limit exceeded', { userId: user.id })
       return { success: false, error: 'Too many requests. Please try again later.' }
     }
@@ -330,7 +333,8 @@ export async function updateTeacherProfile({
     }
 
     // SECURITY: Rate limit onboarding operations to prevent abuse
-    if (!(await checkTeacherOnboardRateLimit(user.id))) {
+    const updateAllowed = await checkTeacherOnboardRateLimit(user.id)
+    if (!updateAllowed) {
       authLogger.warn('[updateTeacherProfile] Rate limit exceeded', { userId: user.id })
       return { success: false, error: 'Too many requests. Please try again later.' }
     }

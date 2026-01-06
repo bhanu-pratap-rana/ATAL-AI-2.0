@@ -33,7 +33,8 @@ export async function enrollStudent(classId: string, studentId: string) {
     }
 
     // SECURITY: Rate limit teacher mutations to prevent abuse
-    if (!(await checkTeacherMutationRateLimit(auth.user.id))) {
+    const enrollmentAllowed = await checkTeacherMutationRateLimit(auth.user.id)
+    if (!enrollmentAllowed) {
       authLogger.warn('[enrollStudent] Rate limit exceeded', { userId: auth.user.id })
       return { success: false, error: 'Too many requests. Please try again later.' }
     }
@@ -85,7 +86,8 @@ export async function removeStudent(classId: string, studentId: string) {
     }
 
     // SECURITY: Rate limit teacher mutations to prevent abuse
-    if (!(await checkTeacherMutationRateLimit(auth.user.id))) {
+    const removalAllowed = await checkTeacherMutationRateLimit(auth.user.id)
+    if (!removalAllowed) {
       authLogger.warn('[removeStudent] Rate limit exceeded', { userId: auth.user.id })
       return { success: false, error: 'Too many requests. Please try again later.' }
     }

@@ -33,7 +33,8 @@ export async function setAdminRole(email: string): Promise<SetAdminRoleResult> {
     }
 
     // SECURITY: Rate limit admin operations to prevent abuse
-    if (!(await checkAdminOperationRateLimit(auth.user.id))) {
+    const roleChangeAllowed = await checkAdminOperationRateLimit(auth.user.id)
+    if (!roleChangeAllowed) {
       authLogger.warn('[setAdminRole] Rate limit exceeded', { userId: auth.user.id })
       return { success: false, error: 'Too many requests. Please try again later.' }
     }
@@ -108,7 +109,8 @@ export async function checkAdminRoleByEmail(email: string): Promise<{
 
     // SECURITY: Rate limit admin operations to prevent abuse
     // Use email as identifier since this is a lookup operation
-    if (!(await checkAdminOperationRateLimit(normalizedEmail))) {
+    const roleLookupAllowed = await checkAdminOperationRateLimit(normalizedEmail)
+    if (!roleLookupAllowed) {
       authLogger.warn('[checkAdminRoleByEmail] Rate limit exceeded', { email: normalizedEmail })
       return { hasAdminRole: false, error: 'Too many requests. Please try again later.' }
     }
