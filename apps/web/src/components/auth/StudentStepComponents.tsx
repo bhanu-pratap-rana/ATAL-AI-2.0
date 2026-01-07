@@ -7,10 +7,7 @@
 
 import { AuthCard } from "@/components/auth/AuthCard";
 import { Button } from "@/components/ui/button";
-import { validatePassword } from "@/lib/validation-utils";
 import type { UseAuthStateReturn } from "@/hooks/useAuthState";
-import type { UseOTPInputReturn } from "@/hooks/useOTPInput";
-import type { UsePhoneInputReturn } from "@/hooks/usePhoneInput";
 
 interface StepComponentProps {
   loading: boolean;
