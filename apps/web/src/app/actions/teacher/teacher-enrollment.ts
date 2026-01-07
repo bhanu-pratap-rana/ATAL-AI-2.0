@@ -5,6 +5,7 @@ import { createClient, verifyClassOwnership } from "@/lib/supabase-server";
 import { checkTeacherMutationRateLimit } from "@/lib/rate-limiter-distributed";
 import { authLogger } from "@/lib/auth-logger";
 import { handleZodError } from "@/lib/action-error-handler";
+import { EnrollmentSchema } from "@/lib/validation-schemas";
 
 /**
  * Student enrollment management for teacher classes

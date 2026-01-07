@@ -249,7 +249,7 @@ export default async function TeacherDashboardPage() {
             </div>
           }
         >
-          <StudentProgressGrid classId={selectedClass.id} teacherId={user.id} />
+          <StudentProgressGrid classId={selectedClass.id} _teacherId={user.id} />
         </Suspense>
 
         {/* AI Interactions Log */}

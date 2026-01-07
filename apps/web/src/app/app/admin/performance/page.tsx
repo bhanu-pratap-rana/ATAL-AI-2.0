@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useEffect, useState } from "react";
 import { queryMonitor } from "@/lib/supabase-query-wrapper";
 import { connectionPoolMonitor } from "@/lib/monitoring/connection-pool-monitor";

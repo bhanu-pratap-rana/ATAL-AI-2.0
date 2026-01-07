@@ -27,7 +27,7 @@ export interface PoolAlert {
  * Uses RPC function to query PostgreSQL connection stats
  */
 export class ConnectionPoolMonitor {
-  private supabase: SupabaseClient<Database>;
+  private supabase: SupabaseClient<Database> | null = null;
   private alerts: PoolAlert[] = [];
   private readonly maxAlerts = 100;
   private readonly warningThreshold = 70; // 70% utilization
@@ -37,13 +37,24 @@ export class ConnectionPoolMonitor {
   private readonly minCheckInterval = 5000; // Check at most every 5 seconds
 
   constructor() {
-    this.supabase = createClient<Database>(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        auth: { autoRefreshToken: false, persistSession: false },
-      },
-    );
+    // Lazy initialization - don't create Supabase client until needed
+    // This prevents errors during pre-rendering when env vars might not be available
+  }
+
+  /**
+   * Initialize Supabase client lazily
+   */
+  private getSupabaseClient(): SupabaseClient<Database> {
+    if (!this.supabase) {
+      this.supabase = createClient<Database>(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        {
+          auth: { autoRefreshToken: false, persistSession: false },
+        },
+      );
+    }
+    return this.supabase;
   }
 
   /**
@@ -62,10 +73,10 @@ export class ConnectionPoolMonitor {
 
       // Try to get connection stats via RPC if function exists
       try {
-        const { data, error } = await this.supabase.rpc(
-          "get_connection_stats" as const,
-          {},
-        );
+        const supabase = this.getSupabaseClient();
+        const { data, error } = await (
+          supabase as any
+        ).rpc("get_connection_stats", {});
 
         if (error) {
           authLogger.debug("Connection stats RPC not available", {
@@ -74,12 +85,21 @@ export class ConnectionPoolMonitor {
           return null;
         }
 
-        if (data?.[0]) {
-          const stats = data[0];
+        if (
+          data &&
+          Array.isArray(data) &&
+          data.length > 0 &&
+          typeof data[0] === "object"
+        ) {
+          const stats = data[0] as {
+            active_connections?: number;
+            max_connections?: number;
+            utilization_percent?: number;
+          };
           return {
-            activeConnections: stats.active_connections,
-            maxConnections: stats.max_connections,
-            utilizationPercent: stats.utilization_percent,
+            activeConnections: stats.active_connections ?? 0,
+            maxConnections: stats.max_connections ?? 0,
+            utilizationPercent: stats.utilization_percent ?? 0,
             timestamp: new Date(),
           };
         }

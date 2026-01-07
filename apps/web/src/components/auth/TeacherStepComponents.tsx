@@ -19,7 +19,7 @@ interface StepComponentProps {
   router: ReturnType<typeof useRouter>;
 }
 
-export function ChoiceStep({ setStep, _router }: StepComponentProps) {
+export function ChoiceStep({ setStep, router }: StepComponentProps) {
   return (
     <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
       <AuthCard
@@ -593,7 +593,6 @@ export function AuthStep({
   handleSendOTP,
   handleVerifyOTP,
   setStep,
-  _router,
 }: AuthStepProps) {
   return (
     <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">

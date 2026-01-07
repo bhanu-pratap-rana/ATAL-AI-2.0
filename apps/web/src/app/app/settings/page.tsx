@@ -61,7 +61,7 @@ export default async function SettingsPage() {
     phone: string | null;
     school_id: string;
     school_code: string;
-    gender: string;
+    gender: "male" | "female" | null;
     created_at: string;
     updated_at: string;
   } | null = null;
