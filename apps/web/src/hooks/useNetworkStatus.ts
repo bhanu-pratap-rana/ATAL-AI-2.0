@@ -206,7 +206,8 @@ export function useNetworkStatus(): NetworkStatus {
       connection.addEventListener("change", handleConnectionChange);
     }
 
-    // Initial status update
+    // Initial status update - safe because updateStatus is memoized
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     updateStatus();
 
     // Cleanup
