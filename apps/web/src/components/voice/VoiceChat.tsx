@@ -158,6 +158,7 @@ export function VoiceChat({
       setIsListening(false);
     };
     // eslint-disable-next-line react-hooks/set-state-in-effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect
 
     setRecognition(rec);
 

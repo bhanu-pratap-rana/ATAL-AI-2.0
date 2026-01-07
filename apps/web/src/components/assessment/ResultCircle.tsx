@@ -62,6 +62,7 @@ export function ResultCircle({
 
   // Animate percentage on mount
   useEffect(() => {
+  // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!animate) {
       setDisplayPercentage(percentage);
       return;

@@ -30,7 +30,7 @@ const THEME = {
 } as const;
 
 // Helper function to get CSS variable with fallback
-const getCSSVar = (varName: string, fallback: string) =>
+const _getCSSVar = (varName: string, fallback: string) =>
   `var(--${varName}, ${fallback})`;
 
 export default function OfflinePage() {
