@@ -4,11 +4,6 @@ import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
-import {
-  submitAssessment,
-  calculateIRTScore,
-  updateTheta,
-} from "@/app/actions/assessment";
 import { ASSESSMENT_TIMING } from "@/lib/constants/ui-timings";
 import { QuestionNavigation } from "./QuestionNavigation";
 import {

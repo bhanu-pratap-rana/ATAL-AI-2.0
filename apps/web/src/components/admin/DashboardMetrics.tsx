@@ -11,7 +11,6 @@ import {
   getSchoolsWithoutPINs,
 } from "@/app/actions/admin-metrics";
 import { School, Users, Lock, GraduationCap } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { clientLogger } from "@/lib/client-logger";
 import { DataModal } from "@/components/admin/modals/DataModal";
 import { ListItemCard } from "@/components/admin/modals/ListItemCard";

@@ -401,7 +401,7 @@ export class GamificationService {
     try {
       const supabase = await createClient();
 
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("student_badges")
         .select(
           `
