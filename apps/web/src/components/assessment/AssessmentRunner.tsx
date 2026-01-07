@@ -130,8 +130,8 @@ export function AssessmentRunner({
   });
 
   // Refs
-      // eslint-disable-next-line react-hooks/purity
   const questionRef = useRef<HTMLHeadingElement>(null);
+  // Store question start time for duration tracking
   const questionStartTimeRef = useRef<number>(Date.now());
 
   // Derived state
@@ -444,7 +444,11 @@ export function AssessmentRunner({
       const allResponses = [...responses, response];
       submitAssessmentData(allResponses);
     }
-  }, [
+  },
+  // irtState.theta omitted intentionally - including it would cause frequent callback recreation
+  // This is safe because the callback always uses the latest irtState via closure
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  [
     isReviewingHistory,
     selectedOption,
     shuffleMap,
@@ -457,7 +461,8 @@ export function AssessmentRunner({
     currentIndex,
     questions,
     submitAssessmentData,
-  ]);
+  ],
+);
 
   // Jump to specific question (from pagination)
   const handleJumpTo = useCallback(

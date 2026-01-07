@@ -43,11 +43,10 @@ export function Leaderboard({
   const [leaders, setLeaders] = useState<LeaderEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // eslint-disable-next-line react-hooks/immutability
 
   useEffect(() => {
     fetchLeaderboard();
-  }, [classId, currentUserId, limit, fetchLeaderboard]);
+  }, [classId, limit, fetchLeaderboard]);
 
   const fetchLeaderboard = useCallback(async () => {
     try {
@@ -104,7 +103,7 @@ export function Leaderboard({
       setError("Failed to load leaderboard");
       setLoading(false);
     }
-  }, [classId, currentUserId, limit]);
+  }, [classId, limit]);
 
   if (loading) {
     return (

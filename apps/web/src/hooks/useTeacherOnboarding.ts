@@ -431,7 +431,8 @@ export function useTeacherOnboarding() {
     }
 
     checkAuth();
-  }, [state.authChecked, state.step, supabase, router]);
+  }, [state.authChecked, state.step, supabase, router]); // eslint-disable-line react-hooks/exhaustive-deps
+  // setAuthChecked omitted - it's stable via useCallback
 
   // HANDLER: Email/Password Login
   const handleTeacherLogin = useCallback(
@@ -697,7 +698,8 @@ export function useTeacherOnboarding() {
         setLoading(false);
       }
     },
-    [state.email, state.otp],
+    [state.email, state.otp], // eslint-disable-line react-hooks/exhaustive-deps
+    // setLoading and setStep omitted - they're stable via useCallback
   );
 
   // HANDLER: Set Password

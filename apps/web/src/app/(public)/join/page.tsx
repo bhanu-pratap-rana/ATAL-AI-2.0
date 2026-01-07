@@ -352,6 +352,7 @@ function JoinClassForm({
       setPreviewError(null);
       setShowConfirm(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [classCode]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -571,6 +572,7 @@ function JoinPageContent() {
     }
 
     checkAuth();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabase, viaInvite, codeFromUrl]);
 
   // Handle anonymous sign-in

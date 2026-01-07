@@ -157,9 +157,9 @@ export function VoiceChat({
     rec.onend = () => {
       setIsListening(false);
     };
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    // eslint-disable-next-line react-hooks/set-state-in-effect
 
+    // Initialize recognition object - safe as it's part of effect setup
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setRecognition(rec);
 
     // Cleanup

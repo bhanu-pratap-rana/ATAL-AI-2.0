@@ -57,10 +57,9 @@ export function OfflineBanner({
   }, []);
 
   // Handle visibility with animation delay
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
-  // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!isOnline) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsVisible(true);
       setShowSyncingMessage(false);
     } else if (status.isSyncing && status.pendingCount > 0) {
