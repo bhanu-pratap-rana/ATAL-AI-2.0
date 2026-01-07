@@ -3,6 +3,7 @@
  *
  * Features:
  * - Shows online/offline status
+import { WifiOff, RefreshCw, AlertCircle, Check } from "lucide-react";
  * - Displays pending sync count
  * - Manual sync button
  * - Last sync time tooltip

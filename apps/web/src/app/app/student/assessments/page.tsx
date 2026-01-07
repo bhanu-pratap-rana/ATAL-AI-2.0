@@ -13,7 +13,7 @@ function formatTime(seconds: number): string {
 }
 
 // Format date to relative time
-function formatRelativeTime(dateString: string): string {
+function _formatRelativeTime(dateString: string): string {
   const date = new Date(dateString);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
