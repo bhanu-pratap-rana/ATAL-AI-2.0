@@ -130,6 +130,7 @@ export function AssessmentRunner({
   });
 
   // Refs
+      // eslint-disable-next-line react-hooks/purity
   const questionRef = useRef<HTMLHeadingElement>(null);
   const questionStartTimeRef = useRef<number>(Date.now());
 

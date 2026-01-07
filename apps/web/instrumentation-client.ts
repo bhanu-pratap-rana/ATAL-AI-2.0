@@ -39,7 +39,7 @@ if (SENTRY_DSN) {
     ],
 
     // Filter out known non-critical errors
-    beforeSend(event, hint) {
+    beforeSend(event, _hint) {
       // Ignore ResizeObserver errors (common browser noise)
       if (event.message?.includes('ResizeObserver')) {
         return null

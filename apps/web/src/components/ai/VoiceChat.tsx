@@ -201,7 +201,7 @@ export function VoiceChat({
   );
 
   // Speak text using AI4Bharat TTS with browser fallback
-  const speakText = useCallback(
+  const _speakText = useCallback(
     async (text: string) => {
       if (!text || isSpeaking) return;
 
@@ -545,7 +545,7 @@ interface SpeechGrammar {
   weight: number;
 }
 
-declare var SpeechRecognition: {
+declare const SpeechRecognition: {
   prototype: SpeechRecognition;
   new (): SpeechRecognition;
 };

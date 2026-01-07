@@ -115,7 +115,7 @@ async function getEmbedding(text: string, apiKey: string): Promise<number[]> {
  * - Markdown formatting like {.mark}
  * - Various header styles
  */
-function extractMetadata(chunk: string, language: string): { moduleId: string; topicId: string; title: string } {
+function extractMetadata(chunk: string, _language: string): { moduleId: string; topicId: string; title: string } {
   // First, normalize the chunk by removing markdown formatting artifacts
   const normalizedChunk = chunk
     .replaceAll('{.mark}', '')

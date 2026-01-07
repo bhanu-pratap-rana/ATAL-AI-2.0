@@ -7,7 +7,7 @@ import Link from "next/link";
 import { getTeacherAssessmentOverview } from "@/app/actions/teacher";
 
 // Format date to relative time
-function formatRelativeTime(dateString: string | null): string {
+function _formatRelativeTime(dateString: string | null): string {
   if (!dateString) return "Never";
   const date = new Date(dateString);
   const now = new Date();

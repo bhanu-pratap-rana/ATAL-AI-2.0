@@ -32,7 +32,7 @@ function ResetPasswordContent() {
   const [error, setError] = useState<string | null>(null);
 
   // Initialize OTP input hook
-  const otpInput = useOTPInput(otp);
+  const _otpInput = useOTPInput(otp);
 
   // Check if already authenticated - redirect to dashboard
   useEffect(() => {
