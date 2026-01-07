@@ -15,7 +15,7 @@
  * - Automatic transcript callback
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { clientLogger } from "@/lib/client-logger";
 
@@ -65,14 +65,23 @@ export function VoiceChat({
   const [recognition, setRecognition] = useState<SpeechRecognition | null>(
     null,
   );
-  const [isSupported, setIsSupported] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Compute browser support (stable - no browser changes at runtime)
+  const isSupported = useMemo(() => {
+    if (typeof globalThis === "undefined") return true;
+    const global = globalThis as typeof globalThis & {
+      SpeechRecognition?: new () => SpeechRecognition;
+      webkitSpeechRecognition?: new () => SpeechRecognition;
+    };
+    return !!(global.SpeechRecognition || global.webkitSpeechRecognition);
+  }, []);
 
   // Initialize speech recognition
   useEffect(() => {
-    if (typeof globalThis === "undefined") return;
+    if (typeof globalThis === "undefined" || !isSupported) return;
 
-    // Check browser support
+    // Get speech recognition constructor (support already verified via useMemo)
     const global = globalThis as typeof globalThis & {
       SpeechRecognition?: new () => SpeechRecognition;
       webkitSpeechRecognition?: new () => SpeechRecognition;
@@ -83,7 +92,6 @@ export function VoiceChat({
       | undefined;
 
     if (!SpeechRecognitionConstructor) {
-      setIsSupported(false);
       clientLogger.warn(
         "[VoiceChat] Speech recognition not supported in this browser",
       );
@@ -159,7 +167,7 @@ export function VoiceChat({
         rec.stop();
       }
     };
-  }, [language, onTranscript]);
+  }, [language, onTranscript, isSupported]);
 
   const startListening = useCallback(() => {
     if (!recognition || disabled) return;
