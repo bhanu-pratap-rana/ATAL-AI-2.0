@@ -16,6 +16,33 @@ import { updateTheta, CATEGORIES } from "./irt-models";
  */
 
 /**
+ * IRT Item structure for scoring calculations
+ */
+interface IRTItemResponse {
+  item: {
+    id: string;
+    item_code: string;
+    category: string;
+    question_text: string;
+    options: unknown[];
+    correct_answer: number;
+    difficulty: number;
+    discrimination: number;
+    guessing: number;
+  };
+  correct: boolean;
+}
+
+/**
+ * Category score structure
+ */
+interface CategoryScore {
+  theta: number;
+  correct: number;
+  total: number;
+}
+
+/**
  * Helper: Convert response array to IRTItem format for scoring
  */
 function convertResponsesToIRTItems(
@@ -47,8 +74,10 @@ function convertResponsesToIRTItems(
 /**
  * Helper: Calculate category-level scores
  */
-function calculateCategoryScores(itemResponses: any[]) {
-  const categoryScores: Record<string, any> = {};
+function calculateCategoryScores(
+  itemResponses: IRTItemResponse[],
+): Record<string, CategoryScore> {
+  const categoryScores: Record<string, CategoryScore> = {};
 
   for (const category of CATEGORIES) {
     const categoryResponses = itemResponses.filter(
@@ -90,7 +119,7 @@ function thetaToPercent(t: number): number {
 /**
  * Helper: Format category scores for response
  */
-function formatCategoryScores(categoryScores: Record<string, any>) {
+function formatCategoryScores(categoryScores: Record<string, CategoryScore>) {
   return Object.fromEntries(
     Object.entries(categoryScores).map(([cat, data]) => [
       cat,

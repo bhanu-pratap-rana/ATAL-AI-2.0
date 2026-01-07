@@ -18,6 +18,7 @@ import {
 } from "@/lib/validation-schemas";
 import type { SupabaseAuthUser } from "@/lib/admin-utils";
 import { validateSupabaseAuthUsers } from "@/lib/validation/rpc-schemas";
+import type { ActionResponse } from "@/lib/action-error-handler";
 import { handleZodError } from "@/lib/action-error-handler";
 
 // Use centralized rate limit config for admin operations
@@ -34,7 +35,7 @@ function validateAdminInput<T>(
   try {
     return { valid: true, data: schema.parse(data) };
   } catch (error) {
-    const zodError = handleZodError(error) as any;
+    const zodError = handleZodError(error) as ActionResponse;
     return {
       valid: false,
       error: {

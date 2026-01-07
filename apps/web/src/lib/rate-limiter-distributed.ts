@@ -68,6 +68,8 @@ interface RedisClient {
   expire(key: string, seconds: number): Promise<number>;
   ttl(key: string): Promise<number>;
   flushdb(): Promise<void | "OK">;
+  // Lua script execution for atomic operations (required for rate limiting)
+  eval(script: string, numKeys: number, ...args: string[]): Promise<number>;
 }
 
 interface RateLimitConfig {
@@ -310,7 +312,7 @@ class RedisRateLimiter implements IRateLimiter {
 
       // EVAL executes the Lua script atomically
       // Returns 1 if allowed, 0 if rate limited
-      const result = await (this.redisClient as any).eval(
+      const result = await this.redisClient.eval(
         this.rateLimitScript,
         1, // number of keys
         redisKey, // KEYS[1]

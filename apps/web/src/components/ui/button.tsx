@@ -22,6 +22,7 @@ const isTestEnvironment = () => {
   if (typeof globalThis === "undefined") return false;
 
   // Check multiple ways to detect test environment
+  const testGlobal = globalThis as unknown as Record<string, unknown>;
   return (
     // Standard test env variables
     process.env.NODE_ENV === "test" ||
@@ -31,10 +32,10 @@ const isTestEnvironment = () => {
       (navigator.webdriver === true ||
         navigator.userAgent.includes("HeadlessChrome") ||
         // Check for test globals
-        (globalThis as any).__PLAYWRIGHT_TEST__ === true)) ||
+        testGlobal.__PLAYWRIGHT_TEST__ === true)) ||
     // Check for test globals that might be set
     (typeof globalThis !== "undefined" &&
-      (globalThis as any).__PLAYWRIGHT__ === true)
+      testGlobal.__PLAYWRIGHT__ === true)
   );
 };
 

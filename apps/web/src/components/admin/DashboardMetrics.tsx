@@ -66,6 +66,8 @@ interface ActivePINSchool {
   readonly lastRotatedAt: string | null;
 }
 
+type ModalItem = SchoolItem | TeacherItem | StudentItem | ActivePINSchool;
+
 export function DashboardMetrics() {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -201,7 +203,7 @@ export function DashboardMetrics() {
    * Refactored to use ListItemCard component (consolidated 80+ lines)
    */
   function renderModalContent(): React.ReactElement {
-    let items: any[] = [];
+    let items: ModalItem[] = [];
     let emptyMessage = "No content";
 
     switch (activeModal) {

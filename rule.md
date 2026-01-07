@@ -1325,7 +1325,7 @@ FOR ALL USING ((SELECT private.has_role('admin')));
 
 | MCP Server | Status | Use For | Key Commands |
 |------------|--------|---------|--------------|
-| **PMD MCP** | ✅ Installed (PMD 7.15.0) | Static code analysis, duplicate detection | `pmd_check`, `pmd_cpd`, `pmd_list_languages`, `pmd_list_rulesets` |
+| **PMD MCP** | ✅ Installed & Ready (@springsoftware/pmd-mcp@0.1.2) | Static code analysis, duplicate detection | `pmd_check`, `pmd_cpd`, `pmd_list_languages`, `pmd_list_rulesets` |
 | **SonarQube MCP** | ⚠️ Configured (network issues) | Code quality metrics, issue tracking | `issues`, `quality_gate_status`, `measures_component` |
 | **Context7 MCP** | ✅ Available | Latest library documentation | `resolve-library-id`, `get-library-docs` |
 | **Memory MCP** | ✅ Available | Knowledge graph storage | `create_entities`, `create_relations`, `search_nodes` |
@@ -1337,6 +1337,11 @@ FOR ALL USING ((SELECT private.has_role('admin')));
 ## MCP Usage Guidelines
 
 ### 1. PMD MCP - Static Code Analysis
+
+**Status:** ✅ Installed and Ready
+- **Package**: `@springsoftware/pmd-mcp@0.1.2` (installed globally)
+- **Java**: Java 17.0.12 (required dependency)
+- **Setup Guide**: See `PMD_MCP_SETUP_GUIDE.md` for detailed documentation
 
 **When to Use:**
 - Before committing code changes
@@ -1620,12 +1625,11 @@ When you say "run full code scan according to `rule.md`", follow this exact MCP-
     path: "apps/web/src",
     language_version: "ecmascript-ES2022",
     rulesets: [
-      "rulesets/java/quickstart.xml",
       "category/ecmascript/bestpractices.xml",
       "category/ecmascript/errorprone.xml",
-      "category/ecmascript/performance.xml"
+      "category/ecmascript/codestyle.xml"
     ],
-    minimum_priority: 5
+    minimum_priority: 3
   })
   ```
 - Detect **copy-paste** / duplication in UI + libs:

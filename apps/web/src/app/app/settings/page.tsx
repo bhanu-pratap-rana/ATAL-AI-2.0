@@ -55,7 +55,16 @@ export default async function SettingsPage() {
   }
 
   // Fetch teacher profile if user is a teacher/admin
-  let teacherProfile = null;
+  let teacherProfile: {
+    user_id: string;
+    name: string;
+    phone: string | null;
+    school_id: string;
+    school_code: string;
+    gender: string;
+    created_at: string;
+    updated_at: string;
+  } | null = null;
   if (isTeacherOrAdmin) {
     // OPTIMIZATION: Select only needed columns instead of *
     const { data: profile } = await supabase
@@ -66,7 +75,7 @@ export default async function SettingsPage() {
       .eq("user_id", user.id)
       .maybeSingle();
 
-    teacherProfile = profile as any;
+    teacherProfile = profile;
   }
 
   return (

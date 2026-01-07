@@ -3,6 +3,8 @@
  * Pure functions for performance metrics and statistical analysis
  */
 
+import { SupabaseClient } from "@supabase/supabase-js";
+
 export interface ModuleProgress {
   module: string;
   questionsAttempted: number;
@@ -131,7 +133,7 @@ export function calculateRecentAssessments(
  * PERFORMANCE: Uses Set-based lookup (O(1)) instead of array includes (O(n))
  */
 export async function calculateStreak(
-  supabase: any, // Supabase client type
+  supabase: SupabaseClient,
   userId: string,
 ): Promise<number> {
   try {
