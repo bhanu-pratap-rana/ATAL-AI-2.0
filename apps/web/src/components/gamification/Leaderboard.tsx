@@ -44,10 +44,6 @@ export function Leaderboard({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchLeaderboard();
-  }, [classId, limit, fetchLeaderboard]);
-
   const fetchLeaderboard = useCallback(async () => {
     try {
       setLoading(true);
@@ -105,6 +101,10 @@ export function Leaderboard({
     }
   }, [classId, limit]);
 
+  useEffect(() => {
+    fetchLeaderboard();
+  }, [classId, limit, fetchLeaderboard]);
+
   if (loading) {
     return (
       <div className="space-y-3">
@@ -149,7 +149,7 @@ export function Leaderboard({
 
   return (
     <div className="space-y-2">
-      {leaders.map((_item, _index) => {
+      {leaders.map((leader) => {
         const isCurrentUser = leader.studentId === currentUserId;
         const rankIcon = RANK_ICONS[leader.rank as keyof typeof RANK_ICONS];
 

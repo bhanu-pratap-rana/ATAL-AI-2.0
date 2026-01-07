@@ -123,8 +123,11 @@ export function SignUpEmailFlow({
         toast.success("OTP sent to your email!");
         actions.setSignupEmailOtpSent(true);
       }
-    } catch (_error) {
-      authLogger.error("[SignUp Email] Failed to send OTP", error);
+    } catch (error) {
+      authLogger.error(
+        "[SignUp Email] Failed to send OTP",
+        error instanceof Error ? error : undefined,
+      );
       actions.setSignupEmailError("Failed to send OTP");
       toast.error("Failed to send OTP");
     } finally {
@@ -196,8 +199,11 @@ export function SignUpEmailFlow({
       actions.resetSignupEmail();
       onSuccess();
       router.push("/app/dashboard");
-    } catch (_error) {
-      authLogger.error("[SignUp Email] Unexpected error", error);
+    } catch (error) {
+      authLogger.error(
+        "[SignUp Email] Unexpected error",
+        error instanceof Error ? error : undefined,
+      );
       actions.setSignupEmailError("An unexpected error occurred");
       toast.error("An unexpected error occurred");
     } finally {

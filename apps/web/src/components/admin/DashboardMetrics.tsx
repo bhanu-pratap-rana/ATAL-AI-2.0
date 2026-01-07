@@ -67,6 +67,17 @@ interface ActivePINSchool {
 
 type ModalItem = SchoolItem | TeacherItem | StudentItem | ActivePINSchool;
 
+/**
+ * Type guard: Get item key based on type
+ * Safely accesses either id or schoolId depending on item type
+ */
+function getItemKey(item: ModalItem): string {
+  if ('schoolId' in item) {
+    return item.schoolId;
+  }
+  return item.id;
+}
+
 export function DashboardMetrics() {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -234,7 +245,7 @@ export function DashboardMetrics() {
       <div className="space-y-3">
         {items.map((item) => (
           <ListItemCard
-            key={item.id || item.schoolId}
+            key={getItemKey(item)}
             item={item}
             modalType={activeModal}
           />

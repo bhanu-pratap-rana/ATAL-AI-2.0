@@ -24,7 +24,7 @@ interface IRTItemResponse {
     item_code: string;
     category: string;
     question_text: string;
-    options: unknown[];
+    options: Array<{ id: string; text: string }>;
     correct_answer: number;
     difficulty: number;
     discrimination: number;

@@ -261,7 +261,7 @@ export default async function ClassDetailPage({
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <StudentProgressGrid classId={id} teacherId={user.id} />
+              <StudentProgressGrid classId={id} _teacherId={user.id} />
             </CardContent>
           </Card>
         )}

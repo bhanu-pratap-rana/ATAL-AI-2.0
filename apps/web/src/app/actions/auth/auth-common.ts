@@ -1,5 +1,3 @@
-"use server";
-
 import { z } from "zod";
 import {
   BLOCKED_EMAIL_DOMAINS,

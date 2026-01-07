@@ -477,8 +477,11 @@ export class SyncQueue {
 // Export singleton instance
 export const syncQueue = new SyncQueue();
 
-// Auto-sync when coming online
-if (typeof globalThis !== "undefined") {
+// Auto-sync when coming online - only in browser environment
+if (
+  typeof globalThis !== "undefined" &&
+  typeof globalThis.addEventListener === "function"
+) {
   // MEMORY LEAK FIX: Track interval ID for proper cleanup
   let syncIntervalId: NodeJS.Timeout | null = null;
   let onlineHandler: (() => void) | null = null;
@@ -493,7 +496,7 @@ if (typeof globalThis !== "undefined") {
   // Initialize periodic sync (5 minutes when online)
   syncIntervalId = setInterval(
     () => {
-      if (navigator.onLine) {
+      if (typeof navigator !== "undefined" && navigator.onLine) {
         syncQueue.syncAll();
       }
     },
@@ -518,9 +521,11 @@ if (typeof globalThis !== "undefined") {
   globalThis.addEventListener("beforeunload", cleanup);
 
   // Cleanup on visibility change (tab hidden for long time)
-  document.addEventListener("visibilitychange", () => {
-    if (document.hidden) {
-      clientLogger.debug("[SyncQueue] Page hidden - stopping sync");
-    }
-  });
+  if (typeof document !== "undefined") {
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        clientLogger.debug("[SyncQueue] Page hidden - stopping sync");
+      }
+    });
+  }
 }

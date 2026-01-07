@@ -13,6 +13,8 @@ import {
 } from "./QuestionPagination";
 import { CompactTimer } from "./AssessmentTimer";
 import { clientLogger } from "@/lib/client-logger";
+import { submitAssessment } from "@/app/actions/assessment/assessment-submission";
+import { updateTheta } from "@/app/actions/assessment/irt-models";
 
 /**
  * ATAL AI Assessment Runner - IRT-Enhanced Adaptive Testing
