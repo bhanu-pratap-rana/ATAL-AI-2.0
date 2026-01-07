@@ -49,7 +49,7 @@ export function BackgroundSyncInitializer() {
     const handleMessage = (event: MessageEvent) => {
       if (!event.data) return;
 
-      const { type, tag, timestamp } = event.data;
+      const { type, tag, _timestamp } = event.data;
 
       clientLogger.debug("[BackgroundSyncInitializer] Message from SW", {
         type,
