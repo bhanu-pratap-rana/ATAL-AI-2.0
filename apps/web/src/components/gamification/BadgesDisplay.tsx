@@ -140,7 +140,7 @@ export function BadgesDisplay({
       setEarnedIds(new Set());
       setLoading(false);
     }
-  };
+  }, [studentId]);
 
   const getBadgeName = (badge: DisplayBadge) => {
     switch (language) {
