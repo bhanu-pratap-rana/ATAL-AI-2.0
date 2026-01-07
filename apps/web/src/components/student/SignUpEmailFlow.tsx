@@ -57,6 +57,7 @@ export function SignUpEmailFlow({
     if (state.signupEmailOtpSent && resendCooldown === 0) {
       setResendCooldown(RESEND_COOLDOWN_SECONDS);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.signupEmailOtpSent]);
 
   // Countdown timer

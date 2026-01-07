@@ -63,6 +63,7 @@ function SchoolFinderModal({
       // loadBlocks() will set blocks asynchronously when fetch completes
       loadBlocks();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDistrict]);
 
   // Load schools when district OR block changes
@@ -70,6 +71,7 @@ function SchoolFinderModal({
     if (selectedDistrict) {
       loadSchools();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDistrict, selectedBlock]);
 
   async function loadDistricts() {

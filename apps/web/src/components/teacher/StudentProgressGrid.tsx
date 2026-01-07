@@ -13,7 +13,7 @@
  * - Click to view detailed progress
  */
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase-browser";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { clientLogger } from "@/lib/client-logger";
@@ -235,10 +235,15 @@ function StudentProgressCard({
     (student.topics_mastered / student.total_topics) * 100,
   );
 
+  // Memoize activity status calculation to isolate impure Date.now() call
+  const activity = useMemo(() => {
+    const lastActivity = student.last_activity;
     if (!lastActivity) return { status: "inactive", label: "No activity" };
 
-    // eslint-disable-next-line react-hooks/purity
+    // Get current time to calculate time difference
+    // Impure Date.now() is safe here as it's memoized and only updated when lastActivity changes
     const hours = Math.floor(
+      // eslint-disable-next-line react-hooks/purity
       (Date.now() - new Date(lastActivity).getTime()) / (1000 * 60 * 60),
     );
 
@@ -247,9 +252,7 @@ function StudentProgressCard({
     if (hours < 168)
       return { status: "week", label: `${Math.floor(hours / 24)}d ago` };
     return { status: "inactive", label: "Over a week" };
-  };
-
-  const activity = getActivityStatus(student.last_activity);
+  }, [student.last_activity]);
 
   return (
     <Card

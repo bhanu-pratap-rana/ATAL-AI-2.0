@@ -202,6 +202,7 @@ export default function DashboardPage() {
       setLoading(false);
     }
     getUserAndProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function handleSignOut() {

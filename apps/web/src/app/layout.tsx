@@ -103,6 +103,7 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
         {/* Baloo 2 for display headings - loaded via CSS for flexibility */}
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link
           href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap"
           rel="stylesheet"

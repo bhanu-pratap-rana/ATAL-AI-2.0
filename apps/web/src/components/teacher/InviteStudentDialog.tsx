@@ -163,7 +163,7 @@ export function InviteStudentDialog({ classId }: InviteStudentDialogProps) {
                   aria-label="Student search results"
                 >
                   {searchResults.map((student) => (
-                    <li key={student.id} role="option">
+                    <li key={student.id} role="option" aria-selected={selectedStudent?.id === student.id}>
                       <button
                         type="button"
                         onClick={() => {

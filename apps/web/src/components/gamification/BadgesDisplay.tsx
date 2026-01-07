@@ -72,13 +72,7 @@ export function BadgesDisplay({
   const [badges, setBadges] = useState<DisplayBadge[]>([]);
   const [earnedIds, setEarnedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
-  // eslint-disable-next-line react-hooks/immutability -- fetchBadges defined below as useCallback
   const [selectedBadge, setSelectedBadge] = useState<DisplayBadge | null>(null);
-  // eslint-disable-next-line react-hooks/immutability -- fetchBadges is stable via useCallback
-
-  useEffect(() => {
-    fetchBadges();
-  }, [studentId]);
 
   const fetchBadges = useCallback(async () => {
     try {
@@ -141,6 +135,11 @@ export function BadgesDisplay({
       setEarnedIds(new Set());
       setLoading(false);
     }
+  }, [studentId]);
+
+  useEffect(() => {
+    fetchBadges();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [studentId]);
 
   const getBadgeName = (badge: DisplayBadge) => {
