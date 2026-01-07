@@ -44,7 +44,7 @@ const CURRICULUM_FILES = [
 
 // Embedding configuration
 const EMBEDDING_MODEL = 'text-embedding-004';
-const EMBEDDING_DIMENSIONS = 768;
+const _EMBEDDING_DIMENSIONS = 768;
 const CHUNK_SIZE = 1000;
 const CHUNK_OVERLAP = 200;
 
@@ -400,7 +400,7 @@ async function indexCurriculum() {
           const { error } = await supabase.from('curriculum_content').insert({
             module_id: moduleId,
             topic_id: topicId,
-            language: file.language,
+            language: file._language,
             content_type: contentType,
             title,
             content: chunk,
