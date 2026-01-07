@@ -8,11 +8,6 @@ import { Button } from "@/components/ui/button";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { VoiceChat } from "@/components/voice/VoiceChat";
 
-type Message = {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-};
 
 export default function AITutorPage() {
   const { user, loading: isAuthChecking } = useRequireAuth("/student/start");

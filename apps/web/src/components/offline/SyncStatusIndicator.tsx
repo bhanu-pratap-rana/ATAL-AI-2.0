@@ -14,10 +14,8 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Wifi, WifiOff, RefreshCw, Check, AlertCircle } from "lucide-react";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { syncQueue, type SyncStatus } from "@/lib/offline/sync-queue";
-import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,

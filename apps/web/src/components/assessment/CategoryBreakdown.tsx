@@ -1,6 +1,5 @@
 "use client";
 
-import { Progress } from "@/components/ui/progress";
 
 /**
  * ATAL AI Assessment Category Breakdown - Jyoti Theme

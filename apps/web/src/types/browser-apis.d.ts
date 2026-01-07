@@ -99,7 +99,7 @@ declare const SpeechRecognition: {
   new (): SpeechRecognition;
 };
 
-declare let webkitSpeechRecognition: {
+declare let _webkitSpeechRecognition: {
   prototype: SpeechRecognition;
   new (): SpeechRecognition;
 };

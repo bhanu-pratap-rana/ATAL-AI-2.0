@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { createClient, verifyClassOwnership } from "@/lib/supabase-server";
 import { checkTeacherMutationRateLimit } from "@/lib/rate-limiter-distributed";
-import { EnrollmentSchema, ClassIdSchema } from "@/lib/validation-schemas";
 import { authLogger } from "@/lib/auth-logger";
 import { handleZodError } from "@/lib/action-error-handler";
 
