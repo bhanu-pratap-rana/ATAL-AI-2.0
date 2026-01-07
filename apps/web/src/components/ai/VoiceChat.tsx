@@ -324,7 +324,7 @@ export function VoiceChat({
       {/* Interim transcript */}
       {interimTranscript && (
         <p className="text-sm text-muted-foreground italic max-w-xs text-center">
-          "{interimTranscript}"
+          {`"${interimTranscript}"`}
         </p>
       )}
 

@@ -10,7 +10,7 @@ import { VoiceChat } from "@/components/voice/VoiceChat";
 
 
 export default function AITutorPage() {
-  const { user, loading: isAuthChecking } = useRequireAuth("/student/start");
+  const { _user, loading: isAuthChecking } = useRequireAuth("/student/start");
   const [language, setLanguage] = useState<"en" | "hi" | "as">("en");
   const [inputMode, setInputMode] = useState<"text" | "voice">("text");
   const [sessionId] = useState(() => crypto.randomUUID());
