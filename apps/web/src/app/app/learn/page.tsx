@@ -98,9 +98,9 @@ async function getModuleProgress(
   const progressMap = new Map<string, ModuleProgress>();
 
   // Initialize all modules
-  for (const module of MODULES) {
-    progressMap.set(module.id, {
-      module_id: module.id,
+  for (const moduleItem of MODULES) {
+    progressMap.set(moduleItem.id, {
+      module_id: moduleItem.id,
       topics_completed: 0,
       average_mastery: 0,
       is_complete: false,

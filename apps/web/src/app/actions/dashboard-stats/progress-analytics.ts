@@ -52,11 +52,11 @@ export function calculateModuleBreakdown(
   const moduleMap = new Map<string, { attempted: number; correct: number }>();
 
   for (const response of responses) {
-    const module = response.module || "Unknown";
-    const current = moduleMap.get(module) || { attempted: 0, correct: 0 };
+    const moduleName = response.module || "Unknown";
+    const current = moduleMap.get(moduleName) || { attempted: 0, correct: 0 };
     current.attempted++;
     if (response.is_correct) current.correct++;
-    moduleMap.set(module, current);
+    moduleMap.set(moduleName, current);
   }
 
   const moduleBreakdown: ModuleProgress[] = [];
