@@ -175,7 +175,7 @@ export async function calculateStreak(
     }
 
     return streak;
-  } catch (error) {
+  } catch (_error) {
     return 0;
   }
 }
