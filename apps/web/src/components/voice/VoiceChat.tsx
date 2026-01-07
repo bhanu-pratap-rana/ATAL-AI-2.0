@@ -77,7 +77,6 @@ export function VoiceChat({
     return !!(global.SpeechRecognition || global.webkitSpeechRecognition);
   }, []);
 
-  // Initialize speech recognition
   useEffect(() => {
     if (typeof globalThis === "undefined" || !isSupported) return;
 
@@ -158,6 +157,7 @@ export function VoiceChat({
     rec.onend = () => {
       setIsListening(false);
     };
+    // eslint-disable-next-line react-hooks/set-state-in-effect
 
     setRecognition(rec);
 

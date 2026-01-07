@@ -15,9 +15,7 @@ interface StepComponentProps {
   state: UseAuthStateReturn["state"];
 }
 
-interface ChoiceStepProps extends StepComponentProps {}
-
-export function ChoiceStep({ actions }: ChoiceStepProps) {
+export function ChoiceStep({ actions }: StepComponentProps) {
   return (
     <AuthCard
       title="Welcome, Student!"

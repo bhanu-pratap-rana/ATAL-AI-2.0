@@ -159,6 +159,7 @@ interface NetworkInformation extends EventTarget {
 }
 
 // Extend Navigator interface with connection properties
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface Navigator {
   /**
    * Returns a NetworkInformation object containing information about the network connection

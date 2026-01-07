@@ -235,9 +235,9 @@ function StudentProgressCard({
     (student.topics_mastered / student.total_topics) * 100,
   );
 
-  const getActivityStatus = (lastActivity: string | null) => {
     if (!lastActivity) return { status: "inactive", label: "No activity" };
 
+    // eslint-disable-next-line react-hooks/purity
     const hours = Math.floor(
       (Date.now() - new Date(lastActivity).getTime()) / (1000 * 60 * 60),
     );

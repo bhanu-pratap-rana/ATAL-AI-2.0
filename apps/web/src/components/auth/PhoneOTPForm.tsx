@@ -1,6 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { PhoneInputWithPrefix } from "@/components/auth/PhoneInputWithPrefix";
 import { validatePhone } from "@/lib/validation-utils";
 import { requestOtp } from "@/app/actions/auth";
