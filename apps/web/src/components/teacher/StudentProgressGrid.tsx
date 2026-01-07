@@ -34,12 +34,12 @@ interface StudentProgress {
 
 interface StudentProgressGridProps {
   readonly classId: string;
-  readonly teacherId: string;
+  readonly _teacherId: string;
 }
 
 export function StudentProgressGrid({
   classId,
-  teacherId,
+  _teacherId,
 }: StudentProgressGridProps) {
   const [students, setStudents] = useState<StudentProgress[]>([]);
   const [loading, setLoading] = useState(true);

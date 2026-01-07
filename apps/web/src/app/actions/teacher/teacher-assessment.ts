@@ -30,7 +30,7 @@ import { handleZodError } from "@/lib/action-error-handler";
  * Optional fields: email, raw_user_meta_data
  * Note: Not all fields are always available depending on the select clause used
  */
-interface AuthUser {
+interface _AuthUser {
   id: string;
   email?: string;
   raw_user_meta_data?: {

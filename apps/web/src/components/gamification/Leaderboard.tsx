@@ -149,7 +149,7 @@ export function Leaderboard({
 
   return (
     <div className="space-y-2">
-      {leaders.map((leader, index) => {
+      {leaders.map((_item, _index) => {
         const isCurrentUser = leader.studentId === currentUserId;
         const rankIcon = RANK_ICONS[leader.rank as keyof typeof RANK_ICONS];
 
