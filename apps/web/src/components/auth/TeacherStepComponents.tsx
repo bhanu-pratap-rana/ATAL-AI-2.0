@@ -19,9 +19,7 @@ interface StepComponentProps {
   router: ReturnType<typeof useRouter>;
 }
 
-interface ChoiceStepProps extends StepComponentProps {}
-
-export function ChoiceStep({ setStep, router }: ChoiceStepProps) {
+export function ChoiceStep({ setStep, _router }: StepComponentProps) {
   return (
     <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
       <AuthCard
@@ -185,9 +183,7 @@ export function LoginStep({
   );
 }
 
-interface CompleteStepProps extends StepComponentProps {}
-
-export function CompleteStep({}: CompleteStepProps) {
+export function CompleteStep({}: StepComponentProps) {
   return (
     <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
       <AuthCard title="Registration Complete!" description="Welcome to ATAL AI">

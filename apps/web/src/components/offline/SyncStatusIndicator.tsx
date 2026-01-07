@@ -3,7 +3,6 @@
  *
  * Features:
  * - Shows online/offline status
-import { WifiOff, RefreshCw, AlertCircle, Check } from "lucide-react";
  * - Displays pending sync count
  * - Manual sync button
  * - Last sync time tooltip
@@ -15,7 +14,9 @@ import { WifiOff, RefreshCw, AlertCircle, Check } from "lucide-react";
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { WifiOff, RefreshCw, AlertCircle, Check } from "lucide-react";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import { Button } from "@/components/ui/button";
 import { syncQueue, type SyncStatus } from "@/lib/offline/sync-queue";
 import {
   Tooltip,

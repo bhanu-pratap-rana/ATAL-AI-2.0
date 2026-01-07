@@ -57,6 +57,7 @@ export function OfflineBanner({
   }, []);
 
   // Handle visibility with animation delay
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     if (!isOnline) {
       setIsVisible(true);

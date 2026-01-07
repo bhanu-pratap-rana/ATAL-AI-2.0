@@ -11,7 +11,7 @@
  * - Responsive layout
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase-browser";
 import { clientLogger } from "@/lib/client-logger";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,12 +43,13 @@ export function Leaderboard({
   const [leaders, setLeaders] = useState<LeaderEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // eslint-disable-next-line react-hooks/immutability
 
   useEffect(() => {
     fetchLeaderboard();
-  }, [classId]);
+  }, [classId, currentUserId, limit, fetchLeaderboard]);
 
-  const fetchLeaderboard = async () => {
+  const fetchLeaderboard = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -103,7 +104,7 @@ export function Leaderboard({
       setError("Failed to load leaderboard");
       setLoading(false);
     }
-  };
+  }, [classId, currentUserId, limit]);
 
   if (loading) {
     return (

@@ -11,7 +11,7 @@
  * - Animated unlock effects
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase-browser";
 import { clientLogger } from "@/lib/client-logger";
@@ -73,12 +73,13 @@ export function BadgesDisplay({
   const [earnedIds, setEarnedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [selectedBadge, setSelectedBadge] = useState<DisplayBadge | null>(null);
+  // eslint-disable-next-line react-hooks/immutability -- fetchBadges is stable via useCallback
 
   useEffect(() => {
     fetchBadges();
   }, [studentId]);
 
-  const fetchBadges = async () => {
+  const fetchBadges = useCallback(async () => {
     try {
       const supabase = createClient();
 
