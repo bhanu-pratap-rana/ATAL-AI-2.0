@@ -3,6 +3,7 @@
  * Handles recent activity history and engagement tracking
  */
 
+import { SupabaseClient } from "@supabase/supabase-js";
 import { authLogger } from "@/lib/auth-logger";
 
 export interface RecentActivity {
@@ -38,7 +39,7 @@ function buildResponsesBySession(
  * Helper: Get assessment activities from sessions
  */
 async function getAssessmentActivities(
-  supabase: any, // Supabase client type
+  supabase: SupabaseClient,
   userId: string,
 ): Promise<RecentActivity[]> {
   const { data: sessions, error: sessionError } = await supabase
@@ -102,7 +103,7 @@ async function getAssessmentActivities(
  * Helper: Get class join activities for students
  */
 async function getClassJoinActivities(
-  supabase: any, // Supabase client type
+  supabase: SupabaseClient,
   userId: string,
 ): Promise<RecentActivity[]> {
   const { data: enrollments } = await supabase
@@ -148,7 +149,7 @@ async function getClassJoinActivities(
  * CRITICAL FIX: Reduced complexity from 31 to <15 by extracting helper functions
  */
 export async function getRecentActivity(
-  supabase: any, // Supabase client type
+  supabase: SupabaseClient,
   userId: string,
   isTeacher: boolean,
 ): Promise<RecentActivity[]> {

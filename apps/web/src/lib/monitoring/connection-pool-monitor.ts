@@ -63,7 +63,7 @@ export class ConnectionPoolMonitor {
       // Try to get connection stats via RPC if function exists
       try {
         const { data, error } = await this.supabase.rpc(
-          "get_connection_stats" as any,
+          "get_connection_stats" as const,
           {},
         );
 
