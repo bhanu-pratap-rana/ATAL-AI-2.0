@@ -119,7 +119,7 @@ export function AssessmentRunner({
   const [focusBlurCount, setFocusBlurCount] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showRapidWarning, setShowRapidWarning] = useState(false);
-  const [totalElapsedSeconds, setTotalElapsedSeconds] = useState(0);
+  const [_totalElapsedSeconds, setTotalElapsedSeconds] = useState(0);
 
   // IRT State for real-time adaptive tracking
   const [irtState, setIrtState] = useState<IRTState>({
