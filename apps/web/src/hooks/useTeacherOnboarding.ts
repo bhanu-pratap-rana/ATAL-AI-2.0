@@ -90,6 +90,60 @@ export interface TeacherOnboardingState {
 }
 
 /**
+ * Initial state constant for teacher onboarding
+ * Eliminates 49-line duplication between useState and resetAll
+ */
+export const INITIAL_TEACHER_ONBOARDING_STATE: TeacherOnboardingState = {
+  // Flow state
+  step: "choice",
+  loading: false,
+  signupMethod: "email",
+  authChecked: false,
+
+  // Login
+  loginEmail: "",
+  loginPassword: "",
+  loginError: "",
+
+  // Forgot password
+  forgotEmail: "",
+  forgotOtp: "",
+  forgotOtpSent: false,
+  forgotNewPassword: "",
+  forgotConfirmPassword: "",
+
+  // Email OTP signup
+  email: "",
+  emailError: "",
+  emailSuggestion: "",
+  otp: "",
+  otpSent: false,
+
+  // Phone OTP signup
+  phoneNumber: "",
+  phoneError: "",
+  phoneOtp: "",
+  phoneOtpSent: false,
+
+  // Password
+  password: "",
+  passwordConfirm: "",
+  passwordStrength: 0,
+
+  // School verification
+  schoolCode: "",
+  staffPin: "",
+  verifiedSchoolName: "",
+  verifiedSchoolId: "",
+
+  // Profile
+  teacherName: "",
+  teacherGender: "",
+  phone: "",
+  village: "",
+};
+
+/**
  * Unified actions interface for all state mutations
  * Organized by feature/step
  */
@@ -183,55 +237,10 @@ export function useTeacherOnboarding() {
   const supabase = createClient();
 
   // UNIFIED STATE OBJECT - All form inputs grouped logically
-  const [state, setState] = useState<TeacherOnboardingState>({
-    // Flow state
-    step: "choice",
-    loading: false,
-    signupMethod: "email",
-    authChecked: false,
-
-    // Login
-    loginEmail: "",
-    loginPassword: "",
-    loginError: "",
-
-    // Forgot password
-    forgotEmail: "",
-    forgotOtp: "",
-    forgotOtpSent: false,
-    forgotNewPassword: "",
-    forgotConfirmPassword: "",
-
-    // Email OTP signup
-    email: "",
-    emailError: "",
-    emailSuggestion: "",
-    otp: "",
-    otpSent: false,
-
-    // Phone OTP signup
-    phoneNumber: "",
-    phoneError: "",
-    phoneOtp: "",
-    phoneOtpSent: false,
-
-    // Password
-    password: "",
-    passwordConfirm: "",
-    passwordStrength: 0,
-
-    // School verification
-    schoolCode: "",
-    staffPin: "",
-    verifiedSchoolName: "",
-    verifiedSchoolId: "",
-
-    // Profile
-    teacherName: "",
-    teacherGender: "",
-    phone: "",
-    village: "",
-  });
+  // Uses extracted constant to eliminate duplication with resetAll
+  const [state, setState] = useState<TeacherOnboardingState>(
+    INITIAL_TEACHER_ONBOARDING_STATE,
+  );
 
   // Helper to update state (immutable pattern)
   const updateState = useCallback(
@@ -882,41 +891,9 @@ export function useTeacherOnboarding() {
   }, [updateState]);
 
   // UTILITY: Reset all state
+  // Uses extracted constant to reduce duplication
   const resetAll = useCallback(() => {
-    setState({
-      step: "choice",
-      loading: false,
-      signupMethod: "email",
-      authChecked: false,
-      loginEmail: "",
-      loginPassword: "",
-      loginError: "",
-      forgotEmail: "",
-      forgotOtp: "",
-      forgotOtpSent: false,
-      forgotNewPassword: "",
-      forgotConfirmPassword: "",
-      email: "",
-      emailError: "",
-      emailSuggestion: "",
-      otp: "",
-      otpSent: false,
-      phoneNumber: "",
-      phoneError: "",
-      phoneOtp: "",
-      phoneOtpSent: false,
-      password: "",
-      passwordConfirm: "",
-      passwordStrength: 0,
-      schoolCode: "",
-      staffPin: "",
-      verifiedSchoolName: "",
-      verifiedSchoolId: "",
-      teacherName: "",
-      teacherGender: "",
-      phone: "",
-      village: "",
-    });
+    setState(INITIAL_TEACHER_ONBOARDING_STATE);
   }, []);
 
   // Build unified actions object
