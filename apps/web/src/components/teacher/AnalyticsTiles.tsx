@@ -6,7 +6,6 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-import { CardTitle } from "@/components/ui/card";
 } from "@/components/ui/card";
 
 interface AnalyticsTilesProps {
