@@ -19,6 +19,16 @@ interface StepComponentProps {
   readonly router: ReturnType<typeof useRouter>;
 }
 
+/**
+ * Get tab button styling based on active state
+ */
+function getTabButtonClass(isActive: boolean): string {
+  if (isActive) {
+    return "bg-primary text-white shadow-md";
+  }
+  return "bg-muted text-text-secondary hover:bg-muted/80";
+}
+
 export function ChoiceStep({ setStep, router }: StepComponentProps) {
   return (
     <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
@@ -608,11 +618,7 @@ export function AuthStep({
                 setPhoneError("");
                 setEmailError("");
               }}
-              className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-colors text-xs sm:text-sm ${
-                signupMethod === "email"
-                  ? "bg-primary text-white shadow-md"
-                  : "bg-muted text-text-secondary hover:bg-muted/80"
-              }`}
+              className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-colors text-xs sm:text-sm ${getTabButtonClass(signupMethod === "email")}`}
               disabled={loading}
             >
               <span className="hidden sm:inline">📧 </span>Email
@@ -623,11 +629,7 @@ export function AuthStep({
                 setPhoneError("");
                 setEmailError("");
               }}
-              className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-colors text-xs sm:text-sm ${
-                signupMethod === "phone"
-                  ? "bg-primary text-white shadow-md"
-                  : "bg-muted text-text-secondary hover:bg-muted/80"
-              }`}
+              className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-colors text-xs sm:text-sm ${getTabButtonClass(signupMethod === "phone")}`}
               disabled={loading}
             >
               <span className="hidden sm:inline">📱 </span>Phone
