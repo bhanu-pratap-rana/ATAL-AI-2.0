@@ -471,7 +471,8 @@ export async function getSchoolsWithActivePINs(): Promise<{
 
     // Map PIN data to schools
     const pinMap = new Map(pins.map((p) => [p.school_id, p]));
-    const result = ((schools as SchoolWithPINData[]) || []).map((school) => {
+    const schoolsWithPins = (schools as SchoolWithPINData[]) ?? [];
+    const result = schoolsWithPins.map((school) => {
       const pin = pinMap.get(school.id);
       return {
         schoolId: school.id,
@@ -749,8 +750,7 @@ export async function getAllTeachers(): Promise<{
     }
 
     // Type for profile data with joined school
-    // Note: Double cast required because Supabase's TypeScript types don't properly
-    // infer joined relations. This is the documented pattern for typed joins.
+    // Note: Supabase's TypeScript types don't properly infer joined relations.
     // schools!inner guarantees schools is never null (INNER JOIN behavior)
     interface TeacherProfileData {
       user_id: string;
@@ -763,9 +763,8 @@ export async function getAllTeachers(): Promise<{
 
     // OPTIMIZATION: Fetch auth users and build map of only the IDs we need
     // This prevents N+1 query problem where we fetched all 1000+ auth users just to match emails
-    const teacherIds = new Set(
-      (profiles ?? []).map((p) => (p as TeacherProfileData).user_id),
-    );
+    const teacherProfiles = (profiles as TeacherProfileData[]) ?? [];
+    const teacherIds = new Set(teacherProfiles.map((p) => p.user_id));
 
     const adminClient = await createAdminClient();
     const allAuthUsers = await fetchAllAuthUsers(adminClient);
@@ -901,9 +900,8 @@ export async function getAllStudents(): Promise<{
 
     // OPTIMIZATION: Fetch auth users and build map of only the IDs we need
     // This prevents N+1 query problem where we fetched all 1000+ auth users just to match emails
-    const studentIds = new Set(
-      (profiles ?? []).map((p) => (p as StudentProfileData).user_id),
-    );
+    const typedProfiles = (profiles as StudentProfileData[]) ?? [];
+    const studentIds = new Set(typedProfiles.map((p) => p.user_id));
 
     const allAuthUsers = await fetchAllAuthUsers(supabase);
 
@@ -914,8 +912,6 @@ export async function getAllStudents(): Promise<{
         userMap.set(u.id, u);
       }
     });
-
-    const typedProfiles = (profiles ?? []) as StudentProfileData[];
     const result = typedProfiles
       .filter((profile): profile is StudentProfileData => {
         // Validate required fields exist before processing
