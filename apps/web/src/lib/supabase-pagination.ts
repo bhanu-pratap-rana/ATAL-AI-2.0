@@ -203,9 +203,9 @@ export async function fetchAllWithSnapshot<T>(
  * Automatically handles cursor management and snapshot isolation
  */
 export class PaginatedIterator<T> {
-  private table: string;
-  private supabase: SupabaseClient;
-  private options: PaginationOptions;
+  private readonly table: string;
+  private readonly supabase: SupabaseClient;
+  private readonly options: PaginationOptions;
   private cursor: string | null = null;
   private hasMore: boolean = true;
   private currentPage: T[] = [];

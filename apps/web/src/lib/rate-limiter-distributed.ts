@@ -102,8 +102,8 @@ interface IRateLimiter {
  * WARNING: Not suitable for production with multiple server instances
  */
 class InMemoryRateLimiter implements IRateLimiter {
-  private store: Map<string, RateLimitEntry> = new Map();
-  private config: RateLimitConfig;
+  private readonly store: Map<string, RateLimitEntry> = new Map();
+  private readonly config: RateLimitConfig;
   // MEDIUM #5 Fix: TTL-based cleanup for fallback limiter
   // Entries older than TTL are automatically removed to prevent memory leaks
   private readonly ENTRY_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -224,15 +224,15 @@ class InMemoryRateLimiter implements IRateLimiter {
  * Falls back to in-memory limiter if Redis is unavailable
  */
 class RedisRateLimiter implements IRateLimiter {
-  private redisClient: RedisClient;
-  private config: RateLimitConfig;
-  private prefix: string;
-  private fallbackLimiter: InMemoryRateLimiter;
+  private readonly redisClient: RedisClient;
+  private readonly config: RateLimitConfig;
+  private readonly prefix: string;
+  private readonly fallbackLimiter: InMemoryRateLimiter;
   private redisAvailable: boolean = true;
 
   // Lua script for atomic rate limit check-and-update (prevents TOCTOU race condition)
   // This script is atomic at the Redis level, ensuring no concurrent requests can bypass limits
-  private rateLimitScript = `
+  private readonly rateLimitScript = `
     local key = KEYS[1]
     local now = tonumber(ARGV[1])
     local max_tokens = tonumber(ARGV[2])
@@ -485,8 +485,8 @@ export function createRateLimiter(
  * Provides convenient interface for common operations
  */
 export class RateLimitManager {
-  private limiters: Map<string, IRateLimiter> = new Map();
-  private redisClient?: RedisClient;
+  private readonly limiters: Map<string, IRateLimiter> = new Map();
+  private readonly redisClient?: RedisClient;
 
   constructor(redisClient?: RedisClient) {
     this.redisClient = redisClient;
