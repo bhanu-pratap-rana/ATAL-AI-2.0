@@ -1,9 +1,8 @@
 "use server";
 
-import { createAdminClient, verifyAdminAuth } from "@/lib/supabase-server";
-import { fetchAllAuthUsers } from "@/lib/admin-utils";
+import { createAdminClient } from "@/lib/supabase-server";
+import { fetchAllAuthUsers, verifyAdminAuthAndRateLimit } from "@/lib/admin-utils";
 import { authLogger } from "@/lib/auth-logger";
-import { checkRateLimit } from "@/lib/rate-limiter-distributed";
 import { RATE_LIMITS } from "@/lib/constants/rate-limits";
 import { queryCache } from "@/lib/cache/query-cache";
 import type { SupabaseAuthUser } from "@/types/auth";
@@ -186,29 +185,13 @@ export async function getDashboardMetrics(): Promise<{
   error?: string;
 }> {
   try {
-    // SECURITY: Verify admin authorization
-    const authCheck = await verifyAdminAuth("getDashboardMetrics");
-    if (!authCheck.authorized) {
-      return authCheck.error;
-    }
-
-    // TypeScript now knows authCheck.user exists due to discriminated union
-    const user = authCheck.user;
-
-    // SECURITY: Rate limit admin metrics to prevent abuse
-    const rateLimitKey = `admin-metrics:${user.id}`;
-    const isAllowed = await checkRateLimit(
-      rateLimitKey,
+    // SECURITY: Verify admin authorization and check rate limits
+    const authResult = await verifyAdminAuthAndRateLimit(
+      "getDashboardMetrics",
       RATE_LIMITS.adminMetrics,
     );
-    if (!isAllowed) {
-      authLogger.warn("[getDashboardMetrics] Rate limit exceeded", {
-        userId: user.id,
-      });
-      return {
-        success: false,
-        error: "Too many requests. Please wait before trying again.",
-      };
+    if (!authResult.authorized) {
+      return authResult.error;
     }
 
     // PERFORMANCE: Use query cache - 5 minute TTL for dashboard metrics
@@ -250,29 +233,13 @@ export async function getSchoolStatsByDistrict(): Promise<{
   error?: string;
 }> {
   try {
-    // SECURITY: Verify admin authorization
-    const authCheck = await verifyAdminAuth("getSchoolStatsByDistrict");
-    if (!authCheck.authorized) {
-      return authCheck.error;
-    }
-
-    // TypeScript now knows authCheck.user exists due to discriminated union
-    const user = authCheck.user;
-
-    // SECURITY: Rate limit admin metrics to prevent abuse
-    const rateLimitKey = `admin-school-stats:${user.id}`;
-    const isAllowed = await checkRateLimit(
-      rateLimitKey,
+    // SECURITY: Verify admin authorization and check rate limits
+    const authResult = await verifyAdminAuthAndRateLimit(
+      "getSchoolStatsByDistrict",
       RATE_LIMITS.adminMetrics,
     );
-    if (!isAllowed) {
-      authLogger.warn("[getSchoolStatsByDistrict] Rate limit exceeded", {
-        userId: user.id,
-      });
-      return {
-        success: false,
-        error: "Too many requests. Please wait before trying again.",
-      };
+    if (!authResult.authorized) {
+      return authResult.error;
     }
 
     const supabase = await createAdminClient();
@@ -393,29 +360,13 @@ export async function getSchoolsWithActivePINs(): Promise<{
   error?: string;
 }> {
   try {
-    // SECURITY: Verify admin authorization
-    const authCheck = await verifyAdminAuth("getSchoolsWithActivePINs");
-    if (!authCheck.authorized) {
-      return authCheck.error;
-    }
-
-    // TypeScript now knows authCheck.user exists due to discriminated union
-    const user = authCheck.user;
-
-    // SECURITY: Rate limit admin metrics to prevent abuse
-    const rateLimitKey = `admin-active-pins:${user.id}`;
-    const isAllowed = await checkRateLimit(
-      rateLimitKey,
+    // SECURITY: Verify admin authorization and check rate limits
+    const authResult = await verifyAdminAuthAndRateLimit(
+      "getSchoolsWithActivePINs",
       RATE_LIMITS.adminMetrics,
     );
-    if (!isAllowed) {
-      authLogger.warn("[getSchoolsWithActivePINs] Rate limit exceeded", {
-        userId: user.id,
-      });
-      return {
-        success: false,
-        error: "Too many requests. Please wait before trying again.",
-      };
+    if (!authResult.authorized) {
+      return authResult.error;
     }
 
     const supabase = await createAdminClient();
@@ -506,29 +457,13 @@ export async function getRecentActivityCount(days: number = 7): Promise<{
   error?: string;
 }> {
   try {
-    // SECURITY: Verify admin authorization
-    const authCheck = await verifyAdminAuth("getRecentActivityCount");
-    if (!authCheck.authorized) {
-      return authCheck.error;
-    }
-
-    // TypeScript now knows authCheck.user exists due to discriminated union
-    const user = authCheck.user;
-
-    // SECURITY: Rate limit admin metrics to prevent abuse
-    const rateLimitKey = `admin-activity:${user.id}`;
-    const isAllowed = await checkRateLimit(
-      rateLimitKey,
+    // SECURITY: Verify admin authorization and check rate limits
+    const authResult = await verifyAdminAuthAndRateLimit(
+      "getRecentActivityCount",
       RATE_LIMITS.adminMetrics,
     );
-    if (!isAllowed) {
-      authLogger.warn("[getRecentActivityCount] Rate limit exceeded", {
-        userId: user.id,
-      });
-      return {
-        success: false,
-        error: "Too many requests. Please wait before trying again.",
-      };
+    if (!authResult.authorized) {
+      return authResult.error;
     }
 
     const supabase = await createAdminClient();
@@ -613,29 +548,13 @@ export async function getAllSchools(): Promise<{
   error?: string;
 }> {
   try {
-    // SECURITY: Verify admin authorization
-    const authCheck = await verifyAdminAuth("getAllSchools");
-    if (!authCheck.authorized) {
-      return authCheck.error;
-    }
-
-    // TypeScript now knows authCheck.user exists due to discriminated union
-    const user = authCheck.user;
-
-    // SECURITY: Rate limit admin metrics to prevent abuse
-    const rateLimitKey = `admin-all-schools:${user.id}`;
-    const isAllowed = await checkRateLimit(
-      rateLimitKey,
+    // SECURITY: Verify admin authorization and check rate limits
+    const authResult = await verifyAdminAuthAndRateLimit(
+      "getAllSchools",
       RATE_LIMITS.adminMetrics,
     );
-    if (!isAllowed) {
-      authLogger.warn("[getAllSchools] Rate limit exceeded", {
-        userId: user.id,
-      });
-      return {
-        success: false,
-        error: "Too many requests. Please wait before trying again.",
-      };
+    if (!authResult.authorized) {
+      return authResult.error;
     }
 
     const supabase = await createAdminClient();
@@ -702,29 +621,13 @@ export async function getAllTeachers(): Promise<{
   error?: string;
 }> {
   try {
-    // SECURITY: Verify admin authorization
-    const authCheck = await verifyAdminAuth("getAllTeachers");
-    if (!authCheck.authorized) {
-      return authCheck.error;
-    }
-
-    // TypeScript now knows authCheck.user exists due to discriminated union
-    const user = authCheck.user;
-
-    // SECURITY: Rate limit admin metrics to prevent abuse
-    const rateLimitKey = `admin-all-teachers:${user.id}`;
-    const isAllowed = await checkRateLimit(
-      rateLimitKey,
+    // SECURITY: Verify admin authorization and check rate limits
+    const authResult = await verifyAdminAuthAndRateLimit(
+      "getAllTeachers",
       RATE_LIMITS.adminMetrics,
     );
-    if (!isAllowed) {
-      authLogger.warn("[getAllTeachers] Rate limit exceeded", {
-        userId: user.id,
-      });
-      return {
-        success: false,
-        error: "Too many requests. Please wait before trying again.",
-      };
+    if (!authResult.authorized) {
+      return authResult.error;
     }
 
     const supabase = await createAdminClient();
@@ -838,29 +741,13 @@ export async function getAllStudents(): Promise<{
   error?: string;
 }> {
   try {
-    // SECURITY: Verify admin authorization
-    const authCheck = await verifyAdminAuth("getAllStudents");
-    if (!authCheck.authorized) {
-      return authCheck.error;
-    }
-
-    // TypeScript now knows authCheck.user exists due to discriminated union
-    const user = authCheck.user;
-
-    // SECURITY: Rate limit admin metrics to prevent abuse
-    const rateLimitKey = `admin-all-students:${user.id}`;
-    const isAllowed = await checkRateLimit(
-      rateLimitKey,
+    // SECURITY: Verify admin authorization and check rate limits
+    const authResult = await verifyAdminAuthAndRateLimit(
+      "getAllStudents",
       RATE_LIMITS.adminMetrics,
     );
-    if (!isAllowed) {
-      authLogger.warn("[getAllStudents] Rate limit exceeded", {
-        userId: user.id,
-      });
-      return {
-        success: false,
-        error: "Too many requests. Please wait before trying again.",
-      };
+    if (!authResult.authorized) {
+      return authResult.error;
     }
 
     const supabase = await createAdminClient();
@@ -973,29 +860,13 @@ export async function getSchoolsWithoutPINs(): Promise<{
   error?: string;
 }> {
   try {
-    // SECURITY: Verify admin authorization
-    const authCheck = await verifyAdminAuth("getSchoolsWithoutPINs");
-    if (!authCheck.authorized) {
-      return authCheck.error;
-    }
-
-    // TypeScript now knows authCheck.user exists due to discriminated union
-    const user = authCheck.user;
-
-    // SECURITY: Rate limit admin metrics to prevent abuse
-    const rateLimitKey = `admin-no-pins:${user.id}`;
-    const isAllowed = await checkRateLimit(
-      rateLimitKey,
+    // SECURITY: Verify admin authorization and check rate limits
+    const authResult = await verifyAdminAuthAndRateLimit(
+      "getSchoolsWithoutPINs",
       RATE_LIMITS.adminMetrics,
     );
-    if (!isAllowed) {
-      authLogger.warn("[getSchoolsWithoutPINs] Rate limit exceeded", {
-        userId: user.id,
-      });
-      return {
-        success: false,
-        error: "Too many requests. Please wait before trying again.",
-      };
+    if (!authResult.authorized) {
+      return authResult.error;
     }
 
     const supabase = await createAdminClient();
