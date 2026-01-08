@@ -34,6 +34,13 @@ function getSkillLevel(score: number): { label: string; color: string } {
   return { label: "Beginner", color: "bg-info text-white" };
 }
 
+// Get score circle background color
+function getScoreCircleColor(score: number): string {
+  if (score >= 80) return "bg-success";
+  if (score >= 60) return "bg-warning";
+  return "bg-error";
+}
+
 interface AssessmentSession {
   id: string;
   started_at: string;
@@ -163,15 +170,7 @@ export default async function StudentAssessmentsPage() {
                     >
                       <div className="flex items-center gap-4">
                         {/* Score Circle */}
-                        <div
-                          className={`w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0 ${
-                            assessment.score >= 80
-                              ? "bg-success"
-                              : assessment.score >= 60
-                                ? "bg-warning"
-                                : "bg-error"
-                          }`}
-                        >
+                        <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0 ${getScoreCircleColor(assessment.score)}`}>
                           {assessment.score}%
                         </div>
                         <div>
