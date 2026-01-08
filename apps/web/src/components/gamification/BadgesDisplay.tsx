@@ -157,6 +157,43 @@ export function BadgesDisplay({
   const lockedBadges = badges.filter((b) => !earnedIds.has(b.id));
   const displayBadges = showAll ? badges : earnedBadges;
 
+  /**
+   * Get badge card classes based on earned status
+   */
+  const getBadgeCardClass = (isEarned: boolean, rarity: string): string => {
+    const styles =
+      RARITY_STYLES[rarity as keyof typeof RARITY_STYLES] || RARITY_STYLES.common;
+    if (isEarned) {
+      return `${styles.bg} ${styles.border} ${styles.glow} hover:scale-105`;
+    }
+    return "bg-muted/50 border-dashed border-muted-foreground/30 opacity-60";
+  };
+
+  /**
+   * Get badge icon classes based on earned status
+   */
+  const getBadgeIconClass = (isEarned: boolean): string => {
+    return isEarned ? "group-hover:scale-110" : "grayscale";
+  };
+
+  /**
+   * Get badge name text class based on earned status
+   */
+  const getBadgeNameClass = (isEarned: boolean, rarity: string): string => {
+    const styles =
+      RARITY_STYLES[rarity as keyof typeof RARITY_STYLES] || RARITY_STYLES.common;
+    return isEarned ? styles.text : "text-muted-foreground";
+  };
+
+  /**
+   * Get rarity text class based on earned status
+   */
+  const getRarityTextClass = (isEarned: boolean, rarity: string): string => {
+    const styles =
+      RARITY_STYLES[rarity as keyof typeof RARITY_STYLES] || RARITY_STYLES.common;
+    return isEarned ? styles.text : "text-muted-foreground";
+  };
+
   if (loading) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -198,39 +235,28 @@ export function BadgesDisplay({
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {displayBadges.map((badge) => {
           const isEarned = earnedIds.has(badge.id);
-          const styles = RARITY_STYLES[badge.rarity];
 
           return (
             <button
               key={badge.id}
               onClick={() => setSelectedBadge(badge)}
-              className={`group relative p-4 rounded-xl border-2 transition-all duration-300 ${
-                isEarned
-                  ? `${styles.bg} ${styles.border} ${styles.glow} hover:scale-105`
-                  : "bg-muted/50 border-dashed border-muted-foreground/30 opacity-60"
-              }`}
+              className={`group relative p-4 rounded-xl border-2 transition-all duration-300 ${getBadgeCardClass(isEarned, badge.rarity)}`}
             >
               {/* Badge Icon */}
               <div
-                className={`text-4xl mb-2 transition-transform ${
-                  isEarned ? "group-hover:scale-110" : "grayscale"
-                }`}
+                className={`text-4xl mb-2 transition-transform ${getBadgeIconClass(isEarned)}`}
               >
                 {badge.icon}
               </div>
 
               {/* Badge Name */}
-              <div
-                className={`text-sm font-medium ${isEarned ? styles.text : "text-muted-foreground"}`}
-              >
+              <div className={`text-sm font-medium ${getBadgeNameClass(isEarned, badge.rarity)}`}>
                 {getBadgeName(badge)}
               </div>
 
               {/* Rarity Indicator */}
               <div
-                className={`text-xs mt-1 capitalize ${
-                  isEarned ? styles.text : "text-muted-foreground"
-                }`}
+                className={`text-xs mt-1 capitalize ${getRarityTextClass(isEarned, badge.rarity)}`}
               >
                 {badge.rarity}
               </div>
