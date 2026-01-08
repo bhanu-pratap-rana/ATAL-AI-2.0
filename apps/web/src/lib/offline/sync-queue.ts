@@ -163,6 +163,62 @@ export class SyncQueue {
   }
 
   /**
+   * Process a batch of sync items (shared by syncAll and manualSync)
+   */
+  private async processSyncBatch(
+    items: QueuedMutation[],
+    onProgress?: ProgressCallback,
+  ): Promise<{ success: number; failed: number; errors: Array<{ id: number; error: string }> }> {
+    let success = 0;
+    let failed = 0;
+    const errors: Array<{ id: number; error: string }> = [];
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+
+      // Report progress if callback provided
+      onProgress?.(i + 1, items.length);
+
+      if (!item.id) {
+        clientLogger.warn("[SyncQueue] Item missing id, skipping", {
+          type: item.type,
+          timestamp: item.timestamp,
+        });
+        continue;
+      }
+
+      const result = await this.syncItem(item);
+
+      if (result.success) {
+        await offlineDB.syncQueue.delete(item.id);
+        success++;
+      } else if (item.retries >= MAX_RETRIES) {
+        clientLogger.error("[SyncQueue] Max retries exceeded", {
+          itemId: item.id,
+          type: item.type,
+          retries: item.retries,
+        });
+        await offlineDB.syncQueue.delete(item.id);
+        failed++;
+        errors.push({
+          id: item.id,
+          error: result.error || "Max retries exceeded",
+        });
+      } else {
+        // Increment retry count
+        if (item.id) {
+          await offlineDB.syncQueue.update(item.id, {
+            retries: item.retries + 1,
+            lastError: result.error,
+          });
+        }
+      }
+    }
+
+    return { success, failed, errors };
+  }
+
+  /**
    * Sync all pending mutations
    */
   async syncAll(): Promise<SyncResult> {
@@ -180,64 +236,24 @@ export class SyncQueue {
     this.lastError = null;
     await this.notifySubscribers();
 
-    let success = 0;
-    let failed = 0;
-    const errors: Array<{ id: number; error: string }> = [];
-
     try {
       const pending = await offlineDB.syncQueue.toArray();
-
-      for (const item of pending) {
-        if (!item.id) {
-          clientLogger.warn("[SyncQueue] Item missing id, skipping", {
-            type: item.type,
-            timestamp: item.timestamp,
-          });
-          continue;
-        }
-
-        const result = await this.syncItem(item);
-
-        if (result.success) {
-          await offlineDB.syncQueue.delete(item.id);
-          success++;
-        } else if (item.retries >= MAX_RETRIES) {
-          // Max retries exceeded - move to failed state
-          clientLogger.error("[SyncQueue] Max retries exceeded", {
-            itemId: item.id,
-            type: item.type,
-            retries: item.retries,
-          });
-          await offlineDB.syncQueue.delete(item.id);
-          failed++;
-          errors.push({
-            id: item.id,
-            error: result.error || "Max retries exceeded",
-          });
-        } else {
-          // Increment retry count
-          if (item.id) {
-            await offlineDB.syncQueue.update(item.id, {
-              retries: item.retries + 1,
-              lastError: result.error,
-            });
-          }
-        }
-      }
-
+      const { success, failed, errors } = await this.processSyncBatch(pending);
       this.lastSyncAt = Date.now();
+
+      const status = await this.getStatus();
+      return { success, failed, pending: status.pendingCount, errors };
     } catch (error) {
       this.lastError = error instanceof Error ? error.message : "Unknown error";
       clientLogger.error("[SyncQueue] Sync failed", {
         error: error instanceof Error ? error.message : this.lastError,
       });
+      const status = await this.getStatus();
+      return { success: 0, failed: 0, pending: status.pendingCount, errors: [] };
     } finally {
       this.isSyncing = false;
       await this.notifySubscribers();
     }
-
-    const status = await this.getStatus();
-    return { success, failed, pending: status.pendingCount, errors };
   }
 
   /**
@@ -265,67 +281,27 @@ export class SyncQueue {
     this.lastError = null;
     await this.notifySubscribers();
 
-    const pending = await offlineDB.syncQueue.toArray();
-    const total = pending.length;
-    let success = 0;
-    let failed = 0;
-    const errors: Array<{ id: number; error: string }> = [];
-
     try {
-      for (let i = 0; i < pending.length; i++) {
-        const item = pending[i];
-
-        // Report progress
-        onProgress?.(i + 1, total);
-
-        if (!item.id) {
-          clientLogger.warn("[SyncQueue] Item missing id, skipping", {
-            type: item.type,
-            timestamp: item.timestamp,
-          });
-          continue;
-        }
-
-        const result = await this.syncItem(item);
-
-        if (result.success) {
-          await offlineDB.syncQueue.delete(item.id);
-          success++;
-        } else if (item.retries >= MAX_RETRIES) {
-          await offlineDB.syncQueue.delete(item.id);
-          failed++;
-          errors.push({
-            id: item.id,
-            error: result.error || "Max retries exceeded",
-          });
-        } else {
-          if (item.id) {
-            await offlineDB.syncQueue.update(item.id, {
-              retries: item.retries + 1,
-              lastError: result.error,
-            });
-            failed++;
-            errors.push({
-              id: item.id,
-              error: result.error || "Unknown error",
-            });
-          }
-        }
-      }
-
+      const pending = await offlineDB.syncQueue.toArray();
+      const { success, failed, errors } = await this.processSyncBatch(
+        pending,
+        onProgress,
+      );
       this.lastSyncAt = Date.now();
+
+      const status = await this.getStatus();
+      return { success, failed, pending: status.pendingCount, errors };
     } catch (error) {
       this.lastError = error instanceof Error ? error.message : "Unknown error";
       clientLogger.error("[SyncQueue] Manual sync failed", {
         error: error instanceof Error ? error.message : this.lastError,
       });
+      const status = await this.getStatus();
+      return { success: 0, failed: 0, pending: status.pendingCount, errors: [] };
     } finally {
       this.isSyncing = false;
       await this.notifySubscribers();
     }
-
-    const status = await this.getStatus();
-    return { success, failed, pending: status.pendingCount, errors };
   }
 
   /**
