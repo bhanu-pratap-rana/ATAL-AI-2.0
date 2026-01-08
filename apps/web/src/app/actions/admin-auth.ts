@@ -1,6 +1,5 @@
 "use server";
 
-import { z } from "zod";
 import { createAdminClient, verifySuperAdminAuth } from "@/lib/supabase-server";
 import { authLogger } from "@/lib/auth-logger";
 import { isAdmin } from "@/lib/auth/role-utils";
@@ -10,6 +9,7 @@ import {
 } from "@/lib/validation-schemas";
 import { RATE_LIMITS } from "@/lib/constants/rate-limits";
 import { checkRateLimit as checkDistributedRateLimit } from "@/lib/rate-limiter-distributed";
+import { validateInput, handleActionError } from "./action-utils";
 
 export interface CreateAdminUserResult {
   success: boolean;
@@ -64,8 +64,16 @@ export async function createAdminUser(
 ): Promise<CreateAdminUserResult> {
   try {
     // Validate inputs using Zod schemas
-    const normalizedEmail = AdminEmailSchema.parse(email);
-    AdminPasswordSchema.parse(password);
+    const emailValidation = validateInput(email, AdminEmailSchema);
+    if (!emailValidation.success) {
+      return { success: false, error: emailValidation.error };
+    }
+    const normalizedEmail = emailValidation.data;
+
+    const passwordValidation = validateInput(password, AdminPasswordSchema);
+    if (!passwordValidation.success) {
+      return { success: false, error: passwordValidation.error };
+    }
 
     // Rate limiting - prevents brute force attacks
     const rateLimitKey = `admin:bootstrap:${normalizedEmail}`;
@@ -181,14 +189,6 @@ export async function createAdminUser(
       userId,
     };
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      const firstError = error.issues[0];
-      return { success: false, error: firstError?.message || "Invalid input" };
-    }
-    authLogger.error("[createAdminUser] Unexpected error", error);
-    return {
-      success: false,
-      error: "An unexpected error occurred",
-    };
+    return handleActionError("createAdminUser", error);
   }
 }
