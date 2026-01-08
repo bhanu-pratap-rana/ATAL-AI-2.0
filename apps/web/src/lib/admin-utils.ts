@@ -3,9 +3,11 @@
  * @internal - Server-side only
  */
 
-import { createAdminClient } from "@/lib/supabase-server";
+import { createAdminClient, verifyAdminAuth } from "@/lib/supabase-server";
 import { authLogger } from "@/lib/auth-logger";
 import { validateSupabaseAuthUsers } from "@/lib/validation/rpc-schemas";
+import { checkRateLimit } from "@/lib/rate-limiter-distributed";
+import type { RateLimitConfig } from "@/lib/constants/rate-limits";
 
 /**
  * Supabase Admin API User type wrapper
@@ -111,4 +113,61 @@ export async function findAuthUserById(
 ) {
   const allUsers = await fetchAllAuthUsers(adminClient);
   return allUsers.find((u) => u.id === userId);
+}
+
+/**
+ * Verify admin authentication and check rate limits in one call
+ * Consolidates repeated auth + rate limit pattern across admin action files
+ *
+ * @param actionName - Name of action for logging (e.g., "getDashboardMetrics")
+ * @param rateLimit - Rate limit configuration to check
+ * @returns Object with authorization status, user, or error response
+ *
+ * @example
+ * ```typescript
+ * const authResult = await verifyAdminAuthAndRateLimit(
+ *   "getDashboardMetrics",
+ *   RATE_LIMITS.adminMetrics
+ * );
+ * if (!authResult.authorized) {
+ *   return authResult.error;
+ * }
+ * // Now use authResult.user
+ * ```
+ */
+export async function verifyAdminAuthAndRateLimit(
+  actionName: string,
+  rateLimit: RateLimitConfig,
+) {
+
+  // Step 1: Verify admin authorization
+  const authCheck = await verifyAdminAuth(actionName);
+  if (!authCheck.authorized) {
+    return {
+      authorized: false,
+      error: authCheck.error,
+    } as const;
+  }
+
+  // Step 2: Check rate limits
+  const userId = authCheck.user.id;
+  const rateLimitKey = `admin-${actionName}:${userId}`;
+  const isAllowed = await checkRateLimit(rateLimitKey, rateLimit);
+
+  if (!isAllowed) {
+    authLogger.warn(`[${actionName}] Rate limit exceeded`, { userId });
+    return {
+      authorized: false,
+      error: {
+        success: false,
+        error: "Too many requests. Please wait before trying again.",
+      },
+    } as const;
+  }
+
+  // Both auth and rate limit check passed
+  return {
+    authorized: true,
+    user: authCheck.user,
+  } as const;
 }
