@@ -26,6 +26,13 @@ function formatRelativeTime(dateString: string): string {
   return date.toLocaleDateString();
 }
 
+// Get score progress bar color based on performance level
+function getScoreColor(score: number): string {
+  if (score >= 80) return "bg-success";
+  if (score >= 60) return "bg-warning";
+  return "bg-error";
+}
+
 export default async function ProgressPage() {
   const supabase = await createClient();
   const {
@@ -153,13 +160,7 @@ export default async function ProgressPage() {
                     </div>
                     <div className="w-full bg-border rounded-full h-2.5">
                       <div
-                        className={`h-2.5 rounded-full transition-all duration-500 ${
-                          module.averageScore >= 80
-                            ? "bg-success"
-                            : module.averageScore >= 60
-                              ? "bg-warning"
-                              : "bg-error"
-                        }`}
+                        className={`h-2.5 rounded-full transition-all duration-500 ${getScoreColor(module.averageScore)}`}
                         style={{ width: `${module.averageScore}%` }}
                       />
                     </div>
