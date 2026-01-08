@@ -77,6 +77,11 @@ export function RosterTable({ enrollments, classId }: RosterTableProps) {
     return "S";
   }
 
+  // Helper to get remove button text based on state
+  function getRemoveButtonText(isRemoving: boolean): string {
+    return isRemoving ? "Removing..." : "Remove";
+  }
+
   return (
     <div className="overflow-hidden rounded-md border">
       <Table
@@ -166,9 +171,9 @@ export function RosterTable({ enrollments, classId }: RosterTableProps) {
                     className="h-9 px-3"
                     aria-label={`Remove ${displayName} from class`}
                   >
-                    {removingId === enrollment.student_id
-                      ? "Removing..."
-                      : "Remove"}
+                    {getRemoveButtonText(
+                      removingId === enrollment.student_id,
+                    )}
                   </Button>
                 </TableCell>
               </TableRow>
