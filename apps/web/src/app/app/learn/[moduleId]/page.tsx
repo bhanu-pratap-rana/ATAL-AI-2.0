@@ -497,6 +497,24 @@ export default async function ModuleTopicsPage({
     0,
   );
 
+  /**
+   * Helper: Get mastery level CSS class
+   */
+  const getMasteryColor = (mastery: number): string => {
+    if (mastery >= 70) return "text-success";
+    if (mastery >= 40) return "text-warning";
+    return "text-error";
+  };
+
+  /**
+   * Helper: Get progress bar background color
+   */
+  const getProgressBarColor = (mastery: number): string => {
+    if (mastery >= 70) return "bg-success";
+    if (mastery >= 40) return "bg-warning";
+    return "bg-error";
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 p-4 md:p-6">
       <div className="max-w-4xl mx-auto space-y-6">
@@ -603,15 +621,7 @@ export default async function ModuleTopicsPage({
                           {topic.duration_minutes} min
                         </div>
                         {mastery > 0 && (
-                          <div
-                            className={`font-medium ${
-                              mastery >= 70
-                                ? "text-success"
-                                : mastery >= 40
-                                  ? "text-warning"
-                                  : "text-error"
-                            }`}
-                          >
+                          <div className={`font-medium ${getMasteryColor(mastery)}`}>
                             {mastery}%
                           </div>
                         )}
@@ -622,13 +632,7 @@ export default async function ModuleTopicsPage({
                     {mastery > 0 && (
                       <div className="mt-3 h-1.5 bg-muted rounded-full overflow-hidden">
                         <div
-                          className={`h-full transition-all ${
-                            mastery >= 70
-                              ? "bg-success"
-                              : mastery >= 40
-                                ? "bg-warning"
-                                : "bg-error"
-                          }`}
+                          className={`h-full transition-all ${getProgressBarColor(mastery)}`}
                           style={{ width: `${mastery}%` }}
                         />
                       </div>
