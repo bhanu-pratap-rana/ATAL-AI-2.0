@@ -22,7 +22,7 @@ const isTestEnvironment = () => {
   if (typeof globalThis === "undefined") return false;
 
   // Check multiple ways to detect test environment
-  const testGlobal = globalThis as unknown as Record<string, unknown>;
+  const testGlobal = globalThis as Record<string, unknown>;
   return (
     // Standard test env variables
     process.env.NODE_ENV === "test" ||
