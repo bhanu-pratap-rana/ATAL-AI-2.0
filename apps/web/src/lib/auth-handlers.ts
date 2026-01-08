@@ -48,8 +48,95 @@ export interface OTPResult {
 }
 
 /**
+ * Helper: Validate signin credentials
+ */
+function validateSignInCredentials(
+  credentials: { email?: string; phone?: string; password: string },
+  validatorFn?: (val: string) => { valid: boolean; error?: string },
+): { valid: boolean; identifier?: string; error?: string } {
+  const identifier = credentials.email || credentials.phone;
+  if (!identifier) {
+    return { valid: false, error: "Email or phone is required" };
+  }
+
+  if (validatorFn) {
+    const validation = validatorFn(identifier);
+    if (!validation.valid) {
+      return {
+        valid: false,
+        error: validation.error || "Invalid identifier",
+      };
+    }
+  }
+
+  return { valid: true, identifier };
+}
+
+/**
+ * Helper: Perform signin with Supabase
+ */
+async function performSignInWithSupabase(
+  supabase: SupabaseClient,
+  credentials: { email?: string; phone?: string; password: string },
+): Promise<{ data?: { user: User | null }; error?: AuthError } | null> {
+  if (credentials.email) {
+    return supabase.auth.signInWithPassword({
+      email: credentials.email.trim(),
+      password: credentials.password,
+    });
+  }
+
+  if (credentials.phone) {
+    return supabase.auth.signInWithPassword({
+      phone: credentials.phone,
+      password: credentials.password,
+    });
+  }
+
+  return null;
+}
+
+/**
+ * Helper: Check profile if required
+ */
+async function checkProfileIfRequired(
+  supabase: SupabaseClient,
+  userId: string,
+  options?: { requireProfileCheck?: boolean; profileTable?: string },
+): Promise<{
+  valid: boolean;
+  error?: string;
+  requiresProfileCheck?: boolean;
+}> {
+  if (!options?.requireProfileCheck || !options?.profileTable) {
+    return { valid: true };
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from(options.profileTable)
+    .select("*")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (profileError || !profile) {
+    authLogger.warn("[handleSignIn] Profile not found", {
+      userId,
+      table: options.profileTable,
+    });
+    return {
+      valid: true,
+      error: "Profile not found",
+      requiresProfileCheck: true,
+    };
+  }
+
+  return { valid: true };
+}
+
+/**
  * Unified email/phone signin handler
  * Replaces duplicate signin logic across student/teacher pages
+ * REFACTORED: Reduced complexity from 16 to ~8 by extracting helper functions
  *
  * @param supabase - Supabase client instance
  * @param credentials - Email/phone and password
@@ -70,39 +157,18 @@ export async function handleSignIn(
   },
 ): Promise<SignInResult> {
   try {
-    // Validate identifier (email or phone)
-    const identifier = credentials.email || credentials.phone;
-    if (!identifier) {
-      return { success: false, error: "Email or phone is required" };
-    }
-
-    // Use provided validator or skip validation
-    if (options?.validatorFn) {
-      const validation = options.validatorFn(identifier);
-      if (!validation.valid) {
-        return {
-          success: false,
-          error: validation.error || "Invalid identifier",
-        };
-      }
+    // Validate credentials
+    const validation = validateSignInCredentials(credentials, options?.validatorFn);
+    if (!validation.valid) {
+      return { success: false, error: validation.error };
     }
 
     authLogger.debug("[handleSignIn] Attempting signin", {
       type: credentials.email ? "email" : "phone",
     });
 
-    // Call Supabase signin
-    const result = credentials.email
-      ? await supabase.auth.signInWithPassword({
-          email: credentials.email.trim(),
-          password: credentials.password,
-        })
-      : credentials.phone
-        ? await supabase.auth.signInWithPassword({
-            phone: credentials.phone,
-            password: credentials.password,
-          })
-        : null;
+    // Perform signin
+    const result = await performSignInWithSupabase(supabase, credentials);
 
     if (!result) {
       return { success: false, error: "Email or phone is required" };
@@ -118,7 +184,7 @@ export async function handleSignIn(
       };
     }
 
-    if (!data.user) {
+    if (!data?.user) {
       return {
         success: false,
         error: "Authentication failed - no user returned",
@@ -127,36 +193,20 @@ export async function handleSignIn(
 
     authLogger.success("[handleSignIn] Authentication successful");
 
-    // Check profile if required (e.g., teacher role)
-    if (options?.requireProfileCheck && options?.profileTable) {
-      const { data: profile, error: profileError } = await supabase
-        .from(options.profileTable)
-        .select("*")
-        .eq("user_id", data.user.id)
-        .maybeSingle();
-
-      if (profileError || !profile) {
-        authLogger.warn("[handleSignIn] Profile not found", {
-          userId: data.user.id,
-          table: options.profileTable,
-        });
-        return {
-          success: true,
-          user: data.user,
-          error: "Profile not found",
-          requiresProfileCheck: true,
-        };
-      }
-
-      return {
-        success: true,
-        user: data.user,
-      };
-    }
+    // Check profile if required
+    const profileCheck = await checkProfileIfRequired(
+      supabase,
+      data.user.id,
+      options,
+    );
 
     return {
       success: true,
       user: data.user,
+      ...(profileCheck.error && { error: profileCheck.error }),
+      ...(profileCheck.requiresProfileCheck && {
+        requiresProfileCheck: true,
+      }),
     };
   } catch (error) {
     authLogger.error("[handleSignIn] Unexpected error", error);
@@ -168,8 +218,72 @@ export async function handleSignIn(
 }
 
 /**
+ * Helper: Validate and check rate limit for OTP identifier
+ */
+async function validateAndCheckOtpLimit(
+  identifier: string,
+  channel: "email" | "phone",
+  skipRateLimit?: boolean,
+): Promise<{ valid: boolean; error?: string }> {
+  if (channel === "email") {
+    const validation = validateEmail(identifier);
+    if (!validation.valid) {
+      return { valid: false, error: validation.error || "Invalid email" };
+    }
+  } else {
+    const validation = validatePhone(identifier);
+    if (!validation.valid) {
+      return { valid: false, error: validation.error || "Invalid phone" };
+    }
+  }
+
+  if (!skipRateLimit && !(await checkOtpRateLimit(identifier))) {
+    authLogger.warn("[handleSendOTP] Rate limit exceeded", { identifier });
+    return {
+      valid: false,
+      error: "Too many OTP requests. Please wait before trying again.",
+    };
+  }
+
+  return { valid: true };
+}
+
+/**
+ * Helper: Send OTP via Supabase based on channel
+ */
+async function sendOtpViaChannel(
+  supabase: SupabaseClient,
+  identifier: string,
+  channel: "email" | "phone",
+  options?: {
+    redirectUrl?: string;
+    shouldCreateUser?: boolean;
+  },
+): Promise<AuthError | null> {
+  if (channel === "email") {
+    const result = await supabase.auth.signInWithOtp({
+      email: identifier.trim().toLowerCase(),
+      options: {
+        ...(options?.redirectUrl && { emailRedirectTo: options.redirectUrl }),
+        shouldCreateUser: options?.shouldCreateUser ?? true,
+      },
+    });
+    return result.error;
+  }
+
+  const result = await supabase.auth.signInWithOtp({
+    phone: identifier,
+    options: {
+      shouldCreateUser: options?.shouldCreateUser ?? true,
+    },
+  });
+  return result.error;
+}
+
+/**
  * Unified OTP send handler for email and phone
  * Replaces duplicate OTP send logic across multiple files
+ * REFACTORED: Reduced complexity from 18 to ~7 by extracting helper functions
  *
  * @param supabase - Supabase client instance
  * @param identifier - Email or phone number to send OTP to
@@ -191,67 +305,20 @@ export async function handleSendOTP(
   },
 ): Promise<OTPResult> {
   try {
-    // Validate identifier based on channel
-    if (channel === "email") {
-      const validation = validateEmail(identifier);
-      if (!validation.valid) {
-        return { success: false, error: validation.error || "Invalid email" };
-      }
-
-      // Check rate limit for OTP requests
-      if (!options?.skipRateLimit && !(await checkOtpRateLimit(identifier))) {
-        authLogger.warn("[handleSendOTP] Rate limit exceeded", { identifier });
-        return {
-          success: false,
-          error: "Too many OTP requests. Please wait before trying again.",
-        };
-      }
-
-      authLogger.debug("[handleSendOTP] Sending email OTP", {
-        identifier,
-      });
-    } else if (channel === "phone") {
-      const validation = validatePhone(identifier);
-      if (!validation.valid) {
-        return { success: false, error: validation.error || "Invalid phone" };
-      }
-
-      if (!options?.skipRateLimit && !(await checkOtpRateLimit(identifier))) {
-        authLogger.warn("[handleSendOTP] Rate limit exceeded", { identifier });
-        return {
-          success: false,
-          error: "Too many OTP requests. Please wait before trying again.",
-        };
-      }
-
-      authLogger.debug("[handleSendOTP] Sending phone OTP", {
-        identifier,
-      });
+    // Validate and check rate limit
+    const validation = await validateAndCheckOtpLimit(
+      identifier,
+      channel,
+      options?.skipRateLimit,
+    );
+    if (!validation.valid) {
+      return { success: false, error: validation.error };
     }
 
-    // Call Supabase OTP send
-    let error: AuthError | null = null;
+    authLogger.debug(`[handleSendOTP] Sending ${channel} OTP`, { identifier });
 
-    if (channel === "email") {
-      const result = await supabase.auth.signInWithOtp({
-        email: identifier.trim().toLowerCase(),
-        options: {
-          ...(options?.redirectUrl && { emailRedirectTo: options.redirectUrl }),
-          shouldCreateUser: options?.shouldCreateUser ?? true,
-        },
-      });
-      error = result.error;
-    } else if (channel === "phone") {
-      const result = await supabase.auth.signInWithOtp({
-        phone: identifier,
-        options: {
-          shouldCreateUser: options?.shouldCreateUser ?? true,
-        },
-      });
-      error = result.error;
-    } else {
-      return { success: false, error: "Invalid OTP channel" };
-    }
+    // Send OTP via channel-specific method
+    const error = await sendOtpViaChannel(supabase, identifier, channel, options);
 
     if (error) {
       authLogger.warn("[handleSendOTP] OTP send failed", error);
