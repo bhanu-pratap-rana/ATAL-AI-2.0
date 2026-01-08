@@ -9,6 +9,20 @@ import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { VoiceChat } from "@/components/voice/VoiceChat";
 
 
+/**
+ * Helper: Get language display name
+ */
+function getLanguageName(lang: "en" | "hi" | "as"): string {
+  switch (lang) {
+    case "en":
+      return "English";
+    case "hi":
+      return "हिंदी";
+    case "as":
+      return "অসমীয়া";
+  }
+}
+
 export default function AITutorPage() {
   const { user: _user, loading: isAuthChecking } = useRequireAuth("/student/start");
   const [language, setLanguage] = useState<"en" | "hi" | "as">("en");
@@ -79,11 +93,7 @@ export default function AITutorPage() {
                     : "bg-white text-text-secondary hover:bg-primary-light"
                 }`}
               >
-                {lang === "en"
-                  ? "English"
-                  : lang === "hi"
-                    ? "हिंदी"
-                    : "অসমীয়া"}
+                {getLanguageName(lang)}
               </button>
             ))}
           </div>
