@@ -2,6 +2,31 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getInputDescriptionId } from "@/lib/form-utils";
 
+/**
+ * Render error or helper text
+ */
+function renderErrorOrHelper(
+  id: string,
+  error: string | undefined,
+  helperText: string | undefined,
+): React.ReactNode {
+  if (error) {
+    return (
+      <p id={`${id}-error`} className="text-sm text-error" role="alert">
+        {error}
+      </p>
+    );
+  }
+  if (helperText) {
+    return (
+      <p id={`${id}-helper`} className="text-xs text-text-secondary">
+        {helperText}
+      </p>
+    );
+  }
+  return null;
+}
+
 interface OTPInputProps {
   readonly id: string;
   readonly label: string;
@@ -55,15 +80,7 @@ export function OTPInput({
         aria-label={label}
         aria-describedby={getInputDescriptionId(id, error, helperText)}
       />
-      {error ? (
-        <p id={`${id}-error`} className="text-sm text-error" role="alert">
-          {error}
-        </p>
-      ) : (
-        <p id={`${id}-helper`} className="text-xs text-text-secondary">
-          {helperText}
-        </p>
-      )}
+      {renderErrorOrHelper(id, error, helperText)}
     </div>
   );
 }
