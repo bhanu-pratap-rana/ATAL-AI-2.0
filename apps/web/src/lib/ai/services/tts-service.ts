@@ -246,8 +246,73 @@ export class TTSService {
   }
 
   /**
+   * Helper: Check HuggingFace API availability
+   */
+  private async checkHuggingFaceAvailability(): Promise<
+    { available: true; provider: "huggingface" } | null
+  > {
+    if (!process.env.HUGGINGFACE_API_KEY) {
+      authLogger.warn("[TTS] HUGGINGFACE_API_KEY not configured", {});
+      return null;
+    }
+
+    authLogger.info("[TTS] Checking HuggingFace API availability", {
+      url: this.huggingFaceApiUrl,
+    });
+
+    try {
+      // Test with short text
+      await this.callHuggingFace("test", LANGUAGE_VOICE_MAP.en);
+      authLogger.info(
+        "[TTS] HuggingFace API is AVAILABLE and responding",
+        {},
+      );
+      return { available: true, provider: "huggingface" };
+    } catch (error) {
+      authLogger.warn("[TTS] HuggingFace API check failed", {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return null;
+    }
+  }
+
+  /**
+   * Helper: Check Render fallback availability
+   */
+  private async checkRenderFallbackAvailability(): Promise<
+    { available: true; provider: "render" } | null
+  > {
+    if (!this.renderFallbackUrl) {
+      authLogger.debug(
+        "[TTS] No Render fallback configured (TTS_FALLBACK_URL not set)",
+        {},
+      );
+      return null;
+    }
+
+    authLogger.info("[TTS] Checking Render fallback availability", {
+      url: this.renderFallbackUrl,
+    });
+
+    try {
+      const response = await fetch(`${this.renderFallbackUrl}/health`);
+      if (response.ok) {
+        authLogger.info("[TTS] Render fallback is AVAILABLE", {});
+        return { available: true, provider: "render" };
+      }
+      return null;
+    } catch (error) {
+      authLogger.warn("[TTS] Render fallback check failed", {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return null;
+    }
+  }
+
+  /**
    * Check if TTS service is available and determine active provider
    * Checks: HuggingFace → Render fallback → Browser fallback
+   * REFACTORED: Reduced complexity from 16 to ~7 by extracting helper functions
    */
   async isAvailable(): Promise<{
     available: boolean;
@@ -255,48 +320,15 @@ export class TTSService {
     error?: string;
   }> {
     // Check HuggingFace
-    if (process.env.HUGGINGFACE_API_KEY) {
-      authLogger.info("[TTS] Checking HuggingFace API availability", {
-        url: this.huggingFaceApiUrl,
-      });
-      try {
-        // Test with short text
-        await this.callHuggingFace("test", LANGUAGE_VOICE_MAP.en);
-        authLogger.info(
-          "[TTS] HuggingFace API is AVAILABLE and responding",
-          {},
-        );
-        return { available: true, provider: "huggingface" };
-      } catch (error) {
-        authLogger.warn("[TTS] HuggingFace API check failed", {
-          error: error instanceof Error ? error.message : String(error),
-        });
-      }
-    } else {
-      authLogger.warn("[TTS] HUGGINGFACE_API_KEY not configured", {});
+    const huggingFaceResult = await this.checkHuggingFaceAvailability();
+    if (huggingFaceResult) {
+      return huggingFaceResult;
     }
 
     // Check Render fallback
-    if (this.renderFallbackUrl) {
-      authLogger.info("[TTS] Checking Render fallback availability", {
-        url: this.renderFallbackUrl,
-      });
-      try {
-        const response = await fetch(`${this.renderFallbackUrl}/health`);
-        if (response.ok) {
-          authLogger.info("[TTS] Render fallback is AVAILABLE", {});
-          return { available: true, provider: "render" };
-        }
-      } catch (error) {
-        authLogger.warn("[TTS] Render fallback check failed", {
-          error: error instanceof Error ? error.message : String(error),
-        });
-      }
-    } else {
-      authLogger.debug(
-        "[TTS] No Render fallback configured (TTS_FALLBACK_URL not set)",
-        {},
-      );
+    const renderResult = await this.checkRenderFallbackAvailability();
+    if (renderResult) {
+      return renderResult;
     }
 
     // Browser fallback is always available (handled client-side)
