@@ -32,6 +32,42 @@ import { formatTimeTidyCompact } from "@/lib/time-utils";
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
+/**
+ * Get resend button CSS classes based on state
+ */
+function getResendButtonClass(
+  resendCooldown: number,
+  isResending: boolean,
+): string {
+  if (resendCooldown > 0 || isResending) {
+    return "text-text-muted cursor-not-allowed";
+  }
+  return "text-primary hover:text-primary-dark hover:underline";
+}
+
+/**
+ * Get resend button text based on state
+ */
+function getResendButtonText(
+  isResending: boolean,
+  resendCooldown: number,
+): string {
+  if (isResending) {
+    return "Sending...";
+  }
+  if (resendCooldown > 0) {
+    return `Resend OTP in ${formatTimeTidyCompact(resendCooldown)}`;
+  }
+  return "Resend OTP";
+}
+
+/**
+ * Get icon class for resend button
+ */
+function getResendIconClass(isResending: boolean): string {
+  return isResending ? "h-4 w-4 animate-spin" : "h-4 w-4";
+}
+
 interface SignUpEmailFlowProps {
   readonly state: AuthState;
   readonly actions: AuthActions;
@@ -325,20 +361,10 @@ export function SignUpEmailFlow({
           type="button"
           onClick={handleResendOtp}
           disabled={isLoading || isResending || resendCooldown > 0}
-          className={`flex items-center gap-2 text-sm transition-colors ${
-            resendCooldown > 0 || isResending
-              ? "text-text-muted cursor-not-allowed"
-              : "text-primary hover:text-primary-dark hover:underline"
-          }`}
+          className={`flex items-center gap-2 text-sm transition-colors ${getResendButtonClass(resendCooldown, isResending)}`}
         >
-          <RefreshCw
-            className={`h-4 w-4 ${isResending ? "animate-spin" : ""}`}
-          />
-          {isResending
-            ? "Sending..."
-            : resendCooldown > 0
-              ? `Resend OTP in ${formatTimeTidyCompact(resendCooldown)}`
-              : "Resend OTP"}
+          <RefreshCw className={getResendIconClass(isResending)} />
+          {getResendButtonText(isResending, resendCooldown)}
         </button>
       </div>
 
