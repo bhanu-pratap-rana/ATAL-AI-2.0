@@ -29,6 +29,13 @@ interface OfflineBannerProps {
 }
 
 /**
+ * Pluralize a word based on count
+ */
+function pluralize(count: number, singular: string, plural: string): string {
+  return count === 1 ? singular : plural;
+}
+
+/**
  * Offline Banner Component
  *
  * Shows a notification when the user is offline.
@@ -83,13 +90,13 @@ export function OfflineBanner({
         return "Slow connection detected. Some features may be limited.";
       }
       if (showPendingCount && status.pendingCount > 0) {
-        return `You're offline. ${status.pendingCount} change${status.pendingCount > 1 ? "s" : ""} will sync when you reconnect.`;
+        return `You're offline. ${status.pendingCount} ${pluralize(status.pendingCount, "change", "changes")} will sync when you reconnect.`;
       }
       return "You're offline. Changes will sync when you reconnect.";
     }
 
     if (showSyncingMessage) {
-      return `Syncing ${status.pendingCount} change${status.pendingCount > 1 ? "s" : ""}...`;
+      return `Syncing ${status.pendingCount} ${pluralize(status.pendingCount, "change", "changes")}...`;
     }
 
     return "Back online!";
