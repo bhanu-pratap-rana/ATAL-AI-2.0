@@ -19,6 +19,30 @@ interface AdminListTableProps {
 }
 
 /**
+ * Get role badge styling based on admin role
+ */
+function getRoleBadgeClass(role: string): string {
+  if (role === "super_admin") {
+    return "bg-accent-light text-accent-dark";
+  }
+  return "bg-primary-light text-primary-dark";
+}
+
+/**
+ * Get role display text
+ */
+function getRoleText(role: string): string {
+  return role === "super_admin" ? "Super Admin" : "Admin";
+}
+
+/**
+ * Get modal button text based on resetting state
+ */
+function getModalButtonText(isResetting: boolean): string {
+  return isResetting ? "Resetting..." : "Reset Password";
+}
+
+/**
  * AdminListTable - Display list of all admin accounts
  */
 export function AdminListTable({
@@ -202,13 +226,9 @@ export function AdminListTable({
                 <td className="px-4 py-3 text-text">{admin.email}</td>
                 <td className="px-4 py-3">
                   <span
-                    className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                      admin.role === "super_admin"
-                        ? "bg-accent-light text-accent-dark"
-                        : "bg-primary-light text-primary-dark"
-                    }`}
+                    className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${getRoleBadgeClass(admin.role)}`}
                   >
-                    {admin.role === "super_admin" ? "Super Admin" : "Admin"}
+                    {getRoleText(admin.role)}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-text-secondary">
@@ -331,9 +351,7 @@ export function AdminListTable({
                 disabled={resetingId === resetAdmin.id}
                 className="flex-1 bg-primary hover:bg-primary-dark"
               >
-                {resetingId === resetAdmin.id
-                  ? "Resetting..."
-                  : "Reset Password"}
+                {getModalButtonText(resetingId === resetAdmin.id)}
               </Button>
             </div>
           </div>
