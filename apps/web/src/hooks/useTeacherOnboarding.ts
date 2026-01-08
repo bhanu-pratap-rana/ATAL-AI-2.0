@@ -481,7 +481,7 @@ export function useTeacherOnboarding() {
         .eq("user_id", userId)
         .maybeSingle();
 
-      return !!studentProfile;
+      return Boolean(studentProfile);
     },
     [supabase],
   );
