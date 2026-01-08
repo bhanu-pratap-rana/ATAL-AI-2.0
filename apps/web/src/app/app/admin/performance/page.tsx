@@ -309,8 +309,14 @@ export default function PerformanceMonitoringPage() {
         <CardContent>
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium">Refresh Interval</label>
+              <label
+                htmlFor="refresh-interval-select"
+                className="text-sm font-medium"
+              >
+                Refresh Interval
+              </label>
               <select
+                id="refresh-interval-select"
                 value={refreshInterval}
                 onChange={(e) => setRefreshInterval(Number(e.target.value))}
                 className="mt-2 px-3 py-2 border border-gray-300 rounded-md text-sm"

@@ -259,18 +259,18 @@ export function StudentProfileEditor({
           {/* Show Username for Quick Start users, Email for others */}
           {isUsernameAuth ? (
             <div>
-              <label className="text-sm font-medium text-text-secondary">
+              <span className="text-sm font-medium text-text-secondary">
                 Username
-              </label>
+              </span>
               <p className="text-text-primary font-mono">
                 {username || "Not set"}
               </p>
             </div>
           ) : (
             <div>
-              <label className="text-sm font-medium text-text-secondary">
+              <span className="text-sm font-medium text-text-secondary">
                 Email
-              </label>
+              </span>
               <p className="text-text-primary">{userEmail || "Not set"}</p>
             </div>
           )}
