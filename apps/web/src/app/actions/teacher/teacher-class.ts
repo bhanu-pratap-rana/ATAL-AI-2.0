@@ -128,8 +128,7 @@ export async function updateClass(
     return { success: true, data };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const firstError = error.issues[0];
-      return { success: false, error: firstError?.message || "Invalid input" };
+      return handleZodError(error);
     }
     authLogger.error("[updateClass] Unexpected error", error);
     return {
