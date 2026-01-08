@@ -79,7 +79,7 @@ async function getStudentClasses(userId: string): Promise<Enrollment[]> {
       ...new Set(
         enrollments
           .map((e) => getClassFromEnrollment(e)?.teacher_id)
-          .filter((id): id is string => !!id),
+          .filter((id): id is string => Boolean(id)),
       ),
     ];
 

@@ -104,7 +104,7 @@ export function shouldShowError(
   error: string | null,
   touched: boolean,
 ): boolean {
-  return !!error && touched;
+  return Boolean(error) && touched;
 }
 
 /**

@@ -164,7 +164,7 @@ function ResetPasswordContent() {
               placeholder="your@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              disabled={isLoading || !!emailFromUrl}
+              disabled={isLoading || Boolean(emailFromUrl)}
               className="w-full"
             />
             <p className="text-xs text-gray-600">
