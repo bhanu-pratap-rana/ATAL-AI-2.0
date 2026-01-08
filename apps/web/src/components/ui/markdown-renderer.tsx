@@ -146,13 +146,15 @@ export function MarkdownRenderer({
           // Tables (GFM)
           // Note: Markdown tables should include headers (| Header 1 | Header 2 |) for accessibility
           // SonarQube S5256: Tables should have header rows for screen readers
-          table: ({ node: _node, ...props }) => (
+          table: ({ node: _node, children, ...props }) => (
             <div className="overflow-x-auto mb-4">
               <table
                 className="w-full border-collapse border border-border rounded-lg"
                 role="table"
                 {...props}
-              />
+              >
+                {children}
+              </table>
             </div>
           ),
           thead: ({ node: _node, ...props }) => (
