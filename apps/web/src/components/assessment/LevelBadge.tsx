@@ -68,6 +68,20 @@ const getLevelFromScore = (score: number): SkillLevel => {
   return "beginner";
 };
 
+/**
+ * Get progress bar color based on skill level
+ */
+function getProgressBarColor(level: SkillLevel): string {
+  switch (level) {
+    case "beginner":
+      return "var(--color-primary)";
+    case "intermediate":
+      return "var(--color-success)";
+    case "advanced":
+      return "var(--color-cyan)";
+  }
+}
+
 export function LevelBadge({
   score,
   level,
@@ -199,12 +213,7 @@ export function LevelProgress({
           `}
           style={{
             width: `${Math.min(100, Math.max(0, (currentIndex + 1) * 33.33))}%`,
-            backgroundColor:
-              currentLevel === "beginner"
-                ? "var(--color-primary)"
-                : currentLevel === "intermediate"
-                  ? "var(--color-success)"
-                  : "var(--color-cyan)",
+            backgroundColor: getProgressBarColor(currentLevel),
           }}
         />
       </div>
