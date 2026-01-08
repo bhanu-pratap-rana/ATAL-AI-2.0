@@ -19,6 +19,54 @@ interface AdminDeleteDialogProps {
 }
 
 /**
+ * Get message container classes based on message type
+ */
+function getMessageContainerClass(
+  messageType: "success" | "error",
+): string {
+  if (messageType === "success") {
+    return "bg-success-light border-success/30";
+  }
+  return "bg-error-light border-error/30";
+}
+
+/**
+ * Get message icon based on message type
+ */
+function getMessageIcon(messageType: "success" | "error"): React.ReactNode {
+  if (messageType === "success") {
+    return (
+      <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
+    );
+  }
+  return (
+    <AlertCircle className="w-5 h-5 text-error flex-shrink-0 mt-0.5" />
+  );
+}
+
+/**
+ * Get message text class based on message type
+ */
+function getMessageTextClass(messageType: "success" | "error"): string {
+  return messageType === "success" ? "text-success" : "text-error";
+}
+
+/**
+ * Get delete button content based on loading state
+ */
+function getDeleteButtonContent(isLoading: boolean): React.ReactNode {
+  if (isLoading) {
+    return (
+      <>
+        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+        Deleting...
+      </>
+    );
+  }
+  return "Delete Admin";
+}
+
+/**
  * AdminDeleteDialog - Modal for confirming admin account deletion
  */
 export function AdminDeleteDialog({
@@ -154,20 +202,10 @@ export function AdminDeleteDialog({
         {/* Message Display */}
         {message && (
           <div
-            className={`flex gap-3 p-3 rounded-lg border mb-4 ${
-              message.type === "success"
-                ? "bg-success-light border-success/30"
-                : "bg-error-light border-error/30"
-            }`}
+            className={`flex gap-3 p-3 rounded-lg border mb-4 ${getMessageContainerClass(message.type)}`}
           >
-            {message.type === "success" ? (
-              <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
-            ) : (
-              <AlertCircle className="w-5 h-5 text-error flex-shrink-0 mt-0.5" />
-            )}
-            <span
-              className={`text-sm ${message.type === "success" ? "text-success" : "text-error"}`}
-            >
+            {getMessageIcon(message.type)}
+            <span className={`text-sm ${getMessageTextClass(message.type)}`}>
               {message.text}
             </span>
           </div>
@@ -188,14 +226,7 @@ export function AdminDeleteDialog({
             disabled={isLoading || !isConfirmed}
             className="flex-1 bg-error hover:bg-error/90"
           >
-            {isLoading ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Deleting...
-              </>
-            ) : (
-              "Delete Admin"
-            )}
+            {getDeleteButtonContent(isLoading)}
           </Button>
         </div>
       </div>
