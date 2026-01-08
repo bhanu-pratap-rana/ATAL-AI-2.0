@@ -99,6 +99,20 @@ interface IRTState {
   correctCount: number; // Number of correct answers
 }
 
+/**
+ * Helper: Get language-specific font class
+ */
+function getLanguageFontClass(language: "en" | "hi" | "as"): string {
+  switch (language) {
+    case "hi":
+      return "font-devanagari";
+    case "as":
+      return "font-bengali";
+    default:
+      return "";
+  }
+}
+
 export function AssessmentRunner({
   sessionId,
   questions,
@@ -142,12 +156,7 @@ export function AssessmentRunner({
   const progress = ((currentIndex + 1) / questions.length) * 100;
 
   // Language-specific font classes
-  const fontClass =
-    language === "hi"
-      ? "font-devanagari"
-      : language === "as"
-        ? "font-bengali"
-        : "";
+  const fontClass = getLanguageFontClass(language);
 
   // Get current question data (from history if reviewing, else generate fresh)
   const { shuffledOptions, shuffleMap } = useMemo(() => {
