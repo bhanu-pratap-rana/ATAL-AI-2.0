@@ -9,6 +9,20 @@ import type { ConnectionPoolMetrics, PoolAlert } from "@/types/monitoring";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle, TrendingDown, Zap } from "lucide-react";
 
+/**
+ * Helper: Get alert styling based on severity level
+ */
+function getAlertClassName(level: string): string {
+  switch (level) {
+    case "critical":
+      return "border-red-600 bg-red-100 text-red-800";
+    case "error":
+      return "border-orange-600 bg-orange-100 text-orange-800";
+    default:
+      return "border-yellow-600 bg-yellow-100 text-yellow-800";
+  }
+}
+
 export default function PerformanceMonitoringPage() {
   const [stats, setStats] = useState(queryMonitor.getStats());
   const [slowQueries, setSlowQueries] = useState(
@@ -195,13 +209,7 @@ export default function PerformanceMonitoringPage() {
               {poolAlerts.slice(0, 5).map((alert, idx) => (
                 <div
                   key={`pool-alert-${idx}-${alert.timestamp}`}
-                  className={`p-3 rounded border-l-4 ${
-                    alert.level === "critical"
-                      ? "border-red-600 bg-red-100 text-red-800"
-                      : alert.level === "error"
-                        ? "border-orange-600 bg-orange-100 text-orange-800"
-                        : "border-yellow-600 bg-yellow-100 text-yellow-800"
-                  }`}
+                  className={`p-3 rounded border-l-4 ${getAlertClassName(alert.level)}`}
                 >
                   <p className="font-semibold text-sm">{alert.message}</p>
                   <p className="text-xs mt-1">

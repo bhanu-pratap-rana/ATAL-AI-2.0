@@ -408,20 +408,26 @@ export async function exportStudentProgress(classId: string) {
       return { success: false, error: "Failed to fetch student data" };
     }
 
+    // Helper: Normalize student data (handles array or single object)
+    function normalizeStudent(student: unknown): AuthUser | undefined {
+      if (Array.isArray(student)) {
+        return student[0] as AuthUser | undefined;
+      }
+      return (student as AuthUser | undefined) || undefined;
+    }
+
+    // Helper: Normalize knowledge state (handles array or single object)
+    function normalizeKnowledgeState(state: unknown): StudentKnowledgeState | undefined {
+      if (Array.isArray(state)) {
+        return state[0] as StudentKnowledgeState | undefined;
+      }
+      return (state as StudentKnowledgeState | undefined) || undefined;
+    }
+
     // Format for export
     const exportData = (students || []).map((enrollment: StudentEnrollment) => {
-      // Handle student array or single object
-      const studentArray = Array.isArray(enrollment.student)
-        ? enrollment.student
-        : enrollment.student
-          ? [enrollment.student]
-          : [];
-      const profile = studentArray[0] as AuthUser | undefined;
-
-      // Handle knowledge state array or single object
-      const state = Array.isArray(enrollment.student_knowledge_state)
-        ? enrollment.student_knowledge_state[0]
-        : enrollment.student_knowledge_state;
+      const profile = normalizeStudent(enrollment.student);
+      const state = normalizeKnowledgeState(enrollment.student_knowledge_state);
 
       // Sanitize user-generated content to prevent formula injection and XSS
       const sanitizeName = (name: unknown): string => {
