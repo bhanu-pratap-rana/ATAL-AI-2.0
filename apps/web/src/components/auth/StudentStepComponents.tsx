@@ -10,9 +10,9 @@ import { Button } from "@/components/ui/button";
 import type { UseAuthStateReturn } from "@/hooks/useAuthState";
 
 interface StepComponentProps {
-  loading: boolean;
-  actions: UseAuthStateReturn["actions"];
-  state: UseAuthStateReturn["state"];
+  readonly loading: boolean;
+  readonly actions: UseAuthStateReturn["actions"];
+  readonly state: UseAuthStateReturn["state"];
 }
 
 export function ChoiceStep({ actions }: StepComponentProps) {

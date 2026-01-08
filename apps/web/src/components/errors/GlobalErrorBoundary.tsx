@@ -12,7 +12,7 @@ import Link from "next/link";
 import { clientLogger } from "@/lib/client-logger";
 
 interface Props {
-  children: React.ReactNode;
+  readonly children: React.ReactNode;
 }
 
 interface State {

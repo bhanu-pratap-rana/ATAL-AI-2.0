@@ -11,7 +11,7 @@ import React from "react";
 import { clientLogger } from "@/lib/client-logger";
 
 interface Props {
-  children: React.ReactNode;
+  readonly children: React.ReactNode;
 }
 
 interface State {
