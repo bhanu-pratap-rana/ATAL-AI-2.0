@@ -95,6 +95,19 @@ export interface TutorChatResponse {
 }
 
 /**
+ * Get hint level based on attempt count
+ */
+function getHintLevelByAttempts(previousAttempts: number): string {
+  if (previousAttempts <= 1) {
+    return "gentle nudge";
+  }
+  if (previousAttempts <= 2) {
+    return "more specific hint";
+  }
+  return "clear guidance toward the answer";
+}
+
+/**
  * AI Tutor Service
  */
 export class TutorService {
@@ -335,12 +348,7 @@ Please provide encouraging feedback.`,
       2,
     );
 
-    const hintLevel =
-      params.previousAttempts <= 1
-        ? "gentle nudge"
-        : params.previousAttempts <= 2
-          ? "more specific hint"
-          : "clear guidance toward the answer";
+    const hintLevel = getHintLevelByAttempts(params.previousAttempts);
 
     const model = getAIModel("gemini");
 
