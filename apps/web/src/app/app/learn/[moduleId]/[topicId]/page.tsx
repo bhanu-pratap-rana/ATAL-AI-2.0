@@ -50,6 +50,47 @@ interface LessonContent {
   }>;
 }
 
+/**
+ * Section navigation button info
+ */
+interface SectionNavButton {
+  readonly label: string;
+  readonly onClick: () => void;
+  readonly className?: string;
+}
+
+/**
+ * Get next section navigation button based on section and question state
+ */
+function getNextSectionButton(
+  currentSection: number,
+  totalSections: number,
+  hasPracticeQuestions: boolean,
+  onNextSection: () => void,
+  onShowPractice: () => void,
+  onComplete: () => void,
+): SectionNavButton {
+  if (currentSection < totalSections - 1) {
+    return {
+      label: "Next →",
+      onClick: onNextSection,
+    };
+  }
+
+  if (hasPracticeQuestions) {
+    return {
+      label: "Practice Questions →",
+      onClick: onShowPractice,
+    };
+  }
+
+  return {
+    label: "Complete Lesson ✓",
+    onClick: onComplete,
+    className: "bg-success hover:bg-success-dark",
+  };
+}
+
 // Default content for topics without specific content in database
 const DEFAULT_LESSON: LessonContent = {
   title_en: "Lesson Content",
@@ -576,24 +617,25 @@ export default function LessonPage() {
                       ← Previous
                     </Button>
 
-                    {currentSection < lesson.sections.length - 1 ? (
-                      <Button
-                        onClick={() => setCurrentSection(currentSection + 1)}
-                      >
-                        Next →
-                      </Button>
-                    ) : lesson.practice_questions.length > 0 ? (
-                      <Button onClick={() => setShowPractice(true)}>
-                        Practice Questions →
-                      </Button>
-                    ) : (
-                      <Button
-                        onClick={handleComplete}
-                        className="bg-success hover:bg-success-dark"
-                      >
-                        Complete Lesson ✓
-                      </Button>
-                    )}
+                    {(() => {
+                      const navButton = getNextSectionButton(
+                        currentSection,
+                        lesson.sections.length,
+                        lesson.practice_questions.length > 0,
+                        () => setCurrentSection(currentSection + 1),
+                        () => setShowPractice(true),
+                        handleComplete,
+                      );
+
+                      return (
+                        <Button
+                          onClick={navButton.onClick}
+                          className={navButton.className}
+                        >
+                          {navButton.label}
+                        </Button>
+                      );
+                    })()}
                   </div>
                 </CardContent>
               </Card>
