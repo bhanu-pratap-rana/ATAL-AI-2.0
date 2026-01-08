@@ -10,6 +10,29 @@ import { formatTimeTidyCompact } from "@/lib/time-utils";
 
 const RESEND_COOLDOWN_SECONDS = 60; // 60 seconds cooldown
 
+/**
+ * Get resend button icon class
+ */
+function getResendIconClass(isResending: boolean): string {
+  return isResending ? "mr-2 h-4 w-4 animate-spin" : "mr-2 h-4 w-4";
+}
+
+/**
+ * Get resend button text based on state
+ */
+function getResendButtonText(
+  isResending: boolean,
+  resendCooldown: number,
+): string {
+  if (isResending) {
+    return "Sending...";
+  }
+  if (resendCooldown > 0) {
+    return `Resend OTP in ${formatTimeTidyCompact(resendCooldown)}`;
+  }
+  return "Resend OTP";
+}
+
 interface TeacherSignupEmailFlowProps {
   readonly email: string;
   readonly emailError: string;
@@ -208,14 +231,8 @@ export function TeacherSignupEmailFlow({
             size="sm"
             className="text-primary hover:text-primary-dark hover:bg-primary-light"
           >
-            <RefreshCw
-              className={`mr-2 h-4 w-4 ${isResending ? "animate-spin" : ""}`}
-            />
-            {isResending
-              ? "Sending..."
-              : resendCooldown > 0
-                ? `Resend OTP in ${formatTimeTidyCompact(resendCooldown)}`
-                : "Resend OTP"}
+            <RefreshCw className={getResendIconClass(isResending)} />
+            {getResendButtonText(isResending, resendCooldown)}
           </Button>
         </div>
 
