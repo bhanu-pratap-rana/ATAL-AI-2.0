@@ -15,6 +15,16 @@ import {
 import { Eye, EyeOff } from "lucide-react";
 
 /**
+ * Get password visibility toggle icon
+ */
+function getPasswordVisibilityIcon(isVisible: boolean): React.ReactNode {
+  if (isVisible) {
+    return <EyeOff className="w-4 h-4" />;
+  }
+  return <Eye className="w-4 h-4" />;
+}
+
+/**
  * PasswordValidationForm - Reusable password validation form
  * Handles password and confirm password input with validation
  * Reduces code duplication in auth flows
@@ -91,11 +101,7 @@ export function PasswordValidationForm({
             className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-primary"
             aria-label={showPassword ? "Hide password" : "Show password"}
           >
-            {showPassword ? (
-              <EyeOff className="w-4 h-4" />
-            ) : (
-              <Eye className="w-4 h-4" />
-            )}
+            {getPasswordVisibilityIcon(showPassword)}
           </button>
         </div>
         {showValidation && (
@@ -124,11 +130,7 @@ export function PasswordValidationForm({
             className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-primary"
             aria-label={showConfirm ? "Hide password" : "Show password"}
           >
-            {showConfirm ? (
-              <EyeOff className="w-4 h-4" />
-            ) : (
-              <Eye className="w-4 h-4" />
-            )}
+            {getPasswordVisibilityIcon(showConfirm)}
           </button>
         </div>
       </div>
