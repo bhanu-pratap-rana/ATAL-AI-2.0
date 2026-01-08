@@ -25,6 +25,27 @@ interface QuestionNavigationProps {
   readonly onNext: () => void;
 }
 
+/**
+ * Get next button text based on submission and question state
+ */
+function getNextButtonText(
+  isSubmitting: boolean,
+  isLastQuestion: boolean,
+  isReviewingHistory: boolean,
+  hasSelectedAnswer: boolean,
+): string {
+  if (isSubmitting) {
+    return "Submitting...";
+  }
+  if (isLastQuestion && !isReviewingHistory) {
+    return "Complete Assessment";
+  }
+  if (hasSelectedAnswer) {
+    return "Submit & Next";
+  }
+  return "Next";
+}
+
 export function QuestionNavigation({
   currentIndex,
   totalQuestions,
@@ -41,13 +62,12 @@ export function QuestionNavigation({
   const isLastQuestion = currentIndex >= totalQuestions - 1;
 
   // Determine button text based on state
-  const nextButtonText = isSubmitting
-    ? "Submitting..."
-    : isLastQuestion && !isReviewingHistory
-      ? "Complete Assessment"
-      : hasSelectedAnswer
-        ? "Submit & Next"
-        : "Next";
+  const nextButtonText = getNextButtonText(
+    isSubmitting,
+    isLastQuestion,
+    isReviewingHistory,
+    hasSelectedAnswer,
+  );
 
   return (
     <div className="mt-6">
