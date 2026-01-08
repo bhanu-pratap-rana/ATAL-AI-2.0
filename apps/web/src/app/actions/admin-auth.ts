@@ -68,7 +68,7 @@ export async function createAdminUser(
     if (!emailValidation.success) {
       return { success: false, error: emailValidation.error };
     }
-    const normalizedEmail = emailValidation.data;
+    const normalizedEmail = emailValidation.data!;
 
     const passwordValidation = validateInput(password, AdminPasswordSchema);
     if (!passwordValidation.success) {

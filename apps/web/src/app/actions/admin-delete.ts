@@ -57,7 +57,7 @@ export async function deleteUserByEmail(
     if (!validation.success) {
       return { success: false, error: validation.error };
     }
-    const normalizedEmail = validation.data;
+    const normalizedEmail = validation.data!;
 
     // SECURITY: Verify caller is authenticated and authorized as super_admin
     const auth = await verifySuperAdminAuth("deleteUserByEmail");
