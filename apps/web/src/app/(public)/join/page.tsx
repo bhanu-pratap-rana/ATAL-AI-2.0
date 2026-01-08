@@ -614,8 +614,8 @@ function JoinPageContent() {
   if (authState === "authenticated" && authMethod === "complete") {
     return (
       <JoinClassForm
-        initialCode={codeFromUrl}
-        initialPin={pinFromUrl}
+        initialCode={codeFromUrl || undefined}
+        initialPin={pinFromUrl || undefined}
       />
     );
   }

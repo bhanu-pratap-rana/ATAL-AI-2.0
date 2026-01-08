@@ -6,7 +6,7 @@ import { checkAdminOperationRateLimit } from "@/lib/rate-limiter-distributed";
 import { isAdmin } from "@/lib/auth/role-utils";
 import { AdminEmailSchema } from "@/lib/validation-schemas";
 import { findAuthUserByEmail } from "@/lib/admin-utils";
-import { validateInput, handleActionError, ActionResult } from "./action-utils";
+import { validateInput, handleActionError } from "./action-utils";
 
 export interface SetAdminRoleResult {
   success: boolean;
@@ -28,7 +28,7 @@ export async function setAdminRole(email: string): Promise<SetAdminRoleResult> {
     if (!validation.success) {
       return { success: false, error: validation.error };
     }
-    const normalizedEmail = validation.data;
+    const normalizedEmail = validation.data!;
 
     // SECURITY: Verify caller is authenticated and authorized as super_admin
     const auth = await verifySuperAdminAuth("setAdminRole");
@@ -117,12 +117,13 @@ export async function checkAdminRoleByEmail(email: string): Promise<{
     if (!validation.success) {
       return { hasAdminRole: false, error: validation.error };
     }
-    const normalizedEmail = validation.data;
+    const normalizedEmail = validation.data!;
 
     // SECURITY: Rate limit admin operations to prevent abuse
     // Use email as identifier since this is a lookup operation
-    const roleLookupAllowed =
-      await checkAdminOperationRateLimit(normalizedEmail);
+    const roleLookupAllowed = await checkAdminOperationRateLimit(
+      normalizedEmail,
+    );
     if (!roleLookupAllowed) {
       authLogger.warn("[checkAdminRoleByEmail] Rate limit exceeded", {
         email: normalizedEmail,

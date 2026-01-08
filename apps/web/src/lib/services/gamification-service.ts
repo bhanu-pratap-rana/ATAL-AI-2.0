@@ -520,7 +520,7 @@ export class GamificationService {
         .order("created_at", { ascending: false })
         .limit(limit);
 
-      return (data as PointsEntry[]) ?? [];
+      return (data as unknown as PointsEntry[]) ?? [];
     } catch (error) {
       authLogger.error(
         "[Gamification] Error getting points history:",
