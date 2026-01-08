@@ -44,7 +44,7 @@ function getSkillLevel(score: number | null): { label: string; color: string } {
 }
 
 interface PageProps {
-  params: Promise<{ classId: string }>;
+  readonly params: Promise<{ classId: string }>;
 }
 
 export default async function ClassAssessmentResultsPage({

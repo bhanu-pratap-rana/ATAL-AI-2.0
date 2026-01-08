@@ -74,9 +74,8 @@ export class ConnectionPoolMonitor {
       // Try to get connection stats via RPC if function exists
       try {
         const supabase = this.getSupabaseClient();
-        const { data, error } = await (
-          supabase as any
-        ).rpc("get_connection_stats", {});
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase RPC typing
+        const { data, error } = await (supabase as any).rpc("get_connection_stats", {});
 
         if (error) {
           authLogger.debug("Connection stats RPC not available", {

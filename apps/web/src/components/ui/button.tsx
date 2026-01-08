@@ -76,9 +76,9 @@ export interface ButtonProps
   extends
     Omit<HTMLMotionProps<"button">, "ref" | "children">,
     VariantProps<typeof buttonVariants> {
-  asChild?: boolean;
-  loading?: boolean;
-  children?: React.ReactNode;
+  readonly asChild?: boolean;
+  readonly loading?: boolean;
+  readonly children?: React.ReactNode;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(

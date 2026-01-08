@@ -21,8 +21,8 @@ const THEME = {
 } as const;
 
 interface GlobalErrorProps {
-  error: Error & { digest?: string };
-  reset: () => void;
+  readonly error: Error & { digest?: string };
+  readonly reset: () => void;
 }
 
 export default function GlobalError({ error, reset }: GlobalErrorProps) {

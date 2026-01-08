@@ -14,9 +14,9 @@ import { AuthCard } from "@/components/auth/AuthCard";
 import { validatePassword } from "@/lib/validation-utils";
 
 interface StepComponentProps {
-  loading: boolean;
-  setStep: (step: string) => void;
-  router: ReturnType<typeof useRouter>;
+  readonly loading: boolean;
+  readonly setStep: (step: string) => void;
+  readonly router: ReturnType<typeof useRouter>;
 }
 
 export function ChoiceStep({ setStep, router }: StepComponentProps) {
@@ -81,13 +81,13 @@ export function ChoiceStep({ setStep, router }: StepComponentProps) {
 }
 
 interface LoginStepProps extends StepComponentProps {
-  loginEmail: string;
-  setLoginEmail: (email: string) => void;
-  loginPassword: string;
-  setLoginPassword: (password: string) => void;
-  loginError: string;
-  handleTeacherLogin: (e: React.FormEvent) => Promise<void>;
-  setForgotEmail: (email: string) => void;
+  readonly loginEmail: string;
+  readonly setLoginEmail: (email: string) => void;
+  readonly loginPassword: string;
+  readonly setLoginPassword: (password: string) => void;
+  readonly loginError: string;
+  readonly handleTeacherLogin: (e: React.FormEvent) => Promise<void>;
+  readonly setForgotEmail: (email: string) => void;
 }
 
 export function LoginStep({
@@ -200,12 +200,12 @@ export function CompleteStep({}: StepComponentProps) {
 }
 
 interface SetPasswordStepProps extends StepComponentProps {
-  password: string;
-  passwordConfirm: string;
-  passwordStrength: number;
-  handlePasswordChange: (value: string) => void;
-  setPasswordConfirm: (value: string) => void;
-  handleSetPassword: (e: React.FormEvent) => Promise<void>;
+  readonly password: string;
+  readonly passwordConfirm: string;
+  readonly passwordStrength: number;
+  readonly handlePasswordChange: (value: string) => void;
+  readonly setPasswordConfirm: (value: string) => void;
+  readonly handleSetPassword: (e: React.FormEvent) => Promise<void>;
 }
 
 export function SetPasswordStep({
@@ -326,11 +326,11 @@ export function SetPasswordStep({
 }
 
 interface VerifySchoolStepProps extends StepComponentProps {
-  schoolCode: string;
-  setSchoolCode: (value: string) => void;
-  staffPin: string;
-  setStaffPin: (value: string) => void;
-  handleSchoolVerification: (e: React.FormEvent) => Promise<void>;
+  readonly schoolCode: string;
+  readonly setSchoolCode: (value: string) => void;
+  readonly staffPin: string;
+  readonly setStaffPin: (value: string) => void;
+  readonly handleSchoolVerification: (e: React.FormEvent) => Promise<void>;
 }
 
 export function VerifySchoolStep({
@@ -407,18 +407,18 @@ export function VerifySchoolStep({
 }
 
 interface ProfileStepProps extends StepComponentProps {
-  verifiedSchoolName: string;
-  schoolCode: string;
-  teacherName: string;
-  setTeacherName: (value: string) => void;
-  teacherGender: "male" | "female" | "";
-  setTeacherGender: (value: "male" | "female") => void;
-  phone: string;
-  setPhone: (value: string) => void;
-  village: string;
-  setVillage: (value: string) => void;
-  handleProfileSubmit: (e: React.FormEvent) => Promise<void>;
-  sanitizeProfilePhone: (value: string) => string;
+  readonly verifiedSchoolName: string;
+  readonly schoolCode: string;
+  readonly teacherName: string;
+  readonly setTeacherName: (value: string) => void;
+  readonly teacherGender: "male" | "female" | "";
+  readonly setTeacherGender: (value: "male" | "female") => void;
+  readonly phone: string;
+  readonly setPhone: (value: string) => void;
+  readonly village: string;
+  readonly setVillage: (value: string) => void;
+  readonly handleProfileSubmit: (e: React.FormEvent) => Promise<void>;
+  readonly sanitizeProfilePhone: (value: string) => string;
 }
 
 export function ProfileStep({
@@ -546,27 +546,27 @@ export function ProfileStep({
 }
 
 interface AuthStepProps extends StepComponentProps {
-  signupMethod: "email" | "phone";
-  setSignupMethod: (method: "email" | "phone") => void;
-  email: string;
-  setEmail: (value: string) => void;
-  emailError: string;
-  setEmailError: (value: string) => void;
-  emailSuggestion: string;
-  otp: string;
-  setOtp: (value: string) => void;
-  otpSent: boolean;
-  setOtpSent: (sent: boolean) => void;
-  phoneNumber: string;
-  setPhoneNumber: (value: string) => void;
-  phoneError: string;
-  setPhoneError: (value: string) => void;
-  phoneOtp: string;
-  setPhoneOtp: (value: string) => void;
-  phoneOtpSent: boolean;
-  setPhoneOtpSent: (sent: boolean) => void;
-  handleSendOTP: (e: React.FormEvent) => Promise<void>;
-  handleVerifyOTP: (e: React.FormEvent) => Promise<void>;
+  readonly signupMethod: "email" | "phone";
+  readonly setSignupMethod: (method: "email" | "phone") => void;
+  readonly email: string;
+  readonly setEmail: (value: string) => void;
+  readonly emailError: string;
+  readonly setEmailError: (value: string) => void;
+  readonly emailSuggestion: string;
+  readonly otp: string;
+  readonly setOtp: (value: string) => void;
+  readonly otpSent: boolean;
+  readonly setOtpSent: (sent: boolean) => void;
+  readonly phoneNumber: string;
+  readonly setPhoneNumber: (value: string) => void;
+  readonly phoneError: string;
+  readonly setPhoneError: (value: string) => void;
+  readonly phoneOtp: string;
+  readonly setPhoneOtp: (value: string) => void;
+  readonly phoneOtpSent: boolean;
+  readonly setPhoneOtpSent: (sent: boolean) => void;
+  readonly handleSendOTP: (e: React.FormEvent) => Promise<void>;
+  readonly handleVerifyOTP: (e: React.FormEvent) => Promise<void>;
 }
 
 export function AuthStep({
@@ -871,10 +871,10 @@ export function AuthStep({
 }
 
 interface ForgotPasswordRequestStepProps extends StepComponentProps {
-  forgotEmail: string;
-  setForgotEmail: (value: string) => void;
-  handleForgotPasswordOtp: (e: React.FormEvent) => Promise<void>;
-  setForgotOtpSent: (sent: boolean) => void;
+  readonly forgotEmail: string;
+  readonly setForgotEmail: (value: string) => void;
+  readonly handleForgotPasswordOtp: (e: React.FormEvent) => Promise<void>;
+  readonly setForgotOtpSent: (sent: boolean) => void;
 }
 
 export function ForgotPasswordRequestStep({
@@ -938,17 +938,17 @@ export function ForgotPasswordRequestStep({
 }
 
 interface ForgotPasswordResetStepProps extends StepComponentProps {
-  forgotEmail: string;
-  forgotOtp: string;
-  setForgotOtp: (value: string) => void;
-  forgotNewPassword: string;
-  setForgotNewPassword: (value: string) => void;
-  forgotConfirmPassword: string;
-  setForgotConfirmPassword: (value: string) => void;
-  handleResetPassword: (e: React.FormEvent) => Promise<void>;
-  handleForgotPasswordOtp: (e: React.FormEvent) => Promise<void>;
-  setForgotOtpSent: (sent: boolean) => void;
-  setForgotEmail: (value: string) => void;
+  readonly forgotEmail: string;
+  readonly forgotOtp: string;
+  readonly setForgotOtp: (value: string) => void;
+  readonly forgotNewPassword: string;
+  readonly setForgotNewPassword: (value: string) => void;
+  readonly forgotConfirmPassword: string;
+  readonly setForgotConfirmPassword: (value: string) => void;
+  readonly handleResetPassword: (e: React.FormEvent) => Promise<void>;
+  readonly handleForgotPasswordOtp: (e: React.FormEvent) => Promise<void>;
+  readonly setForgotOtpSent: (sent: boolean) => void;
+  readonly setForgotEmail: (value: string) => void;
 }
 
 export function ForgotPasswordResetStep({
