@@ -23,6 +23,27 @@ function getAlertClassName(level: string): string {
   }
 }
 
+/**
+ * Utilization color info based on percentage
+ */
+interface UtilizationColors {
+  readonly textClass: string;
+  readonly barClass: string;
+}
+
+/**
+ * Get utilization colors based on percentage threshold
+ */
+function getUtilizationColors(percent: number): UtilizationColors {
+  if (percent > 85) {
+    return { textClass: "text-red-600", barClass: "bg-red-500" };
+  }
+  if (percent > 70) {
+    return { textClass: "text-orange-600", barClass: "bg-orange-500" };
+  }
+  return { textClass: "text-green-600", barClass: "bg-green-500" };
+}
+
 export default function PerformanceMonitoringPage() {
   const [stats, setStats] = useState(queryMonitor.getStats());
   const [slowQueries, setSlowQueries] = useState(
@@ -162,13 +183,7 @@ export default function PerformanceMonitoringPage() {
                 <p className="text-sm text-gray-600 mb-2">Utilization</p>
                 <div className="flex items-center gap-2">
                   <p
-                    className={`text-2xl font-bold ${
-                      poolMetrics.utilizationPercent > 85
-                        ? "text-red-600"
-                        : poolMetrics.utilizationPercent > 70
-                          ? "text-orange-600"
-                          : "text-green-600"
-                    }`}
+                    className={`text-2xl font-bold ${getUtilizationColors(poolMetrics.utilizationPercent).textClass}`}
                   >
                     {poolMetrics.utilizationPercent.toFixed(1)}%
                   </p>
@@ -180,13 +195,7 @@ export default function PerformanceMonitoringPage() {
             <div className="mt-6">
               <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
                 <div
-                  className={`h-full transition-all ${
-                    poolMetrics.utilizationPercent > 85
-                      ? "bg-red-500"
-                      : poolMetrics.utilizationPercent > 70
-                        ? "bg-orange-500"
-                        : "bg-green-500"
-                  }`}
+                  className={`h-full transition-all ${getUtilizationColors(poolMetrics.utilizationPercent).barClass}`}
                   style={{ width: `${poolMetrics.utilizationPercent}%` }}
                 />
               </div>
