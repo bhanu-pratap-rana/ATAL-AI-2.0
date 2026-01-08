@@ -140,6 +140,7 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
         actions.setIsLoading(false);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [state.signinEmailAddress, state.signinEmailPassword, actions, router],
   );
 
@@ -197,6 +198,7 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
         actions.setIsLoading(false);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [signinPhoneInput.fullValue, state.signinPhonePassword, actions, router],
   );
 

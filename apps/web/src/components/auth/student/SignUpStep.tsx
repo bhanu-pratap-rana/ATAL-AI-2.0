@@ -320,6 +320,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
         actions.setIsLoading(false);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [signupPhoneInput.fullValue, signupPhoneOtpInput.value, actions],
   );
 
@@ -376,7 +377,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
         actions.setIsLoading(false);
       }
     },
-    [state.signupUsername, state.signupUsernamePassword, supabase, actions],
+    [state.signupUsername, state.signupUsernamePassword, actions],
   );
 
   return (
