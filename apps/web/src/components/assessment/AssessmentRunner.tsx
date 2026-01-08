@@ -513,7 +513,7 @@ export function AssessmentRunner({
         handleNext();
       }
 
-      const num = parseInt(e.key);
+      const num = Number.parseInt(e.key);
       if (num >= 1 && num <= shuffledOptions.length) {
         e.preventDefault();
         handleOptionSelect(num - 1);

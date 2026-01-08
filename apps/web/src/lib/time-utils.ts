@@ -107,9 +107,9 @@ export function parseDuration(durationString: string): number {
   const secondMatch = durationString.match(/(\d+)s/);
 
   let totalSeconds = 0;
-  if (hourMatch) totalSeconds += parseInt(hourMatch[1]) * 3600;
-  if (minuteMatch) totalSeconds += parseInt(minuteMatch[1]) * 60;
-  if (secondMatch) totalSeconds += parseInt(secondMatch[1]);
+  if (hourMatch) totalSeconds += Number.parseInt(hourMatch[1]) * 3600;
+  if (minuteMatch) totalSeconds += Number.parseInt(minuteMatch[1]) * 60;
+  if (secondMatch) totalSeconds += Number.parseInt(secondMatch[1]);
 
   return totalSeconds;
 }

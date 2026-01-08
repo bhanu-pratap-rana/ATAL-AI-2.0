@@ -110,7 +110,7 @@ export default async function ProgressPage() {
             </CardHeader>
             <CardContent>
               <p className="text-3xl md:text-4xl font-bold text-success-dark">
-                {stats?.averageScore != null ? `${stats.averageScore}%` : "--"}
+                {stats?.averageScore !== null ? `${stats.averageScore}%` : "--"}
               </p>
               <p className="text-xs text-text-secondary mt-1">
                 Across all attempts

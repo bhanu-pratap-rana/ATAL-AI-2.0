@@ -68,8 +68,8 @@ export async function checkEmailExistsInAuth(email: string): Promise<{
       .eq("user_id", userId)
       .maybeSingle();
 
-    const hasStudentProfile = studentProfile != null;
-    const hasTeacherProfile = teacherProfile != null;
+    const hasStudentProfile = studentProfile !== null;
+    const hasTeacherProfile = teacherProfile !== null;
 
     // Determine role based on profiles and app_metadata
     let role: "student" | "teacher" | "admin" | "super_admin" | "unknown" =
@@ -144,7 +144,7 @@ export async function checkUserIsTeacher(): Promise<{
     }
 
     return {
-      isTeacher: teacherProfile != null,
+      isTeacher: teacherProfile !== null,
       userId: user.id,
     };
   } catch (error) {
