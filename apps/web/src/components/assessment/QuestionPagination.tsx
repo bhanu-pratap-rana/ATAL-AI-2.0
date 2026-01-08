@@ -93,6 +93,14 @@ export function QuestionPagination({
     }
   };
 
+  // Get arrow button styling based on navigation state
+  const getArrowButtonClass = (canNavigate: boolean): string => {
+    if (canNavigate) {
+      return "text-text-secondary hover:text-primary hover:bg-primary-lighter cursor-pointer";
+    }
+    return "text-text-muted cursor-not-allowed";
+  };
+
   return (
     <div
       className="flex items-center justify-center gap-2"
@@ -107,11 +115,7 @@ export function QuestionPagination({
         className={`
           w-8 h-8 flex items-center justify-center rounded-full
           transition-colors duration-200
-          ${
-            canShiftLeft || currentIndex > 0
-              ? "text-text-secondary hover:text-primary hover:bg-primary-lighter cursor-pointer"
-              : "text-text-muted cursor-not-allowed"
-          }
+          ${getArrowButtonClass(canShiftLeft || currentIndex > 0)}
         `}
         aria-label="Previous questions"
       >
@@ -170,11 +174,7 @@ export function QuestionPagination({
         className={`
           w-8 h-8 flex items-center justify-center rounded-full
           transition-colors duration-200
-          ${
-            canShiftRight || currentIndex < historyLength
-              ? "text-text-secondary hover:text-primary hover:bg-primary-lighter cursor-pointer"
-              : "text-text-muted cursor-not-allowed"
-          }
+          ${getArrowButtonClass(canShiftRight || currentIndex < historyLength)}
         `}
         aria-label="Next questions"
       >
