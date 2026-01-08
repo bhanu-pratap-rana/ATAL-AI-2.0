@@ -205,6 +205,36 @@ function groupBySession(interactions: AIInteraction[]): Session[] {
     .slice(0, 10);
 }
 
+/**
+ * Get CSS classes for message box based on role
+ */
+function getMessageBoxClass(messageRole: "user" | "assistant" | "system"): string {
+  switch (messageRole) {
+    case "user":
+      return "bg-primary/10 ml-8";
+    case "assistant":
+      return "bg-muted mr-8";
+    case "system":
+      return "bg-warning/10 text-xs";
+  }
+}
+
+/**
+ * Get label and emoji for message role
+ */
+function getMessageRoleLabel(
+  messageRole: "user" | "assistant" | "system",
+): string {
+  switch (messageRole) {
+    case "user":
+      return "🧑‍🎓 Student";
+    case "assistant":
+      return "🤖 ATAL AI";
+    case "system":
+      return "⚙️ System";
+  }
+}
+
 function SessionCard({ session }: { readonly session: Session }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -279,21 +309,11 @@ function SessionCard({ session }: { readonly session: Session }) {
               .map((message) => (
                 <div
                   key={message.id}
-                  className={`p-2 rounded-lg text-sm ${
-                    message.message_role === "user"
-                      ? "bg-primary/10 ml-8"
-                      : message.message_role === "assistant"
-                        ? "bg-muted mr-8"
-                        : "bg-warning/10 text-xs"
-                  }`}
+                  className={`p-2 rounded-lg text-sm ${getMessageBoxClass(message.message_role)}`}
                 >
                   <div className="flex items-center gap-1 mb-1">
                     <span className="font-medium text-xs">
-                      {message.message_role === "user"
-                        ? "🧑‍🎓 Student"
-                        : message.message_role === "assistant"
-                          ? "🤖 ATAL AI"
-                          : "⚙️ System"}
+                      {getMessageRoleLabel(message.message_role)}
                     </span>
                     {message.input_mode === "voice" && (
                       <span className="text-xs text-muted-foreground">🎤</span>
