@@ -7,6 +7,31 @@ import { TeacherProfileEditor } from "@/components/settings/TeacherProfileEditor
 import { DeleteAccountButton } from "@/components/settings/DeleteAccountButton";
 import Link from "next/link";
 
+/**
+ * Navigation details based on user role
+ */
+interface BackNavigation {
+  readonly href: string;
+  readonly label: string;
+}
+
+/**
+ * Get back navigation based on user role
+ */
+function getBackNavigation(isTeacherOrAdmin: boolean): BackNavigation {
+  if (isTeacherOrAdmin) {
+    return {
+      href: "/app/teacher/classes",
+      label: "Back to Classes",
+    };
+  }
+
+  return {
+    href: "/app/dashboard",
+    label: "Back to Dashboard",
+  };
+}
+
 export default async function SettingsPage() {
   const supabase = await createClient();
   const {
@@ -83,12 +108,17 @@ export default async function SettingsPage() {
       <div className="container-responsive max-w-4xl">
         {/* Header */}
         <div className="mb-responsive">
-          <Link
-            href={isTeacherOrAdmin ? "/app/teacher/classes" : "/app/dashboard"}
-            className="text-primary hover:text-primary-dark mb-4 inline-flex items-center gap-1 text-sm md:text-base touch-target"
-          >
-            ← {isTeacherOrAdmin ? "Back to Classes" : "Back to Dashboard"}
-          </Link>
+          {(() => {
+            const nav = getBackNavigation(isTeacherOrAdmin);
+            return (
+              <Link
+                href={nav.href}
+                className="text-primary hover:text-primary-dark mb-4 inline-flex items-center gap-1 text-sm md:text-base touch-target"
+              >
+                ← {nav.label}
+              </Link>
+            );
+          })()}
           <h1 className="heading-1 text-primary mb-2">Profile</h1>
           <p className="text-text-secondary text-sm md:text-base">
             View and manage your profile information
