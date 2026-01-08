@@ -108,6 +108,40 @@ export async function fetchPaginatedWithCursor<T>(
 }
 
 /**
+ * Type guard: Check if item has created_at field and return its value
+ */
+function getCreatedAt(item: unknown): string | undefined {
+  if (item && typeof item === "object" && "created_at" in item) {
+    return (item as { created_at?: string }).created_at;
+  }
+  return undefined;
+}
+
+/**
+ * Helper: Check if item was created after snapshot time
+ */
+function isAfterSnapshot(item: unknown, snapshotTime: string): boolean {
+  const createdAt = getCreatedAt(item);
+  return createdAt ? createdAt > snapshotTime : false;
+}
+
+/**
+ * Helper: Find and truncate allData at snapshot boundary
+ */
+function truncateAtSnapshot(
+  allData: unknown[],
+  snapshotTime: string,
+): number {
+  const snapshotIndex = allData.findIndex((item) =>
+    isAfterSnapshot(item, snapshotTime),
+  );
+  if (snapshotIndex >= 0) {
+    allData.length = snapshotIndex;
+  }
+  return snapshotIndex;
+}
+
+/**
  * Fetch all data with snapshot isolation
  * Uses timestamp to ensure consistent view across all pages
  *
@@ -142,32 +176,12 @@ export async function fetchAllWithSnapshot<T>(
       allData.push(...result.data);
       cursor = result.nextCursor;
 
-      // Only fetch items created before snapshot time
+      // Check if we've gone past snapshot time
       if (result.data.length > 0) {
-        const lastItem = result.data[result.data.length - 1];
-        // Type-safe created_at check
-        if (
-          lastItem &&
-          typeof lastItem === "object" &&
-          "created_at" in lastItem
-        ) {
-          const createdAt = (lastItem as { created_at?: string }).created_at;
-          if (createdAt && createdAt > snapshotTime) {
-            // We've gone past the snapshot time, remove items after snapshot
-            const snapshotIndex = allData.findIndex((item) => {
-              if (item && typeof item === "object" && "created_at" in item) {
-                const itemCreatedAt = (item as { created_at?: string })
-                  .created_at;
-                return itemCreatedAt && itemCreatedAt > snapshotTime;
-              }
-              return false;
-            });
-            if (snapshotIndex >= 0) {
-              allData.length = snapshotIndex;
-            }
-            hasMore = false;
-            break;
-          }
+        const lastItem = result.data.at(-1);
+        if (lastItem && isAfterSnapshot(lastItem, snapshotTime)) {
+          truncateAtSnapshot(allData, snapshotTime);
+          break;
         }
       }
 
