@@ -34,6 +34,48 @@ const itemVariants = {
   visible: { opacity: 1, y: 0 },
 };
 
+/**
+ * Get display name with fallback chain
+ */
+function getUserDisplayName(
+  profileName: string | null,
+  user: User | null,
+): string {
+  return (
+    profileName ||
+    user?.user_metadata?.full_name ||
+    user?.app_metadata?.full_name ||
+    user?.email?.split("@")[0] ||
+    "User"
+  );
+}
+
+/**
+ * Get welcome messages based on user role
+ */
+interface WelcomeMessages {
+  readonly greeting: string;
+  readonly description: string;
+}
+
+function getWelcomeMessages(
+  isTeacherOrAdmin: boolean,
+  userName: string,
+): WelcomeMessages {
+  if (isTeacherOrAdmin) {
+    return {
+      greeting: `Welcome, ${userName}!`,
+      description:
+        "Manage your classes and track student progress from your dashboard.",
+    };
+  }
+
+  return {
+    greeting: `Hello, ${userName}!`,
+    description: "Explore your classes and start your learning journey.",
+  };
+}
+
 // Feature card data
 const getFeatureCards = (isTeacher: boolean) => [
   {
@@ -149,12 +191,7 @@ export default function DashboardPage() {
   const isTeacherOrAdmin = isTeacherOrHigher(appRole);
 
   // Use profile name if available, otherwise fall back to user metadata or email
-  const userName =
-    profileName ||
-    user?.user_metadata?.full_name ||
-    user?.app_metadata?.full_name ||
-    user?.email?.split("@")[0] ||
-    "User";
+  const userName = getUserDisplayName(profileName, user);
 
   useEffect(() => {
     async function getUserAndProfile() {
@@ -294,16 +331,19 @@ export default function DashboardPage() {
           >
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
-                <h2 className="text-2xl md:text-3xl font-bold mb-1 text-white drop-shadow-sm">
-                  {isTeacherOrAdmin
-                    ? `Welcome, ${userName}!`
-                    : `Hello, ${userName}!`}
-                </h2>
-                <p className="text-sm md:text-base text-white/90">
-                  {isTeacherOrAdmin
-                    ? "Manage your classes and track student progress from your dashboard."
-                    : "Explore your classes and start your learning journey."}
-                </p>
+                {(() => {
+                  const messages = getWelcomeMessages(isTeacherOrAdmin, userName);
+                  return (
+                    <>
+                      <h2 className="text-2xl md:text-3xl font-bold mb-1 text-white drop-shadow-sm">
+                        {messages.greeting}
+                      </h2>
+                      <p className="text-sm md:text-base text-white/90">
+                        {messages.description}
+                      </p>
+                    </>
+                  );
+                })()}
               </div>
               {isTeacherOrAdmin && (
                 <Button
