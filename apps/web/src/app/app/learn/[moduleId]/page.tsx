@@ -515,6 +515,18 @@ export default async function ModuleTopicsPage({
     return "bg-error";
   };
 
+  /**
+   * Helper: Get topic status circle color based on completion status
+   */
+  const getTopicStatusCircleClass = (
+    isComplete: boolean,
+    isInProgress: boolean,
+  ): string => {
+    if (isComplete) return "bg-success text-white";
+    if (isInProgress) return "bg-warning text-white";
+    return "bg-muted text-muted-foreground";
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 p-4 md:p-6">
       <div className="max-w-4xl mx-auto space-y-6">
@@ -593,13 +605,7 @@ export default async function ModuleTopicsPage({
                     <div className="flex items-center gap-4">
                       {/* Topic Number */}
                       <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-                          isComplete
-                            ? "bg-success text-white"
-                            : isInProgress
-                              ? "bg-warning text-white"
-                              : "bg-muted text-muted-foreground"
-                        }`}
+                        className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${getTopicStatusCircleClass(isComplete, isInProgress)}`}
                       >
                         {isComplete ? "✓" : index + 1}
                       </div>
