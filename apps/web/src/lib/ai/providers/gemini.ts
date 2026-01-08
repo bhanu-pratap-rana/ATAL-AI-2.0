@@ -48,8 +48,8 @@ export type AIProviderType = "gemini" | "groq";
 export function getAIModel(preferredProvider: AIProviderType = "gemini") {
   // Check if Gemini API key is available
   const hasGeminiKey =
-    !!process.env.GEMINI_API_KEY || !!process.env.GOOGLE_GENERATIVE_AI_API_KEY;
-  const hasGroqKey = !!process.env.GROQ_API_KEY;
+    Boolean(process.env.GEMINI_API_KEY) || Boolean(process.env.GOOGLE_GENERATIVE_AI_API_KEY);
+  const hasGroqKey = Boolean(process.env.GROQ_API_KEY);
 
   // Use Gemini if preferred and available
   if (preferredProvider === "gemini" && hasGeminiKey) {
@@ -74,8 +74,8 @@ export async function getModelWithFallback(): Promise<{
   provider: AIProviderType;
 }> {
   const hasGeminiKey =
-    !!process.env.GEMINI_API_KEY || !!process.env.GOOGLE_GENERATIVE_AI_API_KEY;
-  const hasGroqKey = !!process.env.GROQ_API_KEY;
+    Boolean(process.env.GEMINI_API_KEY) || Boolean(process.env.GOOGLE_GENERATIVE_AI_API_KEY);
+  const hasGroqKey = Boolean(process.env.GROQ_API_KEY);
 
   if (hasGeminiKey) {
     return { model: geminiProvider, provider: "gemini" };

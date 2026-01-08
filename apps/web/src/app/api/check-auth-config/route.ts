@@ -71,7 +71,7 @@ export async function GET() {
         mailer_autoconfirm: settings.mailer_autoconfirm,
         phone_autoconfirm: settings.phone_autoconfirm,
         email_provider_configured:
-          !!settings.smtp_host || !!settings.mailer_provider,
+          Boolean(settings.smtp_host) || Boolean(settings.mailer_provider),
       },
       // Don't expose supabaseUrl in response - already public in client config
       hasAnonKey: true,

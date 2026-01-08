@@ -74,7 +74,7 @@ export function VoiceChat({
       SpeechRecognition?: new () => SpeechRecognition;
       webkitSpeechRecognition?: new () => SpeechRecognition;
     };
-    return !!(global.SpeechRecognition || global.webkitSpeechRecognition);
+    return Boolean(global.SpeechRecognition || global.webkitSpeechRecognition);
   }, []);
 
   useEffect(() => {

@@ -128,11 +128,11 @@ export function useOfflineSync() {
         }
 
         const queueId = await enqueueChatMessage(payload);
-        setIsOfflineQueued(!!queueId);
+        setIsOfflineQueued(Boolean(queueId));
 
         return {
           success: true,
-          queued: !!queueId,
+          queued: Boolean(queueId),
           queueId,
         };
       } catch (error) {
@@ -160,11 +160,11 @@ export function useOfflineSync() {
         }
 
         const queueId = await enqueuePointsAward(payload);
-        setIsOfflineQueued(!!queueId);
+        setIsOfflineQueued(Boolean(queueId));
 
         return {
           success: true,
-          queued: !!queueId,
+          queued: Boolean(queueId),
           queueId,
         };
       } catch (error) {
@@ -189,11 +189,11 @@ export function useOfflineSync() {
         }
 
         const queueId = await enqueueProgressUpdate(payload);
-        setIsOfflineQueued(!!queueId);
+        setIsOfflineQueued(Boolean(queueId));
 
         return {
           success: true,
-          queued: !!queueId,
+          queued: Boolean(queueId),
           queueId,
         };
       } catch (error) {
