@@ -48,6 +48,13 @@ function formatRelativeTime(timestamp: number): string {
 }
 
 /**
+ * Get badge count display (caps at 9+)
+ */
+function getBadgeCountDisplay(count: number): string | number {
+  return count > 9 ? "9+" : count;
+}
+
+/**
  * Sync Status Indicator Component
  *
  * Shows the current sync status with:
@@ -157,7 +164,7 @@ export function SyncStatusIndicator({
               <span className={color}>{icon}</span>
               {hasBadge && (
                 <span className="absolute -top-1 -right-1 bg-warning text-warning-foreground text-[10px] rounded-full h-4 w-4 flex items-center justify-center font-medium">
-                  {status.pendingCount > 9 ? "9+" : status.pendingCount}
+                  {getBadgeCountDisplay(status.pendingCount)}
                 </span>
               )}
             </div>
