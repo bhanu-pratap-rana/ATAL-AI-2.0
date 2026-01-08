@@ -302,6 +302,18 @@ export default function LessonPage() {
     return "bg-muted";
   };
 
+  // Helper: Get input placeholder text by language
+  const getInputPlaceholder = (): string => {
+    switch (language) {
+      case "as":
+        return "আপোনাৰ প্ৰশ্ন লিখক...";
+      case "hi":
+        return "अपना प्रश्न टाइप करें...";
+      default:
+        return "Type your question...";
+    }
+  };
+
   const handlePracticeSubmit = async () => {
     setPracticeSubmitted(true);
 
@@ -685,13 +697,7 @@ export default function LessonPage() {
                     type="text"
                     value={input}
                     onChange={handleInputChange}
-                    placeholder={
-                      language === "as"
-                        ? "আপোনাৰ প্ৰশ্ন লিখক..."
-                        : language === "hi"
-                          ? "अपना प्रश्न टाइप करें..."
-                          : "Type your question..."
-                    }
+                    placeholder={getInputPlaceholder()}
                     className="flex-1 rounded-md border bg-background px-3 py-2 text-sm"
                   />
                   <Button type="submit" disabled={!input.trim() || isLoading}>
