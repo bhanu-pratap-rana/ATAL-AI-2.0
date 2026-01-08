@@ -23,6 +23,16 @@ function getLanguageName(lang: "en" | "hi" | "as"): string {
   }
 }
 
+/**
+ * Get selector button styling based on active state
+ */
+function getSelectorButtonClass(isActive: boolean): string {
+  if (isActive) {
+    return "bg-primary text-white";
+  }
+  return "bg-white text-text-secondary hover:bg-primary-light";
+}
+
 export default function AITutorPage() {
   const { user: _user, loading: isAuthChecking } = useRequireAuth("/student/start");
   const [language, setLanguage] = useState<"en" | "hi" | "as">("en");
@@ -87,11 +97,7 @@ export default function AITutorPage() {
               <button
                 key={lang}
                 onClick={() => setLanguage(lang)}
-                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                  language === lang
-                    ? "bg-primary text-white"
-                    : "bg-white text-text-secondary hover:bg-primary-light"
-                }`}
+                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${getSelectorButtonClass(language === lang)}`}
               >
                 {getLanguageName(lang)}
               </button>
@@ -102,21 +108,13 @@ export default function AITutorPage() {
           <div className="flex gap-2 ml-auto">
             <button
               onClick={() => setInputMode("text")}
-              className={`px-3 py-1 rounded-full text-sm font-medium transition-colors flex items-center gap-1 ${
-                inputMode === "text"
-                  ? "bg-primary text-white"
-                  : "bg-white text-text-secondary hover:bg-primary-light"
-              }`}
+              className={`px-3 py-1 rounded-full text-sm font-medium transition-colors flex items-center gap-1 ${getSelectorButtonClass(inputMode === "text")}`}
             >
               📝 Text
             </button>
             <button
               onClick={() => setInputMode("voice")}
-              className={`px-3 py-1 rounded-full text-sm font-medium transition-colors flex items-center gap-1 ${
-                inputMode === "voice"
-                  ? "bg-primary text-white"
-                  : "bg-white text-text-secondary hover:bg-primary-light"
-              }`}
+              className={`px-3 py-1 rounded-full text-sm font-medium transition-colors flex items-center gap-1 ${getSelectorButtonClass(inputMode === "voice")}`}
             >
               🎤 Voice
             </button>
