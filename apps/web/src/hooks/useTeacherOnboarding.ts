@@ -434,6 +434,103 @@ export function useTeacherOnboarding() {
   }, [state.authChecked, state.step, supabase, router]); // eslint-disable-line react-hooks/exhaustive-deps
   // setAuthChecked omitted - it's stable via useCallback
 
+  /**
+   * Helper: Map login error to user-friendly message
+   */
+  const mapLoginError = (error: { message?: string }): string => {
+    if (error.message?.includes("Invalid login credentials")) {
+      return "Invalid email or password. Please check your credentials and try again.";
+    }
+    return error.message || "Invalid email or password";
+  };
+
+  /**
+   * Helper: Verify teacher profile exists after successful login
+   */
+  const verifyTeacherProfile = useCallback(
+    async (userId: string) => {
+      try {
+        const { data: profile, error: profileError } = await supabase
+          .from("teacher_profiles")
+          .select("*")
+          .eq("user_id", userId)
+          .maybeSingle();
+
+        if (profileError) {
+          authLogger.error("[Teacher Login] Profile fetch error", profileError);
+          return { success: false, error: profileError.message };
+        }
+
+        return { success: true, profile };
+      } catch (error) {
+        authLogger.error("[Teacher Login] Exception checking profile", error);
+        return { success: false, error: "Error checking profile" };
+      }
+    },
+    [supabase],
+  );
+
+  /**
+   * Helper: Check if account is student profile
+   */
+  const checkStudentProfile = useCallback(
+    async (userId: string) => {
+      const { data: studentProfile } = await supabase
+        .from("student_profiles")
+        .select("user_id")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      return !!studentProfile;
+    },
+    [supabase],
+  );
+
+  /**
+   * Helper: Handle post-login profile verification
+   */
+  const handleProfileVerification = useCallback(
+    async (userId: string) => {
+      const profileResult = await verifyTeacherProfile(userId);
+
+      if (!profileResult.success) {
+        toast.error("Error checking profile: " + profileResult.error);
+        await supabase.auth.signOut();
+        setLoginError("Error checking profile");
+        return;
+      }
+
+      if (profileResult.profile) {
+        authLogger.success("[Teacher Login] Profile found, redirecting");
+        toast.success("Login successful!");
+        router.push("/app/teacher/classes");
+        return;
+      }
+
+      // No teacher profile - check if student account
+      const isStudent = await checkStudentProfile(userId);
+
+      if (isStudent) {
+        authLogger.error("[Teacher Login] This is a student account");
+        const msg =
+          "This email is registered as a student account. Please use the student login page.";
+        setLoginError(msg);
+        toast.error("This is a student account. Please use the student login page.");
+      } else {
+        authLogger.error(
+          "[Teacher Login] Profile not found - incomplete registration",
+        );
+        const msg =
+          "No teacher profile found. Please complete your registration first.";
+        setLoginError(msg);
+        toast.error("No teacher profile found. Please complete registration.");
+      }
+
+      await supabase.auth.signOut();
+    },
+    [verifyTeacherProfile, checkStudentProfile, supabase, router, setLoginError],
+  );
+
   // HANDLER: Email/Password Login
   const handleTeacherLogin = useCallback(
     async (e: React.FormEvent) => {
@@ -449,78 +546,14 @@ export function useTeacherOnboarding() {
           password: state.loginPassword,
         });
 
-        authLogger.debug("[Teacher Login] Auth response received");
-
         if (error) {
           authLogger.error("[Teacher Login] Authentication failed", error);
-          let errorMsg = "Invalid email or password";
-          if (error.message?.includes("Invalid login credentials")) {
-            errorMsg =
-              "Invalid email or password. Please check your credentials and try again.";
-          } else if (error.message) {
-            errorMsg = error.message;
-          }
+          const errorMsg = mapLoginError(error);
           setLoginError(errorMsg);
           toast.error(errorMsg);
         } else if (data.user) {
           authLogger.debug("[Teacher Login] User authenticated");
-
-          try {
-            const { data: profile, error: profileError } = await supabase
-              .from("teacher_profiles")
-              .select("*")
-              .eq("user_id", data.user.id)
-              .maybeSingle();
-
-            authLogger.debug("[Teacher Login] Profile fetch complete");
-
-            if (profileError) {
-              authLogger.error(
-                "[Teacher Login] Profile fetch error",
-                profileError,
-              );
-              toast.error("Error checking profile: " + profileError.message);
-              await supabase.auth.signOut();
-            } else if (profile) {
-              authLogger.success("[Teacher Login] Profile found, redirecting");
-              toast.success("Login successful!");
-              router.push("/app/teacher/classes");
-            } else {
-              const { data: studentProfile } = await supabase
-                .from("student_profiles")
-                .select("user_id")
-                .eq("user_id", data.user.id)
-                .maybeSingle();
-
-              if (studentProfile) {
-                authLogger.error("[Teacher Login] This is a student account");
-                setLoginError(
-                  "This email is registered as a student account. Please use the student login page.",
-                );
-                toast.error(
-                  "This is a student account. Please use the student login page.",
-                );
-              } else {
-                authLogger.error(
-                  "[Teacher Login] Profile not found - incomplete registration",
-                );
-                setLoginError(
-                  "No teacher profile found. Please complete your registration first.",
-                );
-                toast.error(
-                  "No teacher profile found. Please complete registration.",
-                );
-              }
-              await supabase.auth.signOut();
-            }
-          } catch (profileErr) {
-            authLogger.error(
-              "[Teacher Login] Exception checking profile",
-              profileErr,
-            );
-            toast.error("Error checking profile");
-            await supabase.auth.signOut();
-          }
+          await handleProfileVerification(data.user.id);
         }
       } catch (error) {
         authLogger.error("[Teacher Login] Unexpected error", error);
@@ -531,7 +564,7 @@ export function useTeacherOnboarding() {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [state.loginEmail, state.loginPassword, supabase, router],
+    [state.loginEmail, state.loginPassword, supabase, router, handleProfileVerification],
     // setLoginError and setLoading are stable via updateState callback
   );
 
