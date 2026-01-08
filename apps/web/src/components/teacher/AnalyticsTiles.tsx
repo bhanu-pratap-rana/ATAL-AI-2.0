@@ -14,6 +14,42 @@ interface AnalyticsTilesProps {
   readonly atRiskCount: number;
 }
 
+/**
+ * At-risk tile styling based on risk status
+ */
+interface AtRiskStyles {
+  readonly cardClass: string;
+  readonly descriptionClass: string;
+  readonly iconBackgroundClass: string;
+  readonly iconEmoji: string;
+  readonly numberClass: string;
+  readonly textClass: string;
+  readonly statusMessage: string;
+}
+
+/**
+ * Get all styling and text for the at-risk card based on count
+ */
+function getAtRiskStyles(atRiskCount: number): AtRiskStyles {
+  const hasAtRiskStudents = atRiskCount > 0;
+
+  return {
+    cardClass: `border-2 ${hasAtRiskStudents ? "border-warning/40 bg-gradient-to-br from-warning/10 to-warning/5" : "border-border bg-gradient-to-br from-surface to-surface-dark"}`,
+    descriptionClass: hasAtRiskStudents
+      ? "text-warning-dark font-medium"
+      : "text-text-primary font-medium",
+    iconBackgroundClass: hasAtRiskStudents ? "bg-warning" : "bg-text-tertiary",
+    iconEmoji: hasAtRiskStudents ? "⚠️" : "✅",
+    numberClass: hasAtRiskStudents
+      ? "text-warning-dark"
+      : "text-text-primary",
+    textClass: hasAtRiskStudents ? "text-warning" : "text-text-secondary",
+    statusMessage: hasAtRiskStudents
+      ? "with >30% rapid guessing"
+      : "All students engaged",
+  };
+}
+
 export function AnalyticsTiles({
   activeThisWeek,
   avgMinutesPerDay,
@@ -69,44 +105,35 @@ export function AnalyticsTiles({
       </Card>
 
       {/* At-Risk Students */}
-      <Card
-        className={`border-2 ${atRiskCount > 0 ? "border-warning/40 bg-gradient-to-br from-warning/10 to-warning/5" : "border-border bg-gradient-to-br from-surface to-surface-dark"}`}
-      >
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardDescription
-              className={
-                atRiskCount > 0
-                  ? "text-warning-dark font-medium"
-                  : "text-text-primary font-medium"
-              }
-            >
-              At-Risk Students
-            </CardDescription>
-            <div
-              className={`w-10 h-10 ${atRiskCount > 0 ? "bg-warning" : "bg-text-tertiary"} rounded-full flex items-center justify-center`}
-            >
-              <span className="text-2xl">{atRiskCount > 0 ? "⚠️" : "✅"}</span>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-1">
-            <div
-              className={`text-4xl font-bold ${atRiskCount > 0 ? "text-warning-dark" : "text-text-primary"}`}
-            >
-              {atRiskCount}
-            </div>
-            <p
-              className={`text-sm ${atRiskCount > 0 ? "text-warning" : "text-text-secondary"}`}
-            >
-              {atRiskCount === 0
-                ? "All students engaged"
-                : "with >30% rapid guessing"}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      {(() => {
+        const styles = getAtRiskStyles(atRiskCount);
+        return (
+          <Card className={styles.cardClass}>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardDescription className={styles.descriptionClass}>
+                  At-Risk Students
+                </CardDescription>
+                <div
+                  className={`w-10 h-10 ${styles.iconBackgroundClass} rounded-full flex items-center justify-center`}
+                >
+                  <span className="text-2xl">{styles.iconEmoji}</span>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-1">
+                <div className={`text-4xl font-bold ${styles.numberClass}`}>
+                  {atRiskCount}
+                </div>
+                <p className={`text-sm ${styles.textClass}`}>
+                  {styles.statusMessage}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })()}
     </div>
   );
 }
