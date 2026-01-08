@@ -20,11 +20,8 @@ function ResetPasswordContent() {
   const searchParams = useSearchParams();
   const supabase = createClient();
 
-  // Get email from URL param (set by password reset flow)
-  const emailFromUrl = searchParams.get("email") || "";
-
-  // Form state
-  const [email, setEmail] = useState(emailFromUrl);
+  // Form state with email from URL param (set by password reset flow)
+  const [email, setEmail] = useState(searchParams.get("email") || "");
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -164,7 +161,7 @@ function ResetPasswordContent() {
               placeholder="your@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              disabled={isLoading || Boolean(emailFromUrl)}
+              disabled={isLoading || Boolean(searchParams.get("email"))}
               className="w-full"
             />
             <p className="text-xs text-gray-600">
