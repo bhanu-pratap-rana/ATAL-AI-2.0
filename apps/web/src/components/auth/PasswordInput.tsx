@@ -18,6 +18,31 @@ interface PasswordInputProps {
 }
 
 /**
+ * Render error or helper text
+ */
+function renderErrorOrHelper(
+  id: string,
+  error: string | undefined,
+  helperText: string | undefined,
+): React.ReactNode {
+  if (error) {
+    return (
+      <p id={`${id}-error`} className="text-sm text-error" role="alert">
+        {error}
+      </p>
+    );
+  }
+  if (helperText) {
+    return (
+      <p id={`${id}-helper`} className="text-xs text-text-secondary">
+        {helperText}
+      </p>
+    );
+  }
+  return null;
+}
+
+/**
  * Reusable password input component
  * Includes optional show/hide password toggle
  */
@@ -99,15 +124,7 @@ export function PasswordInput({
           </button>
         )}
       </div>
-      {error ? (
-        <p id={`${id}-error`} className="text-sm text-error" role="alert">
-          {error}
-        </p>
-      ) : helperText ? (
-        <p id={`${id}-helper`} className="text-xs text-text-secondary">
-          {helperText}
-        </p>
-      ) : null}
+      {renderErrorOrHelper(id, error, helperText)}
     </div>
   );
 }
