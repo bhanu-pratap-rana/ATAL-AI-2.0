@@ -68,7 +68,7 @@ async function checkPinRotationAuthorization(
       return { authorized: false, error: "Failed to verify authorization" };
     }
 
-    isAuthorized = teacherProfile != null;
+    isAuthorized = teacherProfile !== null;
   }
 
   if (!isAuthorized) {
