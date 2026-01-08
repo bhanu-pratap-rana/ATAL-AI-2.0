@@ -35,6 +35,23 @@ const RANK_ICONS = {
   3: "🥉",
 } as const;
 
+/**
+ * Get rank display element - either trophy emoji or rank number
+ */
+function getRankDisplay(rank: number) {
+  const rankIcon = RANK_ICONS[rank as keyof typeof RANK_ICONS];
+
+  if (rankIcon) {
+    return <span className="text-2xl">{rankIcon}</span>;
+  }
+
+  return (
+    <span className="text-sm font-bold text-muted-foreground">
+      #{rank}
+    </span>
+  );
+}
+
 export function Leaderboard({
   classId,
   currentUserId,
@@ -151,7 +168,6 @@ export function Leaderboard({
     <div className="space-y-2">
       {leaders.map((leader) => {
         const isCurrentUser = leader.studentId === currentUserId;
-        const rankIcon = RANK_ICONS[leader.rank as keyof typeof RANK_ICONS];
 
         return (
           <div
@@ -164,13 +180,7 @@ export function Leaderboard({
           >
             {/* Rank */}
             <div className="w-8 text-center">
-              {rankIcon ? (
-                <span className="text-2xl">{rankIcon}</span>
-              ) : (
-                <span className="text-sm font-bold text-muted-foreground">
-                  #{leader.rank}
-                </span>
-              )}
+              {getRankDisplay(leader.rank)}
             </div>
 
             {/* Name */}
