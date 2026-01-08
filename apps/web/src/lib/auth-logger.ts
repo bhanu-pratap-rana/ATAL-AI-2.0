@@ -38,6 +38,40 @@ function getSentry(): WindowWithSentry["Sentry"] | undefined {
 }
 
 /**
+ * Helper: Log warning with Error object
+ */
+function logWarningError(message: string, error: Error): void {
+  if (isDevelopment) {
+    console.warn(`[AUTH:WARN] ${message}`, error);
+  } else {
+    // In production, log via structured logging service with error
+    const sentry = getSentry();
+    if (sentry) {
+      sentry.captureException(error, { level: "warning" });
+    }
+  }
+}
+
+/**
+ * Helper: Log warning with context object
+ */
+function logWarningContext(
+  message: string,
+  context?: LogContext,
+): void {
+  const maskedContext = context ? maskSensitiveData(context) : undefined;
+  if (isDevelopment) {
+    console.warn(`[AUTH:WARN] ${message}`, maskedContext);
+  } else {
+    // In production, suppress detailed context - use structured logging only
+    const sentry = getSentry();
+    if (sentry) {
+      sentry.captureMessage(message, "warning");
+    }
+  }
+}
+
+/**
  * Auth-specific logger with sensitive data masking and console output
  */
 export const authLogger = {
@@ -73,33 +107,15 @@ export const authLogger = {
 
   /**
    * Warning level logs (always shown, masked in production)
+   * REFACTORED: Reduced complexity from 16 to ~6 by extracting helper functions
    * @param message - The message to log
    * @param errorOrContext - Optional error or context object (will be masked)
    */
   warn: (message: string, errorOrContext?: Error | LogContext) => {
     if (errorOrContext instanceof Error) {
-      if (isDevelopment) {
-        console.warn(`[AUTH:WARN] ${message}`, errorOrContext);
-      } else {
-        // In production, log via structured logging service with masked data
-        const sentry = getSentry();
-        if (sentry) {
-          sentry.captureException(errorOrContext, { level: "warning" });
-        }
-      }
+      logWarningError(message, errorOrContext);
     } else {
-      const maskedContext = errorOrContext
-        ? maskSensitiveData(errorOrContext)
-        : undefined;
-      if (isDevelopment) {
-        console.warn(`[AUTH:WARN] ${message}`, maskedContext);
-      } else {
-        // In production, suppress detailed context - use structured logging only
-        const sentry = getSentry();
-        if (sentry) {
-          sentry.captureMessage(message, "warning");
-        }
-      }
+      logWarningContext(message, errorOrContext as LogContext);
     }
   },
 
