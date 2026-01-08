@@ -84,6 +84,21 @@ export interface ValidationHandlerState {
  * )
  * ```
  */
+
+/**
+ * Extract error message from various error formats
+ * Handles string, array, or missing error properties
+ */
+function formatErrorMessage(error?: string | string[], errors?: string[]): string {
+  if (Array.isArray(error)) {
+    return error.join(", ");
+  }
+  if (Array.isArray(errors)) {
+    return errors.join(", ");
+  }
+  return error || "Validation failed";
+}
+
 export function useValidationHandler(options: UseValidationHandlerOptions) {
   const {
     validators,
@@ -136,11 +151,7 @@ export function useValidationHandler(options: UseValidationHandlerOptions) {
 
           if (!result.valid) {
             // Format error message
-            const errorMessage = Array.isArray(result.error)
-              ? result.error.join(", ")
-              : Array.isArray(result.errors)
-                ? result.errors.join(", ")
-                : result.error || "Validation failed";
+            const errorMessage = formatErrorMessage(result.error, result.errors);
 
             setError(errorMessage);
             onValidationError?.(
