@@ -106,41 +106,41 @@ export default async function SettingsPage() {
             {/* Show Username for Quick Start users, Email for others */}
             {isUsernameAuth ? (
               <div>
-                <label className="text-sm font-medium text-text-secondary">
+                <span className="text-sm font-medium text-text-secondary">
                   Username
-                </label>
+                </span>
                 <p className="text-text-primary font-mono">
                   {username || "Not set"}
                 </p>
               </div>
             ) : (
               <div>
-                <label className="text-sm font-medium text-text-secondary">
+                <span className="text-sm font-medium text-text-secondary">
                   Email
-                </label>
+                </span>
                 <p className="text-text-primary break-all">
                   {user.email || "Not set"}
                 </p>
               </div>
             )}
             <div>
-              <label className="text-sm font-medium text-text-secondary">
+              <span className="text-sm font-medium text-text-secondary">
                 User ID
-              </label>
+              </span>
               <p className="text-text-primary font-mono text-xs md:text-sm break-all">
                 {user.id}
               </p>
             </div>
             <div>
-              <label className="text-sm font-medium text-text-secondary">
+              <span className="text-sm font-medium text-text-secondary">
                 Role
-              </label>
+              </span>
               <p className="text-text-primary">{userRole}</p>
             </div>
             <div>
-              <label className="text-sm font-medium text-text-secondary">
+              <span className="text-sm font-medium text-text-secondary">
                 Account Created
-              </label>
+              </span>
               <p className="text-text-primary">
                 {new Date(user.created_at || "").toLocaleDateString()}
               </p>

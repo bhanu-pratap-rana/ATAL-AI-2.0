@@ -243,12 +243,9 @@ export function TeacherProfileEditor({
 
           {/* Email (display only) */}
           <div>
-            <label
-              id="teacher-email"
-              className="text-sm font-medium text-text-secondary"
-            >
+            <span className="text-sm font-medium text-text-secondary">
               Email
-            </label>
+            </span>
             <p className="text-text-primary">{userEmail || "Not set"}</p>
           </div>
 
@@ -315,12 +312,9 @@ export function TeacherProfileEditor({
 
           {/* School Code (read-only) */}
           <div>
-            <label
-              id="teacher-schoolcode"
-              className="text-sm font-medium text-text-secondary"
-            >
+            <span className="text-sm font-medium text-text-secondary">
               School Code
-            </label>
+            </span>
             <p className="text-text-primary font-mono">
               {profile.school_code || "Not set"}
             </p>

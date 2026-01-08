@@ -493,10 +493,14 @@ export default function AdminSchoolPINsPage() {
                   <div className="space-y-4">
                     {/* School Code Display */}
                     <div>
-                      <label className="block text-sm font-medium text-text mb-1">
+                      <label
+                        htmlFor="school-code-input"
+                        className="block text-sm font-medium text-text mb-1"
+                      >
                         School Code
                       </label>
                       <Input
+                        id="school-code-input"
                         type="text"
                         value={selectedSchool.schoolCode}
                         disabled
