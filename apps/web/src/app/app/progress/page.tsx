@@ -188,13 +188,7 @@ export default async function ProgressPage() {
                   >
                     <div className="flex items-center gap-3">
                       <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
-                          assessment.score >= 80
-                            ? "bg-success"
-                            : assessment.score >= 60
-                              ? "bg-warning"
-                              : "bg-error"
-                        }`}
+                        className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${getScoreColor(assessment.score)}`}
                       >
                         {assessment.score}%
                       </div>
