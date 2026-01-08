@@ -1,11 +1,11 @@
 "use server";
 
-import { z } from "zod";
 import { createAdminClient, verifySuperAdminAuth } from "@/lib/supabase-server";
 import { authLogger } from "@/lib/auth-logger";
 import { checkAdminOperationRateLimit } from "@/lib/rate-limiter-distributed";
 import { AdminEmailSchema } from "@/lib/validation-schemas";
 import { findAuthUserByEmail } from "@/lib/admin-utils";
+import { validateInput, handleActionError } from "./action-utils";
 
 /**
  * Valid database table names for user cascade deletion
@@ -53,7 +53,11 @@ export async function deleteUserByEmail(
 ): Promise<DeleteUserResult> {
   try {
     // Validate email input
-    const normalizedEmail = AdminEmailSchema.parse(email);
+    const validation = validateInput(email, AdminEmailSchema);
+    if (!validation.success) {
+      return { success: false, error: validation.error };
+    }
+    const normalizedEmail = validation.data;
 
     // SECURITY: Verify caller is authenticated and authorized as super_admin
     const auth = await verifySuperAdminAuth("deleteUserByEmail");
@@ -189,14 +193,6 @@ export async function deleteUserByEmail(
       message: `User ${email} has been deleted along with all associated data. You can now create a new account with this email.`,
     };
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      const firstError = error.issues[0];
-      return { success: false, error: firstError?.message || "Invalid input" };
-    }
-    authLogger.error("[deleteUserByEmail] Unexpected error", error);
-    return {
-      success: false,
-      error: "An unexpected error occurred",
-    };
+    return handleActionError("deleteUserByEmail", error);
   }
 }

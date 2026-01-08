@@ -1,12 +1,12 @@
 "use server";
 
-import { z } from "zod";
 import { createAdminClient, verifySuperAdminAuth } from "@/lib/supabase-server";
 import { authLogger } from "@/lib/auth-logger";
 import { checkAdminOperationRateLimit } from "@/lib/rate-limiter-distributed";
 import { isAdmin } from "@/lib/auth/role-utils";
 import { AdminEmailSchema } from "@/lib/validation-schemas";
 import { findAuthUserByEmail } from "@/lib/admin-utils";
+import { validateInput, handleActionError, ActionResult } from "./action-utils";
 
 export interface SetAdminRoleResult {
   success: boolean;
@@ -24,7 +24,11 @@ export interface SetAdminRoleResult {
 export async function setAdminRole(email: string): Promise<SetAdminRoleResult> {
   try {
     // Validate email input
-    const normalizedEmail = AdminEmailSchema.parse(email);
+    const validation = validateInput(email, AdminEmailSchema);
+    if (!validation.success) {
+      return { success: false, error: validation.error };
+    }
+    const normalizedEmail = validation.data;
 
     // SECURITY: Verify caller is authenticated and authorized as super_admin
     const auth = await verifySuperAdminAuth("setAdminRole");
@@ -95,15 +99,7 @@ export async function setAdminRole(email: string): Promise<SetAdminRoleResult> {
       message: `Admin role successfully set for ${email}`,
     };
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      const firstError = error.issues[0];
-      return { success: false, error: firstError?.message || "Invalid input" };
-    }
-    authLogger.error("[setAdminRole] Unexpected error", error);
-    return {
-      success: false,
-      error: "An unexpected error occurred",
-    };
+    return handleActionError("setAdminRole", error);
   }
 }
 
@@ -117,7 +113,11 @@ export async function checkAdminRoleByEmail(email: string): Promise<{
 }> {
   try {
     // Validate email input
-    const normalizedEmail = AdminEmailSchema.parse(email);
+    const validation = validateInput(email, AdminEmailSchema);
+    if (!validation.success) {
+      return { hasAdminRole: false, error: validation.error };
+    }
+    const normalizedEmail = validation.data;
 
     // SECURITY: Rate limit admin operations to prevent abuse
     // Use email as identifier since this is a lookup operation
@@ -145,13 +145,6 @@ export async function checkAdminRoleByEmail(email: string): Promise<{
     const role = user.app_metadata?.role as string | null | undefined;
     return { hasAdminRole: isAdmin(role) };
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      const firstError = error.issues[0];
-      return {
-        hasAdminRole: false,
-        error: firstError?.message || "Invalid input",
-      };
-    }
     authLogger.error("[checkAdminRoleByEmail] Error", error);
     return { hasAdminRole: false, error: "Failed to check role" };
   }
