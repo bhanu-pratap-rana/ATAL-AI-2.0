@@ -8,6 +8,17 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { authLogger } from "@/lib/auth-logger";
 import type { Database } from "@/types/database";
 
+/**
+ * Supabase client with RPC method support
+ * RPC calls are used for database functions not exposed in the standard client API
+ */
+interface SupabaseClientWithRpc extends SupabaseClient<Database> {
+  rpc(
+    name: string,
+    args?: Record<string, unknown>,
+  ): Promise<{ data: unknown; error: null } | { data: null; error: Error }>;
+}
+
 export interface ConnectionPoolMetrics {
   activeConnections: number;
   maxConnections: number;
@@ -74,8 +85,10 @@ export class ConnectionPoolMonitor {
       // Try to get connection stats via RPC if function exists
       try {
         const supabase = this.getSupabaseClient();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase RPC typing
-        const { data, error } = await (supabase as any).rpc("get_connection_stats", {});
+        const { data, error } = await (supabase as SupabaseClientWithRpc).rpc(
+          "get_connection_stats",
+          {},
+        );
 
         if (error) {
           authLogger.debug("Connection stats RPC not available", {
