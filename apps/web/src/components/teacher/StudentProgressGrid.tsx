@@ -37,6 +37,39 @@ interface StudentProgressGridProps {
   readonly _teacherId: string;
 }
 
+/**
+ * Get activity status indicator color based on status
+ */
+function getActivityStatusColor(status: string): string {
+  switch (status) {
+    case "active":
+      return "bg-success";
+    case "recent":
+      return "bg-warning";
+    default:
+      return "bg-muted";
+  }
+}
+
+/**
+ * Get progress bar color based on mastery percentage and at-risk status
+ */
+function getProgressBarColor(
+  progressPercent: number,
+  isAtRisk: boolean,
+): string {
+  if (isAtRisk) {
+    return "bg-destructive";
+  }
+  if (progressPercent >= 70) {
+    return "bg-success";
+  }
+  if (progressPercent >= 40) {
+    return "bg-warning";
+  }
+  return "bg-primary";
+}
+
 export function StudentProgressGrid({
   classId,
   _teacherId,
@@ -266,13 +299,7 @@ function StudentProgressCard({
             {student.student_name}
           </CardTitle>
           <span
-            className={`w-2 h-2 rounded-full ${
-              activity.status === "active"
-                ? "bg-success"
-                : activity.status === "recent"
-                  ? "bg-warning"
-                  : "bg-muted"
-            }`}
+            className={`w-2 h-2 rounded-full ${getActivityStatusColor(activity.status)}`}
             title={activity.label}
           />
         </div>
@@ -289,15 +316,7 @@ function StudentProgressCard({
           </div>
           <div className="h-2 bg-muted rounded-full overflow-hidden">
             <div
-              className={`h-full transition-all ${
-                student.is_at_risk
-                  ? "bg-destructive"
-                  : progressPercent >= 70
-                    ? "bg-success"
-                    : progressPercent >= 40
-                      ? "bg-warning"
-                      : "bg-primary"
-              }`}
+              className={`h-full transition-all ${getProgressBarColor(progressPercent, student.is_at_risk)}`}
               style={{ width: `${progressPercent}%` }}
             />
           </div>
