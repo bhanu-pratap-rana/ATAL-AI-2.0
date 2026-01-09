@@ -72,7 +72,7 @@ export default async function StudentAssessmentsPage() {
   // Calculate stats for each session
   const assessmentHistory: AssessmentSession[] = [];
 
-  if (sessions?.length > 0) {
+  if (sessions && sessions.length > 0) {
     for (const session of sessions) {
       // Get responses for this session
       const { data: responses } = await supabase

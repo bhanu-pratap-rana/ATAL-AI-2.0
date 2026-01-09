@@ -345,7 +345,7 @@ export class CurriculumRAGService {
           .order("content_type", { ascending: true })
           .limit(3);
 
-        if (enContent?.length > 0) {
+        if (enContent && enContent.length > 0) {
           // Mark as English fallback so AI knows to translate context to target language
           return `## Topic ${topicId} Context (English Reference - Please respond in ${this.getLanguageLabel(language)})\n\n${enContent
             .map((c) => (c.title ? `### ${c.title}\n${c.content}` : c.content))
