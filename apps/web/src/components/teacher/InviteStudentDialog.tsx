@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { enrollStudent } from "@/app/actions/teacher";
+import { StudentSearchResults } from "./StudentSearchResults";
 
 interface InviteStudentDialogProps {
   readonly classId: string;
@@ -151,40 +152,17 @@ export function InviteStudentDialog({ classId }: InviteStudentDialogProps) {
             </div>
 
             {/* Search Results */}
-            {searchResults.length > 0 && (
-              <div className="space-y-2">
-                <Label htmlFor="student-list" className="text-sm font-medium">
-                  Select Student
-                </Label>
-                <ul
-                  id="student-list"
-                  className="border rounded-lg space-y-1 max-h-48 overflow-y-auto"
-                  role="listbox"
-                  aria-label="Student search results"
-                >
-                  {searchResults.map((student) => (
-                    <li key={student.id} role="option" aria-selected={selectedStudent?.id === student.id}>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setStudentId(student.id);
-                          setSelectedStudent(student);
-                          setSearchResults([]);
-                          setSearchInput("");
-                        }}
-                        className="w-full text-left px-3 py-2 hover:bg-primary/10 border-b last:border-b-0 transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
-                        aria-label={`Select student: ${student.email} (ID: ${student.id})`}
-                      >
-                        <p className="font-medium text-sm">{student.email}</p>
-                        <p className="text-xs text-text-secondary">
-                          {student.id}
-                        </p>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            <StudentSearchResults
+              results={searchResults}
+              selectedStudent={selectedStudent}
+              onSelectStudent={(student) => {
+                setStudentId(student.id);
+                setSelectedStudent(student);
+                setSearchResults([]);
+                setSearchInput("");
+              }}
+              isLoading={loading || searching}
+            />
 
             {/* Selected Student Info */}
             {selectedStudent && (
