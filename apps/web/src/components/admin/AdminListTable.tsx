@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   listAdminAccounts,
   deleteAdminAccount,
@@ -65,11 +65,7 @@ export function AdminListTable({
   const [showPassword, setShowPassword] = useState(false);
   const [resetError, setResetError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadAdmins();
-  }, [refreshTrigger]);
-
-  async function loadAdmins() {
+  const loadAdmins = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
@@ -89,56 +85,65 @@ export function AdminListTable({
     } finally {
       setIsLoading(false);
     }
-  }
+  }, []);
 
-  async function handleDeleteAdmin(adminId: string, email: string) {
-    if (
-      !globalThis.confirm(
-        `Are you sure you want to delete ${email}? This cannot be undone.`,
-      )
-    ) {
-      return;
-    }
+  useEffect(() => {
+    loadAdmins();
+  }, [loadAdmins, refreshTrigger]);
 
-    setDeletingId(adminId);
-    try {
-      const result = await deleteAdminAccount(adminId);
-      if (result.success) {
-        toast.success("Admin account deleted successfully");
-        setAdmins(admins.filter((a) => a.id !== adminId));
-        if (onAdminDeleted) {
-          onAdminDeleted();
-        }
-      } else {
-        toast.error(result.error || "Failed to delete admin account");
+  const handleDeleteAdmin = useCallback(
+    async (adminId: string, email: string) => {
+      if (
+        !globalThis.confirm(
+          `Are you sure you want to delete ${email}? This cannot be undone.`,
+        )
+      ) {
+        return;
       }
-    } catch (error) {
-      clientLogger.error(
-        "[AdminListTable] Error deleting admin",
-        error instanceof Error ? error : { error: String(error) },
-      );
-      toast.error("An error occurred while deleting admin");
-    } finally {
-      setDeletingId(null);
-    }
-  }
 
-  function openResetModal(adminId: string, email: string) {
+      setDeletingId(adminId);
+      try {
+        const result = await deleteAdminAccount(adminId);
+        if (result.success) {
+          toast.success("Admin account deleted successfully");
+          setAdmins((prevAdmins) =>
+            prevAdmins.filter((a) => a.id !== adminId),
+          );
+          if (onAdminDeleted) {
+            onAdminDeleted();
+          }
+        } else {
+          toast.error(result.error || "Failed to delete admin account");
+        }
+      } catch (error) {
+        clientLogger.error(
+          "[AdminListTable] Error deleting admin",
+          error instanceof Error ? error : { error: String(error) },
+        );
+        toast.error("An error occurred while deleting admin");
+      } finally {
+        setDeletingId(null);
+      }
+    },
+    [onAdminDeleted],
+  );
+
+  const openResetModal = useCallback((adminId: string, email: string) => {
     setResetAdmin({ id: adminId, email });
     setNewPassword("");
     setShowPassword(false);
     setResetError(null);
     setShowResetModal(true);
-  }
+  }, []);
 
-  function closeResetModal() {
+  const closeResetModal = useCallback(() => {
     setShowResetModal(false);
     setResetAdmin(null);
     setNewPassword("");
     setResetError(null);
-  }
+  }, []);
 
-  async function handleResetPassword() {
+  const handleResetPassword = useCallback(async () => {
     if (!resetAdmin) return;
 
     if (!newPassword) {
@@ -171,7 +176,7 @@ export function AdminListTable({
     } finally {
       setResetingId(null);
     }
-  }
+  }, [resetAdmin, newPassword, closeResetModal]);
 
   if (isLoading) {
     return <div className="text-center py-8">Loading admin accounts...</div>;
