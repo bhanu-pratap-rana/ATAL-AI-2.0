@@ -33,7 +33,7 @@ function convertToItemPool(
     options: item.options as { id: string; text: string }[],
     correct_answer: item.correct_answer,
     difficulty: Number(item.difficulty) || 0,
-    discrimination: Number(item.discrimination) || 1.0,
+    discrimination: Number(item.discrimination) || 1,
     guessing: Number(item.guessing) || 0.2,
   }));
 }

@@ -58,7 +58,7 @@ export default async function AssessmentSummaryPage({
       item.id,
       {
         difficulty: Number(item.difficulty) || 0,
-        discrimination: Number(item.discrimination) || 1.0,
+        discrimination: Number(item.discrimination) || 1,
         guessing: Number(item.guessing) || 0.2,
         category: item.category,
       },
@@ -74,7 +74,7 @@ export default async function AssessmentSummaryPage({
         itemId: r.item_id,
         isCorrect: r.is_correct,
         difficulty: params?.difficulty || 0,
-        discrimination: params?.discrimination || 1.0,
+        discrimination: params?.discrimination || 1,
         guessing: params?.guessing || 0.2,
         category: params?.category || r.module,
       };

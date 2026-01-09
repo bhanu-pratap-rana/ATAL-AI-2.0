@@ -140,7 +140,7 @@ export function AssessmentRunner({
   // IRT State for real-time adaptive tracking
   const [irtState, setIrtState] = useState<IRTState>({
     theta: 0, // Initial ability at average
-    se: 1.0, // High initial uncertainty
+    se: 1, // High initial uncertainty
     answeredCount: 0,
     correctCount: 0,
   });
@@ -424,7 +424,7 @@ export function AssessmentRunner({
           options: q?.options || [],
           correct_answer: 0,
           difficulty: q?._difficulty || 0,
-          discrimination: q?._discrimination || 1.0,
+          discrimination: q?._discrimination || 1,
           guessing: q?._guessing || 0.2,
         },
         correct: r.isCorrect,
