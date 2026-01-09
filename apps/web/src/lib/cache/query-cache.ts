@@ -46,8 +46,8 @@ interface CacheMetrics {
  */
 export class QueryCache {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private cache = new Map<string, CacheEntry<any>>();
-  private maxSize = 500;
+  private readonly cache = new Map<string, CacheEntry<any>>();
+  private readonly maxSize = 500;
   private metrics = {
     hits: 0,
     misses: 0,

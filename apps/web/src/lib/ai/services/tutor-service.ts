@@ -111,8 +111,8 @@ function getHintLevelByAttempts(previousAttempts: number): string {
  * AI Tutor Service
  */
 export class TutorService {
-  private ragService: CurriculumRAGService;
-  private adaptiveService: AdaptiveLearningService;
+  private readonly ragService: CurriculumRAGService;
+  private readonly adaptiveService: AdaptiveLearningService;
 
   constructor() {
     this.ragService = ragService;
