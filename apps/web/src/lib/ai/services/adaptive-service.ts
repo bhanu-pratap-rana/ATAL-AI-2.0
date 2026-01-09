@@ -388,7 +388,7 @@ export class AdaptiveLearningService {
       if (error) throw error;
 
       // Return weakest topic if found
-      if (weakTopics && weakTopics.length > 0) {
+      if (weakTopics?.length > 0) {
         return weakTopics[0].topic_id;
       }
 

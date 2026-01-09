@@ -77,7 +77,7 @@ export async function fetchPaginatedWithCursor<T>(
 
     // Calculate next cursor from last item
     let nextCursor: string | null = null;
-    if (hasMore && pageItems.length > 0) {
+    if (hasMore && pageItems?.length) {
       const lastItem = pageItems[pageItems.length - 1];
       // Type-safe cursor extraction - cursorColumn must exist on T
       if (

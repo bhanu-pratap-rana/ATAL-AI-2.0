@@ -77,7 +77,7 @@ export async function isFeatureEnabled(
     }
 
     // Check whitelist first (takes precedence)
-    if (flag.whitelist_user_ids && flag.whitelist_user_ids.includes(userId)) {
+    if (flag.whitelist_user_ids?.includes(userId)) {
       authLogger.debug("[FeatureFlags] User in whitelist:", { flagId, userId });
       return true;
     }
@@ -144,7 +144,7 @@ export async function isFeatureEnabledClient(
     }
 
     // Check whitelist first (takes precedence)
-    if (flag.whitelist_user_ids && flag.whitelist_user_ids.includes(userId)) {
+    if (flag.whitelist_user_ids?.includes(userId)) {
       clientLogger.debug("[FeatureFlags] User in whitelist:", {
         flagId,
         userId,
@@ -199,7 +199,7 @@ export async function getEnabledFeatures(userId: string): Promise<string[]> {
 
     for (const flag of flags) {
       // Check whitelist
-      if (flag.whitelist_user_ids && flag.whitelist_user_ids.includes(userId)) {
+      if (flag.whitelist_user_ids?.includes(userId)) {
         enabledFlags.push(flag.id);
         continue;
       }

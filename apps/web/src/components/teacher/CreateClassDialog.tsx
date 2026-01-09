@@ -35,7 +35,7 @@ export function CreateClassDialog() {
     try {
       const result = await createClass(name, subject);
 
-      if (result.success && result.data) {
+      if (result?.success && result?.data) {
         setCreatedClass({
           classCode: result.data.class_code,
           joinPin: result.data.join_pin || "",
@@ -43,7 +43,7 @@ export function CreateClassDialog() {
         toast.success("Class created successfully!");
         // Don't close dialog yet - show codes first
       } else if ("error" in result) {
-        toast.error(result.error || "Failed to create class");
+        toast.error(result?.error || "Failed to create class");
       } else {
         toast.error("Failed to create class");
       }

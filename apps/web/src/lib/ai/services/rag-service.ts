@@ -167,7 +167,7 @@ export class CurriculumRAGService {
         },
       );
 
-      if (!primaryError && primaryDocs && primaryDocs.length >= 2) {
+      if (!primaryError && primaryDocs?.length >= 2) {
         // Good results in requested language
         return this.formatContext(primaryDocs as CurriculumMatch[]);
       }
@@ -285,7 +285,7 @@ export class CurriculumRAGService {
         p_limit: limit,
       });
 
-      if (!error && docs && docs.length > 0) {
+      if (!error && docs?.length > 0) {
         return docs
           .map(
             (d: { title: string; content: string }) =>
@@ -345,7 +345,7 @@ export class CurriculumRAGService {
           .order("content_type", { ascending: true })
           .limit(3);
 
-        if (enContent && enContent.length > 0) {
+        if (enContent?.length > 0) {
           // Mark as English fallback so AI knows to translate context to target language
           return `## Topic ${topicId} Context (English Reference - Please respond in ${this.getLanguageLabel(language)})\n\n${enContent
             .map((c) => (c.title ? `### ${c.title}\n${c.content}` : c.content))

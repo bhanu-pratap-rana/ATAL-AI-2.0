@@ -522,7 +522,7 @@ export function ProfileStep({
             <p className="text-xs text-text-secondary">
               Enter 10-digit Indian mobile number (e.g., 9876543210)
             </p>
-            {phone && phone.length > 0 && phone.length < 10 && (
+            {phone?.length && phone.length > 0 && phone.length < 10 && (
               <p className="text-xs text-warning">
                 {10 - phone.length} more digits needed
               </p>

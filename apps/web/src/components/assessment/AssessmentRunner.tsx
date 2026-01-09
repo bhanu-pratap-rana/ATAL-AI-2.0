@@ -55,7 +55,7 @@ function shuffleArray<T>(array: T[]): T[] {
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     const temp = shuffled[i];
-    if (temp !== undefined && shuffled[j] !== undefined) {
+    if (shuffled?.[j] !== undefined) {
       shuffled[i] = shuffled[j];
       shuffled[j] = temp;
     }
@@ -161,7 +161,7 @@ export function AssessmentRunner({
   // Get current question data (from history if reviewing, else generate fresh)
   const { shuffledOptions, shuffleMap } = useMemo(() => {
     // If reviewing history, use stored shuffle
-    if (isReviewingHistory && questionHistory[currentHistoryIndex]) {
+    if (isReviewingHistory && questionHistory?.[currentHistoryIndex]) {
       const historyItem = questionHistory[currentHistoryIndex];
       return {
         shuffledOptions: historyItem.shuffledOptions,
@@ -212,7 +212,7 @@ export function AssessmentRunner({
 
   // Load selected answer when reviewing history
   useEffect(() => {
-    if (isReviewingHistory && questionHistory[currentHistoryIndex]) {
+    if (isReviewingHistory && questionHistory?.[currentHistoryIndex]) {
       setSelectedOption(questionHistory[currentHistoryIndex].selectedAnswer);
     }
   }, [isReviewingHistory, currentHistoryIndex, questionHistory]);

@@ -327,10 +327,10 @@ function JoinClassForm({
     try {
       const result = await previewClass(classCode.toUpperCase().trim());
 
-      if (result.success && result.data) {
+      if (result?.success && result?.data) {
         setPreview(result.data);
       } else {
-        setPreviewError(result.error || "Class not found");
+        setPreviewError(result?.error || "Class not found");
       }
     } catch (error) {
       clientLogger.error(

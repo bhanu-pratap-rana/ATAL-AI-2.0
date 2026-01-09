@@ -103,10 +103,10 @@ export function DashboardMetrics() {
     const loadMetrics = async () => {
       try {
         const result = await getDashboardMetrics();
-        if (result.success && result.data) {
+        if (result?.success && result?.data) {
           setMetrics(result.data);
         } else {
-          setError(result.error || "Failed to load metrics");
+          setError(result?.error || "Failed to load metrics");
         }
       } catch {
         setError("An error occurred while loading metrics");
@@ -125,35 +125,35 @@ export function DashboardMetrics() {
     switch (type) {
       case "schools": {
         const result = await getAllSchools();
-        if (result.success && result.data) {
+        if (result?.success && result?.data) {
           setSchools(result.data);
         }
         break;
       }
       case "teachers": {
         const result = await getAllTeachers();
-        if (result.success && result.data) {
+        if (result?.success && result?.data) {
           setTeachers(result.data);
         }
         break;
       }
       case "students": {
         const result = await getAllStudents();
-        if (result.success && result.data) {
+        if (result?.success && result?.data) {
           setStudents(result.data);
         }
         break;
       }
       case "activePINs": {
         const result = await getSchoolsWithActivePINs();
-        if (result.success && result.data) {
+        if (result?.success && result?.data) {
           setActivePINSchools(result.data);
         }
         break;
       }
       case "inactivePINs": {
         const result = await getSchoolsWithoutPINs();
-        if (result.success && result.data) {
+        if (result?.success && result?.data) {
           setInactivePINSchools(result.data);
         }
         break;
