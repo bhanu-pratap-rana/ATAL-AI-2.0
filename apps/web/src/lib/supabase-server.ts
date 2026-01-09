@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { authLogger } from "./auth-logger";
+import { verifyRoleAuth, verifyProfileAuth, type AuthCheckResult } from "./auth-factory";
 
 /**
  * Validate that required environment variables are set
@@ -90,35 +91,12 @@ export async function getCurrentUser() {
  */
 export async function verifyAdminAuth(
   functionName: string,
-): Promise<
-  | {
-      authorized: true;
-      user: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>;
-    }
-  | { authorized: false; error: { success: false; error: string } }
-> {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) {
-    authLogger.warn(`[${functionName}] Unauthorized: No authenticated user`);
-    return {
-      authorized: false,
-      error: { success: false, error: "Authentication required" },
-    };
-  }
-
-  const role = currentUser.app_metadata?.role;
-  if (role !== "admin" && role !== "super_admin") {
-    authLogger.warn(`[${functionName}] Forbidden: User lacks admin role`, {
-      userId: currentUser.id,
-      role,
-    });
-    return {
-      authorized: false,
-      error: { success: false, error: "Admin access required" },
-    };
-  }
-
-  return { authorized: true, user: currentUser };
+): Promise<AuthCheckResult> {
+  return verifyRoleAuth({
+    functionName,
+    requiredRoles: ["admin", "super_admin"],
+    errorMessage: "Admin access required",
+  });
 }
 
 /**
@@ -130,41 +108,12 @@ export async function verifyAdminAuth(
  */
 export async function verifySuperAdminAuth(
   functionName: string,
-): Promise<
-  | {
-      authorized: true;
-      user: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>;
-    }
-  | { authorized: false; error: { success: false; error: string } }
-> {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) {
-    authLogger.warn(`[${functionName}] Unauthorized: No authenticated user`);
-    return {
-      authorized: false,
-      error: { success: false, error: "Authentication required" },
-    };
-  }
-
-  const role = currentUser.app_metadata?.role;
-  if (role !== "super_admin") {
-    authLogger.warn(
-      `[${functionName}] Forbidden: User lacks super_admin role`,
-      {
-        userId: currentUser.id,
-        role,
-      },
-    );
-    return {
-      authorized: false,
-      error: {
-        success: false,
-        error: "Only super admins can perform this action",
-      },
-    };
-  }
-
-  return { authorized: true, user: currentUser };
+): Promise<AuthCheckResult> {
+  return verifyRoleAuth({
+    functionName,
+    requiredRoles: ["super_admin"],
+    errorMessage: "Only super admins can perform this action",
+  });
 }
 
 /**
@@ -172,58 +121,29 @@ export async function verifySuperAdminAuth(
  * Used by teacher server actions for authorization
  *
  * @param functionName - Name of the calling function for logging
- * @returns Discriminated union - authorized true with user and profile, or authorized false with error
+ * @returns Discriminated union - authorized true with user, or authorized false with error
  */
 export async function verifyTeacherAuth(
   functionName: string,
-): Promise<
-  | {
-      authorized: true;
-      user: NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>;
-      teacherProfile: { user_id: string };
-    }
-  | { authorized: false; error: { success: false; error: string } }
-> {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) {
-    authLogger.warn(`[${functionName}] Unauthorized: No authenticated user`);
-    return {
-      authorized: false,
-      error: { success: false, error: "Not authenticated" },
-    };
-  }
+): Promise<AuthCheckResult> {
+  return verifyProfileAuth({
+    functionName,
+    profileCheckFn: async (user) => {
+      const supabase = await createClient();
+      const { data: teacherProfile, error } = await supabase
+        .from("teacher_profiles")
+        .select("user_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
 
-  const supabase = await createClient();
-
-  // Verify user is a teacher (teacher_profiles uses user_id as primary key)
-  const { data: teacherProfile, error: profileError } = await supabase
-    .from("teacher_profiles")
-    .select("user_id")
-    .eq("user_id", currentUser.id)
-    .maybeSingle();
-
-  if (profileError) {
-    authLogger.error(
-      `[${functionName}] Failed to verify teacher status`,
-      profileError,
-    );
-    return {
-      authorized: false,
-      error: { success: false, error: "Failed to verify teacher status" },
-    };
-  }
-
-  if (!teacherProfile) {
-    authLogger.warn(`[${functionName}] Forbidden: User is not a teacher`, {
-      userId: currentUser.id,
-    });
-    return {
-      authorized: false,
-      error: { success: false, error: "Only teachers can perform this action" },
-    };
-  }
-
-  return { authorized: true, user: currentUser, teacherProfile };
+      if (error) {
+        throw error;
+      }
+      return !!teacherProfile;
+    },
+    notFoundMessage: "Only teachers can perform this action",
+    errorMessage: "Failed to verify teacher status",
+  });
 }
 
 /**
