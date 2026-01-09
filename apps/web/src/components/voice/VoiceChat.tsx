@@ -19,6 +19,13 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { clientLogger } from "@/lib/client-logger";
 
+// Language display names mapping
+const LANGUAGE_DISPLAY_NAMES: Record<string, string> = {
+  en: "English",
+  hi: "हिंदी",
+  as: "অসমীয়া",
+};
+
 // Speech Recognition types (Web Speech API)
 interface SpeechRecognitionEvent extends Event {
   readonly results: {
@@ -266,12 +273,7 @@ export function VoiceChat({
 
       {/* Language Indicator */}
       <div className="text-center text-xs text-muted-foreground">
-        Language:{" "}
-        {language === "en"
-          ? "English"
-          : language === "hi"
-            ? "हिंदी"
-            : "অসমীয়া"}
+        Language: {LANGUAGE_DISPLAY_NAMES[language] || "অসমীয়া"}
       </div>
     </div>
   );
