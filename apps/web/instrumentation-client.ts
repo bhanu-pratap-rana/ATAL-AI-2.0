@@ -46,7 +46,7 @@ if (SENTRY_DSN) {
       }
 
       // Ignore network errors that are expected (offline, etc.)
-      if (event.message?.includes('Failed to fetch') && navigator.onLine === false) {
+      if (event.message?.includes('Failed to fetch') && !navigator.onLine) {
         return null
       }
 
