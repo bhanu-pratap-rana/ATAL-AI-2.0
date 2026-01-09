@@ -20,14 +20,14 @@ import { Button } from "@/components/ui/button";
 import { clientLogger } from "@/lib/client-logger";
 
 interface Recommendation {
-  moduleId: string;
-  moduleName: string;
-  topicId: string;
-  topicName: string;
-  reason: string;
-  priority: "high" | "medium" | "low";
-  icon: string;
-  color: string;
+  readonly moduleId: string;
+  readonly moduleName: string;
+  readonly topicId: string;
+  readonly topicName: string;
+  readonly reason: string;
+  readonly priority: "high" | "medium" | "low";
+  readonly icon: string;
+  readonly color: string;
 }
 
 interface AdaptiveRecommendationsProps {

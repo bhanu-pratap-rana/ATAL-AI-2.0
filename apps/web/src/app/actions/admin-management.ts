@@ -411,7 +411,9 @@ export async function createAdminAccount(
     );
 
     if (existingUser) {
-      const currentRole = existingUser.app_metadata?.role;
+      const currentRole = existingUser.app_metadata?.role as
+        | string
+        | undefined;
       if (currentRole === "admin" || currentRole === "super_admin") {
         return {
           success: false,
@@ -480,7 +482,7 @@ export async function listAdminAccounts(): Promise<AdminActionResult> {
     // Filter for admins only
     const admins: AdminUser[] = allUsers
       .filter((user) => {
-        const role = user.app_metadata?.role;
+        const role = user.app_metadata?.role as string | null | undefined;
         return isAdmin(role);
       })
       .map((user) => ({
@@ -566,7 +568,10 @@ export async function deleteAdminAccount(
       };
     }
 
-    const role = userToDelete.app_metadata?.role;
+    const role = userToDelete.app_metadata?.role as
+      | string
+      | null
+      | undefined;
 
     // Prevent deletion of super admins
     if (isSuperAdmin(role)) {
@@ -729,7 +734,7 @@ export async function isSuperAdminEmail(email: string): Promise<boolean> {
       return false;
     }
 
-    const role = user.app_metadata?.role;
+    const role = user.app_metadata?.role as string | null | undefined;
     return isSuperAdmin(role);
   } catch (error) {
     authLogger.error(

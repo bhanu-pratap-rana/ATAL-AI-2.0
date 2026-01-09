@@ -11,10 +11,10 @@ import { cn } from "@/lib/utils";
  */
 
 interface Tab {
-  id: string;
-  label: string;
-  icon?: string;
-  disabled?: boolean;
+  readonly id: string;
+  readonly label: string;
+  readonly icon?: string;
+  readonly disabled?: boolean;
 }
 
 interface TabNavigationProps {

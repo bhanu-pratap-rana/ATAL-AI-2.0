@@ -18,18 +18,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { clientLogger } from "@/lib/client-logger";
 
 interface AIInteraction {
-  id: string;
-  student_id: string;
-  student_name?: string;
-  session_id: string;
-  topic_id?: string;
-  message_role: "user" | "assistant" | "system";
-  message_content: string;
-  input_mode: "text" | "voice";
-  language: "en" | "hi" | "as";
-  tokens_used: number;
-  response_time_ms: number;
-  created_at: string;
+  readonly id: string;
+  readonly student_id: string;
+  readonly student_name?: string;
+  readonly session_id: string;
+  readonly topic_id?: string;
+  readonly message_role: "user" | "assistant" | "system";
+  readonly message_content: string;
+  readonly input_mode: "text" | "voice";
+  readonly language: "en" | "hi" | "as";
+  readonly tokens_used: number;
+  readonly response_time_ms: number;
+  readonly created_at: string;
 }
 
 interface AIInteractionsLogProps {

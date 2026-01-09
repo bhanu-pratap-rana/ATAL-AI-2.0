@@ -22,8 +22,8 @@ interface InviteStudentDialogProps {
 }
 
 interface StudentResult {
-  id: string;
-  email: string;
+  readonly id: string;
+  readonly email: string;
 }
 
 export function InviteStudentDialog({ classId }: InviteStudentDialogProps) {

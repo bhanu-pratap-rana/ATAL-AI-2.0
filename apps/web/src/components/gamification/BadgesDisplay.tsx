@@ -353,7 +353,7 @@ export function BadgesCompact({
   badges,
   maxDisplay = 5,
 }: {
-  readonly badges: Array<{ id: string; icon: string; name: string }>;
+  readonly badges: Array<{ readonly id: string; readonly icon: string; readonly name: string }>;
   readonly maxDisplay?: number;
 }) {
   const displayBadges = badges.slice(0, maxDisplay);

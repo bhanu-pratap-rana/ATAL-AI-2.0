@@ -484,8 +484,8 @@ interface SpeechGrammarList {
 }
 
 interface SpeechGrammar {
-  src: string;
-  weight: number;
+  readonly src: string;
+  readonly weight: number;
 }
 
 declare const SpeechRecognition: {

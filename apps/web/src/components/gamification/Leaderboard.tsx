@@ -17,10 +17,10 @@ import { clientLogger } from "@/lib/client-logger";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface LeaderEntry {
-  studentId: string;
-  name: string;
-  points: number;
-  rank: number;
+  readonly studentId: string;
+  readonly name: string;
+  readonly points: number;
+  readonly rank: number;
 }
 
 interface LeaderboardProps {

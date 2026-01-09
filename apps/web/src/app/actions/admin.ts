@@ -64,7 +64,10 @@ export async function setAdminRole(email: string): Promise<SetAdminRoleResult> {
     }
 
     // Check if already admin
-    const existingRole = user.app_metadata?.role;
+    const existingRole = user.app_metadata?.role as
+      | string
+      | null
+      | undefined;
     if (isAdmin(existingRole)) {
       return {
         success: true,
@@ -143,7 +146,7 @@ export async function checkAdminRoleByEmail(email: string): Promise<{
       return { hasAdminRole: false, error: "User not found" };
     }
 
-    const role = user.app_metadata?.role;
+    const role = user.app_metadata?.role as string | null | undefined;
     return { hasAdminRole: isAdmin(role) };
   } catch (error) {
     authLogger.error("[checkAdminRoleByEmail] Error", error);

@@ -80,17 +80,19 @@ async function performSignInWithSupabase(
   credentials: { email?: string; phone?: string; password: string },
 ): Promise<{ data?: { user: User | null }; error?: AuthError } | null> {
   if (credentials.email) {
-    return supabase.auth.signInWithPassword({
+    const result = await supabase.auth.signInWithPassword({
       email: credentials.email.trim(),
       password: credentials.password,
     });
+    return result as { data?: { user: User | null }; error?: AuthError };
   }
 
   if (credentials.phone) {
-    return supabase.auth.signInWithPassword({
+    const result = await supabase.auth.signInWithPassword({
       phone: credentials.phone,
       password: credentials.password,
     });
+    return result as { data?: { user: User | null }; error?: AuthError };
   }
 
   return null;
