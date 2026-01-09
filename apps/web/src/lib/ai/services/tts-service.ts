@@ -168,7 +168,7 @@ export class TTSService {
         parameters: {
           voice: config.voice,
           emotion: config.emotion || "neutral",
-          speed: config.speed || 1.0,
+          speed: config.speed || 1,
         },
       }),
     });

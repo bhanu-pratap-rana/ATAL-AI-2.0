@@ -130,7 +130,7 @@ export function updateTheta(
   responses: { item: IRTItem; correct: boolean }[],
 ): { theta: number; se: number } {
   if (responses.length === 0) {
-    return { theta: CAT_CONFIG.INITIAL_THETA, se: 1.0 };
+    return { theta: CAT_CONFIG.INITIAL_THETA, se: 1 };
   }
 
   let theta = currentTheta;
@@ -185,7 +185,7 @@ export function updateTheta(
       item.guessing,
     );
   }
-  const se = totalInfo > 0 ? 1 / Math.sqrt(totalInfo) : 1.0;
+  const se = totalInfo > 0 ? 1 / Math.sqrt(totalInfo) : 1;
 
   return { theta, se };
 }
