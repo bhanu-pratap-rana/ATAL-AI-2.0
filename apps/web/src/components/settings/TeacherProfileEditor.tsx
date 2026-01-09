@@ -198,12 +198,12 @@ export function TeacherProfileEditor({
 
           {/* Gender */}
           <div>
-            <label
+            <span
               id="teacher-gender-group"
               className="text-sm font-medium text-text-secondary"
             >
               Gender *
-            </label>
+            </span>
             {isEditing ? (
               <div
                 className="flex gap-4 mt-1"
