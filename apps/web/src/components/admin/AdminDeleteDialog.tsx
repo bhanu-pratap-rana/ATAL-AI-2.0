@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { deleteAdminAccount } from "@/app/actions/admin-management";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -83,14 +83,10 @@ export function AdminDeleteDialog({
     text: string;
   } | null>(null);
 
-  if (!isOpen) {
-    return null;
-  }
-
   const isConfirmed =
     emailConfirmation.toLowerCase() === adminEmail.toLowerCase();
 
-  async function handleDelete() {
+  const handleDelete = useCallback(async () => {
     if (!isConfirmed) {
       setMessage({
         type: "error",
@@ -138,14 +134,18 @@ export function AdminDeleteDialog({
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [isConfirmed, adminId, onClose, onSuccess]);
 
-  function handleClose() {
+  const handleClose = useCallback(() => {
     if (!isLoading) {
       setEmailConfirmation("");
       setMessage(null);
       onClose();
     }
+  }, [isLoading, onClose]);
+
+  if (!isOpen) {
+    return null;
   }
 
   return (
