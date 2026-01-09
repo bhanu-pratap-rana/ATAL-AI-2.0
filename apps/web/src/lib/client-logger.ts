@@ -27,7 +27,8 @@ interface WindowWithSentry extends Window {
 
 function getSentry(): WindowWithSentry["Sentry"] | undefined {
   if (typeof globalThis === "undefined") return undefined;
-  return (globalThis as unknown as WindowWithSentry).Sentry;
+  const windowWithSentry = (globalThis as unknown) as WindowWithSentry;
+  return windowWithSentry.Sentry;
 }
 
 /**

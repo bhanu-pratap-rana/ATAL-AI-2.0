@@ -337,7 +337,21 @@ class RedisRateLimiter implements IRateLimiter {
             lastRefill: now,
           };
         } else {
-          entry = JSON.parse(data);
+          try {
+            entry = JSON.parse(data);
+          } catch (parseError) {
+            authLogger.error(
+              "[RedisRateLimiter] Failed to parse rate limit data",
+              parseError instanceof Error ? parseError : new Error(String(parseError))
+            );
+            entry = {
+              tokens: this.config.maxTokens - 1,
+              lastRefill: now,
+            };
+            const ttl = this.config.ttl || 3600;
+            await this.redisClient.setex(redisKey, ttl, JSON.stringify(entry));
+            return true;
+          }
           const timePassed = (now - entry.lastRefill) / 1000;
           const tokensToAdd = timePassed * this.config.refillRate;
           entry.tokens = Math.min(
