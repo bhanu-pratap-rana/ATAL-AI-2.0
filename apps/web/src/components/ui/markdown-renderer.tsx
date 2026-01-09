@@ -24,24 +24,10 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 /**
- * Secure markdown renderer with GitHub Flavored Markdown support
- * - XSS protection via rehype-sanitize
- * - Supports tables, strikethrough, task lists (GFM)
- * - Theming via CSS variables (dark mode support)
- * - Accessibility: semantic HTML maintained
+ * Markdown component definitions - extracted to prevent inline component violations
+ * Each handler properly types its props and renders semantic HTML
  */
-export function MarkdownRenderer({
-  content,
-  className,
-}: MarkdownRendererProps) {
-  return (
-    <div
-      className={className || "prose prose-slate dark:prose-invert max-w-none"}
-    >
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeRaw, rehypeSanitize]}
-        components={{
+const markdownComponents = {
           // Headings with semantic sizing and primary color
           h1: ({ node: _node, ...props }) => (
             <h1
@@ -193,7 +179,27 @@ export function MarkdownRenderer({
           del: ({ node: _node, ...props }) => (
             <del className="line-through text-muted-foreground" {...props} />
           ),
-        }}
+        };
+
+/**
+ * Secure markdown renderer with GitHub Flavored Markdown support
+ * - XSS protection via rehype-sanitize
+ * - Supports tables, strikethrough, task lists (GFM)
+ * - Theming via CSS variables (dark mode support)
+ * - Accessibility: semantic HTML maintained
+ */
+export function MarkdownRenderer({
+  content,
+  className,
+}: MarkdownRendererProps) {
+  return (
+    <div
+      className={className || "prose prose-slate dark:prose-invert max-w-none"}
+    >
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeRaw, rehypeSanitize]}
+        components={markdownComponents}
       >
         {content}
       </ReactMarkdown>
