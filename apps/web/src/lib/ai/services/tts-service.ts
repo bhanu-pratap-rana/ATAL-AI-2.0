@@ -64,10 +64,10 @@ const LANGUAGE_VOICE_MAP: Record<TTSLanguage, VoiceConfig> = {
  * Uses HuggingFace Inference API with Render.com fallback
  */
 export class TTSService {
-  private huggingFaceApiUrl =
+  private readonly huggingFaceApiUrl =
     process.env.HUGGINGFACE_TTS_URL ||
     "https://api-inference.huggingface.co/models/ai4bharat/indic-parler-tts";
-  private renderFallbackUrl = process.env.TTS_FALLBACK_URL || "";
+  private readonly renderFallbackUrl = process.env.TTS_FALLBACK_URL || "";
 
   /**
    * Synthesize speech from text
