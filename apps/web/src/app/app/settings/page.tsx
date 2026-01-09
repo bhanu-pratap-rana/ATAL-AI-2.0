@@ -54,15 +54,14 @@ export default async function SettingsPage() {
 
   // Determine display role - teachers promoted to admin show both roles
   // Super admin is unique (only atal.app.ai@gmail.com)
-  let userRole = "Student";
-  if (appRole === "super_admin") {
-    userRole = "Super Admin";
-  } else if (appRole === "admin") {
-    // Admin promoted from teacher shows combined role
-    userRole = "Teacher, Admin";
-  } else if (appRole === "teacher") {
-    userRole = "Teacher";
-  }
+  const userRole =
+    appRole === "super_admin"
+      ? "Super Admin"
+      : appRole === "admin"
+        ? "Teacher, Admin"
+        : appRole === "teacher"
+          ? "Teacher"
+          : "Student";
 
   // Fetch student profile if user is a student
   let studentProfile = null;
