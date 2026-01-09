@@ -234,7 +234,7 @@ async function promoteExistingUserToAdmin(
     };
   }
 
-  const recheckRole = recheck.app_metadata?.role as string;
+  const recheckRole = recheck.app_metadata?.role;
   if (recheckRole === "admin" || recheckRole === "super_admin") {
     authLogger.warn(
       "[createAdminAccount] User already promoted by concurrent request",
@@ -411,7 +411,7 @@ export async function createAdminAccount(
     );
 
     if (existingUser) {
-      const currentRole = existingUser.app_metadata?.role as string;
+      const currentRole = existingUser.app_metadata?.role;
       if (currentRole === "admin" || currentRole === "super_admin") {
         return {
           success: false,
@@ -486,7 +486,7 @@ export async function listAdminAccounts(): Promise<AdminActionResult> {
       .map((user) => ({
         id: user.id,
         email: user.email || "",
-        role: ((user.app_metadata?.role as string) || "admin") as
+        role: ((user.app_metadata?.role) || "admin") as
           | "admin"
           | "super_admin",
         created_at: user.created_at,
@@ -776,7 +776,7 @@ export async function getAdminById(
     const admin: AdminUser = {
       id: user.id,
       email: user.email || "",
-      role: ((user.app_metadata?.role as string) || "admin") as
+      role: ((user.app_metadata?.role) || "admin") as
         | "admin"
         | "super_admin",
       created_at: user.created_at,
