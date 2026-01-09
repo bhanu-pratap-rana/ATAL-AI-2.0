@@ -82,6 +82,35 @@ function getProgressBarColor(level: SkillLevel): string {
   }
 }
 
+/**
+ * Determine skill level from score or explicit level prop
+ */
+function getSkillLevel(
+  level: SkillLevel | undefined,
+  score: number | undefined,
+): SkillLevel {
+  if (level) return level;
+  if (score !== undefined) return getLevelFromScore(score);
+  return "beginner";
+}
+
+/**
+ * Get badge classes for level progression display
+ */
+function getLevelBadgeClasses(
+  isActive: boolean,
+  isCurrent: boolean,
+  bgClass: string,
+): string {
+  if (isCurrent) {
+    return `${bgClass} ring-2 ring-offset-2 ring-current`;
+  }
+  if (isActive) {
+    return bgClass;
+  }
+  return "bg-border";
+}
+
 export function LevelBadge({
   score,
   level,
@@ -89,8 +118,7 @@ export function LevelBadge({
   className = "",
 }: LevelBadgeProps) {
   // Determine level from score or prop
-  const skillLevel =
-    level || (score !== undefined ? getLevelFromScore(score) : "beginner");
+  const skillLevel = getSkillLevel(level, score);
   const config = LEVEL_CONFIG[skillLevel];
 
   // Size classes
@@ -133,8 +161,7 @@ export function LevelCard({
   level,
   className = "",
 }: Omit<LevelBadgeProps, "size">) {
-  const skillLevel =
-    level || (score !== undefined ? getLevelFromScore(score) : "beginner");
+  const skillLevel = getSkillLevel(level, score);
   const config = LEVEL_CONFIG[skillLevel];
 
   return (
@@ -191,9 +218,7 @@ export function LevelProgress({
                 className={`
                   w-10 h-10 rounded-full flex items-center justify-center text-xl
                   transition-all duration-300
-                  ${isCurrent ? `${config.bgClass} ring-2 ring-offset-2 ring-current` : ""}
-                  ${isActive && !isCurrent ? config.bgClass : ""}
-                  ${isActive ? "" : "bg-border"}
+                  ${getLevelBadgeClasses(isActive, isCurrent, config.bgClass)}
                 `}
               >
                 {config.icon}
