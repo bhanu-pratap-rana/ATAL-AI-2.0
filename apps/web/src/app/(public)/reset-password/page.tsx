@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase-browser";
 import { resetPasswordWithOtp } from "@/app/actions/auth";
-import { useOTPInput } from "@/hooks/useOTPInput";
 import { validateEmail, validatePasswordMatch } from "@/lib/validation-utils";
 import { getPasswordValidationError } from "@/lib/password-utils";
 import { OTP_LENGTH } from "@/lib/auth-constants";

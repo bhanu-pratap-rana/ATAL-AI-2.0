@@ -430,7 +430,7 @@ export class CurriculumRAGService {
     if (docs.length === 0) return "";
 
     // Group by language to show which languages are represented
-    const languages = [...new Set(docs.map((d) => d.language))];
+    const languages = Array.from(new Set(docs.map((d) => d.language)));
     const langLabels = languages
       .map((l) => this.getLanguageLabel(l as "en" | "hi" | "as"))
       .join(", ");

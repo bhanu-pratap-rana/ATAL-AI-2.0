@@ -43,6 +43,7 @@ const isSpeechSupported =
 export function VoiceChat({
   language,
   onTranscript,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onSpeakStart,
   onSpeakEnd,
   disabled = false,
@@ -163,7 +164,7 @@ export function VoiceChat({
   }, []);
 
   // Browser TTS fallback using Web Speech Synthesis
-  const speakWithBrowser = useCallback(
+  const _speakWithBrowser = useCallback(
     (text: string) => {
       const isTTSSupported =
         typeof globalThis !== "undefined" &&
