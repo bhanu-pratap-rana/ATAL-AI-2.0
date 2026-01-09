@@ -29,7 +29,7 @@ const isTestEnvironment = () => {
     process.env.PLAYWRIGHT_TEST === "true" ||
     // Playwright detection - check if running in test mode
     (typeof navigator !== "undefined" &&
-      (navigator.webdriver === true ||
+      (Boolean(navigator.webdriver) ||
         navigator.userAgent.includes("HeadlessChrome") ||
         // Check for test globals
         testGlobal.__PLAYWRIGHT_TEST__ === true)) ||

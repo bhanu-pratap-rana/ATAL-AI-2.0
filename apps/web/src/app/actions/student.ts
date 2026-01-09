@@ -124,7 +124,7 @@ export async function saveStudentProfile(params: StudentProfileParams) {
     // RPC returns JSON object with success/error
     const rpcResponse = rpcResult as UpsertStudentProfileRPCResponse;
     if (rpcResponse && typeof rpcResponse === "object") {
-      if (rpcResponse.success === false) {
+      if (!rpcResponse.success) {
         authLogger.error("[saveStudentProfile] RPC returned error", {
           error: rpcResponse.error,
           code: rpcResponse.code,
