@@ -29,9 +29,6 @@ const THEME = {
   gradientPrimary: "linear-gradient(135deg, #F98819 0%, #FFAB4A 100%)",
 } as const;
 
-// Helper function to get CSS variable with fallback
-const _getCSSVar = (varName: string, fallback: string) =>
-  `var(--${varName}, ${fallback})`;
 
 export default function OfflinePage() {
   return (

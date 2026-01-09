@@ -201,64 +201,6 @@ export function VoiceChat({
     [language, onSpeakEnd],
   );
 
-  // Speak text using AI4Bharat TTS with browser fallback
-  const _speakText = useCallback(
-    async (text: string) => {
-      if (!text || isSpeaking) return;
-
-      setIsSpeaking(true);
-      onSpeakStart?.();
-
-      try {
-        const response = await fetch("/api/voice/tts", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text, language }),
-        });
-
-        if (!response.ok) {
-          // Use browser TTS as fallback
-          clientLogger.warn(
-            "[VoiceChat] TTS API failed, using browser fallback",
-          );
-          speakWithBrowser(text);
-          return;
-        }
-
-        const audioBlob = await response.blob();
-        const audioUrl = URL.createObjectURL(audioBlob);
-
-        const audio = new Audio(audioUrl);
-        audioRef.current = audio;
-
-        audio.onended = () => {
-          setIsSpeaking(false);
-          onSpeakEnd?.();
-          URL.revokeObjectURL(audioUrl);
-        };
-
-        audio.onerror = () => {
-          // Fallback to browser TTS on playback error
-          clientLogger.warn(
-            "[VoiceChat] Audio playback failed, using browser fallback",
-          );
-          URL.revokeObjectURL(audioUrl);
-          speakWithBrowser(text);
-        };
-
-        await audio.play();
-      } catch (error) {
-        clientLogger.error(
-          "[VoiceChat] TTS error:",
-          error instanceof Error ? error : undefined,
-        );
-        // Fallback to browser TTS
-        speakWithBrowser(text);
-      }
-    },
-    [language, isSpeaking, onSpeakStart, onSpeakEnd, speakWithBrowser],
-  );
-
   // Stop speaking (handles both audio element and browser TTS)
   const stopSpeaking = useCallback(() => {
     // Stop audio element if playing

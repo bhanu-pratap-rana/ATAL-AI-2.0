@@ -53,7 +53,6 @@ export async function fetchPaginatedWithCursor<T>(
 
     // Apply cursor if provided (skip past last item)
     if (cursor) {
-      const _comparison = orderBy.ascending ? "gt" : "lt";
       query = query.gt(cursorColumn, cursor);
     }
 
