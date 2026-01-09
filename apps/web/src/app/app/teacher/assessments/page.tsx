@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase-server";
 import { isTeacherOrHigher } from "@/lib/auth/role-utils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { ClassAssessmentCard } from "@/components/teacher/ClassAssessmentCard";
 import { getTeacherAssessmentOverview } from "@/app/actions/teacher";
 
 // Format date to relative time
@@ -19,14 +20,6 @@ function _formatRelativeTime(dateString: string | null): string {
   if (diffDays < 7) return `${diffDays} days ago`;
   if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
   return date.toLocaleDateString();
-}
-
-// Get score color based on value
-function getScoreColor(score: number | null): string {
-  if (score === null) return "bg-surface text-text-tertiary";
-  if (score >= 80) return "bg-success-light text-success-dark";
-  if (score >= 60) return "bg-warning-light text-warning-dark";
-  return "bg-error-light text-error-dark";
 }
 
 export default async function TeacherAssessmentsPage() {
@@ -108,68 +101,17 @@ export default async function TeacherAssessmentsPage() {
           {hasClasses ? (
             <>
               {overview.classes.map((cls) => (
-                <Card key={cls.classId} className="card-responsive">
-                  <CardHeader className="pb-2">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <CardTitle className="text-lg md:text-xl">
-                        {cls.className}
-                      </CardTitle>
-                      {cls.subject && (
-                        <span className="text-sm text-text-secondary">
-                          {cls.subject}
-                        </span>
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-3 gap-4 mb-4">
-                      <div className="text-center p-3 bg-surface rounded-lg">
-                        <p className="text-xl font-bold text-primary">
-                          {cls.studentCount}
-                        </p>
-                        <p className="text-xs text-text-secondary">Students</p>
-                      </div>
-                      <div className="text-center p-3 bg-surface rounded-lg">
-                        <p className="text-xl font-bold text-info-dark">
-                          {cls.assessmentsTaken}
-                        </p>
-                        <p className="text-xs text-text-secondary">
-                          Assessments
-                        </p>
-                      </div>
-                      <div
-                        className={`text-center p-3 rounded-lg ${getScoreColor(cls.averageScore)}`}
-                      >
-                        <p className="text-xl font-bold">
-                          {cls.averageScore !== null
-                            ? `${cls.averageScore}%`
-                            : "-"}
-                        </p>
-                        <p className="text-xs">Avg Score</p>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <Link href={`/app/teacher/classes/${cls.classId}`}>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="touch-target"
-                        >
-                          View Class
-                        </Button>
-                      </Link>
-                      <Link href={`/app/teacher/assessments/${cls.classId}`}>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="touch-target"
-                        >
-                          View Results
-                        </Button>
-                      </Link>
-                    </div>
-                  </CardContent>
-                </Card>
+                <ClassAssessmentCard
+                  key={cls.classId}
+                  classData={{
+                    classId: cls.classId,
+                    className: cls.className,
+                    subject: cls.subject,
+                    studentCount: cls.studentCount,
+                    assessmentsTaken: cls.assessmentsTaken,
+                    averageScore: cls.averageScore,
+                  }}
+                />
               ))}
             </>
           ) : (
