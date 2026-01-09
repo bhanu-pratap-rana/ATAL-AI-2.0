@@ -40,7 +40,8 @@ export default function AdminsPage() {
           router.push("/admin/pins");
           return;
         }
-      } catch {
+      } catch (error) {
+        console.error("[AdminsPage] Auth check failed:", error);
         router.push("/admin/login");
       } finally {
         setIsLoading(false);
