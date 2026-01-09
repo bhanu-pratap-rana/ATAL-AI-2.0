@@ -143,7 +143,7 @@ function SchoolFinderModal({
 
         {/* District Selection */}
         <div className="mb-4">
-          <Label className="text-sm font-semibold mb-2 block">District</Label>
+          <span className="text-sm font-semibold mb-2 block">District</span>
           <select
             value={selectedDistrict}
             onChange={(e) => setSelectedDistrict(e.target.value)}
@@ -162,7 +162,7 @@ function SchoolFinderModal({
         {/* Block Selection */}
         {selectedDistrict && (
           <div className="mb-4">
-            <Label className="text-sm font-semibold mb-2 block">Block</Label>
+            <span className="text-sm font-semibold mb-2 block">Block</span>
             <select
               value={selectedBlock}
               onChange={(e) => setSelectedBlock(e.target.value)}
@@ -496,11 +496,12 @@ export default function AdminSchoolsPage() {
           <div className="space-y-4">
             {/* Quick Search */}
             <div>
-              <Label className="text-sm font-medium mb-2 block">
+              <label htmlFor="school-search" className="text-sm font-medium mb-2 block">
                 Quick Search by Code or Name
-              </Label>
+              </label>
               <div className="flex gap-2">
                 <Input
+                  id="school-search"
                   placeholder="e.g., 14H0182 or School Name"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}

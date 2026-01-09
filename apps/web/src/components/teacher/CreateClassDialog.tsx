@@ -83,7 +83,7 @@ export function CreateClassDialog() {
             <div className="py-4 md:py-6 space-y-4 md:space-y-6">
               {/* Class Code */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Class Code</Label>
+                <span className="text-sm font-medium">Class Code</span>
                 <div className="bg-gradient-to-br from-primary/10 to-primary/5 border-2 border-primary/30 rounded-lg p-3 md:p-4">
                   <p className="text-2xl md:text-3xl font-mono font-bold text-center text-primary tracking-widest break-all">
                     {createdClass.classCode}
@@ -96,7 +96,7 @@ export function CreateClassDialog() {
 
               {/* Join PIN */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Join PIN</Label>
+                <span className="text-sm font-medium">Join PIN</span>
                 <div className="bg-gradient-to-br from-cyan-lightest to-cyan/10 border-2 border-cyan/30 rounded-lg p-3 md:p-4">
                   <p className="text-2xl md:text-3xl font-mono font-bold text-center text-cyan-dark tracking-widest">
                     {createdClass.joinPin}
