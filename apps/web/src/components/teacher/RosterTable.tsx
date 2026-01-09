@@ -34,6 +34,27 @@ interface RosterTableProps {
   readonly classId: string;
 }
 
+// Helper to get display name for student
+function getStudentDisplayName(enrollment: Enrollment): string {
+  return (
+    enrollment.student?.name || `Student ${enrollment.student_id.slice(0, 8)}`
+  );
+}
+
+// Helper to get student initial
+function getStudentInitial(enrollment: Enrollment): string {
+  const name = enrollment.student?.name;
+  if (name) {
+    return name[0].toUpperCase();
+  }
+  return "S";
+}
+
+// Helper to get remove button text based on state
+function getRemoveButtonText(isRemoving: boolean): string {
+  return isRemoving ? "Removing..." : "Remove";
+}
+
 export function RosterTable({ enrollments, classId }: RosterTableProps) {
   const router = useRouter();
   const [removingId, setRemovingId] = useState<string | null>(null);
@@ -59,27 +80,6 @@ export function RosterTable({ enrollments, classId }: RosterTableProps) {
     } finally {
       setRemovingId(null);
     }
-  }
-
-  // Helper to get display name for student
-  function getStudentDisplayName(enrollment: Enrollment): string {
-    return (
-      enrollment.student?.name || `Student ${enrollment.student_id.slice(0, 8)}`
-    );
-  }
-
-  // Helper to get student initial
-  function getStudentInitial(enrollment: Enrollment): string {
-    const name = enrollment.student?.name;
-    if (name) {
-      return name[0].toUpperCase();
-    }
-    return "S";
-  }
-
-  // Helper to get remove button text based on state
-  function getRemoveButtonText(isRemoving: boolean): string {
-    return isRemoving ? "Removing..." : "Remove";
   }
 
   return (
