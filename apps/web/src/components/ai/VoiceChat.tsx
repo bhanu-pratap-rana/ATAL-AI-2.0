@@ -183,7 +183,7 @@ export function VoiceChat({
       };
       utterance.lang = langMap[language] || "en-IN";
       utterance.rate = 0.9;
-      utterance.pitch = 1.0;
+      utterance.pitch = 1;
 
       utterance.onend = () => {
         setIsSpeaking(false);
