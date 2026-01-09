@@ -125,13 +125,10 @@ async function getClassJoinActivities(
 
   const activities: RecentActivity[] = [];
   for (const enrollment of enrollments) {
-    const classData =
-      enrollment.classes &&
-      typeof enrollment.classes === "object" &&
-      "name" in enrollment.classes
-        ? { name: String(enrollment.classes.name) }
-        : null;
-    const className = classData?.name || "Unknown Class";
+    const className =
+      enrollment.classes && typeof enrollment.classes === "object" && "name" in enrollment.classes
+        ? String(enrollment.classes.name)
+        : "Unknown Class";
     activities.push({
       id: enrollment.id,
       type: "class_join",
