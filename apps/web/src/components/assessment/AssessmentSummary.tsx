@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ResultCircle } from "./ResultCircle";
 import { CategoryBreakdown, CategoryStrengths } from "./CategoryBreakdown";
 import { LevelBadge, LevelCard } from "./LevelBadge";
+import { AssessmentStats } from "./AssessmentStats";
 
 /**
  * ATAL AI Assessment Summary - Enhanced with IRT Scoring
@@ -88,15 +89,6 @@ export function AssessmentSummary({
 
   const scoreMessage = getScoreMessage(score);
 
-  // Format time display
-  const formatTime = (ms: number) => {
-    const seconds = Math.round(ms / 1000);
-    if (seconds < 60) return `${seconds}s`;
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}m ${remainingSeconds}s`;
-  };
-
   return (
     <div className="min-h-screen bg-cream p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
@@ -166,63 +158,11 @@ export function AssessmentSummary({
             </div>
 
             {/* Quick Stats */}
-            <div className="card">
-              <h3 className="text-lg font-semibold text-text-primary mb-4">
-                Quick Stats
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                {/* Response Time */}
-                <div className="bg-primary-light p-4 rounded-lg">
-                  <div className="text-2xl font-bold text-primary-dark">
-                    {formatTime(avgResponseTime)}
-                  </div>
-                  <div className="text-xs text-primary/80">
-                    Avg. Response Time
-                  </div>
-                </div>
-
-                {/* Modules Covered */}
-                <div className="bg-success-light p-4 rounded-lg">
-                  <div className="text-2xl font-bold text-success-dark">
-                    {Object.keys(moduleBreakdown).length}
-                  </div>
-                  <div className="text-xs text-success/80">Modules Covered</div>
-                </div>
-              </div>
-
-              {/* IRT-Enhanced Stats */}
-              {irtData && (
-                <div className="mt-4 pt-4 border-t border-border">
-                  <h4 className="text-sm font-medium text-text-secondary mb-3">
-                    Ability Estimate (IRT)
-                  </h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-secondary-light p-3 rounded-lg">
-                      <div className="text-xl font-bold text-secondary-dark">
-                        θ = {irtData.theta.toFixed(2)}
-                      </div>
-                      <div className="text-xs text-secondary/80">
-                        Ability Score
-                      </div>
-                    </div>
-                    <div className="bg-warning-light p-3 rounded-lg">
-                      <div className="text-xl font-bold text-warning-dark">
-                        ±{irtData.standardError.toFixed(2)}
-                      </div>
-                      <div className="text-xs text-warning/80">
-                        Standard Error
-                      </div>
-                    </div>
-                  </div>
-                  <p className="mt-3 text-xs text-text-tertiary text-center">
-                    Your ability level:{" "}
-                    <span className="font-semibold">
-                      {irtData.proficiencyLevel}
-                    </span>
-                  </p>
-                </div>
-              )}
-            </div>
+            <AssessmentStats
+              avgResponseTime={avgResponseTime}
+              moduleBreakdown={moduleBreakdown}
+              irtData={irtData}
+            />
           </div>
         </div>
 
