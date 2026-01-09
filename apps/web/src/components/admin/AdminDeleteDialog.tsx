@@ -5,7 +5,8 @@ import { deleteAdminAccount } from "@/app/actions/admin-management";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AlertCircle, CheckCircle, Loader2, X } from "lucide-react";
+import { AlertCircle, Loader2, X } from "lucide-react";
+import { FormMessage } from "@/components/ui/FormMessage";
 import { toast } from "sonner";
 import { FORM_TIMING } from "@/lib/constants/ui-timings";
 import { clientLogger } from "@/lib/client-logger";
@@ -16,39 +17,6 @@ interface AdminDeleteDialogProps {
   readonly isOpen: boolean;
   readonly onClose: () => void;
   readonly onSuccess?: () => void;
-}
-
-/**
- * Get message container classes based on message type
- */
-function getMessageContainerClass(
-  messageType: "success" | "error",
-): string {
-  if (messageType === "success") {
-    return "bg-success-light border-success/30";
-  }
-  return "bg-error-light border-error/30";
-}
-
-/**
- * Get message icon based on message type
- */
-function getMessageIcon(messageType: "success" | "error"): React.ReactNode {
-  if (messageType === "success") {
-    return (
-      <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
-    );
-  }
-  return (
-    <AlertCircle className="w-5 h-5 text-error flex-shrink-0 mt-0.5" />
-  );
-}
-
-/**
- * Get message text class based on message type
- */
-function getMessageTextClass(messageType: "success" | "error"): string {
-  return messageType === "success" ? "text-success" : "text-error";
 }
 
 /**
@@ -201,13 +169,11 @@ export function AdminDeleteDialog({
 
         {/* Message Display */}
         {message && (
-          <div
-            className={`flex gap-3 p-3 rounded-lg border mb-4 ${getMessageContainerClass(message.type)}`}
-          >
-            {getMessageIcon(message.type)}
-            <span className={`text-sm ${getMessageTextClass(message.type)}`}>
-              {message.text}
-            </span>
+          <div className="mb-4">
+            <FormMessage
+              type={message.type === "success" ? "success" : "error"}
+              text={message.text}
+            />
           </div>
         )}
 
