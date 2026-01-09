@@ -478,8 +478,8 @@ export function ProfileStep({
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>Gender *</Label>
+          <fieldset className="space-y-2 border-0 p-0 m-0">
+            <legend className="text-sm font-medium">Gender *</legend>
             <div className="flex gap-4">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -506,7 +506,7 @@ export function ProfileStep({
                 <span className="text-sm">Female</span>
               </label>
             </div>
-          </div>
+          </fieldset>
 
           <div className="space-y-2">
             <Label htmlFor="phone">Phone Number</Label>

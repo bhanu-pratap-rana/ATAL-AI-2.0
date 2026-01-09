@@ -6,7 +6,6 @@
 import { Eye, EyeOff, Wand2, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import type { SchoolPINInfo } from "@/app/actions/admin-pin-management";
 
 interface PINGeneratorProps {
@@ -42,7 +41,7 @@ export function PINGenerator({
     <div className="space-y-4">
       {/* School Code Display */}
       <div className="space-y-2">
-        <Label>School Code</Label>
+        <span>School Code</span>
         <Input
           type="text"
           value={selectedSchool.schoolCode}
@@ -54,7 +53,7 @@ export function PINGenerator({
       {/* PIN Display */}
       {newPin && (
         <div className="space-y-2">
-          <Label>Generated PIN</Label>
+          <span>Generated PIN</span>
           <div className="flex gap-2">
             <Input
               type={showNewPin ? "text" : "password"}

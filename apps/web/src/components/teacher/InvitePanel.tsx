@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { authLogger } from "@/lib/auth-logger";
 import { QR_CODE_COLORS } from "@/lib/constants/theme-colors";
 
@@ -118,7 +117,7 @@ export function InvitePanel({
         {/* QR Code Section */}
         <div className="space-y-4 order-2 md:order-1">
           <div className="flex flex-col items-center">
-            <Label className="mb-2 text-sm font-medium">QR Code</Label>
+            <span className="mb-2 text-sm font-medium">QR Code</span>
             <div className="qr-container bg-white p-3 md:p-4 rounded-lg border-2 border-primary/30 shadow-sm">
               <canvas ref={canvasRef} className="w-full h-auto" />
             </div>
@@ -142,7 +141,7 @@ export function InvitePanel({
         <div className="space-y-4 md:space-y-6 order-1 md:order-2">
           {/* Class Code */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Class Code</Label>
+            <span className="text-sm font-medium">Class Code</span>
             <div className="bg-gradient-to-br from-primary/10 to-primary/5 border-2 border-primary/30 rounded-lg p-3 md:p-4">
               <p className="text-xl sm:text-2xl md:text-3xl font-mono font-bold text-center text-primary tracking-widest break-all">
                 {classCode}
@@ -163,7 +162,7 @@ export function InvitePanel({
 
           {/* Join PIN */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Join PIN</Label>
+            <span className="text-sm font-medium">Join PIN</span>
             <div className="bg-gradient-to-br from-primary-lighter to-primary-light border-2 border-primary/30 rounded-lg p-3 md:p-4">
               <p className="text-xl sm:text-2xl md:text-3xl font-mono font-bold text-center text-primary tracking-widest">
                 {joinPin}
@@ -187,9 +186,9 @@ export function InvitePanel({
       {/* Invite Link Section */}
       <div className="mt-4 md:mt-6 space-y-4">
         <div className="bg-gradient-to-br from-success-light/50 to-success-light/30 border-2 border-success/30 rounded-lg p-responsive">
-          <Label className="text-sm font-medium mb-2 block">
+          <span className="text-sm font-medium mb-2 block">
             Direct Invite Link
-          </Label>
+          </span>
           <div className="bg-white rounded-md p-2 mb-3 border border-success/20 overflow-x-auto">
             <p className="text-xs font-mono text-text-secondary break-all">
               {getInviteLink()}
