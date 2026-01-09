@@ -109,11 +109,11 @@ export function hasMinimumRole(
   role: string | undefined | null,
   minimumRole: UserRole,
 ): boolean {
-  if (!role || !(role in ROLE_HIERARCHY)) {
+  if (!isValidRole(role)) {
     return false;
   }
 
-  const userLevel = ROLE_HIERARCHY[role as UserRole];
+  const userLevel = ROLE_HIERARCHY[role];
   const minimumLevel = ROLE_HIERARCHY[minimumRole];
 
   return userLevel >= minimumLevel;

@@ -165,10 +165,11 @@ export function VoiceChat({
   // Browser TTS fallback using Web Speech Synthesis
   const speakWithBrowser = useCallback(
     (text: string) => {
-      if (
-        typeof globalThis === "undefined" ||
-        !("speechSynthesis" in globalThis)
-      ) {
+      const isTTSSupported =
+        typeof globalThis !== "undefined" &&
+        "speechSynthesis" in globalThis;
+
+      if (!isTTSSupported) {
         setError("Browser TTS not supported");
         return;
       }
