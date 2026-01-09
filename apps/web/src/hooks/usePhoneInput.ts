@@ -31,7 +31,7 @@ export function usePhoneInput(initialValue: string = ""): UsePhoneInputReturn {
 
   const displayValue = fullValue.replace(/^[\+\d]+/, (match) => {
     // Remove country code for display
-    return match.replace(PHONE_COUNTRY_CODE, "");
+    return match.replaceAll(PHONE_COUNTRY_CODE, "");
   });
 
   const handleChange = (input: string) => {
