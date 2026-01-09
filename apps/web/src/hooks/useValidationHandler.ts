@@ -166,12 +166,12 @@ export function useValidationHandler(options: UseValidationHandlerOptions) {
 
         setSuccess(true);
         onSuccess?.();
-      } catch (err) {
+      } catch (error) {
         // Handle async operation error
         const errorMessage =
-          err instanceof Error ? err.message : "An unexpected error occurred";
+          error instanceof Error ? error.message : "An unexpected error occurred";
         setError(errorMessage);
-        onError?.(err);
+        onError?.(error);
       } finally {
         setIsLoading(false);
         onFinally?.();

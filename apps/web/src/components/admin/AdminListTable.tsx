@@ -80,10 +80,10 @@ export function AdminListTable({
       } else {
         setError(result.error || "Failed to load admin accounts");
       }
-    } catch (err) {
+    } catch (error) {
       clientLogger.error(
         "[AdminListTable] Error loading admins",
-        err instanceof Error ? err : { error: String(err) },
+        error instanceof Error ? error : { error: String(error) },
       );
       setError("An error occurred while loading admins");
     } finally {
@@ -112,10 +112,10 @@ export function AdminListTable({
       } else {
         toast.error(result.error || "Failed to delete admin account");
       }
-    } catch (err) {
+    } catch (error) {
       clientLogger.error(
         "[AdminListTable] Error deleting admin",
-        err instanceof Error ? err : { error: String(err) },
+        error instanceof Error ? error : { error: String(error) },
       );
       toast.error("An error occurred while deleting admin");
     } finally {
@@ -162,10 +162,10 @@ export function AdminListTable({
       } else {
         setResetError(result.error || "Failed to reset password");
       }
-    } catch (err) {
+    } catch (error) {
       clientLogger.error(
         "[AdminListTable] Error resetting password",
-        err instanceof Error ? err : { error: String(err) },
+        error instanceof Error ? error : { error: String(error) },
       );
       setResetError("An error occurred while resetting password");
     } finally {

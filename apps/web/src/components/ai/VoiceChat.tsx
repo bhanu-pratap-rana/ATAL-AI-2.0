@@ -246,10 +246,10 @@ export function VoiceChat({
         };
 
         await audio.play();
-      } catch (err) {
+      } catch (error) {
         clientLogger.error(
           "[VoiceChat] TTS error:",
-          err instanceof Error ? err : undefined,
+          error instanceof Error ? error : undefined,
         );
         // Fallback to browser TTS
         speakWithBrowser(text);
@@ -380,10 +380,10 @@ export function useTTS(language: Language) {
         };
 
         await audio.play();
-      } catch (err) {
+      } catch (error) {
         clientLogger.error(
           "[useTTS] TTS error:",
-          err instanceof Error ? err : undefined,
+          error instanceof Error ? error : undefined,
         );
         setIsSpeaking(false);
       }

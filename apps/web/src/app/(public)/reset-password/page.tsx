@@ -135,10 +135,10 @@ function ResetPasswordContent() {
           result.error || "Failed to reset password. Please try again.",
         );
       }
-    } catch (err) {
-      authLogger.error("[ResetPassword] Unexpected error", err);
+    } catch (error) {
+      authLogger.error("[ResetPassword] Unexpected error", error);
       const errorMsg =
-        err instanceof Error ? err.message : "An unexpected error occurred";
+        error instanceof Error ? error.message : "An unexpected error occurred";
       setError(errorMsg);
       toast.error(errorMsg);
     } finally {

@@ -81,10 +81,10 @@ async function fetchDashboardMetricsFromDB(): Promise<DashboardMetrics> {
           authUsers,
           error: null,
         };
-      } catch (err) {
+      } catch (error) {
         return {
           authUsers: null,
-          error: err,
+          error: error,
         };
       }
     })(),

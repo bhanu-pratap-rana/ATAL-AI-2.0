@@ -75,12 +75,12 @@ function AssessmentStartContent() {
 
       setSessionId(sessionResult.sessionId);
       setQuestions(questionsResult.questions as Question[]);
-    } catch (err) {
+    } catch (error) {
       const errorMsg =
-        err instanceof Error ? err.message : "An unexpected error occurred";
+        error instanceof Error ? error.message : "An unexpected error occurred";
       clientLogger.error(
         "[Assessment] Error starting assessment:",
-        err instanceof Error ? err : { error: String(err) },
+        error instanceof Error ? error : { error: String(error) },
       );
       setError(errorMsg);
       toast.error(errorMsg);
