@@ -229,9 +229,14 @@ export async function rotateSchoolPIN(
     // Use custom PIN or generate new PIN using centralized constants
     const newPIN =
       customPIN ||
-      Math.floor(
-        PIN_LIMITS.min + Math.random() * (PIN_LIMITS.max - PIN_LIMITS.min + 1),
-      ).toString();
+      (() => {
+        const array = new Uint32Array(1);
+        crypto.getRandomValues(array);
+        return (
+          PIN_LIMITS.min +
+          (array[0] % (PIN_LIMITS.max - PIN_LIMITS.min + 1))
+        ).toString();
+      })();
 
     // Call the rotate_staff_pin function via RPC
     const { data, error } = await supabase.rpc("rotate_staff_pin", {
