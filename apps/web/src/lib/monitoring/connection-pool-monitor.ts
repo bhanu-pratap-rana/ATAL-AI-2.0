@@ -45,15 +45,13 @@ export class ConnectionPoolMonitor {
    * Initialize Supabase client lazily
    */
   private getSupabaseClient(): SupabaseClient<Database> {
-    if (!this.supabase) {
-      this.supabase = createClient<Database>(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
-        {
-          auth: { autoRefreshToken: false, persistSession: false },
-        },
-      );
-    }
+    this.supabase ??= createClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: { autoRefreshToken: false, persistSession: false },
+      },
+    );
     return this.supabase;
   }
 

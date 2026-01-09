@@ -157,9 +157,8 @@ export async function fetchAllWithSnapshot<T>(
   const snapshotTime = createdBeforeTimestamp || new Date().toISOString();
   const allData: T[] = [];
   let cursor: string | null = null;
-  let hasMore = true;
-
   try {
+    let hasMore = true;
     while (hasMore) {
       const result: PaginationResult<T> = await fetchPaginatedWithCursor<T>(
         supabase,
