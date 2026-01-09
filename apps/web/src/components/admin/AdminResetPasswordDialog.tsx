@@ -3,16 +3,8 @@
 import { useState } from "react";
 import { resetAdminPassword } from "@/app/actions/admin-management";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  AlertCircle,
-  CheckCircle,
-  Loader2,
-  X,
-  Eye,
-  EyeOff,
-} from "lucide-react";
+import { PasswordInput } from "@/components/ui/PasswordInput";
+import { AlertCircle, CheckCircle, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { FORM_TIMING } from "@/lib/constants/ui-timings";
 import { clientLogger } from "@/lib/client-logger";
@@ -141,48 +133,31 @@ export function AdminResetPasswordDialog({
         </div>
 
         {/* New Password Input */}
-        <div className="space-y-2 mb-4">
-          <Label htmlFor="new-password" className="text-sm font-semibold">
-            New Password (min. 8 characters)
-          </Label>
-          <div className="relative">
-            <Input
-              id="new-password"
-              type={showPassword ? "text" : "password"}
-              placeholder="Enter new password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              disabled={isLoading}
-              className="focus:ring-primary focus:border-primary pr-10"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text"
-              disabled={isLoading}
-            >
-              {showPassword ? (
-                <EyeOff className="w-4 h-4" />
-              ) : (
-                <Eye className="w-4 h-4" />
-              )}
-            </button>
-          </div>
+        <div className="mb-4">
+          <PasswordInput
+            id="new-password"
+            label="New Password (min. 8 characters)"
+            placeholder="Enter new password"
+            value={newPassword}
+            onChange={setNewPassword}
+            disabled={isLoading}
+            showPassword={showPassword}
+            onShowPasswordChange={setShowPassword}
+            helpText="Enter a secure password with at least 8 characters"
+          />
         </div>
 
         {/* Confirm Password Input */}
-        <div className="space-y-2 mb-4">
-          <Label htmlFor="confirm-password" className="text-sm font-semibold">
-            Confirm Password
-          </Label>
-          <Input
+        <div className="mb-4">
+          <PasswordInput
             id="confirm-password"
-            type={showPassword ? "text" : "password"}
+            label="Confirm Password"
             placeholder="Confirm password"
             value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
+            onChange={setConfirmPassword}
             disabled={isLoading}
-            className="focus:ring-primary focus:border-primary"
+            showPassword={showPassword}
+            onShowPasswordChange={setShowPassword}
           />
         </div>
 
