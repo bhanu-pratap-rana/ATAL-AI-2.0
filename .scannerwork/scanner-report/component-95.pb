@@ -1,0 +1,1 @@
+_ 2tsXhr5apps/web/src/components/admin/pins/QuickGuideCard.tsx

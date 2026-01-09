@@ -1,0 +1,1 @@
+` 2tsXPhr7apps/web/src/components/admin/pins/SchoolDetailCard.tsx

@@ -1,0 +1,1 @@
+] 2tsXêhr3apps/web/src/components/admin/pins/PINGenerator.tsx

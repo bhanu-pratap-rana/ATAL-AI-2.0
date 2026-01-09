@@ -1,0 +1,1 @@
+r 2tsXÌhr3apps/web/src/components/assessment/ResultCircle.tsx
