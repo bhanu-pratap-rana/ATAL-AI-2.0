@@ -60,7 +60,7 @@ export class CircuitBreaker {
   private lastFailureTime: number | null = null;
   private nextAttemptTime: number | null = null;
 
-  private options: Required<CircuitBreakerOptions>;
+  private readonly options: Required<CircuitBreakerOptions>;
 
   constructor(options: Partial<CircuitBreakerOptions> = {}) {
     this.options = {
