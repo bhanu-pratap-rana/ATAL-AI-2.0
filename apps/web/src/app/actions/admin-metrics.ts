@@ -834,7 +834,7 @@ export async function getAllStudents(): Promise<{
           schoolName: profile.school_name || null,
           createdAt: profile.created_at,
           lastSignIn:
-            (authUser?.last_sign_in_at as string | null | undefined) || null,
+            (authUser?.last_sign_in_at) || null,
         };
       });
 

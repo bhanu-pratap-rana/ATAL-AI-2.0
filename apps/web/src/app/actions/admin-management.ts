@@ -18,7 +18,6 @@ import {
 } from "@/lib/validation-schemas";
 import type { SupabaseAuthUser } from "@/lib/admin-utils";
 import { validateSupabaseAuthUsers } from "@/lib/validation/rpc-schemas";
-import type { ActionResponse } from "@/lib/action-error-handler";
 import { handleZodError } from "@/lib/action-error-handler";
 
 // Use centralized rate limit config for admin operations
@@ -35,7 +34,7 @@ function validateAdminInput<T>(
   try {
     return { valid: true, data: schema.parse(data) };
   } catch (error) {
-    const zodError = handleZodError(error) as ActionResponse;
+    const zodError = handleZodError(error);
     return {
       valid: false,
       error: {
@@ -133,7 +132,7 @@ export async function isCurrentUserSuperAdmin(): Promise<boolean> {
       return false;
     }
 
-    const role = currentUser.app_metadata?.role as string | null | undefined;
+    const role = currentUser.app_metadata?.role;
     return isSuperAdmin(role);
   } catch (error) {
     authLogger.error(
@@ -160,7 +159,7 @@ export async function getCurrentAdminRole(): Promise<
       return null;
     }
 
-    const role = currentUser.app_metadata?.role as string | null | undefined;
+    const role = currentUser.app_metadata?.role;
     if (isAdmin(role)) {
       return role as "admin" | "super_admin";
     }
@@ -481,7 +480,7 @@ export async function listAdminAccounts(): Promise<AdminActionResult> {
     // Filter for admins only
     const admins: AdminUser[] = allUsers
       .filter((user) => {
-        const role = user.app_metadata?.role as string | null | undefined;
+        const role = user.app_metadata?.role;
         return isAdmin(role);
       })
       .map((user) => ({
@@ -567,7 +566,7 @@ export async function deleteAdminAccount(
       };
     }
 
-    const role = userToDelete.app_metadata?.role as string | null | undefined;
+    const role = userToDelete.app_metadata?.role;
 
     // Prevent deletion of super admins
     if (isSuperAdmin(role)) {
@@ -730,7 +729,7 @@ export async function isSuperAdminEmail(email: string): Promise<boolean> {
       return false;
     }
 
-    const role = user.app_metadata?.role as string | null | undefined;
+    const role = user.app_metadata?.role;
     return isSuperAdmin(role);
   } catch (error) {
     authLogger.error(
