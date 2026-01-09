@@ -178,10 +178,10 @@ export function VoiceChat({
       recognition.start();
       setIsListening(true);
       clientLogger.debug("[VoiceChat] Started listening", { language });
-    } catch (err) {
+    } catch (error) {
       clientLogger.error(
         "[VoiceChat] Error starting recognition:",
-        err instanceof Error ? err : undefined,
+        error instanceof Error ? error : undefined,
       );
       setError("Failed to start voice recognition.");
     }
@@ -194,10 +194,10 @@ export function VoiceChat({
       recognition.stop();
       setIsListening(false);
       clientLogger.debug("[VoiceChat] Stopped listening");
-    } catch (err) {
+    } catch (error) {
       clientLogger.error(
         "[VoiceChat] Error stopping recognition:",
-        err instanceof Error ? err : undefined,
+        error instanceof Error ? error : undefined,
       );
     }
   }, [recognition]);

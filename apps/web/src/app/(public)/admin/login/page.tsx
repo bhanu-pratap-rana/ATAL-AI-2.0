@@ -117,11 +117,11 @@ export default function AdminLoginPage() {
       } else {
         router.push("/admin/pins");
       }
-    } catch (err) {
+    } catch (error) {
       const errorMessage =
-        err instanceof Error ? err.message : "An unexpected error occurred";
+        error instanceof Error ? error.message : "An unexpected error occurred";
       setError(errorMessage);
-      clientLogger.error("Admin login error", { error: err });
+      clientLogger.error("Admin login error", { error: error });
     } finally {
       setIsLoading(false);
     }

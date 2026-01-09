@@ -178,8 +178,8 @@ export function StudentProgressGrid({
 
       setStudents(Array.from(progressMap.values()));
       setLoading(false);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       clientLogger.error("[StudentProgressGrid] Error: " + errorMessage);
       setError("Failed to load student progress");
       setLoading(false);

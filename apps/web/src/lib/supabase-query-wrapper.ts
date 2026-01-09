@@ -67,11 +67,11 @@ export async function queryWithError<T>(
       error: null,
       success: true,
     };
-  } catch (err) {
-    authLogger.error(context, err);
+  } catch (error) {
+    authLogger.error(context, error);
     return {
       data: null,
-      error: err instanceof Error ? err.message : "Query execution failed",
+      error: error instanceof Error ? error.message : "Query execution failed",
       success: false,
     };
   }
@@ -140,11 +140,11 @@ export async function batchQueryWithError<TData extends unknown[]>(
           success: true,
         };
       });
-  } catch (err) {
-    authLogger.error(`${context} - Batch query failed`, err);
+  } catch (error) {
+    authLogger.error(`${context} - Batch query failed`, error);
     return queries.map(() => ({
       data: null,
-      error: err instanceof Error ? err.message : "Batch query failed",
+      error: error instanceof Error ? error.message : "Batch query failed",
       success: false,
     }));
   }
@@ -237,7 +237,7 @@ export class QueryMonitor {
         error: null,
         success: true,
       };
-    } catch (err) {
+    } catch (error) {
       const duration = this.getHighResolutionTime() - startTime;
 
       this.recordMetric({
@@ -247,14 +247,14 @@ export class QueryMonitor {
         userId: context?.userId,
         tableNames: context?.tableNames,
         success: false,
-        error: err instanceof Error ? err.message : "Unknown error",
+        error: error instanceof Error ? error.message : "Unknown error",
       });
 
-      authLogger.error(`[${queryName}] Query execution failed`, err);
+      authLogger.error(`[${queryName}] Query execution failed`, error);
 
       return {
         data: null,
-        error: err instanceof Error ? err.message : "Query execution failed",
+        error: error instanceof Error ? error.message : "Query execution failed",
         success: false,
       };
     }

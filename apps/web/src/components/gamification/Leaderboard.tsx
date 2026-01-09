@@ -108,10 +108,10 @@ export function Leaderboard({
 
       setLeaders(entries);
       setLoading(false);
-    } catch (err) {
+    } catch (error) {
       clientLogger.error(
         "[Leaderboard] Error fetching leaderboard:",
-        err instanceof Error ? err : undefined,
+        error instanceof Error ? error : undefined,
       );
       setError("Failed to load leaderboard");
       setLoading(false);

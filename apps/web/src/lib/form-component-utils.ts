@@ -37,10 +37,10 @@ export function useFormSubmission<T>(
         const result = await onSubmitFn();
         authLogger.success(`[${loggerContext}] Form submission successful`);
         onSuccess?.(result);
-      } catch (err) {
+      } catch (error) {
         const errorMessage =
-          err instanceof Error ? err.message : "An error occurred";
-        authLogger.error(`[${loggerContext}] Form submission failed`, err);
+          error instanceof Error ? error.message : "An error occurred";
+        authLogger.error(`[${loggerContext}] Form submission failed`, error);
         onErrorChange(errorMessage);
       }
     },

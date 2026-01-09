@@ -78,10 +78,10 @@ export function AIInteractionsLog({
 
       setInteractions((data || []) as AIInteraction[]);
       setLoading(false);
-    } catch (err) {
+    } catch (error) {
       clientLogger.error(
         "[AIInteractionsLog] Error:",
-        err instanceof Error ? err : undefined,
+        error instanceof Error ? error : undefined,
       );
       setError("Failed to load AI interactions");
       setLoading(false);
