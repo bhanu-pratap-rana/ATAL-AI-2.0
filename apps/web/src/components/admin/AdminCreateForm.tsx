@@ -5,7 +5,8 @@ import { createAdminAccount } from "@/app/actions/admin-management";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AlertCircle, CheckCircle, Loader2, Eye, EyeOff } from "lucide-react";
+import { PasswordInput } from "@/components/ui/PasswordInput";
+import { AlertCircle, CheckCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { FORM_TIMING } from "@/lib/constants/ui-timings";
 import { clientLogger } from "@/lib/client-logger";
@@ -126,54 +127,30 @@ export function AdminCreateForm({
       </div>
 
       {/* Password Input */}
-      <div className="space-y-2">
-        <Label htmlFor="create-password" className="text-sm font-semibold">
-          Password
-        </Label>
-        <div className="relative">
-          <Input
-            id="create-password"
-            type={showPassword ? "text" : "password"}
-            placeholder="Enter secure password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            disabled={isLoading}
-            className="focus:ring-primary focus:border-primary pr-10"
-            aria-describedby="password-requirements"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text"
-            aria-label={showPassword ? "Hide password" : "Show password"}
-          >
-            {showPassword ? (
-              <EyeOff className="w-4 h-4" />
-            ) : (
-              <Eye className="w-4 h-4" />
-            )}
-          </button>
-        </div>
-        <p id="password-requirements" className="text-xs text-text-secondary">
-          Minimum 8 characters required
-        </p>
-      </div>
+      <PasswordInput
+        id="create-password"
+        label="Password"
+        placeholder="Enter secure password"
+        value={password}
+        onChange={setPassword}
+        disabled={isLoading}
+        showPassword={showPassword}
+        onShowPasswordChange={setShowPassword}
+        helpText="Minimum 8 characters required"
+        aria-describedby="password-requirements"
+      />
 
       {/* Confirm Password Input */}
-      <div className="space-y-2">
-        <Label htmlFor="confirm-password" className="text-sm font-semibold">
-          Confirm Password
-        </Label>
-        <Input
-          id="confirm-password"
-          type={showPassword ? "text" : "password"}
-          placeholder="Confirm password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          disabled={isLoading}
-          className="focus:ring-primary focus:border-primary"
-        />
-      </div>
+      <PasswordInput
+        id="confirm-password"
+        label="Confirm Password"
+        placeholder="Confirm password"
+        value={confirmPassword}
+        onChange={setConfirmPassword}
+        disabled={isLoading}
+        showPassword={showPassword}
+        onShowPasswordChange={setShowPassword}
+      />
 
       {/* Message Display */}
       {message && (
