@@ -45,7 +45,8 @@ export default function AdminDashboardPage() {
         }
 
         setUserEmail(user.email);
-      } catch {
+      } catch (error) {
+        console.error("[AdminDashboard] Auth check failed:", error);
         router.push("/admin/login");
       } finally {
         setIsLoading(false);
