@@ -45,12 +45,12 @@ const LANGUAGE_VOICE_MAP: Record<TTSLanguage, VoiceConfig> = {
   en: {
     voice: "en-IN-female",
     emotion: "friendly",
-    speed: 1.0,
+    speed: 1,
   },
   hi: {
     voice: "hi-IN-female",
     emotion: "friendly",
-    speed: 1.0,
+    speed: 1,
   },
   as: {
     voice: "as-IN-female",
