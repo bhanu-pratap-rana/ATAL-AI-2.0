@@ -19,17 +19,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { clientLogger } from "@/lib/client-logger";
 
 interface StudentProgress {
-  id: string;
-  student_id: string;
-  student_name: string;
-  email: string;
-  module_id: string;
-  topics_mastered: number;
-  total_topics: number;
-  average_mastery: number;
-  last_activity: string | null;
-  is_at_risk: boolean;
-  current_topic?: string;
+  readonly id: string;
+  readonly student_id: string;
+  readonly student_name: string;
+  readonly email: string;
+  readonly module_id: string;
+  readonly topics_mastered: number;
+  readonly total_topics: number;
+  readonly average_mastery: number;
+  readonly last_activity: string | null;
+  readonly is_at_risk: boolean;
+  readonly current_topic?: string;
 }
 
 interface StudentProgressGridProps {

@@ -16,16 +16,16 @@ import { Pencil, Check, X } from "lucide-react";
  * NOTE: user_id is the PRIMARY KEY (not id) - see DATABASE.md
  */
 interface StudentProfile {
-  user_id: string; // PRIMARY KEY - references auth.users
-  name: string;
-  gender: "male" | "female";
-  phone?: string | null;
-  roll_number?: string | null;
-  school_name?: string | null;
-  class_name?: string | null;
-  village?: string | null;
-  created_at?: string;
-  updated_at?: string;
+  readonly user_id: string; // PRIMARY KEY - references auth.users
+  readonly name: string;
+  readonly gender: "male" | "female";
+  readonly phone?: string | null;
+  readonly roll_number?: string | null;
+  readonly school_name?: string | null;
+  readonly class_name?: string | null;
+  readonly village?: string | null;
+  readonly created_at?: string;
+  readonly updated_at?: string;
 }
 
 interface StudentProfileEditorProps {

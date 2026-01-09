@@ -15,18 +15,18 @@ import {
 import { removeStudent } from "@/app/actions/teacher";
 
 interface StudentInfo {
-  user_id: string;
-  name: string | null;
-  phone: string | null;
-  roll_number: string | null;
-  class_name: string | null;
+  readonly user_id: string;
+  readonly name: string | null;
+  readonly phone: string | null;
+  readonly roll_number: string | null;
+  readonly class_name: string | null;
 }
 
 interface Enrollment {
-  id: string;
-  created_at: string;
-  student_id: string;
-  student: StudentInfo | null;
+  readonly id: string;
+  readonly created_at: string;
+  readonly student_id: string;
+  readonly student: StudentInfo | null;
 }
 
 interface RosterTableProps {
