@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -28,39 +28,42 @@ export function CreateClassDialog() {
     joinPin: string;
   } | null>(null);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      setLoading(true);
 
-    try {
-      const result = await createClass(name, subject);
+      try {
+        const result = await createClass(name, subject);
 
-      if (result?.success && result?.data) {
-        setCreatedClass({
-          classCode: result.data.class_code,
-          joinPin: result.data.join_pin || "",
-        });
-        toast.success("Class created successfully!");
-        // Don't close dialog yet - show codes first
-      } else if ("error" in result) {
-        toast.error(result?.error || "Failed to create class");
-      } else {
-        toast.error("Failed to create class");
+        if (result?.success && result?.data) {
+          setCreatedClass({
+            classCode: result.data.class_code,
+            joinPin: result.data.join_pin || "",
+          });
+          toast.success("Class created successfully!");
+          // Don't close dialog yet - show codes first
+        } else if ("error" in result) {
+          toast.error(result?.error || "Failed to create class");
+        } else {
+          toast.error("Failed to create class");
+        }
+      } catch {
+        toast.error("An unexpected error occurred");
+      } finally {
+        setLoading(false);
       }
-    } catch {
-      toast.error("An unexpected error occurred");
-    } finally {
-      setLoading(false);
-    }
-  }
+    },
+    [name, subject],
+  );
 
-  function handleClose() {
+  const handleClose = useCallback(() => {
     setName("");
     setSubject("");
     setCreatedClass(null);
     setOpen(false);
     router.refresh();
-  }
+  }, [router]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
