@@ -72,13 +72,20 @@ export type PeriodicSyncTag =
   (typeof PERIODIC_SYNC_TAGS)[keyof typeof PERIODIC_SYNC_TAGS];
 
 /**
+ * Check if Service Worker is supported
+ */
+export function isServiceWorkerSupported(): boolean {
+  return typeof navigator !== "undefined" && "serviceWorker" in navigator;
+}
+
+/**
  * Check if Background Sync API is supported
  */
 export function isBackgroundSyncSupported(): boolean {
   return (
-    typeof navigator !== "undefined" &&
-    "serviceWorker" in navigator &&
-    "SyncManager" in window
+    isServiceWorkerSupported() &&
+    typeof globalThis !== "undefined" &&
+    "SyncManager" in globalThis
   );
 }
 
@@ -238,7 +245,7 @@ export async function getPeriodicSyncTags(): Promise<string[]> {
 export async function sendMessageToSW<T = unknown>(
   message: Record<string, unknown>,
 ): Promise<T | null> {
-  if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) {
+  if (!isServiceWorkerSupported()) {
     return null;
   }
 

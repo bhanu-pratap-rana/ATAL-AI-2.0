@@ -237,12 +237,15 @@ async function validateAndCheckOtpLimit(
     }
   }
 
-  if (!skipRateLimit && !(await checkOtpRateLimit(identifier))) {
-    authLogger.warn("[handleSendOTP] Rate limit exceeded", { identifier });
-    return {
-      valid: false,
-      error: "Too many OTP requests. Please wait before trying again.",
-    };
+  if (!skipRateLimit) {
+    const isRateLimitOk = await checkOtpRateLimit(identifier);
+    if (!isRateLimitOk) {
+      authLogger.warn("[handleSendOTP] Rate limit exceeded", { identifier });
+      return {
+        valid: false,
+        error: "Too many OTP requests. Please wait before trying again.",
+      };
+    }
   }
 
   return { valid: true };

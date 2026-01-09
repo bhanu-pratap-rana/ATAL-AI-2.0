@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { clientLogger } from "@/lib/client-logger";
+import { isServiceWorkerSupported } from "@/lib/offline/background-sync";
 
 /**
  * BackgroundSyncInitializer
@@ -14,7 +15,7 @@ import { clientLogger } from "@/lib/client-logger";
  */
 export function BackgroundSyncInitializer() {
   useEffect(() => {
-    if (!("serviceWorker" in navigator)) {
+    if (!isServiceWorkerSupported()) {
       clientLogger.warn(
         "[BackgroundSyncInitializer] Service Worker not supported",
       );
