@@ -32,10 +32,10 @@ const isTestEnvironment = () => {
       (Boolean(navigator.webdriver) ||
         navigator.userAgent.includes("HeadlessChrome") ||
         // Check for test globals
-        testGlobal.__PLAYWRIGHT_TEST__ === true)) ||
+        Boolean(testGlobal.__PLAYWRIGHT_TEST__))) ||
     // Check for test globals that might be set
     (typeof globalThis !== "undefined" &&
-      testGlobal.__PLAYWRIGHT__ === true)
+      Boolean(testGlobal.__PLAYWRIGHT__))
   );
 };
 
