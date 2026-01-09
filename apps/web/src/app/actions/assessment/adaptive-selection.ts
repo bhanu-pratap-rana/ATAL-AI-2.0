@@ -182,7 +182,7 @@ function shuffleWithinCategories(questions: IRTItem[]): IRTItem[] {
   for (let i = 0; i < maxPerCategory; i++) {
     for (const category of categoryOrder) {
       const items = byCategory[category];
-      if (items && items[i]) {
+      if (items?.[i]) {
         result.push(items[i]);
       }
     }

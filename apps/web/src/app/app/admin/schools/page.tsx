@@ -317,13 +317,13 @@ export default function AdminSchoolsPage() {
     setLoading(true);
     try {
       const result = await searchSchools(searchQuery);
-      if (result.success && result.data) {
+      if (result?.success && result?.data) {
         setSearchResults(result.data);
         if (result.data.length === 0) {
           toast.info("No schools found matching your search");
         }
       } else {
-        toast.error(result.error || "Failed to search schools");
+        toast.error(result?.error || "Failed to search schools");
       }
     } catch (_error) {
       toast.error("An error occurred while searching");

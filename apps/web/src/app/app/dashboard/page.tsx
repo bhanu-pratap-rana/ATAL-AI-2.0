@@ -372,7 +372,7 @@ export default function DashboardPage() {
             <StatCard
               icon="🎯"
               value={
-                stats && stats.averageScore !== null ? `${stats.averageScore}%` : "--"
+                stats?.averageScore !== null ? `${stats.averageScore}%` : "--"
               }
               label="Avg Score"
             />

@@ -246,7 +246,7 @@ export default function LessonPage() {
 
         const questions = await fetchPracticeQuestions(supabase, topicId);
 
-        if (contentData && contentData.length > 0) {
+        if (contentData?.length > 0) {
           const lesson = buildLessonFromData(contentData, questions, topicId);
           setLesson(lesson);
         } else {

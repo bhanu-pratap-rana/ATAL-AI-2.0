@@ -303,7 +303,7 @@ export function StudentProfileEditor({
                 >
                   Enter 10-digit Indian mobile number
                 </p>
-                {phone && phone.length > 0 && phone.length < 10 && (
+                {phone?.length && phone.length > 0 && phone.length < 10 && (
                   <p className="text-xs text-warning">
                     {10 - phone.length} more digits needed
                   </p>

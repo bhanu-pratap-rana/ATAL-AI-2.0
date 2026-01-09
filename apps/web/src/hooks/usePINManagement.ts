@@ -119,14 +119,14 @@ export function usePINManagement(): UsePINManagementReturn {
 
         // Load all schools
         const schoolsResult = await getAllSchoolsWithPINs();
-        if (schoolsResult.success && Array.isArray(schoolsResult.data)) {
+        if (schoolsResult?.success && Array.isArray(schoolsResult?.data)) {
           setAllSchools(schoolsResult.data as SchoolListItem[]);
           setFilteredSchools(schoolsResult.data as SchoolListItem[]);
         }
 
         // Load statistics
         const statsResult = await getPINStatistics();
-        if (statsResult.success && statsResult.data) {
+        if (statsResult?.success && statsResult?.data) {
           setStats(statsResult.data as PINStatistics);
         }
       } catch (error) {
@@ -174,7 +174,7 @@ export function usePINManagement(): UsePINManagementReturn {
 
     try {
       const result = await getSchoolPINInfo(school.schoolId);
-      if (result.success && result.data) {
+      if (result?.success && result?.data) {
         setSelectedSchool(result.data as SchoolPINInfo);
       } else {
         toast.error("Failed to load school details");
@@ -237,19 +237,19 @@ export function usePINManagement(): UsePINManagementReturn {
         if (result.success) {
           // Success: reload all data
           const schoolsResult = await getAllSchoolsWithPINs();
-          if (schoolsResult.success && Array.isArray(schoolsResult.data)) {
+          if (schoolsResult?.success && Array.isArray(schoolsResult?.data)) {
             setAllSchools(schoolsResult.data as SchoolListItem[]);
             setFilteredSchools(schoolsResult.data as SchoolListItem[]);
           }
 
           const statsResult = await getPINStatistics();
-          if (statsResult.success && statsResult.data) {
+          if (statsResult?.success && statsResult?.data) {
             setStats(statsResult.data as PINStatistics);
           }
 
           // Reload selected school details
           const detailResult = await getSchoolPINInfo(selectedSchool.schoolId);
-          if (detailResult.success && detailResult.data) {
+          if (detailResult?.success && detailResult?.data) {
             setSelectedSchool(detailResult.data as SchoolPINInfo);
           }
 

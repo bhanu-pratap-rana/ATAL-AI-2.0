@@ -258,7 +258,7 @@ Essay language: ${getLanguageLabelForAI(language)}`;
 
   const response = await callAI(messages, AI_FEATURES.essayFeedback);
 
-  if (response.success && response.content) {
+  if (response?.success && response?.content) {
     try {
       // Extract JSON from response (handle markdown code blocks)
       const jsonMatch =
@@ -321,7 +321,7 @@ Requirements:
 
   const response = await callAI(messages, AI_FEATURES.practiceQuestions);
 
-  if (response.success && response.content) {
+  if (response?.success && response?.content) {
     try {
       const jsonMatch =
         response.content.match(/```json\n?([\s\S]*?)\n?```/) ||

@@ -56,7 +56,7 @@ export function validateEmailSecurity(
 ): { valid: true } | { valid: false; error: string } {
   const domain = email.split("@")[1];
 
-  if (domain && BLOCKED_EMAIL_DOMAINS.has(domain.toLowerCase())) {
+  if (domain && BLOCKED_EMAIL_DOMAINS.has(domain?.toLowerCase())) {
     authLogger.debug("[requestOtp] Blocked domain detected");
 
     if (COMMON_DOMAIN_TYPOS[domain]) {
