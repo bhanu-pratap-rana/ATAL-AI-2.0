@@ -1,0 +1,1 @@
+: 2tsXwhr(apps/web/src/app/app/curriculum/page.tsx

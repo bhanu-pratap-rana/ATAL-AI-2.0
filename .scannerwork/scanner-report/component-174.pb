@@ -1,0 +1,1 @@
+® 2tsXKhr8apps/web/src/components/teacher/ClassCreationSuccess.tsx

@@ -1,0 +1,1 @@
+ 2tsXühr.apps/web/src/app/(public)/admin/setup/page.tsx

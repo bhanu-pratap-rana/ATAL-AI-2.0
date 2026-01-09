@@ -1,0 +1,1 @@
+a 2tsXShr6apps/web/src/components/admin/pins/SchoolSearchBar.tsx
