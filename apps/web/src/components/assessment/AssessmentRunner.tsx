@@ -113,6 +113,26 @@ function getLanguageFontClass(language: "en" | "hi" | "as"): string {
   }
 }
 
+/**
+ * Helper: Get option button classes based on selection state
+ */
+function getOptionButtonClasses(isSelected: boolean): string {
+  if (isSelected) {
+    return "border-primary bg-primary-light shadow-primary-sm";
+  }
+  return "border-border bg-white hover:border-primary/30 hover:bg-primary-lighter";
+}
+
+/**
+ * Helper: Get radio button classes based on selection state
+ */
+function getRadioButtonClasses(isSelected: boolean): string {
+  if (isSelected) {
+    return "border-primary bg-primary";
+  }
+  return "border-border bg-white";
+}
+
 export function AssessmentRunner({
   sessionId,
   questions,
@@ -630,22 +650,14 @@ export function AssessmentRunner({
                     aria-checked={selectedOption === index}
                     aria-label={`Option ${option.id}: ${option.text}`}
                     onClick={() => handleOptionSelect(index)}
-                    className={`w-full text-left p-4 rounded-md border-2 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
-                      selectedOption === index
-                        ? "border-primary bg-primary-light shadow-primary-sm"
-                        : "border-border bg-white hover:border-primary/30 hover:bg-primary-lighter"
-                    }`}
+                    className={`w-full text-left p-4 rounded-md border-2 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${getOptionButtonClasses(selectedOption === index)}`}
                     disabled={isSubmitting}
                     tabIndex={0}
                   >
                     <div className="flex items-start gap-3">
                       <div
                         aria-hidden="true"
-                        className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
-                          selectedOption === index
-                            ? "border-primary bg-primary"
-                            : "border-border bg-white"
-                        }`}
+                        className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${getRadioButtonClasses(selectedOption === index)}`}
                       >
                         {selectedOption === index && (
                           <div className="w-3 h-3 bg-white rounded-full" />
