@@ -28,8 +28,6 @@ export default function AdminSchoolPINsPage() {
     copied,
     searchInputRef,
     setSearchQuery,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    setShowSuggestions,
     setShowNewPin,
     setCopied,
     handleSelectSchool,

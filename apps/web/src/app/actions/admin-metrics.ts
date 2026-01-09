@@ -816,13 +816,11 @@ export async function getAllStudents(): Promise<{
       })
       .map((profile) => {
         const authUser = userMap.get(profile.user_id);
-        const username =
-          (authUser?.user_metadata?.username as string | undefined) || null;
-        const authType =
-          (authUser?.user_metadata?.auth_type as string | undefined) || "email";
+        const username = (authUser?.user_metadata?.username as string | undefined) ?? null;
+        const authType = (authUser?.user_metadata?.auth_type as string | undefined) ?? "email";
         // For username auth, don't show the internal email
         const displayEmail =
-          authType === "username" ? "" : authUser?.email || "";
+          authType === "username" ? "" : authUser?.email ?? "";
 
         return {
           id: profile.user_id,
@@ -833,8 +831,7 @@ export async function getAllStudents(): Promise<{
           className: profile.class_name || null,
           schoolName: profile.school_name || null,
           createdAt: profile.created_at,
-          lastSignIn:
-            (authUser?.last_sign_in_at) || null,
+          lastSignIn: authUser?.last_sign_in_at ?? null,
         };
       });
 
