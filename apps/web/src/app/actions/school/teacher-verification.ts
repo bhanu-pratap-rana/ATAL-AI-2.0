@@ -168,9 +168,11 @@ async function verifyStaffPinRPC(
     };
   }
 
-  let pinMatch = false;
+  const pinMatch = verifyResult?.[0]
+    ? Boolean(verifyResult[0].is_valid)
+    : false;
+
   if (verifyResult?.[0]) {
-    pinMatch = Boolean(verifyResult[0].is_valid);
     authLogger.debug("[verifyTeacher] PIN match result", {
       is_valid: verifyResult[0].is_valid,
       pinMatch,
