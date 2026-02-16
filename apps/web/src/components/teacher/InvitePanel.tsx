@@ -5,6 +5,7 @@ import QRCode from "qrcode";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { authLogger } from "@/lib/auth-logger";
+import { clientLogger } from "@/lib/client-logger";
 import { QR_CODE_COLORS } from "@/lib/constants/theme-colors";
 
 interface InvitePanelProps {
@@ -20,16 +21,22 @@ export function InvitePanel({
 }: InvitePanelProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [qrGenerated, setQrGenerated] = useState(false);
+  const [origin, setOrigin] = useState("");
+
+  // Set origin client-side only (globalThis.location is undefined during SSR)
+  useEffect(() => {
+    setOrigin(globalThis.location.origin);
+  }, []);
 
   useEffect(() => {
-    if (canvasRef.current && classCode) {
+    if (canvasRef.current && classCode && origin) {
       // Generate invite link with properly encoded parameters
       const params = new URLSearchParams({
         code: classCode,
         pin: joinPin,
         via: "invite",
       });
-      const joinUrl = `${globalThis.location.origin}/join?${params.toString()}`;
+      const joinUrl = `${origin}/join?${params.toString()}`;
 
       // Generate QR code with high error correction for better scanning reliability
       QRCode.toCanvas(
@@ -57,22 +64,27 @@ export function InvitePanel({
         },
       );
     }
-  }, [classCode, joinPin]);
+  }, [classCode, joinPin, origin]);
 
   const getInviteLink = () => {
+    if (!origin) return `/join?code=${classCode}&pin=${joinPin}&via=invite`;
     const params = new URLSearchParams({
       code: classCode,
       pin: joinPin,
       via: "invite",
     });
-    return `${globalThis.location.origin}/join?${params.toString()}`;
+    return `${origin}/join?${params.toString()}`;
   };
 
   const copyInviteLink = async () => {
     try {
       await navigator.clipboard.writeText(getInviteLink());
       toast.success("Invite link copied to clipboard!");
-    } catch {
+    } catch (error) {
+      clientLogger.error(
+        "[InvitePanel] Failed to copy invite link",
+        error instanceof Error ? error : { error: String(error) },
+      );
       toast.error("Failed to copy invite link");
     }
   };
@@ -88,7 +100,11 @@ export function InvitePanel({
     try {
       await navigator.clipboard.writeText(text);
       toast.success(`${label} copied to clipboard!`);
-    } catch {
+    } catch (error) {
+      clientLogger.error(
+        "[InvitePanel] Failed to copy to clipboard",
+        error instanceof Error ? error : { error: String(error) },
+      );
       toast.error("Failed to copy to clipboard");
     }
   };

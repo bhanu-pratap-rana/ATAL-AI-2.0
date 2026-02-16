@@ -13,6 +13,7 @@
 
 import { createClient } from "@/lib/supabase-server";
 import { authLogger } from "@/lib/auth-logger";
+import type { SupportedLanguage, LanguageFilter } from "@/types/common";
 
 /**
  * Embedding dimensions for Google text-embedding-004
@@ -39,7 +40,7 @@ export interface CurriculumMatch {
 export interface RAGSearchOptions {
   matchThreshold?: number;
   matchCount?: number;
-  filterLanguage?: "en" | "hi" | "as" | null;
+  filterLanguage?: LanguageFilter;
   filterTopic?: string | null;
   filterModule?: string | null;
 }
@@ -70,7 +71,7 @@ export class CurriculumRAGService {
     if (filterTopic) {
       const topicContext = await this.getDirectTopicContent(
         filterTopic,
-        (filterLanguage as "en" | "hi" | "as") || "en",
+        (filterLanguage as SupportedLanguage) || "en",
       );
       if (topicContext) {
         return topicContext;
@@ -99,7 +100,7 @@ export class CurriculumRAGService {
         if (filterTopic) {
           return await this.getDirectTopicContent(
             filterTopic,
-            (filterLanguage as "en" | "hi" | "as") || "en",
+            (filterLanguage as SupportedLanguage) || "en",
           );
         }
         return "";
@@ -110,7 +111,7 @@ export class CurriculumRAGService {
         if (filterTopic) {
           return await this.getDirectTopicContent(
             filterTopic,
-            (filterLanguage as "en" | "hi" | "as") || "en",
+            (filterLanguage as SupportedLanguage) || "en",
           );
         }
         return "";
@@ -124,7 +125,7 @@ export class CurriculumRAGService {
       if (filterTopic) {
         return await this.getDirectTopicContent(
           filterTopic,
-          (filterLanguage as "en" | "hi" | "as") || "en",
+          (filterLanguage as SupportedLanguage) || "en",
         );
       }
       return "";
@@ -142,7 +143,7 @@ export class CurriculumRAGService {
    */
   async getMultilingualContext(
     query: string,
-    language: "en" | "hi" | "as",
+    language: SupportedLanguage,
     options: Omit<RAGSearchOptions, "filterLanguage"> = {},
   ): Promise<string> {
     const {
@@ -272,7 +273,7 @@ export class CurriculumRAGService {
    */
   async getTopicContext(
     topicId: string,
-    language: "en" | "hi" | "as" = "en",
+    language: SupportedLanguage = "en",
     limit: number = 3,
   ): Promise<string> {
     try {
@@ -309,7 +310,7 @@ export class CurriculumRAGService {
    */
   private async getDirectTopicContent(
     topicId: string,
-    language: "en" | "hi" | "as" = "en",
+    language: SupportedLanguage = "en",
   ): Promise<string> {
     try {
       const supabase = await createClient();
@@ -363,7 +364,7 @@ export class CurriculumRAGService {
   /**
    * Get human-readable language label
    */
-  private getLanguageLabel(language: "en" | "hi" | "as"): string {
+  private getLanguageLabel(language: SupportedLanguage): string {
     const labels = {
       en: "English",
       hi: "हिंदी (Hindi)",
@@ -387,10 +388,13 @@ export class CurriculumRAGService {
     }
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/text-embedding-004:embedContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1/models/text-embedding-004:embedContent`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": apiKey,
+        },
         body: JSON.stringify({
           model: "models/text-embedding-004",
           content: { parts: [{ text }] },
@@ -400,7 +404,7 @@ export class CurriculumRAGService {
     );
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorData = await response.json().catch((e) => { authLogger.warn("[RAG] JSON parse failed on error response", e); return {}; });
       throw new Error(
         `Embedding API error: ${response.status} - ${JSON.stringify(errorData)}`,
       );
@@ -432,7 +436,7 @@ export class CurriculumRAGService {
     // Group by language to show which languages are represented
     const languages = Array.from(new Set(docs.map((d) => d.language)));
     const langLabels = languages
-      .map((l) => this.getLanguageLabel(l as "en" | "hi" | "as"))
+      .map((l) => this.getLanguageLabel(l as SupportedLanguage))
       .join(", ");
 
     const contextParts = docs.map((doc, index) => {
@@ -440,7 +444,7 @@ export class CurriculumRAGService {
         ? `### ${doc.title}`
         : `### Context ${index + 1}`;
       const langLabel = this.getLanguageLabel(
-        doc.language as "en" | "hi" | "as",
+        doc.language as SupportedLanguage,
       );
       const meta = `[${doc.content_type}] [${langLabel}] Module: ${doc.module_id}, Topic: ${doc.topic_id}`;
       return `${header}\n${meta}\n\n${doc.content}`;
@@ -464,10 +468,13 @@ export class CurriculumRAGService {
     }
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/text-embedding-004:embedContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1/models/text-embedding-004:embedContent`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": apiKey,
+        },
         body: JSON.stringify({
           model: "models/text-embedding-004",
           content: { parts: [{ text: content }] },
@@ -477,7 +484,7 @@ export class CurriculumRAGService {
     );
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorData = await response.json().catch((e) => { authLogger.warn("[RAG] JSON parse failed on error response", e); return {}; });
       throw new Error(
         `Embedding API error: ${response.status} - ${JSON.stringify(errorData)}`,
       );

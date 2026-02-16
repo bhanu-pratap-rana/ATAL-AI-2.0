@@ -1,1 +1,0 @@
-F 2tsX½hr2apps/web/src/app/app/teacher/classes/[id]/page.tsx

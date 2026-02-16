@@ -91,14 +91,11 @@ export function useOfflineSync() {
           chosen_option: r.chosenOption || "",
         }));
 
-        // Enqueue each response
-        let queuedCount = 0;
-        for (const payload of payloads) {
-          const queueId = await enqueueAssessmentResponse(payload);
-          if (queueId) {
-            queuedCount++;
-          }
-        }
+        // PERF-014 FIX: Enqueue all responses in parallel (independent operations)
+        const queueResults = await Promise.all(
+          payloads.map((payload) => enqueueAssessmentResponse(payload)),
+        );
+        const queuedCount = queueResults.filter((id) => id != null).length;
 
         setIsOfflineQueued(true);
         return {

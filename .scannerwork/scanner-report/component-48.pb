@@ -1,1 +1,0 @@
-0 2tsXZhr/apps/web/src/app/api/check-auth-config/route.ts

@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * Custom hook for managing OTP input state and validation
  * Consolidates OTP sanitization and validation logic

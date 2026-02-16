@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { toast } from "sonner";
 import { clientLogger } from "@/lib/client-logger";
 import { isServiceWorkerSupported } from "@/lib/offline/background-sync";
 
@@ -33,10 +34,27 @@ export function BackgroundSyncInitializer() {
           },
         );
 
-        // Listen for sync messages from service worker
-        navigator.serviceWorker.controller?.postMessage({
-          type: "SW_READY",
-          timestamp: Date.now(),
+        // REACT-002 FIX: Wait for SW to be ready before posting message
+        // Previously: postMessage immediately after registration (SW may not be active)
+        // Now: Use navigator.serviceWorker.ready to ensure SW is ready
+        // BP-13 FIX: Add .catch() to prevent unhandled rejection
+        navigator.serviceWorker.ready.then(() => {
+          try {
+            navigator.serviceWorker.controller?.postMessage({
+              type: "SW_READY",
+              timestamp: Date.now(),
+            });
+          } catch (postError) {
+            clientLogger.debug(
+              "[BackgroundSyncInitializer] postMessage failed",
+              { error: postError instanceof Error ? postError.message : String(postError) },
+            );
+          }
+        }).catch((readyError) => {
+          clientLogger.debug(
+            "[BackgroundSyncInitializer] SW ready failed",
+            { error: readyError instanceof Error ? readyError.message : String(readyError) },
+          );
         });
       })
       .catch((error) => {
@@ -44,6 +62,11 @@ export function BackgroundSyncInitializer() {
           "[BackgroundSyncInitializer] Service Worker registration failed",
           error instanceof Error ? error : { error: String(error) },
         );
+        // PWA-003 FIX: Notify user that offline features may be limited
+        toast.warning("Offline features may be limited", {
+          description: "Some features like background sync won't work in this browser.",
+          duration: 5000,
+        });
       });
 
     // Handle messages from service worker

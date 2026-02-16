@@ -47,7 +47,7 @@ export default function HomePage() {
           {/* Info Box - Cyan themed */}
           <div className="bg-cyan-lightest border-l-4 border-cyan p-4 rounded-xl">
             <p className="text-sm text-cyan-darkest">
-              <strong>💡 New here?</strong>
+              <strong><span aria-hidden="true">💡</span> New here?</strong>
               <br />
               <span className="text-xs">
                 Teachers need school verification. Students can join with email,

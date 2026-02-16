@@ -1,1 +1,0 @@
-ª 2tsXÒhr5apps/web/src/components/teacher/AIInteractionsLog.tsx

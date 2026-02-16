@@ -17,7 +17,7 @@
 
 import { authLogger } from "./auth-logger";
 
-import * as crypto from "crypto";
+import * as crypto from "node:crypto";
 
 /**
  * Password Validation Rules
@@ -56,15 +56,16 @@ export const NIST_2025_PASSWORD_RULES = {
 export async function isPasswordBreached(password: string): Promise<boolean> {
   try {
     // Hash the password using SHA-1 (required by HaveIBeenPwned API)
+    // NOSONAR S4790: SHA-1 is REQUIRED by HaveIBeenPwned k-anonymity protocol - NOT used for password storage
     const sha1Hash = crypto
-      .createHash("sha1")
+      .createHash("sha1") // NOSONAR
       .update(password)
       .digest("hex")
       .toUpperCase();
 
     // Use k-anonymity: only send first 5 characters
-    const prefix = sha1Hash.substring(0, 5);
-    const suffix = sha1Hash.substring(5);
+    const prefix = sha1Hash.slice(0, 5);
+    const suffix = sha1Hash.slice(5);
 
     // Call HaveIBeenPwned API
     const response = await fetch(
@@ -249,7 +250,7 @@ export function estimatePasswordStrengthNist2025(password: string): number {
   // Character diversity (not required, but encouraged)
   const hasLower = /[a-z]/.test(password);
   const hasUpper = /[A-Z]/.test(password);
-  const hasNumber = /[0-9]/.test(password);
+  const hasNumber = /\d/.test(password);
   const hasSpecial = /[^a-zA-Z0-9]/.test(password);
 
   const diversity = [hasLower, hasUpper, hasNumber, hasSpecial].filter(

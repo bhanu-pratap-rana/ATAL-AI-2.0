@@ -93,11 +93,16 @@ export default function AdminSchoolPINsPage() {
                   <SchoolDetailCard
                     school={selectedSchool}
                     onCopyCode={async () => {
-                      await navigator.clipboard.writeText(
-                        selectedSchool.schoolCode,
-                      );
-                      setCopied(true);
-                      setTimeout(() => setCopied(false), 1500);
+                      // ERR-006 FIX: Add error handling for clipboard API
+                      try {
+                        await navigator.clipboard.writeText(
+                          selectedSchool.schoolCode,
+                        );
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 1500);
+                      } catch {
+                        // Clipboard API may fail in certain environments
+                      }
                     }}
                     copied={copied}
                   />

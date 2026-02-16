@@ -73,22 +73,6 @@ export function usePasswordVisibility() {
 }
 
 /**
- * Utility function to handle validation error messages
- * Consolidates validation logic pattern across form components
- */
-export function validateAndHandleError(
-  isValid: boolean,
-  errorMessage: string,
-  onErrorChange: (error: string | null) => void,
-): boolean {
-  if (!isValid) {
-    onErrorChange(errorMessage);
-    return false;
-  }
-  return true;
-}
-
-/**
  * Utility for toast notification messages
  * Consolidates repeated toast pattern across form components
  */

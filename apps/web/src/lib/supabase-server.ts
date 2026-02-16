@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import { cache } from "react";
 import { authLogger } from "./auth-logger";
 import { verifyRoleAuth, verifyProfileAuth, type AuthCheckResult } from "./auth-factory";
 
@@ -60,7 +61,12 @@ export async function createClient() {
   );
 }
 
-export async function getCurrentUser() {
+/**
+ * Get current authenticated user with per-request deduplication
+ * Uses React.cache() to prevent duplicate auth queries within same request
+ * Per Vercel React Best Practices: https://vercel.com/blog/introducing-react-best-practices
+ */
+export const getCurrentUser = cache(async () => {
   const supabase = await createClient();
   const {
     data: { user },
@@ -72,7 +78,7 @@ export async function getCurrentUser() {
   }
 
   return user;
-}
+});
 
 /**
  * Create an admin client for server-side operations
@@ -139,7 +145,7 @@ export async function verifyTeacherAuth(
       if (error) {
         throw error;
       }
-      return !!teacherProfile;
+      return teacherProfile !== null;
     },
     notFoundMessage: "Only teachers can perform this action",
     errorMessage: "Failed to verify teacher status",

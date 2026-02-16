@@ -153,7 +153,7 @@ export function ProfileStep({
             isLoading || !state.profileName || !state.profileGender
           }
         >
-          Save Profile & Continue
+          <span>Save Profile & Continue</span>
           <span className="ml-2">→</span>
         </Button>
       </form>

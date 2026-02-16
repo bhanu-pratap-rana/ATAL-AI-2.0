@@ -1,1 +1,0 @@
-[ 2tsXVhr2apps/web/src/components/admin/modals/DataModal.tsx

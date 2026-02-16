@@ -11,11 +11,13 @@
  * - Animated unlock effects
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef, memo } from "react";
+import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase-browser";
 import { clientLogger } from "@/lib/client-logger";
 import type { Badge as BaseBadge } from "@/lib/services/gamification-service";
+import { useLanguage, getBadgeName as getLocalizedBadgeName } from "@/lib/i18n";
 
 /**
  * Display-specific Badge type with earned status
@@ -64,15 +66,25 @@ const RARITY_STYLES = {
   },
 };
 
-export function BadgesDisplay({
+/**
+ * PERFORMANCE: Wrapped with memo to prevent unnecessary re-renders
+ * when parent component state changes but props remain the same
+ */
+export const BadgesDisplay = memo(function BadgesDisplay({
   studentId,
-  language = "en",
+  language: languageProp = "en",
   showAll = true,
 }: BadgesDisplayProps) {
+  const { language: contextLanguage, t } = useLanguage();
+  // Use context language if available, otherwise fall back to prop
+  const language = contextLanguage || languageProp;
   const [badges, setBadges] = useState<DisplayBadge[]>([]);
   const [earnedIds, setEarnedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [selectedBadge, setSelectedBadge] = useState<DisplayBadge | null>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const previousEarnedIdsRef = useRef<Set<string>>(new Set());
+  const isInitialLoadRef = useRef(true);
 
   const fetchBadges = useCallback(async () => {
     try {
@@ -81,7 +93,7 @@ export function BadgesDisplay({
       // Fetch all badges from the database
       const { data: badgesData, error: badgesError } = await supabase
         .from("badges")
-        .select("*")
+        .select("id, name_en, name_hi, name_as, description, icon, rarity, points_value, cultural_note")
         .order("rarity", { ascending: true });
 
       if (badgesError) {
@@ -106,6 +118,13 @@ export function BadgesDisplay({
         });
       }
 
+      // PERFORMANCE FIX: Build Map for O(1) earned_at lookups instead of O(n) find() in loop
+      // Previously: O(n*m) where n=badges, m=earned badges
+      // Now: O(n+m) - build map once, then O(1) lookups
+      const earnedAtMap = new Map(
+        earnedData?.map((e) => [e.badge_id, e.earned_at]) || [],
+      );
+
       // Map database badges to component format
       const allBadges: DisplayBadge[] = (badgesData || []).map((b) => ({
         id: b.id,
@@ -117,11 +136,39 @@ export function BadgesDisplay({
         cultural_note: b.cultural_note,
         rarity: b.rarity as "common" | "uncommon" | "rare" | "legendary",
         points_value: b.points_value || 100,
-        earned_at: earnedData?.find((e) => e.badge_id === b.id)?.earned_at,
+        earned_at: earnedAtMap.get(b.id),
       }));
 
       // Create set of earned badge IDs
       const earnedSet = new Set(earnedData?.map((e) => e.badge_id) || []);
+
+      // Check for newly earned badges (not on initial load)
+      if (!isInitialLoadRef.current) {
+        const previousIds = previousEarnedIdsRef.current;
+        earnedSet.forEach((badgeId) => {
+          if (!previousIds.has(badgeId)) {
+            // Find the badge to show celebration toast
+            const newBadge = allBadges.find((b) => b.id === badgeId);
+            if (newBadge) {
+              toast.success(
+                `🏆 ${t("gamification.badgeEarned", { name: newBadge.name_en })}`,
+                {
+                  description: newBadge.cultural_note || newBadge.description,
+                  duration: 5000,
+                }
+              );
+              clientLogger.debug("[BadgesDisplay] New badge earned", {
+                badgeId: newBadge.id,
+                name: newBadge.name_en,
+              });
+            }
+          }
+        });
+      }
+
+      // Update refs for next comparison
+      previousEarnedIdsRef.current = earnedSet;
+      isInitialLoadRef.current = false;
 
       setBadges(allBadges);
       setEarnedIds(earnedSet);
@@ -139,8 +186,80 @@ export function BadgesDisplay({
 
   useEffect(() => {
     fetchBadges();
+
+    // Subscribe to real-time badge updates
+    const supabase = createClient();
+    const subscription = supabase
+      .channel(`badges:${studentId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "student_badges",
+          filter: `student_id=eq.${studentId}`,
+        },
+        () => {
+          // Refetch badges when a new badge is earned
+          clientLogger.debug("[BadgesDisplay] Real-time badge update received");
+          fetchBadges();
+        }
+      )
+      .subscribe();
+
+    // Cleanup: Use unsubscribe() for consistent pattern
+    return () => {
+      subscription.unsubscribe();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [studentId]);
+
+  // Manage dialog open/close state
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    if (selectedBadge) {
+      dialog.showModal();
+    } else {
+      dialog.close();
+    }
+  }, [selectedBadge]);
+
+  // Handle dialog close events
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    const handleCancel = (e: Event) => {
+      e.preventDefault();
+      setSelectedBadge(null);
+    };
+
+    const handleClick = (e: MouseEvent) => {
+      if (e.target === dialog) {
+        setSelectedBadge(null);
+      }
+    };
+
+    // A11Y-006 FIX: Explicit Escape key handler for better accessibility
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setSelectedBadge(null);
+      }
+    };
+
+    dialog.addEventListener("cancel", handleCancel);
+    dialog.addEventListener("click", handleClick);
+    dialog.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      dialog.removeEventListener("cancel", handleCancel);
+      dialog.removeEventListener("click", handleClick);
+      dialog.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
   const getBadgeName = (badge: DisplayBadge) => {
     switch (language) {
@@ -157,41 +276,26 @@ export function BadgesDisplay({
   const lockedBadges = badges.filter((b) => !earnedIds.has(b.id));
   const displayBadges = showAll ? badges : earnedBadges;
 
-  /**
-   * Get badge card classes based on earned status
+/**
+   * Badge class helpers - S2301 compliance
+   * Use status-based object keys instead of boolean params
    */
-  const getBadgeCardClass = (isEarned: boolean, rarity: string): string => {
-    const styles =
-      RARITY_STYLES[rarity as keyof typeof RARITY_STYLES] || RARITY_STYLES.common;
-    if (isEarned) {
-      return `${styles.bg} ${styles.border} ${styles.glow} hover:scale-105`;
-    }
-    return "bg-muted/50 border-dashed border-muted-foreground/30 opacity-60";
+  const BADGE_CLASSES = {
+    icon: { earned: "group-hover:scale-110", locked: "grayscale" },
+    card: { locked: "bg-muted/50 border-dashed border-muted-foreground/30 opacity-60" },
+    text: { locked: "text-muted-foreground" },
+  } as const;
+
+  const getBadgeCardClass = (status: "earned" | "locked", rarity: string): string => {
+    if (status === "locked") return BADGE_CLASSES.card.locked;
+    const styles = RARITY_STYLES[rarity as keyof typeof RARITY_STYLES] || RARITY_STYLES.common;
+    return `${styles.bg} ${styles.border} ${styles.glow} hover:scale-105`;
   };
 
-  /**
-   * Get badge icon classes based on earned status
-   */
-  const getBadgeIconClass = (isEarned: boolean): string => {
-    return isEarned ? "group-hover:scale-110" : "grayscale";
-  };
-
-  /**
-   * Get badge name text class based on earned status
-   */
-  const getBadgeNameClass = (isEarned: boolean, rarity: string): string => {
-    const styles =
-      RARITY_STYLES[rarity as keyof typeof RARITY_STYLES] || RARITY_STYLES.common;
-    return isEarned ? styles.text : "text-muted-foreground";
-  };
-
-  /**
-   * Get rarity text class based on earned status
-   */
-  const getRarityTextClass = (isEarned: boolean, rarity: string): string => {
-    const styles =
-      RARITY_STYLES[rarity as keyof typeof RARITY_STYLES] || RARITY_STYLES.common;
-    return isEarned ? styles.text : "text-muted-foreground";
+  const getBadgeTextClass = (status: "earned" | "locked", rarity: string): string => {
+    if (status === "locked") return BADGE_CLASSES.text.locked;
+    const styles = RARITY_STYLES[rarity as keyof typeof RARITY_STYLES] || RARITY_STYLES.common;
+    return styles.text;
   };
 
   if (loading) {
@@ -215,19 +319,19 @@ export function BadgesDisplay({
           <div className="text-3xl font-bold text-primary">
             {earnedBadges.length}
           </div>
-          <div className="text-sm text-muted-foreground">Earned</div>
+          <div className="text-sm text-muted-foreground">{t("gamification.earned")}</div>
         </div>
         <div>
           <div className="text-3xl font-bold text-muted-foreground">
             {lockedBadges.length}
           </div>
-          <div className="text-sm text-muted-foreground">Locked</div>
+          <div className="text-sm text-muted-foreground">{t("gamification.locked")}</div>
         </div>
         <div>
           <div className="text-3xl font-bold text-warning">
             {earnedBadges.reduce((sum, b) => sum + b.points_value, 0)}
           </div>
-          <div className="text-sm text-muted-foreground">Points</div>
+          <div className="text-sm text-muted-foreground">{t("gamification.points")}</div>
         </div>
       </div>
 
@@ -240,23 +344,23 @@ export function BadgesDisplay({
             <button
               key={badge.id}
               onClick={() => setSelectedBadge(badge)}
-              className={`group relative p-4 rounded-xl border-2 transition-all duration-300 ${getBadgeCardClass(isEarned, badge.rarity)}`}
+              className={`group relative p-4 rounded-xl border-2 transition-all duration-300 ${getBadgeCardClass(isEarned ? "earned" : "locked", badge.rarity)}`}
             >
               {/* Badge Icon */}
               <div
-                className={`text-4xl mb-2 transition-transform ${getBadgeIconClass(isEarned)}`}
+                className={`text-4xl mb-2 transition-transform ${isEarned ? BADGE_CLASSES.icon.earned : BADGE_CLASSES.icon.locked}`}
               >
                 {badge.icon}
               </div>
 
               {/* Badge Name */}
-              <div className={`text-sm font-medium ${getBadgeNameClass(isEarned, badge.rarity)}`}>
+              <div className={`text-sm font-medium ${getBadgeTextClass(isEarned ? "earned" : "locked", badge.rarity)}`}>
                 {getBadgeName(badge)}
               </div>
 
               {/* Rarity Indicator */}
               <div
-                className={`text-xs mt-1 capitalize ${getRarityTextClass(isEarned, badge.rarity)}`}
+                className={`text-xs mt-1 capitalize ${getBadgeTextClass(isEarned ? "earned" : "locked", badge.rarity)}`}
               >
                 {badge.rarity}
               </div>
@@ -277,22 +381,14 @@ export function BadgesDisplay({
         })}
       </div>
 
-      {/* Badge Detail Modal */}
-      {selectedBadge && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="badge-modal-title"
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-          onClick={() => setSelectedBadge(null)}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") setSelectedBadge(null);
-          }}
-        >
-          <Card
-            className="max-w-md w-full"
-            onClick={(e) => e.stopPropagation()}
-          >
+      {/* Badge Detail Modal - Using native dialog for accessibility (S6819) */}
+      <dialog
+        ref={dialogRef}
+        className="max-w-md w-full p-0 bg-transparent backdrop:bg-black/50 rounded-lg"
+        aria-labelledby="badge-modal-title"
+      >
+        {selectedBadge && (
+          <Card className="w-full">
             <CardContent className="p-6 text-center">
               {/* Icon */}
               <div className="text-6xl mb-4">{selectedBadge.icon}</div>
@@ -320,11 +416,11 @@ export function BadgesDisplay({
               <div className="mt-4">
                 {earnedIds.has(selectedBadge.id) ? (
                   <span className="inline-block px-4 py-2 bg-success/10 text-success rounded-full font-medium">
-                    ✓ Earned • +{selectedBadge.points_value} points
+                    ✓ {t("gamification.earned")} • +{selectedBadge.points_value} {t("gamification.points")}
                   </span>
                 ) : (
                   <span className="inline-block px-4 py-2 bg-muted text-muted-foreground rounded-full">
-                    🔒 Locked
+                    🔒 {t("gamification.locked")}
                   </span>
                 )}
               </div>
@@ -336,15 +432,15 @@ export function BadgesDisplay({
                 className="mt-4 text-sm text-muted-foreground hover:text-primary"
                 aria-label="Close badge details"
               >
-                Close
+                {t("common.close")}
               </button>
             </CardContent>
           </Card>
-        </div>
-      )}
+        )}
+      </dialog>
     </div>
   );
-}
+});
 
 /**
  * Compact Badge Display for Dashboard

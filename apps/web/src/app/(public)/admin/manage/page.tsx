@@ -7,6 +7,7 @@ import { AdminUnauthorizedState } from "@/components/admin/manage/AdminUnauthori
 import { StepIndicator } from "@/components/admin/manage/StepIndicator";
 import { DeleteUserForm } from "@/components/admin/manage/DeleteUserForm";
 import { CreateAdminForm } from "@/components/admin/manage/CreateAdminForm";
+import { DialogContainer } from "@/components/ui/DialogContainer";
 import { Button } from "@/components/ui/button";
 import { AuthCard } from "@/components/auth/AuthCard";
 
@@ -21,12 +22,15 @@ export default function AdminManagePage() {
     password,
     confirmPassword,
     message,
+    pendingDeletion, // SEC-002: State for confirmation dialog
     setStep,
     setEmail,
     setPassword,
     setConfirmPassword,
     setShowPassword,
-    handleDeleteUser,
+    requestDeleteUser, // SEC-002: Opens confirmation dialog
+    confirmDeleteUser, // SEC-002: Executes deletion
+    cancelDeleteUser, // SEC-002: Cancels deletion
     handleCreateAdmin,
   } = useAdminManagement();
 
@@ -76,9 +80,44 @@ export default function AdminManagePage() {
               isLoading={isLoading}
               message={message}
               onEmailChange={setEmail}
-              onDelete={handleDeleteUser}
+              onDelete={requestDeleteUser}
             />
           )}
+
+          {/* SEC-002 FIX: Accessible confirmation dialog for destructive actions */}
+          <DialogContainer
+            open={pendingDeletion}
+            title="Confirm User Deletion"
+            onClose={cancelDeleteUser}
+            size="sm"
+          >
+            <div className="space-y-4">
+              <p className="text-sm text-text-secondary">
+                Are you sure you want to <strong className="text-error">permanently delete</strong> the user:
+              </p>
+              <p className="text-lg font-semibold text-text-primary break-all bg-surface p-2 rounded">
+                {email}
+              </p>
+              <p className="text-xs text-error">
+                ⚠️ This action cannot be undone. All user data will be permanently removed.
+              </p>
+              <div className="flex gap-3 pt-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={cancelDeleteUser}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="flex-1 bg-error hover:bg-error/90"
+                  onClick={confirmDeleteUser}
+                >
+                  Delete User
+                </Button>
+              </div>
+            </div>
+          </DialogContainer>
 
           {/* STEP 2: CREATE USER */}
           {step === "create" && (

@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import { FORM_TIMING } from "@/lib/constants/ui-timings";
 
 export default function CreateAdminPage() {
-  const [email, setEmail] = useState("atal.app.ai@gmail.com");
+  const [email, setEmail] = useState("");
   const [adminExists, setAdminExists] = useState<boolean | null>(null);
   const [checkingAdmin, setCheckingAdmin] = useState(true);
 

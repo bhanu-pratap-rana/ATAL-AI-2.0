@@ -7,6 +7,7 @@ import { isAdmin } from "@/lib/auth/role-utils";
 import { AdminEmailSchema } from "@/lib/validation-schemas";
 import { findAuthUserByEmail } from "@/lib/admin-utils";
 import { validateInput, handleActionError } from "./action-utils";
+import { RATE_LIMIT_ERRORS } from "@/lib/constants/error-messages";
 
 export interface SetAdminRoleResult {
   success: boolean;
@@ -25,10 +26,10 @@ export async function setAdminRole(email: string): Promise<SetAdminRoleResult> {
   try {
     // Validate email input
     const validation = validateInput(email, AdminEmailSchema);
-    if (!validation.success) {
-      return { success: false, error: validation.error };
+    if (!validation.success || !validation.data) {
+      return { success: false, error: validation.error ?? "Invalid input" };
     }
-    const normalizedEmail = validation.data!;
+    const normalizedEmail = validation.data;
 
     // SECURITY: Verify caller is authenticated and authorized as super_admin
     const auth = await verifySuperAdminAuth("setAdminRole");
@@ -44,7 +45,7 @@ export async function setAdminRole(email: string): Promise<SetAdminRoleResult> {
       });
       return {
         success: false,
-        error: "Too many requests. Please try again later.",
+        error: RATE_LIMIT_ERRORS.TOO_MANY_REQUESTS,
       };
     }
 
@@ -117,15 +118,20 @@ export async function checkAdminRoleByEmail(email: string): Promise<{
   try {
     // Validate email input
     const validation = validateInput(email, AdminEmailSchema);
-    if (!validation.success) {
-      return { hasAdminRole: false, error: validation.error };
+    if (!validation.success || !validation.data) {
+      return { hasAdminRole: false, error: validation.error ?? "Invalid input" };
     }
-    const normalizedEmail = validation.data!;
+    const normalizedEmail = validation.data;
+
+    // SECURITY: Require authentication to prevent email enumeration
+    const auth = await verifySuperAdminAuth("checkAdminRoleByEmail");
+    if (!auth.authorized) {
+      return { hasAdminRole: false, error: "Authentication required" };
+    }
 
     // SECURITY: Rate limit admin operations to prevent abuse
-    // Use email as identifier since this is a lookup operation
     const roleLookupAllowed = await checkAdminOperationRateLimit(
-      normalizedEmail,
+      auth.user.id,
     );
     if (!roleLookupAllowed) {
       authLogger.warn("[checkAdminRoleByEmail] Rate limit exceeded", {
@@ -133,7 +139,7 @@ export async function checkAdminRoleByEmail(email: string): Promise<{
       });
       return {
         hasAdminRole: false,
-        error: "Too many requests. Please try again later.",
+        error: RATE_LIMIT_ERRORS.TOO_MANY_REQUESTS,
       };
     }
 

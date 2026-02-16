@@ -14,8 +14,15 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase-browser";
+import type { SupportedLanguage } from "@/types/common";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { clientLogger } from "@/lib/client-logger";
+
+/** Message role type for AI interactions */
+type MessageRole = "user" | "assistant" | "system";
+
+/** Input mode type for AI interactions */
+type InputMode = "text" | "voice";
 
 interface AIInteraction {
   readonly id: string;
@@ -23,10 +30,10 @@ interface AIInteraction {
   readonly student_name?: string;
   readonly session_id: string;
   readonly topic_id?: string;
-  readonly message_role: "user" | "assistant" | "system";
+  readonly message_role: MessageRole;
   readonly message_content: string;
-  readonly input_mode: "text" | "voice";
-  readonly language: "en" | "hi" | "as";
+  readonly input_mode: InputMode;
+  readonly language: SupportedLanguage;
   readonly tokens_used: number;
   readonly response_time_ms: number;
   readonly created_at: string;
@@ -208,7 +215,7 @@ function groupBySession(interactions: AIInteraction[]): Session[] {
 /**
  * Get CSS classes for message box based on role
  */
-function getMessageBoxClass(messageRole: "user" | "assistant" | "system"): string {
+function getMessageBoxClass(messageRole: MessageRole): string {
   switch (messageRole) {
     case "user":
       return "bg-primary/10 ml-8";
@@ -222,9 +229,7 @@ function getMessageBoxClass(messageRole: "user" | "assistant" | "system"): strin
 /**
  * Get label and emoji for message role
  */
-function getMessageRoleLabel(
-  messageRole: "user" | "assistant" | "system",
-): string {
+function getMessageRoleLabel(messageRole: MessageRole): string {
   switch (messageRole) {
     case "user":
       return "🧑‍🎓 Student";
@@ -254,10 +259,10 @@ function SessionCard({ session }: { readonly session: Session }) {
     });
   };
 
-  const userMessages = session.messages.filter(
+  const firstUserMessage = session.messages.find(
     (m) => m.message_role === "user",
   );
-  const firstQuestion = userMessages[0]?.message_content || "No messages";
+  const firstQuestion = firstUserMessage?.message_content || "No messages";
 
   return (
     <Card className="overflow-hidden">
@@ -301,7 +306,7 @@ function SessionCard({ session }: { readonly session: Session }) {
         <CardContent className="py-2 border-t">
           <div className="space-y-2 max-h-80 overflow-y-auto">
             {session.messages
-              .sort(
+              .toSorted(
                 (a, b) =>
                   new Date(a.created_at).getTime() -
                   new Date(b.created_at).getTime(),

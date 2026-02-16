@@ -52,7 +52,10 @@ interface TeacherItem {
 interface StudentItem {
   readonly id: string;
   readonly email: string;
+  readonly name: string;
   readonly phone: string | null;
+  readonly className: string | null;
+  readonly schoolName: string | null;
   readonly createdAt: string;
   readonly lastSignIn: string | null;
 }
@@ -108,7 +111,11 @@ export function DashboardMetrics() {
         } else {
           setError(result?.error || "Failed to load metrics");
         }
-      } catch {
+      } catch (error) {
+        clientLogger.error(
+          "[DashboardMetrics] Failed to load metrics",
+          error instanceof Error ? error : { error: String(error) },
+        );
         setError("An error occurred while loading metrics");
       } finally {
         setIsLoading(false);
@@ -120,45 +127,36 @@ export function DashboardMetrics() {
 
   /**
    * Helper: Load data for a specific modal type
+   * Refactored to use async loader functions to reduce cognitive complexity (S3776)
    */
   async function loadModalData(type: ModalType): Promise<void> {
-    switch (type) {
-      case "schools": {
+    if (!type) return;
+
+    // Modal data loaders mapped by type
+    const loaders: Record<NonNullable<ModalType>, () => Promise<void>> = {
+      schools: async () => {
         const result = await getAllSchools();
-        if (result?.success && result?.data) {
-          setSchools(result.data);
-        }
-        break;
-      }
-      case "teachers": {
+        if (result?.success && result?.data) setSchools(result.data);
+      },
+      teachers: async () => {
         const result = await getAllTeachers();
-        if (result?.success && result?.data) {
-          setTeachers(result.data);
-        }
-        break;
-      }
-      case "students": {
+        if (result?.success && result?.data) setTeachers(result.data);
+      },
+      students: async () => {
         const result = await getAllStudents();
-        if (result?.success && result?.data) {
-          setStudents(result.data);
-        }
-        break;
-      }
-      case "activePINs": {
+        if (result?.success && result?.data) setStudents(result.data);
+      },
+      activePINs: async () => {
         const result = await getSchoolsWithActivePINs();
-        if (result?.success && result?.data) {
-          setActivePINSchools(result.data);
-        }
-        break;
-      }
-      case "inactivePINs": {
+        if (result?.success && result?.data) setActivePINSchools(result.data);
+      },
+      inactivePINs: async () => {
         const result = await getSchoolsWithoutPINs();
-        if (result?.success && result?.data) {
-          setInactivePINSchools(result.data);
-        }
-        break;
-      }
-    }
+        if (result?.success && result?.data) setInactivePINSchools(result.data);
+      },
+    };
+
+    await loaders[type]();
   }
 
   /**
@@ -271,8 +269,9 @@ export function DashboardMetrics() {
 
   const filteredStudents = students.filter(
     (s) =>
+      s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (s.phone && s.phone.includes(searchQuery)),
+      s.phone?.includes(searchQuery),
   );
 
   const filteredActivePINs = activePINSchools.filter(
@@ -288,11 +287,14 @@ export function DashboardMetrics() {
   );
 
   if (isLoading) {
+    // S6479: Index keys are acceptable for static skeleton placeholders
+    // These elements have no stable ID, don't reorder, and are temporary
+    const skeletonKeys = ["s1", "s2", "s3", "s4", "s5"] as const;
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        {[...Array(5)].map((_, i) => (
+        {skeletonKeys.map((key) => (
           <div
-            key={`skeleton-${i}`}
+            key={key}
             className="bg-border-light rounded-lg p-4 h-24 animate-pulse"
           ></div>
         ))}

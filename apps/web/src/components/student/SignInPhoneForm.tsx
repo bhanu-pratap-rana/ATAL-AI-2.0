@@ -138,7 +138,7 @@ export function SignInPhoneForm({
         }
         loading={isLoading}
       >
-        Sign In
+        <span>Sign In</span>
         <span className="ml-2">→</span>
       </Button>
 

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase-browser";
-import zxcvbn from "zxcvbn";
+// PERF-011 FIX: Removed static zxcvbn import (700KB+)
+// Now dynamically imported only when password strength check is needed
 import {
   sendEmailOtp,
   verifyEmailOtp,
@@ -23,6 +24,7 @@ import {
   validateOptionalPhone,
 } from "@/lib/validation-utils";
 import { authLogger } from "@/lib/auth-logger";
+import type { Gender } from "@/hooks/useAuthState";
 
 type Step =
   | "choice"
@@ -84,7 +86,7 @@ export interface TeacherOnboardingState {
 
   // Teacher profile
   teacherName: string;
-  teacherGender: "male" | "female" | "";
+  teacherGender: Gender;
   phone: string;
   village: string;
 }
@@ -235,6 +237,15 @@ export interface TeacherOnboardingActions {
 export function useTeacherOnboarding() {
   const router = useRouter();
   const supabase = createClient();
+  // BUG-011 FIX: Track navigation timer for cleanup on unmount
+  const navTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // BUG-011 FIX: Cleanup navigation timer on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (navTimerRef.current) clearTimeout(navTimerRef.current);
+    };
+  }, []);
 
   // UNIFIED STATE OBJECT - All form inputs grouped logically
   // Uses extracted constant to eliminate duplication with resetAll
@@ -407,11 +418,15 @@ export function useTeacherOnboarding() {
         } = await supabase.auth.getSession();
 
         if (session) {
-          const { data: profile } = await supabase
+          const { data: profile, error: profileError } = await supabase
             .from("teacher_profiles")
             .select("*")
             .eq("user_id", session.user.id)
             .maybeSingle();
+
+          if (profileError) {
+            authLogger.error("[Teacher Auth Check] Profile fetch error", profileError);
+          }
 
           if (profile) {
             // Already registered, redirect
@@ -475,11 +490,16 @@ export function useTeacherOnboarding() {
    */
   const checkStudentProfile = useCallback(
     async (userId: string) => {
-      const { data: studentProfile } = await supabase
+      const { data: studentProfile, error } = await supabase
         .from("student_profiles")
         .select("user_id")
         .eq("user_id", userId)
         .maybeSingle();
+
+      if (error) {
+        authLogger.error("[Teacher Onboarding] Student profile check error", error);
+        return false;
+      }
 
       return Boolean(studentProfile);
     },
@@ -679,19 +699,17 @@ export function useTeacherOnboarding() {
         if (result.success) {
           toast.success("OTP sent to your email!");
           setOtpSent(true);
+        } else if (result.exists) {
+          toast.error(result.error || "This email is already registered");
+          authLogger.debug(
+            "[Teacher Signup] Email already exists, redirecting to login",
+          );
+          setLoginEmail(state.email);
+          resetSignupEmail();
+          setStep("login");
         } else {
-          if (result.exists) {
-            toast.error(result.error || "This email is already registered");
-            authLogger.debug(
-              "[Teacher Signup] Email already exists, redirecting to login",
-            );
-            setLoginEmail(state.email);
-            resetSignupEmail();
-            setStep("login");
-          } else {
-            setEmailError(result.error || "Failed to send OTP");
-            toast.error(result.error || "Failed to send OTP");
-          }
+          setEmailError(result.error || "Failed to send OTP");
+          toast.error(result.error || "Failed to send OTP");
         }
       } catch (error) {
         authLogger.error("[Teacher Signup] Failed to send OTP", error);
@@ -782,11 +800,21 @@ export function useTeacherOnboarding() {
   );
 
   // HANDLER: Password Change (updates strength)
+  // PERF-011 FIX: Dynamic import of zxcvbn to reduce bundle size by ~700KB
+  // zxcvbn is only loaded when user starts typing a password
   const handlePasswordChange = useCallback((password: string) => {
     setPassword(password);
     if (password.length > 0) {
-      const result = zxcvbn(password);
-      setPasswordStrength(result.score);
+      // Dynamic import - only loads zxcvbn when needed
+      import("zxcvbn")
+        .then((module) => {
+          const zxcvbn = module.default;
+          const result = zxcvbn(password);
+          setPasswordStrength(result.score);
+        })
+        .catch(() => {
+          setPasswordStrength(0);
+        });
     } else {
       setPasswordStrength(0);
     }
@@ -849,7 +877,7 @@ export function useTeacherOnboarding() {
       try {
         const result = await saveTeacherProfile({
           name: state.teacherName.trim(),
-          gender: state.teacherGender as "male" | "female",
+          gender: state.teacherGender, // Type narrowed by validation check above
           phone: state.phone.trim() || undefined,
           village: state.village.trim() || undefined,
           schoolId: state.verifiedSchoolId,
@@ -869,14 +897,16 @@ export function useTeacherOnboarding() {
                 refreshError,
               );
             }
-          } catch (refreshErr) {
+          } catch (refreshError_) {
             authLogger.warn(
               "[Teacher Registration] Session refresh exception",
-              refreshErr instanceof Error ? refreshErr : { error: refreshErr },
+              refreshError_ instanceof Error ? refreshError_ : { error: refreshError_ },
             );
           }
 
-          setTimeout(() => {
+          // BUG-011 FIX: Store timer ref for cleanup on unmount
+          if (navTimerRef.current) clearTimeout(navTimerRef.current);
+          navTimerRef.current = setTimeout(() => {
             router.push("/app/teacher/classes");
           }, 1500);
         } else {

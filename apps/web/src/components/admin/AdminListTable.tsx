@@ -36,11 +36,12 @@ function getRoleText(role: string): string {
 }
 
 /**
- * Get modal button text based on resetting state
+ * Modal button text states - S2301 compliance (no boolean params)
  */
-function getModalButtonText(isResetting: boolean): string {
-  return isResetting ? "Resetting..." : "Reset Password";
-}
+const MODAL_BUTTON_TEXT = {
+  active: "Resetting...",
+  idle: "Reset Password",
+} as const;
 
 /**
  * AdminListTable - Display list of all admin accounts
@@ -356,7 +357,7 @@ export function AdminListTable({
                 disabled={resetingId === resetAdmin.id}
                 className="flex-1 bg-primary hover:bg-primary-dark"
               >
-                {getModalButtonText(resetingId === resetAdmin.id)}
+                {resetingId === resetAdmin.id ? MODAL_BUTTON_TEXT.active : MODAL_BUTTON_TEXT.idle}
               </Button>
             </div>
           </div>

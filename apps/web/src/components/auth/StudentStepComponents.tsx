@@ -15,7 +15,7 @@ interface StepComponentProps {
   readonly state: UseAuthStateReturn["state"];
 }
 
-export function ChoiceStep({ actions }: StepComponentProps) {
+export function ChoiceStep({ actions, loading: _loading, state: _state }: StepComponentProps) {
   return (
     <AuthCard
       title="Welcome, Student!"
@@ -28,7 +28,7 @@ export function ChoiceStep({ actions }: StepComponentProps) {
           variant="default"
         >
           <span className="text-xl mr-2">✨</span>
-          Create Account
+          <span>Create Account</span>
         </Button>
 
         <Button
@@ -37,7 +37,7 @@ export function ChoiceStep({ actions }: StepComponentProps) {
           variant="outline"
         >
           <span className="text-xl mr-2">🔑</span>
-          Login
+          <span>Login</span>
         </Button>
 
         <div className="bg-cyan-lightest border-l-4 border-cyan p-3 rounded-xl">

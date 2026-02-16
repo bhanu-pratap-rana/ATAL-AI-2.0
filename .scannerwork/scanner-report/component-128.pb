@@ -1,1 +1,0 @@
-€ 2tsXÁhr6apps/web/src/components/auth/student/JoinClassStep.tsx

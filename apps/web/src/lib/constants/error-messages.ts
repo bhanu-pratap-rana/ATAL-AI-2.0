@@ -116,6 +116,19 @@ export const FILE_ERRORS = {
 } as const;
 
 /**
+ * Rate limiting errors
+ */
+export const RATE_LIMIT_ERRORS = {
+  TOO_MANY_REQUESTS: "Too many requests. Please try again later.",
+  WAIT_BEFORE_RETRY: "Too many requests. Please wait before trying again.",
+  WAIT_FEW_MINUTES: "Too many requests. Please wait a few minutes and try again.",
+  AI_RATE_LIMIT: "Too many requests. Please wait before asking another question.",
+  ESSAY_RATE_LIMIT: "Too many requests. Please wait before submitting another essay.",
+  QUESTIONS_RATE_LIMIT: "Too many requests. Please wait before generating more questions.",
+  SUMMARY_RATE_LIMIT: "Too many requests. Please wait before summarizing more content.",
+} as const;
+
+/**
  * Generic operational errors
  */
 export const OPERATIONAL_ERRORS = {

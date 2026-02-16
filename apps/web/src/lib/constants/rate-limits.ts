@@ -107,6 +107,13 @@ export const RATE_LIMITS = {
     refillInterval: 1000,
   } as RateLimitConfig,
 
+  /** TTS Health Check - 30 per minute (less strict than synthesis) */
+  ttsHealth: {
+    maxTokens: 30,
+    refillRate: 30 / SECONDS_PER_MINUTE,
+    refillInterval: 1000,
+  } as RateLimitConfig,
+
   /** PIN rotation - 10 per hour (prevent abuse of PIN generation) */
   pinRotation: {
     maxTokens: 10,
@@ -135,10 +142,59 @@ export const RATE_LIMITS = {
     refillInterval: 1000,
   } as RateLimitConfig,
 
+  /** Module units - 60 per hour (generous for normal browsing) */
+  moduleUnits: {
+    maxTokens: 60,
+    refillRate: 60 / SECONDS_PER_HOUR,
+    refillInterval: 1000,
+  } as RateLimitConfig,
+
   /** Email enumeration - 20 per hour (prevent email discovery attacks) */
   emailEnumeration: {
     maxTokens: 20,
     refillRate: 20 / SECONDS_PER_HOUR,
+    refillInterval: 1000,
+  } as RateLimitConfig,
+
+  /** Lesson generation - 20 per 10 minutes (prevent Gemini API cost exploitation) */
+  lessonGeneration: {
+    maxTokens: 20,
+    refillRate: 20 / (10 * SECONDS_PER_MINUTE),
+    refillInterval: 1000,
+  } as RateLimitConfig,
+
+  /** Image generation - 10 per hour (prevent Imagen API cost explosion) */
+  imageGeneration: {
+    maxTokens: 10,
+    refillRate: 10 / SECONDS_PER_HOUR,
+    refillInterval: 1000,
+  } as RateLimitConfig,
+
+  /** Gamification actions - 30 per hour (prevent point farming) */
+  gamification: {
+    maxTokens: 30,
+    refillRate: 30 / SECONDS_PER_HOUR,
+    refillInterval: 1000,
+  } as RateLimitConfig,
+
+  /** Lesson completion - 20 per hour (prevent rapid replays) */
+  lessonCompletion: {
+    maxTokens: 20,
+    refillRate: 20 / SECONDS_PER_HOUR,
+    refillInterval: 1000,
+  } as RateLimitConfig,
+
+  /** Progress sync - 60 per hour (generous for normal offline sync) */
+  progressSync: {
+    maxTokens: 60,
+    refillRate: 60 / SECONDS_PER_HOUR,
+    refillInterval: 1000,
+  } as RateLimitConfig,
+
+  /** Account deletion - 3 per hour (very strict, destructive operation) */
+  accountDeletion: {
+    maxTokens: 3,
+    refillRate: 3 / SECONDS_PER_HOUR,
     refillInterval: 1000,
   } as RateLimitConfig,
 } as const;

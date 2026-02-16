@@ -5,6 +5,7 @@ import { authLogger } from "@/lib/auth-logger";
 import { checkRateLimit } from "@/lib/rate-limiter-distributed";
 import { RATE_LIMITS } from "@/lib/constants/rate-limits";
 import { isTeacherOrHigher } from "@/lib/auth/role-utils";
+import { RATE_LIMIT_ERRORS } from "@/lib/constants/error-messages";
 
 import {
   calculateScoreAndTime,
@@ -83,7 +84,7 @@ export async function getDashboardStats(): Promise<{
       });
       return {
         success: false,
-        error: "Too many requests. Please wait before trying again.",
+        error: RATE_LIMIT_ERRORS.WAIT_BEFORE_RETRY,
       };
     }
 
@@ -196,7 +197,7 @@ export async function getProgressStats(): Promise<{
       });
       return {
         success: false,
-        error: "Too many requests. Please wait before trying again.",
+        error: RATE_LIMIT_ERRORS.WAIT_BEFORE_RETRY,
       };
     }
 
@@ -208,11 +209,13 @@ export async function getProgressStats(): Promise<{
         .select("id, started_at, submitted_at")
         .eq("user_id", user.id)
         .not("submitted_at", "is", null)
-        .order("submitted_at", { ascending: false }),
+        .order("submitted_at", { ascending: false })
+        .limit(1000),
       supabase
         .from("assessment_responses")
         .select("is_correct, module, rt_ms, session_id")
-        .eq("user_id", user.id),
+        .eq("user_id", user.id)
+        .limit(25000),
     ]);
 
     const sessions = sessionsResult.data;

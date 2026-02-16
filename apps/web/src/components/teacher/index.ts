@@ -4,6 +4,7 @@
 
 export { AIInteractionsLog } from "./AIInteractionsLog";
 export { AnalyticsTiles } from "./AnalyticsTiles";
+export { ClassAssessmentCard } from "./ClassAssessmentCard";
 export { ClassCard } from "./ClassCard";
 export { CreateClassDialog } from "./CreateClassDialog";
 export { InvitePanel } from "./InvitePanel";

@@ -49,36 +49,36 @@ interface SpeechRecognitionAlternative {
 
 interface SpeechRecognition extends EventTarget {
   // Properties
-  grammars: SpeechGrammarList;
-  lang: string;
-  continuous: boolean;
-  interimResults: boolean;
-  maxAlternatives: number;
-  serviceURI: string;
+  readonly grammars: SpeechGrammarList;
+  readonly lang: string;
+  readonly continuous: boolean;
+  readonly interimResults: boolean;
+  readonly maxAlternatives: number;
+  readonly serviceURI: string;
 
   // Event handlers
-  onaudiostart: ((this: SpeechRecognition, ev: Event) => void) | null;
-  onaudioend: ((this: SpeechRecognition, ev: Event) => void) | null;
-  onend: ((this: SpeechRecognition, ev: Event) => void) | null;
-  onerror:
+  readonly onaudiostart: ((this: SpeechRecognition, ev: Event) => void) | null;
+  readonly onaudioend: ((this: SpeechRecognition, ev: Event) => void) | null;
+  readonly onend: ((this: SpeechRecognition, ev: Event) => void) | null;
+  readonly onerror:
     | ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => void)
     | null;
-  onnomatch:
+  readonly onnomatch:
     | ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => void)
     | null;
-  onresult:
+  readonly onresult:
     | ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => void)
     | null;
-  onsoundstart: ((this: SpeechRecognition, ev: Event) => void) | null;
-  onsoundend: ((this: SpeechRecognition, ev: Event) => void) | null;
-  onspeechstart: ((this: SpeechRecognition, ev: Event) => void) | null;
-  onspeechend: ((this: SpeechRecognition, ev: Event) => void) | null;
-  onstart: ((this: SpeechRecognition, ev: Event) => void) | null;
+  readonly onsoundstart: ((this: SpeechRecognition, ev: Event) => void) | null;
+  readonly onsoundend: ((this: SpeechRecognition, ev: Event) => void) | null;
+  readonly onspeechstart: ((this: SpeechRecognition, ev: Event) => void) | null;
+  readonly onspeechend: ((this: SpeechRecognition, ev: Event) => void) | null;
+  readonly onstart: ((this: SpeechRecognition, ev: Event) => void) | null;
 
   // Methods
-  start(): void;
-  stop(): void;
-  abort(): void;
+  readonly start: () => void;
+  readonly stop: () => void;
+  readonly abort: () => void;
 }
 
 interface SpeechGrammarList {
@@ -90,8 +90,8 @@ interface SpeechGrammarList {
 }
 
 interface SpeechGrammar {
-  src: string;
-  weight: number;
+  readonly src: string;
+  readonly weight: number;
 }
 
 declare const SpeechRecognition: {

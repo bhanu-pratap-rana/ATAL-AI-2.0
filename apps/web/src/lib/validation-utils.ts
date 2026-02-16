@@ -83,24 +83,8 @@ export function validatePasswordMatch(
   return { valid: true };
 }
 
-// Legacy type export for backward compatibility
-export interface PasswordRequirements {
-  minLength: number;
-  requireUppercase: boolean;
-  requireLowercase: boolean;
-  requireNumber: boolean;
-  requireSpecial: boolean;
-}
-
-export const DEFAULT_PASSWORD_REQUIREMENTS: PasswordRequirements = {
-  minLength: 8,
-  requireUppercase: false,
-  requireLowercase: false,
-  requireNumber: false,
-  requireSpecial: false,
-};
-
-export const PASSWORD_SPECIAL_CHARS = "!@#$%^&*()_+-=[]{}|;:,.<>?";
+// CLEANUP: Removed unused PasswordRequirements, DEFAULT_PASSWORD_REQUIREMENTS, PASSWORD_SPECIAL_CHARS
+// These were legacy types that are no longer used (NIST 2025 compliance replaced them)
 
 export {
   validatePhoneNumber,
@@ -112,7 +96,7 @@ export {
 } from "./phone-validation";
 
 export {
-  validateSchoolCode,
+  // CLEANUP: Removed validateSchoolCode (never used)
   validateClassCode,
   sanitizeClassCode,
   validatePIN,
@@ -121,8 +105,5 @@ export {
   validateOTP,
 } from "./code-validation";
 
-export {
-  validateName,
-  validateRollNumber,
-  sanitizeString,
-} from "./name-validation";
+// CLEANUP: Removed name-validation.ts re-exports (validateName, validateRollNumber, sanitizeString)
+// These functions were never used by any consumer

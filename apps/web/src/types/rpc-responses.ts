@@ -7,19 +7,29 @@
 
 /**
  * Response from batch_check_and_award_badges RPC
- * Migration: 123_batch_check_award_badges.sql
+ * Migration: 156_fix_badge_id_ambiguity.sql (latest)
+ * Returns only the fields defined in RETURNS TABLE
  */
 export interface BatchCheckAwardBadgesResponse {
   badge_id: string;
   badge_name_en: string;
   badge_name_hi: string;
   badge_name_as: string;
-  description_en: string;
-  description_hi: string;
-  description_as: string;
   points_awarded: number;
-  icon_name: string;
-  awarded_at: string;
+}
+
+/**
+ * Response from update_progress_atomic RPC
+ * Migration: 155_fix_knowledge_state_status.sql
+ * Atomic progress update with race condition prevention
+ */
+export interface UpdateProgressAtomicResponse {
+  success: boolean;
+  mastery_score: number;
+  status: "not_started" | "in_progress" | "mastered";
+  confidence_level: "low" | "medium" | "high";
+  attempts: number;
+  error?: string;
 }
 
 /**

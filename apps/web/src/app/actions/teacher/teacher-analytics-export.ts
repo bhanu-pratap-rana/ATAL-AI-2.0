@@ -6,68 +6,10 @@ import {
   verifyClassOwnership,
   verifyTeacherAuth,
 } from "@/lib/supabase-server";
-import {
-  ANALYTICS_WINDOW_DAYS,
-  RAPID_RESPONSE_THRESHOLD_MS,
-  AT_RISK_RAPID_PERCENTAGE,
-} from "@/lib/constants/analytics";
+import { ANALYTICS_WINDOW_DAYS } from "@/lib/constants/analytics";
 import { ClassIdSchema } from "@/lib/validation-schemas";
 import { authLogger } from "@/lib/auth-logger";
 import { handleZodError } from "@/lib/action-error-handler";
-
-/**
- * Type definitions for Supabase responses
- */
-
-/**
- * User object from auth.users joined queries
- */
-interface AuthUser {
-  id: string;
-  email?: string;
-  raw_user_meta_data?: {
-    full_name?: string;
-    [key: string]: unknown;
-  };
-  [key: string]: unknown;
-}
-
-/**
- * Knowledge state for a student
- */
-interface StudentKnowledgeState {
-  topics_mastered: number;
-  total_topics: number;
-  average_mastery: number;
-  last_attempt_at: string | null;
-}
-
-/**
- * Student enrollment with knowledge state
- */
-interface StudentEnrollment {
-  student: AuthUser[] | AuthUser | undefined;
-  student_knowledge_state:
-    | StudentKnowledgeState[]
-    | StudentKnowledgeState
-    | null;
-}
-
-/**
- * AI tutor interaction record
- */
-interface AITutorInteraction {
-  id: string;
-  student_id: string;
-  topic_id: string;
-  message_content: string;
-  message_role: "user" | "assistant";
-  language: string;
-  input_mode: string;
-  tokens_used: number;
-  created_at: string;
-  student?: AuthUser;
-}
 
 /**
  * Helper: Verify class ownership for analytics
@@ -83,7 +25,7 @@ async function verifyClassOwnershipForAnalytics(
     .eq("id", classId)
     .maybeSingle();
 
-  if (classDataError || !classData || classData.teacher_id !== userId) {
+  if (classDataError || classData?.teacher_id !== userId) {
     authLogger.warn(
       "[getClassAnalytics] Access denied: Class no longer owned by user",
       {
@@ -98,65 +40,78 @@ async function verifyClassOwnershipForAnalytics(
 }
 
 /**
- * Helper: Calculate active users this week
+ * Helper: Get enrolled student IDs for a class.
+ * Shared by all analytics helpers.
  */
-async function calculateActiveUsersThisWeek(
+async function getEnrolledStudentIds(
   supabase: Awaited<ReturnType<typeof createClient>>,
   classId: string,
-  sevenDaysAgo: Date,
 ): Promise<
-  { success: true; count: number } | { success: false; error: string }
+  { success: true; studentIds: string[] } | { success: false; error: string }
 > {
-  const { data: activeSessions, error: activeSessionsError } = await supabase
-    .from("assessment_sessions")
-    .select("user_id")
-    .eq("class_id", classId)
-    .gte("started_at", sevenDaysAgo.toISOString());
+  const { data: enrollmentData, error: enrollmentError } = await supabase
+    .from("enrollments")
+    .select("student_id")
+    .eq("class_id", classId);
 
-  if (activeSessionsError) {
-    return { success: false, error: "Failed to fetch active sessions" };
+  if (enrollmentError) {
+    return { success: false, error: "Failed to fetch enrolled students" };
   }
 
-  const activeThisWeek = new Set(activeSessions?.map((s) => s.user_id) || [])
-    .size;
-  return { success: true, count: activeThisWeek };
+  return { success: true, studentIds: (enrollmentData || []).map((e) => e.student_id) };
 }
 
 /**
- * Helper: Build responses map by session
+ * Type for progress data returned by get_class_student_progress RPC
  */
-function buildResponsesBySessionMap<T extends { session_id: string }>(
-  responses: T[],
-): Map<string, T[]> {
-  const responsesBySession = new Map<string, T[]>();
-  responses.forEach((r) => {
-    if (!responsesBySession.has(r.session_id)) {
-      responsesBySession.set(r.session_id, []);
-    }
-    const sessionResponses = responsesBySession.get(r.session_id);
-    if (sessionResponses) {
-      sessionResponses.push(r);
-    }
-  });
-  return responsesBySession;
+interface ProgressItem {
+  student_id: string;
+  topics_total: number;
+  topics_mastered: number;
+  avg_mastery_score: number;
+  last_activity: string | null;
 }
 
 /**
- * Helper: Calculate average minutes per day
+ * Helper: Calculate active users this week from pre-fetched progress data.
+ * Counts students with last_activity >= sevenDaysAgo.
+ */
+function calculateActiveUsersThisWeek(
+  progressData: ProgressItem[],
+  sevenDaysAgo: Date,
+): number {
+  const cutoff = sevenDaysAgo.toISOString();
+  let activeCount = 0;
+  for (const p of progressData) {
+    if (p.last_activity && p.last_activity >= cutoff) {
+      activeCount++;
+    }
+  }
+  return activeCount;
+}
+
+/**
+ * Helper: Calculate average minutes per day.
+ * Queries assessment_sessions for enrolled students (by user_id, not class_id)
+ * since assessment_sessions.class_id is often NULL.
  */
 async function calculateAverageMinutesPerDay(
   supabase: Awaited<ReturnType<typeof createClient>>,
-  classId: string,
+  studentIds: string[],
   sevenDaysAgo: Date,
 ): Promise<
   { success: true; avgMinutes: number } | { success: false; error: string }
 > {
+  if (studentIds.length === 0) return { success: true, avgMinutes: 0 };
+
+  // Get assessment sessions for enrolled students in the last 7 days
   const { data: userSessions, error: userSessionsError } = await supabase
     .from("assessment_sessions")
-    .select("id, user_id, started_at")
-    .eq("class_id", classId)
+    .select("id, user_id")
+    .in("user_id", studentIds)
     .gte("started_at", sevenDaysAgo.toISOString())
-    .not("submitted_at", "is", null);
+    .not("submitted_at", "is", null)
+    .limit(10000);
 
   if (userSessionsError) {
     return { success: false, error: "Failed to fetch user sessions" };
@@ -176,17 +131,15 @@ async function calculateAverageMinutesPerDay(
     return { success: false, error: "Failed to fetch assessment responses" };
   }
 
-  const responsesBySession = buildResponsesBySessionMap(responses || []);
+  // Sum response times per user
+  const sessionUserMap = new Map(userSessions.map((s) => [s.id, s.user_id]));
   const userTimes = new Map<string, number>();
 
-  for (const session of userSessions) {
-    const sessionResponses = responsesBySession.get(session.id) || [];
-    const totalMs = sessionResponses.reduce(
-      (sum, r) => sum + (r.rt_ms || 0),
-      0,
-    );
-    const currentTime = userTimes.get(session.user_id) || 0;
-    userTimes.set(session.user_id, currentTime + totalMs);
+  for (const r of responses || []) {
+    const userId = sessionUserMap.get(r.session_id);
+    if (userId && r.rt_ms) {
+      userTimes.set(userId, (userTimes.get(userId) || 0) + r.rt_ms);
+    }
   }
 
   const totalMinutes = Array.from(userTimes.values()).reduce(
@@ -203,88 +156,20 @@ async function calculateAverageMinutesPerDay(
 }
 
 /**
- * Helper: Get latest session per user
+ * Helper: Calculate at-risk student count from pre-fetched progress data.
+ * Uses mastery-based criteria: students with avg mastery < 40% who have started learning.
+ * This aligns with the StudentProgressGrid at-risk indicator.
  */
-function getLatestSessionPerUser(
-  sessions: Array<{ id: string; user_id: string }>,
-): Map<string, string> {
-  const latestSessionPerUser = new Map<string, string>();
-  for (const session of sessions) {
-    if (!latestSessionPerUser.has(session.user_id)) {
-      latestSessionPerUser.set(session.user_id, session.id);
-    }
-  }
-  return latestSessionPerUser;
-}
-
-/**
- * Helper: Calculate at-risk student count
- */
-async function calculateAtRiskCount(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  classId: string,
-): Promise<
-  { success: true; count: number } | { success: false; error: string }
-> {
-  const { data: recentSessions, error: recentSessionsError } = await supabase
-    .from("assessment_sessions")
-    .select("id, user_id")
-    .eq("class_id", classId)
-    .not("submitted_at", "is", null)
-    .order("submitted_at", { ascending: false });
-
-  if (recentSessionsError) {
-    return { success: false, error: "Failed to fetch recent sessions" };
-  }
-
-  if (!recentSessions || recentSessions.length === 0) {
-    return { success: true, count: 0 };
-  }
-
-  const latestSessionPerUser = getLatestSessionPerUser(recentSessions);
-  const sessionIds = Array.from(latestSessionPerUser.values());
-
-  if (sessionIds.length === 0) {
-    return { success: true, count: 0 };
-  }
-
-  const { data: allSessionResponses, error: allSessionResponsesError } =
-    await supabase
-      .from("assessment_responses")
-      .select("session_id, rt_ms")
-      .in("session_id", sessionIds);
-
-  if (allSessionResponsesError) {
-    return {
-      success: false,
-      error: "Failed to fetch session responses for at-risk analysis",
-    };
-  }
-
-  const responsesBySession = buildResponsesBySessionMap(
-    (allSessionResponses || []) as Array<{
-      session_id: string;
-      rt_ms: number | null;
-    }>,
-  );
-
+function calculateAtRiskCount(progressData: ProgressItem[]): number {
   let atRiskCount = 0;
-  for (const sessionId of sessionIds) {
-    const sessionResponses = responsesBySession.get(sessionId) || [];
-
-    if (sessionResponses.length > 0) {
-      const rapidCount = sessionResponses.filter(
-        (r) => r.rt_ms && r.rt_ms < RAPID_RESPONSE_THRESHOLD_MS,
-      ).length;
-      const rapidPercentage = (rapidCount / sessionResponses.length) * 100;
-
-      if (rapidPercentage > AT_RISK_RAPID_PERCENTAGE * 100) {
-        atRiskCount++;
-      }
+  for (const progress of progressData) {
+    const avgMastery = progress.avg_mastery_score || 0;
+    const totalTopics = progress.topics_total || 0;
+    if (avgMastery < 40 && totalTopics > 0) {
+      atRiskCount++;
     }
   }
-
-  return { success: true, count: atRiskCount };
+  return atRiskCount;
 }
 
 /**
@@ -321,28 +206,39 @@ export async function getClassAnalytics(classId: string) {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setUTCDate(sevenDaysAgo.getUTCDate() - ANALYTICS_WINDOW_DAYS);
 
-    const [activeResult, avgMinutesResult, atRiskResult] = await Promise.all([
-      calculateActiveUsersThisWeek(supabase, validatedClassId, sevenDaysAgo),
-      calculateAverageMinutesPerDay(supabase, validatedClassId, sevenDaysAgo),
-      calculateAtRiskCount(supabase, validatedClassId),
+    // PERF: Fetch enrolled students once (was called 3x before)
+    const enrolled = await getEnrolledStudentIds(supabase, validatedClassId);
+    if (!enrolled.success) return enrolled;
+    if (enrolled.studentIds.length === 0) {
+      return {
+        success: true,
+        data: { activeThisWeek: 0, avgMinutesPerDay: 0, atRiskCount: 0 },
+      };
+    }
+
+    // PERF: Fetch progress once (was called 2x before) + avg minutes in parallel
+    const [progressResult, avgMinutesResult] = await Promise.all([
+      supabase.rpc("get_class_student_progress", {
+        p_student_ids: enrolled.studentIds,
+      }),
+      calculateAverageMinutesPerDay(supabase, enrolled.studentIds, sevenDaysAgo),
     ]);
 
-    if (!activeResult.success) {
-      return activeResult;
+    if (progressResult.error) {
+      return { success: false, error: "Failed to fetch student progress" };
     }
     if (!avgMinutesResult.success) {
       return avgMinutesResult;
     }
-    if (!atRiskResult.success) {
-      return atRiskResult;
-    }
+
+    const progressData = (progressResult.data || []) as ProgressItem[];
 
     return {
       success: true,
       data: {
-        activeThisWeek: activeResult.count,
+        activeThisWeek: calculateActiveUsersThisWeek(progressData, sevenDaysAgo),
         avgMinutesPerDay: Math.round(avgMinutesResult.avgMinutes * 10) / 10,
-        atRiskCount: atRiskResult.count,
+        atRiskCount: calculateAtRiskCount(progressData),
       },
     };
   } catch (error) {
@@ -372,7 +268,7 @@ export async function exportStudentProgress(classId: string) {
 
     const supabase = await createClient();
 
-    // Verify teacher has access to this class
+    // Verify class ownership
     const { data: classData, error: classError } = await supabase
       .from("classes")
       .select("teacher_id")
@@ -387,65 +283,75 @@ export async function exportStudentProgress(classId: string) {
       return { success: false, error: "Unauthorized" };
     }
 
-    // Get enrolled students with progress
-    const { data: students, error: studentError } = await supabase
+    // Get enrolled students with profile info
+    const { data: enrollmentData, error: enrollmentError } = await supabase
       .from("enrollments")
-      .select(
-        `
-        student_id,
-        student:auth_users_view(id, raw_user_meta_data),
-        student_knowledge_state!inner(
-          topics_mastered,
-          total_topics,
-          average_mastery,
-          last_attempt_at
-        )
-      `,
-      )
+      .select("student_id, student_profiles!inner(name, roll_number)")
       .eq("class_id", classId);
 
-    if (studentError) {
+    if (enrollmentError) {
       return { success: false, error: "Failed to fetch student data" };
     }
 
-    // Helper: Normalize student data (handles array or single object)
-    function normalizeStudent(student: unknown): AuthUser | undefined {
-      if (Array.isArray(student)) {
-        return student[0] as AuthUser | undefined;
-      }
-      return (student as AuthUser | undefined) || undefined;
+    const studentIds = (enrollmentData || []).map((e) => e.student_id);
+
+    if (studentIds.length === 0) {
+      return { success: true, data: [] };
     }
 
-    // Helper: Normalize knowledge state (handles array or single object)
-    function normalizeKnowledgeState(state: unknown): StudentKnowledgeState | undefined {
-      if (Array.isArray(state)) {
-        return state[0] as StudentKnowledgeState | undefined;
-      }
-      return (state as StudentKnowledgeState | undefined) || undefined;
+    // Get aggregated progress from existing RPC
+    const { data: progressData, error: progressError } = await supabase.rpc(
+      "get_class_student_progress",
+      { p_student_ids: studentIds },
+    );
+
+    if (progressError) {
+      return { success: false, error: "Failed to fetch progress data" };
     }
+
+    // Build lookup maps (reuses module-level ProgressItem interface)
+    const progressMap = new Map<string, ProgressItem>(
+      (progressData || []).map((p: ProgressItem) => [p.student_id, p]),
+    );
+    const profileMap = new Map(
+      (enrollmentData || []).map((e) => {
+        const rawProfile = e.student_profiles as unknown;
+        const profile = (Array.isArray(rawProfile) ? rawProfile[0] : rawProfile) as { name: string; roll_number?: string } | null;
+        return [e.student_id, profile];
+      }),
+    );
 
     // Format for export
-    const exportData = (students || []).map((enrollment: StudentEnrollment) => {
-      const profile = normalizeStudent(enrollment.student);
-      const state = normalizeKnowledgeState(enrollment.student_knowledge_state);
+    const exportData = studentIds.map((studentId: string) => {
+      const profile = profileMap.get(studentId);
+      const state = progressMap.get(studentId);
 
       // Sanitize user-generated content to prevent formula injection and XSS
       const sanitizeName = (name: unknown): string => {
-        const str = String(name || "Unknown");
+        // S6551/S3358: Handle non-string types properly to avoid [object Object]
+        let str: string;
+        if (typeof name === "string") {
+          str = name;
+        } else if (typeof name === "number") {
+          str = String(name);
+        } else {
+          str = "Unknown";
+        }
         // SECURITY FIX: Comprehensive CSV formula injection prevention
         // Protect against all Excel/CSV injection vectors
-        const dangerousChars = ["=", "+", "-", "@", "\t", "\r", "\n"];
+        // S7776: Use Set for O(1) lookup instead of Array.includes()
+        const dangerousChars = new Set(["=", "+", "-", "@", "\t", "\r", "\n"]);
         const firstChar = str[0] || "";
 
         // Check for formula injection attempts
-        if (dangerousChars.includes(firstChar)) {
+        if (dangerousChars.has(firstChar)) {
           // Prefix with single quote to neutralize formula
           return "'" + str.replaceAll('"', '""');
         }
 
         // Check for hidden formula injection (e.g., "  =cmd")
         const trimmedStr = str.trim();
-        if (trimmedStr.length > 0 && dangerousChars.includes(trimmedStr[0])) {
+        if (trimmedStr.length > 0 && dangerousChars.has(trimmedStr[0])) {
           return "'" + str.replaceAll('"', '""');
         }
 
@@ -454,13 +360,13 @@ export async function exportStudentProgress(classId: string) {
       };
 
       return {
-        name: sanitizeName(profile?.raw_user_meta_data?.full_name),
-        email: profile?.id || "",
+        name: sanitizeName(profile?.name),
+        roll_number: profile?.roll_number || "",
         progress_percentage: state
-          ? Math.round((state.topics_mastered / state.total_topics) * 100)
+          ? Math.round((state.topics_mastered / (state.topics_total || 1)) * 100)
           : 0,
-        mastery_score: state?.average_mastery || 0,
-        last_active: state?.last_attempt_at || "Never",
+        mastery_score: state?.avg_mastery_score || 0,
+        last_active: state?.last_activity || "Never",
       };
     });
 
@@ -493,60 +399,67 @@ export async function exportAIInteractions(
 
     const supabase = await createClient();
 
-    // Verify teacher has access to this class
-    const { data: classData, error: classError } = await supabase
-      .from("classes")
-      .select("teacher_id")
-      .eq("id", classId)
-      .maybeSingle();
+    // PERFORMANCE: Run class verification and enrollments query in parallel
+    const [classResult, enrollmentsResult] = await Promise.all([
+      supabase
+        .from("classes")
+        .select("teacher_id")
+        .eq("id", classId)
+        .maybeSingle(),
+      supabase
+        .from("enrollments")
+        .select("student_id")
+        .eq("class_id", classId),
+    ]);
 
-    if (classError || !classData) {
+    // Verify teacher has access to this class
+    if (classResult.error || !classResult.data) {
       return { success: false, error: "Class not found" };
     }
 
-    if (classData.teacher_id !== auth.user.id) {
+    if (classResult.data.teacher_id !== auth.user.id) {
       return { success: false, error: "Unauthorized" };
     }
 
-    // Get student IDs for this class
-    const { data: enrollments, error: enrollError } = await supabase
-      .from("enrollments")
-      .select("student_id")
-      .eq("class_id", classId);
-
-    if (enrollError) {
+    // Check enrollments query result
+    if (enrollmentsResult.error) {
       return { success: false, error: "Failed to fetch enrollments" };
     }
 
-    const studentIds = (enrollments || []).map((e) => e.student_id);
+    const studentIds = (enrollmentsResult.data || []).map((e) => e.student_id);
 
     if (studentIds.length === 0) {
       return { success: true, data: [] };
     }
 
-    // Get AI interactions for enrolled students
-    const { data: interactions, error: interactionError } = await supabase
-      .from("ai_tutor_interactions")
-      .select(
-        `
-        *,
-        student:student_id(raw_user_meta_data)
-      `,
-      )
-      .in("student_id", studentIds)
-      .order("created_at", { ascending: false })
-      .limit(limit);
+    // Get AI interactions and student names in parallel
+    const [interactionsResult, profilesResult] = await Promise.all([
+      supabase
+        .from("ai_tutor_interactions")
+        .select("id, student_id, topic_id, message_content, message_role, language, input_mode, tokens_used, created_at")
+        .in("student_id", studentIds)
+        .order("created_at", { ascending: false })
+        .limit(limit),
+      supabase
+        .from("student_profiles")
+        .select("user_id, name")
+        .in("user_id", studentIds),
+    ]);
 
-    if (interactionError) {
+    if (interactionsResult.error) {
       return { success: false, error: "Failed to fetch interactions" };
     }
 
+    // Build name lookup map from student_profiles
+    const nameMap = new Map(
+      (profilesResult.data || []).map((p) => [p.user_id, p.name]),
+    );
+
     // Format for export
-    const exportData = (interactions || []).map(
-      (interaction: AITutorInteraction) => {
-        const student = interaction.student as AuthUser | undefined;
+    const exportData = (interactionsResult.data || []).map(
+      (interaction) => {
         return {
-          student_name: student?.raw_user_meta_data?.full_name || "Unknown",
+          student_name: nameMap.get(interaction.student_id) || "Unknown",
           topic_id: interaction.topic_id || "",
           message: interaction.message_content || "",
           role: interaction.message_role || "user",

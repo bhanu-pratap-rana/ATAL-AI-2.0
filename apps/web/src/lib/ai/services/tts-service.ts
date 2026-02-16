@@ -1,20 +1,22 @@
 /**
- * TTS Service - AI4Bharat Indic-Parler-TTS
+ * TTS Service - Multi-Provider Text-to-Speech
  *
- * FREE text-to-speech with native Assamese support!
- * Primary: HuggingFace Inference API
- * Fallback: Self-hosted on Render.com
+ * Priority order:
+ * 1. Google Cloud TTS (high quality, 1M chars/month free)
+ * 2. Browser Speech Synthesis (fallback, always free)
  *
  * Supported Languages:
- * - English (en-IN)
- * - Hindi (hi-IN)
- * - Assamese (as-IN) - Critical for ATAL AI
+ * - English (en) - Excellent support on all providers
+ * - Hindi (hi) - Google Cloud Neural2 voices, browser TTS in Chrome
+ * - Assamese (as) - Falls back to Bengali (similar script/pronunciation)
  *
- * Model: ai4bharat/indic-parler-tts
- * Features: Emotion control, multiple voices
+ * Setup for Google Cloud TTS:
+ * 1. Enable Cloud Text-to-Speech API in Google Cloud Console
+ * 2. Set GOOGLE_CLOUD_TTS_API_KEY or GOOGLE_APPLICATION_CREDENTIALS
  */
 
 import { authLogger } from "@/lib/auth-logger";
+import { googleCloudTTS, type GoogleTTSOptions } from "./google-cloud-tts";
 
 /**
  * Supported TTS languages with Assamese priority
@@ -39,43 +41,60 @@ export interface TTSOptions {
 }
 
 /**
+ * NOTE: HuggingFace Inference API discontinued TTS support in 2025 (410 Gone).
+ * These URLs are kept for reference but no longer work.
+ * The service now returns an error to trigger client-side browser TTS fallback.
+ */
+const TTS_MODEL_URLS: Record<TTSLanguage, string> = {
+  en: "disabled",
+  hi: "disabled",
+  as: "disabled",
+};
+
+/**
  * Language codes mapping for TTS
  */
 const LANGUAGE_VOICE_MAP: Record<TTSLanguage, VoiceConfig> = {
   en: {
-    voice: "en-IN-female",
+    voice: "default",
     emotion: "friendly",
     speed: 1,
   },
   hi: {
-    voice: "hi-IN-female",
+    voice: "default",
     emotion: "friendly",
     speed: 1,
   },
   as: {
-    voice: "as-IN-female",
+    voice: "default",
     emotion: "friendly",
-    speed: 0.95, // Slightly slower for clarity
+    speed: 0.95,
   },
 };
 
 /**
- * AI4Bharat TTS Service
- * Uses HuggingFace Inference API with Render.com fallback
+ * Multi-Model TTS Service
+ * Uses HuggingFace Inference API with language-specific models
  */
 export class TTSService {
-  private readonly huggingFaceApiUrl =
-    process.env.HUGGINGFACE_TTS_URL ||
-    "https://api-inference.huggingface.co/models/ai4bharat/indic-parler-tts";
   private readonly renderFallbackUrl = process.env.TTS_FALLBACK_URL || "";
+
+  /**
+   * Get the HuggingFace model URL for a language
+   */
+  private getModelUrl(language: TTSLanguage): string {
+    return TTS_MODEL_URLS[language] || TTS_MODEL_URLS.en;
+  }
 
   /**
    * Synthesize speech from text
    *
+   * Uses Google Cloud TTS if configured, otherwise signals browser TTS fallback.
+   *
    * @param text - Text to convert to speech
    * @param language - Target language (en, hi, as)
    * @param options - Optional TTS settings
-   * @returns Audio buffer (WAV format)
+   * @returns Audio as ArrayBuffer (WAV format) or throws for browser fallback
    */
   async synthesize(
     text: string,
@@ -86,60 +105,64 @@ export class TTSService {
       throw new Error("Text is required for TTS synthesis");
     }
 
-    const voiceConfig = this.getVoiceConfig(language, options);
-    authLogger.info("[TTS] Starting synthesis", {
+    // Try Google Cloud TTS first (high quality)
+    if (googleCloudTTS.isConfigured()) {
+      try {
+        authLogger.info("[TTS] Using Google Cloud TTS", {
+          language,
+          textLength: text.length,
+        });
+
+        const googleOptions: GoogleTTSOptions = {
+          speakingRate: options.speed || 1.0,
+          useWaveNet: true, // Use high-quality voices
+        };
+
+        // Map emotion to speaking rate/pitch adjustments
+        if (options.emotion === "friendly") {
+          googleOptions.pitch = 1.0; // Slightly higher pitch
+          googleOptions.speakingRate = 1.05;
+        } else if (options.emotion === "encouraging") {
+          googleOptions.pitch = 2.0;
+          googleOptions.speakingRate = 1.1;
+        } else if (options.emotion === "calm") {
+          googleOptions.pitch = -1.0; // Slightly lower pitch
+          googleOptions.speakingRate = 0.95;
+        }
+
+        return await googleCloudTTS.synthesize(text, language, googleOptions);
+      } catch (error) {
+        authLogger.warn("[TTS] Google Cloud TTS failed, falling back to browser TTS", {
+          error: error instanceof Error ? error.message : String(error),
+          language,
+        });
+
+        // If it's a quota error, still try browser fallback
+        if (error instanceof Error && error.message.includes("quota")) {
+          throw new Error("USE_BROWSER_TTS: Google Cloud TTS quota exceeded. Please use browser Speech Synthesis.");
+        }
+
+        // For other errors, also fall back to browser TTS
+        throw new Error("USE_BROWSER_TTS: Server TTS failed. Please use browser Speech Synthesis.");
+      }
+    }
+
+    // No server TTS configured, signal browser fallback
+    authLogger.info("[TTS] No server TTS configured, using browser TTS", {
       language,
       textLength: text.length,
-      voiceConfig,
     });
 
-    try {
-      // Primary: HuggingFace Inference API
-      const result = await this.callHuggingFace(text, voiceConfig);
-      authLogger.info("[TTS] Successfully synthesized via HuggingFace", {
-        language,
-        textLength: text.length,
-      });
-      return result;
-    } catch (error) {
-      authLogger.warn("[TTS] HuggingFace failed, trying fallback", {
-        error: error instanceof Error ? error.message : String(error),
-      });
-
-      // Fallback: Self-hosted on Render.com
-      if (this.renderFallbackUrl) {
-        try {
-          const result = await this.callRenderFallback(text, voiceConfig);
-          authLogger.info(
-            "[TTS] Successfully synthesized via Render fallback",
-            { language, textLength: text.length },
-          );
-          return result;
-        } catch (fallbackError) {
-          authLogger.error(
-            "[TTS] Fallback failed, no alternative available",
-            fallbackError instanceof Error
-              ? { message: fallbackError.message }
-              : { error: String(fallbackError) },
-          );
-          throw fallbackError;
-        }
-      }
-
-      authLogger.error("[TTS] No TTS provider available", {
-        language,
-        renderFallbackUrl: this.renderFallbackUrl,
-      });
-      throw new Error("TTS synthesis failed: No fallback available");
-    }
+    throw new Error("USE_BROWSER_TTS: Server-side TTS is not configured. Please use browser Speech Synthesis.");
   }
 
   /**
-   * Call HuggingFace Inference API
+   * Call HuggingFace Inference API with language-specific model
+   * Uses MMS-TTS for all languages (Meta's Massively Multilingual Speech)
    */
   private async callHuggingFace(
     text: string,
-    config: VoiceConfig,
+    language: TTSLanguage,
   ): Promise<ArrayBuffer> {
     const apiKey = process.env.HUGGINGFACE_API_KEY;
 
@@ -151,13 +174,16 @@ export class TTSService {
       throw new Error("HUGGINGFACE_API_KEY is required for TTS");
     }
 
+    const modelUrl = this.getModelUrl(language);
+
     authLogger.debug("[TTS/HF] Calling HuggingFace API", {
-      url: this.huggingFaceApiUrl,
-      voice: config.voice,
+      url: modelUrl,
+      language,
       textLength: text.length,
     });
 
-    const response = await fetch(this.huggingFaceApiUrl, {
+    // MMS-TTS uses simple input format: { inputs: "text to speak" }
+    const response = await fetch(modelUrl, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -165,11 +191,6 @@ export class TTSService {
       },
       body: JSON.stringify({
         inputs: text,
-        parameters: {
-          voice: config.voice,
-          emotion: config.emotion || "neutral",
-          speed: config.speed || 1,
-        },
       }),
     });
 
@@ -217,7 +238,7 @@ export class TTSService {
         text,
         voice: config.voice,
         emotion: config.emotion || "neutral",
-        speed: config.speed || 1.0,
+        speed: config.speed || 1,
       }),
     });
 
@@ -257,14 +278,14 @@ export class TTSService {
     }
 
     authLogger.info("[TTS] Checking HuggingFace API availability", {
-      url: this.huggingFaceApiUrl,
+      models: Object.values(TTS_MODEL_URLS),
     });
 
     try {
-      // Test with short text
-      await this.callHuggingFace("test", LANGUAGE_VOICE_MAP.en);
+      // Test with short English text
+      await this.callHuggingFace("test", "en");
       authLogger.info(
-        "[TTS] HuggingFace API is AVAILABLE and responding",
+        "[TTS] HuggingFace MMS-TTS API is AVAILABLE and responding",
         {},
       );
       return { available: true, provider: "huggingface" };
@@ -310,34 +331,38 @@ export class TTSService {
   }
 
   /**
-   * Check if TTS service is available and determine active provider
-   * Checks: HuggingFace → Render fallback → Browser fallback
-   * REFACTORED: Reduced complexity from 16 to ~7 by extracting helper functions
+   * Check if TTS service is available
+   * Checks Google Cloud TTS first, falls back to browser TTS.
    */
   async isAvailable(): Promise<{
     available: boolean;
-    provider: "huggingface" | "render" | "browser" | "none";
+    provider: "google-cloud" | "huggingface" | "render" | "browser" | "none";
     error?: string;
   }> {
-    // Check HuggingFace
-    const huggingFaceResult = await this.checkHuggingFaceAvailability();
-    if (huggingFaceResult) {
-      return huggingFaceResult;
+    // Check Google Cloud TTS first
+    if (googleCloudTTS.isConfigured()) {
+      try {
+        const status = await googleCloudTTS.isAvailable();
+        if (status.available) {
+          authLogger.info("[TTS] Google Cloud TTS is available", {});
+          return {
+            available: true,
+            provider: "google-cloud",
+          };
+        }
+      } catch (error) {
+        authLogger.warn("[TTS] Google Cloud TTS check failed", {
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
     }
 
-    // Check Render fallback
-    const renderResult = await this.checkRenderFallbackAvailability();
-    if (renderResult) {
-      return renderResult;
-    }
-
-    // Browser fallback is always available (handled client-side)
-    authLogger.info("[TTS] Falling back to browser Speech Synthesis", {});
+    // Fall back to browser TTS (always available client-side)
+    authLogger.info("[TTS] Using browser Speech Synthesis as fallback", {});
     return {
       available: true,
       provider: "browser",
-      error:
-        "Using browser Speech Synthesis fallback (no API providers available)",
+      error: "Server TTS not configured, using browser Speech Synthesis",
     };
   }
 

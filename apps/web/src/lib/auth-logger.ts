@@ -13,30 +13,10 @@
  */
 
 import { maskSensitiveData, type LogContext } from "./masking-utils";
+// DUP-8 FIX: Use shared Sentry types
+import { getSentry } from "./types/sentry";
 
 const isDevelopment = process.env.NODE_ENV === "development";
-
-/**
- * Sentry type definition for window object
- */
-interface WindowWithSentry extends Window {
-  Sentry?: {
-    captureMessage: (message: string, level: string) => void;
-    captureException: (
-      error: Error,
-      options?: { level?: string; tags?: Record<string, string> },
-    ) => void;
-  };
-}
-
-/**
- * Get Sentry instance from window (client-side only)
- */
-function getSentry(): WindowWithSentry["Sentry"] | undefined {
-  if (typeof globalThis === "undefined") return undefined;
-  const windowWithSentry = (globalThis as unknown) as WindowWithSentry;
-  return windowWithSentry.Sentry;
-}
 
 /**
  * Helper: Log warning with Error object
@@ -127,7 +107,7 @@ export const authLogger = {
    * @param error - The error object (will be masked)
    * @param context - Optional additional context (will be masked)
    */
-  error: (message: string, error?: Error | unknown, context?: LogContext) => {
+  error: (message: string, error?: unknown, context?: LogContext) => {
     if (isDevelopment) {
       const maskedContext = context ? maskSensitiveData(context) : undefined;
       console.error(`[AUTH:ERROR] ${message}`, error, maskedContext);
@@ -149,11 +129,13 @@ export const authLogger = {
    * @param message - The message to log
    * @param error - The error object (will be masked)
    */
-  critical: (message: string, error?: Error | unknown) => {
-    // Always log critical errors
-    console.error(`[AUTH:CRITICAL] ${message}`, error);
+  critical: (message: string, error?: unknown) => {
+    // Log to console only in development to avoid exposing errors in production
+    if (isDevelopment) {
+      console.error(`[AUTH:CRITICAL] ${message}`, error);
+    }
 
-    // Always send to production error tracking service
+    // Always send to production error tracking service (Sentry handles masking)
     const sentry = getSentry();
     if (sentry) {
       sentry.captureException(

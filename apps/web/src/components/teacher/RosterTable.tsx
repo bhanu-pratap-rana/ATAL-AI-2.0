@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { clientLogger } from "@/lib/client-logger";
 import {
   Table,
   TableBody,
@@ -13,6 +14,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { removeStudent } from "@/app/actions/teacher";
+
+/** Shared date format options — reused across render cycles */
+const DATE_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+};
+
+function formatEnrollmentDate(dateString: string): string {
+  return new Date(dateString).toLocaleDateString("en-US", DATE_FORMAT_OPTIONS);
+}
 
 interface StudentInfo {
   readonly user_id: string;
@@ -50,10 +62,13 @@ function getStudentInitial(enrollment: Enrollment): string {
   return "S";
 }
 
-// Helper to get remove button text based on state
-function getRemoveButtonText(isRemoving: boolean): string {
-  return isRemoving ? "Removing..." : "Remove";
-}
+/**
+ * Remove button text states - S2301 compliance (no boolean params)
+ */
+const REMOVE_BUTTON_TEXT = {
+  active: "Removing...",
+  idle: "Remove",
+} as const;
 
 export function RosterTable({ enrollments, classId }: RosterTableProps) {
   const router = useRouter();
@@ -75,7 +90,11 @@ export function RosterTable({ enrollments, classId }: RosterTableProps) {
       } else {
         toast.error(result.error || "Failed to remove student");
       }
-    } catch {
+    } catch (error) {
+      clientLogger.error(
+        "[RosterTable] Failed to remove student",
+        error instanceof Error ? error : { error: String(error) },
+      );
       toast.error("An unexpected error occurred");
     } finally {
       setRemovingId(null);
@@ -110,13 +129,7 @@ export function RosterTable({ enrollments, classId }: RosterTableProps) {
         </TableHeader>
         <TableBody>
           {enrollments.map((enrollment) => {
-            const enrolledDate = new Date(
-              enrollment.created_at,
-            ).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            });
+            const enrolledDate = formatEnrollmentDate(enrollment.created_at);
             const displayName = getStudentDisplayName(enrollment);
             const initial = getStudentInitial(enrollment);
 
@@ -171,9 +184,7 @@ export function RosterTable({ enrollments, classId }: RosterTableProps) {
                     className="h-9 px-3"
                     aria-label={`Remove ${displayName} from class`}
                   >
-                    {getRemoveButtonText(
-                      removingId === enrollment.student_id,
-                    )}
+                    {removingId === enrollment.student_id ? REMOVE_BUTTON_TEXT.active : REMOVE_BUTTON_TEXT.idle}
                   </Button>
                 </TableCell>
               </TableRow>

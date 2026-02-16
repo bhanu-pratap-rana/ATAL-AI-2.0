@@ -62,6 +62,7 @@ export async function GET() {
     const settings = await response.json();
 
     // Return only non-sensitive settings
+    // Auth config rarely changes - cache for 24 hours
     return NextResponse.json({
       status: "success",
       settings: {
@@ -75,11 +76,16 @@ export async function GET() {
       },
       // Don't expose supabaseUrl in response - already public in client config
       hasAnonKey: true,
+    }, {
+      headers: {
+        "Cache-Control": "private, max-age=86400, stale-while-revalidate=3600",
+      },
     });
   } catch (error) {
+    // Log detailed error server-side only; stack only in development
     authLogger.error("[checkAuthConfig] Error checking auth configuration", {
       error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
+      stack: process.env.NODE_ENV === "development" && error instanceof Error ? error.stack : undefined,
     });
     return NextResponse.json(
       { error: "An unexpected error occurred" },

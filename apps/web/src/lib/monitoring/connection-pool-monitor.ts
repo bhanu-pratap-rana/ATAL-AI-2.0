@@ -36,11 +36,6 @@ export class ConnectionPoolMonitor {
   private lastCheckTime = 0;
   private readonly minCheckInterval = 5000; // Check at most every 5 seconds
 
-  constructor() {
-    // Lazy initialization - don't create Supabase client until needed
-    // This prevents errors during pre-rendering when env vars might not be available
-  }
-
   /**
    * Initialize Supabase client lazily
    */
@@ -69,14 +64,10 @@ export class ConnectionPoolMonitor {
 
       this.lastCheckTime = now;
 
-      // Try to get connection stats via RPC if function exists
+      // Get connection stats via typed RPC
       try {
         const supabase = this.getSupabaseClient();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- RPC method not in type definitions
-        const { data, error } = await (supabase as any).rpc(
-          "get_connection_stats",
-          {},
-        );
+        const { data, error } = await supabase.rpc("get_connection_stats");
 
         if (error) {
           authLogger.debug("Connection stats RPC not available", {
@@ -85,20 +76,16 @@ export class ConnectionPoolMonitor {
           return null;
         }
 
-        if (
-          data &&
-          Array.isArray(data) &&
-          data.length > 0 &&
-          typeof data[0] === "object"
-        ) {
-          const stats = data[0] as {
-            active_connections?: number;
-            max_connections?: number;
-            utilization_percent?: number;
-          };
+        if (data && data.length > 0) {
+          const stats = data[0];
+          // BUG-023 FIX: Validate max_connections - null/0 indicates a data issue
+          if (!stats.max_connections) {
+            authLogger.warn("[ConnectionPool] max_connections is null/0 - stats unreliable");
+            return null;
+          }
           return {
             activeConnections: stats.active_connections ?? 0,
-            maxConnections: stats.max_connections ?? 0,
+            maxConnections: stats.max_connections,
             utilizationPercent: stats.utilization_percent ?? 0,
             timestamp: new Date(),
           };
@@ -179,7 +166,7 @@ export class ConnectionPoolMonitor {
    */
   getRecentAlerts(limit: number = 10): PoolAlert[] {
     return this.alerts
-      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+      .toSorted((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
       .slice(0, limit);
   }
 

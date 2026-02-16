@@ -12,12 +12,20 @@ interface PasswordInputProps {
   readonly onChange: (value: string) => void;
   readonly disabled?: boolean;
   readonly helpText?: string;
+  /** Error message - displayed in red with role="alert" */
+  readonly error?: string;
   readonly ariaLabelShow?: string;
   readonly ariaLabelHide?: string;
   readonly "aria-describedby"?: string;
   readonly className?: string;
   readonly showPassword?: boolean;
   readonly onShowPasswordChange?: (show: boolean) => void;
+  /** Auto-focus the input on mount */
+  readonly autoFocus?: boolean;
+  /** Mark input as required */
+  readonly required?: boolean;
+  /** Show/hide the password toggle button */
+  readonly showToggle?: boolean;
 }
 
 /**
@@ -25,25 +33,29 @@ interface PasswordInputProps {
  *
  * Features:
  * - Eye/EyeOff icon toggle to show/hide password
- * - Optional label and help text
- * - ARIA accessibility attributes
+ * - Optional label, help text, and error display
+ * - ARIA accessibility attributes with role="alert" for errors
  * - Consistent styling across forms
  * - Flexible state management (internal or external)
  */
 export function PasswordInput({
   id,
-  label,
-  placeholder = "Enter password",
+  label = "Password",
+  placeholder = "••••••••",
   value,
   onChange,
   disabled = false,
   helpText,
+  error,
   ariaLabelShow = "Show password",
   ariaLabelHide = "Hide password",
   "aria-describedby": ariaDescribedBy,
   className = "",
   showPassword: externalShowPassword,
   onShowPasswordChange: externalOnShowPasswordChange,
+  autoFocus = false,
+  required = true,
+  showToggle = true,
 }: PasswordInputProps) {
   // Use internal state if external state not provided
   const [internalShowPassword, setInternalShowPassword] = useState(false);
@@ -75,25 +87,35 @@ export function PasswordInput({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
-          aria-describedby={ariaDescribedBy}
+          autoFocus={autoFocus}
+          required={required}
+          aria-label={label}
+          aria-describedby={ariaDescribedBy || (error ? `${id}-error` : undefined)}
           className={`focus:ring-primary focus:border-primary pr-10 ${className}`}
         />
-        <button
-          type="button"
-          onClick={() => handleShowPasswordChange(!showPassword)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text disabled:opacity-50"
-          disabled={disabled}
-          aria-label={showPassword ? ariaLabelHide : ariaLabelShow}
-        >
-          {showPassword ? (
-            <EyeOff className="w-4 h-4" />
-          ) : (
-            <Eye className="w-4 h-4" />
-          )}
-        </button>
+        {showToggle && (
+          <button
+            type="button"
+            onClick={() => handleShowPasswordChange(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text disabled:opacity-50"
+            disabled={disabled}
+            aria-label={showPassword ? ariaLabelHide : ariaLabelShow}
+          >
+            {showPassword ? (
+              <EyeOff className="w-4 h-4" />
+            ) : (
+              <Eye className="w-4 h-4" />
+            )}
+          </button>
+        )}
       </div>
 
-      {helpText && (
+      {error && (
+        <p id={`${id}-error`} className="text-sm text-error" role="alert">
+          {error}
+        </p>
+      )}
+      {!error && helpText && (
         <p id={ariaDescribedBy} className="text-xs text-text-secondary">
           {helpText}
         </p>

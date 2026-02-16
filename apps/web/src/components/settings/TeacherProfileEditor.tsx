@@ -9,6 +9,7 @@ import {
   sanitizeProfilePhone,
 } from "@/lib/validation-utils";
 import { PROFILE_TIMING } from "@/lib/constants/ui-timings";
+import { clientLogger } from "@/lib/client-logger";
 import { Pencil, Check, X, AlertTriangle } from "lucide-react";
 
 /**
@@ -74,7 +75,7 @@ export function TeacherProfileEditor({
     try {
       const result = await updateTeacherProfile({
         name,
-        gender: gender as "male" | "female",
+        gender: gender, // Type narrowed by validation check above
         phone: phone || undefined,
         subject: subject || undefined,
         village: village || undefined,
@@ -87,7 +88,11 @@ export function TeacherProfileEditor({
       } else {
         setError(result.error || "Failed to save profile");
       }
-    } catch {
+    } catch (error) {
+      clientLogger.error(
+        "[TeacherProfileEditor] Failed to save profile",
+        error instanceof Error ? error : { error: String(error) },
+      );
       setError("An unexpected error occurred");
     } finally {
       setSaving(false);
@@ -277,7 +282,7 @@ export function TeacherProfileEditor({
                 >
                   Enter 10-digit Indian mobile number
                 </p>
-                {phone?.length && phone.length > 0 && phone.length < 10 && (
+                {Boolean((phone?.length ?? 0) > 0 && (phone?.length ?? 0) < 10) && (
                   <p className="text-xs text-warning">
                     {10 - phone.length} more digits needed
                   </p>

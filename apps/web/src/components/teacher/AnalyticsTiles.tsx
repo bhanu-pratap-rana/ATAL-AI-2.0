@@ -45,7 +45,7 @@ function getAtRiskStyles(atRiskCount: number): AtRiskStyles {
       : "text-text-primary",
     textClass: hasAtRiskStudents ? "text-warning" : "text-text-secondary",
     statusMessage: hasAtRiskStudents
-      ? "with >30% rapid guessing"
+      ? "with mastery below 40%"
       : "All students engaged",
   };
 }
@@ -75,8 +75,8 @@ export function AnalyticsTiles({
               {activeThisWeek}
             </div>
             <p className="text-sm text-success/80">
-              {activeThisWeek === 1 ? "student" : "students"} completed
-              assessments
+              {activeThisWeek === 1 ? "student" : "students"} active this
+              week
             </p>
           </div>
         </CardContent>

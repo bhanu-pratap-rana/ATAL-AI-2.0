@@ -36,7 +36,10 @@ interface TeacherItem {
 interface StudentItem {
   readonly id: string;
   readonly email: string;
+  readonly name: string;
   readonly phone: string | null;
+  readonly className: string | null;
+  readonly schoolName: string | null;
   readonly createdAt: string;
   readonly lastSignIn: string | null;
 }
@@ -104,10 +107,25 @@ export function ListItemCard({ item, modalType }: ListItemCardProps) {
 
   const renderStudentItem = (student: StudentItem) => (
     <>
-      <div>
-        <h4 className="font-medium text-text-primary">{student.email}</h4>
-        {student.phone && (
-          <p className="text-sm text-text-secondary">{student.phone}</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h4 className="font-medium text-text-primary">{student.name}</h4>
+          {student.email && (
+            <p className="text-sm text-text-secondary">{student.email}</p>
+          )}
+          {student.phone && (
+            <p className="text-sm text-text-secondary">{student.phone}</p>
+          )}
+        </div>
+        {(student.schoolName || student.className) && (
+          <div className="text-right">
+            {student.schoolName && (
+              <p className="text-sm text-text-primary">{student.schoolName}</p>
+            )}
+            {student.className && (
+              <p className="text-xs text-text-tertiary">{student.className}</p>
+            )}
+          </div>
         )}
       </div>
       <p className="text-xs text-text-tertiary mt-2">

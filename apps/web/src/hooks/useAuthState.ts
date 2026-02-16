@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * Custom hook for managing authentication state
  * Consolidates 64+ useState hooks into a single state machine pattern
@@ -16,178 +18,180 @@ export type AuthStep =
 export type SignInTab = "email" | "phone" | "username";
 export type SignUpTab = "email" | "phone" | "guest" | "username";
 export type PhoneOtpStep = "phone" | "verify";
+export type ForgotPasswordStep = "email" | "otp" | "reset";
+export type Gender = "male" | "female" | "";
 
 export interface AuthState {
   // Main navigation
-  mainStep: AuthStep;
-  signinTab: SignInTab;
-  signupTab: SignUpTab;
+  readonly mainStep: AuthStep;
+  readonly signinTab: SignInTab;
+  readonly signupTab: SignUpTab;
 
   // Sign In - Email
-  signinEmailAddress: string;
-  signinEmailPassword: string;
-  signinEmailError: string | null;
+  readonly signinEmailAddress: string;
+  readonly signinEmailPassword: string;
+  readonly signinEmailError: string | null;
 
   // Sign In - Phone
-  signinPhoneNumber: string;
-  signinPhonePassword: string;
-  signinPhoneError: string | null;
+  readonly signinPhoneNumber: string;
+  readonly signinPhonePassword: string;
+  readonly signinPhoneError: string | null;
 
   // Sign Up - Email
-  signupEmailAddress: string;
-  signupEmailPassword: string;
-  signupEmailPasswordConfirm: string;
-  signupEmailError: string | null;
-  signupEmailOtpSent: boolean;
+  readonly signupEmailAddress: string;
+  readonly signupEmailPassword: string;
+  readonly signupEmailPasswordConfirm: string;
+  readonly signupEmailError: string | null;
+  readonly signupEmailOtpSent: boolean;
 
   // Sign Up - Email OTP
-  signupEmailOtp: string;
-  signupEmailOtpError: string | null;
+  readonly signupEmailOtp: string;
+  readonly signupEmailOtpError: string | null;
 
   // Sign Up - Phone
-  signupPhoneNumber: string;
-  signupPhoneOtpStep: PhoneOtpStep;
-  signupPhoneOtp: string;
-  signupPhonePassword: string;
-  signupPhonePasswordConfirm: string;
-  signupPhoneOtpError: string | null;
-  signupPhoneError: string | null;
+  readonly signupPhoneNumber: string;
+  readonly signupPhoneOtpStep: PhoneOtpStep;
+  readonly signupPhoneOtp: string;
+  readonly signupPhonePassword: string;
+  readonly signupPhonePasswordConfirm: string;
+  readonly signupPhoneOtpError: string | null;
+  readonly signupPhoneError: string | null;
 
   // Sign Up - Guest
-  guestClassCode: string;
-  guestRollNumber: string;
-  guestPin: string;
-  guestError: string | null;
+  readonly guestClassCode: string;
+  readonly guestRollNumber: string;
+  readonly guestPin: string;
+  readonly guestError: string | null;
 
   // Sign Up - Username
-  signupUsername: string;
-  signupUsernamePassword: string;
-  signupUsernamePasswordConfirm: string;
-  signupUsernameError: string | null;
-  signupUsernameStep: "username" | "profile";
+  readonly signupUsername: string;
+  readonly signupUsernamePassword: string;
+  readonly signupUsernamePasswordConfirm: string;
+  readonly signupUsernameError: string | null;
+  readonly signupUsernameStep: "username" | "profile";
 
   // Sign In - Username
-  signinUsername: string;
-  signinUsernamePassword: string;
-  signinUsernameError: string | null;
+  readonly signinUsername: string;
+  readonly signinUsernamePassword: string;
+  readonly signinUsernameError: string | null;
 
   // Forgot Password
-  forgotPasswordEmail: string;
-  forgotPasswordOtp: string;
-  forgotPasswordNewPassword: string;
-  forgotPasswordNewPasswordConfirm: string;
-  forgotPasswordStep: "email" | "otp" | "reset";
-  forgotPasswordError: string | null;
+  readonly forgotPasswordEmail: string;
+  readonly forgotPasswordOtp: string;
+  readonly forgotPasswordNewPassword: string;
+  readonly forgotPasswordNewPasswordConfirm: string;
+  readonly forgotPasswordStep: ForgotPasswordStep;
+  readonly forgotPasswordError: string | null;
 
   // Student Profile (collected after signup)
-  profileName: string;
-  profileGender: "male" | "female" | "";
-  profileRollNumber: string;
-  profilePhone: string;
-  profileSchoolName: string;
-  profileClassName: string;
-  profileVillage: string;
-  profileError: string | null;
+  readonly profileName: string;
+  readonly profileGender: Gender;
+  readonly profileRollNumber: string;
+  readonly profilePhone: string;
+  readonly profileSchoolName: string;
+  readonly profileClassName: string;
+  readonly profileVillage: string;
+  readonly profileError: string | null;
 
   // Join Class
-  joinClassCode: string;
-  joinClassPin: string;
-  joinClassError: string | null;
+  readonly joinClassCode: string;
+  readonly joinClassPin: string;
+  readonly joinClassError: string | null;
 
   // Global loading state
-  isLoading: boolean;
+  readonly isLoading: boolean;
 }
 
 export interface AuthActions {
   // Main navigation
-  setMainStep: (step: AuthStep) => void;
-  setSigninTab: (tab: SignInTab) => void;
-  setSignupTab: (tab: SignUpTab) => void;
+  readonly setMainStep: (step: AuthStep) => void;
+  readonly setSigninTab: (tab: SignInTab) => void;
+  readonly setSignupTab: (tab: SignUpTab) => void;
 
   // Sign In - Email
-  setSigninEmailAddress: (value: string) => void;
-  setSigninEmailPassword: (value: string) => void;
-  setSigninEmailError: (error: string | null) => void;
-  resetSigninEmail: () => void;
+  readonly setSigninEmailAddress: (value: string) => void;
+  readonly setSigninEmailPassword: (value: string) => void;
+  readonly setSigninEmailError: (error: string | null) => void;
+  readonly resetSigninEmail: () => void;
 
   // Sign In - Phone
-  setSigninPhoneNumber: (value: string) => void;
-  setSigninPhonePassword: (value: string) => void;
-  setSigninPhoneError: (error: string | null) => void;
-  resetSigninPhone: () => void;
+  readonly setSigninPhoneNumber: (value: string) => void;
+  readonly setSigninPhonePassword: (value: string) => void;
+  readonly setSigninPhoneError: (error: string | null) => void;
+  readonly resetSigninPhone: () => void;
 
   // Sign Up - Email
-  setSignupEmailAddress: (value: string) => void;
-  setSignupEmailPassword: (value: string) => void;
-  setSignupEmailPasswordConfirm: (value: string) => void;
-  setSignupEmailError: (error: string | null) => void;
-  setSignupEmailOtpSent: (sent: boolean) => void;
-  resetSignupEmail: () => void;
+  readonly setSignupEmailAddress: (value: string) => void;
+  readonly setSignupEmailPassword: (value: string) => void;
+  readonly setSignupEmailPasswordConfirm: (value: string) => void;
+  readonly setSignupEmailError: (error: string | null) => void;
+  readonly setSignupEmailOtpSent: (sent: boolean) => void;
+  readonly resetSignupEmail: () => void;
 
   // Sign Up - Email OTP
-  setSignupEmailOtp: (value: string) => void;
-  setSignupEmailOtpError: (error: string | null) => void;
+  readonly setSignupEmailOtp: (value: string) => void;
+  readonly setSignupEmailOtpError: (error: string | null) => void;
 
   // Sign Up - Phone
-  setSignupPhoneNumber: (value: string) => void;
-  setSignupPhoneOtp: (value: string) => void;
-  setSignupPhonePassword: (value: string) => void;
-  setSignupPhonePasswordConfirm: (value: string) => void;
-  setSignupPhoneOtpStep: (step: PhoneOtpStep) => void;
-  setSignupPhoneOtpError: (error: string | null) => void;
-  setSignupPhoneError: (error: string | null) => void;
-  resetSignupPhone: () => void;
+  readonly setSignupPhoneNumber: (value: string) => void;
+  readonly setSignupPhoneOtp: (value: string) => void;
+  readonly setSignupPhonePassword: (value: string) => void;
+  readonly setSignupPhonePasswordConfirm: (value: string) => void;
+  readonly setSignupPhoneOtpStep: (step: PhoneOtpStep) => void;
+  readonly setSignupPhoneOtpError: (error: string | null) => void;
+  readonly setSignupPhoneError: (error: string | null) => void;
+  readonly resetSignupPhone: () => void;
 
   // Sign Up - Guest
-  setGuestClassCode: (value: string) => void;
-  setGuestRollNumber: (value: string) => void;
-  setGuestPin: (value: string) => void;
-  setGuestError: (error: string | null) => void;
-  resetGuest: () => void;
+  readonly setGuestClassCode: (value: string) => void;
+  readonly setGuestRollNumber: (value: string) => void;
+  readonly setGuestPin: (value: string) => void;
+  readonly setGuestError: (error: string | null) => void;
+  readonly resetGuest: () => void;
 
   // Sign Up - Username
-  setSignupUsername: (value: string) => void;
-  setSignupUsernamePassword: (value: string) => void;
-  setSignupUsernamePasswordConfirm: (value: string) => void;
-  setSignupUsernameError: (error: string | null) => void;
-  setSignupUsernameStep: (step: "username" | "profile") => void;
-  resetSignupUsername: () => void;
+  readonly setSignupUsername: (value: string) => void;
+  readonly setSignupUsernamePassword: (value: string) => void;
+  readonly setSignupUsernamePasswordConfirm: (value: string) => void;
+  readonly setSignupUsernameError: (error: string | null) => void;
+  readonly setSignupUsernameStep: (step: "username" | "profile") => void;
+  readonly resetSignupUsername: () => void;
 
   // Sign In - Username
-  setSigninUsername: (value: string) => void;
-  setSigninUsernamePassword: (value: string) => void;
-  setSigninUsernameError: (error: string | null) => void;
-  resetSigninUsername: () => void;
+  readonly setSigninUsername: (value: string) => void;
+  readonly setSigninUsernamePassword: (value: string) => void;
+  readonly setSigninUsernameError: (error: string | null) => void;
+  readonly resetSigninUsername: () => void;
 
   // Forgot Password
-  setForgotPasswordEmail: (value: string) => void;
-  setForgotPasswordOtp: (value: string) => void;
-  setForgotPasswordNewPassword: (value: string) => void;
-  setForgotPasswordNewPasswordConfirm: (value: string) => void;
-  setForgotPasswordStep: (step: "email" | "otp" | "reset") => void;
-  setForgotPasswordError: (error: string | null) => void;
-  resetForgotPassword: () => void;
+  readonly setForgotPasswordEmail: (value: string) => void;
+  readonly setForgotPasswordOtp: (value: string) => void;
+  readonly setForgotPasswordNewPassword: (value: string) => void;
+  readonly setForgotPasswordNewPasswordConfirm: (value: string) => void;
+  readonly setForgotPasswordStep: (step: "email" | "otp" | "reset") => void;
+  readonly setForgotPasswordError: (error: string | null) => void;
+  readonly resetForgotPassword: () => void;
 
   // Student Profile
-  setProfileName: (value: string) => void;
-  setProfileGender: (value: "male" | "female" | "") => void;
-  setProfileRollNumber: (value: string) => void;
-  setProfilePhone: (value: string) => void;
-  setProfileSchoolName: (value: string) => void;
-  setProfileClassName: (value: string) => void;
-  setProfileVillage: (value: string) => void;
-  setProfileError: (error: string | null) => void;
-  resetProfile: () => void;
+  readonly setProfileName: (value: string) => void;
+  readonly setProfileGender: (value: "male" | "female" | "") => void;
+  readonly setProfileRollNumber: (value: string) => void;
+  readonly setProfilePhone: (value: string) => void;
+  readonly setProfileSchoolName: (value: string) => void;
+  readonly setProfileClassName: (value: string) => void;
+  readonly setProfileVillage: (value: string) => void;
+  readonly setProfileError: (error: string | null) => void;
+  readonly resetProfile: () => void;
 
   // Join Class
-  setJoinClassCode: (value: string) => void;
-  setJoinClassPin: (value: string) => void;
-  setJoinClassError: (error: string | null) => void;
-  resetJoinClass: () => void;
+  readonly setJoinClassCode: (value: string) => void;
+  readonly setJoinClassPin: (value: string) => void;
+  readonly setJoinClassError: (error: string | null) => void;
+  readonly resetJoinClass: () => void;
 
   // Global
-  setIsLoading: (loading: boolean) => void;
-  resetAll: () => void;
+  readonly setIsLoading: (loading: boolean) => void;
+  readonly resetAll: () => void;
 }
 
 const initialState: AuthState = {

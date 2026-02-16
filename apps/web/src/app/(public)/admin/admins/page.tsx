@@ -9,6 +9,7 @@ import { AdminCreateForm } from "@/components/admin/AdminCreateForm";
 import { AdminListTable } from "@/components/admin/AdminListTable";
 import { ArrowLeft, Plus, Users } from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
+import { clientLogger } from "@/lib/client-logger";
 
 export default function AdminsPage() {
   const router = useRouter();
@@ -34,14 +35,14 @@ export default function AdminsPage() {
         }
 
         // SECURITY: Only super_admin can access admin management page
-        const role = user.app_metadata?.role as string;
-        if (role !== "super_admin") {
+        const role = user.app_metadata?.role;
+        if (typeof role !== "string" || role !== "super_admin") {
           // Regular admins and other users redirected to PIN management
           router.push("/admin/pins");
           return;
         }
       } catch (error) {
-        console.error("[AdminsPage] Auth check failed:", error);
+        clientLogger.error("[AdminsPage] Auth check failed", error instanceof Error ? error : { error });
         router.push("/admin/login");
       } finally {
         setIsLoading(false);

@@ -1,8 +1,11 @@
 /**
  * AI Service - Multi-Provider Support
  *
- * Development: Groq (llama-3.3-70b-versatile) or Ollama (cogito:14b)
- * Production: OpenAI (to be configured)
+ * Primary: Google Gemini (via Vercel AI SDK)
+ * Fallback: Groq (llama-3.3-70b-versatile) or Ollama (cogito:14b)
+ *
+ * NOTE: Project uses only Google products per requirements.
+ * OpenAI was removed.
  *
  * Features:
  * - AI Tutor for personalized learning assistance
@@ -15,54 +18,96 @@ import { authLogger } from "./auth-logger";
 import { AI_DEFAULTS, AI_FEATURES, AI_PROVIDERS } from "./constants/ai-config";
 import type { AIProviderKey } from "./constants/ai-config";
 import { getLanguageLabelForAI } from "./form-utils";
+import type { SupportedLanguage } from "@/types/common";
+
+/**
+ * Safe JSON extraction from AI response content
+ * Avoids regex DoS by using indexOf/lastIndexOf instead of unbounded wildcards
+ * @param content - Raw AI response content
+ * @param type - Expected JSON type: "object" for {}, "array" for []
+ * @returns Extracted JSON string or null if not found
+ */
+function extractJsonFromContent(
+  content: string,
+  type: "object" | "array",
+): string | null {
+  // First try to extract from markdown code blocks (safe approach)
+  const codeBlockStart = content.indexOf("```json");
+  if (codeBlockStart !== -1) {
+    const jsonStart = content.indexOf("\n", codeBlockStart);
+    const codeBlockEnd = content.indexOf("```", jsonStart);
+    if (jsonStart !== -1 && codeBlockEnd !== -1) {
+      return content.slice(jsonStart + 1, codeBlockEnd).trim();
+    }
+  }
+
+  // Fallback: find the outermost JSON brackets
+  const openBracket = type === "object" ? "{" : "[";
+  const closeBracket = type === "object" ? "}" : "]";
+
+  const firstOpen = content.indexOf(openBracket);
+  const lastClose = content.lastIndexOf(closeBracket);
+
+  if (firstOpen !== -1 && lastClose !== -1 && lastClose > firstOpen) {
+    return content.slice(firstOpen, lastClose + 1);
+  }
+
+  return null;
+}
 
 type AIProvider = AIProviderKey;
 
+/** Chat message role - who sent the message */
+type ChatRole = "system" | "user" | "assistant";
+
+/** Student proficiency level for adaptive content */
+type StudentLevel = "beginner" | "intermediate" | "advanced";
+
 interface AIConfig {
-  provider: AIProvider;
-  apiKey?: string;
-  baseUrl?: string;
-  model: string;
+  readonly provider: AIProvider;
+  readonly apiKey?: string;
+  readonly baseUrl?: string;
+  readonly model: string;
 }
 
 interface ChatMessage {
-  role: "system" | "user" | "assistant";
-  content: string;
+  readonly role: ChatRole;
+  readonly content: string;
 }
 
 interface AIResponse {
-  success: boolean;
-  content?: string;
-  error?: string;
-  provider: AIProvider;
-  model: string;
-  tokensUsed?: number;
+  readonly success: boolean;
+  readonly content?: string;
+  readonly error?: string;
+  readonly provider: AIProvider;
+  readonly model: string;
+  readonly tokensUsed?: number;
 }
 
 interface TutorContext {
-  subject?: string;
-  topic?: string;
-  studentLevel?: "beginner" | "intermediate" | "advanced";
-  language?: "en" | "hi" | "as";
-  previousMessages?: ChatMessage[];
+  readonly subject?: string;
+  readonly topic?: string;
+  readonly studentLevel?: StudentLevel;
+  readonly language?: SupportedLanguage;
+  readonly previousMessages?: ChatMessage[];
 }
 
 interface EssayFeedback {
-  overallScore: number;
-  grammar: { score: number; issues: string[] };
-  clarity: { score: number; suggestions: string[] };
-  structure: { score: number; feedback: string };
-  content: { score: number; feedback: string };
-  improvements: string[];
+  readonly overallScore: number;
+  readonly grammar: { readonly score: number; readonly issues: readonly string[] };
+  readonly clarity: { readonly score: number; readonly suggestions: readonly string[] };
+  readonly structure: { readonly score: number; readonly feedback: string };
+  readonly content: { readonly score: number; readonly feedback: string };
+  readonly improvements: readonly string[];
 }
 
 interface PracticeQuestion {
-  id: string;
-  question: string;
-  options?: string[];
-  correctAnswer?: string;
-  explanation?: string;
-  difficulty: "easy" | "medium" | "hard";
+  readonly id: string;
+  readonly question: string;
+  readonly options?: readonly string[];
+  readonly correctAnswer?: string;
+  readonly explanation?: string;
+  readonly difficulty: "easy" | "medium" | "hard";
 }
 
 /**
@@ -86,15 +131,9 @@ function getAIConfig(): AIConfig {
         baseUrl: process.env.OLLAMA_BASE_URL || AI_PROVIDERS.ollama.baseUrl,
         model: process.env.OLLAMA_MODEL || AI_PROVIDERS.ollama.defaultModel,
       };
-    case "openai":
-      return {
-        provider: "openai",
-        apiKey: process.env.OPENAI_API_KEY,
-        baseUrl: AI_PROVIDERS.openai.baseUrl,
-        model: process.env.OPENAI_MODEL || AI_PROVIDERS.openai.defaultModel,
-      };
+    // NOTE: OpenAI case removed - project uses only Google products
     default:
-      throw new Error(`Unknown AI provider: ${provider}`);
+      throw new Error(`Unknown AI provider: ${provider}. Valid options: gemini, groq, ollama`);
   }
 }
 
@@ -138,7 +177,7 @@ async function callAI(
       };
     }
 
-    // Groq and OpenAI use OpenAI-compatible API
+    // Groq uses OpenAI-compatible API format
     const response = await fetch(`${config.baseUrl}/chat/completions`, {
       method: "POST",
       headers: {
@@ -233,7 +272,7 @@ Keep responses concise but helpful. Use bullet points for lists. Include practic
 export async function getEssayFeedback(
   essay: string,
   topic?: string,
-  language: "en" | "hi" | "as" = "en",
+  language: SupportedLanguage = "en",
 ): Promise<AIResponse & { feedback?: EssayFeedback }> {
   const systemPrompt = `You are an essay reviewer for students learning digital literacy.
 
@@ -260,17 +299,17 @@ Essay language: ${getLanguageLabelForAI(language)}`;
 
   if (response?.success && response?.content) {
     try {
-      // Extract JSON from response (handle markdown code blocks)
-      const jsonMatch =
-        response.content.match(/```json\n?([\s\S]*?)\n?```/) ||
-        response.content.match(/\{[\s\S]*\}/);
-      const jsonStr = jsonMatch
-        ? jsonMatch[1] || jsonMatch[0]
-        : response.content;
+      // Extract JSON from response using safe extraction (avoids regex DoS)
+      const jsonStr =
+        extractJsonFromContent(response.content, "object") || response.content;
       const feedback = JSON.parse(jsonStr) as EssayFeedback;
       return { ...response, feedback };
-    } catch {
+    } catch (error) {
       // Return response without parsed feedback if JSON parsing fails
+      authLogger.warn(
+        "[AI] Essay feedback JSON parsing failed",
+        error instanceof Error ? error : { error: String(error) },
+      );
       return response;
     }
   }
@@ -285,7 +324,7 @@ export async function generatePracticeQuestions(
   topic: string,
   count: number = 5,
   difficulty: "easy" | "medium" | "hard" = "medium",
-  language: "en" | "hi" | "as" = "en",
+  language: SupportedLanguage = "en",
 ): Promise<AIResponse & { questions?: PracticeQuestion[] }> {
   const languageNames = { en: "English", hi: "Hindi", as: "Assamese" };
 
@@ -323,15 +362,16 @@ Requirements:
 
   if (response?.success && response?.content) {
     try {
-      const jsonMatch =
-        response.content.match(/```json\n?([\s\S]*?)\n?```/) ||
-        response.content.match(/\[[\s\S]*\]/);
-      const jsonStr = jsonMatch
-        ? jsonMatch[1] || jsonMatch[0]
-        : response.content;
+      // Extract JSON array from response using safe extraction (avoids regex DoS)
+      const jsonStr =
+        extractJsonFromContent(response.content, "array") || response.content;
       const questions = JSON.parse(jsonStr) as PracticeQuestion[];
       return { ...response, questions };
-    } catch {
+    } catch (error) {
+      authLogger.warn(
+        "[AI] Practice questions JSON parsing failed",
+        error instanceof Error ? error : { error: String(error) },
+      );
       return response;
     }
   }
@@ -345,7 +385,7 @@ Requirements:
 export async function summarizeContent(
   content: string,
   format: "notes" | "flashcards" | "outline" = "notes",
-  language: "en" | "hi" | "as" = "en",
+  language: SupportedLanguage = "en",
 ): Promise<AIResponse> {
   const formatInstructions = {
     notes:

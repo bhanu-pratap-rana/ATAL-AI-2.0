@@ -137,7 +137,7 @@ export function getRoleFromMetadata(
 
   const role = appMetadata.role;
   if (typeof role === "string" && isValidRole(role)) {
-    return role as UserRole;
+    return role; // Type guard narrows to UserRole
   }
 
   return null;

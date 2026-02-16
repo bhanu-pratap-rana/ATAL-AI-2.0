@@ -1,14 +1,17 @@
+"use client";
+
 /**
  * useAdminManagement Custom Hook
  * Extracted from admin/manage/page.tsx to manage admin account management state and handlers
  * Handles user deletion and admin account creation with auth checking
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { deleteUserByEmail } from "@/app/actions/admin-delete";
 import { createAdminUser } from "@/app/actions/admin-auth";
 import { createClient } from "@/lib/supabase-browser";
 import { toast } from "sonner";
+import { clientLogger } from "@/lib/client-logger";
 import { FORM_TIMING } from "@/lib/constants/ui-timings";
 
 type Step = "delete" | "create";
@@ -21,6 +24,10 @@ export interface UseAdminManagementReturn {
   showPassword: boolean;
   isLoading: boolean;
   completed: boolean;
+  currentUserEmail: string | null;
+
+  // SEC-002 FIX: State-based confirmation for accessible modals
+  pendingDeletion: boolean;
 
   // Form State
   email: string;
@@ -40,29 +47,28 @@ export interface UseAdminManagementReturn {
   setCompleted: (completed: boolean) => void;
 
   // Handlers
-  handleDeleteUser: () => Promise<void>;
+  requestDeleteUser: () => void; // SEC-002: Opens confirmation dialog
+  confirmDeleteUser: () => Promise<void>; // SEC-002: Executes deletion after confirmation
+  cancelDeleteUser: () => void; // SEC-002: Cancels deletion
   handleCreateAdmin: () => Promise<void>;
 }
 
 /**
  * Validate email for deletion
+ * SEC-005: Also checks for self-deletion attempts
  */
 function validateEmailForDeletion(
   emailValue: string,
+  currentUserEmail: string | null,
 ): { valid: true } | { valid: false; error: string } {
   if (!emailValue.trim()) {
     return { valid: false, error: "Please enter an email address" };
   }
+  // SEC-005 FIX: Prevent self-deletion
+  if (currentUserEmail && emailValue.trim().toLowerCase() === currentUserEmail.toLowerCase()) {
+    return { valid: false, error: "You cannot delete your own account" };
+  }
   return { valid: true };
-}
-
-/**
- * Confirm deletion with user
- */
-function confirmDeletion(emailValue: string): boolean {
-  return globalThis.confirm(
-    `Are you sure you want to DELETE the user ${emailValue}?\n\nThis action cannot be undone!`,
-  );
 }
 
 /**
@@ -89,15 +95,23 @@ function validateAdminForm(
 }
 
 export function useAdminManagement(): UseAdminManagementReturn {
+  // BUG-011 FIX: Track timers for cleanup on unmount
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Auth & UI state
   const [authStatus, setAuthStatus] = useState<AuthStatus>("checking");
   const [step, setStep] = useState<Step>("delete");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [completed, setCompleted] = useState(false);
+  const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
+
+  // SEC-002 FIX: State-based confirmation instead of browser confirm()
+  const [pendingDeletion, setPendingDeletion] = useState(false);
 
   // Form state
-  const [email, setEmail] = useState("atal.app.ai@gmail.com");
+  // SEC-001 FIX: Removed hardcoded email - require explicit user input
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState<{
@@ -119,17 +133,31 @@ export function useAdminManagement(): UseAdminManagementReturn {
           return;
         }
 
+        // SEC-005: Store current user email for self-deletion check
+        setCurrentUserEmail(user.email || null);
+
         const role = user.app_metadata?.role;
         if (role === "super_admin") {
           setAuthStatus("authorized");
         } else {
           setAuthStatus("unauthorized");
         }
-      } catch {
+      } catch (error) {
+        clientLogger.error(
+          "[useAdminManagement] Failed to check admin auth",
+          error instanceof Error ? error : { error: String(error) },
+        );
         setAuthStatus("unauthorized");
       }
     }
     checkAuth();
+  }, []);
+
+  // BUG-011 FIX: Cleanup timer on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
   }, []);
 
   /**
@@ -141,7 +169,9 @@ export function useAdminManagement(): UseAdminManagementReturn {
       text: `✓ User deleted! You can now create a new admin account.`,
     });
     toast.success("User deleted successfully");
-    setTimeout(() => {
+    // BUG-011 FIX: Store timer ref for cleanup on unmount
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
       setStep("create");
       setMessage(null);
     }, FORM_TIMING.nextStepsDelay);
@@ -178,19 +208,33 @@ export function useAdminManagement(): UseAdminManagementReturn {
   }, []);
 
   /**
-   * Delete user by email
+   * SEC-002 FIX: Request deletion - validates and opens confirmation dialog
+   * Replaces browser confirm() with accessible state-based confirmation
    */
-  const handleDeleteUser = useCallback(async () => {
-    const emailValidation = validateEmailForDeletion(email);
+  const requestDeleteUser = useCallback(() => {
+    const emailValidation = validateEmailForDeletion(email, currentUserEmail);
     if (!emailValidation.valid) {
       setMessage({ type: "error", text: emailValidation.error });
       return;
     }
+    // Open confirmation dialog (component should render accessible modal)
+    setPendingDeletion(true);
+    setMessage(null);
+  }, [email, currentUserEmail]);
 
-    if (!confirmDeletion(email)) {
-      return;
-    }
+  /**
+   * SEC-002 FIX: Cancel deletion - closes confirmation dialog
+   */
+  const cancelDeleteUser = useCallback(() => {
+    setPendingDeletion(false);
+  }, []);
 
+  /**
+   * SEC-002 FIX: Confirm and execute deletion
+   * Only called after user confirms via accessible modal
+   */
+  const confirmDeleteUser = useCallback(async () => {
+    setPendingDeletion(false);
     setIsLoading(true);
     setMessage(null);
 
@@ -251,6 +295,10 @@ export function useAdminManagement(): UseAdminManagementReturn {
     showPassword,
     isLoading,
     completed,
+    currentUserEmail,
+
+    // SEC-002 FIX: State-based confirmation
+    pendingDeletion,
 
     // Form state
     email,
@@ -267,7 +315,9 @@ export function useAdminManagement(): UseAdminManagementReturn {
     setCompleted,
 
     // Handlers
-    handleDeleteUser,
+    requestDeleteUser,
+    confirmDeleteUser,
+    cancelDeleteUser,
     handleCreateAdmin,
   };
 }

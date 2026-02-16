@@ -17,6 +17,8 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase-browser";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { clientLogger } from "@/lib/client-logger";
+import { getModules } from "@/lib/services/curriculum-service";
+import { MASTERY_THRESHOLDS } from "@/lib/constants/thresholds";
 
 interface StudentProgress {
   readonly id: string;
@@ -34,7 +36,6 @@ interface StudentProgress {
 
 interface StudentProgressGridProps {
   readonly classId: string;
-  readonly _teacherId: string;
 }
 
 /**
@@ -61,7 +62,7 @@ function getProgressBarColor(
   if (isAtRisk) {
     return "bg-destructive";
   }
-  if (progressPercent >= 70) {
+  if (progressPercent >= MASTERY_THRESHOLDS.PASSING) {
     return "bg-success";
   }
   if (progressPercent >= 40) {
@@ -72,7 +73,6 @@ function getProgressBarColor(
 
 export function StudentProgressGrid({
   classId,
-  _teacherId,
 }: StudentProgressGridProps) {
   const [students, setStudents] = useState<StudentProgress[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,25 +83,22 @@ export function StudentProgressGrid({
     try {
       const supabase = createClient();
 
-      // Get all enrolled students with their progress
-      const { data, error: fetchError } = await supabase
+      // Fetch actual total topics from database
+      const modules = await getModules();
+      const totalCurriculumTopics = modules.reduce(
+        (sum, m) => sum + (Number(m.topic_count) || 0),
+        0
+      );
+
+      // Get enrolled student IDs (simple query, no join)
+      const { data: enrollmentData, error: fetchError } = await supabase
         .from("enrollments")
-        .select(
-          `
-          student_id,
-          student:auth_users_view!enrollments_student_id_fkey (
-            id,
-            email,
-            raw_user_meta_data
-          )
-        `,
-        )
+        .select("student_id")
         .eq("class_id", classId);
 
       if (fetchError) throw fetchError;
 
-      // Get knowledge state for each student
-      const studentIds = data?.map((e) => e.student_id) || [];
+      const studentIds = enrollmentData?.map((e) => e.student_id) || [];
 
       if (studentIds.length === 0) {
         setStudents([]);
@@ -109,9 +106,21 @@ export function StudentProgressGrid({
         return;
       }
 
-      // PERFORMANCE FIX: Use RPC for database aggregation instead of client-side filtering
-      // Old pattern: Fetch all rows, filter in JS (O(n²))
-      // New pattern: Database GROUP BY aggregation (O(n log n))
+      // Get student names via SECURITY DEFINER RPC (bypasses RLS on student_profiles)
+      const { data: rosterData } = await supabase.rpc("get_class_roster", {
+        p_class_id: classId,
+      });
+
+      // Build name lookup from roster
+      const nameMap = new Map<string, { name: string; roll_number: string }>();
+      for (const row of rosterData || []) {
+        nameMap.set(row.student_id, {
+          name: row.student_name || "Unknown Student",
+          roll_number: row.roll_number || "",
+        });
+      }
+
+      // Get progress via database aggregation RPC
       const { data: progressData, error: progressError } = await supabase.rpc(
         "get_class_student_progress",
         { p_student_ids: studentIds },
@@ -125,31 +134,25 @@ export function StudentProgressGrid({
         throw progressError;
       }
 
-      // Create map for quick lookup
+      // Build lookup map from RPC results - O(n) instead of O(n²)
+      type ProgressDataItem = {
+        student_id: string;
+        total_topics: number;
+        topics_mastered: number;
+        avg_mastery_score: number;
+        last_activity: string | null;
+        topics_total?: number;
+      };
+      const progressDataMap = new Map<string, ProgressDataItem>(
+        (progressData || []).map((p: ProgressDataItem) => [p.student_id, p])
+      );
+
+      // Build final student progress list
       const progressMap = new Map<string, StudentProgress>();
 
-      for (const enrollment of data || []) {
-        const studentId = enrollment.student_id;
-        // The join returns an array of student objects
-        const studentArray = enrollment.student as Array<{
-          id: string;
-          email: string;
-          raw_user_meta_data?: { full_name?: string };
-        }> | null;
-        const studentData = studentArray?.[0] || null;
-
-        // Find progress data for this student from RPC results
-        // Type: GetClassStudentProgressResponse from apps/db/migrations/124_get_class_student_progress.sql
-        const progress = progressData?.find(
-          (p: {
-            student_id: string;
-            student_name: string;
-            total_topics: number;
-            topics_mastered: number;
-            avg_mastery_score: number;
-            last_activity: string | null;
-          }) => p.student_id === studentId,
-        );
+      for (const studentId of studentIds) {
+        const profile = nameMap.get(studentId);
+        const progress = progressDataMap.get(studentId);
 
         const masteredTopics = progress?.topics_mastered || 0;
         const totalTopics = progress?.topics_total || 0;
@@ -162,14 +165,11 @@ export function StudentProgressGrid({
         progressMap.set(studentId, {
           id: `${studentId}-progress`,
           student_id: studentId,
-          student_name:
-            studentData?.raw_user_meta_data?.full_name ||
-            studentData?.email?.split("@")[0] ||
-            "Unknown Student",
-          email: studentData?.email || "",
+          student_name: profile?.name || "Unknown Student",
+          email: profile?.roll_number || "",
           module_id: "all",
           topics_mastered: masteredTopics,
-          total_topics: 50, // 5 modules x 10 topics
+          total_topics: totalCurriculumTopics || 50,
           average_mastery: Math.round(avgMastery * 100) / 100,
           last_activity: latestActivity,
           is_at_risk: isAtRisk,
@@ -303,9 +303,11 @@ function StudentProgressCard({
             title={activity.label}
           />
         </div>
-        <p className="text-xs text-muted-foreground truncate">
-          {student.email}
-        </p>
+        {student.email && (
+          <p className="text-xs text-muted-foreground truncate">
+            Roll No: {student.email}
+          </p>
+        )}
       </CardHeader>
       <CardContent className="pt-0">
         {/* Progress Bar */}

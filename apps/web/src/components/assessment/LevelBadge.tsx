@@ -135,21 +135,20 @@ export function LevelBadge({
   };
 
   return (
-    <div
+    <output
       className={`
         inline-flex items-center gap-2 rounded-full font-semibold
         ${config.bgClass} ${config.colorClass}
         ${sizeClasses[size]}
         ${className}
       `}
-      role="status"
       aria-label={`Skill level: ${config.label}`}
     >
       <span className={iconSizes[size]} aria-hidden="true">
         {config.icon}
       </span>
       <span>{config.label}</span>
-    </div>
+    </output>
   );
 }
 
@@ -160,7 +159,7 @@ export function LevelCard({
   score,
   level,
   className = "",
-}: Omit<LevelBadgeProps, "size">) {
+}: Readonly<Omit<LevelBadgeProps, "size">>) {
   const skillLevel = getSkillLevel(level, score);
   const config = LEVEL_CONFIG[skillLevel];
 
@@ -189,10 +188,10 @@ export function LevelCard({
 export function LevelProgress({
   score,
   className = "",
-}: {
+}: Readonly<{
   score: number;
   className?: string;
-}) {
+}>) {
   const currentLevel = getLevelFromScore(score);
 
   const levels: SkillLevel[] = ["beginner", "intermediate", "advanced"];

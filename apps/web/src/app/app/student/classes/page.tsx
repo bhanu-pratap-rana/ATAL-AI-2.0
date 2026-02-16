@@ -4,6 +4,7 @@ import { createClient, getCurrentUser } from "@/lib/supabase-server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { authLogger } from "@/lib/auth-logger";
+import { ChevronRight } from "lucide-react";
 
 interface TeacherInfo {
   name: string | null;
@@ -79,7 +80,7 @@ async function getStudentClasses(userId: string): Promise<Enrollment[]> {
       ...new Set(
         enrollments
           .map((e) => getClassFromEnrollment(e)?.teacher_id)
-          .filter((id): id is string => Boolean(id)),
+          .filter(Boolean),
       ),
     ];
 
@@ -126,13 +127,21 @@ export default async function StudentClassesPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream to-surface page-layout">
       <div className="container-responsive max-w-4xl">
-        <div className="mb-responsive text-center sm:text-left">
-          <h1 className="heading-1 bg-gradient-to-r from-primary to-cyan bg-clip-text text-transparent">
-            My Classes
-          </h1>
-          <p className="text-text-secondary mt-2 text-sm md:text-base">
-            Classes you&apos;re enrolled in
-          </p>
+        {/* Header with Back Button */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-responsive">
+          <div className="text-center sm:text-left">
+            <h1 className="heading-1 bg-gradient-to-r from-primary to-cyan bg-clip-text text-transparent">
+              My Classes
+            </h1>
+            <p className="text-text-secondary mt-2 text-sm md:text-base">
+              Classes you&apos;re enrolled in
+            </p>
+          </div>
+          <Link href="/app/dashboard">
+            <Button variant="outline" className="w-full sm:w-auto">
+              ← Back to Dashboard
+            </Button>
+          </Link>
         </div>
 
         {enrollments.length === 0 ? (
@@ -157,42 +166,43 @@ export default async function StudentClassesPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-responsive">
             {enrollments.map((enrollment: Enrollment) => (
-              <Card
+              <Link
                 key={enrollment.id}
-                className="hover:shadow-lg transition card-responsive"
+                href={`/app/student/classes/${enrollment.class.id}`}
               >
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-base md:text-lg">
-                    <span>📚</span>
-                    <span className="truncate">{enrollment.class.name}</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <p className="text-sm text-text-secondary truncate">
-                      <span className="font-medium">Teacher:</span>{" "}
-                      {enrollment.teacher?.name || "Not available"}
-                    </p>
-                    {enrollment.class.subject && (
+                <Card className="hover:shadow-lg hover:border-primary/50 transition card-responsive cursor-pointer group">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center justify-between text-base md:text-lg">
+                      <span className="flex items-center gap-2">
+                        <span>📚</span>
+                        <span className="truncate">{enrollment.class.name}</span>
+                      </span>
+                      <ChevronRight className="w-5 h-5 text-text-tertiary group-hover:text-primary transition" />
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
                       <p className="text-sm text-text-secondary truncate">
-                        <span className="font-medium">Subject:</span>{" "}
-                        {enrollment.class.subject}
+                        <span className="font-medium">Teacher:</span>{" "}
+                        {enrollment.teacher?.name || "Not available"}
                       </p>
-                    )}
-                    <p className="text-sm text-text-secondary">
-                      <span className="font-medium">Joined:</span>{" "}
-                      {new Date(enrollment.created_at).toLocaleDateString()}
-                    </p>
-                    <Link
-                      href={`/app/assessment/start?classId=${enrollment.class.id}`}
-                    >
-                      <Button className="w-full mt-4 touch-target">
-                        Start Assessment
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
+                      {enrollment.class.subject && (
+                        <p className="text-sm text-text-secondary truncate">
+                          <span className="font-medium">Subject:</span>{" "}
+                          {enrollment.class.subject}
+                        </p>
+                      )}
+                      <p className="text-sm text-text-secondary">
+                        <span className="font-medium">Joined:</span>{" "}
+                        {new Date(enrollment.created_at).toLocaleDateString()}
+                      </p>
+                      <p className="text-xs text-primary mt-2 group-hover:underline">
+                        View announcements & materials →
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         )}

@@ -24,10 +24,10 @@ import { joinClass, previewClass } from "@/app/actions/student";
 function AuthSelectionStep({
   onPhoneAuth,
   onAnonymousAuth,
-}: {
+}: Readonly<{
   onPhoneAuth: () => void;
   onAnonymousAuth: () => void;
-}) {
+}>) {
   return (
     <AuthCard
       title="Join Class"
@@ -47,7 +47,7 @@ function AuthSelectionStep({
           variant="default"
         >
           <span className="text-xl mr-2">📱</span>
-          Continue with Phone (OTP)
+          <span>Continue with Phone (OTP)</span>
         </Button>
 
         <Button
@@ -56,7 +56,7 @@ function AuthSelectionStep({
           variant="outline"
         >
           <span className="text-xl mr-2">👤</span>
-          Continue as Guest
+          <span>Continue as Guest</span>
         </Button>
 
         <div className="bg-cyan-lightest border-l-4 border-cyan p-3 rounded-xl">
@@ -86,11 +86,11 @@ function PhoneOTPStep({
   onComplete,
   onBack,
   loading,
-}: {
+}: Readonly<{
   onComplete: () => void;
   onBack: () => void;
   loading: boolean;
-}) {
+}>) {
   const supabase = createClient();
   const [step, setStep] = useState<"phone" | "verify">("phone");
   const [stepLoading, setStepLoading] = useState(false);
@@ -108,11 +108,11 @@ function PhoneOTPStep({
         "phone",
       );
 
-      if (!result.success) {
-        toast.error(result.error || "Failed to send OTP");
-      } else {
+      if (result.success) {
         toast.success("OTP sent to your phone!");
         setStep("verify");
+      } else {
+        toast.error(result.error || "Failed to send OTP");
       }
     } catch (error) {
       clientLogger.error(
@@ -137,11 +137,11 @@ function PhoneOTPStep({
         "sms",
       );
 
-      if (!result.success) {
-        toast.error(result.error || "Failed to verify OTP");
-      } else {
+      if (result.success) {
         toast.success("Phone verified! 🎉");
         onComplete();
+      } else {
+        toast.error(result.error || "Failed to verify OTP");
       }
     } catch (error) {
       clientLogger.error(
@@ -187,7 +187,7 @@ function PhoneOTPStep({
             }
             loading={stepLoading || loading}
           >
-            Verify & Continue
+            <span>Verify & Continue</span>
             <span className="ml-2">→</span>
           </Button>
 
@@ -268,7 +268,7 @@ function PhoneOTPStep({
           }
           loading={stepLoading || loading}
         >
-          Send OTP
+          <span>Send OTP</span>
           <span className="ml-2">→</span>
         </Button>
 
@@ -303,10 +303,10 @@ interface ClassPreviewData {
 function JoinClassForm({
   initialCode,
   initialPin,
-}: {
+}: Readonly<{
   initialCode?: string;
   initialPin?: string;
-}) {
+}>) {
   const router = useRouter();
   const [classCode, setClassCode] = useState(initialCode || "");
   const [pin, setPin] = useState(initialPin || "");
@@ -481,7 +481,7 @@ function JoinClassForm({
             placeholder="••••"
             value={pin}
             onChange={(e) => {
-              setPin(e.target.value.replace(/\D/g, "").slice(0, 4));
+              setPin(e.target.value.replaceAll(/\D/g, "").slice(0, 4));
               setShowConfirm(false);
             }}
             required
@@ -516,14 +516,13 @@ function JoinClassForm({
           className="w-full text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5"
           disabled={
             loading ||
-            !classCode ||
-            classCode.length !== 6 ||
+            classCode?.length !== 6 ||
             pin.length !== 4 ||
             !preview
           }
           loading={loading}
         >
-          {showConfirm ? "Confirm & Join Class" : "Join Class"}
+          <span>{showConfirm ? "Confirm & Join Class" : "Join Class"}</span>
           <span className="ml-2">→</span>
         </Button>
       </form>

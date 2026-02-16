@@ -20,7 +20,7 @@ export function validatePhoneNumber(phone: string): {
   error?: string;
   normalized?: string;
 } {
-  const cleaned = phone.replace(/\D/g, "");
+  const cleaned = phone.replaceAll(/\D/g, "");
 
   if (cleaned.length < 10) {
     return {
@@ -51,7 +51,7 @@ export function validatePhoneNumber(phone: string): {
  */
 export function sanitizePhone(input: string): string {
   // Remove all non-digit characters
-  let digitsOnly = input.replace(/\D/g, "");
+  let digitsOnly = input.replaceAll(/\D/g, "");
 
   // Remove leading country code variants
   if (digitsOnly.startsWith("91") && digitsOnly.length > PHONE_DIGIT_LENGTH) {
@@ -120,7 +120,7 @@ export function validateOptionalPhone(phone: string | undefined | null): {
   }
 
   // Remove all non-digit characters for validation
-  const digitsOnly = phone.replace(/\D/g, "");
+  const digitsOnly = phone.replaceAll(/\D/g, "");
 
   // Check if it's exactly 10 digits
   if (digitsOnly.length === 0) {
@@ -159,6 +159,6 @@ export function validateOptionalPhone(phone: string | undefined | null): {
  * @returns Cleaned phone number (digits only, max 10)
  */
 export function sanitizeProfilePhone(input: string): string {
-  const digitsOnly = input.replace(/\D/g, "");
+  const digitsOnly = input.replaceAll(/\D/g, "");
   return digitsOnly.slice(0, PHONE_DIGIT_LENGTH);
 }

@@ -89,7 +89,7 @@ function AssessmentStartContent() {
   };
 
   // If session started, show assessment runner
-  if (sessionId && questions.length > 0) {
+  if (sessionId && (questions?.length ?? 0) > 0) {
     return (
       <AssessmentRunner
         sessionId={sessionId}

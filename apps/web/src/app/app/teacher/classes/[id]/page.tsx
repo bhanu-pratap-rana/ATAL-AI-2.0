@@ -16,7 +16,14 @@ import { InvitePanel } from "@/components/teacher/InvitePanel";
 import { AnalyticsTiles } from "@/components/teacher/AnalyticsTiles";
 import { StudentProgressGrid } from "@/components/teacher/StudentProgressGrid";
 import { AIInteractionsLog } from "@/components/teacher/AIInteractionsLog";
-import { getClassAnalytics } from "@/app/actions/teacher";
+import { CommunicationSection } from "@/components/teacher/communication";
+import {
+  getClassAnalytics,
+  getClassAnnouncements,
+  getClassMaterials,
+  type Announcement,
+  type Material,
+} from "@/app/actions/teacher";
 
 interface StudentInfo {
   user_id: string;
@@ -69,7 +76,7 @@ async function getClassWithRoster(
     // Fetch class details - use .maybeSingle() since class may not exist
     const { data: classData, error: classError } = await supabase
       .from("classes")
-      .select("*")
+      .select("id, name, class_code, teacher_id, created_at, join_pin")
       .eq("id", classId)
       .eq("teacher_id", userId)
       .maybeSingle();
@@ -112,7 +119,7 @@ async function getClassWithRoster(
 
       // Try to get student profiles (may fail due to RLS)
       let enrollmentsWithStudents: Enrollment[] = [];
-      if (enrollmentsData && enrollmentsData.length > 0) {
+      if ((enrollmentsData?.length ?? 0) > 0) {
         const studentIds = enrollmentsData.map(
           (e: EnrollmentRow) => e.student_id,
         );
@@ -161,9 +168,9 @@ async function getClassWithRoster(
 
 export default async function ClassDetailPage({
   params,
-}: {
+}: Readonly<{
   params: Promise<{ id: string }>;
-}) {
+}>) {
   const { id } = await params;
   const user = await getCurrentUser();
 
@@ -196,6 +203,18 @@ export default async function ClassDetailPage({
         avgMinutesPerDay: 0,
         atRiskCount: 0,
       };
+
+  // Fetch announcements and materials for communication section
+  const [announcementsResult, materialsResult] = await Promise.all([
+    getClassAnnouncements(id),
+    getClassMaterials(id),
+  ]);
+  const announcements: Announcement[] = announcementsResult.success
+    ? (announcementsResult.data as Announcement[])
+    : [];
+  const materials: Material[] = materialsResult.success
+    ? (materialsResult.data as Material[])
+    : [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream via-surface to-cyan-lightest page-layout">
@@ -261,7 +280,7 @@ export default async function ClassDetailPage({
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <StudentProgressGrid classId={id} _teacherId={user.id} />
+              <StudentProgressGrid classId={id} />
             </CardContent>
           </Card>
         )}
@@ -282,6 +301,15 @@ export default async function ClassDetailPage({
             </CardContent>
           </Card>
         )}
+
+        {/* Teacher Communication: Announcements & Materials */}
+        <div className="mb-responsive">
+          <CommunicationSection
+            classId={id}
+            announcements={announcements}
+            materials={materials}
+          />
+        </div>
 
         {/* Roster */}
         <Card className="card-responsive">

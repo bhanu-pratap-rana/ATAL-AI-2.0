@@ -39,16 +39,16 @@ const CATEGORY_CONFIG: Record<string, { label: string; icon: string }> = {
 const getCategoryConfig = (key: string) => {
   return (
     CATEGORY_CONFIG[key] || {
-      label: key.replaceAll("-", " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+      label: key.replaceAll("-", " ").replaceAll(/\b\w/g, (c) => c.toUpperCase()),
       icon: "📝",
     }
   );
 };
 
-const getPercentageColor = (percentage: number) => {
-  if (percentage >= 80) return "bg-success";
-  if (percentage >= 60) return "bg-warning";
-  return "bg-error";
+const getProgressBarColor = (percentage: number) => {
+  if (percentage >= 80) return "[&::-webkit-progress-value]:bg-success [&::-moz-progress-bar]:bg-success";
+  if (percentage >= 60) return "[&::-webkit-progress-value]:bg-warning [&::-moz-progress-bar]:bg-warning";
+  return "[&::-webkit-progress-value]:bg-error [&::-moz-progress-bar]:bg-error";
 };
 
 const getPercentageTextColor = (percentage: number) => {
@@ -121,17 +121,12 @@ export function CategoryBreakdown({
               </div>
 
               {/* Progress bar */}
-              <div className="relative h-2 bg-border rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all duration-500 ease-out ${getPercentageColor(percentage)}`}
-                  style={{ width: `${percentage}%` }}
-                  role="progressbar"
-                  aria-valuenow={percentage}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-label={`${config.label}: ${percentage}%`}
-                />
-              </div>
+              <progress
+                className={`w-full h-2 rounded-full overflow-hidden appearance-none [&::-webkit-progress-bar]:bg-border [&::-webkit-progress-bar]:rounded-full [&::-webkit-progress-value]:rounded-full [&::-webkit-progress-value]:transition-all [&::-moz-progress-bar]:rounded-full ${getProgressBarColor(percentage)}`}
+                value={percentage}
+                max={100}
+                aria-label={`${config.label}: ${percentage}%`}
+              />
             </div>
           );
         })}
@@ -146,10 +141,10 @@ export function CategoryBreakdown({
 export function CategoryStrengths({
   categories,
   type = "strengths",
-}: {
+}: Readonly<{
   categories: Record<string, { total: number; correct: number }>;
   type?: "strengths" | "weaknesses";
-}) {
+}>) {
   const categoryList = Object.entries(categories)
     .map(([key, value]) => ({
       name: key,

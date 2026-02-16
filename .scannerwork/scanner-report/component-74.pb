@@ -1,1 +1,0 @@
-J 2cssX²hrapps/web/src/app/globals.css

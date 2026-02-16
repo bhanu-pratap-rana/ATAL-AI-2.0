@@ -6,7 +6,7 @@
 import { createClient } from "../supabase-server";
 import { authLogger } from "../auth-logger";
 
-export type ActionResponse<T = {}> = (
+export type ActionResponse<T = void> = (
   | {
       success: true;
       data?: T;
@@ -15,12 +15,12 @@ export type ActionResponse<T = {}> = (
       success: false;
       error: string;
     }
-) & {};
+);
 
 export interface ClassData {
   id: string;
   teacher_id: string;
-  class_name?: string;
+  name?: string;
   [key: string]: unknown;
 }
 
@@ -45,7 +45,7 @@ export async function verifyClassAccess(
 
     const { data: classData, error: classError } = await supabase
       .from("classes")
-      .select("id, teacher_id, class_name")
+      .select("id, teacher_id, name")
       .eq("id", classId)
       .maybeSingle();
 
@@ -106,7 +106,7 @@ export async function verifySchoolAccess(
   schoolId: string,
   userId: string,
   functionName: string,
-): Promise<ActionResponse<{ id: string; admin_id?: string }>> {
+): Promise<ActionResponse<{ id: string }>> {
   if (!schoolId) {
     return {
       success: false,
@@ -119,7 +119,7 @@ export async function verifySchoolAccess(
 
     const { data: schoolData, error: schoolError } = await supabase
       .from("schools")
-      .select("id, admin_id")
+      .select("id")
       .eq("id", schoolId)
       .maybeSingle();
 

@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * Custom hook for managing phone input state and validation
  * Consolidates phone number formatting and validation logic
@@ -29,14 +31,14 @@ export function usePhoneInput(initialValue: string = ""): UsePhoneInputReturn {
   );
   const [error, setError] = useState<string | null>(null);
 
-  const displayValue = fullValue.replace(/^[\+\d]+/, (match) => {
+  const displayValue = fullValue.replace(/^[+\d]+/, (match) => {
     // Remove country code for display
-    return match.replaceAll(PHONE_COUNTRY_CODE, "");
+    return match.replace(PHONE_COUNTRY_CODE, "");
   });
 
   const handleChange = (input: string) => {
     // User types just digits, we sanitize and prepend country code
-    const digitsOnly = input.replace(/\D/g, "").slice(0, PHONE_DIGIT_LENGTH);
+    const digitsOnly = input.replaceAll(/\D/g, "").slice(0, PHONE_DIGIT_LENGTH);
 
     // Only update if valid digit length or empty
     if (digitsOnly.length <= PHONE_DIGIT_LENGTH) {

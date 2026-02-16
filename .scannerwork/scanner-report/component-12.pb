@@ -1,1 +1,0 @@
- 2tsX3hr0apps/web/src/app/(public)/teacher/start/page.tsx

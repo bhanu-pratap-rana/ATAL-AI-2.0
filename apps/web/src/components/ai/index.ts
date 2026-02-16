@@ -2,4 +2,4 @@
  * AI Components - Export all AI-related UI components
  */
 
-export { VoiceChat } from "./VoiceChat";
+export { VoiceChat } from "../voice/VoiceChat";

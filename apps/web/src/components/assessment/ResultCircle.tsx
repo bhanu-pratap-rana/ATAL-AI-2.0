@@ -29,6 +29,16 @@ interface ResultCircleProps {
   readonly className?: string;
 }
 
+/**
+ * Shared helper: Get color class based on percentage
+ * Extracted to avoid S4144 duplication between ResultCircle and CompactResultCircle
+ */
+function getColorClass(pct: number): string {
+  if (pct >= 80) return "text-success";
+  if (pct >= 60) return "text-warning";
+  return "text-error";
+}
+
 export function ResultCircle({
   percentage,
   size = 160,
@@ -46,13 +56,6 @@ export function ResultCircle({
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset =
     circumference - (displayPercentage / 100) * circumference;
-
-  // Determine color class based on percentage
-  const getColorClass = (pct: number) => {
-    if (pct >= 80) return "text-success";
-    if (pct >= 60) return "text-warning";
-    return "text-error";
-  };
 
   const getPerformanceText = (pct: number) => {
     if (pct >= 80) return "Excellent!";
@@ -89,9 +92,10 @@ export function ResultCircle({
 
   return (
     <div className={`flex flex-col items-center ${className}`}>
-      {/* SVG Circle */}
+      {/* SVG Circle - role="img" is correct for SVG accessibility */}
       <div className="relative" style={{ width: size, height: size }}>
-        <svg
+        {/* NOSONAR S6819: SVG with role="img" is the correct accessibility pattern */}
+        <svg // NOSONAR
           width={size}
           height={size}
           viewBox={`0 0 ${size} ${size}`}
@@ -150,20 +154,15 @@ export function CompactResultCircle({
   percentage,
   size = 64,
   strokeWidth = 6,
-}: Pick<ResultCircleProps, "percentage" | "size" | "strokeWidth">) {
+}: Readonly<Pick<ResultCircleProps, "percentage" | "size" | "strokeWidth">>) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
-  const getColorClass = (pct: number) => {
-    if (pct >= 80) return "text-success";
-    if (pct >= 60) return "text-warning";
-    return "text-error";
-  };
-
   return (
     <div className="relative" style={{ width: size, height: size }}>
-      <svg
+      {/* NOSONAR S6819: SVG with role="img" is the correct accessibility pattern */}
+      <svg // NOSONAR
         width={size}
         height={size}
         viewBox={`0 0 ${size} ${size}`}

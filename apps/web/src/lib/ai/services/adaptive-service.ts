@@ -138,25 +138,46 @@ export class AdaptiveLearningService {
       const supabase = await createClient();
 
       switch (signal.type) {
-        case "image_viewed":
-          await supabase.rpc("increment_visual_score", {
+        case "image_viewed": {
+          const { error } = await supabase.rpc("increment_visual_score", {
             p_student_id: studentId,
             p_time_seconds: signal.duration || 5,
           });
+          if (error) {
+            authLogger.warn("[trackBehavior] Failed to update visual score", {
+              error: error.message,
+              studentId,
+            });
+          }
           break;
+        }
 
-        case "voice_replay":
-          await supabase.rpc("increment_auditory_score", {
+        case "voice_replay": {
+          const { error } = await supabase.rpc("increment_auditory_score", {
             p_student_id: studentId,
           });
+          if (error) {
+            authLogger.warn("[trackBehavior] Failed to update auditory score", {
+              error: error.message,
+              studentId,
+            });
+          }
           break;
+        }
 
-        case "text_read":
-          await supabase.rpc("increment_text_score", {
+        case "text_read": {
+          const { error } = await supabase.rpc("increment_text_score", {
             p_student_id: studentId,
             p_time_seconds: signal.duration || 30,
           });
+          if (error) {
+            authLogger.warn("[trackBehavior] Failed to update text score", {
+              error: error.message,
+              studentId,
+            });
+          }
           break;
+        }
       }
     } catch (error) {
       authLogger.error("[Adaptive] Error tracking behavior:", error);
@@ -215,7 +236,10 @@ export class AdaptiveLearningService {
       text_read_time_seconds: 0,
     };
 
-    await supabase.from("learning_style_profile").insert(defaultProfile);
+    const { error: insertError } = await supabase.from("learning_style_profile").insert(defaultProfile);
+    if (insertError) {
+      authLogger.warn("[AdaptiveService] Failed to insert default profile:", { error: insertError.message, studentId });
+    }
 
     return {
       ...defaultProfile,

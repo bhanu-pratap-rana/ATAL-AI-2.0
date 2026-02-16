@@ -28,11 +28,15 @@ const CardHeader = React.forwardRef<
 ));
 CardHeader.displayName = "CardHeader";
 
+/**
+ * CardTitle - Composable heading component
+ * Content is provided by consumers via children prop (spread via ...props)
+ */
 const CardTitle = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLHeadingElement>
 >(({ className, ...props }, ref) => (
-  <h3
+  <h3 // NOSONAR S6850: Composable pattern - content provided via children prop
     ref={ref}
     className={cn(
       "text-2xl font-semibold leading-none tracking-tight",

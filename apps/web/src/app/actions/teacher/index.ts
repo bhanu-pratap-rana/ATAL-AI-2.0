@@ -23,3 +23,23 @@ export {
   exportStudentProgress,
   exportAIInteractions,
 } from "./teacher-analytics-export";
+
+// Teacher Communication (announcements & materials)
+export {
+  createAnnouncement,
+  updateAnnouncement,
+  deleteAnnouncement,
+  getClassAnnouncements,
+  uploadMaterial,
+  uploadMaterialFile,
+  deleteMaterial,
+  getClassMaterials,
+  incrementMaterialDownload,
+  markAnnouncementRead,
+  getStudentUnreadAnnouncements,
+  getStudentClassAnnouncements,
+  getStudentClassMaterials,
+  type Announcement,
+  type AnnouncementWithReadStatus,
+  type Material,
+} from "./teacher-communication";

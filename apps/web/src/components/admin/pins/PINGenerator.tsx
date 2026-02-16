@@ -77,16 +77,7 @@ export function PINGenerator({
 
       {/* Action Buttons */}
       <div className="flex gap-2">
-        {!newPin ? (
-          <Button
-            onClick={onGeneratePin}
-            variant="default"
-            className="flex-1 flex items-center justify-center gap-2"
-          >
-            <Wand2 size={18} />
-            <span>Generate New PIN</span>
-          </Button>
-        ) : (
+        {newPin ? (
           <>
             <Button
               onClick={onCopyPin}
@@ -118,15 +109,16 @@ export function PINGenerator({
                 </>
               )}
             </Button>
-            <Button
-              onClick={onGeneratePin}
-              variant="outline"
-              className="flex items-center justify-center gap-2"
-            >
-              <Wand2 size={18} />
-              <span>Generate New</span>
-            </Button>
           </>
+        ) : (
+          <Button
+            onClick={onGeneratePin}
+            variant="default"
+            className="flex-1 flex items-center justify-center gap-2"
+          >
+            <Wand2 size={18} />
+            <span>Generate New PIN</span>
+          </Button>
         )}
       </div>
 

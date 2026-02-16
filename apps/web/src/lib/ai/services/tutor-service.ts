@@ -56,16 +56,29 @@ import { authLogger } from "@/lib/auth-logger";
 import { aiProviderBreakers } from "@/lib/circuit-breaker";
 import { getLanguageLabelForAI } from "@/lib/form-utils";
 
+// BP-15 FIX: Extract hardcoded timeout to named constant
+const AI_REQUEST_TIMEOUT_MS = 60000;
+
 /**
  * Supported languages
  */
 export type TutorLanguage = "en" | "hi" | "as";
 
 /**
+ * Message role in a chat conversation
+ */
+export type TutorMessageRole = "user" | "assistant" | "system";
+
+/**
+ * Input mode for chat messages
+ */
+export type TutorInputMode = "text" | "voice";
+
+/**
  * Chat message structure
  */
 export interface TutorMessage {
-  role: "user" | "assistant" | "system";
+  role: TutorMessageRole;
   content: string;
 }
 
@@ -80,7 +93,7 @@ export interface TutorChatRequest {
   moduleId?: string;
   language: TutorLanguage;
   conversationHistory?: TutorMessage[];
-  inputMode?: "text" | "voice";
+  inputMode?: TutorInputMode;
 }
 
 /**
@@ -170,7 +183,7 @@ export class TutorService {
     // This prevents cascading failures if the AI provider is down
     const breaker = aiProviderBreakers.getBreaker("tutor-chat", {
       failureThreshold: 5,
-      timeout: 60000,
+      timeout: AI_REQUEST_TIMEOUT_MS,
       onStateChange: (state) => {
         if (state === "OPEN") {
           authLogger.error(
@@ -254,7 +267,7 @@ export class TutorService {
     // Generate response with circuit breaker protection
     const breaker = aiProviderBreakers.getBreaker("tutor-generate", {
       failureThreshold: 5,
-      timeout: 60000,
+      timeout: AI_REQUEST_TIMEOUT_MS,
     });
 
     const result = await breaker.execute(() =>
@@ -306,7 +319,7 @@ export class TutorService {
 
     const breaker = aiProviderBreakers.getBreaker("tutor-feedback", {
       failureThreshold: 5,
-      timeout: 60000,
+      timeout: AI_REQUEST_TIMEOUT_MS,
     });
 
     const result = await breaker.execute(() =>
@@ -316,10 +329,10 @@ export class TutorService {
         messages: [
           {
             role: "user",
-            content: `Question: ${params.question}
-Student's Answer: ${params.studentAnswer}
+            content: `<question>${params.question.slice(0, 2000)}</question>
+<student_answer>${params.studentAnswer.slice(0, 500)}</student_answer>
 Was it correct? ${params.isCorrect ? "Yes" : "No"}
-${!params.isCorrect ? `Correct answer hint: The answer relates to "${params.correctAnswer.substring(0, 20)}..."` : ""}
+${params.isCorrect ? "" : `Correct answer hint: The answer relates to "${params.correctAnswer.slice(0, 20)}..."`}
 
 Please provide encouraging feedback.`,
           },
@@ -354,7 +367,7 @@ Please provide encouraging feedback.`,
 
     const breaker = aiProviderBreakers.getBreaker("tutor-hint", {
       failureThreshold: 5,
-      timeout: 60000,
+      timeout: AI_REQUEST_TIMEOUT_MS,
     });
 
     const result = await breaker.execute(() =>
@@ -366,7 +379,7 @@ Language: ${getLanguageLabelForAI(params.language)}`,
         messages: [
           {
             role: "user",
-            content: `Question: ${params.question}
+            content: `<question>${params.question.slice(0, 2000)}</question>
 Context: ${context}
 Previous attempts: ${params.previousAttempts}
 
@@ -387,9 +400,9 @@ Provide a ${hintLevel} to help the student.`,
     studentId: string;
     sessionId: string;
     topicId?: string;
-    messageRole: "user" | "assistant" | "system";
+    messageRole: TutorMessageRole;
     messageContent: string;
-    inputMode: "text" | "voice";
+    inputMode: TutorInputMode;
     language: TutorLanguage;
     tokensUsed: number;
     responseTimeMs: number;
@@ -397,7 +410,7 @@ Provide a ${hintLevel} to help the student.`,
     try {
       const supabase = await createClient();
 
-      await supabase.from("ai_tutor_interactions").insert({
+      const { error: insertError } = await supabase.from("ai_tutor_interactions").insert({
         student_id: params.studentId,
         session_id: params.sessionId,
         topic_id: params.topicId,
@@ -408,6 +421,9 @@ Provide a ${hintLevel} to help the student.`,
         tokens_used: params.tokensUsed,
         response_time_ms: params.responseTimeMs,
       });
+      if (insertError) {
+        authLogger.error("[Tutor] Error logging interaction:", insertError);
+      }
     } catch (error) {
       authLogger.error("[Tutor] Error logging interaction:", error);
     }
@@ -420,16 +436,18 @@ Provide a ${hintLevel} to help the student.`,
     try {
       const supabase = await createClient();
 
+      // PERF-2 FIX: Limit history to prevent unbounded growth
       const { data, error } = await supabase
         .from("ai_tutor_interactions")
         .select("message_role, message_content")
         .eq("session_id", sessionId)
-        .order("created_at", { ascending: true });
+        .order("created_at", { ascending: true })
+        .limit(200);
 
       if (error) throw error;
 
       return (data || []).map((row) => ({
-        role: row.message_role as "user" | "assistant" | "system",
+        role: row.message_role as TutorMessageRole,
         content: row.message_content,
       }));
     } catch (error) {

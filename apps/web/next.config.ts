@@ -13,16 +13,19 @@ const pwaConfig = withPWA({
   },
   runtimeCaching: [
     {
-      // Cache API routes
-      urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
+      // Cache Supabase REST API only (exclude /auth/ endpoints to prevent caching tokens)
+      urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
       handler: 'NetworkFirst',
       options: {
         cacheName: 'supabase-api',
         expiration: {
           maxEntries: 64,
-          maxAgeSeconds: 24 * 60 * 60, // 24 hours
+          maxAgeSeconds: 5 * 60, // 5 minutes (was 24h - reduced to prevent stale auth data)
         },
         networkTimeoutSeconds: 10,
+        cacheableResponse: {
+          statuses: [200],
+        },
       },
     },
     {
@@ -65,11 +68,47 @@ const pwaConfig = withPWA({
 })
 
 const nextConfig: NextConfig = {
+  // Next.js 16 has Turbopack enabled by default
+  // Empty turbopack config silences the webpack/turbopack conflict warning
+  // This allows the build to proceed while Sentry uses its webpack plugin
+  turbopack: {},
+
   // Next.js 16 has instrumentation enabled by default
   // No experimental flags needed for Sentry integration
 
-  // Security headers configuration
+  // Image optimization configuration
+  // Allow images from Supabase storage (lesson-assets bucket)
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'hnlsqznoviwnyrkskfay.supabase.co',
+        pathname: '/storage/v1/object/**',
+      },
+    ],
+  },
+
+  // Optimize package imports for faster builds and smaller bundles
+  // Per Vercel React Best Practices: https://vercel.com/blog/introducing-react-best-practices
+  experimental: {
+    optimizePackageImports: [
+      'lucide-react',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-tooltip',
+      '@radix-ui/react-slot',
+      'sonner',
+      'date-fns',
+    ],
+  },
+
+  // Security headers configuration (disabled in development for hot reload)
   async headers() {
+    // Skip CSP in development - Next.js needs inline scripts for hot reload
+    if (process.env.NODE_ENV === 'development') {
+      return [];
+    }
+
     return [
       {
         source: '/:path*',
@@ -81,15 +120,14 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              // Script src: self only (Next.js handles bundling, no unsafe-inline)
-              "script-src 'self' cdn.jsdelivr.net fonts.googleapis.com",
-              // Style src: self + unsafe-inline only for Tailwind/CSS-in-JS generated styles
-              // These are generated at build time, not dynamic user content
-              "style-src 'self' 'unsafe-inline' fonts.googleapis.com cdn.jsdelivr.net",
+              // Script src: self + Google Fonts only (cdn.jsdelivr.net removed - not used, supply chain risk)
+              "script-src 'self' fonts.googleapis.com",
+              // Style src: self + unsafe-inline for Tailwind/CSS-in-JS generated styles
+              "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
               "font-src 'self' fonts.gstatic.com data:",
-              "img-src 'self' data: https: blob:",
-              // WebSocket connections for real-time features
-              "connect-src 'self' https: wss:",
+              "img-src 'self' data: blob: https://*.supabase.co",
+              // Restrict connections to known API domains only
+              "connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com https://api.groq.com https://texttospeech.googleapis.com https://*.aiplatform.googleapis.com https://*.ingest.sentry.io wss://*.supabase.co",
               // No embedding in iframes
               "frame-ancestors 'self'",
               // Form submissions only to same origin
@@ -127,7 +165,7 @@ const nextConfig: NextConfig = {
           // Referrer Policy - privacy
           {
             key: 'Referrer-Policy',
-            value: 'strict-no-referrer'
+            value: 'strict-origin-when-cross-origin'
           },
           // Permissions Policy - control browser features
           {
@@ -138,7 +176,7 @@ const nextConfig: NextConfig = {
               'geolocation=()',
               'gyroscope=()',
               'magnetometer=()',
-              'microphone=()',
+              'microphone=(self)',
               'payment=()',
               'usb=()'
             ].join(', ')
@@ -146,7 +184,7 @@ const nextConfig: NextConfig = {
           // Disable caching for sensitive content
           {
             key: 'Cache-Control',
-            value: 'public, max-age=3600, must-revalidate'
+            value: 'private, no-cache, must-revalidate'
           }
         ],
       }

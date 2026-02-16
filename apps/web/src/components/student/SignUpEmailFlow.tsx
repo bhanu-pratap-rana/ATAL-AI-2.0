@@ -33,39 +33,31 @@ import { formatTimeTidyCompact } from "@/lib/time-utils";
 const RESEND_COOLDOWN_SECONDS = 60;
 
 /**
- * Get resend button CSS classes based on state
+ * Resend button state constants - S2301 compliance (no boolean params)
  */
-function getResendButtonClass(
-  resendCooldown: number,
-  isResending: boolean,
-): string {
-  if (resendCooldown > 0 || isResending) {
-    return "text-text-muted cursor-not-allowed";
-  }
-  return "text-primary hover:text-primary-dark hover:underline";
-}
+const RESEND_BUTTON = {
+  class: {
+    disabled: "text-text-muted cursor-not-allowed",
+    enabled: "text-primary hover:text-primary-dark hover:underline",
+  },
+  icon: {
+    active: "h-4 w-4 animate-spin",
+    idle: "h-4 w-4",
+  },
+  text: {
+    sending: "Sending...",
+    idle: "Resend OTP",
+  },
+} as const;
 
 /**
- * Get resend button text based on state
+ * Get resend button text with cooldown formatting
  */
-function getResendButtonText(
-  isResending: boolean,
-  resendCooldown: number,
-): string {
-  if (isResending) {
-    return "Sending...";
+function formatResendText(cooldown: number): string {
+  if (cooldown > 0) {
+    return `Resend OTP in ${formatTimeTidyCompact(cooldown)}`;
   }
-  if (resendCooldown > 0) {
-    return `Resend OTP in ${formatTimeTidyCompact(resendCooldown)}`;
-  }
-  return "Resend OTP";
-}
-
-/**
- * Get icon class for resend button
- */
-function getResendIconClass(isResending: boolean): string {
-  return isResending ? "h-4 w-4 animate-spin" : "h-4 w-4";
+  return RESEND_BUTTON.text.idle;
 }
 
 interface SignUpEmailFlowProps {
@@ -118,7 +110,11 @@ export function SignUpEmailFlow({
       } else {
         toast.error(result.error || "Failed to resend OTP");
       }
-    } catch (_error) {
+    } catch (error) {
+      authLogger.error(
+        "[SignUpEmailFlow] Failed to resend OTP",
+        error instanceof Error ? error : new Error(String(error))
+      );
       toast.error("Failed to resend OTP");
     } finally {
       setIsResending(false);
@@ -140,7 +136,10 @@ export function SignUpEmailFlow({
 
     try {
       const result = await requestOtp(state.signupEmailAddress.trim());
-      if (!result.success) {
+      if (result.success) {
+        toast.success("OTP sent to your email!");
+        actions.setSignupEmailOtpSent(true);
+      } else {
         // SECURITY FIX: Don't differentiate email enumeration responses
         // All error responses are generic for security (prevents email enumeration attacks)
         // The generic error message already suggests checking inbox or creating account
@@ -155,9 +154,6 @@ export function SignUpEmailFlow({
           result.error ||
             "Failed to send OTP. If this email is registered, check your inbox for a login link.",
         );
-      } else {
-        toast.success("OTP sent to your email!");
-        actions.setSignupEmailOtpSent(true);
       }
     } catch (error) {
       authLogger.error(
@@ -275,7 +271,7 @@ export function SignUpEmailFlow({
           disabled={isLoading || !state.signupEmailAddress}
           loading={isLoading}
         >
-          Send OTP
+          <span>Send OTP</span>
           <span className="ml-2">→</span>
         </Button>
       </form>
@@ -351,7 +347,7 @@ export function SignUpEmailFlow({
         }
         loading={isLoading}
       >
-        Create Account
+        <span>Create Account</span>
         <span className="ml-2">→</span>
       </Button>
 
@@ -361,10 +357,10 @@ export function SignUpEmailFlow({
           type="button"
           onClick={handleResendOtp}
           disabled={isLoading || isResending || resendCooldown > 0}
-          className={`flex items-center gap-2 text-sm transition-colors ${getResendButtonClass(resendCooldown, isResending)}`}
+          className={`flex items-center gap-2 text-sm transition-colors ${resendCooldown > 0 || isResending ? RESEND_BUTTON.class.disabled : RESEND_BUTTON.class.enabled}`}
         >
-          <RefreshCw className={getResendIconClass(isResending)} />
-          {getResendButtonText(isResending, resendCooldown)}
+          <RefreshCw className={isResending ? RESEND_BUTTON.icon.active : RESEND_BUTTON.icon.idle} />
+          {isResending ? RESEND_BUTTON.text.sending : formatResendText(resendCooldown)}
         </button>
       </div>
 

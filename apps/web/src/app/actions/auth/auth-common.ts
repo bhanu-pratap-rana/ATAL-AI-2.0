@@ -5,6 +5,7 @@ import {
 } from "@/lib/auth-constants";
 import { isValidEmailDomain } from "@/lib/email-validation";
 import { authLogger } from "@/lib/auth-logger";
+import { RATE_LIMIT_ERRORS } from "@/lib/constants/error-messages";
 
 /**
  * Shared authentication utilities and helpers
@@ -97,6 +98,9 @@ export function validateEmailSecurity(
   return { valid: true };
 }
 
+// UNUSED-003 FIX: Removed duplicate maskEmail function
+// Use import { maskEmail } from "@/lib/masking-utils" instead
+
 /**
  * Helper: Handle Supabase OTP request errors
  */
@@ -111,7 +115,7 @@ export function handleOtpRequestError(error: {
   });
 
   if (error.message.includes("rate limit")) {
-    return "Too many requests. Please wait a few minutes and try again.";
+    return RATE_LIMIT_ERRORS.WAIT_FEW_MINUTES;
   }
   if (
     error.message.includes("Email provider") ||

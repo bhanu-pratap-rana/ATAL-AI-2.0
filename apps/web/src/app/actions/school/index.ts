@@ -10,10 +10,7 @@ export { verifyTeacher } from "./teacher-verification";
 export { searchSchools, getSchoolByCode } from "./school-search";
 
 // Staff PIN management
-export {
-  rotateStaffPin,
-  getStaffPinRotationInfo,
-} from "./staff-pin-management";
+export { rotateStaffPin } from "./staff-pin-management";
 
 // Admin authorization
 export { checkAdminAuth } from "./admin-auth";

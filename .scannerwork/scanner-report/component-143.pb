@@ -1,1 +1,0 @@
-è 2tsXphr6apps/web/src/components/errors/GlobalErrorBoundary.tsx

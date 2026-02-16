@@ -6,6 +6,7 @@ import { checkTeacherMutationRateLimit } from "@/lib/rate-limiter-distributed";
 import { authLogger } from "@/lib/auth-logger";
 import { handleZodError } from "@/lib/action-error-handler";
 import { EnrollmentSchema } from "@/lib/validation-schemas";
+import { RATE_LIMIT_ERRORS } from "@/lib/constants/error-messages";
 
 /**
  * Student enrollment management for teacher classes
@@ -39,7 +40,7 @@ export async function enrollStudent(classId: string, studentId: string) {
       });
       return {
         success: false,
-        error: "Too many requests. Please try again later.",
+        error: RATE_LIMIT_ERRORS.TOO_MANY_REQUESTS,
       };
     }
 
@@ -101,7 +102,7 @@ export async function removeStudent(classId: string, studentId: string) {
       });
       return {
         success: false,
-        error: "Too many requests. Please try again later.",
+        error: RATE_LIMIT_ERRORS.TOO_MANY_REQUESTS,
       };
     }
 

@@ -16,7 +16,8 @@ interface DeleteUserFormProps {
     readonly text: string;
   } | null;
   readonly onEmailChange: (email: string) => void;
-  readonly onDelete: () => Promise<void>;
+  // SEC-002 FIX: Updated to accept sync function (opens confirmation dialog)
+  readonly onDelete: () => void;
 }
 
 export function DeleteUserForm({

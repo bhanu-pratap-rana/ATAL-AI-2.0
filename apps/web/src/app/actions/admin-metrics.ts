@@ -1,11 +1,38 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase-server";
-import { fetchAllAuthUsers, verifyAdminAuthAndRateLimit } from "@/lib/admin-utils";
+import { fetchAllAuthUsers, findAuthUserById, verifyAdminAuthAndRateLimit } from "@/lib/admin-utils";
 import { authLogger } from "@/lib/auth-logger";
 import { RATE_LIMITS } from "@/lib/constants/rate-limits";
 import { queryCache } from "@/lib/cache/query-cache";
 import type { SupabaseAuthUser } from "@/types/auth";
+
+/**
+ * PERFORMANCE: Batch fetch auth users by IDs using parallel getUserById calls
+ * This is O(k) where k is the number of IDs, vs O(n) for fetchAllAuthUsers where n is total users
+ * For 50 teachers out of 1000+ total users, this is 20x faster
+ */
+async function batchFetchAuthUsersByIds(
+  adminClient: Awaited<ReturnType<typeof createAdminClient>>,
+  userIds: string[],
+): Promise<Map<string, SupabaseAuthUser>> {
+  const userMap = new Map<string, SupabaseAuthUser>();
+
+  if (userIds.length === 0) return userMap;
+
+  // Use Promise.allSettled for fault tolerance - failed lookups don't break the batch
+  const results = await Promise.allSettled(
+    userIds.map((id) => findAuthUserById(adminClient, id)),
+  );
+
+  results.forEach((result, index) => {
+    if (result.status === "fulfilled" && result.value) {
+      userMap.set(userIds[index], result.value);
+    }
+  });
+
+  return userMap;
+}
 
 export interface DashboardMetrics {
   totalSchools: number;
@@ -44,7 +71,7 @@ async function fetchDashboardMetricsFromDB(): Promise<DashboardMetrics> {
     { count: schoolCount, error: schoolError },
     { count: profileCount, error: teacherError },
     { count: activePinCount, error: activePinError },
-    { count: inactivePinCount, error: inactivePinError },
+    { data: allCredentials, error: credentialsError },
     { count: studentProfileCount, error: studentError },
     authUsersResult,
   ] = await Promise.all([
@@ -62,11 +89,10 @@ async function fetchDashboardMetricsFromDB(): Promise<DashboardMetrics> {
       .select("*", { count: "exact", head: true })
       .is("deleted_at", null),
 
-    // Query 4: Get inactive PINs (deleted_at is NOT NULL)
+    // Query 4: Get all schools with ANY credential (to calculate schools without PINs)
     supabase
       .from("school_staff_credentials")
-      .select("*", { count: "exact", head: true })
-      .not("deleted_at", "is", null),
+      .select("school_id"),
 
     // Query 5: Get student count from student_profiles table
     supabase
@@ -129,7 +155,12 @@ async function fetchDashboardMetricsFromDB(): Promise<DashboardMetrics> {
   }
 
   const activePins = activePinCount || 0;
-  const inactivePins = inactivePinCount || 0;
+
+  // Calculate schools without PINs: total schools - schools with any credential
+  const schoolsWithPINs = new Set(
+    (allCredentials || []).map((c: { school_id: string }) => c.school_id),
+  ).size;
+  const inactivePins = Math.max(0, (schoolCount || 0) - schoolsWithPINs);
 
   if (activePinError) {
     authLogger.error(
@@ -137,10 +168,10 @@ async function fetchDashboardMetricsFromDB(): Promise<DashboardMetrics> {
       activePinError,
     );
   }
-  if (inactivePinError) {
+  if (credentialsError) {
     authLogger.error(
-      "[getDashboardMetrics] Failed to get inactive PIN count",
-      inactivePinError,
+      "[getDashboardMetrics] Failed to get credentials for inactive PIN count",
+      credentialsError,
     );
   }
 
@@ -148,6 +179,7 @@ async function fetchDashboardMetricsFromDB(): Promise<DashboardMetrics> {
   let adminCount = 0;
   let authTeacherCount = 0;
   const authUsers = authUsersResult.authUsers;
+  // TypeScript fix: Use explicit null check instead of non-null assertion
   if (authUsers && authUsers.length > 0) {
     // Count admins (admin or super_admin role)
     adminCount = authUsers.filter(
@@ -309,6 +341,13 @@ export async function getSchoolStatsByDistrict(): Promise<{
         }) => schoolIdSet.has(m.school_id),
       ) || [];
 
+    // PERFORMANCE FIX: Build Map for O(1) district lookups instead of O(n) find() in loop
+    // Previously: O(n*m) where n=metrics, m=schools
+    // Now: O(n+m) - build map once, then O(1) lookups
+    const schoolDistrictMap = new Map(
+      schoolData.map((s) => [s.id, s.district || "Unknown"]),
+    );
+
     // Build results from RPC response
     const schoolStats: SchoolStats[] = filteredMetrics.map(
       (metrics: {
@@ -321,9 +360,7 @@ export async function getSchoolStatsByDistrict(): Promise<{
       }) => ({
         schoolId: metrics.school_id,
         schoolName: metrics.school_name,
-        districtName:
-          schoolData.find((s) => s.id === metrics.school_id)?.district ||
-          "Unknown",
+        districtName: schoolDistrictMap.get(metrics.school_id) || "Unknown",
         teacherCount: Number(metrics.teacher_count),
         studentCount: Number(metrics.student_count),
         pinCount: Number(metrics.active_pin_count) > 0 ? 1 : 0,
@@ -396,6 +433,10 @@ export async function getSchoolsWithActivePINs(): Promise<{
 
     // Get school details for schools with PINs
     const schoolIds = pins.map((p) => p.school_id);
+    // BUG-018: Supabase .in() with empty array returns unexpected results
+    if (schoolIds.length === 0) {
+      return { success: true, data: [] };
+    }
     const { data: schools, error: schoolError } = await supabase
       .from("schools")
       .select("id, school_name, school_code, district")
@@ -559,20 +600,24 @@ export async function getAllSchools(): Promise<{
 
     const supabase = await createAdminClient();
 
-    const { data: schools, error } = await supabase
-      .from("schools")
-      .select("id, school_name, school_code, district, block")
-      .order("school_name");
+    // PERF-008 FIX: Parallelize independent queries with Promise.all
+    // Previously: Sequential queries for schools and PINs
+    // Now: Concurrent execution
+    const [schoolsResult, pinsResult] = await Promise.all([
+      supabase
+        .from("schools")
+        .select("id, school_name, school_code, district, block")
+        .order("school_name"),
+      supabase.from("school_staff_credentials").select("school_id"),
+    ]);
+
+    const { data: schools, error } = schoolsResult;
+    const { data: pins } = pinsResult;
 
     if (error) {
       authLogger.error("[getAllSchools] Failed to get schools", error);
       return { success: false, error: "Failed to fetch schools" };
     }
-
-    // Get schools with PINs
-    const { data: pins } = await supabase
-      .from("school_staff_credentials")
-      .select("school_id");
 
     const schoolsWithPINs = new Set(
       (pins || []).map((p: { school_id: string }) => p.school_id),
@@ -653,7 +698,7 @@ export async function getAllTeachers(): Promise<{
     }
 
     // Type for profile data with joined school
-    // Note: Supabase's TypeScript types don't properly infer joined relations.
+    // Note: Supabase PostgREST returns many-to-one joins as a single object (not array).
     // schools!inner guarantees schools is never null (INNER JOIN behavior)
     interface TeacherProfileData {
       user_id: string;
@@ -661,34 +706,28 @@ export async function getAllTeachers(): Promise<{
       phone: string | null;
       school_code: string;
       created_at: string;
-      schools: Array<{ school_name: string }>;
+      schools: { school_name: string } | null;
     }
 
-    // OPTIMIZATION: Fetch auth users and build map of only the IDs we need
-    // This prevents N+1 query problem where we fetched all 1000+ auth users just to match emails
-    const teacherProfiles = (profiles as TeacherProfileData[]) ?? [];
-    const teacherIds = new Set(teacherProfiles.map((p) => p.user_id));
+    // PERFORMANCE FIX: Use batch fetch instead of fetchAllAuthUsers
+    // Previously: Fetched ALL 1000+ auth users, then filtered to ~50 teachers (O(n))
+    // Now: Parallel getUserById for only the teacher IDs we need (O(k) where k << n)
+    //
+    // Note: Supabase PostgREST returns many-to-one joins (schools!inner) as a single
+    // object at runtime, but TypeScript infers it as an array. Cast through unknown.
+    const teacherProfiles = (profiles as unknown as TeacherProfileData[]) ?? [];
+    const teacherIds = teacherProfiles.map((p) => p.user_id);
 
     const adminClient = await createAdminClient();
-    const allAuthUsers = await fetchAllAuthUsers(adminClient);
-
-    // Create map of only the auth users we need (teachers in this instance)
-    const userMap = new Map<string, SupabaseAuthUser>();
-    allAuthUsers.forEach((u: SupabaseAuthUser) => {
-      if (teacherIds.has(u.id)) {
-        userMap.set(u.id, u);
-      }
-    });
+    const userMap = await batchFetchAuthUsersByIds(adminClient, teacherIds);
 
     // Type-safe profile validation - filter and validate in one pass
-    const result = (profiles ?? [])
-      .filter((profile): profile is TeacherProfileData => {
-        // Validate required fields exist
-        // INNER JOIN guarantees schools is not empty, but check first element
+    const result = teacherProfiles
+      .filter((profile) => {
         if (!profile || typeof profile !== "object") return false;
         if (typeof profile.user_id !== "string") return false;
-        if (!Array.isArray(profile.schools)) return false;
-        if (profile.schools.length === 0 || !profile.schools[0]?.school_name) {
+        // schools is a single object (many-to-one join), not an array
+        if (!profile.schools || !profile.schools.school_name) {
           authLogger.warn(
             "[getAllTeachers] Skipping profile with missing school data",
             {
@@ -707,7 +746,7 @@ export async function getAllTeachers(): Promise<{
           email: authUser?.email || "",
           name: profile.name || "Unknown",
           phone: profile.phone || null,
-          schoolName: profile.schools?.[0]?.school_name || "Unknown", // Safe access with fallback
+          schoolName: profile.schools?.school_name || "Unknown",
           schoolCode: profile.school_code || "N/A",
           createdAt: profile.created_at,
         };
@@ -785,20 +824,13 @@ export async function getAllStudents(): Promise<{
       created_at: string;
     }
 
-    // OPTIMIZATION: Fetch auth users and build map of only the IDs we need
-    // This prevents N+1 query problem where we fetched all 1000+ auth users just to match emails
+    // PERFORMANCE FIX: Use batch fetch instead of fetchAllAuthUsers
+    // Previously: Fetched ALL 1000+ auth users, then filtered to ~100 students (O(n))
+    // Now: Parallel getUserById for only the student IDs we need (O(k) where k << n)
     const typedProfiles = (profiles as StudentProfileData[]) ?? [];
-    const studentIds = new Set(typedProfiles.map((p) => p.user_id));
+    const studentIds = typedProfiles.map((p) => p.user_id);
 
-    const allAuthUsers = await fetchAllAuthUsers(supabase);
-
-    // Create map of only the auth users we need (students in this instance)
-    const userMap = new Map<string, SupabaseAuthUser>();
-    allAuthUsers.forEach((u: SupabaseAuthUser) => {
-      if (studentIds.has(u.id)) {
-        userMap.set(u.id, u);
-      }
-    });
+    const userMap = await batchFetchAuthUsersByIds(supabase, studentIds);
     const result = typedProfiles
       .filter((profile): profile is StudentProfileData => {
         // Validate required fields exist before processing
@@ -868,11 +900,19 @@ export async function getSchoolsWithoutPINs(): Promise<{
 
     const supabase = await createAdminClient();
 
-    // Get all schools
-    const { data: schools, error: schoolError } = await supabase
-      .from("schools")
-      .select("id, school_name, school_code, district")
-      .order("school_name");
+    // PERF-009 FIX: Parallelize independent queries with Promise.all
+    // Previously: Sequential queries for schools and PINs
+    // Now: Concurrent execution
+    const [schoolsResult, pinsResult] = await Promise.all([
+      supabase
+        .from("schools")
+        .select("id, school_name, school_code, district")
+        .order("school_name"),
+      supabase.from("school_staff_credentials").select("school_id"),
+    ]);
+
+    const { data: schools, error: schoolError } = schoolsResult;
+    const { data: pins } = pinsResult;
 
     if (schoolError) {
       authLogger.error(
@@ -881,11 +921,6 @@ export async function getSchoolsWithoutPINs(): Promise<{
       );
       return { success: false, error: "Failed to fetch schools" };
     }
-
-    // Get schools with PINs
-    const { data: pins } = await supabase
-      .from("school_staff_credentials")
-      .select("school_id");
 
     const schoolsWithPINs = new Set(
       (pins || []).map((p: { school_id: string }) => p.school_id),

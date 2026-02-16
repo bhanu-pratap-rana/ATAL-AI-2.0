@@ -40,8 +40,18 @@ export function StepIndicator({
     }
   };
 
+  // A11Y-004 FIX: Calculate current step number for screen readers
+  const currentStepNumber = currentStep === "delete" ? 1 : 2;
+  const totalSteps = 2;
+
   return (
-    <div className="flex gap-4">
+    // A11Y-004 FIX: Added role="region" and aria-label for container,
+    // and aria-current for current step indication
+    <nav
+      className="flex gap-4"
+      role="navigation"
+      aria-label={`Admin account management steps, currently on step ${currentStepNumber} of ${totalSteps}`}
+    >
       <button
         type="button"
         className={`flex-1 p-3 rounded-lg text-center cursor-pointer transition ${
@@ -52,6 +62,7 @@ export function StepIndicator({
         onClick={handleDeleteClick}
         onKeyDown={handleDeleteKeyDown}
         aria-label="Step 1: Delete admin account"
+        aria-current={currentStep === "delete" ? "step" : undefined}
       >
         <p className="text-sm font-semibold">Step 1: Delete</p>
       </button>
@@ -65,9 +76,10 @@ export function StepIndicator({
         onClick={handleCreateClick}
         onKeyDown={handleCreateKeyDown}
         aria-label="Step 2: Create admin account"
+        aria-current={currentStep === "create" ? "step" : undefined}
       >
         <p className="text-sm font-semibold">Step 2: Create</p>
       </button>
-    </div>
+    </nav>
   );
 }

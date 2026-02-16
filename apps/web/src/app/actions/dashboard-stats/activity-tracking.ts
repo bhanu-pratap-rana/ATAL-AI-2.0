@@ -68,7 +68,8 @@ async function getAssessmentActivities(
   const { data: allResponses, error: responseError } = await supabase
     .from("assessment_responses")
     .select("session_id, is_correct")
-    .in("session_id", sessionIds);
+    .in("session_id", sessionIds)
+    .limit(2500);
 
   if (responseError) {
     authLogger.error(
@@ -125,10 +126,15 @@ async function getClassJoinActivities(
 
   const activities: RecentActivity[] = [];
   for (const enrollment of enrollments) {
-    const className =
-      enrollment.classes && typeof enrollment.classes === "object" && "name" in enrollment.classes
-        ? String(enrollment.classes.name)
-        : "Unknown Class";
+    // Extract class name safely - S4619: use Object.hasOwn for property check
+    const classes = enrollment.classes;
+    let className = "Unknown Class";
+    if (classes && typeof classes === "object" && !Array.isArray(classes)) {
+      const classObj = classes as Record<string, unknown>;
+      if (Object.hasOwn(classObj, "name") && typeof classObj.name === "string") {
+        className = classObj.name;
+      }
+    }
     activities.push({
       id: enrollment.id,
       type: "class_join",

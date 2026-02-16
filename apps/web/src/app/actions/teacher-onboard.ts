@@ -11,6 +11,7 @@ import {
   checkOtpRateLimit,
   checkTeacherOnboardRateLimit,
 } from "@/lib/rate-limiter-distributed";
+import { RATE_LIMIT_ERRORS } from "@/lib/constants/error-messages";
 
 // Types
 export interface SendEmailOtpResult {
@@ -76,18 +77,134 @@ export async function sendEmailOtp(email: string): Promise<SendEmailOtpResult> {
       };
     }
 
-    // First check if email already exists using the reliable auth check
-    // This works without service role key by checking the users table with RLS
+    // CRITICAL: Check if email already exists in auth system
+    // Prevent cross-role registration and handle incomplete registrations
     const emailCheck = await checkEmailExistsInAuth(trimmedEmail);
 
-    if (emailCheck.exists) {
-      authLogger.info("[sendEmailOtp] Email already registered", {
-        role: emailCheck.role,
+    authLogger.debug("[sendEmailOtp] checkEmailExistsInAuth result", {
+      email: trimmedEmail,
+      exists: emailCheck.exists,
+      role: emailCheck.role,
+      hasStudentProfile: emailCheck.hasStudentProfile,
+      hasTeacherProfile: emailCheck.hasTeacherProfile,
+    });
+
+    // BACKUP CHECK: Query public.users table directly
+    // This is more reliable than auth.users lookup
+    const adminClient = await createAdminClient();
+    const { data: userByEmail } = await adminClient
+      .from("users")
+      .select("id, email, role")
+      .eq("email", trimmedEmail)
+      .maybeSingle();
+
+    authLogger.debug("[sendEmailOtp] Direct users table check", {
+      email: trimmedEmail,
+      foundUser: !!userByEmail,
+      userRole: userByEmail?.role,
+    });
+
+    // If direct check finds a student in users table, block immediately
+    if (userByEmail && userByEmail.role === "student") {
+      authLogger.error(
+        "[sendEmailOtp] CRITICAL: Found student in users table - blocking teacher registration",
+        {
+          email: trimmedEmail,
+          userId: userByEmail.id,
+        },
+      );
+      return {
+        success: false,
+        error:
+          "This email is registered as a student account. Please use a different email for teacher registration, or reset your password if you forgot it.",
+        exists: true,
+      };
+    }
+
+    // If direct check finds a teacher, block re-registration
+    if (userByEmail && userByEmail.role === "teacher") {
+      authLogger.warn("[sendEmailOtp] Found teacher in users table", {
+        email: trimmedEmail,
       });
       return {
         success: false,
         error:
-          "This email is already registered. Please login with your email and password.",
+          "This email is already registered as a teacher. Please login with your email and password, or reset your password if you forgot it.",
+        exists: true,
+      };
+    }
+
+    if (emailCheck.exists) {
+      authLogger.warn("[sendEmailOtp] Email already exists in auth system", {
+        email: trimmedEmail,
+        role: emailCheck.role,
+        hasStudentProfile: emailCheck.hasStudentProfile,
+        hasTeacherProfile: emailCheck.hasTeacherProfile,
+      });
+
+      // CRITICAL: Block if user has ANY student indicator
+      // Check both profile existence AND app_metadata role
+      if (
+        emailCheck.hasStudentProfile ||
+        emailCheck.role === "student" ||
+        emailCheck.role === "unknown"
+      ) {
+        // If they have a student profile, definitely block
+        if (emailCheck.hasStudentProfile) {
+          authLogger.warn(
+            "[sendEmailOtp] Student with profile trying to register as teacher",
+            { email: trimmedEmail },
+          );
+          return {
+            success: false,
+            error:
+              "This email is registered as a student account. Please use a different email for teacher registration, or reset your password if you forgot it.",
+            exists: true,
+          };
+        }
+
+        // If role is student but no profile yet (incomplete registration),
+        // or role is unknown (auth.users exists but no profile), block anyway
+        authLogger.warn(
+          "[sendEmailOtp] Email exists with student/unknown role, blocking teacher registration",
+          {
+            email: trimmedEmail,
+            role: emailCheck.role,
+          },
+        );
+        return {
+          success: false,
+          error:
+            "This email is already registered. Please complete your existing registration or login. If you forgot your password, use the 'Forgot Password' link.",
+          exists: true,
+        };
+      }
+
+      // If email has teacher profile, they should login instead
+      if (emailCheck.hasTeacherProfile || emailCheck.role === "teacher") {
+        authLogger.info("[sendEmailOtp] Teacher trying to re-register", {
+          email: trimmedEmail,
+        });
+        return {
+          success: false,
+          error:
+            "This email is already registered as a teacher. Please login with your email and password, or reset your password if you forgot it.",
+          exists: true,
+        };
+      }
+
+      // Email exists but we couldn't determine role (should never happen)
+      // Block anyway to be safe
+      authLogger.error(
+        "[sendEmailOtp] Email exists but unable to determine role - blocking",
+        {
+          email: trimmedEmail,
+        },
+      );
+      return {
+        success: false,
+        error:
+          "This email is already registered. Please login with your email and password, or reset your password if you forgot it.",
         exists: true,
       };
     }
@@ -203,7 +320,7 @@ export async function setPassword(
       authLogger.warn("[setPassword] Rate limit exceeded", { userId: user.id });
       return {
         success: false,
-        error: "Too many requests. Please try again later.",
+        error: RATE_LIMIT_ERRORS.TOO_MANY_REQUESTS,
       };
     }
 
@@ -266,7 +383,7 @@ export async function saveTeacherProfile({
       });
       return {
         success: false,
-        error: "Too many requests. Please try again later.",
+        error: RATE_LIMIT_ERRORS.TOO_MANY_REQUESTS,
       };
     }
 
@@ -385,7 +502,7 @@ export async function updateTeacherProfile({
       });
       return {
         success: false,
-        error: "Too many requests. Please try again later.",
+        error: RATE_LIMIT_ERRORS.TOO_MANY_REQUESTS,
       };
     }
 
@@ -453,7 +570,7 @@ export async function getTeacherProfile() {
     const { data: profile, error } = await supabase
       .from("teacher_profiles")
       .select(
-        "user_id, name, phone, school_id, school_code, created_at, updated_at",
+        "user_id, name, phone, school_id, school_code, gender, subject, village, created_at, updated_at",
       )
       .eq("user_id", user.id)
       .maybeSingle();

@@ -12,7 +12,6 @@ interface Class {
   class_code: string;
   teacher_id: string;
   created_at: string;
-  [key: string]: unknown;
 }
 
 interface TeacherData {
@@ -23,10 +22,10 @@ async function getTeacherData(userId: string): Promise<TeacherData> {
   try {
     const supabase = await createClient();
 
-    // Fetch classes
+    // PERF-004 FIX: Select only needed columns instead of SELECT *
     const { data: classes, error } = await supabase
       .from("classes")
-      .select("*")
+      .select("id, name, class_code, teacher_id, created_at")
       .eq("teacher_id", userId)
       .order("created_at", { ascending: false });
 
