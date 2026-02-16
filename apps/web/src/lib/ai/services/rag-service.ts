@@ -8,17 +8,13 @@
  * - Vector similarity search using inner product (faster for normalized embeddings)
  * - Language and topic filtering
  * - Hybrid search option (vector + keyword)
- * - Google text-embedding-004 for embeddings (768 dimensions)
+ * - Google embedding model configured via AI_PROVIDERS in ai-config.ts
  */
 
 import { createClient } from "@/lib/supabase-server";
 import { authLogger } from "@/lib/auth-logger";
+import { AI_PROVIDERS } from "@/lib/constants/ai-config";
 import type { SupportedLanguage, LanguageFilter } from "@/types/common";
-
-/**
- * Embedding dimensions for Google text-embedding-004
- */
-const EMBEDDING_DIMENSIONS = 768;
 
 /**
  * Match result from pgvector similarity search
@@ -374,8 +370,7 @@ export class CurriculumRAGService {
   }
 
   /**
-   * Get embedding for text using Google's text-embedding-004 model
-   * Returns 768-dimensional vector
+   * Get embedding for text using the configured Google embedding model
    */
   private async getEmbedding(text: string): Promise<number[]> {
     const apiKey =
@@ -387,8 +382,10 @@ export class CurriculumRAGService {
       );
     }
 
+    const { embeddingModel, embeddingDimensions, baseUrl } = AI_PROVIDERS.gemini;
+
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/text-embedding-004:embedContent`,
+      `${baseUrl}/models/${embeddingModel}:embedContent`,
       {
         method: "POST",
         headers: {
@@ -396,7 +393,7 @@ export class CurriculumRAGService {
           "x-goog-api-key": apiKey,
         },
         body: JSON.stringify({
-          model: "models/text-embedding-004",
+          model: `models/${embeddingModel}`,
           content: { parts: [{ text }] },
           taskType: "RETRIEVAL_QUERY",
         }),
@@ -406,7 +403,7 @@ export class CurriculumRAGService {
     if (!response.ok) {
       const errorData = await response.json().catch((e) => { authLogger.warn("[RAG] JSON parse failed on error response", e); return {}; });
       throw new Error(
-        `Embedding API error: ${response.status} - ${JSON.stringify(errorData)}`,
+        `Embedding API error (${embeddingModel}): ${response.status} - ${JSON.stringify(errorData)}`,
       );
     }
 
@@ -417,9 +414,9 @@ export class CurriculumRAGService {
     }
 
     // Verify dimensions
-    if (data.embedding.values.length !== EMBEDDING_DIMENSIONS) {
+    if (data.embedding.values.length !== embeddingDimensions) {
       authLogger.warn(
-        `[RAG] Unexpected embedding dimensions: ${data.embedding.values.length} (expected ${EMBEDDING_DIMENSIONS})`,
+        `[RAG] Unexpected embedding dimensions: ${data.embedding.values.length} (expected ${embeddingDimensions})`,
       );
     }
 
@@ -467,8 +464,10 @@ export class CurriculumRAGService {
       );
     }
 
+    const { embeddingModel, baseUrl } = AI_PROVIDERS.gemini;
+
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/text-embedding-004:embedContent`,
+      `${baseUrl}/models/${embeddingModel}:embedContent`,
       {
         method: "POST",
         headers: {
@@ -476,7 +475,7 @@ export class CurriculumRAGService {
           "x-goog-api-key": apiKey,
         },
         body: JSON.stringify({
-          model: "models/text-embedding-004",
+          model: `models/${embeddingModel}`,
           content: { parts: [{ text: content }] },
           taskType: "RETRIEVAL_DOCUMENT",
         }),
@@ -486,7 +485,7 @@ export class CurriculumRAGService {
     if (!response.ok) {
       const errorData = await response.json().catch((e) => { authLogger.warn("[RAG] JSON parse failed on error response", e); return {}; });
       throw new Error(
-        `Embedding API error: ${response.status} - ${JSON.stringify(errorData)}`,
+        `Embedding API error (${embeddingModel}): ${response.status} - ${JSON.stringify(errorData)}`,
       );
     }
 

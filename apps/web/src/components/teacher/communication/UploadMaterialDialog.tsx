@@ -18,7 +18,8 @@ import { Label } from "@/components/ui/label";
 import { uploadMaterial, uploadMaterialFile } from "@/app/actions/teacher";
 import { clientLogger } from "@/lib/client-logger";
 import type { MaterialType } from "@/lib/validation-schemas";
-import { getModules, getModuleName, type Module } from "@/lib/services/curriculum-service";
+import { getModules, type Module } from "@/lib/services/curriculum-service";
+import { getModuleName } from "@/lib/i18n";
 
 interface UploadMaterialDialogProps {
   readonly classId: string;

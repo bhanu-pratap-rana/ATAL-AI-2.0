@@ -435,20 +435,28 @@ export class AdaptiveLearningService {
       const supabase = await createClient();
 
       // Get all topics for module from curriculum_content
-      const { data: allTopics } = await supabase
+      const { data: allTopics, error: topicsError } = await supabase
         .from("curriculum_content")
         .select("topic_id")
         .eq("module_id", moduleId)
         .order("topic_id");
 
+      if (topicsError) {
+        authLogger.error("[Adaptive] Error fetching topics:", { error: topicsError.message });
+      }
+
       if (!allTopics) return null;
 
       // Get student's started topics
-      const { data: startedTopics } = await supabase
+      const { data: startedTopics, error: startedError } = await supabase
         .from("student_knowledge_state")
         .select("topic_id")
         .eq("student_id", studentId)
         .eq("module_id", moduleId);
+
+      if (startedError) {
+        authLogger.error("[Adaptive] Error fetching started topics:", { error: startedError.message });
+      }
 
       const startedSet = new Set(startedTopics?.map((t) => t.topic_id) || []);
 
@@ -481,11 +489,15 @@ export class AdaptiveLearningService {
     try {
       const supabase = await createClient();
 
-      const { data: states } = await supabase
+      const { data: states, error: statesError } = await supabase
         .from("student_knowledge_state")
         .select("mastery_score, status")
         .eq("student_id", studentId)
         .eq("module_id", moduleId);
+
+      if (statesError) {
+        authLogger.error("[Adaptive] Error fetching module progress:", { error: statesError.message });
+      }
 
       if (!states || states.length === 0) {
         return {
@@ -529,12 +541,16 @@ export class AdaptiveLearningService {
     try {
       const supabase = await createClient();
 
-      const { data: states } = await supabase
+      const { data: states, error: riskError } = await supabase
         .from("student_knowledge_state")
         .select("mastery_score, attempts")
         .eq("student_id", studentId)
         .eq("module_id", moduleId)
         .gt("attempts", 3);
+
+      if (riskError) {
+        authLogger.error("[Adaptive] Error checking at-risk:", { error: riskError.message });
+      }
 
       if (!states || states.length === 0) return false;
 

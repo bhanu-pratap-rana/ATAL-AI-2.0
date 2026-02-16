@@ -510,10 +510,15 @@ export class GamificationService {
         authLogger.debug(
           "[Gamification] RPC not available, using fallback query",
         );
-        const { data: pointsData } = await supabase
+        const { data: pointsData, error: fallbackError } = await supabase
           .from("points_history")
           .select("points")
           .eq("student_id", studentId);
+
+        if (fallbackError) {
+          authLogger.error("[Gamification] Fallback points query error:", { error: fallbackError.message });
+          return 0;
+        }
 
         return pointsData?.reduce((sum, entry) => sum + entry.points, 0) || 0;
       }
@@ -571,12 +576,17 @@ export class GamificationService {
       const supabase = await createClient();
 
       // OPTIMIZATION: Select only needed columns instead of *
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("points_history")
         .select("id, student_id, points, source, description, created_at")
         .eq("student_id", studentId)
         .order("created_at", { ascending: false })
         .limit(limit);
+
+      if (error) {
+        authLogger.error("[Gamification] Points history query error:", { error: error.message });
+        return [];
+      }
 
       // TYPE-001 FIX: Use type guard instead of unsafe cast
       if (!Array.isArray(data)) return [];
@@ -640,10 +650,15 @@ export class GamificationService {
       );
 
       // Get enrolled students first (required to filter points)
-      const { data: enrollments } = await supabase
+      const { data: enrollments, error: enrollError } = await supabase
         .from("enrollments")
         .select("student_id")
         .eq("class_id", classId);
+
+      if (enrollError) {
+        authLogger.error("[Gamification] Enrollments query error:", { error: enrollError.message });
+        return [];
+      }
 
       if (!enrollments || enrollments.length === 0) return [];
 

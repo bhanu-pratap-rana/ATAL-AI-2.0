@@ -419,15 +419,16 @@ export async function listAdminAccounts(): Promise<AdminActionResult> {
       };
     }
 
-    // Filter for admins only
+    // Filter for admins only (skip anonymous users — only email-based accounts can be admins)
     const admins: AdminUser[] = allUsers
       .filter((user) => {
+        if (!user.email) return false;
         const role = user.app_metadata?.role as string | null | undefined;
         return isAdmin(role);
       })
       .map((user) => ({
         id: user.id,
-        email: user.email || "",
+        email: user.email!,
         role: ((user.app_metadata?.role) || "admin") as
           | "admin"
           | "super_admin",

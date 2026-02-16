@@ -11,7 +11,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useParams, useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useChat } from "@ai-sdk/react";
@@ -29,7 +29,7 @@ import { useOfflineLesson } from "@/hooks/useOfflineLesson";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import type { SupportedLanguage } from "@/types/common";
 import { WifiOff, X } from "lucide-react";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { awardLessonCompletionPoints } from "@/app/actions/gamification";
 import { completeLessonAndUpdateProgress } from "@/app/actions/lesson-completion";
 import { stopTTS } from "@/lib/utils/client-tts";
@@ -403,7 +403,7 @@ export default function LessonPage() {
   }, [moduleId, topicId, language, languageKey]); // Force refetch when language changes
 
   // AI Chat integration
-  const { messages, input, handleInputChange, handleSubmit, append, status: chatStatus } =
+  const { messages, input, handleInputChange, handleSubmit, append, status: chatStatus, error: chatError } =
     useChat({
       api: "/api/tutor/chat",
       body: {
@@ -423,6 +423,43 @@ export default function LessonPage() {
 
   // Derive loading state from status (replaces deprecated isLoading)
   const isLoading = chatStatus === "submitted" || chatStatus === "streaming";
+
+  // PERF-007: Limit rendered messages for performance
+  const [showAllMessages, setShowAllMessages] = useState(false);
+  const VISIBLE_MESSAGE_LIMIT = 20;
+
+  const visibleMessages = useMemo(() => {
+    if (showAllMessages || messages.length <= VISIBLE_MESSAGE_LIMIT) {
+      return messages;
+    }
+    return messages.slice(-VISIBLE_MESSAGE_LIMIT);
+  }, [messages, showAllMessages]);
+
+  const hasHiddenMessages = messages.length > VISIBLE_MESSAGE_LIMIT && !showAllMessages;
+  const hiddenMessageCount = messages.length - VISIBLE_MESSAGE_LIMIT;
+
+  // Language-specific suggested questions for AI Tutor
+  const suggestedQuestions = useMemo(() => {
+    if (language === "hi") {
+      return [
+        "कंप्यूटर क्या है?",
+        "इंटरनेट कैसे काम करता है?",
+        "ऑनलाइन सुरक्षित कैसे रहें?",
+      ];
+    }
+    if (language === "as") {
+      return [
+        "কম্পিউটাৰ কি?",
+        "ইণ্টাৰনেট কেনেকৈ কাম কৰে?",
+        "অনলাইনত কেনেকৈ সুৰক্ষিত থাকিব?",
+      ];
+    }
+    return [
+      "What is a computer?",
+      "How does the internet work?",
+      "How to stay safe online?",
+    ];
+  }, [language]);
 
   // Track AI responses for voice mode - ConversationalVoiceChat handles TTS
   useEffect(() => {
@@ -923,24 +960,66 @@ export default function LessonPage() {
               </div>
             </div>
 
+            {/* Error Display */}
+            {chatError && (
+              <div className="mx-4 mt-3 p-3 bg-error/10 border border-error rounded-lg">
+                <p className="text-xs text-error">
+                  ⚠️ {chatError.message || "An error occurred. Please try again."}
+                </p>
+              </div>
+            )}
+
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-                >
-                  <div
-                    className={`max-w-[90%] sm:max-w-[80%] p-3 rounded-lg ${
-                      msg.role === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted"
-                    }`}
-                  >
-                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+              {messages.length <= 1 ? (
+                <div className="text-center py-6">
+                  <p className="text-muted-foreground text-sm mb-3">
+                    {inputMode === "voice"
+                      ? "Tap the microphone to start!"
+                      : "Ask me anything about this lesson!"}
+                  </p>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {suggestedQuestions.map((q) => (
+                      <button
+                        key={q}
+                        onClick={() => append({ role: "user", content: q })}
+                        className="px-3 py-2 bg-primary/10 text-primary rounded-lg text-xs hover:bg-primary/20 transition-colors"
+                      >
+                        {q}
+                      </button>
+                    ))}
                   </div>
                 </div>
-              ))}
+              ) : (
+                <>
+                  {hasHiddenMessages && (
+                    <div className="text-center mb-2">
+                      <button
+                        onClick={() => setShowAllMessages(true)}
+                        className="px-3 py-1 text-xs bg-muted text-muted-foreground rounded-full hover:bg-muted/80 transition-colors"
+                      >
+                        ↑ Show {hiddenMessageCount} earlier messages
+                      </button>
+                    </div>
+                  )}
+                  {visibleMessages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                    >
+                      <div
+                        className={`max-w-[90%] sm:max-w-[80%] p-3 rounded-lg ${
+                          msg.role === "user"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted"
+                        }`}
+                      >
+                        <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
               {isLoading && (
                 <div className="flex justify-start">
                   <div className="bg-muted p-3 rounded-lg">
@@ -1000,7 +1079,7 @@ export default function LessonPage() {
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-2xl">🤖</span>
                 <div>
-                  <h3 className="font-semibold">AI Tutor</h3>
+                  <SheetTitle className="text-base font-semibold">AI Tutor</SheetTitle>
                   <p className="text-xs text-muted-foreground">
                     Ask me anything!
                   </p>
@@ -1027,24 +1106,66 @@ export default function LessonPage() {
               </div>
             </div>
 
+            {/* Error Display */}
+            {chatError && (
+              <div className="mx-4 mt-3 p-3 bg-error/10 border border-error rounded-lg">
+                <p className="text-xs text-error">
+                  ⚠️ {chatError.message || "An error occurred. Please try again."}
+                </p>
+              </div>
+            )}
+
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-                >
-                  <div
-                    className={`max-w-[90%] sm:max-w-[80%] p-3 rounded-lg ${
-                      msg.role === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted"
-                    }`}
-                  >
-                    <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
+              {messages.length <= 1 ? (
+                <div className="text-center py-6">
+                  <p className="text-muted-foreground text-sm mb-3">
+                    {inputMode === "voice"
+                      ? "Tap the microphone to start!"
+                      : "Ask me anything about this lesson!"}
+                  </p>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {suggestedQuestions.map((q) => (
+                      <button
+                        key={q}
+                        onClick={() => append({ role: "user", content: q })}
+                        className="px-3 py-2 bg-primary/10 text-primary rounded-lg text-xs hover:bg-primary/20 transition-colors"
+                      >
+                        {q}
+                      </button>
+                    ))}
                   </div>
                 </div>
-              ))}
+              ) : (
+                <>
+                  {hasHiddenMessages && (
+                    <div className="text-center mb-2">
+                      <button
+                        onClick={() => setShowAllMessages(true)}
+                        className="px-3 py-1 text-xs bg-muted text-muted-foreground rounded-full hover:bg-muted/80 transition-colors"
+                      >
+                        ↑ Show {hiddenMessageCount} earlier messages
+                      </button>
+                    </div>
+                  )}
+                  {visibleMessages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                    >
+                      <div
+                        className={`max-w-[90%] sm:max-w-[80%] p-3 rounded-lg ${
+                          msg.role === "user"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted"
+                        }`}
+                      >
+                        <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
               {isLoading && (
                 <div className="flex justify-start">
                   <div className="bg-muted p-3 rounded-lg">

@@ -20,12 +20,10 @@ import { clientLogger } from "@/lib/client-logger";
 import {
   getModules,
   getModuleTopics,
-  getModuleName,
-  getTopicName,
   type Module,
   type Topic,
 } from "@/lib/services/curriculum-service";
-import { useLanguage } from "@/lib/i18n";
+import { useLanguage, getModuleName, getTopicName } from "@/lib/i18n";
 import { MASTERY_THRESHOLDS } from "@/lib/constants/thresholds";
 
 interface Recommendation {

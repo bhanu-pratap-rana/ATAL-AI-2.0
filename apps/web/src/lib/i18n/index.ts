@@ -69,8 +69,5 @@ export {
   getModuleCulturalNote,
   getTopicName,
   getTopicDescription,
-  getUnitName,
-  getUnitDescription,
   getBadgeName,
-  getBadgeDescription,
 } from "./database-utils";

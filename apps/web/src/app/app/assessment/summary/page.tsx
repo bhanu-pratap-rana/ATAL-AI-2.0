@@ -119,9 +119,12 @@ export default async function AssessmentSummaryPage({
   // For post-assessments, fetch comparison data
   let comparisonData = null;
   if (sessionType === "post") {
-    const { data: comparison } = await supabase.rpc("get_assessment_comparison", {
+    const { data: comparison, error: compError } = await supabase.rpc("get_assessment_comparison", {
       p_user_id: user.id,
     });
+    if (compError) {
+      // Non-critical: comparison is optional enhancement
+    }
     if (comparison) {
       comparisonData = comparison as {
         pre: { score: number; modules: Record<string, { score: number; total: number; correct: number }> } | null;

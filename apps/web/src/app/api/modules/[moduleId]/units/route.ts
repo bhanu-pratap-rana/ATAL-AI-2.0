@@ -15,6 +15,7 @@ import { authLogger } from "@/lib/auth-logger";
 import { checkRateLimit } from "@/lib/rate-limiter-distributed";
 import { RATE_LIMITS } from "@/lib/constants/rate-limits";
 import { MASTERY_THRESHOLDS } from "@/lib/constants/thresholds";
+import { getLocalizedField } from "@/lib/i18n";
 import type { SupportedLanguage } from "@/types/common";
 
 // Types
@@ -66,17 +67,6 @@ const QuerySchema = z.object({
 // Module IDs are TEXT (e.g., "M1", "M2"), not UUIDs
 // Validate: alphanumeric, 1-10 chars to prevent injection
 const ModuleIdSchema = z.string().regex(/^[A-Z][A-Za-z0-9]{0,9}$/, "Invalid module ID format");
-
-// Helper to get localized field
-function getLocalizedField<T extends Record<string, unknown>>(
-  obj: T,
-  field: string,
-  language: SupportedLanguage,
-): string {
-  const key = `${field}_${language}` as keyof T;
-  const fallbackKey = `${field}_en` as keyof T;
-  return (obj[key] as string) || (obj[fallbackKey] as string) || "";
-}
 
 export async function GET(
   request: NextRequest,

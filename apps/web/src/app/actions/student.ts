@@ -562,16 +562,17 @@ export async function leaveClass(classId: string) {
       .eq("student_id", auth.user.id);
 
     if (error) {
-      return { success: false, error: error.message };
+      authLogger.error("[leaveClass] Database error", { error: error.message });
+      return { success: false, error: "Failed to leave class. Please try again." };
     }
 
     revalidatePath("/app/student/classes");
     return { success: true };
   } catch (error) {
+    authLogger.error("[leaveClass] Unexpected error", error instanceof Error ? error : { error: String(error) });
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
     };
   }
 }

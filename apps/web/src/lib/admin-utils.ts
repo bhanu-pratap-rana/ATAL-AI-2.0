@@ -16,7 +16,7 @@ import type { RateLimitConfig } from "@/lib/constants/rate-limits";
  */
 export type SupabaseAuthUser = Record<string, unknown> & {
   id: string;
-  email?: string;
+  email?: string | null;
   app_metadata?: Record<string, unknown>;
   user_metadata?: Record<string, unknown>;
 };

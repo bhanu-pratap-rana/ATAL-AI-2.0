@@ -26,10 +26,14 @@ async function getDashboardMetrics(teacherId: string) {
   const supabase = await createClient();
 
   // Get all classes for this teacher
-  const { data: classes } = await supabase
+  const { data: classes, error: classesError } = await supabase
     .from("classes")
     .select("id, name")
     .eq("teacher_id", teacherId);
+
+  if (classesError) {
+    console.error("[TeacherDashboard] Classes query error:", classesError.message);
+  }
 
   if (!classes || classes.length === 0) {
     return {
@@ -44,34 +48,57 @@ async function getDashboardMetrics(teacherId: string) {
   const classIds = classes.map((c) => c.id);
 
   // Get total enrolled students
-  const { data: enrollments } = await supabase
+  const { data: enrollments, error: enrollError } = await supabase
     .from("enrollments")
     .select("student_id")
     .in("class_id", classIds);
 
+  if (enrollError) {
+    console.error("[TeacherDashboard] Enrollments query error:", enrollError.message);
+  }
+
   const studentIds = enrollments?.map((e) => e.student_id) || [];
+
+  // Guard: empty studentIds would cause .in() issues
+  if (studentIds.length === 0) {
+    return {
+      totalClasses: classes.length,
+      totalStudents: 0,
+      activeStudents: 0,
+      atRiskStudents: 0,
+      classes: classes.map((c) => ({ ...c, studentCount: 0 })),
+    };
+  }
 
   // Get active students (activity in last 7 days)
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-  const { data: activeKnowledgeState } = await supabase
+  const { data: activeKnowledgeState, error: activeError } = await supabase
     .from("student_knowledge_state")
     .select("student_id")
     .in("student_id", studentIds)
     .gte("last_attempt_at", sevenDaysAgo.toISOString());
+
+  if (activeError) {
+    console.error("[TeacherDashboard] Active students query error:", activeError.message);
+  }
 
   const activeStudentIds = new Set(
     activeKnowledgeState?.map((k) => k.student_id) || [],
   );
 
   // Get at-risk students (low mastery after multiple attempts)
-  const { data: atRiskData } = await supabase
+  const { data: atRiskData, error: riskError } = await supabase
     .from("student_knowledge_state")
     .select("student_id")
     .in("student_id", studentIds)
     .lt("mastery_score", 40)
     .gt("attempts", 3);
+
+  if (riskError) {
+    console.error("[TeacherDashboard] At-risk query error:", riskError.message);
+  }
 
   const atRiskStudentIds = new Set(atRiskData?.map((k) => k.student_id) || []);
 

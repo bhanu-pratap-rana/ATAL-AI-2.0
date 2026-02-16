@@ -62,7 +62,8 @@ export async function createClass(name: string, subject?: string) {
       .single();
 
     if (error) {
-      return { success: false, error: error.message };
+      authLogger.error("[createClass] Database error", { error: error.message });
+      return { success: false, error: "Failed to create class. Please try again." };
     }
 
     revalidatePath("/app/teacher/classes");
@@ -71,8 +72,7 @@ export async function createClass(name: string, subject?: string) {
     authLogger.error("[createClass] Unexpected error", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
     };
   }
 }
@@ -122,7 +122,8 @@ export async function updateClass(
       .single();
 
     if (error) {
-      return { success: false, error: error.message };
+      authLogger.error("[updateClass] Database error", { error: error.message });
+      return { success: false, error: "Failed to update class. Please try again." };
     }
 
     revalidatePath("/app/teacher/classes");
@@ -134,8 +135,7 @@ export async function updateClass(
     authLogger.error("[updateClass] Unexpected error", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
     };
   }
 }
@@ -176,7 +176,8 @@ export async function deleteClass(classId: string) {
       .eq("id", validatedClassId);
 
     if (error) {
-      return { success: false, error: error.message };
+      authLogger.error("[deleteClass] Database error", { error: error.message });
+      return { success: false, error: "Failed to delete class. Please try again." };
     }
 
     revalidatePath("/app/teacher/classes");
@@ -185,8 +186,7 @@ export async function deleteClass(classId: string) {
     authLogger.error("[deleteClass] Unexpected error", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
     };
   }
 }

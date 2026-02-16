@@ -8,7 +8,7 @@ import { z } from "zod";
 /**
  * Standard response type for all server actions
  */
-export interface ActionResponse<T = unknown> {
+interface ActionResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
