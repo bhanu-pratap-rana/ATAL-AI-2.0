@@ -48,6 +48,7 @@ const SheetContent = React.forwardRef<
     <SheetOverlay />
     <SheetPrimitive.Content
       ref={ref}
+      aria-describedby={undefined}
       className={cn(
         "fixed z-50 bg-background shadow-lg",
         "data-[state=open]:animate-in data-[state=closed]:animate-out",

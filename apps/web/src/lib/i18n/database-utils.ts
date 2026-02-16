@@ -25,14 +25,16 @@ import type { SupportedLanguage } from "./types";
  * getLocalizedField(module, "name", "en"); // → "Computer Basics"
  * ```
  */
-export function getLocalizedField<T extends Record<string, unknown>>(
-  entity: T,
+export function getLocalizedField(
+  entity: object,
   field: string,
   language: SupportedLanguage
 ): string {
+  const record = entity as Record<string, unknown>;
+
   // Try the requested language first
   const langKey = `${field}_${language}`;
-  const langValue = entity[langKey];
+  const langValue = record[langKey];
 
   if (typeof langValue === "string" && langValue.length > 0) {
     return langValue;
@@ -40,7 +42,7 @@ export function getLocalizedField<T extends Record<string, unknown>>(
 
   // Fallback to English
   const fallbackKey = `${field}_en`;
-  const fallbackValue = entity[fallbackKey];
+  const fallbackValue = record[fallbackKey];
 
   if (typeof fallbackValue === "string") {
     return fallbackValue;
@@ -54,58 +56,11 @@ export function getLocalizedField<T extends Record<string, unknown>>(
 // Pre-built helpers for common entities
 // ============================================
 
-/** Module entity type with index signature for flexibility */
-interface ModuleEntity {
-  name_en: string;
-  name_hi?: string;
-  name_as?: string;
-  description_en?: string;
-  description_hi?: string;
-  description_as?: string;
-  cultural_note_en?: string;
-  cultural_note_hi?: string;
-  cultural_note_as?: string;
-  [key: string]: unknown;
-}
-
-/** Topic entity type with index signature for flexibility */
-interface TopicEntity {
-  name_en: string;
-  name_hi?: string;
-  name_as?: string;
-  description_en?: string;
-  description_hi?: string;
-  description_as?: string;
-  [key: string]: unknown;
-}
-
-/** Unit entity type with index signature for flexibility */
-interface UnitEntity {
-  unit_name_en: string;
-  unit_name_hi?: string;
-  unit_name_as?: string;
-  unit_description_en?: string;
-  unit_description_hi?: string;
-  unit_description_as?: string;
-  [key: string]: unknown;
-}
-
-/** Badge entity type with index signature for flexibility */
-interface BadgeEntity {
-  name_en: string;
-  name_hi?: string;
-  name_as?: string;
-  description_en?: string;
-  description_hi?: string;
-  description_as?: string;
-  [key: string]: unknown;
-}
-
 /**
  * Get localized module name
  */
 export function getModuleName(
-  module: ModuleEntity,
+  module: object,
   language: SupportedLanguage
 ): string {
   return getLocalizedField(module, "name", language);
@@ -115,7 +70,7 @@ export function getModuleName(
  * Get localized module description
  */
 export function getModuleDescription(
-  module: ModuleEntity,
+  module: object,
   language: SupportedLanguage
 ): string {
   return getLocalizedField(module, "description", language);
@@ -125,7 +80,7 @@ export function getModuleDescription(
  * Get localized module cultural note
  */
 export function getModuleCulturalNote(
-  module: ModuleEntity,
+  module: object,
   language: SupportedLanguage
 ): string {
   return getLocalizedField(module, "cultural_note", language);
@@ -135,7 +90,7 @@ export function getModuleCulturalNote(
  * Get localized topic name
  */
 export function getTopicName(
-  topic: TopicEntity,
+  topic: object,
   language: SupportedLanguage
 ): string {
   return getLocalizedField(topic, "name", language);
@@ -145,48 +100,19 @@ export function getTopicName(
  * Get localized topic description
  */
 export function getTopicDescription(
-  topic: TopicEntity,
+  topic: object,
   language: SupportedLanguage
 ): string {
   return getLocalizedField(topic, "description", language);
 }
 
 /**
- * Get localized unit name
- */
-export function getUnitName(
-  unit: UnitEntity,
-  language: SupportedLanguage
-): string {
-  return getLocalizedField(unit, "unit_name", language);
-}
-
-/**
- * Get localized unit description
- */
-export function getUnitDescription(
-  unit: UnitEntity,
-  language: SupportedLanguage
-): string {
-  return getLocalizedField(unit, "unit_description", language);
-}
-
-/**
  * Get localized badge name
  */
 export function getBadgeName(
-  badge: BadgeEntity,
+  badge: object,
   language: SupportedLanguage
 ): string {
   return getLocalizedField(badge, "name", language);
 }
 
-/**
- * Get localized badge description
- */
-export function getBadgeDescription(
-  badge: BadgeEntity,
-  language: SupportedLanguage
-): string {
-  return getLocalizedField(badge, "description", language);
-}

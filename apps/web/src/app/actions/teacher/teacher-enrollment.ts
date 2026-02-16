@@ -60,7 +60,8 @@ export async function enrollStudent(classId: string, studentId: string) {
         // Unique constraint violation
         return { success: false, error: "Student is already enrolled" };
       }
-      return { success: false, error: error.message };
+      authLogger.error("[enrollStudent] Database error", { error: error.message });
+      return { success: false, error: "Failed to enroll student. Please try again." };
     }
 
     revalidatePath(`/app/teacher/classes/${validatedInput.classId}`);
@@ -69,8 +70,7 @@ export async function enrollStudent(classId: string, studentId: string) {
     authLogger.error("[enrollStudent] Unexpected error", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
     };
   }
 }
@@ -115,7 +115,8 @@ export async function removeStudent(classId: string, studentId: string) {
       .eq("student_id", validatedInput.studentId);
 
     if (error) {
-      return { success: false, error: error.message };
+      authLogger.error("[removeStudent] Database error", { error: error.message });
+      return { success: false, error: "Failed to remove student. Please try again." };
     }
 
     revalidatePath(`/app/teacher/classes/${validatedInput.classId}`);
@@ -124,8 +125,7 @@ export async function removeStudent(classId: string, studentId: string) {
     authLogger.error("[removeStudent] Unexpected error", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
     };
   }
 }

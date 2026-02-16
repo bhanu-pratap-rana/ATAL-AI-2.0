@@ -222,7 +222,7 @@ export interface SubmitAssessmentRPCResponse {
  */
 export interface SupabaseAuthUser {
   id: string;
-  email?: string;
+  email?: string | null;
   user_metadata?: Record<string, unknown>;
   app_metadata?: {
     role?: "student" | "teacher" | "admin" | "super_admin";

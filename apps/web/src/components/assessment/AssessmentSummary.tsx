@@ -8,6 +8,7 @@ import { CategoryBreakdown, CategoryStrengths } from "./CategoryBreakdown";
 import { LevelBadge, LevelCard } from "./LevelBadge";
 import { AssessmentStats } from "./AssessmentStats";
 import { CelebrationAnimation } from "@/components/animations/LottieAnimation";
+import { MASTERY_THRESHOLDS } from "@/lib/constants/thresholds";
 
 /**
  * ATAL AI Assessment Summary - Enhanced with IRT Scoring
@@ -363,7 +364,7 @@ export function AssessmentSummary({
           {/* Pre-Assessment: Show per-category recommendations */}
           {sessionType === "pre" && (() => {
             const categories = getCategoryScores(moduleBreakdown);
-            const weakCategories = categories.filter((c) => c.score < 70);
+            const weakCategories = categories.filter((c) => c.score < MASTERY_THRESHOLDS.PASSING);
             const allStrong = weakCategories.length === 0;
 
             return (
@@ -382,18 +383,18 @@ export function AssessmentSummary({
                       className="flex items-center justify-between p-3 rounded-lg bg-muted/30"
                     >
                       <div className="flex items-center gap-2">
-                        <span className={cat.score >= 70 ? "text-green-600" : "text-amber-600"}>
-                          {cat.score >= 70 ? "✓" : "→"}
+                        <span className={cat.score >= MASTERY_THRESHOLDS.PASSING ? "text-green-600" : "text-amber-600"}>
+                          {cat.score >= MASTERY_THRESHOLDS.PASSING ? "✓" : "→"}
                         </span>
                         <span className="text-sm font-medium text-text-primary">
                           {cat.name}
                         </span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className={`text-sm font-bold ${cat.score >= 70 ? "text-green-600" : "text-amber-600"}`}>
+                        <span className={`text-sm font-bold ${cat.score >= MASTERY_THRESHOLDS.PASSING ? "text-green-600" : "text-amber-600"}`}>
                           {cat.score}%
                         </span>
-                        {cat.score < 70 && (
+                        {cat.score < MASTERY_THRESHOLDS.PASSING && (
                           <button
                             onClick={() => router.push(`/app/learn/${cat.moduleId}`)}
                             className="text-xs text-primary hover:underline font-medium"
@@ -420,7 +421,7 @@ export function AssessmentSummary({
           {/* Post-Assessment: Show category-specific feedback */}
           {sessionType === "post" && (() => {
             const categories = getCategoryScores(moduleBreakdown);
-            const weakCategories = categories.filter((c) => c.score < 70);
+            const weakCategories = categories.filter((c) => c.score < MASTERY_THRESHOLDS.PASSING);
             const allMastered = weakCategories.length === 0;
 
             return (
@@ -444,8 +445,8 @@ export function AssessmentSummary({
                         className="flex items-center justify-between p-3 rounded-lg bg-muted/30"
                       >
                         <div className="flex items-center gap-2">
-                          <span className={cat.score >= 70 ? "text-green-600" : "text-amber-600"}>
-                            {cat.score >= 70 ? "✓" : "!"}
+                          <span className={cat.score >= MASTERY_THRESHOLDS.PASSING ? "text-green-600" : "text-amber-600"}>
+                            {cat.score >= MASTERY_THRESHOLDS.PASSING ? "✓" : "!"}
                           </span>
                           <span className="text-sm font-medium text-text-primary">
                             {cat.name}
@@ -457,10 +458,10 @@ export function AssessmentSummary({
                           )}
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className={`text-sm font-bold ${cat.score >= 70 ? "text-green-600" : "text-amber-600"}`}>
+                          <span className={`text-sm font-bold ${cat.score >= MASTERY_THRESHOLDS.PASSING ? "text-green-600" : "text-amber-600"}`}>
                             {cat.score}%
                           </span>
-                          {cat.score < 70 && (
+                          {cat.score < MASTERY_THRESHOLDS.PASSING && (
                             <button
                               onClick={() => router.push(`/app/learn/${cat.moduleId}`)}
                               className="text-xs text-primary hover:underline font-medium"
@@ -496,7 +497,7 @@ export function AssessmentSummary({
           <div className="flex flex-col sm:flex-row gap-4">
             {sessionType === "pre" && (() => {
               const weakestModuleId = getWeakestModule(moduleBreakdown);
-              const allStrong = getCategoryScores(moduleBreakdown).every((c) => c.score >= 70);
+              const allStrong = getCategoryScores(moduleBreakdown).every((c) => c.score >= MASTERY_THRESHOLDS.PASSING);
               return (
                 <Button
                   onClick={() => router.push(weakestModuleId && !allStrong ? `/app/learn/${weakestModuleId}` : "/app/learn")}
@@ -509,7 +510,7 @@ export function AssessmentSummary({
             })()}
             {sessionType === "post" && (() => {
               const weakestModuleId = getWeakestModule(moduleBreakdown);
-              const allMastered = getCategoryScores(moduleBreakdown).every((c) => c.score >= 70);
+              const allMastered = getCategoryScores(moduleBreakdown).every((c) => c.score >= MASTERY_THRESHOLDS.PASSING);
               return (
                 <Button
                   onClick={() => router.push(weakestModuleId && !allMastered ? `/app/learn/${weakestModuleId}` : "/app/learn")}

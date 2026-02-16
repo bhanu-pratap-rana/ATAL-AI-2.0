@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient, getCurrentUser } from "@/lib/supabase-server";
+import { authLogger } from "@/lib/auth-logger";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import {
@@ -73,16 +74,26 @@ export default async function PracticeQuestionAnalyticsPage() {
     redirect("/teacher/start");
   }
 
-  // Fetch all practice questions
-  const { data: questions } = await supabase
+  // Fetch practice questions (bounded)
+  const { data: questions, error: questionsError } = await supabase
     .from("practice_questions")
     .select("id, question, topic_id, module_id, difficulty")
-    .order("module_id");
+    .order("module_id")
+    .limit(500);
 
-  // Fetch all formative responses with aggregation
-  const { data: responses } = await supabase
+  if (questionsError) {
+    authLogger.error("[QuestionAnalytics] Failed to fetch questions:", { error: questionsError.message });
+  }
+
+  // Fetch formative responses (bounded to prevent unbounded scan)
+  const { data: responses, error: responsesError } = await supabase
     .from("formative_responses")
-    .select("question_id, is_correct, response_time_ms, ai_hint_requested");
+    .select("question_id, is_correct, response_time_ms, ai_hint_requested")
+    .limit(10000);
+
+  if (responsesError) {
+    authLogger.error("[QuestionAnalytics] Failed to fetch responses:", { error: responsesError.message });
+  }
 
   // Aggregate stats by question
   const statsMap = new Map<string, QuestionStats>();

@@ -14,7 +14,7 @@ import { z } from "zod";
 export const SupabaseAuthUserSchema = z
   .object({
     id: z.string().uuid(),
-    email: z.string().email().optional(),
+    email: z.string().email().nullable().optional(),
     app_metadata: z.record(z.unknown()).optional(),
     user_metadata: z.record(z.unknown()).optional(),
     created_at: z.string().optional(),

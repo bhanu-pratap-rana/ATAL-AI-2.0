@@ -17,7 +17,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase-browser";
 import { clientLogger } from "@/lib/client-logger";
 import type { Badge as BaseBadge } from "@/lib/services/gamification-service";
-import { useLanguage, getBadgeName as getLocalizedBadgeName } from "@/lib/i18n";
+import { useLanguage } from "@/lib/i18n";
 
 /**
  * Display-specific Badge type with earned status
@@ -300,11 +300,11 @@ export const BadgesDisplay = memo(function BadgesDisplay({
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={`badge-skeleton-${i}`} className="animate-pulse">
-            <div className="w-20 h-20 mx-auto bg-muted rounded-full" />
-            <div className="h-4 bg-muted rounded mt-2 mx-4" />
+          <div key={`badge-skeleton-${i}`} className="animate-pulse text-center p-3">
+            <div className="w-12 h-12 mx-auto bg-muted rounded-full" />
+            <div className="h-3 bg-muted rounded mt-2 mx-2" />
           </div>
         ))}
       </div>
@@ -314,29 +314,29 @@ export const BadgesDisplay = memo(function BadgesDisplay({
   return (
     <div className="space-y-6">
       {/* Stats Summary */}
-      <div className="flex justify-center gap-8 text-center">
+      <div className="flex justify-center gap-6 text-center">
         <div>
-          <div className="text-3xl font-bold text-primary">
+          <div className="text-2xl font-bold text-primary">
             {earnedBadges.length}
           </div>
-          <div className="text-sm text-muted-foreground">{t("gamification.earned")}</div>
+          <div className="text-xs text-muted-foreground">{t("gamification.earned")}</div>
         </div>
         <div>
-          <div className="text-3xl font-bold text-muted-foreground">
+          <div className="text-2xl font-bold text-muted-foreground">
             {lockedBadges.length}
           </div>
-          <div className="text-sm text-muted-foreground">{t("gamification.locked")}</div>
+          <div className="text-xs text-muted-foreground">{t("gamification.locked")}</div>
         </div>
         <div>
-          <div className="text-3xl font-bold text-warning">
+          <div className="text-2xl font-bold text-warning">
             {earnedBadges.reduce((sum, b) => sum + b.points_value, 0)}
           </div>
-          <div className="text-sm text-muted-foreground">{t("gamification.points")}</div>
+          <div className="text-xs text-muted-foreground">{t("gamification.points")}</div>
         </div>
       </div>
 
       {/* Badges Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
         {displayBadges.map((badge) => {
           const isEarned = earnedIds.has(badge.id);
 
@@ -344,36 +344,34 @@ export const BadgesDisplay = memo(function BadgesDisplay({
             <button
               key={badge.id}
               onClick={() => setSelectedBadge(badge)}
-              className={`group relative p-4 rounded-xl border-2 transition-all duration-300 ${getBadgeCardClass(isEarned ? "earned" : "locked", badge.rarity)}`}
+              className={`group relative p-3 rounded-xl border-2 transition-all duration-300 overflow-hidden text-center ${getBadgeCardClass(isEarned ? "earned" : "locked", badge.rarity)}`}
             >
+              {/* Lock Icon for Locked Badges */}
+              {!isEarned && (
+                <div className="absolute top-1 right-1 text-xs text-muted-foreground">
+                  🔒
+                </div>
+              )}
+
               {/* Badge Icon */}
               <div
-                className={`text-4xl mb-2 transition-transform ${isEarned ? BADGE_CLASSES.icon.earned : BADGE_CLASSES.icon.locked}`}
+                className={`text-3xl mb-1 transition-transform ${isEarned ? BADGE_CLASSES.icon.earned : BADGE_CLASSES.icon.locked}`}
               >
                 {badge.icon}
               </div>
 
               {/* Badge Name */}
-              <div className={`text-sm font-medium ${getBadgeTextClass(isEarned ? "earned" : "locked", badge.rarity)}`}>
+              <div className={`text-xs font-medium leading-tight line-clamp-2 ${getBadgeTextClass(isEarned ? "earned" : "locked", badge.rarity)}`}>
                 {getBadgeName(badge)}
               </div>
 
-              {/* Rarity Indicator */}
+              {/* Rarity + Points */}
               <div
-                className={`text-xs mt-1 capitalize ${getBadgeTextClass(isEarned ? "earned" : "locked", badge.rarity)}`}
+                className={`text-[10px] mt-0.5 capitalize ${getBadgeTextClass(isEarned ? "earned" : "locked", badge.rarity)}`}
               >
                 {badge.rarity}
               </div>
-
-              {/* Lock Icon for Locked Badges */}
-              {!isEarned && (
-                <div className="absolute top-2 right-2 text-muted-foreground">
-                  🔒
-                </div>
-              )}
-
-              {/* Points */}
-              <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
+              <div className="text-[10px] text-muted-foreground">
                 +{badge.points_value}
               </div>
             </button>

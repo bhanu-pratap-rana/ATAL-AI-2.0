@@ -396,15 +396,5 @@ export const MaterialIdSchema = z.string().uuid("Invalid material ID");
 // Type Exports
 // ============================================================================
 
-export type JoinClassInput = z.infer<typeof JoinClassSchema>;
-export type StudentProfileInput = z.infer<typeof StudentProfileSchema>;
-export type CreateClassInput = z.infer<typeof CreateClassSchema>;
-export type UpdateClassInput = z.infer<typeof UpdateClassSchema>;
-export type EnrollmentInput = z.infer<typeof EnrollmentSchema>;
-export type AssessmentResponseInput = z.infer<typeof AssessmentResponseSchema>;
-export type AssessmentSubmitInput = z.infer<typeof AssessmentSubmitSchema>;
-export type CreateAnnouncementInput = z.infer<typeof CreateAnnouncementSchema>;
-export type UpdateAnnouncementInput = z.infer<typeof UpdateAnnouncementSchema>;
-export type UploadMaterialInput = z.infer<typeof UploadMaterialSchema>;
 export type AnnouncementPriority = z.infer<typeof AnnouncementPrioritySchema>;
 export type MaterialType = z.infer<typeof MaterialTypeSchema>;

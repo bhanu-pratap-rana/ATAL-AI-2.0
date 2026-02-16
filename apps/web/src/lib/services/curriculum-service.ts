@@ -48,63 +48,6 @@ export interface ModuleWithTopics extends Module {
 }
 
 // ============================================================================
-// LANGUAGE HELPERS
-// ============================================================================
-
-/**
- * Generic helper to get a localized field value
- * Reduces code duplication across all localized field getters
- */
-function getLocalizedValue(
-  obj: Module | Topic,
-  field: string,
-  language: SupportedLanguage,
-  defaultValue: string = ""
-): string {
-  // Use type assertion to access dynamic keys
-  const record = obj as unknown as Record<string, string | null>;
-  const langValue = record[`${field}_${language}`];
-  const enValue = record[`${field}_en`];
-  return langValue || enValue || defaultValue;
-}
-
-/**
- * Get localized module name
- */
-export function getModuleName(module: Module, language: SupportedLanguage): string {
-  return getLocalizedValue(module, "name", language);
-}
-
-/**
- * Get localized module description
- */
-export function getModuleDescription(module: Module, language: SupportedLanguage): string {
-  return getLocalizedValue(module, "description", language);
-}
-
-/**
- * Get localized module cultural note
- */
-export function getModuleCulturalNote(module: Module, language: SupportedLanguage): string | null {
-  const value = getLocalizedValue(module, "cultural_note", language);
-  return value || null;
-}
-
-/**
- * Get localized topic name
- */
-export function getTopicName(topic: Topic, language: SupportedLanguage): string {
-  return getLocalizedValue(topic, "name", language);
-}
-
-/**
- * Get localized topic description
- */
-export function getTopicDescription(topic: Topic, language: SupportedLanguage): string {
-  return getLocalizedValue(topic, "description", language);
-}
-
-// ============================================================================
 // DATA FETCHING
 // ============================================================================
 

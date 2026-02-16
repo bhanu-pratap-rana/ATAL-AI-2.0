@@ -217,7 +217,8 @@ export async function sendEmailOtp(email: string): Promise<SendEmailOtpResult> {
     });
 
     if (error) {
-      return { success: false, error: error.message };
+      authLogger.error("[sendEmailOtp] Auth error", { error: error.message });
+      return { success: false, error: "Failed to send OTP. Please try again." };
     }
 
     authLogger.success("[sendEmailOtp] OTP sent successfully");
@@ -275,7 +276,7 @@ export async function verifyEmailOtp({
             "Too many attempts. Please wait a few minutes before trying again.",
         };
       }
-      return { success: false, error: error.message };
+      return { success: false, error: "Verification failed. Please try again." };
     }
 
     if (!data.user) {

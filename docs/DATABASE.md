@@ -1043,6 +1043,7 @@ auth.role() = 'service_role'
 | MCP-5 | Feb 15 | Fix teacher assessment RLS: enrollment-based access (replaces broken class_id JOIN) |
 | 161 | Feb 16 | Add `session_type` to `assessment_sessions` + `curriculum_completed` to `student_profiles` |
 | 162 | Feb 16 | RPCs: `get_assessment_comparison`, `check_curriculum_completion`, `has_assessment_type` |
+| 163 | Feb 16 | Backfill oldest sessions as 'pre' + update `has_assessment_type` fallback for legacy students |
 
 ---
 
