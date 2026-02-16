@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClass } from "@/app/actions/teacher";
+import { clientLogger } from "@/lib/client-logger";
 import { ClassCreationSuccess } from "./ClassCreationSuccess";
 
 export function CreateClassDialog() {
@@ -49,7 +50,11 @@ export function CreateClassDialog() {
         } else {
           toast.error("Failed to create class");
         }
-      } catch {
+      } catch (error) {
+        clientLogger.error(
+          "[CreateClassDialog] Failed to create class",
+          error instanceof Error ? error : { error: String(error) },
+        );
         toast.error("An unexpected error occurred");
       } finally {
         setLoading(false);
@@ -71,7 +76,7 @@ export function CreateClassDialog() {
       <DialogTrigger asChild>
         <Button>
           <span className="mr-2">+</span>
-          Create Class
+          <span>Create Class</span>
         </Button>
       </DialogTrigger>
       <DialogContent>

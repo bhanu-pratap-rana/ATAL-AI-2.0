@@ -149,13 +149,14 @@ export class CircuitBreaker {
     this.lastFailureTime = Date.now();
     this.failureCount++;
 
-    if (this.failureCount >= this.options.failureThreshold) {
+    // S1871: Consolidated duplicate branches - open circuit on threshold OR half-open failure
+    const shouldOpen =
+      this.failureCount >= this.options.failureThreshold ||
+      this.state === "HALF_OPEN";
+
+    if (shouldOpen) {
       this.setState("OPEN");
       // Schedule retry attempt
-      this.nextAttemptTime = Date.now() + this.options.timeout;
-    } else if (this.state === "HALF_OPEN") {
-      // Failure in HALF_OPEN state means service still not recovered
-      this.setState("OPEN");
       this.nextAttemptTime = Date.now() + this.options.timeout;
     }
   }

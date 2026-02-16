@@ -8,6 +8,7 @@ import { authLogger } from "./auth-logger";
 
 export type AuthUser = NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>;
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export type AuthCheckResult<T = {}> =
   | {
       authorized: true;
@@ -113,7 +114,7 @@ export async function verifyProfileAuth<T extends Record<string, unknown>>(
     return {
       authorized: true,
       user: currentUser,
-      profile: (options.profileData || {}) as T,
+      profile: (options.profileData ?? {}) as T,
     };
   } catch (error) {
     authLogger.error(

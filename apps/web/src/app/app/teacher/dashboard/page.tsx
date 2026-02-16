@@ -92,7 +92,7 @@ export default async function TeacherDashboardPage() {
   }
 
   // Verify teacher role
-  if (!isTeacherOrHigher(user.id)) {
+  if (!isTeacherOrHigher(user.app_metadata?.role)) {
     redirect("/app/dashboard");
   }
 
@@ -230,7 +230,7 @@ export default async function TeacherDashboardPage() {
           </h2>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
-            Real-time updates
+            <span>Real-time updates</span>
           </div>
         </div>
 
@@ -249,7 +249,7 @@ export default async function TeacherDashboardPage() {
             </div>
           }
         >
-          <StudentProgressGrid classId={selectedClass.id} _teacherId={user.id} />
+          <StudentProgressGrid classId={selectedClass.id} />
         </Suspense>
 
         {/* AI Interactions Log */}

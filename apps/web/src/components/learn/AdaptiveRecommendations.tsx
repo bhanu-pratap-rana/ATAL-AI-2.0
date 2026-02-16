@@ -9,22 +9,31 @@
  * - Recent activity patterns
  * - Knowledge gaps
  *
- * Uses the adaptive-service.ts logic to determine optimal next topics.
+ * Module and topic data is fetched from the database (not hardcoded).
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-browser";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { clientLogger } from "@/lib/client-logger";
+import {
+  getModules,
+  getModuleTopics,
+  getModuleName,
+  getTopicName,
+  type Module,
+  type Topic,
+} from "@/lib/services/curriculum-service";
+import { useLanguage } from "@/lib/i18n";
+import { MASTERY_THRESHOLDS } from "@/lib/constants/thresholds";
 
 interface Recommendation {
   readonly moduleId: string;
   readonly moduleName: string;
   readonly topicId: string;
   readonly topicName: string;
-  readonly reason: string;
+  readonly reasonKey: string;
   readonly priority: "high" | "medium" | "low";
   readonly icon: string;
   readonly color: string;
@@ -41,27 +50,98 @@ export function AdaptiveRecommendations({
   currentModuleId,
   limit = 3,
 }: AdaptiveRecommendationsProps) {
+  const { language, t } = useLanguage();
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [modules, setModules] = useState<Module[]>([]);
+  const [topicsByModule, setTopicsByModule] = useState<Map<string, Topic[]>>(new Map());
+
+  // Fetch modules and topics from database
+  const fetchCurriculumData = useCallback(async () => {
+    try {
+      // Fetch all modules from database
+      const modulesData = await getModules();
+      setModules(modulesData);
+
+      // PERFORMANCE: Fetch topics for all modules in parallel instead of sequential
+      // This reduces latency from O(n * requestTime) to O(requestTime)
+      const topicsResults = await Promise.all(
+        modulesData.map((mod) => getModuleTopics(mod.id))
+      );
+
+      // Build map from parallel results
+      const topicsMap = new Map<string, Topic[]>();
+      modulesData.forEach((mod, index) => {
+        topicsMap.set(mod.id, topicsResults[index]);
+      });
+      setTopicsByModule(topicsMap);
+
+      return { modulesData, topicsMap };
+    } catch (error) {
+      clientLogger.error(
+        "[AdaptiveRecommendations] Error fetching curriculum:",
+        error instanceof Error ? error : undefined,
+      );
+      return { modulesData: [], topicsMap: new Map() };
+    }
+  }, []);
 
   useEffect(() => {
     async function fetchRecommendations() {
       try {
+        // First, fetch curriculum data from database
+        const { modulesData, topicsMap } = await fetchCurriculumData();
+
+        if (modulesData.length === 0) {
+          setLoading(false);
+          return;
+        }
+
         const supabase = createClient();
 
-        // Get student knowledge state
+        // Get module IDs from database (not hardcoded)
+        const moduleIds = modulesData.map((m) => m.id);
+
+        // Get student knowledge state for CURRICULUM modules only
+        // CRITICAL: Filter out assessment records (module_id = "adaptive_assessment")
         const { data: knowledgeState } = await supabase
           .from("student_knowledge_state")
           .select(
             "module_id, topic_id, mastery_score, status, attempts, last_attempt_at",
           )
           .eq("student_id", userId)
+          .in("module_id", moduleIds)
           .order("last_attempt_at", { ascending: false });
 
         if (!knowledgeState) {
           setLoading(false);
           return;
         }
+
+        // Helper to get module name from fetched data
+        const getModuleNameLocal = (moduleId: string): string => {
+          const mod = modulesData.find((m) => m.id === moduleId);
+          return mod ? getModuleName(mod, language) : moduleId;
+        };
+
+        // LOOP-1 FIX: Build flat Map for O(1) topic lookup (was O(n×m) nested loop)
+        const topicIdMap = new Map<string, Topic>();
+        for (const [, topics] of topicsMap) {
+          for (const topic of topics) {
+            topicIdMap.set(topic.id, topic);
+          }
+        }
+
+        const getTopicNameLocal = (topicId: string): string => {
+          const topic = topicIdMap.get(topicId);
+          return topic ? getTopicName(topic, language) : `Topic ${topicId}`;
+        };
+
+        // Helper to get all topics for a module from fetched data
+        const getAllTopicsForModuleLocal = (moduleId: string): string[] => {
+          const topics = topicsMap.get(moduleId);
+          return topics ? topics.map((t: Topic) => t.id) : [];
+        };
 
         // Generate recommendations based on knowledge state
         const recs: Recommendation[] = [];
@@ -74,10 +154,10 @@ export function AdaptiveRecommendations({
         for (const topic of strugglingTopics.slice(0, 2)) {
           recs.push({
             moduleId: topic.module_id,
-            moduleName: getModuleName(topic.module_id),
+            moduleName: getModuleNameLocal(topic.module_id),
             topicId: topic.topic_id,
-            topicName: getTopicName(topic.topic_id),
-            reason: "You've been working on this. Let's master it together! 💪",
+            topicName: getTopicNameLocal(topic.topic_id),
+            reasonKey: "learn.youveBeenWorking",
             priority: "high",
             icon: "🎯",
             color: "from-error to-error-dark",
@@ -86,16 +166,16 @@ export function AdaptiveRecommendations({
 
         // 2. MEDIUM PRIORITY: Topics with medium mastery (almost there!)
         const almostMasteredTopics = knowledgeState.filter(
-          (k) => k.mastery_score >= 50 && k.mastery_score < 70,
+          (k) => k.mastery_score >= MASTERY_THRESHOLDS.STRUGGLING && k.mastery_score < MASTERY_THRESHOLDS.PASSING,
         );
 
         for (const topic of almostMasteredTopics.slice(0, 2)) {
           recs.push({
             moduleId: topic.module_id,
-            moduleName: getModuleName(topic.module_id),
+            moduleName: getModuleNameLocal(topic.module_id),
             topicId: topic.topic_id,
-            topicName: getTopicName(topic.topic_id),
-            reason: "You're almost there! One more push to mastery! 🚀",
+            topicName: getTopicNameLocal(topic.topic_id),
+            reasonKey: "learn.almostMastery",
             priority: "medium",
             icon: "⭐",
             color: "from-warning to-warning-dark",
@@ -110,12 +190,12 @@ export function AdaptiveRecommendations({
 
           const completedTopicIds = new Set(
             currentModuleTopics
-              .filter((k) => k.mastery_score >= 70)
+              .filter((k) => k.mastery_score >= MASTERY_THRESHOLDS.PASSING)
               .map((k) => k.topic_id),
           );
 
-          // Find next topic in sequence (this is simplified - in production, use actual topic order)
-          const allTopicsInModule = getAllTopicsForModule(currentModuleId);
+          // Find next topic in sequence from database
+          const allTopicsInModule = getAllTopicsForModuleLocal(currentModuleId);
           const nextTopic = allTopicsInModule.find(
             (topicId) => !completedTopicIds.has(topicId),
           );
@@ -123,10 +203,10 @@ export function AdaptiveRecommendations({
           if (nextTopic) {
             recs.push({
               moduleId: currentModuleId,
-              moduleName: getModuleName(currentModuleId),
+              moduleName: getModuleNameLocal(currentModuleId),
               topicId: nextTopic,
-              topicName: getTopicName(nextTopic),
-              reason: "Continue your learning journey! 📚",
+              topicName: getTopicNameLocal(nextTopic),
+              reasonKey: "learn.continueJourney",
               priority: "low",
               icon: "➡️",
               color: "from-primary to-primary-dark",
@@ -139,29 +219,30 @@ export function AdaptiveRecommendations({
           const modulesWithProgress = new Set(
             knowledgeState.map((k) => k.module_id),
           );
-          const allModules = ["M1", "M2", "M3", "M4", "M5"];
-          const nextModule = allModules.find(
-            (m) => !modulesWithProgress.has(m),
+          const nextModule = modulesData.find(
+            (m) => !modulesWithProgress.has(m.id),
           );
 
           if (nextModule) {
-            const firstTopic = getAllTopicsForModule(nextModule)[0];
-            recs.push({
-              moduleId: nextModule,
-              moduleName: getModuleName(nextModule),
-              topicId: firstTopic,
-              topicName: getTopicName(firstTopic),
-              reason: "Start a new module and expand your skills! 🌟",
-              priority: "low",
-              icon: "🆕",
-              color: "from-success to-success-dark",
-            });
+            const firstTopic = getAllTopicsForModuleLocal(nextModule.id)[0];
+            if (firstTopic) {
+              recs.push({
+                moduleId: nextModule.id,
+                moduleName: getModuleNameLocal(nextModule.id),
+                topicId: firstTopic,
+                topicName: getTopicNameLocal(firstTopic),
+                reasonKey: "learn.startNewModule",
+                priority: "low",
+                icon: "🆕",
+                color: "from-success to-success-dark",
+              });
+            }
           }
         }
 
         // Sort by priority and limit
         const sortedRecs = recs
-          .sort((a, b) => {
+          .toSorted((a, b) => {
             const priorityOrder = { high: 0, medium: 1, low: 2 };
             return priorityOrder[a.priority] - priorityOrder[b.priority];
           })
@@ -179,7 +260,7 @@ export function AdaptiveRecommendations({
     }
 
     fetchRecommendations();
-  }, [userId, currentModuleId, limit]);
+  }, [userId, currentModuleId, limit, fetchCurriculumData, language]);
 
   if (loading) {
     return (
@@ -206,10 +287,10 @@ export function AdaptiveRecommendations({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <span>🤖</span>
-          <span>AI Recommendations for You</span>
+          <span>{t("learn.aiRecommendations")}</span>
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          Based on your learning progress and style
+          {t("learn.basedOnProgress")}
         </p>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -227,7 +308,7 @@ export function AdaptiveRecommendations({
                   <div className="flex-1">
                     <div className="font-semibold">{rec.topicName}</div>
                     <div className="text-xs opacity-80">{rec.moduleName}</div>
-                    <div className="text-sm mt-1 opacity-90">{rec.reason}</div>
+                    <div className="text-sm mt-1 opacity-90">{t(rec.reasonKey)}</div>
                   </div>
                   <div className="text-white/70">→</div>
                 </div>
@@ -235,107 +316,7 @@ export function AdaptiveRecommendations({
             </Card>
           </Link>
         ))}
-
-        {/* AI Tutor CTA */}
-        <div className="pt-2 border-t border-primary/20">
-          <p className="text-xs text-muted-foreground mb-2">
-            Need help with any topic?
-          </p>
-          <Link href="/app/ai-tools/tutor">
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full border-primary text-primary hover:bg-primary hover:text-white"
-            >
-              💬 Ask AI Tutor
-            </Button>
-          </Link>
-        </div>
       </CardContent>
     </Card>
   );
-}
-
-// Helper functions (in production, these would come from a shared module definitions file)
-function getModuleName(moduleId: string): string {
-  const names: Record<string, string> = {
-    M1: "Computer Basics",
-    M2: "Operating Systems",
-    M3: "Internet Basics",
-    M4: "Digital Communication",
-    M5: "Local Technology",
-  };
-  return names[moduleId] || moduleId;
-}
-
-function getTopicName(topicId: string): string {
-  // Simplified - in production, fetch from database or module definitions
-  return `Topic ${topicId}`;
-}
-
-function getAllTopicsForModule(moduleId: string): string[] {
-  // Simplified - in production, fetch from database or module definitions
-  const topicsByModule: Record<string, string[]> = {
-    M1: [
-      "T1.1",
-      "T1.2",
-      "T2.1",
-      "T2.2",
-      "T2.3",
-      "T3.1",
-      "T3.2",
-      "T3.3",
-      "T3.4",
-      "T3.5",
-    ],
-    M2: [
-      "T4.1",
-      "T4.2",
-      "T5.1",
-      "T5.2",
-      "T6.1",
-      "T6.2",
-      "T7.1",
-      "T7.2",
-      "T8.1",
-      "T8.2",
-    ],
-    M3: [
-      "T9.1",
-      "T9.2",
-      "T9.3",
-      "T9.4",
-      "T10.1",
-      "T10.2",
-      "T10.3",
-      "T10.4",
-      "T11.1",
-      "T11.2",
-    ],
-    M4: [
-      "T12.1",
-      "T12.2",
-      "T12.3",
-      "T13.1",
-      "T13.2",
-      "T13.3",
-      "T14.1",
-      "T14.2",
-      "T15.1",
-      "T15.2",
-    ],
-    M5: [
-      "T16.1",
-      "T16.2",
-      "T16.3",
-      "T17.1",
-      "T17.2",
-      "T17.3",
-      "T18.1",
-      "T18.2",
-      "T19.1",
-      "T19.2",
-    ],
-  };
-  return topicsByModule[moduleId] || [];
 }

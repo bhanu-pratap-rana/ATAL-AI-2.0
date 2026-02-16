@@ -60,14 +60,14 @@ export function ForgotPasswordFlow({
       const result = await sendForgotPasswordOtp(
         state.forgotPasswordEmail.trim(),
       );
-      if (!result.success) {
+      if (result.success) {
+        toast.success("Recovery code sent to your email!");
+        actions.setForgotPasswordStep("reset");
+      } else {
         actions.setForgotPasswordError(
           result.error || "Failed to send recovery code",
         );
         toast.error(result.error || "Failed to send recovery code");
-      } else {
-        toast.success("Recovery code sent to your email!");
-        actions.setForgotPasswordStep("reset");
       }
     } catch (error) {
       authLogger.error("[Forgot Password] Failed to send recovery code", error);
@@ -113,16 +113,16 @@ export function ForgotPasswordFlow({
         state.forgotPasswordNewPassword,
       );
 
-      if (!result.success) {
-        actions.setForgotPasswordError(
-          result.error || "Failed to reset password",
-        );
-        toast.error(result.error || "Failed to reset password");
-      } else {
+      if (result.success) {
         toast.success("Password reset successfully!");
         actions.resetForgotPassword();
         actions.setMainStep("signin");
         onSuccess();
+      } else {
+        actions.setForgotPasswordError(
+          result.error || "Failed to reset password",
+        );
+        toast.error(result.error || "Failed to reset password");
       }
     } catch (error) {
       authLogger.error("[Forgot Password] Failed to reset password", error);
@@ -158,7 +158,7 @@ export function ForgotPasswordFlow({
           disabled={isLoading || !state.forgotPasswordEmail}
           loading={isLoading}
         >
-          Send Recovery Code
+          <span>Send Recovery Code</span>
           <span className="ml-2">→</span>
         </Button>
 
@@ -243,7 +243,7 @@ export function ForgotPasswordFlow({
         }
         loading={isLoading}
       >
-        Reset Password
+        <span>Reset Password</span>
         <span className="ml-2">→</span>
       </Button>
 

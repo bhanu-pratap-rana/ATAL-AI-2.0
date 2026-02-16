@@ -1,1 +1,0 @@
-¿ 2tsXâhr7apps/web/src/components/teacher/StudentProgressGrid.tsx

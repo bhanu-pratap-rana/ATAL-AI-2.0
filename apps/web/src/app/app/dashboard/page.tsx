@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { createClient } from "@/lib/supabase-browser";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,11 @@ import {
 } from "@/app/actions/dashboard-stats";
 import { SyncStatusIndicator } from "@/components/offline/SyncStatusIndicator";
 import { BadgesDisplay } from "@/components/gamification/BadgesDisplay";
+import { LeaderboardCompact } from "@/components/gamification/Leaderboard";
+import { PointsSummary } from "@/components/gamification/PointsHistory";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useLanguage } from "@/lib/i18n";
+import { LanguageSelector } from "@/components/learn/LanguageSelector";
 
 // Animation variants
 const containerVariants = {
@@ -61,72 +66,74 @@ interface WelcomeMessages {
 function getWelcomeMessages(
   isTeacherOrAdmin: boolean,
   userName: string,
+  t: (key: string, values?: Record<string, string | number>) => string,
 ): WelcomeMessages {
   if (isTeacherOrAdmin) {
     return {
-      greeting: `Welcome, ${userName}!`,
-      description:
-        "Manage your classes and track student progress from your dashboard.",
+      greeting: t("dashboard.welcome", { name: userName }),
+      description: t("dashboard.welcomeTeacher"),
     };
   }
 
   return {
-    greeting: `Hello, ${userName}!`,
-    description: "Explore your classes and start your learning journey.",
+    greeting: t("dashboard.welcome", { name: userName }),
+    description: t("dashboard.welcomeStudent"),
   };
 }
 
 // Feature card data
-const getFeatureCards = (isTeacher: boolean) => [
+const getFeatureCards = (
+  isTeacher: boolean,
+  t: (key: string) => string
+) => [
   {
-    title: "Curriculum",
-    description:
-      "Access digital literacy curriculum and educational resources.",
-    emoji: "📚",
-    href: "/app/curriculum",
+    title: t("nav.learn"),
+    description: t("dashboard.featureLearnDesc"),
+    emoji: "📖",
+    href: "/app/learn",
   },
   {
-    title: "Classes",
-    description: "Manage your classes and student enrollments.",
+    title: t("nav.classes"),
+    description: t("dashboard.featureClassesDesc"),
     emoji: "👥",
     href: isTeacher ? "/app/teacher/classes" : "/app/student/classes",
   },
   {
-    title: "Progress",
-    description: "Track student progress and performance metrics.",
+    title: t("dashboard.featureProgress"),
+    description: t("dashboard.featureProgressDesc"),
     emoji: "📊",
     href: "/app/progress",
   },
   {
-    title: "AI Tools",
-    description: "Leverage AI-powered tools for personalized learning.",
+    title: t("dashboard.featureAiTools"),
+    description: t("dashboard.featureAiToolsDesc"),
     emoji: "🤖",
     href: "/app/ai-tools",
   },
   {
-    title: "Assessments",
-    description: "Create and manage assessments and quizzes.",
+    title: t("nav.assessments"),
+    description: t("dashboard.featureAssessmentsDesc"),
     emoji: "📝",
     href: isTeacher ? "/app/teacher/assessments" : "/app/student/assessments",
   },
   {
-    title: "Profile",
-    description: "View and manage your profile information.",
+    title: t("nav.profile"),
+    description: t("dashboard.featureProfileDesc"),
     emoji: "👤",
     href: "/app/settings",
   },
 ];
 
-// Stat Card Component
-function StatCard({
+// REACT-001 FIX: Stat Card Component wrapped with React.memo for performance
+const StatCard = memo(function StatCard({
   icon,
   value,
   label,
-}: {
+}: Readonly<{
   icon: string;
   value: string | number;
   label: string;
-}) {
+}>) {
   return (
     <motion.div
       variants={itemVariants}
@@ -141,48 +148,52 @@ function StatCard({
       </div>
     </motion.div>
   );
-}
+});
 
-// Feature Card Component
-function FeatureCard({
+// REACT-001 FIX: Feature Card Component wrapped with React.memo for performance
+// PERFORMANCE: Uses Link with prefetch instead of router.push for faster navigation
+const FeatureCard = memo(function FeatureCard({
   title,
   description,
   emoji,
-  onClick,
-}: {
+  href,
+}: Readonly<{
   title: string;
   description: string;
   emoji: string;
-  onClick: () => void;
-}) {
+  href: string;
+}>) {
   return (
-    <motion.div
-      variants={itemVariants}
-      whileHover={{ y: -4, boxShadow: "var(--shadow-primary)" }}
-      className="p-[3px] rounded-2xl bg-gradient-primary shadow-[var(--shadow-primary-sm)] cursor-pointer"
-      onClick={onClick}
-    >
-      <div className="bg-white rounded-xl p-5 h-full">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 bg-primary-lightest rounded-lg flex items-center justify-center text-xl">
-            {emoji}
+    <Link href={href} prefetch={true}>
+      <motion.div
+        variants={itemVariants}
+        whileHover={{ y: -4, boxShadow: "var(--shadow-primary)" }}
+        className="p-[3px] rounded-2xl bg-gradient-primary shadow-[var(--shadow-primary-sm)] cursor-pointer h-full"
+      >
+        <div className="bg-white rounded-xl p-5 h-full">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 bg-primary-lightest rounded-lg flex items-center justify-center text-xl">
+              {emoji}
+            </div>
+            <h3 className="text-lg font-bold text-text-primary">{title}</h3>
           </div>
-          <h3 className="text-lg font-bold text-text-primary">{title}</h3>
+          <p className="text-sm text-text-secondary leading-relaxed">
+            {description}
+          </p>
         </div>
-        <p className="text-sm text-text-secondary leading-relaxed">
-          {description}
-        </p>
-      </div>
-    </motion.div>
+      </motion.div>
+    </Link>
   );
-}
+});
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { language, t } = useLanguage();
   const [user, setUser] = useState<User | null>(null);
   const [profileName, setProfileName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [enrolledClassId, setEnrolledClassId] = useState<string | null>(null);
   const supabase = createClient();
 
   // Check app_metadata.role (set during teacher registration via admin API)
@@ -205,32 +216,48 @@ export default function DashboardPage() {
         // Check for teacher, admin, AND super_admin roles
         const isTeacher = isTeacherOrHigher(role);
 
-        if (isTeacher) {
-          // Fetch teacher profile name
-          const { data: teacherProfile } = await supabase
-            .from("teacher_profiles")
-            .select("name")
-            .eq("user_id", user.id)
-            .maybeSingle();
+        // Fetch profile, enrollment, and stats in PARALLEL (eliminates waterfall)
+        const profilePromise = isTeacher
+          ? supabase
+              .from("teacher_profiles")
+              .select("name")
+              .eq("user_id", user.id)
+              .maybeSingle()
+          : supabase
+              .from("student_profiles")
+              .select("name")
+              .eq("user_id", user.id)
+              .maybeSingle();
 
-          if (teacherProfile?.name) {
-            setProfileName(teacherProfile.name);
-          }
-        } else {
-          // Fetch student profile name
-          const { data: studentProfile } = await supabase
-            .from("student_profiles")
-            .select("name")
-            .eq("user_id", user.id)
-            .maybeSingle();
+        const enrollmentPromise = !isTeacher
+          ? supabase
+              .from("enrollments")
+              .select("class_id")
+              .eq("student_id", user.id)
+              .limit(1)
+              .maybeSingle()
+          : Promise.resolve({ data: null });
 
-          if (studentProfile?.name) {
-            setProfileName(studentProfile.name);
-          }
+        const statsPromise = getDashboardStats();
+
+        // Execute all in parallel
+        const [profileResult, enrollmentResult, statsResult] = await Promise.all([
+          profilePromise,
+          enrollmentPromise,
+          statsPromise,
+        ]);
+
+        // Set profile name
+        if (profileResult.data?.name) {
+          setProfileName(profileResult.data.name);
         }
 
-        // Fetch real dashboard stats
-        const statsResult = await getDashboardStats();
+        // Set enrollment (students only)
+        if (!isTeacher && enrollmentResult.data?.class_id) {
+          setEnrolledClassId(enrollmentResult.data.class_id);
+        }
+
+        // Set stats
         if (statsResult.success && statsResult.data) {
           setStats(statsResult.data);
         }
@@ -252,24 +279,29 @@ export default function DashboardPage() {
     }
   }
 
+  // REACT-002 FIX: Memoize feature cards - MUST be before any early returns
+  // to comply with Rules of Hooks (hooks must be called in same order every render)
+  const featureCards = useMemo(
+    () => getFeatureCards(isTeacherOrAdmin, t),
+    [isTeacherOrAdmin, t]
+  );
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-cream">
         <div className="text-center">
           <div className="w-12 h-12 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-text-secondary">Loading...</p>
+          <p className="text-text-secondary">{t("common.loading")}</p>
         </div>
       </div>
     );
   }
 
-  const featureCards = getFeatureCards(isTeacherOrAdmin);
-
   return (
     <div className="min-h-screen bg-cream">
       {/* Header */}
       <header className="bg-white border-b border-border-light sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 md:px-8 py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-4">
           <div className="flex items-center justify-between">
             {/* Logo & Title */}
             <div className="flex items-center gap-3 md:gap-4">
@@ -292,16 +324,17 @@ export default function DashboardPage() {
               </div>
               <div>
                 <h1 className="text-xl md:text-2xl font-bold text-text-primary">
-                  ATAL AI Tutorial
+                  {t("dashboard.title")}
                 </h1>
                 <p className="text-xs md:text-sm text-text-secondary">
-                  Smart Learning Platform
+                  {t("dashboard.subtitle")}
                 </p>
               </div>
             </div>
 
-            {/* Sync Status & Sign Out */}
-            <div className="flex items-center gap-2">
+            {/* Language Selector, Sync Status & Sign Out */}
+            <div className="flex items-center gap-2 md:gap-3">
+              <LanguageSelector variant="compact" className="hidden sm:block" />
               <SyncStatusIndicator compact />
               <Button
                 onClick={handleSignOut}
@@ -310,7 +343,7 @@ export default function DashboardPage() {
                 className="gap-2"
               >
                 <LogOut className="w-4 h-4" />
-                <span className="hidden sm:inline">Sign Out</span>
+                <span className="hidden sm:inline">{t("common.signOut")}</span>
               </Button>
             </div>
           </div>
@@ -318,12 +351,20 @@ export default function DashboardPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 md:py-8">
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
+          {/* Mobile Language Selector */}
+          <motion.div variants={itemVariants} className="sm:hidden mb-4">
+            <div className="flex items-center justify-between bg-white rounded-xl p-3 shadow-sm">
+              <span className="text-sm text-text-secondary">{t("common.language")}</span>
+              <LanguageSelector variant="compact" />
+            </div>
+          </motion.div>
+
           {/* Welcome Banner */}
           <motion.div
             variants={itemVariants}
@@ -332,7 +373,7 @@ export default function DashboardPage() {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
                 {(() => {
-                  const messages = getWelcomeMessages(isTeacherOrAdmin, userName);
+                  const messages = getWelcomeMessages(isTeacherOrAdmin, userName, t);
                   return (
                     <>
                       <h2 className="text-2xl md:text-3xl font-bold mb-1 text-white drop-shadow-sm">
@@ -351,7 +392,7 @@ export default function DashboardPage() {
                   variant="secondary"
                   className="bg-white text-primary hover:bg-surface shrink-0"
                 >
-                  Create Class
+                  {t("dashboard.createClass")}
                 </Button>
               )}
             </div>
@@ -362,44 +403,43 @@ export default function DashboardPage() {
             <StatCard
               icon="📚"
               value={stats?.classesCount ?? 0}
-              label={isTeacherOrAdmin ? "Classes Created" : "Classes Joined"}
+              label={isTeacherOrAdmin ? t("dashboard.classesCreated") : t("dashboard.classesJoined")}
             />
             <StatCard
               icon="📝"
               value={stats?.assessmentsCount ?? 0}
-              label="Assessments"
+              label={t("dashboard.assessments")}
             />
             <StatCard
               icon="🎯"
               value={
-                stats && stats.averageScore !== null ? `${stats.averageScore}%` : "--"
+                stats?.averageScore == null ? "--" : `${stats.averageScore}%`
               }
-              label="Avg Score"
+              label={t("dashboard.avgScore")}
             />
             <StatCard
               icon="🔥"
               value={stats?.streakDays ?? 0}
-              label="Day Streak"
+              label={t("dashboard.dayStreak")}
             />
           </div>
 
           {/* Empty State Message for New Users */}
-          {stats &&
-            stats.classesCount === 0 &&
-            stats.assessmentsCount === 0 && (
+          {stats?.classesCount === 0 &&
+            stats?.assessmentsCount === 0 && (
               <motion.div
                 variants={itemVariants}
                 className="bg-info-light border border-info/30 rounded-xl p-6 mb-8 text-center"
               >
                 <p className="text-lg font-medium text-info-dark mb-2">
                   {isTeacherOrAdmin
-                    ? "🎉 Welcome! Let's get started"
-                    : "👋 Welcome to ATAL AI!"}
+                    ? t("dashboard.welcomeEmoji")
+                    : t("dashboard.welcomeStudentEmoji")}
                 </p>
                 <p className="text-sm text-text-secondary mb-4">
                   {isTeacherOrAdmin
-                    ? "Create your first class to start inviting students and tracking their progress."
-                    : "Join a class or take an assessment to begin your learning journey."}
+                    ? t("dashboard.getStartedTeacher")
+                    : t("dashboard.getStartedStudent")}
                 </p>
                 <Button
                   onClick={() =>
@@ -412,36 +452,59 @@ export default function DashboardPage() {
                   variant="default"
                 >
                   {isTeacherOrAdmin
-                    ? "Create Your First Class"
-                    : "Start an Assessment"}
+                    ? t("dashboard.createFirstClass")
+                    : t("dashboard.startAssessment")}
                 </Button>
               </motion.div>
             )}
 
-          {/* Gamification Section - Badges */}
+          {/* Gamification Section - Badges, Points & Leaderboard */}
           {!isTeacherOrAdmin && user && (
-            <motion.div variants={itemVariants} className="mb-8">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    🏆 Your Badges
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <BadgesDisplay
-                    studentId={user.id}
-                    language="en"
-                    showAll={true}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+              <motion.div variants={itemVariants}>
+                <Card className="h-full">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      🏆 {t("dashboard.yourBadges")}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <BadgesDisplay
+                      studentId={user.id}
+                      language={language}
+                      showAll={true}
+                    />
+                  </CardContent>
+                </Card>
+              </motion.div>
+              <motion.div variants={itemVariants}>
+                <Card className="h-full">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      ⭐ {t("dashboard.points")}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <PointsSummary studentId={user.id} />
+                  </CardContent>
+                </Card>
+              </motion.div>
+              {enrolledClassId && (
+                <motion.div variants={itemVariants}>
+                  <LeaderboardCompact
+                    classId={enrolledClassId}
+                    currentUserId={user.id}
+                    limit={5}
                   />
-                </CardContent>
-              </Card>
-            </motion.div>
+                </motion.div>
+              )}
+            </div>
           )}
 
           {/* Feature Cards Grid */}
           <div className="mb-6">
             <h3 className="text-lg font-bold text-text-primary mb-4">
-              Quick Actions
+              {t("dashboard.quickActions")}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {featureCards.map((card) => (
@@ -450,7 +513,7 @@ export default function DashboardPage() {
                   title={card.title}
                   description={card.description}
                   emoji={card.emoji}
-                  onClick={() => router.push(card.href)}
+                  href={card.href}
                 />
               ))}
             </div>

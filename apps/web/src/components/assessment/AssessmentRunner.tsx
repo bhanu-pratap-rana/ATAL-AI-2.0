@@ -14,7 +14,7 @@ import {
 import { CompactTimer } from "./AssessmentTimer";
 import { clientLogger } from "@/lib/client-logger";
 import { submitAssessment } from "@/app/actions/assessment/assessment-submission";
-import { updateTheta } from "@/app/actions/assessment/irt-models";
+import { updateTheta, type IRTItem } from "@/app/actions/assessment/irt-models";
 
 /**
  * ATAL AI Assessment Runner - IRT-Enhanced Adaptive Testing
@@ -50,10 +50,13 @@ interface Question {
 }
 
 // Fisher-Yates shuffle for option randomization
+// Uses crypto.getRandomValues() for secure randomness
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const randomArray = new Uint32Array(1);
+    crypto.getRandomValues(randomArray);
+    const j = randomArray[0] % (i + 1);
     const temp = shuffled[i];
     if (shuffled?.[j] !== undefined) {
       shuffled[i] = shuffled[j];
@@ -133,6 +136,93 @@ function getRadioButtonClasses(isSelected: boolean): string {
   return "border-border bg-white";
 }
 
+/**
+ * Helper: Check if answer is correct based on shuffle map
+ * S3776: Extracted to reduce cognitive complexity
+ *
+ * BUG-012 FIX: Explicit documentation and validation for index handling
+ * The database stores _correctIndex as 1-based (1, 2, 3, 4 for options A, B, C, D)
+ * The shuffleMap uses 0-based indices (0, 1, 2, 3)
+ * We convert correctIndex from 1-based to 0-based before comparison
+ *
+ * @param selectedOption - 0-based index of user's selected option in shuffled order
+ * @param shuffleMap - Maps shuffled position to original position (0-based)
+ * @param correctIndex - 1-based index from database (_correctIndex field)
+ * @returns true if the selected option maps to the correct answer
+ */
+function checkAnswerCorrectness(
+  selectedOption: number,
+  shuffleMap: number[],
+  correctIndex: number,
+): boolean {
+  // BUG-012 FIX: Add validation for invalid correctIndex values
+  if (correctIndex < 1 || correctIndex > shuffleMap.length) {
+    // Log warning but don't crash - treat as incorrect
+    clientLogger.warn(
+      `[AssessmentRunner] Invalid correctIndex: ${correctIndex}, expected 1-${shuffleMap.length}`,
+    );
+    return false;
+  }
+
+  // Validate selectedOption bounds
+  if (selectedOption < 0 || selectedOption >= shuffleMap.length) {
+    clientLogger.warn(
+      `[AssessmentRunner] Invalid selectedOption: ${selectedOption}, expected 0-${shuffleMap.length - 1}`,
+    );
+    return false;
+  }
+
+  const originalOptionIndex = shuffleMap[selectedOption];
+  // Convert 1-based correctIndex to 0-based for comparison
+  const correctIndex0Based = correctIndex - 1;
+  return originalOptionIndex === correctIndex0Based;
+}
+
+/**
+ * Helper: Build IRT response object from question data
+ * S3776: Extracted to reduce cognitive complexity
+ */
+function buildIrtResponse(
+  response: ResponseData,
+  questions: Question[],
+): { item: IRTItem; correct: boolean } {
+  const q = questions.find((question) => question.id === response.itemId);
+  return {
+    item: {
+      id: response.itemId,
+      item_code: q?.itemCode || "",
+      category: q?.category || "",
+      question_text: q?.questionText || "",
+      options: q?.options || [],
+      correct_answer: q?._correctIndex || 0,
+      difficulty: q?._difficulty || 0,
+      discrimination: q?._discrimination || 1,
+      guessing: q?._guessing || 0.2,
+    },
+    correct: response.isCorrect,
+  };
+}
+
+/**
+ * Helper: Show rapid tap warning if response is too fast
+ * S3776: Extracted to reduce cognitive complexity
+ * BP-2 FIX: Returns timeout ID for cleanup to prevent memory leaks
+ */
+function handleRapidTapWarning(
+  rtMs: number,
+  hasSelection: boolean,
+  setShowWarning: (show: boolean) => void,
+): ReturnType<typeof setTimeout> | null {
+  if (rtMs < ASSESSMENT_TIMING.rapidResponseThreshold && hasSelection) {
+    setShowWarning(true);
+    return setTimeout(
+      () => setShowWarning(false),
+      ASSESSMENT_TIMING.rapidWarningDuration,
+    );
+  }
+  return null;
+}
+
 export function AssessmentRunner({
   sessionId,
   questions,
@@ -155,7 +245,8 @@ export function AssessmentRunner({
   const [focusBlurCount, setFocusBlurCount] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showRapidWarning, setShowRapidWarning] = useState(false);
-  const [_totalElapsedSeconds, setTotalElapsedSeconds] = useState(0);
+  // NOSONAR S6754: Only setter needed - value tracked internally but not used in render
+  const [, setTotalElapsedSeconds] = useState(0); // NOSONAR
 
   // IRT State for real-time adaptive tracking
   const [irtState, setIrtState] = useState<IRTState>({
@@ -169,6 +260,8 @@ export function AssessmentRunner({
   const questionRef = useRef<HTMLHeadingElement>(null);
   // Store question start time for duration tracking
   const questionStartTimeRef = useRef<number>(Date.now());
+  // BP-2 FIX: Store rapid warning timer for cleanup
+  const warningTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Derived state
   const isReviewingHistory = currentHistoryIndex >= 0;
@@ -205,19 +298,21 @@ export function AssessmentRunner({
   ]);
 
   // Calculate question statuses for pagination
+  // LOOP-2 FIX: Use Map lookups for O(q+h) instead of O(q²×h) triple-nested search
   const questionStatuses: QuestionStatus[] = useMemo(() => {
+    const questionIndexMap = new Map(questions.map((q, i) => [q, i]));
+    const historyByIndex = new Map<number, (typeof questionHistory)[0]>();
+    for (const h of questionHistory) {
+      const idx = questionIndexMap.get(h.question);
+      if (idx !== undefined) historyByIndex.set(idx, h);
+    }
     return questions.map((_, index) => {
       if (index === currentIndex) return "current";
-
-      const historyItem = questionHistory.find(
-        (h) => questions.indexOf(h.question) === index,
-      );
-
+      const historyItem = historyByIndex.get(index);
       if (historyItem) {
         if (historyItem.hasBeenAnswered) return "answered";
         if (historyItem.skipped) return "skipped";
       }
-
       return "unanswered";
     });
   }, [questions, currentIndex, questionHistory]);
@@ -245,6 +340,13 @@ export function AssessmentRunner({
 
     globalThis.addEventListener("blur", handleBlur);
     return () => globalThis.removeEventListener("blur", handleBlur);
+  }, []);
+
+  // BP-2 FIX: Clean up rapid warning timer on unmount
+  useEffect(() => {
+    return () => {
+      if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
+    };
   }, []);
 
   // Submit assessment data
@@ -292,14 +394,16 @@ export function AssessmentRunner({
     if (isReviewingHistory && currentHistoryIndex > 0) {
       // Move back in history
       setCurrentHistoryIndex(currentHistoryIndex - 1);
-      setCurrentIndex(
-        questions.indexOf(questionHistory[currentHistoryIndex - 1].question),
-      );
+      const prevEntry = questionHistory[currentHistoryIndex - 1];
+      const prevIndex = prevEntry ? questions.indexOf(prevEntry.question) : -1;
+      if (prevIndex >= 0) setCurrentIndex(prevIndex);
     } else if (!isReviewingHistory && questionHistory.length > 0) {
       // Enter history mode at the last item
       const lastIndex = questionHistory.length - 1;
       setCurrentHistoryIndex(lastIndex);
-      setCurrentIndex(questions.indexOf(questionHistory[lastIndex].question));
+      const histEntry = questionHistory[lastIndex];
+      const histIndex = histEntry ? questions.indexOf(histEntry.question) : -1;
+      if (histIndex >= 0) setCurrentIndex(histIndex);
     }
     setSelectedOption(null);
   }, [isReviewingHistory, currentHistoryIndex, questionHistory, questions]);
@@ -340,61 +444,67 @@ export function AssessmentRunner({
     questions.length,
   ]);
 
-  // Handle Next/Submit
+  // Handle history navigation - S3776: Extracted to reduce cognitive complexity
+  const handleHistoryNavigation = useCallback(() => {
+    // Update the history item if answer changed
+    if (selectedOption !== null) {
+      const isCorrect = checkAnswerCorrectness(
+        selectedOption,
+        shuffleMap,
+        currentQuestion._correctIndex,
+      );
+
+      const updatedHistory = [...questionHistory];
+      updatedHistory[currentHistoryIndex] = {
+        ...updatedHistory[currentHistoryIndex],
+        selectedAnswer: selectedOption,
+        isCorrect,
+        hasBeenAnswered: true,
+        skipped: false,
+      };
+      setQuestionHistory(updatedHistory);
+    }
+
+    // Navigate forward in history or exit history mode
+    if (currentHistoryIndex < questionHistory.length - 1) {
+      // More history ahead
+      setCurrentHistoryIndex(currentHistoryIndex + 1);
+      setCurrentIndex(
+        questions.indexOf(questionHistory[currentHistoryIndex + 1].question),
+      );
+    } else {
+      // Exit history mode, continue with new questions
+      setCurrentHistoryIndex(-1);
+      const lastHistoryItem = questionHistory.at(-1);
+      const nextIndex = lastHistoryItem
+        ? questions.indexOf(lastHistoryItem.question) + 1
+        : 0;
+      if (nextIndex < questions.length) {
+        setCurrentIndex(nextIndex);
+      }
+    }
+    setSelectedOption(null);
+  }, [
+    selectedOption,
+    shuffleMap,
+    currentQuestion._correctIndex,
+    questionHistory,
+    currentHistoryIndex,
+    questions,
+  ]);
+
+  // Handle Next/Submit - S3776: Refactored to reduce cognitive complexity
   const handleNext = useCallback(() => {
     const rtMs = Date.now() - questionStartTimeRef.current;
 
-    // Show rapid tap warning if too fast
-    if (
-      rtMs < ASSESSMENT_TIMING.rapidResponseThreshold &&
-      selectedOption !== null
-    ) {
-      setShowRapidWarning(true);
-      setTimeout(
-        () => setShowRapidWarning(false),
-        ASSESSMENT_TIMING.rapidWarningDuration,
-      );
-    }
+    // Show rapid tap warning if too fast (extracted helper)
+    // BP-2 FIX: Clear previous timer before setting new one
+    if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
+    warningTimerRef.current = handleRapidTapWarning(rtMs, selectedOption !== null, setShowRapidWarning);
 
-    // If reviewing history
+    // If reviewing history - handle separately to reduce nesting
     if (isReviewingHistory) {
-      // Update the history item if answer changed
-      if (selectedOption !== null) {
-        const originalOptionIndex = shuffleMap[selectedOption];
-        // _correctIndex is 1-based from database, convert to 0-based
-        const isCorrect =
-          originalOptionIndex === currentQuestion._correctIndex - 1;
-
-        const updatedHistory = [...questionHistory];
-        updatedHistory[currentHistoryIndex] = {
-          ...updatedHistory[currentHistoryIndex],
-          selectedAnswer: selectedOption,
-          isCorrect,
-          hasBeenAnswered: true,
-          skipped: false,
-        };
-        setQuestionHistory(updatedHistory);
-      }
-
-      // Navigate forward
-      if (currentHistoryIndex < questionHistory.length - 1) {
-        // More history ahead
-        setCurrentHistoryIndex(currentHistoryIndex + 1);
-        setCurrentIndex(
-          questions.indexOf(questionHistory[currentHistoryIndex + 1].question),
-        );
-      } else {
-        // Exit history mode, continue with new questions
-        setCurrentHistoryIndex(-1);
-        const nextIndex =
-          questions.indexOf(
-            questionHistory[questionHistory.length - 1].question,
-          ) + 1;
-        if (nextIndex < questions.length) {
-          setCurrentIndex(nextIndex);
-        }
-      }
-      setSelectedOption(null);
+      handleHistoryNavigation();
       return;
     }
 
@@ -404,9 +514,12 @@ export function AssessmentRunner({
       return;
     }
 
-    const originalOptionIndex = shuffleMap[selectedOption];
-    // _correctIndex is 1-based from database, convert to 0-based
-    const isCorrect = originalOptionIndex === currentQuestion._correctIndex - 1;
+    // Use extracted helper for correctness check
+    const isCorrect = checkAnswerCorrectness(
+      selectedOption,
+      shuffleMap,
+      currentQuestion._correctIndex,
+    );
 
     // Add to history
     const historyItem: QuestionHistoryItem = {
@@ -433,23 +546,10 @@ export function AssessmentRunner({
 
     // Update IRT ability estimate (theta) after each answer
     const updatedResponses = [...responses, response];
-    const irtResponses = updatedResponses.map((r) => {
-      const q = questions.find((q) => q.id === r.itemId);
-      return {
-        item: {
-          id: r.itemId,
-          item_code: "",
-          category: q?.category || "",
-          question_text: q?.questionText || "",
-          options: q?.options || [],
-          correct_answer: 0,
-          difficulty: q?._difficulty || 0,
-          discrimination: q?._discrimination || 1,
-          guessing: q?._guessing || 0.2,
-        },
-        correct: r.isCorrect,
-      };
-    });
+    // Use extracted helper for IRT response building
+    const irtResponses = updatedResponses.map((r) =>
+      buildIrtResponse(r, questions),
+    );
 
     // Update theta estimate
     const { theta: newTheta, se: newSe } = updateTheta(
@@ -481,11 +581,11 @@ export function AssessmentRunner({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   [
     isReviewingHistory,
+    handleHistoryNavigation,
     selectedOption,
     shuffleMap,
     currentQuestion,
     questionHistory,
-    currentHistoryIndex,
     shuffledOptions,
     responses,
     focusBlurCount,
@@ -565,7 +665,7 @@ export function AssessmentRunner({
     <div className="min-h-screen bg-cream p-4 md:p-8">
       <div className="max-w-3xl mx-auto">
         {/* Progress Header */}
-        <div className="mb-4" role="status" aria-live="polite">
+        <output className="mb-4 block">
           <div className="flex items-center justify-between mb-2">
             <span
               className="text-sm font-medium text-text-primary"
@@ -587,7 +687,7 @@ export function AssessmentRunner({
             aria-valuemin={0}
             aria-valuemax={100}
           />
-        </div>
+        </output>
 
         {/* Question Pagination */}
         <div className="mb-4">
@@ -636,44 +736,51 @@ export function AssessmentRunner({
               </h2>
             </div>
 
-            {/* Options */}
-            <div
-              role="radiogroup"
+            {/* Options - Using native radio inputs for accessibility (S6819) */}
+            <fieldset
               aria-labelledby="question-text"
-              className="space-y-3"
+              className="space-y-3 border-0 p-0 m-0"
             >
               {shuffledOptions.map(
-                (option: { id: string; text: string }, index: number) => (
-                  <button
-                    key={option.id}
-                    role="radio"
-                    aria-checked={selectedOption === index}
-                    aria-label={`Option ${option.id}: ${option.text}`}
-                    onClick={() => handleOptionSelect(index)}
-                    className={`w-full text-left p-4 rounded-md border-2 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${getOptionButtonClasses(selectedOption === index)}`}
-                    disabled={isSubmitting}
-                    tabIndex={0}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div
-                        aria-hidden="true"
-                        className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${getRadioButtonClasses(selectedOption === index)}`}
-                      >
-                        {selectedOption === index && (
-                          <div className="w-3 h-3 bg-white rounded-full" />
-                        )}
+                (option: { id: string; text: string }, index: number) => {
+                  // Fixed positional labels: A, B, C, D always in order
+                  // Option content shuffles but labels stay sequential
+                  const label = String.fromCharCode(65 + index); // A=65
+                  return (
+                    <label
+                      key={option.id}
+                      className={`w-full text-left p-4 rounded-md border-2 transition-all duration-200 cursor-pointer focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 ${getOptionButtonClasses(selectedOption === index)} ${isSubmitting ? "pointer-events-none opacity-50" : ""}`}
+                    >
+                      <input
+                        type="radio"
+                        name="assessment-option"
+                        checked={selectedOption === index}
+                        onChange={() => handleOptionSelect(index)}
+                        disabled={isSubmitting}
+                        className="sr-only"
+                        aria-label={`Option ${label}: ${option.text}`}
+                      />
+                      <div className="flex items-start gap-3">
+                        <div
+                          aria-hidden="true"
+                          className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${getRadioButtonClasses(selectedOption === index)}`}
+                        >
+                          {selectedOption === index && (
+                            <div className="w-3 h-3 bg-white rounded-full" />
+                          )}
+                        </div>
+                        <span
+                          className={`text-base text-text-primary ${fontClass}`}
+                        >
+                          <span className="font-semibold mr-2">{label}.</span>
+                          {option.text}
+                        </span>
                       </div>
-                      <span
-                        className={`text-base text-text-primary ${fontClass}`}
-                      >
-                        <span className="font-semibold mr-2">{option.id}.</span>
-                        {option.text}
-                      </span>
-                    </div>
-                  </button>
-                ),
+                    </label>
+                  );
+                },
               )}
-            </div>
+            </fieldset>
 
             {/* Navigation */}
             <QuestionNavigation

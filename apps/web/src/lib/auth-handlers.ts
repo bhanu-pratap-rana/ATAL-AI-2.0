@@ -21,7 +21,7 @@ import {
 } from "./validation-utils";
 import { checkOtpRateLimit } from "./rate-limiter-distributed";
 import { authLogger } from "./auth-logger";
-import type { SignInResult as BaseSignInResult } from "@/types/auth";
+export type { SignInResult as BaseSignInResult } from "@/types/auth";
 
 /**
  * Extended signin result type for internal use
@@ -33,9 +33,6 @@ export interface SignInResult {
   user?: User;
   requiresProfileCheck?: boolean;
 }
-
-// Re-export for consumers who need the base type
-export type { BaseSignInResult };
 
 /**
  * Generic OTP result type
@@ -114,9 +111,10 @@ async function checkProfileIfRequired(
     return { valid: true };
   }
 
+  // PERF-009 FIX: Select only user_id - we just need to check existence
   const { data: profile, error: profileError } = await supabase
     .from(options.profileTable)
-    .select("*")
+    .select("user_id")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -396,7 +394,11 @@ export async function handleVerifyOTP(
       });
       data = result.data;
       error = result.error;
-    } else {
+    }
+
+    // Guard: data is always set after the if/else-if above (early return on !id ensures
+    // at least one branch executes), but TypeScript can't infer this
+    if (!data) {
       return { success: false, error: "Email or phone is required" };
     }
 

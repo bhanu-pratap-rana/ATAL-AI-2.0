@@ -10,6 +10,7 @@ import {
 import { RATE_LIMITS } from "@/lib/constants/rate-limits";
 import { checkRateLimit as checkDistributedRateLimit } from "@/lib/rate-limiter-distributed";
 import { validateInput, handleActionError } from "./action-utils";
+import { RATE_LIMIT_ERRORS } from "@/lib/constants/error-messages";
 
 export interface CreateAdminUserResult {
   success: boolean;
@@ -65,10 +66,10 @@ export async function createAdminUser(
   try {
     // Validate inputs using Zod schemas
     const emailValidation = validateInput(email, AdminEmailSchema);
-    if (!emailValidation.success) {
-      return { success: false, error: emailValidation.error };
+    if (!emailValidation.success || !emailValidation.data) {
+      return { success: false, error: emailValidation.error ?? "Invalid input" };
     }
-    const normalizedEmail = emailValidation.data!;
+    const normalizedEmail = emailValidation.data;
 
     const passwordValidation = validateInput(password, AdminPasswordSchema);
     if (!passwordValidation.success) {
@@ -84,7 +85,7 @@ export async function createAdminUser(
     if (!isAllowed) {
       return {
         success: false,
-        error: "Too many requests. Please try again later.",
+        error: RATE_LIMIT_ERRORS.TOO_MANY_REQUESTS,
       };
     }
 
@@ -135,6 +136,20 @@ export async function createAdminUser(
         success: false,
         error: `User with email ${email} already exists. Use the admin panel to manage roles.`,
       };
+    }
+
+    // TOCTOU protection: re-check admin existence right before creation
+    // Narrows the race window between initial check and user creation
+    if (!hasExistingAdmin) {
+      const { data: recheck } = await adminClient.auth.admin.listUsers();
+      const nowHasAdmin = recheck?.users.some((u) => isAdmin(u.app_metadata?.role));
+      if (nowHasAdmin) {
+        authLogger.warn("[createAdminUser] Race condition detected: admin created between checks");
+        return {
+          success: false,
+          error: "An admin was just created by another request. Please refresh and use the admin panel.",
+        };
+      }
     }
 
     // Create new user with password

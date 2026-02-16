@@ -1,1 +1,0 @@
-’ 2tsXýhr6apps/web/src/components/gamification/BadgesDisplay.tsx

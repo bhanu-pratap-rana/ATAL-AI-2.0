@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase-server";
 import { authLogger } from "@/lib/auth-logger";
 import { checkSchoolFinderRateLimit } from "@/lib/rate-limiter-distributed";
+import { RATE_LIMIT_ERRORS } from "@/lib/constants/error-messages";
 
 // Types
 export interface District {
@@ -34,7 +35,7 @@ export async function getDistricts() {
       authLogger.warn("[getDistricts] Rate limit exceeded");
       return {
         success: false,
-        error: "Too many requests. Please try again later.",
+        error: RATE_LIMIT_ERRORS.TOO_MANY_REQUESTS,
         data: [],
       };
     }
@@ -44,7 +45,8 @@ export async function getDistricts() {
     const { data, error } = await supabase
       .from("schools")
       .select("district")
-      .order("district");
+      .order("district")
+      .limit(500);
 
     if (error) {
       authLogger.error("[getDistricts] Failed to fetch districts", error);
@@ -77,7 +79,7 @@ export async function getBlocksByDistrict(district: string) {
       });
       return {
         success: false,
-        error: "Too many requests. Please try again later.",
+        error: RATE_LIMIT_ERRORS.TOO_MANY_REQUESTS,
         data: [],
       };
     }
@@ -88,7 +90,8 @@ export async function getBlocksByDistrict(district: string) {
       .from("schools")
       .select("block, district")
       .eq("district", district)
-      .order("block");
+      .order("block")
+      .limit(500);
 
     if (error) {
       authLogger.error("[getBlocksByDistrict] Failed to fetch blocks", error);
@@ -133,7 +136,7 @@ export async function getSchoolsByDistrictAndBlock(
       });
       return {
         success: false,
-        error: "Too many requests. Please try again later.",
+        error: RATE_LIMIT_ERRORS.TOO_MANY_REQUESTS,
         data: [],
       };
     }
@@ -144,7 +147,8 @@ export async function getSchoolsByDistrictAndBlock(
       .from("schools")
       .select("id, school_code, school_name, district, block, address")
       .eq("district", district)
-      .order("school_name");
+      .order("school_name")
+      .limit(200);
 
     if (block) {
       // Handle "Unassigned Block" selection - returns schools with NULL block
@@ -186,7 +190,7 @@ export async function getSchoolPinStatus(schoolCode: string) {
       });
       return {
         success: false,
-        error: "Too many requests. Please try again later.",
+        error: RATE_LIMIT_ERRORS.TOO_MANY_REQUESTS,
         exists: false,
       };
     }

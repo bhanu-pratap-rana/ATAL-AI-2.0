@@ -50,9 +50,10 @@ BEGIN
     -- Check criteria based on type
     CASE v_badge.unlock_criteria->>'type'
       WHEN 'lessons_completed' THEN
+        -- Use student_knowledge_state instead of non-existent student_progress
         SELECT COUNT(*) INTO v_count
-        FROM student_progress
-        WHERE student_id = p_student_id AND status = 'completed';
+        FROM student_knowledge_state
+        WHERE student_id = p_student_id AND status = 'mastered';
         v_earned := v_count >= v_threshold;
 
       WHEN 'modules_mastered' THEN
@@ -75,11 +76,11 @@ BEGIN
         v_earned := v_count >= v_threshold;
 
       WHEN 'weekly_streak' THEN
-        -- Check if student has activity on 7 consecutive days
-        SELECT COUNT(DISTINCT DATE(created_at)) INTO v_count
-        FROM student_progress
+        -- Check if student has activity on 7 consecutive days using knowledge state
+        SELECT COUNT(DISTINCT DATE(updated_at)) INTO v_count
+        FROM student_knowledge_state
         WHERE student_id = p_student_id
-          AND created_at >= NOW() - INTERVAL '7 days';
+          AND updated_at >= NOW() - INTERVAL '7 days';
         v_earned := v_count >= 7;
 
       ELSE
@@ -94,14 +95,13 @@ BEGIN
       VALUES (p_student_id, v_badge.id)
       ON CONFLICT (student_id, badge_id) DO NOTHING;
 
-      -- Award bonus points
-      INSERT INTO points_history (student_id, points, reason, description, created_at)
+      -- Award bonus points (uses 'source' column per points_history schema)
+      INSERT INTO points_history (student_id, points, source, description)
       VALUES (
         p_student_id,
         v_badge.points_value,
         'badge_earned',
-        'Earned badge: ' || v_badge.name_en,
-        NOW()
+        'Earned badge: ' || v_badge.name_en
       );
 
       -- Return earned badge info

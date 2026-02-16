@@ -1,1 +1,0 @@
-¡ 2tsXÝhr9apps/web/src/components/settings/TeacherProfileEditor.tsx

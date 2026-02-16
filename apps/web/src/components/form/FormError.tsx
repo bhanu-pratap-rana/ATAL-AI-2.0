@@ -71,10 +71,10 @@ export function FormError({
       aria-live="polite"
       data-testid={testId}
     >
-      {icon !== undefined ? (
-        icon
-      ) : (
+      {icon === undefined ? (
         <span className="text-base leading-none">⚠️</span>
+      ) : (
+        icon
       )}
       <p className="flex-1">{error}</p>
       {dismissible && onDismiss && (

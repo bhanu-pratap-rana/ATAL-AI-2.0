@@ -46,14 +46,14 @@ export class GlobalErrorBoundary extends React.Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div className="min-h-screen bg-cream flex items-center justify-center p-4">
-          <div className="max-w-lg w-full bg-white rounded-2xl shadow-lg p-8 text-center">
+          <div className="max-w-lg w-full bg-white rounded-2xl shadow-lg p-8 text-center" role="alert" aria-labelledby="global-error-heading">
             {/* Error Icon */}
             <div className="w-20 h-20 bg-error/10 rounded-full flex items-center justify-center mx-auto mb-6">
               <span className="text-5xl">😕</span>
             </div>
 
             {/* Error Message */}
-            <h1 className="text-3xl font-bold text-text-primary mb-3">
+            <h1 id="global-error-heading" className="text-3xl font-bold text-text-primary mb-3">
               Something Went Wrong
             </h1>
             <p className="text-text-secondary mb-8">

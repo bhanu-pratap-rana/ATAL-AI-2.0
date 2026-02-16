@@ -264,15 +264,15 @@ export async function verifyTeacher({
     }
 
     const user = await getCurrentUser();
+    if (!user) {
+      return { success: false, error: "Not authenticated" };
+    }
+
     const adminClient = await createAdminClient();
 
     const registrationCheck = await canUserRegisterAsTeacher(user, adminClient);
     if (!registrationCheck.canRegister) {
       return { success: false, error: registrationCheck.error };
-    }
-
-    if (!user) {
-      return { success: false, error: "Not authenticated" };
     }
 
     const isAllowed = await checkRateLimit(
@@ -327,10 +327,7 @@ export async function verifyTeacher({
       schoolId: schoolLookup.school.id,
     });
 
-    if (
-      inputValidation.data.teacherName &&
-      inputValidation.data.teacherName.trim()
-    ) {
+    if (inputValidation.data?.teacherName?.trim()) {
       const profileResult = await createTeacherProfile(
         adminClient,
         user.id,

@@ -49,9 +49,9 @@ export const VALID_TLDS = [
 function levenshteinDistance(str1: string, str2: string): number {
   const m = str1.length;
   const n = str2.length;
-  const dp: number[][] = Array(m + 1)
+  const dp: number[][] = new Array(m + 1)
     .fill(null)
-    .map(() => Array(n + 1).fill(0));
+    .map(() => new Array(n + 1).fill(0));
 
   for (let i = 0; i <= m; i++) dp[i][0] = i;
   for (let j = 0; j <= n; j++) dp[0][j] = j;
@@ -120,8 +120,8 @@ export function isValidEmailDomain(domain: string): boolean {
 
   if (domainParts.some((part) => part.length === 0)) return false;
 
-  const tld = domainParts[domainParts.length - 1];
-  if (!VALID_TLDS.includes(tld)) return false;
+  const tld = domainParts.at(-1);
+  if (!tld || !VALID_TLDS.includes(tld)) return false;
 
   const domainName = domainParts[0];
   if (domainName.length < 2) return false;

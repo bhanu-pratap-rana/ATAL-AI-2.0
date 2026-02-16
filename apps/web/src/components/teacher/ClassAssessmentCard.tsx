@@ -64,9 +64,9 @@ export function ClassAssessmentCard({
             className={`text-center p-3 rounded-lg ${getScoreColor(classData.averageScore)}`}
           >
             <p className="text-xl font-bold">
-              {classData.averageScore !== null
-                ? `${classData.averageScore}%`
-                : "-"}
+              {classData.averageScore === null
+                ? "-"
+                : `${classData.averageScore}%`}
             </p>
             <p className="text-xs">Avg Score</p>
           </div>

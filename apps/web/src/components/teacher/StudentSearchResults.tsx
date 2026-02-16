@@ -32,20 +32,16 @@ export function StudentSearchResults({
       <ul
         id="student-list"
         className="border rounded-lg space-y-1 max-h-48 overflow-y-auto"
-        role="listbox"
         aria-label="Student search results"
       >
         {results.map((student) => (
-          <li
-            key={student.id}
-            role="option"
-            aria-selected={selectedStudent?.id === student.id}
-          >
+          <li key={student.id}>
             <button
               type="button"
               onClick={() => onSelectStudent(student)}
               disabled={isLoading}
-              className="w-full text-left px-3 py-2 hover:bg-primary/10 border-b last:border-b-0 transition-colors focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-pressed={selectedStudent?.id === student.id}
+              className={`w-full text-left px-3 py-2 hover:bg-primary/10 border-b last:border-b-0 transition-colors focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed ${selectedStudent?.id === student.id ? "bg-primary/10" : ""}`}
               aria-label={`Select student: ${student.email} (ID: ${student.id})`}
             >
               <p className="font-medium text-sm">{student.email}</p>

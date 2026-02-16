@@ -61,46 +61,79 @@ export default async function StudentAssessmentsPage() {
     redirect("/student/start");
   }
 
-  // Fetch all completed assessment sessions
+  // PERF-012 FIX: Add pagination to prevent fetching unbounded data
+  // Limit to most recent 50 assessments - sufficient for student history view
+  // For users with 100+ assessments, this prevents memory/timeout issues
+  const ASSESSMENT_LIMIT = 50;
+
   const { data: sessions } = await supabase
     .from("assessment_sessions")
     .select("id, started_at, submitted_at")
     .eq("user_id", user.id)
     .not("submitted_at", "is", null)
-    .order("submitted_at", { ascending: false });
+    .order("submitted_at", { ascending: false })
+    .limit(ASSESSMENT_LIMIT);
 
   // Calculate stats for each session
+  // PERF-001 FIX: Batch fetch all responses in one query instead of N+1 queries
   const assessmentHistory: AssessmentSession[] = [];
 
+  // TYPE-003 FIX: Use proper null guard instead of non-null assertion
   if (sessions && sessions.length > 0) {
-    for (const session of sessions) {
-      // Get responses for this session
-      const { data: responses } = await supabase
-        .from("assessment_responses")
-        .select("is_correct, rt_ms")
-        .eq("session_id", session.id);
+    // Collect all session IDs for batch query
+    const sessionIds = sessions.map((s) => s.id);
 
-      if (responses) {
-        const totalQuestions = responses.length;
-        const correctAnswers = responses.filter((r) => r.is_correct).length;
-        const score =
-          totalQuestions > 0
-            ? Math.round((correctAnswers / totalQuestions) * 100)
-            : 0;
-        const timeSpent = Math.round(
-          responses.reduce((sum, r) => sum + (r.rt_ms || 0), 0) / 1000,
-        );
+    // Batch fetch all responses for all sessions in ONE query
+    const { data: allResponses } = await supabase
+      .from("assessment_responses")
+      .select("session_id, is_correct, rt_ms")
+      .in("session_id", sessionIds);
 
-        assessmentHistory.push({
-          id: session.id,
-          started_at: session.started_at,
-          submitted_at: session.submitted_at,
-          score,
-          totalQuestions,
-          correctAnswers,
-          timeSpent,
+    // Build O(1) lookup map: session_id -> responses[]
+    const responsesBySession = new Map<
+      string,
+      Array<{ is_correct: boolean | null; rt_ms: number | null }>
+    >();
+    // TYPE-004 FIX: Avoid non-null assertion on Map.get()
+    allResponses?.forEach((resp) => {
+      const existing = responsesBySession.get(resp.session_id);
+      if (existing) {
+        existing.push({
+          is_correct: resp.is_correct,
+          rt_ms: resp.rt_ms,
         });
+      } else {
+        responsesBySession.set(resp.session_id, [
+          {
+            is_correct: resp.is_correct,
+            rt_ms: resp.rt_ms,
+          },
+        ]);
       }
+    });
+
+    // Process sessions with pre-fetched data (no additional queries)
+    for (const session of sessions) {
+      const responses = responsesBySession.get(session.id) || [];
+      const totalQuestions = responses.length;
+      const correctAnswers = responses.filter((r) => r.is_correct).length;
+      const score =
+        totalQuestions > 0
+          ? Math.round((correctAnswers / totalQuestions) * 100)
+          : 0;
+      const timeSpent = Math.round(
+        responses.reduce((sum, r) => sum + (r.rt_ms || 0), 0) / 1000,
+      );
+
+      assessmentHistory.push({
+        id: session.id,
+        started_at: session.started_at,
+        submitted_at: session.submitted_at,
+        score,
+        totalQuestions,
+        correctAnswers,
+        timeSpent,
+      });
     }
   }
 
@@ -198,7 +231,7 @@ export default async function StudentAssessmentsPage() {
                           )}
                         </span>
                         <Link
-                          href={`/app/assessment/summary?session=${assessment.id}`}
+                          href={`/app/assessments/${assessment.id}`}
                         >
                           <Button variant="outline" size="sm">
                             View Details

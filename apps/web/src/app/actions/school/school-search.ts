@@ -66,7 +66,7 @@ export async function getSchoolByCode(schoolCode: string) {
     // OPTIMIZATION: Select only needed columns instead of *
     const { data, error } = await supabase
       .from("schools")
-      .select("id, name, school_code, district, created_at, updated_at")
+      .select("id, school_name, school_code, district, created_at")
       .eq("school_code", normalizeSchoolCode(schoolCode))
       .maybeSingle();
 

@@ -65,17 +65,17 @@ export default function OfflinePage() {
         }}
       >
         {/* Offline Icon - Responsive size */}
-        <div
+        <figure
           style={{
             fontSize: "clamp(3rem, 10vw, 4.5rem)", // 48px on mobile, 72px on desktop
             marginBottom: "clamp(0.75rem, 2vw, 1rem)",
             lineHeight: 1,
+            margin: 0,
           }}
-          role="img"
           aria-label="Offline indicator"
         >
           📡
-        </div>
+        </figure>
 
         {/* Heading - Responsive typography */}
         <h1
@@ -223,7 +223,7 @@ export default function OfflinePage() {
       </div>
 
       {/* Network Status Indicator (optional visual feedback) */}
-      <div
+      <output
         style={{
           position: "fixed",
           bottom: "max(env(safe-area-inset-bottom, 16px), 16px)",
@@ -239,7 +239,6 @@ export default function OfflinePage() {
           fontSize: "0.75rem",
           fontWeight: "500",
         }}
-        role="status"
         aria-live="polite"
       >
         <span
@@ -251,8 +250,8 @@ export default function OfflinePage() {
             animation: "pulse 2s infinite",
           }}
         />
-        No Internet Connection
-      </div>
+        <span>No Internet Connection</span>
+      </output>
 
       {/* Pulse animation for the status indicator */}
       <style>{`

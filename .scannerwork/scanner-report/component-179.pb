@@ -1,1 +1,0 @@
-³ 2tsXLhr@apps/web/src/components/teacher/onboarding/TeacherChoiceStep.tsx

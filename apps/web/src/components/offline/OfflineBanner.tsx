@@ -56,6 +56,13 @@ export function OfflineBanner({
   });
   const [isVisible, setIsVisible] = useState(false);
   const [showSyncingMessage, setShowSyncingMessage] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Prevent hydration mismatch by only rendering after mount
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Standard hydration pattern
+    setIsMounted(true);
+  }, []);
 
   // Subscribe to sync status
   useEffect(() => {
@@ -66,7 +73,7 @@ export function OfflineBanner({
   // Handle visibility with animation delay
   useEffect(() => {
     if (!isOnline) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: UI state sync based on network status
       setIsVisible(true);
       setShowSyncingMessage(false);
     } else if (status.isSyncing && status.pendingCount > 0) {
@@ -81,16 +88,25 @@ export function OfflineBanner({
     }
   }, [isOnline, status.isSyncing, status.pendingCount]);
 
+  // Don't render until mounted (prevents hydration mismatch)
   // Don't render if not visible and online
-  if (!isVisible && isOnline) return null;
+  if (!isMounted || (!isVisible && isOnline)) return null;
 
   const getMessage = () => {
     if (!isOnline) {
       if (isSlowConnection) {
         return "Slow connection detected. Some features may be limited.";
       }
+      // A11Y-007 FIX: Show more detailed sync status including failed count
       if (showPendingCount && status.pendingCount > 0) {
-        return `You're offline. ${status.pendingCount} ${pluralize(status.pendingCount, "change", "changes")} will sync when you reconnect.`;
+        let message = `You're offline. ${status.pendingCount} ${pluralize(status.pendingCount, "change", "changes")} will sync when you reconnect.`;
+        if (status.failedCount > 0) {
+          message += ` (${status.failedCount} failed)`;
+        }
+        return message;
+      }
+      if (status.failedCount > 0) {
+        return `You're offline. ${status.failedCount} ${pluralize(status.failedCount, "item", "items")} failed to sync.`;
       }
       return "You're offline. Changes will sync when you reconnect.";
     }
@@ -147,15 +163,13 @@ export function OfflineBanner({
 /**
  * Inline Offline Notice - Smaller, inline version for cards/sections
  */
-export function OfflineNotice({ className }: { className?: string }) {
+export function OfflineNotice({ className }: Readonly<{ className?: string }>) {
   const { isOnline } = useNetworkStatus();
 
   if (isOnline) return null;
 
   return (
-    <div
-      role="status"
-      aria-live="polite"
+    <output
       className={cn(
         "flex items-center gap-2 text-warning bg-warning/10 px-3 py-2 rounded-md text-sm",
         className,
@@ -163,14 +177,14 @@ export function OfflineNotice({ className }: { className?: string }) {
     >
       <WifiOff className="h-4 w-4" />
       <span>Offline mode - changes will sync later</span>
-    </div>
+    </output>
   );
 }
 
 /**
  * Connection Quality Indicator
  */
-export function ConnectionQuality({ className }: { className?: string }) {
+export function ConnectionQuality({ className }: Readonly<{ className?: string }>) {
   const { isOnline, isSlowConnection, effectiveType } = useNetworkStatus();
 
   if (!isOnline) {

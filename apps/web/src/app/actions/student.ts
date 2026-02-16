@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { timingSafeEqual } from "crypto";
+import { timingSafeEqual } from "node:crypto";
 import {
   createClient,
   getCurrentUser,
@@ -21,6 +21,7 @@ import {
 } from "@/lib/validation-schemas";
 import type { UpsertStudentProfileRPCResponse } from "@/types/auth";
 import { handleZodError } from "@/lib/action-error-handler";
+import { RATE_LIMIT_ERRORS } from "@/lib/constants/error-messages";
 
 interface StudentProfileParams {
   name: string;
@@ -72,7 +73,7 @@ export async function saveStudentProfile(params: StudentProfileParams) {
       });
       return {
         success: false,
-        error: "Too many requests. Please try again later.",
+        error: RATE_LIMIT_ERRORS.TOO_MANY_REQUESTS,
       };
     }
 
@@ -167,7 +168,7 @@ async function fetchStudentProfileFromDB(userId: string) {
   const { data: profile, error } = await supabase
     .from("student_profiles")
     .select(
-      "user_id, name, gender, date_of_birth, phone, location, medium, board, class, created_at, updated_at",
+      "user_id, name, gender, phone, roll_number, school_id, school_name, class_name, village, created_at, updated_at",
     )
     .eq("user_id", userId)
     .maybeSingle();
@@ -231,13 +232,14 @@ export async function previewClass(classCode: string): Promise<{
     let validatedClassCode;
     try {
       validatedClassCode = JoinClassSchema.pick({ classCode: true }).parse({
-        classCode: classCode.toUpperCase().replace(/[^A-Z0-9]/g, ""),
+        classCode: classCode.toUpperCase().replaceAll(/[^A-Z0-9]/g, ""),
       }).classCode;
     } catch (error) {
       const zodError = handleZodError(error);
       return { success: zodError.success, error: zodError.error };
     }
 
+    // Use regular client - RLS policy allows authenticated users to preview classes by code
     const supabase = await createClient();
 
     // Find class by code (no PIN required for preview)
@@ -311,13 +313,18 @@ function verifyPin(pin: string, storedPin: string | null): boolean {
   }
   try {
     return timingSafeEqual(Buffer.from(pin), Buffer.from(storedPin));
-  } catch {
+  } catch (error) {
+    authLogger.error(
+      "[Student] PIN verification failed",
+      error instanceof Error ? error : { error: String(error) },
+    );
     return false;
   }
 }
 
 /**
  * Helper: Lookup class by code
+ * Uses regular client - RLS policy allows authenticated users to preview classes by code
  */
 async function lookupClassByCode(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -427,7 +434,7 @@ async function createEnrollment(
   return {
     success: true,
     data: {
-      ...(data || {}),
+      ...data,
       className,
     },
   };
@@ -469,7 +476,7 @@ export async function joinClass({ classCode, pin }: JoinClassParams) {
     }
 
     const supabase = await createClient();
-
+    // Use regular client - RLS policy allows authenticated users to preview classes by code
     const classLookup = await lookupClassByCode(supabase, validatedClassCode);
     if (!classLookup.success) {
       return { success: false, error: classLookup.error };
@@ -542,7 +549,7 @@ export async function leaveClass(classId: string) {
       });
       return {
         success: false,
-        error: "Too many requests. Please try again later.",
+        error: RATE_LIMIT_ERRORS.TOO_MANY_REQUESTS,
       };
     }
 

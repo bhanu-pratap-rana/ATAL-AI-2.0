@@ -321,15 +321,45 @@ export async function submitAssessment(
       return { success: false, error: errorMessage };
     }
 
-    // Use RPC response data for scoring
-    // Note: IRT parameters (difficulty, discrimination, guessing) come from the database
-    // and are processed by the RPC function (submit_assessment)
-    const scoreResult = await calculateIRTScore([]);
+    // Use RPC response data for scoring directly
+    // The RPC function (submit_assessment) already calculated the score
+    const score = rpcResult.score ?? 0;
+    const totalQuestions = rpcResult.totalQuestions ?? 0;
+    const correctAnswers = rpcResult.correctAnswers ?? 0;
+    const moduleBreakdown = rpcResult.moduleBreakdown ?? {};
+
+    // Calculate proficiency level from score percentage
+    const getPercentageProficiencyLevel = (scorePercent: number): string => {
+      if (scorePercent >= 90) return "Advanced";
+      if (scorePercent >= 75) return "Proficient";
+      if (scorePercent >= 60) return "Developing";
+      if (scorePercent >= 40) return "Basic";
+      return "Beginner";
+    };
+
+    // Convert moduleBreakdown to categoryScores format
+    const categoryScores = Object.fromEntries(
+      Object.entries(moduleBreakdown).map(([module, data]) => {
+        const moduleData = data as { correct?: number; total?: number };
+        const correct = moduleData?.correct ?? 0;
+        const total = moduleData?.total ?? 0;
+        return [
+          module,
+          {
+            correct,
+            total,
+            score: total > 0 ? Math.round((correct / total) * 100) : 0,
+          },
+        ];
+      }),
+    );
 
     authLogger.info("[submitAssessment] Assessment submitted successfully", {
       userId: auth.user.id,
       sessionId: validatedData.sessionId,
-      score: scoreResult.overallScore,
+      score,
+      totalQuestions,
+      correctAnswers,
     });
 
     revalidatePath("/app/dashboard");
@@ -337,9 +367,9 @@ export async function submitAssessment(
 
     return {
       success: true,
-      score: scoreResult.overallScore,
-      level: scoreResult.proficiencyLevel,
-      categoryScores: scoreResult.categoryScores,
+      score,
+      level: getPercentageProficiencyLevel(score),
+      categoryScores,
     };
   } catch (error) {
     return handleZodError(error);

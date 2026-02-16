@@ -15,6 +15,7 @@ import {
 } from "@/lib/validation-schemas";
 import { authLogger } from "@/lib/auth-logger";
 import { handleZodError } from "@/lib/action-error-handler";
+import { RATE_LIMIT_ERRORS } from "@/lib/constants/error-messages";
 
 /**
  * Class CRUD operations for teachers
@@ -44,7 +45,7 @@ export async function createClass(name: string, subject?: string) {
     if (!rateLimitAllowed) {
       return {
         success: false,
-        error: "Too many requests. Please try again later.",
+        error: RATE_LIMIT_ERRORS.TOO_MANY_REQUESTS,
       };
     }
 
@@ -104,7 +105,7 @@ export async function updateClass(
     if (!rateLimitAllowed) {
       return {
         success: false,
-        error: "Too many requests. Please try again later.",
+        error: RATE_LIMIT_ERRORS.TOO_MANY_REQUESTS,
       };
     }
 
@@ -163,7 +164,7 @@ export async function deleteClass(classId: string) {
       });
       return {
         success: false,
-        error: "Too many requests. Please try again later.",
+        error: RATE_LIMIT_ERRORS.TOO_MANY_REQUESTS,
       };
     }
 

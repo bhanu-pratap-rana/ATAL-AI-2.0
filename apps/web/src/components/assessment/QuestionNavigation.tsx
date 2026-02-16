@@ -85,7 +85,7 @@ export function QuestionNavigation({
             aria-label="Go to previous question"
           >
             <span className="mr-1">←</span>
-            Previous
+            <span>Previous</span>
           </Button>
 
           {/* Submit/Next */}
@@ -148,7 +148,7 @@ export function QuestionNavigation({
           aria-label="Go to previous question"
         >
           <span className="mr-2">←</span>
-          Previous
+          <span>Previous</span>
         </Button>
 
         {/* Center: Skip and Clear */}

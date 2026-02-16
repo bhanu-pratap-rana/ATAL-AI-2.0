@@ -6,11 +6,11 @@ import { RATE_LIMITS } from "@/lib/constants/rate-limits";
 import { isTeacherOrHigher } from "@/lib/auth/role-utils";
 
 // Type definitions for API responses
+// Note: Phone number intentionally excluded for privacy (minors' PII)
 export interface Student {
   id: string;
   name: string;
   rollNumber: string | null;
-  phone: string | null;
 }
 
 export interface SearchStudentsSuccessResponse {
@@ -168,10 +168,11 @@ async function getStudentIdsFromEnrollments(
 /**
  * Helper: Build safe filter for student search
  */
-function buildSafeFilter(field: string, pattern: string): string {
+function buildSafeFilter(field: string, pattern: string): string | null {
   // Validate pattern contains only safe characters
   if (!/^[%_a-zA-Z0-9\s-]+$/.test(pattern)) {
-    return "";
+    authLogger.warn("[searchStudents] Invalid filter pattern rejected", { field });
+    return null;
   }
   return `${field}.ilike.${pattern}`;
 }
@@ -212,7 +213,9 @@ async function fallbackStudentSearch(
   const nameFilter = buildSafeFilter("name", searchPattern);
   const rollFilter = buildSafeFilter("roll_number", searchPattern);
 
-  if (!nameFilter && !rollFilter) {
+  // Build filter from non-null results only
+  const filters = [nameFilter, rollFilter].filter(Boolean);
+  if (filters.length === 0) {
     return {
       success: false,
       status: 400,
@@ -220,11 +223,12 @@ async function fallbackStudentSearch(
     };
   }
 
+  // Note: Phone excluded for privacy - only fetch needed fields
   const { data: studentProfiles, error: searchError } = await supabase
     .from("student_profiles")
-    .select("user_id, name, roll_number, phone")
+    .select("user_id, name, roll_number")
     .in("user_id", enrollmentResult.studentIds)
-    .or(`${nameFilter},${rollFilter}`)
+    .or(filters.join(","))
     .limit(10);
 
   if (searchError) {
@@ -240,7 +244,6 @@ async function fallbackStudentSearch(
     id: profile.user_id,
     name: profile.name,
     rollNumber: profile.roll_number,
-    phone: profile.phone,
   }));
 
   return { success: true, students };
@@ -314,25 +317,34 @@ export async function POST(request: NextRequest) {
           { status: fallbackResult.status },
         );
       }
-      return NextResponse.json({ students: fallbackResult.students });
+      // Cache search results for 10 minutes (private - teacher-specific)
+      return NextResponse.json({ students: fallbackResult.students }, {
+        headers: {
+          "Cache-Control": "private, max-age=600, stale-while-revalidate=60",
+        },
+      });
     }
 
+    // Note: Phone excluded for privacy - minors' PII should not be exposed
     const students: Student[] = (studentProfiles || []).map(
       (profile: {
         user_id: string;
         name: string | null;
-        phone: string | null;
         roll_number: string | null;
         class_name: string | null;
       }) => ({
         id: profile.user_id,
         name: profile.name || "Unknown",
         rollNumber: profile.roll_number || null,
-        phone: profile.phone || null,
       }),
     );
 
-    return NextResponse.json({ students });
+    // Cache search results for 10 minutes (private - teacher-specific)
+    return NextResponse.json({ students }, {
+      headers: {
+        "Cache-Control": "private, max-age=600, stale-while-revalidate=60",
+      },
+    });
   } catch (error) {
     authLogger.error("[searchStudents] Unexpected error", error);
     return NextResponse.json(

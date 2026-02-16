@@ -42,7 +42,7 @@ function ResetPasswordContent() {
 
   // Handle OTP input change (max 6 digits)
   const handleOtpChange = (value: string) => {
-    const cleanValue = value.replace(/\D/g, "").slice(0, OTP_LENGTH);
+    const cleanValue = value.replaceAll(/\D/g, "").slice(0, OTP_LENGTH);
     setOtp(cleanValue);
   };
 
@@ -106,7 +106,7 @@ function ResetPasswordContent() {
       }
 
       authLogger.debug("[ResetPassword] Attempting password reset", {
-        email: email.substring(0, 5) + "...",
+        email: email.slice(0, 5) + "...",
       });
 
       // Call server action to reset password with OTP

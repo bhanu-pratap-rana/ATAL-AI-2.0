@@ -1,1 +1,0 @@
-b 2tsXOhr2apps/web/src/components/admin/pins/SchoolsList.tsx

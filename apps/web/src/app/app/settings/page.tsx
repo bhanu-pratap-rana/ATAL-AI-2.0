@@ -54,14 +54,12 @@ export default async function SettingsPage() {
 
   // Determine display role - teachers promoted to admin show both roles
   // Super admin is unique (only atal.app.ai@gmail.com)
-  const userRole =
-    appRole === "super_admin"
-      ? "Super Admin"
-      : appRole === "admin"
-        ? "Teacher, Admin"
-        : appRole === "teacher"
-          ? "Teacher"
-          : "Student";
+  const ROLE_DISPLAY_MAP: Record<string, string> = {
+    super_admin: "Super Admin",
+    admin: "Teacher, Admin",
+    teacher: "Teacher",
+  };
+  const userRole = ROLE_DISPLAY_MAP[appRole] || "Student";
 
   // Fetch student profile if user is a student
   let studentProfile = null;
@@ -70,7 +68,7 @@ export default async function SettingsPage() {
     const { data: profile } = await supabase
       .from("student_profiles")
       .select(
-        "user_id, name, gender, date_of_birth, phone, location, medium, board, class, created_at, updated_at",
+        "user_id, name, gender, phone, roll_number, school_id, school_name, class_name, village, created_at, updated_at",
       )
       .eq("user_id", user.id)
       .maybeSingle();
@@ -86,6 +84,8 @@ export default async function SettingsPage() {
     school_id: string;
     school_code: string;
     gender: "male" | "female" | null;
+    subject: string | null;
+    village: string | null;
     created_at: string;
     updated_at: string;
   } | null = null;
@@ -94,7 +94,7 @@ export default async function SettingsPage() {
     const { data: profile } = await supabase
       .from("teacher_profiles")
       .select(
-        "user_id, name, phone, school_id, school_code, gender, created_at, updated_at",
+        "user_id, name, phone, school_id, school_code, gender, subject, village, created_at, updated_at",
       )
       .eq("user_id", user.id)
       .maybeSingle();
@@ -200,7 +200,7 @@ export default async function SettingsPage() {
           <Card className="mb-4 md:mb-6 card-responsive">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
-                Preferences
+                <span>Preferences</span>
                 <span className="px-2 py-0.5 bg-warning-light text-warning-dark rounded-full text-xs">
                   Coming Soon
                 </span>

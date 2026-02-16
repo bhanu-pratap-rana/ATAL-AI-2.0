@@ -43,76 +43,48 @@ export default async function AIToolsPage() {
               <CardContent>
                 <p className="text-text-secondary text-sm md:text-base mb-4">
                   Get personalized help from an AI-powered tutor that adapts to
-                  your learning style.
+                  your learning style. Ask questions, get explanations, and
+                  receive instant feedback on any topic.
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <span className="px-3 py-1 bg-success-light text-success-dark rounded-full text-sm">
                     Available
+                  </span>
+                  <span className="px-3 py-1 bg-primary-light text-primary-dark rounded-full text-sm">
+                    Voice Support
+                  </span>
+                  <span className="px-3 py-1 bg-accent-light text-accent-dark rounded-full text-sm">
+                    Multilingual
                   </span>
                 </div>
               </CardContent>
             </Card>
           </Link>
 
-          <Card className="hover:shadow-lg transition-shadow card-responsive opacity-70">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
-                <span>📝</span>
-                <span>Essay Feedback</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-text-secondary text-sm md:text-base mb-4">
-                Get instant feedback on your essays and writing assignments with
-                AI-powered analysis.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 bg-warning-light text-warning-dark rounded-full text-sm">
-                  Coming Soon
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow card-responsive opacity-70">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
-                <span>🎯</span>
-                <span>Practice Generator</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-text-secondary text-sm md:text-base mb-4">
-                Generate customized practice problems based on your learning
-                progress and weak areas.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 bg-warning-light text-warning-dark rounded-full text-sm">
-                  Coming Soon
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow card-responsive opacity-70">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
-                <span>🧠</span>
-                <span>Study Assistant</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-text-secondary text-sm md:text-base mb-4">
-                Create study guides, flashcards, and summaries from your course
-                materials automatically.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 bg-warning-light text-warning-dark rounded-full text-sm">
-                  Coming Soon
-                </span>
-              </div>
-            </CardContent>
-          </Card>
+          <Link href="/app/ai-tools/history" className="block">
+            <Card className="hover:shadow-lg transition-shadow card-responsive cursor-pointer hover:border-primary">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+                  <span>📜</span>
+                  <span>Conversation History</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-text-secondary text-sm md:text-base mb-4">
+                  View your past conversations with the AI tutor. Review
+                  previous questions, answers, and continue where you left off.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <span className="px-3 py-1 bg-info-light text-info-dark rounded-full text-sm">
+                    All Sessions
+                  </span>
+                  <span className="px-3 py-1 bg-primary-light text-primary-dark rounded-full text-sm">
+                    Searchable
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
         </div>
       </div>
     </div>

@@ -14,22 +14,10 @@
 
 import { maskSensitiveData, type LogContext } from "./masking-utils";
 import { getMaskedContext } from "./form-utils";
+// DUP-8 FIX: Use shared Sentry types
+import { getSentry } from "./types/sentry";
 
 const isDevelopment = process.env.NODE_ENV === "development";
-
-// Type for window with optional Sentry
-interface WindowWithSentry extends Window {
-  Sentry?: {
-    captureMessage: (message: string, level: string) => void;
-    captureException: (error: Error, options?: { level: string }) => void;
-  };
-}
-
-function getSentry(): WindowWithSentry["Sentry"] | undefined {
-  if (typeof globalThis === "undefined") return undefined;
-  const windowWithSentry = (globalThis as unknown) as WindowWithSentry;
-  return windowWithSentry.Sentry;
-}
 
 /**
  * Client logger instance with development and production support
@@ -69,8 +57,11 @@ export const clientLogger = {
         if (sentry) {
           sentry.captureMessage(message, "warning");
         }
-      } catch {
-        // Silently fail if Sentry not available
+      } catch (sentryError) {
+        // Sentry initialization failed, but primary logging succeeded
+        if (isDevelopment && sentryError instanceof Error) {
+          console.debug("[ClientLogger] Sentry initialization failed:", sentryError.message);
+        }
       }
     }
   },
@@ -91,8 +82,11 @@ export const clientLogger = {
             context instanceof Error ? context : new Error(message),
           );
         }
-      } catch {
-        // Silently fail if Sentry not available
+      } catch (sentryError) {
+        // Sentry initialization failed, but primary logging succeeded
+        if (isDevelopment && sentryError instanceof Error) {
+          console.debug("[ClientLogger] Sentry initialization failed:", sentryError.message);
+        }
       }
     }
   },
@@ -113,8 +107,11 @@ export const clientLogger = {
           { level: "fatal" },
         );
       }
-    } catch {
-      // Silently fail if Sentry not available
+    } catch (sentryError) {
+      // Sentry initialization failed, but critical message already logged to console
+      if (isDevelopment && sentryError instanceof Error) {
+        console.debug("[ClientLogger] Sentry initialization failed for critical:", sentryError.message);
+      }
     }
   },
 

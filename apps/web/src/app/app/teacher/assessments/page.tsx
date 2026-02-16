@@ -43,7 +43,7 @@ export default async function TeacherAssessmentsPage() {
   const overviewResult = await getTeacherAssessmentOverview();
   const overview = overviewResult.success ? overviewResult.data : null;
 
-  const hasClasses = overview && overview.classes.length > 0;
+  const hasClasses = (overview?.classes.length ?? 0) > 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream to-surface page-layout">
@@ -69,8 +69,9 @@ export default async function TeacherAssessmentsPage() {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-responsive">
             <Card className="card-responsive bg-primary/10 border-primary/20">
               <CardContent className="py-4 text-center">
+                {/* TYPE-012 FIX: Use optional chaining instead of non-null assertion */}
                 <p className="text-2xl font-bold text-primary">
-                  {overview.classes.length}
+                  {overview?.classes.length ?? 0}
                 </p>
                 <p className="text-xs text-text-secondary">Classes</p>
               </CardContent>
@@ -78,7 +79,7 @@ export default async function TeacherAssessmentsPage() {
             <Card className="card-responsive bg-info/10 border-info/20">
               <CardContent className="py-4 text-center">
                 <p className="text-2xl font-bold text-info-dark">
-                  {overview.totalAssessments}
+                  {overview?.totalAssessments ?? 0}
                 </p>
                 <p className="text-xs text-text-secondary">Total Assessments</p>
               </CardContent>
@@ -86,9 +87,9 @@ export default async function TeacherAssessmentsPage() {
             <Card className="card-responsive bg-success/10 border-success/20 col-span-2 md:col-span-1">
               <CardContent className="py-4 text-center">
                 <p className="text-2xl font-bold text-success-dark">
-                  {overview.overallAverageScore !== null
-                    ? `${overview.overallAverageScore}%`
-                    : "-"}
+                  {overview?.overallAverageScore == null
+                    ? "-"
+                    : `${overview.overallAverageScore}%`}
                 </p>
                 <p className="text-xs text-text-secondary">Average Score</p>
               </CardContent>
@@ -100,7 +101,7 @@ export default async function TeacherAssessmentsPage() {
         <div className="grid gap-responsive">
           {hasClasses ? (
             <>
-              {overview.classes.map((cls) => (
+              {overview?.classes.map((cls) => (
                 <ClassAssessmentCard
                   key={cls.classId}
                   classData={{

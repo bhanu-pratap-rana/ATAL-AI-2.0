@@ -141,7 +141,6 @@ export async function updateLearningStyleProfile(
       | "visual_score"
       | "text_score"
       | "auditory_score"
-      | "preferred_style"
       | "images_viewed"
       | "voice_replays"
       | "text_read_time_seconds"
@@ -177,7 +176,9 @@ export async function updateLearningStyleProfile(
 /**
  * Get or create learning style profile
  *
- * Fetches existing profile or creates a default one if not found
+ * DB-001 FIX: Uses UPSERT pattern (single atomic operation)
+ * - Eliminates race condition where two concurrent requests could both try to insert
+ * - Reduces from 2 DB calls to 1 when profile doesn't exist
  *
  * @param studentId - Student UUID
  * @returns Profile data (existing or newly created)
@@ -191,12 +192,47 @@ export async function updateLearningStyleProfile(
 export async function getOrCreateLearningProfile(
   studentId: string,
 ): Promise<LearningStyleProfileRow | null> {
-  // Try to fetch existing profile first
-  const existing = await fetchLearningStyleProfile(studentId);
-  if (existing) {
-    return existing;
-  }
+  try {
+    const supabase = await createClient();
 
-  // Create default if not found
-  return await createDefaultProfile(studentId);
+    // DB-001 FIX: Use UPSERT with onConflict to handle race conditions atomically
+    // If profile exists, it's returned unchanged (ignoreDuplicates doesn't update)
+    // If it doesn't exist, default values are inserted
+    const defaultProfile = {
+      student_id: studentId,
+      visual_score: 33.33,
+      text_score: 33.33,
+      auditory_score: 33.33,
+      images_viewed: 0,
+      voice_replays: 0,
+      text_read_time_seconds: 0,
+    };
+
+    const { data, error } = await supabase
+      .from("learning_style_profile")
+      .upsert(defaultProfile, {
+        onConflict: "student_id",
+        ignoreDuplicates: true, // Don't update existing profiles
+      })
+      .select()
+      .single();
+
+    if (error) {
+      // If upsert failed due to race condition, try to fetch existing
+      if (error.code === "23505") {
+        // Unique violation - profile was created by another request
+        return await fetchLearningStyleProfile(studentId);
+      }
+      authLogger.error("[DB] Error in getOrCreateLearningProfile:", error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    authLogger.error(
+      "[DB] Exception in getOrCreateLearningProfile:",
+      error instanceof Error ? error.message : "Unknown error",
+    );
+    return null;
+  }
 }

@@ -48,7 +48,7 @@ export const UpdateKnowledgeStateResponseSchema = z.object({
   confidence_level: z.enum(["low", "medium", "high"]).optional(),
   attempts: z.number().int().nonnegative().optional(),
   status: z
-    .enum(["not_started", "in_progress", "completed", "mastered"])
+    .enum(["not_started", "in_progress", "mastered"]) // Migration 155: removed "completed"
     .optional(),
   time_spent_seconds: z.number().int().nonnegative().optional(),
 }) satisfies z.ZodType<UpdateKnowledgeStateRPCResponse>;

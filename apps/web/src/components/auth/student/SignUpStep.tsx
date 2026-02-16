@@ -66,33 +66,31 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
           exists?: boolean;
           role?: string;
         };
-        if (!result.success) {
-          if (result.exists) {
-            authLogger.debug("[SignUp Email] Email already exists", {
-              role: result.role,
-            });
-            toast.error(result.error || "This email is already registered");
-
-            if (
-              result.role === "teacher" ||
-              result.role === "admin" ||
-              result.role === "super_admin"
-            ) {
-              actions.setSignupEmailError(
-                result.error || "Please use the teacher login page.",
-              );
-            } else {
-              actions.setSigninEmailAddress(state.signupEmailAddress);
-              actions.setMainStep("signin");
-              actions.setSigninTab("email");
-            }
-          } else {
-            actions.setSignupEmailError(result.error || "Failed to send OTP");
-            toast.error(result.error || "Failed to send OTP");
-          }
-        } else {
+        if (result.success) {
           toast.success("OTP sent to your email!");
           actions.setSignupEmailOtpSent(true);
+        } else if (result.exists) {
+          authLogger.debug("[SignUp Email] Email already exists", {
+            role: result.role,
+          });
+          toast.error(result.error || "This email is already registered");
+
+          if (
+            result.role === "teacher" ||
+            result.role === "admin" ||
+            result.role === "super_admin"
+          ) {
+            actions.setSignupEmailError(
+              result.error || "Please use the teacher login page.",
+            );
+          } else {
+            actions.setSigninEmailAddress(state.signupEmailAddress);
+            actions.setMainStep("signin");
+            actions.setSigninTab("email");
+          }
+        } else {
+          actions.setSignupEmailError(result.error || "Failed to send OTP");
+          toast.error(result.error || "Failed to send OTP");
         }
       } catch (error) {
         authLogger.error("[SignUp Email] Failed to send OTP", error);
@@ -231,33 +229,31 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
           role?: string;
         };
 
-        if (!result.success) {
-          if (result.exists) {
-            authLogger.debug("[SignUp Phone] Phone already exists", {
-              role: result.role,
-            });
-            toast.error(result.error || "This phone is already registered");
-
-            if (
-              result.role === "teacher" ||
-              result.role === "admin" ||
-              result.role === "super_admin"
-            ) {
-              actions.setSignupPhoneError(
-                result.error || "Please use the teacher login page.",
-              );
-            } else {
-              actions.setSigninPhoneNumber(signupPhoneInput.fullValue);
-              actions.setMainStep("signin");
-              actions.setSigninTab("phone");
-            }
-          } else {
-            actions.setSignupPhoneError(result.error || "Failed to send OTP");
-            toast.error(result.error || "Failed to send OTP");
-          }
-        } else {
+        if (result.success) {
           toast.success("OTP sent to your phone!");
           actions.setSignupPhoneOtpStep("verify");
+        } else if (result.exists) {
+          authLogger.debug("[SignUp Phone] Phone already exists", {
+            role: result.role,
+          });
+          toast.error(result.error || "This phone is already registered");
+
+          if (
+            result.role === "teacher" ||
+            result.role === "admin" ||
+            result.role === "super_admin"
+          ) {
+            actions.setSignupPhoneError(
+              result.error || "Please use the teacher login page.",
+            );
+          } else {
+            actions.setSigninPhoneNumber(signupPhoneInput.fullValue);
+            actions.setMainStep("signin");
+            actions.setSigninTab("phone");
+          }
+        } else {
+          actions.setSignupPhoneError(result.error || "Failed to send OTP");
+          toast.error(result.error || "Failed to send OTP");
         }
       } catch (error) {
         authLogger.error("[SignUp Phone] Failed to send OTP", error);
@@ -355,7 +351,12 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
           state.signupUsernamePassword,
         );
 
-        if (!result.success) {
+        if (result.success) {
+          authLogger.success("[SignUp Username] Registration successful");
+          toast.success("Account created! Now set up your profile.");
+          actions.resetSignupUsername();
+          actions.setMainStep("profile");
+        } else {
           authLogger.error("[SignUp Username] Registration failed", {
             error: result.error,
           });
@@ -363,11 +364,6 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
             result.error || "Registration failed. Try again.",
           );
           toast.error("Registration failed: " + (result.error || "Unknown error"));
-        } else {
-          authLogger.success("[SignUp Username] Registration successful");
-          toast.success("Account created! Now set up your profile.");
-          actions.resetSignupUsername();
-          actions.setMainStep("profile");
         }
       } catch (error) {
         authLogger.error("[SignUp Username] Unexpected error", error);

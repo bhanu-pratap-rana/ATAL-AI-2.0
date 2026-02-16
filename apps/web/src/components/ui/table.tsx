@@ -2,19 +2,31 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
+/**
+ * Table component - A composable data table wrapper
+ *
+ * Note: This is a composable component. The <thead> should be provided
+ * via TableHeader + TableHead children, not directly in this component.
+ * SonarQube S5256 is a false positive for this pattern.
+ *
+ * @example
+ * <Table>
+ *   <TableHeader>
+ *     <TableRow>
+ *       <TableHead>Name</TableHead>
+ *     </TableRow>
+ *   </TableHeader>
+ *   <TableBody>...</TableBody>
+ * </Table>
+ */
 const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement>
 >(({ className, ...props }, ref) => (
   <div className="relative w-full overflow-auto">
-    {/* 
-      SonarQube S5256: Tables should include a <thead> with <th> elements for accessibility.
-      Use TableHeader and TableHead components to add proper headers.
-    */}
-    <table
+    <table // NOSONAR S5256: Composable pattern - caption/aria-label provided by consumers via props spread
       ref={ref}
       className={cn("w-full caption-bottom text-sm", className)}
-      role="table"
       {...props}
     />
   </div>

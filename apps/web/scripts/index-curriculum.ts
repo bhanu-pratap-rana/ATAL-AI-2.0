@@ -400,7 +400,7 @@ async function indexCurriculum() {
           const { error } = await supabase.from('curriculum_content').insert({
             module_id: moduleId,
             topic_id: topicId,
-            language: file.__language,
+            language: file.language,
             content_type: contentType,
             title,
             content: chunk,

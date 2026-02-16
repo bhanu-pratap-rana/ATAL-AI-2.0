@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { clientLogger } from "@/lib/client-logger";
 import {
   Dialog,
   DialogContent,
@@ -184,7 +185,11 @@ export function ClassCard({ classData }: ClassCardProps) {
                       } else {
                         toast.error("Failed to update class");
                       }
-                    } catch {
+                    } catch (error) {
+                      clientLogger.error(
+                        "[ClassCard] Failed to update class",
+                        error instanceof Error ? error : { error: String(error) },
+                      );
                       toast.error("An unexpected error occurred");
                     } finally {
                       setIsUpdating(false);
@@ -271,7 +276,11 @@ export function ClassCard({ classData }: ClassCardProps) {
                   } else {
                     toast.error(result.error || "Failed to delete class");
                   }
-                } catch {
+                } catch (error) {
+                  clientLogger.error(
+                    "[ClassCard] Failed to delete class",
+                    error instanceof Error ? error : { error: String(error) },
+                  );
                   toast.error("An unexpected error occurred");
                 } finally {
                   setIsDeleting(false);

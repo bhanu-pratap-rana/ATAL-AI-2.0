@@ -1,1 +1,0 @@
-^ 2tsX2hr:apps/web/src/components/admin/pins/PINManagementHeader.tsx

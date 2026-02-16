@@ -49,7 +49,7 @@ export default async function ProgressPage() {
 
   // Check if user has any data
   const hasData =
-    stats && (stats.assessmentsTaken > 0 || stats.moduleBreakdown.length > 0);
+    (stats?.assessmentsTaken ?? 0) > 0 || (stats?.moduleBreakdown?.length ?? 0) > 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream to-surface page-layout">
@@ -110,7 +110,7 @@ export default async function ProgressPage() {
             </CardHeader>
             <CardContent>
               <p className="text-3xl md:text-4xl font-bold text-success-dark">
-                {stats && stats.averageScore !== null ? `${stats.averageScore}%` : "--"}
+                {stats?.averageScore == null ? "--" : `${stats.averageScore}%`}
               </p>
               <p className="text-xs text-text-secondary mt-1">
                 Across all attempts
@@ -138,7 +138,7 @@ export default async function ProgressPage() {
         </div>
 
         {/* Module Breakdown */}
-        {hasData && stats.moduleBreakdown.length > 0 && (
+        {hasData && (stats?.moduleBreakdown?.length ?? 0) > 0 && (
           <Card className="card-responsive mb-responsive">
             <CardHeader>
               <CardTitle className="text-lg md:text-xl">
@@ -147,7 +147,8 @@ export default async function ProgressPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {stats.moduleBreakdown.map((module) => (
+                {/* TYPE-001 FIX: Use optional chaining instead of non-null assertion */}
+                {stats?.moduleBreakdown?.map((module) => (
                   <div key={module.module}>
                     <div className="flex justify-between items-center mb-1">
                       <span className="text-sm font-medium text-text-primary">
@@ -179,9 +180,10 @@ export default async function ProgressPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {hasData && stats.recentAssessments.length > 0 ? (
+            {hasData && (stats?.recentAssessments?.length ?? 0) > 0 ? (
               <div className="space-y-3">
-                {stats.recentAssessments.map((assessment) => (
+                {/* TYPE-002 FIX: Use optional chaining instead of non-null assertion */}
+                {stats?.recentAssessments?.map((assessment) => (
                   <div
                     key={assessment.id}
                     className="flex items-center justify-between p-3 bg-surface rounded-lg border border-border-light"

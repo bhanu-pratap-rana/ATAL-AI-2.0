@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * usePINManagement Custom Hook
  * Extracted from admin/pins/page.tsx to manage PIN management state and handlers
@@ -57,10 +59,49 @@ export interface UsePINManagementReturn {
 
 /**
  * Generate a random 4-digit PIN using centralized constants
+ * Uses crypto.getRandomValues() for secure randomness
  */
 function generateRandomPIN(): string {
   const range = PIN_LIMITS.max - PIN_LIMITS.min + 1;
-  return Math.floor(PIN_LIMITS.min + Math.random() * range).toString();
+  const array = new Uint32Array(1);
+  crypto.getRandomValues(array);
+  return (PIN_LIMITS.min + (array[0] % range)).toString();
+}
+
+/**
+ * Helper interface for reload state setters
+ * Extracted to reduce cognitive complexity (S3776)
+ */
+interface ReloadDataSetters {
+  setAllSchools: (schools: SchoolListItem[]) => void;
+  setFilteredSchools: (schools: SchoolListItem[]) => void;
+  setStats: (stats: PINStatistics) => void;
+  setSelectedSchool: (school: SchoolPINInfo) => void;
+}
+
+/**
+ * Reload all PIN management data after a successful operation
+ * Extracted to reduce cognitive complexity (S3776) of handleRotatePin
+ */
+async function reloadPINData(
+  schoolId: string,
+  setters: ReloadDataSetters,
+): Promise<void> {
+  const schoolsResult = await getAllSchoolsWithPINs();
+  if (schoolsResult?.success && Array.isArray(schoolsResult?.data)) {
+    setters.setAllSchools(schoolsResult.data as SchoolListItem[]);
+    setters.setFilteredSchools(schoolsResult.data as SchoolListItem[]);
+  }
+
+  const statsResult = await getPINStatistics();
+  if (statsResult?.success && statsResult?.data) {
+    setters.setStats(statsResult.data as PINStatistics);
+  }
+
+  const detailResult = await getSchoolPINInfo(schoolId);
+  if (detailResult?.success && detailResult?.data) {
+    setters.setSelectedSchool(detailResult.data as SchoolPINInfo);
+  }
 }
 
 export function usePINManagement(): UsePINManagementReturn {
@@ -69,6 +110,8 @@ export function usePINManagement(): UsePINManagementReturn {
   const supabaseRef = useRef<ReturnType<typeof createBrowserClient> | null>(
     null,
   );
+  // BUG-011 FIX: Track copy timer for cleanup on unmount
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // State management
   const [isLoading, setIsLoading] = useState(true);
@@ -87,22 +130,23 @@ export function usePINManagement(): UsePINManagementReturn {
   const [copied, setCopied] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
-  // Initialize supabase client
+  // BUG-011 FIX: Cleanup copy timer on unmount to prevent memory leaks
   useEffect(() => {
-    supabaseRef.current = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    );
+    return () => {
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    };
   }, []);
 
-  // Load page data on mount
+  // Load page data on mount (also initializes supabase client)
   useEffect(() => {
     const checkAuthAndLoad = async () => {
       try {
+        // PERF: Create client once and store in ref for reuse (sign out, etc.)
         const supabase = createBrowserClient(
           process.env.NEXT_PUBLIC_SUPABASE_URL!,
           process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         );
+        supabaseRef.current = supabase;
 
         const {
           data: { user },
@@ -218,6 +262,7 @@ export function usePINManagement(): UsePINManagementReturn {
 
   /**
    * Rotate PIN and reload data
+   * Refactored to use reloadPINData helper to reduce cognitive complexity (S3776)
    */
   const handleRotatePin = useCallback(
     async (customPin?: string) => {
@@ -235,27 +280,28 @@ export function usePINManagement(): UsePINManagementReturn {
         const result = await rotateSchoolPIN(selectedSchool.schoolId, pinToRotate);
 
         if (result.success) {
-          // Success: reload all data
-          const schoolsResult = await getAllSchoolsWithPINs();
-          if (schoolsResult?.success && Array.isArray(schoolsResult?.data)) {
-            setAllSchools(schoolsResult.data as SchoolListItem[]);
-            setFilteredSchools(schoolsResult.data as SchoolListItem[]);
-          }
+          // Reload all data using extracted helper
+          await reloadPINData(selectedSchool.schoolId, {
+            setAllSchools,
+            setFilteredSchools,
+            setStats,
+            setSelectedSchool,
+          });
 
-          const statsResult = await getPINStatistics();
-          if (statsResult?.success && statsResult?.data) {
-            setStats(statsResult.data as PINStatistics);
+          // Display the saved PIN so admin knows what was actually set
+          const rotateData = result.data as { newPIN?: string } | undefined;
+          const savedPIN = rotateData?.newPIN;
+          if (savedPIN) {
+            setNewPin(savedPIN);
+            setShowNewPin(true);
+            toast.success(
+              `PIN rotated successfully! New PIN: ${savedPIN} (Click copy button to copy)`,
+            );
+          } else {
+            setNewPin(null);
+            setShowNewPin(false);
+            toast.success("PIN rotated successfully");
           }
-
-          // Reload selected school details
-          const detailResult = await getSchoolPINInfo(selectedSchool.schoolId);
-          if (detailResult?.success && detailResult?.data) {
-            setSelectedSchool(detailResult.data as SchoolPINInfo);
-          }
-
-          setNewPin(null);
-          setShowNewPin(false);
-          toast.success("PIN rotated successfully");
         } else {
           toast.error(result.error || "Failed to rotate PIN");
         }
@@ -281,7 +327,9 @@ export function usePINManagement(): UsePINManagementReturn {
     try {
       await navigator.clipboard.writeText(newPin);
       setCopied(true);
-      setTimeout(() => {
+      // BUG-011 FIX: Store timer ref for cleanup on unmount
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = setTimeout(() => {
         setCopied(false);
       }, CLIPBOARD_TIMING.successFeedback);
     } catch (error) {

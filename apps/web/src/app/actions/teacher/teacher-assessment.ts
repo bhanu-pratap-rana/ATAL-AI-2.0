@@ -24,23 +24,6 @@ import { handleZodError } from "@/lib/action-error-handler";
  */
 
 /**
- * User object from auth.users joined queries
- *
- * Guaranteed fields: id
- * Optional fields: email, raw_user_meta_data
- * Note: Not all fields are always available depending on the select clause used
- */
-interface _AuthUser {
-  id: string;
-  email?: string;
-  raw_user_meta_data?: {
-    full_name?: string;
-    [key: string]: unknown;
-  };
-  [key: string]: unknown;
-}
-
-/**
  * Get assessment results for students in a teacher's class
  * Teachers can view aggregate and individual student results
  */
@@ -62,6 +45,37 @@ export interface ClassAssessmentResults {
   studentsWithAssessments: number;
   classAverageScore: number | null;
   results: StudentAssessmentResult[];
+}
+
+/**
+ * Type for enrollment query result with nested student_profiles
+ * TYPE SAFETY: Avoids double casting (as unknown as X) by defining expected shape
+ * Note: Supabase may return nested relations as arrays
+ */
+interface EnrollmentQueryResult {
+  student_id: string;
+  student_profiles: Array<{ name: string; roll_number: string | null }>;
+}
+
+/**
+ * Normalized enrollment with single student profile
+ */
+interface EnrollmentWithProfile {
+  student_id: string;
+  student_profiles: { name: string; roll_number: string | null } | null;
+}
+
+/**
+ * Normalize enrollment data from Supabase (converts array to single object)
+ */
+function normalizeEnrollments(
+  enrollments: EnrollmentQueryResult[] | null
+): EnrollmentWithProfile[] {
+  if (!enrollments) return [];
+  return enrollments.map((e) => ({
+    student_id: e.student_id,
+    student_profiles: e.student_profiles?.[0] || null,
+  }));
 }
 
 /**
@@ -296,33 +310,40 @@ export async function getClassAssessmentResults(classId: string): Promise<{
     // OPTIMIZATION: Batch fetch all assessment data instead of looping (prevents N+1 queries)
     const studentIds = (enrollments || []).map((e) => e.student_id);
 
+    // BUG-019 FIX: Guard against empty array in .in() query (BUG-018 pattern)
     // Get all assessment sessions for all students in this class in one query
-    const { data: allSessions } = await supabase
-      .from("assessment_sessions")
-      .select("id, user_id, submitted_at")
-      .in("user_id", studentIds)
-      .eq("class_id", validatedClassId)
-      .not("submitted_at", "is", null);
+    const { data: allSessions } = studentIds.length > 0
+      ? await supabase
+          .from("assessment_sessions")
+          .select("id, user_id, submitted_at")
+          .in("user_id", studentIds)
+          .eq("class_id", validatedClassId)
+          .not("submitted_at", "is", null)
+      : { data: null };
 
     // Get all assessment session IDs for bulk response fetch
     const sessionIds = allSessions?.map((s) => s.id) || [];
 
+    // BUG-019 FIX: Guard against empty array in .in() query (BUG-018 pattern)
     // Get all responses for all sessions in one query (instead of per-student queries)
-    const { data: allResponses } = await supabase
-      .from("assessment_responses")
-      .select("is_correct, session_id")
-      .in("session_id", sessionIds);
+    const { data: allResponses } = sessionIds.length > 0
+      ? await supabase
+          .from("assessment_responses")
+          .select("is_correct, session_id")
+          .in("session_id", sessionIds)
+      : { data: null };
 
     const { sessionsByStudent, responsesBySession } = buildLookupMaps(
       allSessions,
       allResponses,
     );
 
+    // TYPE SAFETY: Normalize and type the enrollment data properly
+    const normalizedEnrollments = normalizeEnrollments(
+      enrollments as EnrollmentQueryResult[] | null
+    );
     const studentResults = processStudentResults(
-      enrollments as unknown as Array<{
-        student_id: string;
-        student_profiles: { name: string; roll_number: string | null } | null;
-      }>,
+      normalizedEnrollments,
       sessionsByStudent,
       responsesBySession,
     );
@@ -357,7 +378,7 @@ export async function getClassAssessmentResults(classId: string): Promise<{
         totalStudents: enrollments?.length || 0,
         studentsWithAssessments: studentsWithScores.length,
         classAverageScore,
-        results: studentResults.sort((a, b) => {
+        results: studentResults.toSorted((a, b) => {
           // Sort by roll number if available, otherwise by name
           if (a.rollNumber && b.rollNumber) {
             return a.rollNumber.localeCompare(b.rollNumber);
@@ -381,8 +402,146 @@ export async function getClassAssessmentResults(classId: string): Promise<{
 }
 
 /**
+ * Helper: Build enrollment count map by class
+ */
+function buildEnrollmentCountMap(
+  enrollments: Array<{ class_id: string }> | null,
+): Map<string, number> {
+  const countByClass = new Map<string, number>();
+  enrollments?.forEach((enrollment) => {
+    const count = (countByClass.get(enrollment.class_id) || 0) + 1;
+    countByClass.set(enrollment.class_id, count);
+  });
+  return countByClass;
+}
+
+/**
+ * Helper: Build sessions by class map
+ */
+function buildSessionsByClassMap(
+  sessions: Array<{ id: string; class_id: string }> | null,
+): Map<string, string[]> {
+  const sessionsByClass = new Map<string, string[]>();
+  sessions?.forEach((session) => {
+    const classSessions = sessionsByClass.get(session.class_id) || [];
+    classSessions.push(session.id);
+    sessionsByClass.set(session.class_id, classSessions);
+  });
+  return sessionsByClass;
+}
+
+/**
+ * Helper: Build response counts by session map
+ */
+function buildResponseCountMap(
+  responses: Array<{ session_id: string; is_correct: boolean }> | null,
+): Map<string, { correct: number; total: number }> {
+  const countBySession = new Map<string, { correct: number; total: number }>();
+  responses?.forEach((response) => {
+    const current = countBySession.get(response.session_id) || {
+      correct: 0,
+      total: 0,
+    };
+    current.total += 1;
+    if (response.is_correct) {
+      current.correct += 1;
+    }
+    countBySession.set(response.session_id, current);
+  });
+  return countBySession;
+}
+
+/**
+ * Helper: Calculate class average score from sessions
+ */
+function calculateClassAverageScore(
+  sessionIds: string[],
+  responseCountBySession: Map<string, { correct: number; total: number }>,
+): number | null {
+  if (sessionIds.length === 0) return null;
+
+  let totalCorrect = 0;
+  let totalQuestions = 0;
+
+  for (const sessionId of sessionIds) {
+    const counts = responseCountBySession.get(sessionId);
+    if (counts) {
+      totalCorrect += counts.correct;
+      totalQuestions += counts.total;
+    }
+  }
+
+  return totalQuestions > 0
+    ? Math.round((totalCorrect / totalQuestions) * 100)
+    : null;
+}
+
+/**
+ * Helper: Process class results from pre-fetched data
+ */
+function processClassResults(
+  classes: Array<{ id: string; name: string; subject: string | null }> | null,
+  enrollmentCountByClass: Map<string, number>,
+  sessionsByClass: Map<string, string[]>,
+  responseCountBySession: Map<string, { correct: number; total: number }>,
+): {
+  classResults: Array<{
+    classId: string;
+    className: string;
+    subject: string | null;
+    studentCount: number;
+    assessmentsTaken: number;
+    averageScore: number | null;
+  }>;
+  totalAssessments: number;
+  totalScore: number;
+  scoredAssessments: number;
+} {
+  const classResults: Array<{
+    classId: string;
+    className: string;
+    subject: string | null;
+    studentCount: number;
+    assessmentsTaken: number;
+    averageScore: number | null;
+  }> = [];
+  let totalAssessments = 0;
+  let totalScore = 0;
+  let scoredAssessments = 0;
+
+  for (const cls of classes || []) {
+    const studentCount = enrollmentCountByClass.get(cls.id) || 0;
+    const sessions = sessionsByClass.get(cls.id) || [];
+    const assessmentsTaken = sessions.length;
+    totalAssessments += assessmentsTaken;
+
+    const averageScore = calculateClassAverageScore(
+      sessions,
+      responseCountBySession,
+    );
+
+    if (averageScore !== null) {
+      totalScore += averageScore;
+      scoredAssessments++;
+    }
+
+    classResults.push({
+      classId: cls.id,
+      className: cls.name,
+      subject: cls.subject,
+      studentCount,
+      assessmentsTaken,
+      averageScore,
+    });
+  }
+
+  return { classResults, totalAssessments, totalScore, scoredAssessments };
+}
+
+/**
  * Internal function to fetch teacher assessment overview from database
  * This is wrapped by getTeacherAssessmentOverview() with query caching
+ * REFACTORED: Reduced complexity from 49 to <15 by extracting helper functions
  */
 async function fetchTeacherAssessmentOverviewFromDB(
   teacherId: string,
@@ -411,109 +570,57 @@ async function fetchTeacherAssessmentOverviewFromDB(
     throw classesError;
   }
 
-  const classResults = [];
-  let totalAssessments = 0;
-  let totalScore = 0;
-  let scoredAssessments = 0;
-
   // OPTIMIZATION: Batch fetch all data for all classes (prevents N+1 queries)
   const classIds = (classes || []).map((c) => c.id);
 
-  // Get enrollment counts for all classes in one query
-  const { data: allEnrollments } = await supabase
-    .from("enrollments")
-    .select("class_id")
-    .in("class_id", classIds);
+  // BUG-018 FIX: Early return if no classes - .in() with empty array returns unexpected results
+  if (classIds.length === 0) {
+    return {
+      classes: [],
+      totalAssessments: 0,
+      overallAverageScore: null,
+    };
+  }
 
-  // Get all assessment sessions for all classes in one query
-  const { data: allSessions } = await supabase
-    .from("assessment_sessions")
-    .select("id, class_id")
-    .in("class_id", classIds)
-    .not("submitted_at", "is", null);
+  // Fetch all data in parallel
+  const [enrollmentsResult, sessionsResult] = await Promise.all([
+    supabase.from("enrollments").select("class_id").in("class_id", classIds),
+    supabase
+      .from("assessment_sessions")
+      .select("id, class_id")
+      .in("class_id", classIds)
+      .not("submitted_at", "is", null),
+  ]);
 
-  // Get all responses for all sessions in one query
-  const sessionIds = allSessions?.map((s) => s.id) || [];
+  const sessionIds = sessionsResult.data?.map((s) => s.id) || [];
+
+  // BUG-018 FIX: Skip responses query if no sessions exist
+  if (sessionIds.length === 0) {
+    const { classResults, totalAssessments, totalScore, scoredAssessments } =
+      processClassResults(classes, buildEnrollmentCountMap(enrollmentsResult.data), new Map(), new Map());
+    const overallAverageScore =
+      scoredAssessments > 0 ? Math.round(totalScore / scoredAssessments) : null;
+    return { classes: classResults, totalAssessments, overallAverageScore };
+  }
+
   const { data: allResponses } = await supabase
     .from("assessment_responses")
     .select("is_correct, session_id")
     .in("session_id", sessionIds);
 
-  // Build lookup maps for efficient data association
-  const enrollmentCountByClass = new Map<string, number>();
-  const sessionsByClass = new Map<string, string[]>();
-  const responseCountBySession = new Map<
-    string,
-    { correct: number; total: number }
-  >();
+  // Build lookup maps using helper functions
+  const enrollmentCountByClass = buildEnrollmentCountMap(enrollmentsResult.data);
+  const sessionsByClass = buildSessionsByClassMap(sessionsResult.data);
+  const responseCountBySession = buildResponseCountMap(allResponses);
 
-  // Count enrollments by class
-  allEnrollments?.forEach((enrollment) => {
-    const count = (enrollmentCountByClass.get(enrollment.class_id) || 0) + 1;
-    enrollmentCountByClass.set(enrollment.class_id, count);
-  });
-
-  // Index sessions by class_id
-  allSessions?.forEach((session) => {
-    if (!sessionsByClass.has(session.class_id)) {
-      sessionsByClass.set(session.class_id, []);
-    }
-    const classSessions = sessionsByClass.get(session.class_id);
-    if (classSessions) {
-      classSessions.push(session.id);
-    }
-  });
-
-  // Count responses per session (both correct and total) in single pass
-  allResponses?.forEach((response) => {
-    const current = responseCountBySession.get(response.session_id) || {
-      correct: 0,
-      total: 0,
-    };
-    current.total += 1;
-    if (response.is_correct) {
-      current.correct += 1;
-    }
-    responseCountBySession.set(response.session_id, current);
-  });
-
-  // Process class results using pre-fetched data (no queries in loop)
-  for (const cls of classes || []) {
-    const studentCount = enrollmentCountByClass.get(cls.id) || 0;
-    const sessions = sessionsByClass.get(cls.id) || [];
-    const assessmentsTaken = sessions.length;
-    totalAssessments += assessmentsTaken;
-
-    // Calculate average score from pre-fetched responses
-    let averageScore: number | null = null;
-    if (sessions.length > 0) {
-      let totalCorrect = 0;
-      let totalQuestions = 0;
-
-      for (const sessionId of sessions) {
-        const counts = responseCountBySession.get(sessionId);
-        if (counts) {
-          totalCorrect += counts.correct;
-          totalQuestions += counts.total;
-        }
-      }
-
-      if (totalQuestions > 0) {
-        averageScore = Math.round((totalCorrect / totalQuestions) * 100);
-        totalScore += averageScore;
-        scoredAssessments++;
-      }
-    }
-
-    classResults.push({
-      classId: cls.id,
-      className: cls.name,
-      subject: cls.subject,
-      studentCount,
-      assessmentsTaken,
-      averageScore,
-    });
-  }
+  // Process class results
+  const { classResults, totalAssessments, totalScore, scoredAssessments } =
+    processClassResults(
+      classes,
+      enrollmentCountByClass,
+      sessionsByClass,
+      responseCountBySession,
+    );
 
   const overallAverageScore =
     scoredAssessments > 0 ? Math.round(totalScore / scoredAssessments) : null;

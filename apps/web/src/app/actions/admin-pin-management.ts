@@ -212,31 +212,40 @@ export async function rotateSchoolPIN(
       };
     }
 
-    // Validate custom PIN if provided
-    if (customPIN) {
-      if (!/^\d{4,6}$/.test(customPIN)) {
-        return {
-          success: false,
-          error: "PIN must be 4-6 digits",
-        };
-      }
-    }
-
     // Use admin client with service_role to call the RPC function
     // The rotate_staff_pin function requires service_role to execute
     const supabase = await createAdminClient();
 
-    // Use custom PIN or generate new PIN using centralized constants
-    const newPIN =
-      customPIN ||
-      (() => {
+    // Use custom PIN if provided, otherwise generate new PIN
+    // Uses rejection sampling to avoid modulo bias in random number generation
+    let newPIN: string;
+
+    if (customPIN && typeof customPIN === 'string' && customPIN.trim()) {
+      // Use the PIN provided from the UI
+      newPIN = customPIN.trim();
+      authLogger.debug("[rotateSchoolPIN] Using custom PIN from UI", {
+        schoolId,
+        pinLength: newPIN.length,
+        pinFormat: /^\d{4,6}$/.test(newPIN),
+      });
+    } else {
+      // Generate new PIN using centralized constants
+      const range = PIN_LIMITS.max - PIN_LIMITS.min + 1;
+      const maxUnbiased = Math.floor(0xffffffff / range) * range;
+      let value: number;
+      do {
         const array = new Uint32Array(1);
         crypto.getRandomValues(array);
-        return (
-          PIN_LIMITS.min +
-          (array[0] % (PIN_LIMITS.max - PIN_LIMITS.min + 1))
-        ).toString();
-      })();
+        value = array[0];
+      } while (value >= maxUnbiased);
+      newPIN = (PIN_LIMITS.min + (value % range)).toString();
+
+      authLogger.debug("[rotateSchoolPIN] Generated new PIN", {
+        schoolId,
+        pinLength: newPIN.length,
+        pinFormat: /^\d{4,6}$/.test(newPIN),
+      });
+    }
 
     // Call the rotate_staff_pin function via RPC
     const { data, error } = await supabase.rpc("rotate_staff_pin", {
@@ -245,15 +254,30 @@ export async function rotateSchoolPIN(
     });
 
     if (error) {
-      authLogger.error("[rotateSchoolPIN] Failed to rotate PIN", error);
+      // SEC-6 FIX: Log detailed error server-side only; return generic message to client
+      authLogger.error("[rotateSchoolPIN] Failed to rotate PIN", {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+      });
+
+      // If schema cache error, provide more helpful message
+      if (error.code === "PGRST202") {
+        return {
+          success: false,
+          error:
+            "Database schema cache is refreshing. Please wait 30 seconds and try again.",
+        };
+      }
+
       return {
         success: false,
-        error: error.message || "Failed to rotate PIN",
+        error: "Failed to rotate PIN",
       };
     }
 
     // Check if function returned success
-    if (!data || !data[0]?.success) {
+    if (!data?.[0]?.success) {
       const errorMsg = data?.[0]?.error_message || "Failed to rotate PIN";
       authLogger.error("[rotateSchoolPIN] PIN rotation failed", {
         error: errorMsg,
@@ -268,9 +292,11 @@ export async function rotateSchoolPIN(
       schoolId,
       newPIN: "****",
     });
+    // SEC-007 FIX: Don't include PIN in message (could be logged/cached)
+    // PIN is returned only in data for one-time secure display
     return {
       success: true,
-      message: `PIN rotated successfully! New PIN: ${newPIN}`,
+      message: "PIN rotated successfully! Copy the new PIN shown below.",
       data: { newPIN },
     };
   } catch (error) {

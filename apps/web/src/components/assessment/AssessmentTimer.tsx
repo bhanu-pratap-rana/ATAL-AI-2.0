@@ -61,7 +61,7 @@ export function CompactTimer({
   isPaused = false,
   initialSeconds = 0,
   onTimeUpdate,
-}: Omit<AssessmentTimerProps, "className">) {
+}: Readonly<Omit<AssessmentTimerProps, "className">>) {
   // Use shared timer hook (eliminates duplication)
   const elapsedSeconds = useTimer({
     initialSeconds,

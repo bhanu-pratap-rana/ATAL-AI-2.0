@@ -49,10 +49,11 @@ export function GuestJoinForm({
     const codeValidation = validateClassCode(state.guestClassCode);
     const pinValidation = validatePIN(state.guestPin);
 
+    // Check validations
     if (!codeValidation.valid || !pinValidation.valid) {
-      const error = !codeValidation.valid
-        ? codeValidation.error
-        : pinValidation.error;
+      const error = codeValidation.valid
+        ? pinValidation.error
+        : codeValidation.error;
       actions.setGuestError(error || "Invalid input");
       actions.setIsLoading(false);
       return;
@@ -159,7 +160,7 @@ export function GuestJoinForm({
         }
         loading={isLoading}
       >
-        Join Class
+        <span>Join Class</span>
         <span className="ml-2">→</span>
       </Button>
     </form>

@@ -48,6 +48,10 @@ export const AI_FEATURES = {
 
 /**
  * Provider configurations
+ *
+ * NOTE: Project uses only Google products (Gemini, Vertex AI).
+ * Groq and Ollama are kept as development/testing fallbacks.
+ * OpenAI was removed per project requirements.
  */
 export const AI_PROVIDERS = {
   gemini: {
@@ -67,11 +71,7 @@ export const AI_PROVIDERS = {
     defaultModel: "cogito:14b",
     baseUrl: "http://localhost:11434",
   },
-  openai: {
-    name: "OpenAI",
-    defaultModel: "gpt-4o-mini",
-    baseUrl: "https://api.openai.com/v1",
-  },
+  // NOTE: OpenAI removed - project uses only Google products
 } as const;
 
 /**

@@ -58,7 +58,7 @@ export function OTPInput({
 }: OTPInputProps) {
   // Only allow numeric input
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const numericValue = e.target.value.replace(/\D/g, "").slice(0, maxLength);
+    const numericValue = e.target.value.replaceAll(/\D/g, "").slice(0, maxLength);
     onChange(numericValue);
   };
 

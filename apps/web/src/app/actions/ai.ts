@@ -4,7 +4,7 @@
  * AI Server Actions
  *
  * Server-side actions for AI-powered features.
- * Uses Groq in development, configurable for OpenAI in production.
+ * Uses Groq as fallback, with Gemini as primary provider.
  */
 
 import { getCurrentUser } from "@/lib/supabase-server";
@@ -22,6 +22,8 @@ import {
   type PracticeQuestion,
 } from "@/lib/ai-service";
 import { AI_CONTENT_LIMITS } from "@/lib/constants/validation-limits";
+import { RATE_LIMIT_ERRORS } from "@/lib/constants/error-messages";
+import type { SupportedLanguage } from "@/types/common";
 
 // Rate limit configuration for AI endpoints (per user)
 const AI_RATE_LIMITS = {
@@ -74,7 +76,7 @@ export async function askAITutor(
     });
     return {
       success: false,
-      error: "Too many requests. Please wait before asking another question.",
+      error: RATE_LIMIT_ERRORS.AI_RATE_LIMIT,
     };
   }
 
@@ -118,7 +120,7 @@ export async function askAITutor(
 export async function getAIEssayFeedback(
   essay: string,
   topic?: string,
-  language: "en" | "hi" | "as" = "en",
+  language: SupportedLanguage = "en",
 ): Promise<ActionResult<AIResponse & { feedback?: EssayFeedback }>> {
   const auth = await requireAuth();
   if ("error" in auth) {
@@ -136,7 +138,7 @@ export async function getAIEssayFeedback(
     });
     return {
       success: false,
-      error: "Too many requests. Please wait before submitting another essay.",
+      error: RATE_LIMIT_ERRORS.ESSAY_RATE_LIMIT,
     };
   }
 
@@ -181,7 +183,7 @@ export async function generateAIPracticeQuestions(
   topic: string,
   count: number = 5,
   difficulty: "easy" | "medium" | "hard" = "medium",
-  language: "en" | "hi" | "as" = "en",
+  language: SupportedLanguage = "en",
 ): Promise<ActionResult<AIResponse & { questions?: PracticeQuestion[] }>> {
   const auth = await requireAuth();
   if ("error" in auth) {
@@ -199,7 +201,7 @@ export async function generateAIPracticeQuestions(
     });
     return {
       success: false,
-      error: "Too many requests. Please wait before generating more questions.",
+      error: RATE_LIMIT_ERRORS.QUESTIONS_RATE_LIMIT,
     };
   }
 
@@ -248,7 +250,7 @@ export async function generateAIPracticeQuestions(
 export async function summarizeStudyContent(
   content: string,
   format: "notes" | "flashcards" | "outline" = "notes",
-  language: "en" | "hi" | "as" = "en",
+  language: SupportedLanguage = "en",
 ): Promise<ActionResult<AIResponse>> {
   const auth = await requireAuth();
   if ("error" in auth) {
@@ -266,7 +268,7 @@ export async function summarizeStudyContent(
     });
     return {
       success: false,
-      error: "Too many requests. Please wait before summarizing more content.",
+      error: RATE_LIMIT_ERRORS.SUMMARY_RATE_LIMIT,
     };
   }
 
@@ -314,7 +316,12 @@ export async function checkAIServiceStatus(): Promise<
     model: string;
   }>
 > {
-  // No auth required for status check
+  // SECURITY: Require authentication to prevent AI provider/model info exposure
+  const auth = await requireAuth();
+  if ("error" in auth) {
+    return { success: false, error: auth.error };
+  }
+
   try {
     const status = await checkAIService();
     return {

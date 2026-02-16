@@ -51,6 +51,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         </motion.div>
         {error && (
           <motion.p
+            role="alert"
             className="mt-1.5 text-xs text-error"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}

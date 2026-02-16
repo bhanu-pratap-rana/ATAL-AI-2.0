@@ -260,15 +260,37 @@ export async function sendMessageToSW<T = unknown>(
 
     return new Promise((resolve) => {
       const messageChannel = new MessageChannel();
+      let resolved = false;
+      let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+      // BUG-007/BUG-013 FIX: Proper cleanup to prevent memory leaks
+      const cleanup = () => {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
+        messageChannel.port1.onmessage = null;
+        messageChannel.port1.close();
+      };
 
       messageChannel.port1.onmessage = (event) => {
-        resolve(event.data as T);
+        if (!resolved) {
+          resolved = true;
+          cleanup();
+          resolve(event.data as T);
+        }
       };
 
       controller.postMessage(message, [messageChannel.port2]);
 
-      // Timeout after 5 seconds
-      setTimeout(() => resolve(null), 5000);
+      // BUG-013 FIX: Clear timeout when message received, and cleanup on timeout
+      timeoutId = setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          cleanup();
+          resolve(null);
+        }
+      }, 5000);
     });
   } catch (error) {
     clientLogger.warn("[ServiceWorker] Message failed", {
@@ -311,16 +333,35 @@ export async function getSyncStatus(): Promise<{
  * Initialize background sync for offline-first functionality
  * Call this on app startup
  */
+let bgSyncInitialized = false;
+
 export async function initializeBackgroundSync(): Promise<void> {
+  // Guard against duplicate initialization (e.g., HMR in development)
+  if (bgSyncInitialized) {
+    clientLogger.debug("[BackgroundSync] Already initialized, skipping");
+    return;
+  }
+
   if (!isBackgroundSyncSupported()) {
     clientLogger.debug("[BackgroundSync] Not supported - using fallback");
     return;
   }
 
-  // Pre-register all sync tags
+  bgSyncInitialized = true;
+
+  // BUG-010 FIX: Pre-register all sync tags with error handling
+  // Continue with other tags if one fails to register
   for (const tag of Object.values(SYNC_TAGS)) {
-    // These will only trigger when there's data to sync
-    await registerSync(tag);
+    try {
+      // These will only trigger when there's data to sync
+      await registerSync(tag);
+    } catch (error) {
+      clientLogger.warn("[BackgroundSync] Failed to register sync tag", {
+        tag,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      // Continue with next tag instead of crashing initialization
+    }
   }
 
   // Register periodic sync for curriculum updates (if supported)

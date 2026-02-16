@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { DashboardMetrics } from "@/components/admin/DashboardMetrics";
 import { LogOut, Users, Lock, Crown } from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
+import { clientLogger } from "@/lib/client-logger";
 
 /**
  * ATAL AI Admin Dashboard - Jyoti Theme (Dark Mode)
@@ -38,15 +39,15 @@ export default function AdminDashboardPage() {
           return;
         }
 
-        const role = user.app_metadata?.role as string;
-        if (role !== "super_admin") {
+        const role = user.app_metadata?.role;
+        if (typeof role !== "string" || role !== "super_admin") {
           router.push("/admin/pins");
           return;
         }
 
         setUserEmail(user.email);
       } catch (error) {
-        console.error("[AdminDashboard] Auth check failed:", error);
+        clientLogger.error("[AdminDashboard] Auth check failed", error instanceof Error ? error : { error });
         router.push("/admin/login");
       } finally {
         setIsLoading(false);

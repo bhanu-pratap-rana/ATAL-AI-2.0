@@ -5,9 +5,9 @@ import { calculateIRTScore } from "@/app/actions/assessment";
 
 export default async function AssessmentSummaryPage({
   searchParams,
-}: {
+}: Readonly<{
   searchParams: Promise<{ session?: string }>;
-}) {
+}>) {
   const resolvedParams = await searchParams;
   const sessionId = resolvedParams.session;
 
@@ -23,23 +23,26 @@ export default async function AssessmentSummaryPage({
 
   const supabase = await createClient();
 
-  // Fetch session data - use .maybeSingle() since session may not exist
-  const { data: session, error: sessionError } = await supabase
-    .from("assessment_sessions")
-    .select("*")
-    .eq("id", sessionId)
-    .maybeSingle();
+  // PERF: Fetch session and responses in parallel (both use sessionId from URL)
+  const [sessionResult, responsesResult] = await Promise.all([
+    supabase
+      .from("assessment_sessions")
+      .select("id, user_id, started_at, submitted_at")
+      .eq("id", sessionId)
+      .maybeSingle(),
+    supabase
+      .from("assessment_responses")
+      .select("id, item_id, module, chosen_option, is_correct, rt_ms, created_at")
+      .eq("session_id", sessionId)
+      .order("created_at", { ascending: true }),
+  ]);
+
+  const { data: session, error: sessionError } = sessionResult;
+  const { data: responses, error: responsesError } = responsesResult;
 
   if (sessionError || !session || session.user_id !== user.id) {
     redirect("/app/assessment/start");
   }
-
-  // Fetch responses
-  const { data: responses, error: responsesError } = await supabase
-    .from("assessment_responses")
-    .select("*")
-    .eq("session_id", sessionId)
-    .order("created_at", { ascending: true });
 
   if (responsesError || !responses || responses.length === 0) {
     redirect("/app/assessment/start");
@@ -67,7 +70,7 @@ export default async function AssessmentSummaryPage({
 
   // Calculate IRT-based score if we have IRT parameters
   let irtScore = null;
-  if (irtItems && irtItems.length > 0) {
+  if ((irtItems?.length ?? 0) > 0) {
     const irtResponses = responses.map((r) => {
       const params = irtParamsMap.get(r.item_id);
       return {

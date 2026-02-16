@@ -17,6 +17,12 @@ import { useCallback } from "react";
 
 export type QuestionStatus = "current" | "answered" | "skipped" | "unanswered";
 
+/** Selection state for pagination items - S2301 compliance */
+type SelectionState = "selected" | "unselected";
+
+/** Navigation state for arrow buttons - S2301 compliance */
+type NavigationState = "enabled" | "disabled";
+
 interface QuestionPaginationProps {
   readonly totalQuestions: number;
   readonly currentIndex: number;
@@ -62,9 +68,13 @@ export function QuestionPagination({
   const canShiftLeft = offset > 0;
   const canShiftRight = offset < maxOffset;
 
-  // Get status color class
-  const getStatusColor = (status: QuestionStatus, isCurrent: boolean) => {
-    if (isCurrent) return "bg-info ring-2 ring-info ring-offset-2";
+  // Get status color class - S2301: use state parameter instead of boolean
+  const getStatusColor = (
+    status: QuestionStatus,
+    selection: SelectionState,
+  ) => {
+    if (selection === "selected")
+      return "bg-info ring-2 ring-info ring-offset-2";
     switch (status) {
       case "answered":
         return "bg-success";
@@ -75,14 +85,14 @@ export function QuestionPagination({
     }
   };
 
-  // Get status label for accessibility
+  // Get status label for accessibility - S2301: use state parameter instead of boolean
   const getStatusLabel = (
     status: QuestionStatus,
     index: number,
-    isCurrent: boolean,
+    selection: SelectionState,
   ) => {
     const baseLabel = `Question ${index + 1}`;
-    if (isCurrent) return `${baseLabel} (current)`;
+    if (selection === "selected") return `${baseLabel} (current)`;
     switch (status) {
       case "answered":
         return `${baseLabel} (answered)`;
@@ -93,18 +103,17 @@ export function QuestionPagination({
     }
   };
 
-  // Get arrow button styling based on navigation state
-  const getArrowButtonClass = (canNavigate: boolean): string => {
-    if (canNavigate) {
+  // Get arrow button styling - S2301: use state parameter instead of boolean
+  const getArrowButtonClass = (navigation: NavigationState): string => {
+    if (navigation === "enabled") {
       return "text-text-secondary hover:text-primary hover:bg-primary-lighter cursor-pointer";
     }
     return "text-text-muted cursor-not-allowed";
   };
 
   return (
-    <div
+    <nav
       className="flex items-center justify-center gap-2"
-      role="navigation"
       aria-label="Question navigation"
     >
       {/* Left Arrow */}
@@ -115,7 +124,7 @@ export function QuestionPagination({
         className={`
           w-8 h-8 flex items-center justify-center rounded-full
           transition-colors duration-200
-          ${getArrowButtonClass(canShiftLeft || currentIndex > 0)}
+          ${getArrowButtonClass(canShiftLeft || currentIndex > 0 ? "enabled" : "disabled")}
         `}
         aria-label="Previous questions"
       >
@@ -131,32 +140,35 @@ export function QuestionPagination({
           </span>
         )}
 
-        {visibleDots.map(({ index, status, isCurrent, canJump }) => (
-          <button
-            key={index}
-            type="button"
-            onClick={() => canJump && onJumpTo(index)}
-            disabled={!canJump}
-            className={`
-              min-w-[2.75rem] min-h-[2.75rem] w-8 h-8 sm:w-10 sm:h-10
-              rounded-full flex items-center justify-center
-              text-xs sm:text-sm font-semibold
-              transition-all duration-200
-              ${getStatusColor(status, isCurrent)}
-              ${isCurrent ? "text-white scale-110" : "text-white"}
-              ${
-                canJump && !isCurrent
-                  ? "hover:scale-105 hover:ring-2 hover:ring-primary hover:ring-offset-1 cursor-pointer"
-                  : ""
-              }
-              ${canJump || isCurrent ? "" : "opacity-60 cursor-default"}
-            `}
-            aria-label={getStatusLabel(status, index, isCurrent)}
-            aria-current={isCurrent ? "step" : undefined}
-          >
-            {index + 1}
-          </button>
-        ))}
+        {visibleDots.map(({ index, status, isCurrent, canJump }) => {
+          const selection: SelectionState = isCurrent ? "selected" : "unselected";
+          return (
+            <button
+              key={index}
+              type="button"
+              onClick={() => canJump && onJumpTo(index)}
+              disabled={!canJump}
+              className={`
+                min-w-[2.75rem] min-h-[2.75rem] w-8 h-8 sm:w-10 sm:h-10
+                rounded-full flex items-center justify-center
+                text-xs sm:text-sm font-semibold
+                transition-all duration-200
+                ${getStatusColor(status, selection)}
+                ${isCurrent ? "text-white scale-110" : "text-white"}
+                ${
+                  canJump && !isCurrent
+                    ? "hover:scale-105 hover:ring-2 hover:ring-primary hover:ring-offset-1 cursor-pointer"
+                    : ""
+                }
+                ${canJump || isCurrent ? "" : "opacity-60 cursor-default"}
+              `}
+              aria-label={getStatusLabel(status, index, selection)}
+              aria-current={isCurrent ? "step" : undefined}
+            >
+              {index + 1}
+            </button>
+          );
+        })}
 
         {/* Show ellipsis if there are questions after the window */}
         {offset + WINDOW_SIZE < totalQuestions && (
@@ -174,13 +186,13 @@ export function QuestionPagination({
         className={`
           w-8 h-8 flex items-center justify-center rounded-full
           transition-colors duration-200
-          ${getArrowButtonClass(canShiftRight || currentIndex < historyLength)}
+          ${getArrowButtonClass(canShiftRight || currentIndex < historyLength ? "enabled" : "disabled")}
         `}
         aria-label="Next questions"
       >
         <span className="text-lg">→</span>
       </button>
-    </div>
+    </nav>
   );
 }
 

@@ -100,8 +100,8 @@ export async function findAuthUserByEmail(
 }
 
 /**
- * Find user by ID with pagination support
- * Safely searches across all auth users
+ * Find user by ID using direct API call - O(1) instead of O(n)
+ * PERFORMANCE: Uses getUserById directly instead of paginating all users
  *
  * @param adminClient - Supabase admin client
  * @param userId - User ID to search for
@@ -110,9 +110,33 @@ export async function findAuthUserByEmail(
 export async function findAuthUserById(
   adminClient: Awaited<ReturnType<typeof createAdminClient>>,
   userId: string,
-) {
-  const allUsers = await fetchAllAuthUsers(adminClient);
-  return allUsers.find((u) => u.id === userId);
+): Promise<SupabaseAuthUser | undefined> {
+  try {
+    const { data, error } = await adminClient.auth.admin.getUserById(userId);
+    if (error || !data.user) {
+      // User not found is not an error worth logging at error level
+      if (error && error.message !== "User not found") {
+        authLogger.warn("[findAuthUserById] Error fetching user", {
+          userId,
+          error: error.message,
+        });
+      }
+      return undefined;
+    }
+
+    // Convert to our flexible type
+    const user = data.user;
+    return {
+      ...user,
+      id: user.id,
+      email: user.email,
+      app_metadata: user.app_metadata,
+      user_metadata: user.user_metadata,
+    } as SupabaseAuthUser;
+  } catch (error) {
+    authLogger.error("[findAuthUserById] Unexpected error", error);
+    return undefined;
+  }
 }
 
 /**

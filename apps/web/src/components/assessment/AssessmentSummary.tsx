@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ResultCircle } from "./ResultCircle";
 import { CategoryBreakdown, CategoryStrengths } from "./CategoryBreakdown";
 import { LevelBadge, LevelCard } from "./LevelBadge";
 import { AssessmentStats } from "./AssessmentStats";
+import { CelebrationAnimation } from "@/components/animations/LottieAnimation";
 
 /**
  * ATAL AI Assessment Summary - Enhanced with IRT Scoring
@@ -55,6 +57,7 @@ export function AssessmentSummary({
   irtData,
 }: AssessmentSummaryProps) {
   const router = useRouter();
+  const [showCelebration, setShowCelebration] = useState(score >= 80);
 
   const getScoreMessage = (score: number) => {
     if (score >= 80) {
@@ -97,6 +100,15 @@ export function AssessmentSummary({
           <div className="bg-white rounded-xl p-6 md:p-8">
             {/* Celebration Banner */}
             <div className="text-center mb-6">
+              {/* Celebration Animation for high scores */}
+              {showCelebration && (
+                <div className="flex justify-center mb-4">
+                  <CelebrationAnimation
+                    size={150}
+                    onComplete={() => setShowCelebration(false)}
+                  />
+                </div>
+              )}
               <span className="text-5xl mb-4 block">{scoreMessage.emoji}</span>
               <h1 className="text-3xl md:text-4xl font-bold text-text-primary mb-2">
                 {scoreMessage.title}
@@ -186,7 +198,7 @@ export function AssessmentSummary({
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <Button
-              onClick={() => router.push("/app/curriculum")}
+              onClick={() => router.push("/app/learn")}
               size="lg"
               className="flex-1"
             >

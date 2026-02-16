@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { enrollStudent } from "@/app/actions/teacher";
+import { clientLogger } from "@/lib/client-logger";
 import { StudentSearchResults } from "./StudentSearchResults";
 
 interface InviteStudentDialogProps {
@@ -60,7 +61,11 @@ export function InviteStudentDialog({ classId }: InviteStudentDialogProps) {
       } else {
         toast.error("Failed to search students");
       }
-    } catch {
+    } catch (error) {
+      clientLogger.error(
+        "[InviteStudentDialog] Failed to search students",
+        error instanceof Error ? error : { error: String(error) },
+      );
       toast.error("An error occurred while searching");
     } finally {
       setSearching(false);
@@ -93,7 +98,11 @@ export function InviteStudentDialog({ classId }: InviteStudentDialogProps) {
       } else {
         toast.error("Failed to enroll student");
       }
-    } catch {
+    } catch (error) {
+      clientLogger.error(
+        "[InviteStudentDialog] Failed to enroll student",
+        error instanceof Error ? error : { error: String(error) },
+      );
       toast.error("An unexpected error occurred");
     } finally {
       setLoading(false);
@@ -105,7 +114,7 @@ export function InviteStudentDialog({ classId }: InviteStudentDialogProps) {
       <DialogTrigger asChild>
         <Button>
           <span className="mr-2">+</span>
-          Invite Student
+          <span>Invite Student</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">

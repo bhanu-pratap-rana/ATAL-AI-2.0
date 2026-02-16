@@ -12,6 +12,8 @@
  * - Learning style adaptation
  */
 
+export const maxDuration = 60;
+
 import { streamText } from "ai";
 import { z } from "zod";
 import { getCurrentUser, createClient } from "@/lib/supabase-server";
@@ -22,6 +24,12 @@ import { buildSystemPrompt } from "@/lib/ai/prompts/socratic-tutor";
 import { checkRateLimit } from "@/lib/rate-limiter-distributed";
 import { RATE_LIMITS } from "@/lib/constants/rate-limits";
 import { authLogger } from "@/lib/auth-logger";
+import { gamificationService } from "@/lib/services/gamification-service";
+import type {
+  TutorLanguage,
+  TutorMessageRole,
+  TutorInputMode,
+} from "@/lib/ai/services/tutor-service";
 
 /**
  * Request body schema for tutor chat API
@@ -47,14 +55,14 @@ const ChatRequestSchema = z.object({
   inputMode: z.enum(["text", "voice"]).default("text"),
 });
 
-export async function POST(request: Request) {
+export async function POST(request: Request): Promise<Response> {
   let user: Awaited<ReturnType<typeof getCurrentUser>> | null = null;
 
   try {
     // Authenticate user
     user = await getCurrentUser();
     if (!user) {
-      return new Response("Unauthorized", { status: 401 });
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // At this point, user is guaranteed to be non-null due to the guard above
@@ -66,11 +74,9 @@ export async function POST(request: Request) {
       RATE_LIMITS.aiTutorChat,
     );
     if (!isAllowed) {
-      return new Response(
-        "Rate limit exceeded. Please wait before sending another message.",
-        {
-          status: 429,
-        },
+      return Response.json(
+        { error: "Rate limit exceeded. Please wait before sending another message." },
+        { status: 429 },
       );
     }
 
@@ -81,7 +87,8 @@ export async function POST(request: Request) {
     try {
       validatedData = ChatRequestSchema.parse(body);
     } catch (validationError) {
-      const errorMessage =
+      // SEC-007 FIX: Log detailed errors server-side, return generic message to client
+      const detailedError =
         validationError instanceof z.ZodError
           ? validationError.errors
               .map((e) => `${e.path.join(".")}: ${e.message}`)
@@ -89,22 +96,24 @@ export async function POST(request: Request) {
           : "Invalid request body";
 
       authLogger.error("[TutorChat] Request validation failed", {
-        error: errorMessage,
+        error: detailedError,
         userId: authenticatedUser.id,
       });
 
-      return new Response(JSON.stringify({ error: errorMessage }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+      // SEC-007 FIX: Return generic error to client to prevent information disclosure
+      return Response.json(
+        { error: "Invalid request format. Please try again." },
+        { status: 400 },
+      );
     }
 
     const { messages, language, topicId, moduleId, sessionId, inputMode } =
       validatedData;
 
     // Get the latest user message for RAG
-    const latestMessage = messages[messages.length - 1];
-    const userQuery = latestMessage.content;
+    const latestMessage = messages.at(-1);
+    // SEC-2 FIX: Truncate user query to limit prompt injection surface
+    const userQuery = (latestMessage?.content ?? "").slice(0, 4000);
 
     // Get curriculum context via RAG (direct pgvector - NO LangChain)
     // Uses multilingual context to prioritize same-language content
@@ -133,19 +142,20 @@ export async function POST(request: Request) {
       module: moduleId,
     });
 
-    // Get AI model (Gemini primary, Groq fallback)
-    const model = getAIModel("gemini");
+    // Get AI model (Groq primary - FREE tier, Gemini fallback)
+    const model = getAIModel();
 
     // Track start time for logging
     const startTime = Date.now();
 
     // Log user message
+    // SEC-10 FIX: Truncate user content in logs to limit PII exposure
     await logInteraction({
       studentId: authenticatedUser.id,
       sessionId: sessionId || crypto.randomUUID(),
       topicId,
       messageRole: "user",
-      messageContent: userQuery,
+      messageContent: userQuery.slice(0, 500),
       inputMode,
       language,
       tokensUsed: 0,
@@ -173,10 +183,18 @@ export async function POST(request: Request) {
             tokensUsed: usage?.totalTokens || 0,
             responseTimeMs: Date.now() - startTime,
           });
+
+          // Award points and check badges after successful interaction
+          // Uses "voice" for voice input, "question" for text input
+          const activityType = inputMode === "voice" ? "voice" : "question";
+          await gamificationService.triggerActivityCheck(
+            authenticatedUser.id,
+            activityType,
+          );
         } catch (loggingError) {
           // Log the error but don't throw - user's response is already sent
           authLogger.error(
-            "[TutorChat] Failed to log interaction in onFinish callback",
+            "[TutorChat] Failed to log interaction or award points in onFinish callback",
             {
               error:
                 loggingError instanceof Error
@@ -196,19 +214,30 @@ export async function POST(request: Request) {
     return result.toDataStreamResponse();
   } catch (error) {
     // Log detailed error for debugging (server-side only)
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    // Only include stack trace in development to prevent info disclosure
+    const isDev = process.env.NODE_ENV === "development";
+
     authLogger.error("[Tutor API] Unexpected error in chat handler", {
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
+      error: errorMessage,
+      stack: isDev && error instanceof Error ? error.stack : undefined,
       userId: user?.id || "unknown",
     });
 
-    // Return generic message to client (avoid exposing sensitive error details)
-    return new Response(
-      JSON.stringify({
-        error:
-          "An error occurred while processing your message. Please try again.",
-      }),
-      { status: 500, headers: { "Content-Type": "application/json" } },
+    // Log additional details for debugging - only in development
+    if (isDev) {
+      authLogger.debug("[Tutor API] Error details:", {
+        message: errorMessage,
+        name: error instanceof Error ? error.name : "Unknown",
+        cause: error instanceof Error ? (error as Error & { cause?: unknown }).cause : undefined,
+      });
+    }
+
+    // Never expose internal error details to clients - only generic message
+    // Detailed errors are logged server-side above for debugging
+    return Response.json(
+      { error: "An error occurred while processing your message. Please try again." },
+      { status: 500 },
     );
   }
 }
@@ -220,10 +249,10 @@ async function logInteraction(params: {
   studentId: string;
   sessionId: string;
   topicId?: string;
-  messageRole: "user" | "assistant" | "system";
+  messageRole: TutorMessageRole;
   messageContent: string;
-  inputMode: "text" | "voice";
-  language: "en" | "hi" | "as";
+  inputMode: TutorInputMode;
+  language: TutorLanguage;
   tokensUsed: number;
   responseTimeMs: number;
 }): Promise<void> {

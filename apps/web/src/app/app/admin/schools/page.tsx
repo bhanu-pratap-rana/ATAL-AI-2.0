@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { clientLogger } from "@/lib/client-logger";
 import { CLIPBOARD_TIMING } from "@/lib/constants/ui-timings";
 import {
   rotateStaffPin,
@@ -35,11 +36,11 @@ function SchoolFinderModal({
   isOpen,
   onClose,
   onSelectSchool,
-}: {
+}: Readonly<{
   isOpen: boolean;
   onClose: () => void;
   onSelectSchool: (school: SchoolData) => Promise<void>;
-}) {
+}>) {
   const [districts, setDistricts] = useState<District[]>([]);
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [schools, setSchools] = useState<SchoolData[]>([]);
@@ -83,7 +84,11 @@ function SchoolFinderModal({
       } else {
         toast.error(result.error || "Failed to load districts");
       }
-    } catch (_error) {
+    } catch (error) {
+      clientLogger.error(
+        "[SchoolFinderModal] Failed to load districts",
+        error instanceof Error ? error : new Error(String(error))
+      );
       toast.error("An error occurred");
     } finally {
       setLoading(false);
@@ -103,7 +108,11 @@ function SchoolFinderModal({
       } else {
         toast.error(result.error || "Failed to load blocks");
       }
-    } catch (_error) {
+    } catch (error) {
+      clientLogger.error(
+        "[SchoolFinderModal] Failed to load blocks",
+        error instanceof Error ? error : new Error(String(error))
+      );
       toast.error("An error occurred");
     } finally {
       setLoading(false);
@@ -124,7 +133,11 @@ function SchoolFinderModal({
       } else {
         toast.error(result.error || "Failed to load schools");
       }
-    } catch (_error) {
+    } catch (error) {
+      clientLogger.error(
+        "[SchoolFinderModal] Failed to load schools",
+        error instanceof Error ? error : new Error(String(error))
+      );
       toast.error("An error occurred");
     } finally {
       setLoading(false);
@@ -143,8 +156,9 @@ function SchoolFinderModal({
 
         {/* District Selection */}
         <div className="mb-4">
-          <span className="text-sm font-semibold mb-2 block">District</span>
+          <label htmlFor="district-select" className="text-sm font-semibold mb-2 block">District</label>
           <select
+            id="district-select"
             value={selectedDistrict}
             onChange={(e) => setSelectedDistrict(e.target.value)}
             className="w-full border border-border rounded-lg p-2 text-sm"
@@ -162,8 +176,9 @@ function SchoolFinderModal({
         {/* Block Selection */}
         {selectedDistrict && (
           <div className="mb-4">
-            <span className="text-sm font-semibold mb-2 block">Block</span>
+            <label htmlFor="block-select" className="text-sm font-semibold mb-2 block">Block</label>
             <select
+              id="block-select"
               value={selectedBlock}
               onChange={(e) => setSelectedBlock(e.target.value)}
               className="w-full border border-border rounded-lg p-2 text-sm"
@@ -234,14 +249,19 @@ function SchoolFinderModal({
 }
 
 // Copy to Clipboard Component
-function CopyButton({ text }: { text: string }) {
+function CopyButton({ text }: Readonly<{ text: string }>) {
   const [copied, setCopied] = useState(false);
 
-  function handleCopy() {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    toast.success("Code copied to clipboard");
-    setTimeout(() => setCopied(false), CLIPBOARD_TIMING.successFeedback);
+  // ERR-006 FIX: Add error handling for clipboard API
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      toast.success("Code copied to clipboard");
+      setTimeout(() => setCopied(false), CLIPBOARD_TIMING.successFeedback);
+    } catch {
+      toast.error("Failed to copy to clipboard");
+    }
   }
 
   return (
@@ -265,7 +285,7 @@ function PinStatusDisplay({
   schoolCode,
   loading,
   onCheckStatus,
-}: {
+}: Readonly<{
   pinStatus: {
     exists: boolean;
     createdAt?: string;
@@ -274,7 +294,7 @@ function PinStatusDisplay({
   schoolCode: string;
   loading: boolean;
   onCheckStatus: (code: string) => void;
-}) {
+}>) {
   if (!pinStatus) {
     return (
       <Button
@@ -344,7 +364,11 @@ export default function AdminSchoolsPage() {
           setAuthorized(false);
           setAuthError(result.error || "Unauthorized");
         }
-      } catch (_error) {
+      } catch (error) {
+        clientLogger.error(
+          "[AdminSchoolsPage] Failed to verify authorization",
+          error instanceof Error ? error : new Error(String(error))
+        );
         setAuthorized(false);
         setAuthError("Failed to verify authorization");
       }
@@ -390,7 +414,11 @@ export default function AdminSchoolsPage() {
       } else {
         toast.error(result?.error || "Failed to search schools");
       }
-    } catch (_error) {
+    } catch (error) {
+      clientLogger.error(
+        "[AdminSchoolsPage] Failed to search schools",
+        error instanceof Error ? error : new Error(String(error))
+      );
       toast.error("An error occurred while searching");
     } finally {
       setLoading(false);
@@ -432,7 +460,11 @@ export default function AdminSchoolsPage() {
       } else {
         toast.error(result.error || "Failed to fetch PIN status");
       }
-    } catch (_error) {
+    } catch (error) {
+      clientLogger.error(
+        "[AdminSchoolsPage] Failed to fetch PIN status",
+        error instanceof Error ? error : new Error(String(error))
+      );
       toast.error("An error occurred");
     } finally {
       setLoading(false);
@@ -476,7 +508,11 @@ export default function AdminSchoolsPage() {
       } else {
         toast.error(result.error || "Failed to rotate PIN");
       }
-    } catch (_error) {
+    } catch (error) {
+      clientLogger.error(
+        "[AdminSchoolsPage] Failed to rotate PIN",
+        error instanceof Error ? error : new Error(String(error))
+      );
       toast.error("An unexpected error occurred");
     } finally {
       setLoading(false);

@@ -1,1 +1,0 @@
-I 2tsX®hr!apps/web/src/app/global-error.tsx

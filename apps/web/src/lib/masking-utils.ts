@@ -24,7 +24,7 @@ export function maskEmail(email?: string): string {
   if (!email) return "unknown";
   const [local, domain] = email.split("@");
   if (!local || !domain) return "***@***";
-  return `${local.substring(0, 2)}***@${domain}`;
+  return `${local.slice(0, 2)}***@${domain}`;
 }
 
 /**
@@ -34,7 +34,7 @@ export function maskEmail(email?: string): string {
  */
 export function maskPhone(phone?: string): string {
   if (!phone) return "unknown";
-  const cleaned = phone.replace(/\D/g, "");
+  const cleaned = phone.replaceAll(/\D/g, "");
   if (cleaned.length < 4) return "****";
   return `***${cleaned.slice(-4)}`;
 }
@@ -53,7 +53,7 @@ export const maskPhoneNumber = (phone: string): string =>
  */
 export function maskUserId(id?: string): string {
   if (!id) return "unknown";
-  return `${id.substring(0, 8)}...`;
+  return `${id.slice(0, 8)}...`;
 }
 
 /**
@@ -63,7 +63,7 @@ export function maskUserId(id?: string): string {
 export function maskToken(token?: string): string {
   if (!token) return "unknown";
   if (token.length <= 20) return "***";
-  return `${token.substring(0, 20)}...`;
+  return `${token.slice(0, 20)}...`;
 }
 
 /**
@@ -86,18 +86,20 @@ export function maskSensitiveData(data: unknown, depth = 0): unknown {
 
   for (const [key, value] of Object.entries(data)) {
     const lowerKey = key.toLowerCase();
+    // TYPE-009 FIX: Add runtime type checks before calling masking functions
+    const valueAsString = typeof value === "string" ? value : undefined;
 
     // Mask sensitive fields based on key name
     if (lowerKey.includes("email")) {
-      masked[key] = maskEmail(value as string);
+      masked[key] = maskEmail(valueAsString);
     } else if (lowerKey.includes("phone")) {
-      masked[key] = maskPhone(value as string);
+      masked[key] = maskPhone(valueAsString);
     } else if (lowerKey.includes("password") || lowerKey.includes("pwd")) {
       masked[key] = "***";
     } else if (lowerKey.includes("token") || lowerKey.includes("otp")) {
-      masked[key] = maskToken(value as string);
+      masked[key] = maskToken(valueAsString);
     } else if (lowerKey === "id" || lowerKey.includes("user_id")) {
-      masked[key] = maskUserId(value as string);
+      masked[key] = maskUserId(valueAsString);
     } else if (typeof value === "object") {
       masked[key] = maskSensitiveData(value, depth + 1);
     } else {

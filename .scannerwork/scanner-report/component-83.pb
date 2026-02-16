@@ -1,1 +1,0 @@
-S 2tsX0hr6apps/web/src/components/admin/AdminRoleCheckResult.tsx

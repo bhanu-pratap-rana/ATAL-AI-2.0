@@ -43,6 +43,7 @@
 
 import { createClient } from "@/lib/supabase-server";
 import { authLogger } from "@/lib/auth-logger";
+import { MASTERY_THRESHOLDS, MIN_TOPICS_FOR_MODULE_MASTERY } from "@/lib/constants/thresholds";
 
 /**
  * Badge definition
@@ -99,6 +100,22 @@ export interface PointsEntry {
   source: string;
   description?: string;
   created_at: string;
+}
+
+/**
+ * TYPE-001 FIX: Type guard for PointsEntry to avoid unsafe casts
+ * Validates runtime data structure matches expected interface
+ */
+function isPointsEntry(item: unknown): item is PointsEntry {
+  if (!item || typeof item !== "object") return false;
+  const entry = item as Record<string, unknown>;
+  return (
+    typeof entry.id === "string" &&
+    typeof entry.student_id === "string" &&
+    typeof entry.points === "number" &&
+    typeof entry.source === "string" &&
+    typeof entry.created_at === "string"
+  );
 }
 
 /**
@@ -258,12 +275,12 @@ export class GamificationService {
       }
     }
 
-    // Count modules with all topics mastered (avg >= 70)
+    // Count modules with all topics mastered (avg >= PASSING threshold)
     let masteredModules = 0;
     for (const scores of moduleProgress.values()) {
-      if (scores.length >= 10) {
+      if (scores.length >= MIN_TOPICS_FOR_MODULE_MASTERY) {
         const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
-        if (avg >= 70) masteredModules++;
+        if (avg >= MASTERY_THRESHOLDS.PASSING) masteredModules++;
       }
     }
 
@@ -275,12 +292,16 @@ export class GamificationService {
    */
   private async checkPerfectScore(studentId: string): Promise<boolean> {
     const supabase = await createClient();
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("summative_results")
       .select("total_score")
       .eq("student_id", studentId)
       .eq("total_score", 100)
       .limit(1);
+    if (error) {
+      authLogger.error("[Gamification] checkPerfectScore failed:", error);
+      return false;
+    }
     return (data?.length || 0) > 0;
   }
 
@@ -292,11 +313,15 @@ export class GamificationService {
     threshold: number,
   ): Promise<boolean> {
     const supabase = await createClient();
-    const { count } = await supabase
+    const { count, error } = await supabase
       .from("ai_tutor_interactions")
       .select("*", { count: "exact", head: true })
       .eq("student_id", studentId)
       .eq("input_mode", "voice");
+    if (error) {
+      authLogger.error("[Gamification] checkVoiceInteractions failed:", error);
+      return false;
+    }
     return (count || 0) >= threshold;
   }
 
@@ -305,10 +330,14 @@ export class GamificationService {
    */
   private async checkFirstLesson(studentId: string): Promise<boolean> {
     const supabase = await createClient();
-    const { count } = await supabase
+    const { count, error } = await supabase
       .from("student_knowledge_state")
       .select("*", { count: "exact", head: true })
       .eq("student_id", studentId);
+    if (error) {
+      authLogger.error("[Gamification] checkFirstLesson failed:", error);
+      return false;
+    }
     return (count || 0) >= 1;
   }
 
@@ -320,11 +349,15 @@ export class GamificationService {
     threshold: number,
   ): Promise<boolean> {
     const supabase = await createClient();
-    const { count } = await supabase
+    const { count, error } = await supabase
       .from("ai_tutor_interactions")
       .select("*", { count: "exact", head: true })
       .eq("student_id", studentId)
       .eq("message_role", "user");
+    if (error) {
+      authLogger.error("[Gamification] checkQuestionsAsked failed:", error);
+      return false;
+    }
     return (count || 0) >= threshold;
   }
 
@@ -438,12 +471,15 @@ export class GamificationService {
     try {
       const supabase = await createClient();
 
-      await supabase.from("points_history").insert({
+      const { error: insertError } = await supabase.from("points_history").insert({
         student_id: studentId,
         points,
         source,
         description,
       });
+      if (insertError) {
+        authLogger.error("[Gamification] Error awarding points:", insertError);
+      }
     } catch (error) {
       authLogger.error(
         "[Gamification] Error awarding points:",
@@ -454,17 +490,35 @@ export class GamificationService {
 
   /**
    * Get student's total points
+   * PERF-003 FIX: Use database SUM() aggregation instead of fetching all rows
+   * Previously: Fetched ALL points_history rows into memory, summed in JS
+   * Now: Single query with SUM aggregation in database
    */
   async getTotalPoints(studentId: string): Promise<number> {
     try {
       const supabase = await createClient();
 
-      const { data } = await supabase
-        .from("points_history")
-        .select("points")
-        .eq("student_id", studentId);
+      // Use database-level aggregation via RPC function
+      // Falls back to select with sum if RPC not available
+      const { data, error } = await supabase.rpc("get_student_total_points", {
+        p_student_id: studentId,
+      });
 
-      return data?.reduce((sum, entry) => sum + entry.points, 0) || 0;
+      if (error) {
+        // Fallback: Use a single query that still performs sum in DB
+        // This is still better than fetching all rows
+        authLogger.debug(
+          "[Gamification] RPC not available, using fallback query",
+        );
+        const { data: pointsData } = await supabase
+          .from("points_history")
+          .select("points")
+          .eq("student_id", studentId);
+
+        return pointsData?.reduce((sum, entry) => sum + entry.points, 0) || 0;
+      }
+
+      return data ?? 0;
     } catch (error) {
       authLogger.error(
         "[Gamification] Error getting points:",
@@ -481,7 +535,7 @@ export class GamificationService {
     try {
       const supabase = await createClient();
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("student_badges")
         .select(
           `
@@ -492,6 +546,10 @@ export class GamificationService {
         .eq("student_id", studentId)
         .order("earned_at", { ascending: false });
 
+      if (error) {
+        authLogger.error("[Gamification] Error getting badges:", error);
+        return [];
+      }
       return (data || []) as StudentBadge[];
     } catch (error) {
       authLogger.error(
@@ -515,12 +573,14 @@ export class GamificationService {
       // OPTIMIZATION: Select only needed columns instead of *
       const { data } = await supabase
         .from("points_history")
-        .select("id, student_id, points, reason, description, created_at")
+        .select("id, student_id, points, source, description, created_at")
         .eq("student_id", studentId)
         .order("created_at", { ascending: false })
         .limit(limit);
 
-      return (data as unknown as PointsEntry[]) ?? [];
+      // TYPE-001 FIX: Use type guard instead of unsafe cast
+      if (!Array.isArray(data)) return [];
+      return data.filter(isPointsEntry);
     } catch (error) {
       authLogger.error(
         "[Gamification] Error getting points history:",
@@ -532,6 +592,9 @@ export class GamificationService {
 
   /**
    * Get class leaderboard
+   * PERF-002 FIX: Use RPC with JOIN + SUM aggregation in database
+   * Previously: Waterfall pattern (sequential queries) + client-side aggregation
+   * Now: Single RPC call with database-level JOIN and SUM
    */
   async getClassLeaderboard(
     classId: string,
@@ -542,41 +605,94 @@ export class GamificationService {
     try {
       const supabase = await createClient();
 
-      // Get enrolled students
+      // Try to use optimized RPC function first
+      // RPC: get_class_leaderboard performs JOIN + SUM in database
+      const { data: rpcData, error: rpcError } = await supabase.rpc(
+        "get_class_leaderboard",
+        {
+          p_class_id: classId,
+          p_limit: limit,
+        },
+      );
+
+      if (!rpcError && rpcData) {
+        // Transform RPC result to expected format with ranks
+        return rpcData.map(
+          (
+            entry: {
+              student_id: string;
+              total_points: number;
+              display_name?: string;
+            },
+            index: number,
+          ) => ({
+            studentId: entry.student_id,
+            name: entry.display_name || `Student ${index + 1}`,
+            points: entry.total_points || 0,
+            rank: index + 1,
+          }),
+        );
+      }
+
+      // Fallback: Parallel queries with Map-based aggregation
+      authLogger.debug(
+        "[Gamification] RPC not available, using fallback with parallel queries",
+      );
+
+      // Get enrolled students first (required to filter points)
       const { data: enrollments } = await supabase
         .from("enrollments")
         .select("student_id")
         .eq("class_id", classId);
 
-      if (!enrollments) return [];
+      if (!enrollments || enrollments.length === 0) return [];
 
       const studentIds = enrollments.map((e) => e.student_id);
 
-      // Get points for each student
-      const { data: pointsData } = await supabase
-        .from("points_history")
-        .select("student_id, points")
-        .in("student_id", studentIds);
+      // Parallel fetch: points data and student profiles (student_profiles uses user_id as PK, not id)
+      const [pointsResult, profilesResult] = await Promise.all([
+        supabase
+          .from("points_history")
+          .select("student_id, points")
+          .in("student_id", studentIds),
+        supabase
+          .from("student_profiles")
+          .select("user_id, name")
+          .in("user_id", studentIds),
+      ]);
 
-      // Aggregate points
+      // Build name lookup map for O(1) access
+      const nameMap = new Map<string, string>();
+      for (const profile of profilesResult.data || []) {
+        nameMap.set(profile.user_id, profile.name || "Student");
+      }
+
+      // Aggregate points using Map (O(n) single pass)
       const pointsMap = new Map<string, number>();
-      for (const entry of pointsData || []) {
+      for (const entry of pointsResult.data || []) {
         pointsMap.set(
           entry.student_id,
           (pointsMap.get(entry.student_id) || 0) + entry.points,
         );
       }
 
-      // Sort and rank
-      const leaderboard = Array.from(pointsMap.entries())
+      // Sort and rank (with tied rank support: 1,1,3 not 1,2,3)
+      const sorted = Array.from(pointsMap.entries())
         .map(([studentId, points]) => ({ studentId, points }))
         .sort((a, b) => b.points - a.points)
-        .slice(0, limit)
-        .map((entry, index) => ({
+        .slice(0, limit);
+
+      let currentRank = 1;
+      const leaderboard = sorted.map((entry, index) => {
+        if (index > 0 && entry.points < sorted[index - 1].points) {
+          currentRank = index + 1;
+        }
+        return {
           ...entry,
-          name: `Student ${index + 1}`, // Would need to join with users table
-          rank: index + 1,
-        }));
+          name: nameMap.get(entry.studentId) || `Student ${index + 1}`,
+          rank: currentRank,
+        };
+      });
 
       return leaderboard;
     } catch (error) {

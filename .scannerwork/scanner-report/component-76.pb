@@ -1,1 +1,0 @@
-L 2tsX‹hr!apps/web/src/app/offline/page.tsx

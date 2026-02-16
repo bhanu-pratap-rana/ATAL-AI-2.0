@@ -45,6 +45,17 @@ function isTestEnvironment(): boolean {
   );
 }
 
+/**
+ * Sanitize user input for use in rate limit keys
+ * Prevents key injection attacks by encoding special characters
+ * @param input - User-provided identifier (email, phone, IP)
+ * @returns Sanitized string safe for use in rate limit keys
+ */
+function sanitizeRateLimitKey(input: string): string {
+  // Encode to handle special characters that could affect key structure
+  return encodeURIComponent(input.toLowerCase().trim());
+}
+
 interface RateLimitEntry {
   tokens: number;
   lastRefill: number;
@@ -156,6 +167,19 @@ class InMemoryRateLimiter implements IRateLimiter {
         removedCount,
       });
     }
+  }
+
+  /**
+   * BUG-011 FIX: Cleanup method to prevent memory leaks
+   * Call this when the rate limiter is no longer needed
+   * Clears the cleanup timer and internal store
+   */
+  destroy(): void {
+    if (this.cleanupTimer) {
+      clearInterval(this.cleanupTimer);
+      this.cleanupTimer = undefined;
+    }
+    this.store.clear();
   }
 
   async isAllowed(key: string): Promise<boolean> {
@@ -288,6 +312,89 @@ class RedisRateLimiter implements IRateLimiter {
     return `${this.prefix}${key}`;
   }
 
+  private async tryLuaScript(redisKey: string, now: number): Promise<boolean | null> {
+    try {
+      const ttl = this.config.ttl || 3600;
+      const result = await this.redisClient.eval(
+        this.rateLimitScript,
+        1, // number of keys
+        redisKey, // KEYS[1]
+        now.toString(), // ARGV[1]
+        this.config.maxTokens.toString(), // ARGV[2]
+        this.config.refillRate.toString(), // ARGV[3]
+        ttl.toString(), // ARGV[4]
+      );
+      return result === 1;
+    } catch (scriptError) {
+      authLogger.error(
+        "[RedisRateLimiter] Lua script failed, using fallback approach",
+        scriptError instanceof Error ? scriptError : new Error(String(scriptError))
+      );
+      return null; // Signal to use fallback
+    }
+  }
+
+  private async processFallbackEntry(entry: RateLimitEntry, redisKey: string): Promise<boolean> {
+    if (entry.tokens >= 1) {
+      entry.tokens -= 1;
+      const ttl = this.config.ttl || 3600;
+      await this.redisClient.setex(redisKey, ttl, JSON.stringify(entry));
+      return true;
+    }
+    const ttl = this.config.ttl || 3600;
+    await this.redisClient.expire(redisKey, ttl);
+    return false;
+  }
+
+  private async tryFallbackApproach(redisKey: string, now: number): Promise<boolean | null> {
+    try {
+      const data = await this.redisClient.get(redisKey);
+      let entry: RateLimitEntry;
+
+      if (data) {
+        try {
+          entry = JSON.parse(data);
+        } catch (parseError) {
+          authLogger.error(
+            "[RedisRateLimiter] Failed to parse rate limit data",
+            parseError instanceof Error ? parseError : new Error(String(parseError))
+          );
+          entry = {
+            tokens: this.config.maxTokens - 1,
+            lastRefill: now,
+          };
+          const ttl = this.config.ttl || 3600;
+          await this.redisClient.setex(redisKey, ttl, JSON.stringify(entry));
+          return true;
+        }
+        const timePassed = (now - entry.lastRefill) / 1000;
+        const tokensToAdd = timePassed * this.config.refillRate;
+        entry.tokens = Math.min(
+          this.config.maxTokens,
+          entry.tokens + tokensToAdd,
+        );
+        entry.lastRefill = now;
+      } else {
+        entry = {
+          tokens: this.config.maxTokens - 1,
+          lastRefill: now,
+        };
+      }
+
+      return this.processFallbackEntry(entry, redisKey);
+    } catch (fallbackError) {
+      // Redis completely unavailable
+      this.redisAvailable = false;
+      if (process.env.NODE_ENV === "development") {
+        authLogger.error(
+          "[RedisRateLimiter] Redis unavailable - falling back to in-memory",
+          { error: fallbackError },
+        );
+      }
+      return null; // Signal to use in-memory fallback
+    }
+  }
+
   async isAllowed(key: string): Promise<boolean> {
     // IMPORTANT: Bypass rate limiting in test environment
     // Tests should verify functionality, not rate limiting behavior
@@ -304,85 +411,20 @@ class RedisRateLimiter implements IRateLimiter {
     const redisKey = this.getRedisKey(key);
     const now = Date.now();
 
-    try {
-      // Use Lua script for atomic check-and-update to prevent TOCTOU race condition
-      // SECURITY: This ensures only one request can decrement the token count per check
-      // The script is executed atomically on the Redis server
-      const ttl = this.config.ttl || 3600;
-
-      // EVAL executes the Lua script atomically
-      // Returns 1 if allowed, 0 if rate limited
-      const result = await this.redisClient.eval(
-        this.rateLimitScript,
-        1, // number of keys
-        redisKey, // KEYS[1]
-        now.toString(), // ARGV[1]
-        this.config.maxTokens.toString(), // ARGV[2]
-        this.config.refillRate.toString(), // ARGV[3]
-        ttl.toString(), // ARGV[4]
-      );
-
-      return result === 1;
-    } catch (_error) {
-      // If Lua script fails (e.g., Redis version < 2.6), fallback to non-atomic approach
-      // This is acceptable as it degrades gracefully
-      try {
-        // Attempt non-atomic fallback (vulnerable to race conditions but better than failing)
-        const data = await this.redisClient.get(redisKey);
-        let entry: RateLimitEntry;
-
-        if (!data) {
-          entry = {
-            tokens: this.config.maxTokens - 1,
-            lastRefill: now,
-          };
-        } else {
-          try {
-            entry = JSON.parse(data);
-          } catch (parseError) {
-            authLogger.error(
-              "[RedisRateLimiter] Failed to parse rate limit data",
-              parseError instanceof Error ? parseError : new Error(String(parseError))
-            );
-            entry = {
-              tokens: this.config.maxTokens - 1,
-              lastRefill: now,
-            };
-            const ttl = this.config.ttl || 3600;
-            await this.redisClient.setex(redisKey, ttl, JSON.stringify(entry));
-            return true;
-          }
-          const timePassed = (now - entry.lastRefill) / 1000;
-          const tokensToAdd = timePassed * this.config.refillRate;
-          entry.tokens = Math.min(
-            this.config.maxTokens,
-            entry.tokens + tokensToAdd,
-          );
-          entry.lastRefill = now;
-        }
-
-        if (entry.tokens >= 1) {
-          entry.tokens -= 1;
-          const ttl = this.config.ttl || 3600;
-          await this.redisClient.setex(redisKey, ttl, JSON.stringify(entry));
-          return true;
-        }
-
-        const ttl = this.config.ttl || 3600;
-        await this.redisClient.expire(redisKey, ttl);
-        return false;
-      } catch (fallbackError) {
-        // FALLBACK: Use in-memory rate limiter if Redis fails
-        this.redisAvailable = false;
-        if (process.env.NODE_ENV === "development") {
-          authLogger.error(
-            "[RedisRateLimiter] Redis unavailable - falling back to in-memory",
-            { error: fallbackError },
-          );
-        }
-        return this.fallbackLimiter.isAllowed(key);
-      }
+    // Try atomic Lua script first (primary approach)
+    const luaResult = await this.tryLuaScript(redisKey, now);
+    if (luaResult !== null) {
+      return luaResult;
     }
+
+    // If Lua script fails, try non-atomic fallback approach
+    const fallbackResult = await this.tryFallbackApproach(redisKey, now);
+    if (fallbackResult !== null) {
+      return fallbackResult;
+    }
+
+    // If both Redis approaches fail, use in-memory fallback
+    return this.fallbackLimiter.isAllowed(key);
   }
 
   async getRemaining(key: string): Promise<number> {
@@ -399,8 +441,12 @@ class RedisRateLimiter implements IRateLimiter {
 
       const entry: RateLimitEntry = JSON.parse(data);
       return Math.floor(entry.tokens);
-    } catch (_error) {
-      // Mark Redis as unavailable and use fallback
+    } catch (error) {
+      // Mark Redis as unavailable and use fallback - S2486 compliance
+      authLogger.debug(
+        "[RedisRateLimiter] Failed to get remaining tokens from Redis",
+        { error: error instanceof Error ? error.message : String(error) }
+      );
       this.redisAvailable = false;
       return this.fallbackLimiter.getRemaining(key);
     }
@@ -417,8 +463,12 @@ class RedisRateLimiter implements IRateLimiter {
 
     try {
       await this.redisClient.del(redisKey);
-    } catch (_error) {
-      // Mark Redis as unavailable
+    } catch (error) {
+      // Mark Redis as unavailable - S2486 compliance
+      authLogger.debug(
+        "[RedisRateLimiter] Failed to delete key from Redis",
+        { error: error instanceof Error ? error.message : String(error) }
+      );
       this.redisAvailable = false;
     }
   }
@@ -437,8 +487,12 @@ class RedisRateLimiter implements IRateLimiter {
       if (keys.length > 0) {
         await this.redisClient.del(...keys);
       }
-    } catch (_error) {
-      // Mark Redis as unavailable
+    } catch (error) {
+      // Mark Redis as unavailable - S2486 compliance
+      authLogger.debug(
+        "[RedisRateLimiter] Failed to clear Redis keys",
+        { error: error instanceof Error ? error.message : String(error) }
+      );
       this.redisAvailable = false;
     }
   }
@@ -453,8 +507,12 @@ class RedisRateLimiter implements IRateLimiter {
       const pattern = `${this.prefix}*`;
       const keys = await this.redisClient.keys(pattern);
       return keys.length;
-    } catch (_error) {
-      // Mark Redis as unavailable and use fallback
+    } catch (error) {
+      // Mark Redis as unavailable and use fallback - S2486 compliance
+      authLogger.debug(
+        "[RedisRateLimiter] Failed to get size from Redis",
+        { error: error instanceof Error ? error.message : String(error) }
+      );
       this.redisAvailable = false;
       return this.fallbackLimiter.getSize();
     }
@@ -472,8 +530,12 @@ class RedisRateLimiter implements IRateLimiter {
       const data = await this.redisClient.get(redisKey);
       if (!data) return null;
       return JSON.parse(data);
-    } catch (_error) {
-      // Mark Redis as unavailable and use fallback
+    } catch (error) {
+      // Mark Redis as unavailable and use fallback - S2486 compliance
+      authLogger.debug(
+        "[RedisRateLimiter] Failed to get status from Redis",
+        { error: error instanceof Error ? error.message : String(error) }
+      );
       this.redisAvailable = false;
       return this.fallbackLimiter.getStatus(key);
     }
@@ -637,7 +699,7 @@ const enumerationLimiter = createRateLimiter(RATE_LIMITS.emailEnumeration);
  * @returns Promise<boolean> - true if allowed, false if rate limited
  */
 export async function checkOtpRateLimit(identifier: string): Promise<boolean> {
-  const key = `otp:${identifier.toLowerCase()}`;
+  const key = `otp:${sanitizeRateLimitKey(identifier)}`;
   return otpLimiter.isAllowed(key);
 }
 
@@ -650,7 +712,7 @@ export async function checkOtpRateLimit(identifier: string): Promise<boolean> {
 export async function checkPasswordResetRateLimit(
   email: string,
 ): Promise<boolean> {
-  const key = `reset:${email.toLowerCase()}`;
+  const key = `reset:${sanitizeRateLimitKey(email)}`;
   return passwordResetLimiter.isAllowed(key);
 }
 
@@ -672,7 +734,7 @@ export async function checkEnumerationRateLimit(key: string): Promise<boolean> {
  * @returns Promise<boolean> - true if allowed, false if rate limited
  */
 export async function checkIpRateLimit(ip: string): Promise<boolean> {
-  const key = `ip:${ip}`;
+  const key = `ip:${sanitizeRateLimitKey(ip)}`;
   return ipLimiter.isAllowed(key);
 }
 
@@ -684,27 +746,29 @@ export async function checkIpRateLimit(ip: string): Promise<boolean> {
 export async function getOtpRateLimitRemaining(
   identifier: string,
 ): Promise<number> {
-  const key = `otp:${identifier.toLowerCase()}`;
+  const key = `otp:${sanitizeRateLimitKey(identifier)}`;
   return otpLimiter.getRemaining(key);
 }
 
 /**
  * Reset OTP rate limit for an identifier (admin operation)
+ * SEC-012 FIX: Use consistent sanitization across all rate limit functions
  * @param identifier - Email or phone number
  */
 export async function resetOtpRateLimit(identifier: string): Promise<void> {
-  const key = `otp:${identifier.toLowerCase()}`;
+  const key = `otp:${sanitizeRateLimitKey(identifier)}`;
   return otpLimiter.reset(key);
 }
 
 /**
  * Reset password reset rate limit for an email (admin operation)
+ * SEC-012 FIX: Use consistent sanitization across all rate limit functions
  * @param email - Email address
  */
 export async function resetPasswordResetRateLimit(
   email: string,
 ): Promise<void> {
-  const key = `reset:${email.toLowerCase()}`;
+  const key = `reset:${sanitizeRateLimitKey(email)}`;
   return passwordResetLimiter.reset(key);
 }
 
@@ -713,7 +777,7 @@ export async function resetPasswordResetRateLimit(
  * @param ip - IP address
  */
 export async function resetIpRateLimit(ip: string): Promise<void> {
-  const key = `ip:${ip}`;
+  const key = `ip:${sanitizeRateLimitKey(ip)}`;
   return ipLimiter.reset(key);
 }
 

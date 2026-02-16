@@ -76,18 +76,7 @@ export function JoinClassStep({
           pin: state.joinClassPin,
         });
 
-        if (!result.success) {
-          authLogger.error("[JoinClass] Failed to join class", result);
-          const errorMessage =
-            result.error === "Class not found"
-              ? "Class code not found. Please check and try again."
-              : result.error === "Invalid PIN"
-                ? "Incorrect PIN. Please try again."
-                : result.error || "Failed to join class";
-
-          actions.setJoinClassError(errorMessage);
-          toast.error(errorMessage);
-        } else {
+        if (result.success) {
           authLogger.success("[JoinClass] Successfully joined class");
           toast.success("Successfully joined the class!");
           actions.resetJoinClass();
@@ -96,6 +85,19 @@ export function JoinClassStep({
           setTimeout(() => {
             router.push("/app/dashboard");
           }, 500);
+        } else {
+          authLogger.error("[JoinClass] Failed to join class", result);
+          const ERROR_MESSAGES: Record<string, string> = {
+            "Class not found": "Class code not found. Please check and try again.",
+            "Invalid PIN": "Incorrect PIN. Please try again.",
+          };
+          const errorMessage =
+            (result.error && ERROR_MESSAGES[result.error]) ||
+            result.error ||
+            "Failed to join class";
+
+          actions.setJoinClassError(errorMessage);
+          toast.error(errorMessage);
         }
       } catch (error) {
         authLogger.error("[JoinClass] Unexpected error", error);
@@ -174,7 +176,7 @@ export function JoinClassStep({
             state.joinClassPin.length !== PIN_LENGTH
           }
         >
-          Join Class
+          <span>Join Class</span>
           <span className="ml-2">→</span>
         </Button>
 

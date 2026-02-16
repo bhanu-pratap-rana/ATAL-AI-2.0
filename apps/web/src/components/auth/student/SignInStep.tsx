@@ -44,7 +44,19 @@ async function checkAndHandleTeacherRedirect(
   const isTeacherOrAdmin =
     appRole === "teacher" || appRole === "admin" || appRole === "super_admin";
 
-  if (!isTeacherOrAdmin) {
+  if (isTeacherOrAdmin) {
+    authLogger.warn(
+      `[${context}] Teacher/Admin/SuperAdmin tried to login via student page`,
+    );
+    await supabase.auth.signOut();
+    setError(
+      "This account is registered as a teacher/admin. Please use the teacher login page.",
+    );
+    toast.error(
+      "This is a teacher/admin account. Please use the teacher login page.",
+    );
+    return true;
+  } else {
     const { data: teacherProfile } = await supabase
       .from("teacher_profiles")
       .select("user_id")
@@ -64,18 +76,6 @@ async function checkAndHandleTeacherRedirect(
       );
       return true;
     }
-  } else {
-    authLogger.warn(
-      `[${context}] Teacher/Admin/SuperAdmin tried to login via student page`,
-    );
-    await supabase.auth.signOut();
-    setError(
-      "This account is registered as a teacher/admin. Please use the teacher login page.",
-    );
-    toast.error(
-      "This is a teacher/admin account. Please use the teacher login page.",
-    );
-    return true;
   }
 
   return false;
@@ -230,7 +230,11 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
           state.signinUsernamePassword,
         );
 
-        if (!result.success) {
+        if (result.success) {
+          authLogger.success("[SignIn Username] Authentication successful");
+          toast.success("Login successful!");
+          router.push("/app/dashboard");
+        } else {
           authLogger.error("[SignIn Username] Authentication failed", {
             error: result.error,
           });
@@ -238,10 +242,6 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
             result.error || "Invalid username or password",
           );
           toast.error("Login failed: " + (result.error || "Invalid credentials"));
-        } else {
-          authLogger.success("[SignIn Username] Authentication successful");
-          toast.success("Login successful!");
-          router.push("/app/dashboard");
         }
       } catch (error) {
         authLogger.error("[SignIn Username] Unexpected error", error);

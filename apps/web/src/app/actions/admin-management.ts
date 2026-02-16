@@ -9,6 +9,7 @@ import {
 } from "@/lib/supabase-server";
 import { authLogger } from "@/lib/auth-logger";
 import { RATE_LIMITS } from "@/lib/constants/rate-limits";
+import { RATE_LIMIT_ERRORS } from "@/lib/constants/error-messages";
 import { checkRateLimit as checkDistributedRateLimit } from "@/lib/rate-limiter-distributed";
 import { isSuperAdmin, isAdmin } from "@/lib/auth/role-utils";
 import {
@@ -16,8 +17,7 @@ import {
   AdminPasswordSchema,
   UserIdSchema,
 } from "@/lib/validation-schemas";
-import type { SupabaseAuthUser } from "@/lib/admin-utils";
-import { validateSupabaseAuthUsers } from "@/lib/validation/rpc-schemas";
+import { fetchAllAuthUsers, findAuthUserById, findAuthUserByEmail, type SupabaseAuthUser } from "@/lib/admin-utils";
 import { handleZodError } from "@/lib/action-error-handler";
 
 // Use centralized rate limit config for admin operations
@@ -58,64 +58,6 @@ export interface AdminActionResult {
   message?: string;
   error?: string;
   data?: unknown;
-}
-
-/**
- * Helper function to fetch all users with pagination
- * Supabase admin API has 1000 user limit per request, so we need to paginate
- * @internal
- */
-async function fetchAllAdminUsers(
-  adminClient: Awaited<ReturnType<typeof createAdminClient>>,
-) {
-  const allUsers: SupabaseAuthUser[] = [];
-  let page = 1;
-  const perPage = 1000;
-
-  try {
-    while (true) {
-      const { data, error } = await adminClient.auth.admin.listUsers({
-        perPage,
-        page,
-      });
-
-      if (error) {
-        authLogger.error("[fetchAllAdminUsers] Error fetching users page", {
-          page,
-          error: error.message,
-        });
-        break;
-      }
-
-      if (!data?.users || data.users.length === 0) {
-        break;
-      }
-
-      // Validate and type-check users from Supabase admin API
-      try {
-        const validatedUsers = validateSupabaseAuthUsers(data.users);
-        allUsers.push(...validatedUsers);
-      } catch (error) {
-        authLogger.error("[fetchAllAuthUsers] Failed to validate users", {
-          error: error instanceof Error ? error.message : String(error),
-        });
-        // Continue with next page instead of failing completely
-        break;
-      }
-
-      // If we got fewer users than requested, we've reached the end
-      if (data.users.length < perPage) {
-        break;
-      }
-
-      page++;
-    }
-
-    return allUsers;
-  } catch (error) {
-    authLogger.error("[fetchAllAdminUsers] Unexpected error", error);
-    return allUsers; // Return what we got so far
-  }
 }
 
 /**
@@ -400,15 +342,13 @@ export async function createAdminAccount(
     if (!isAllowed) {
       return {
         success: false,
-        error: "Too many requests. Please try again later.",
+        error: RATE_LIMIT_ERRORS.TOO_MANY_REQUESTS,
       };
     }
 
     const adminClient = await createAdminClient();
-    const allUsers = await fetchAllAdminUsers(adminClient);
-    const existingUser = allUsers.find(
-      (u) => u.email?.toLowerCase() === normalizedEmail,
-    );
+    // PERFORMANCE: Use helper function for email lookup
+    const existingUser = await findAuthUserByEmail(adminClient, normalizedEmail);
 
     if (existingUser) {
       const currentRole = existingUser.app_metadata?.role as
@@ -470,7 +410,7 @@ export async function listAdminAccounts(): Promise<AdminActionResult> {
 
     const adminClient = await createAdminClient();
     // List all users with full pagination support
-    const allUsers = await fetchAllAdminUsers(adminClient);
+    const allUsers = await fetchAllAuthUsers(adminClient);
 
     if (!allUsers || allUsers.length === 0) {
       return {
@@ -551,15 +491,14 @@ export async function deleteAdminAccount(
     if (!isAllowed) {
       return {
         success: false,
-        error: "Too many requests. Please try again later.",
+        error: RATE_LIMIT_ERRORS.TOO_MANY_REQUESTS,
       };
     }
 
     const adminClient = await createAdminClient();
 
-    // Get the user to check role (with full pagination support for large user bases)
-    const allUsers = await fetchAllAdminUsers(adminClient);
-    const userToDelete = allUsers.find((u) => u.id === validatedId);
+    // PERFORMANCE: Use direct ID lookup - O(1) instead of O(n) pagination
+    const userToDelete = await findAuthUserById(adminClient, validatedId);
 
     if (!userToDelete) {
       return {
@@ -666,7 +605,7 @@ export async function resetAdminPassword(
     if (!isAllowed) {
       return {
         success: false,
-        error: "Too many password reset attempts. Please try again later.",
+        error: RATE_LIMIT_ERRORS.WAIT_BEFORE_RETRY,
       };
     }
 
@@ -720,16 +659,9 @@ export async function isSuperAdminEmail(email: string): Promise<boolean> {
     const normalizedEmail = emailValidation.data;
 
     const adminClient = await createAdminClient();
-    // Fetch all users with proper pagination support for scalability
-    const allUsers = await fetchAllAdminUsers(adminClient);
+    // PERFORMANCE: Use helper function for email lookup
+    const user = await findAuthUserByEmail(adminClient, normalizedEmail);
 
-    if (!allUsers || allUsers.length === 0) {
-      return false;
-    }
-
-    const user = allUsers.find(
-      (u) => u.email?.toLowerCase() === normalizedEmail,
-    );
     if (!user) {
       return false;
     }
@@ -767,10 +699,9 @@ export async function getAdminById(
     }
 
     const adminClient = await createAdminClient();
-    // List users with full pagination support for scalability
-    const allUsers = await fetchAllAdminUsers(adminClient);
+    // PERFORMANCE: Use direct ID lookup - O(1) instead of O(n) pagination
+    const user = await findAuthUserById(adminClient, validatedId);
 
-    const user = allUsers.find((u) => u.id === validatedId);
     if (!user) {
       return {
         success: false,

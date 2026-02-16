@@ -6,3 +6,4 @@
 
 export { BadgesDisplay, BadgesCompact } from "./BadgesDisplay";
 export { Leaderboard, LeaderboardCompact } from "./Leaderboard";
+export { PointsHistory, PointsSummary } from "./PointsHistory";

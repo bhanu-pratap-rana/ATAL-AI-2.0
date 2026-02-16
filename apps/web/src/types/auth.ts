@@ -245,7 +245,7 @@ export interface UpdateKnowledgeStateRPCResponse {
   mastery_score?: number;
   confidence_level?: "low" | "medium" | "high";
   attempts?: number;
-  status?: "not_started" | "in_progress" | "completed" | "mastered";
+  status?: "not_started" | "in_progress" | "mastered"; // Migration 155: removed "completed"
   time_spent_seconds?: number;
 }
 

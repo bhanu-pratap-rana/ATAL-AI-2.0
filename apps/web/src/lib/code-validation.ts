@@ -5,7 +5,6 @@
  * - Class codes (6 alphanumeric)
  * - PINs (4 digits)
  * - OTPs (6 digits)
- * - School codes (6 alphanumeric)
  */
 
 import {
@@ -15,25 +14,7 @@ import {
   AUTH_ERRORS,
 } from "./auth-constants";
 
-/**
- * Validate school code format (6 alphanumeric uppercase)
- */
-export function validateSchoolCode(code: string): {
-  valid: boolean;
-  error?: string;
-} {
-  const trimmedCode = code.toUpperCase();
-
-  if (!/^[A-Z0-9]{6}$/.test(trimmedCode)) {
-    return {
-      valid: false,
-      error:
-        "School code must be 6 uppercase letters or numbers (e.g., SCHOOL1)",
-    };
-  }
-
-  return { valid: true };
-}
+// CLEANUP: Removed unused validateSchoolCode function
 
 /**
  * Validate class code format (6 alphanumeric uppercase)
@@ -48,7 +29,7 @@ export function validateClassCode(code: string): {
 
   const sanitized = code
     .toUpperCase()
-    .replace(/[^A-Z0-9]/g, "")
+    .replaceAll(/[^A-Z0-9]/g, "")
     .slice(0, CLASS_CODE_LENGTH);
 
   if (sanitized.length !== CLASS_CODE_LENGTH) {
@@ -71,7 +52,7 @@ export function validateClassCode(code: string): {
 export function sanitizeClassCode(input: string): string {
   return input
     .toUpperCase()
-    .replace(/[^A-Z0-9]/g, "")
+    .replaceAll(/[^A-Z0-9]/g, "")
     .slice(0, CLASS_CODE_LENGTH);
 }
 
@@ -104,14 +85,14 @@ export const validatePin = validatePIN;
  * Sanitizes PIN input
  */
 export function sanitizePIN(input: string): string {
-  return input.replace(/\D/g, "").slice(0, PIN_LENGTH);
+  return input.replaceAll(/\D/g, "").slice(0, PIN_LENGTH);
 }
 
 /**
  * Sanitizes OTP input to 6 digits only
  */
 export function sanitizeOTP(input: string): string {
-  return input.replace(/\D/g, "").slice(0, OTP_LENGTH);
+  return input.replaceAll(/\D/g, "").slice(0, OTP_LENGTH);
 }
 
 /**

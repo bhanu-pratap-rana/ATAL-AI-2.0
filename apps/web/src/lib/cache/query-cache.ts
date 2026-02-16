@@ -45,13 +45,14 @@ interface CacheMetrics {
  * ```
  */
 export class QueryCache {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private readonly cache = new Map<string, CacheEntry<any>>();
+  private readonly cache = new Map<string, CacheEntry<unknown>>();
   private readonly maxSize = 500;
-  private metrics = {
+  private readonly metrics = {
     hits: 0,
     misses: 0,
   };
+  // PERF-014 FIX: Maintain running total instead of recalculating on every getTotalSize() call
+  private totalCacheSize = 0;
 
   /**
    * Get cached value or fetch fresh data
@@ -94,6 +95,8 @@ export class QueryCache {
       if (this.cache.size >= this.maxSize) {
         const firstKey = this.cache.keys().next().value;
         if (firstKey) {
+          // PERF-014 FIX: Update running total when evicting
+          this.totalCacheSize -= this.getEntrySize(firstKey);
           this.cache.delete(firstKey);
           authLogger.debug("Cache evicted old entry to make room", {
             evictedKey: firstKey,
@@ -103,6 +106,8 @@ export class QueryCache {
 
       // Store new entry
       this.cache.set(key, { data, timestamp: Date.now(), ttl });
+      // PERF-014 FIX: Update running total when adding
+      this.totalCacheSize += this.estimateDataSize(data);
       authLogger.debug("Data cached", {
         key,
         cacheSize: this.cache.size,
@@ -140,6 +145,8 @@ export class QueryCache {
     let invalidated = 0;
     for (const key of this.cache.keys()) {
       if (key.includes(pattern)) {
+        // PERF-014 FIX: Update running total when invalidating
+        this.totalCacheSize -= this.getEntrySize(key);
         this.cache.delete(key);
         invalidated++;
       }
@@ -158,6 +165,8 @@ export class QueryCache {
     this.cache.clear();
     this.metrics.hits = 0;
     this.metrics.misses = 0;
+    // PERF-014 FIX: Reset running total on clear
+    this.totalCacheSize = 0;
     authLogger.info("Cache cleared", { entriesRemoved: size });
   }
 
@@ -193,6 +202,18 @@ export class QueryCache {
   }
 
   /**
+   * PERF-014 FIX: Helper to estimate data size without storing entry first
+   * Used when adding new entries to update running total
+   */
+  private estimateDataSize(data: unknown): number {
+    try {
+      return JSON.stringify(data).length;
+    } catch {
+      return 0;
+    }
+  }
+
+  /**
    * Get size of specific cache entry
    * @param key - Cache key
    * @returns Size in bytes (estimated) or 0 if not found
@@ -204,21 +225,23 @@ export class QueryCache {
     // Rough estimate: JSON.stringify byte length
     try {
       return JSON.stringify(entry.data).length;
-    } catch {
+    } catch (error) {
+      authLogger.warn(
+        "[QueryCache] Failed to estimate entry size",
+        error instanceof Error ? error : { error: String(error) },
+      );
       return 0;
     }
   }
 
   /**
    * Get estimated total cache size
+   * PERF-014 FIX: Returns running total instead of recalculating
    * @returns Total size in bytes (estimated)
    */
   getTotalSize(): number {
-    let total = 0;
-    for (const key of this.cache.keys()) {
-      total += this.getEntrySize(key);
-    }
-    return total;
+    // Return the running total maintained during add/remove operations
+    return this.totalCacheSize;
   }
 }
 

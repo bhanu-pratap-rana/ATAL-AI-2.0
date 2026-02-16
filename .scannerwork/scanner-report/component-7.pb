@@ -1,1 +1,0 @@
- 2tsXhr-apps/web/src/app/(public)/admin/pins/page.tsx

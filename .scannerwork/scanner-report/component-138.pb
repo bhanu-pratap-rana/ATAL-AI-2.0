@@ -1,1 +1,0 @@
-Š 2tsX`hrFapps/web/src/components/auth/teacher/TeacherSchoolVerificationStep.tsx

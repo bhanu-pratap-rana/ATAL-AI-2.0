@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * useTimer Hook
  *
@@ -48,6 +50,17 @@ export function useTimer({
   const [elapsedSeconds, setElapsedSeconds] = useState(initialSeconds);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Use ref for callback to avoid interval restarts when parent re-renders
+  const onTimeUpdateRef = useRef(onTimeUpdate);
+  onTimeUpdateRef.current = onTimeUpdate;
+
+  // Propagate time updates via useEffect (not inside setState updater)
+  // Calling parent setState inside a setState updater causes:
+  // "Cannot update a component while rendering a different component"
+  useEffect(() => {
+    onTimeUpdateRef.current?.(elapsedSeconds);
+  }, [elapsedSeconds]);
+
   // Handle pause/resume
   useEffect(() => {
     // Clear interval if paused
@@ -61,11 +74,7 @@ export function useTimer({
 
     // Start interval if not paused
     intervalRef.current = setInterval(() => {
-      setElapsedSeconds((prev) => {
-        const newTime = prev + 1;
-        onTimeUpdate?.(newTime);
-        return newTime;
-      });
+      setElapsedSeconds((prev) => prev + 1);
     }, 1000);
 
     // Cleanup on unmount or pause state change
@@ -75,7 +84,7 @@ export function useTimer({
         intervalRef.current = null;
       }
     };
-  }, [isPaused, onTimeUpdate]);
+  }, [isPaused]);
 
   // Handle initial seconds change
   useEffect(() => {

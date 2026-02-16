@@ -123,9 +123,9 @@ export default async function ClassAssessmentResultsPage({
           <Card className="card-responsive bg-success/10 border-success/20">
             <CardContent className="py-4 text-center">
               <p className="text-2xl font-bold text-success-dark">
-                {results.classAverageScore !== null
-                  ? `${results.classAverageScore}%`
-                  : "-"}
+                {results.classAverageScore === null
+                  ? "-"
+                  : `${results.classAverageScore}%`}
               </p>
               <p className="text-xs text-text-secondary">Class Average</p>
             </CardContent>
@@ -137,7 +137,7 @@ export default async function ClassAssessmentResultsPage({
           <CardHeader>
             <CardTitle className="text-lg md:text-xl flex items-center gap-2">
               <span>📊</span>
-              Student Results
+              <span>Student Results</span>
               <span className="text-sm font-normal text-text-secondary">
                 ({results.results.length} students)
               </span>
@@ -169,9 +169,9 @@ export default async function ClassAssessmentResultsPage({
                           <div
                             className={`w-12 h-12 rounded-full flex items-center justify-center font-bold ${getScoreColor(student.averageScore)}`}
                           >
-                            {student.averageScore !== null
-                              ? `${student.averageScore}%`
-                              : "-"}
+                            {student.averageScore === null
+                              ? "-"
+                              : `${student.averageScore}%`}
                           </div>
                         </div>
                         <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -246,9 +246,9 @@ export default async function ClassAssessmentResultsPage({
                             <span
                               className={`inline-flex items-center justify-center w-12 h-8 rounded font-bold text-sm ${getScoreColor(student.averageScore)}`}
                             >
-                              {student.averageScore !== null
-                                ? `${student.averageScore}%`
-                                : "-"}
+                              {student.averageScore === null
+                                ? "-"
+                                : `${student.averageScore}%`}
                             </span>
                           </td>
                           <td className="py-3 px-4 text-center">

@@ -30,7 +30,7 @@ export const JoinClassSchema = z.object({
     .string()
     .min(1, "Class code required")
     .max(SCHOOL_LIMITS.schoolCodeMaxLength, "Invalid class code")
-    .regex(/^[A-Z0-9\-]+$/, "Class code format invalid"),
+    .regex(/^[A-Z0-9-]+$/, "Class code format invalid"),
   pin: z
     .string()
     .length(PIN_LIMITS.length, `PIN must be ${PIN_LIMITS.length} digits`)
@@ -280,7 +280,7 @@ export const AuthPasswordSchema = z
   )
   .refine((pwd) => /\d/.test(pwd), "Password must contain at least one number")
   .refine(
-    (pwd) => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd),
+    (pwd) => /[!@#$%^&*()_+=[\]{};':"\\|,.<>/?-]/.test(pwd),
     "Password must contain at least one special character",
   );
 
@@ -307,10 +307,90 @@ export const UsernameSchema = z
   .max(20, "Username must be at most 20 characters")
   .regex(/^[a-zA-Z]/, "Username must start with a letter")
   .regex(
-    /^[a-zA-Z][a-zA-Z0-9_]*$/,
+    /^[a-zA-Z]\w*$/,
     "Username can only contain letters, numbers, and underscores",
   )
   .transform((username) => username.toLowerCase().trim());
+
+// ============================================================================
+// Teacher Communication Schemas
+// ============================================================================
+
+/**
+ * Schema for announcement priority levels
+ */
+export const AnnouncementPrioritySchema = z.enum([
+  "low",
+  "normal",
+  "high",
+  "urgent",
+]);
+
+/**
+ * Schema for creating a class announcement
+ */
+export const CreateAnnouncementSchema = z.object({
+  classId: z.string().uuid("Invalid class ID"),
+  title: z
+    .string()
+    .min(1, "Title is required")
+    .max(200, "Title must be 200 characters or less"),
+  body: z
+    .string()
+    .min(1, "Body is required")
+    .max(5000, "Body must be 5000 characters or less"),
+  priority: AnnouncementPrioritySchema.optional().default("normal"),
+  isPinned: z.boolean().optional().default(false),
+});
+
+/**
+ * Schema for updating an announcement
+ */
+export const UpdateAnnouncementSchema = z.object({
+  announcementId: z.string().uuid("Invalid announcement ID"),
+  title: z.string().min(1, "Title is required").max(200).optional(),
+  body: z.string().min(1, "Body is required").max(5000).optional(),
+  priority: AnnouncementPrioritySchema.optional(),
+  isPinned: z.boolean().optional(),
+});
+
+/**
+ * Schema for announcement ID
+ */
+export const AnnouncementIdSchema = z.string().uuid("Invalid announcement ID");
+
+/**
+ * Schema for material types
+ */
+export const MaterialTypeSchema = z.enum([
+  "document",
+  "video",
+  "link",
+  "image",
+  "other",
+]);
+
+/**
+ * Schema for uploading class materials
+ */
+export const UploadMaterialSchema = z.object({
+  classId: z.string().uuid("Invalid class ID"),
+  title: z
+    .string()
+    .min(1, "Title is required")
+    .max(200, "Title must be 200 characters or less"),
+  description: z.string().max(1000, "Description too long").optional(),
+  materialType: MaterialTypeSchema,
+  fileUrl: z.string().url("Invalid file URL").optional(),
+  externalUrl: z.string().url("Invalid URL").optional(),
+  topicId: z.string().max(20, "Topic ID too long").optional(),
+  moduleId: z.string().max(10, "Module ID too long").optional(),
+});
+
+/**
+ * Schema for material ID
+ */
+export const MaterialIdSchema = z.string().uuid("Invalid material ID");
 
 // ============================================================================
 // Type Exports
@@ -323,3 +403,8 @@ export type UpdateClassInput = z.infer<typeof UpdateClassSchema>;
 export type EnrollmentInput = z.infer<typeof EnrollmentSchema>;
 export type AssessmentResponseInput = z.infer<typeof AssessmentResponseSchema>;
 export type AssessmentSubmitInput = z.infer<typeof AssessmentSubmitSchema>;
+export type CreateAnnouncementInput = z.infer<typeof CreateAnnouncementSchema>;
+export type UpdateAnnouncementInput = z.infer<typeof UpdateAnnouncementSchema>;
+export type UploadMaterialInput = z.infer<typeof UploadMaterialSchema>;
+export type AnnouncementPriority = z.infer<typeof AnnouncementPrioritySchema>;
+export type MaterialType = z.infer<typeof MaterialTypeSchema>;

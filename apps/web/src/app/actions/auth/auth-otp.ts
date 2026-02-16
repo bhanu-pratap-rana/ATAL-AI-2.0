@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase-server";
+import { createClient, createAdminClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
@@ -23,6 +23,7 @@ import {
   validateEmailSecurity,
   handleOtpRequestError,
 } from "./auth-common";
+import { maskEmail } from "@/lib/masking-utils";
 
 /**
  * OTP-based authentication flows
@@ -63,8 +64,9 @@ async function checkRateLimits(
   const enumerationKey = `email:check:${email}`;
   const enumerationAllowed = await checkEnumerationRateLimit(enumerationKey);
   if (!enumerationAllowed) {
+    // SEC-005 FIX: Use masked email to protect PII in logs
     authLogger.warn("[requestOtp] Email enumeration rate limit exceeded", {
-      email,
+      email: maskEmail(email),
       limitType: "enumeration",
     });
     return {
@@ -79,21 +81,138 @@ async function checkRateLimits(
 
 /**
  * Helper: Handle email enumeration check
+ * CRITICAL: Prevents cross-role registration and handles incomplete registrations
  */
 async function handleEmailEnumerationCheck(
   email: string,
 ): Promise<{ shouldProceed: true } | { shouldProceed: false; error: string }> {
   const emailCheck = await checkEmailExistsInAuth(email);
-  if (emailCheck.exists) {
-    authLogger.warn(
-      "[requestOtp] Email already registered - enumeration attempt detected",
+
+  authLogger.debug("[requestOtp] checkEmailExistsInAuth result", {
+    email: maskEmail(email),
+    exists: emailCheck.exists,
+    role: emailCheck.role,
+    hasStudentProfile: emailCheck.hasStudentProfile,
+    hasTeacherProfile: emailCheck.hasTeacherProfile,
+  });
+
+  // BACKUP CHECK: Query public.users table directly
+  // This is more reliable than auth.users lookup
+  const adminClient = await createAdminClient();
+  const { data: userByEmail } = await adminClient
+    .from("users")
+    .select("id, email, role")
+    .eq("email", email.trim().toLowerCase())
+    .maybeSingle();
+
+  authLogger.debug("[requestOtp] Direct users table check", {
+    email: maskEmail(email),
+    foundUser: !!userByEmail,
+    userRole: userByEmail?.role,
+  });
+
+  // If direct check finds a teacher in users table, block immediately
+  if (userByEmail && userByEmail.role === "teacher") {
+    authLogger.error(
+      "[requestOtp] CRITICAL: Found teacher in users table - blocking student registration",
       {
-        email,
+        email: maskEmail(email),
+        userId: userByEmail.id,
+      },
+    );
+    return {
+      shouldProceed: false,
+      error:
+        "This email is registered as a teacher account. Please use a different email for student registration, or reset your password if you forgot it.",
+    };
+  }
+
+  // If direct check finds a student, block re-registration
+  if (userByEmail && userByEmail.role === "student") {
+    authLogger.warn("[requestOtp] Found student in users table", {
+      email: maskEmail(email),
+    });
+    return {
+      shouldProceed: false,
+      error:
+        "This email is already registered as a student. Please login with your email and password, or reset your password if you forgot it.",
+    };
+  }
+
+  if (emailCheck.exists) {
+    // SEC-005 FIX: Use masked email to protect PII in logs
+    authLogger.warn(
+      "[requestOtp] Email already exists in auth system",
+      {
+        email: maskEmail(email),
         role: emailCheck.role,
+        hasStudentProfile: emailCheck.hasStudentProfile,
+        hasTeacherProfile: emailCheck.hasTeacherProfile,
         sourceIP: "[IP_ADDRESS]",
       },
     );
 
+    // CRITICAL: Block if user has ANY teacher indicator
+    // Check both profile existence AND app_metadata role
+    if (
+      emailCheck.hasTeacherProfile ||
+      emailCheck.role === "teacher" ||
+      emailCheck.role === "admin" ||
+      emailCheck.role === "super_admin"
+    ) {
+      authLogger.warn(
+        "[requestOtp] Teacher/admin trying to register as student",
+        {
+          email: maskEmail(email),
+          role: emailCheck.role,
+        },
+      );
+      return {
+        shouldProceed: false,
+        error:
+          "This email is registered as a teacher account. Please use a different email for student registration, or reset your password if you forgot it.",
+      };
+    }
+
+    // If email has student profile, they should login instead
+    if (emailCheck.hasStudentProfile || emailCheck.role === "student") {
+      authLogger.info(
+        "[requestOtp] Student trying to re-register",
+        {
+          email: maskEmail(email),
+        },
+      );
+      return {
+        shouldProceed: false,
+        error:
+          "This email is already registered as a student. Please login with your email and password, or reset your password if you forgot it.",
+      };
+    }
+
+    // Email exists but role is unknown (auth.users exists but no profile yet)
+    // Block anyway - they should complete existing registration or login
+    if (emailCheck.role === "unknown") {
+      authLogger.warn(
+        "[requestOtp] Email exists with unknown role, blocking student registration",
+        {
+          email: maskEmail(email),
+        },
+      );
+      return {
+        shouldProceed: false,
+        error:
+          "This email is already registered. Please complete your existing registration or login. If you forgot your password, use the 'Forgot Password' link.",
+      };
+    }
+
+    // Email exists but we couldn't determine role (should never happen)
+    // Block anyway to be safe
+    authLogger.error(
+      "[requestOtp] Email exists but unable to determine role - blocking",
+      {
+        email: maskEmail(email),
+      },
+    );
     return {
       shouldProceed: false,
       error:
@@ -201,8 +320,9 @@ export async function verifyOtp(email: string, token: string) {
     // SECURITY: Rate limit OTP verification to prevent brute-force attacks
     const verifyAllowed = await checkOtpVerifyRateLimit(validatedEmail);
     if (!verifyAllowed) {
+      // SEC-005 FIX: Use masked email to protect PII in logs
       authLogger.warn("[verifyOtp] Rate limit exceeded", {
-        email: validatedEmail,
+        email: maskEmail(validatedEmail),
       });
       return {
         success: false,
@@ -376,7 +496,7 @@ export async function resetPasswordWithOtp(
     const validatedToken = tokenResult.data;
 
     authLogger.debug("[resetPasswordWithOtp] Starting password reset", {
-      email: validatedEmail.substring(0, 5) + "...",
+      email: validatedEmail.slice(0, 5) + "...",
     });
 
     const supabase = await createClient();
@@ -440,11 +560,11 @@ export async function resetPasswordWithOtp(
           "[resetPasswordWithOtp] Other sessions revoked successfully",
         );
       }
-    } catch (signOutErr) {
+    } catch (error_) {
       // Don't fail the password reset if session revocation fails
       authLogger.warn(
         "[resetPasswordWithOtp] Exception revoking other sessions",
-        signOutErr instanceof Error ? signOutErr : { error: signOutErr },
+        error_ instanceof Error ? error_ : { error: error_ },
       );
     }
 

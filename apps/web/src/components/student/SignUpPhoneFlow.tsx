@@ -198,7 +198,7 @@ export function SignUpPhoneFlow({
           }
           loading={isLoading}
         >
-          Send OTP
+          <span>Send OTP</span>
           <span className="ml-2">→</span>
         </Button>
       </form>
@@ -274,7 +274,7 @@ export function SignUpPhoneFlow({
         }
         loading={isLoading}
       >
-        Create Account
+        <span>Create Account</span>
         <span className="ml-2">→</span>
       </Button>
 

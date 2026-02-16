@@ -10,6 +10,7 @@ import { PageTransition } from "@/components/ui/page-transition";
 import { OfflineBanner } from "@/components/offline/OfflineBanner";
 import { BackgroundSyncInitializer } from "@/components/offline/BackgroundSyncInitializer";
 import { GlobalErrorBoundary } from "@/components/errors/GlobalErrorBoundary";
+import { LanguageProvider } from "@/lib/i18n";
 import "./globals.css";
 
 /* ============================================
@@ -115,18 +116,29 @@ export default function RootLayout({
           fontFamily: "var(--font-nunito), 'Nunito', system-ui, sans-serif",
         }}
       >
+        {/* Accessibility: Skip navigation link for keyboard/screen-reader users */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-white focus:text-black focus:rounded focus:shadow-lg"
+        >
+          Skip to main content
+        </a>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
           enableSystem
           disableTransitionOnChange
         >
-          <GlobalErrorBoundary>
-            <BackgroundSyncInitializer />
-            <OfflineBanner position="top" />
-            <PageTransition>{children}</PageTransition>
-            <Toaster />
-          </GlobalErrorBoundary>
+          <LanguageProvider>
+            <GlobalErrorBoundary>
+              <BackgroundSyncInitializer />
+              <OfflineBanner position="top" />
+              <main id="main-content">
+                <PageTransition>{children}</PageTransition>
+              </main>
+              <Toaster />
+            </GlobalErrorBoundary>
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

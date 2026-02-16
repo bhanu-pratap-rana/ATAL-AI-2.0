@@ -1,5 +1,6 @@
 "use server";
 
+import { randomBytes } from "node:crypto";
 import { createClient, createAdminClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
 import {
@@ -32,7 +33,7 @@ export async function checkUsernameAvailable(username: string): Promise<{
       authLogger.warn(
         "[checkUsernameAvailable] Username enumeration rate limit exceeded",
         {
-          username: username.substring(0, 3) + "*", // Log partial username for privacy
+          username: username.slice(0, 3) + "*", // Log partial username for privacy
         },
       );
       return {
@@ -133,7 +134,7 @@ export async function registerWithUsername(
 
     // Generate internal email for Supabase auth
     // Format: username_randomsuffix@student.atal.internal
-    const randomSuffix = Math.random().toString(36).substring(2, 8);
+    const randomSuffix = randomBytes(4).toString("hex");
     const internalEmail = `${trimmedUsername}_${randomSuffix}@student.atal.internal`;
 
     // Create user with admin API

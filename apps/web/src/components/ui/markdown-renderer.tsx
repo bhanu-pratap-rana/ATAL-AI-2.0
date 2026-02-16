@@ -32,42 +32,49 @@ interface MarkdownNodeProps {
 /**
  * Markdown component definitions - extracted to prevent inline component violations
  * Each handler properly types its props and renders semantic HTML
+ *
+ * Note: S6850 is a false positive for heading components.
+ * Content is provided via children prop from parsed markdown, spread via ...props.
+ *
+ * NOTE: Using Record<string, unknown> with eslint-disable because react-markdown's
+ * Components type has strict constraints that conflict with our simplified prop types.
+ * Each component handler IS properly typed internally via MarkdownNodeProps/CodeProps/InputProps.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const markdownComponents: Record<string, any> = {
+const markdownComponents: Record<string, unknown> = {
           // Headings with semantic sizing and primary color
           h1: ({ node: _node, ...props }: MarkdownNodeProps) => (
-            <h1
+            <h1 // NOSONAR S6850: Content comes from markdown via children prop
               className="text-3xl font-bold mb-4 text-primary leading-tight"
               {...props}
             />
           ),
           h2: ({ node: _node, ...props }: MarkdownNodeProps) => (
-            <h2
+            <h2 // NOSONAR S6850: Content comes from markdown via children prop
               className="text-2xl font-semibold mb-3 text-primary leading-tight mt-6"
               {...props}
             />
           ),
           h3: ({ node: _node, ...props }: MarkdownNodeProps) => (
-            <h3
+            <h3 // NOSONAR S6850: Content comes from markdown via children prop
               className="text-xl font-semibold mb-2 text-primary leading-tight mt-4"
               {...props}
             />
           ),
           h4: ({ node: _node, ...props }: MarkdownNodeProps) => (
-            <h4
+            <h4 // NOSONAR S6850: Content comes from markdown via children prop
               className="text-lg font-semibold mb-2 leading-tight mt-3"
               {...props}
             />
           ),
           h5: ({ node: _node, ...props }: MarkdownNodeProps) => (
-            <h5
+            <h5 // NOSONAR S6850: Content comes from markdown via children prop
               className="text-base font-semibold mb-2 leading-tight mt-2"
               {...props}
             />
           ),
           h6: ({ node: _node, ...props }: MarkdownNodeProps) => (
-            <h6
+            <h6 // NOSONAR S6850: Content comes from markdown via children prop
               className="text-sm font-semibold mb-2 text-muted-foreground leading-tight mt-2"
               {...props}
             />
@@ -115,7 +122,7 @@ const markdownComponents: Record<string, any> = {
 
           // Links with accessible styling
           a: ({ node: _node, ...props }: MarkdownNodeProps) => (
-            <a
+            <a // NOSONAR S6827: Content comes from markdown via children prop
               className="text-primary hover:text-primary/80 underline underline-offset-2 break-words"
               target="_blank"
               rel="noopener noreferrer"

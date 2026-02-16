@@ -1,14 +1,13 @@
 "use client";
 
-import { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase-browser";
 import {
-  isAdminClient,
-  isSuperAdminClient,
-  isTeacherOrHigherClient,
-} from "@/lib/auth/role-utils-client";
+  isAdmin,
+  isSuperAdmin,
+  isTeacherOrHigher,
+} from "@/lib/auth/role-utils";
 import type { AdminRole } from "@/types/auth";
 import { clientLogger } from "@/lib/client-logger";
 
@@ -63,13 +62,13 @@ export function RoleGuard({
 
         if (requiredRole === "super_admin") {
           // Only super_admin can access
-          isAuthorizedForRole = isSuperAdminClient(role);
+          isAuthorizedForRole = isSuperAdmin(role);
         } else if (requiredRole === "admin") {
           // admin or super_admin can access
-          isAuthorizedForRole = isAdminClient(role);
+          isAuthorizedForRole = isAdmin(role);
         } else if (requiredRole === "teacher") {
           // teacher, admin, or super_admin can access
-          isAuthorizedForRole = isTeacherOrHigherClient(role);
+          isAuthorizedForRole = isTeacherOrHigher(role);
         }
 
         setIsAuthorized(isAuthorizedForRole);
@@ -108,7 +107,7 @@ export function RoleGuard({
 /**
  * Default unauthorized fallback component
  */
-function UnauthorizedFallback({ requiredRole }: { requiredRole: string }) {
+function UnauthorizedFallback({ requiredRole }: Readonly<{ requiredRole: string }>) {
   const router = useRouter();
 
   return (
