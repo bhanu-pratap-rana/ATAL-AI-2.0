@@ -163,8 +163,10 @@ export async function calculateIRTScore(
 
 /**
  * Start a new assessment session
+ * @param classId - Optional class context
+ * @param sessionType - 'pre' | 'adaptive' | 'post' (default: 'adaptive')
  */
-export async function startAssessment(classId?: string) {
+export async function startAssessment(classId?: string, sessionType: "pre" | "adaptive" | "post" = "adaptive") {
   try {
     const auth = await verifyStudentAuth("startAssessment");
     if (!auth.authorized) {
@@ -173,11 +175,30 @@ export async function startAssessment(classId?: string) {
 
     const supabase = await createClient();
 
+    // For pre/post assessments, check if one already exists
+    if (sessionType === "pre" || sessionType === "post") {
+      const { data: existing } = await supabase
+        .from("assessment_sessions")
+        .select("id")
+        .eq("user_id", auth.user.id)
+        .eq("session_type", sessionType)
+        .not("submitted_at", "is", null)
+        .limit(1);
+
+      if (existing && existing.length > 0) {
+        return {
+          success: false,
+          error: `You have already completed a ${sessionType}-assessment.`,
+        };
+      }
+    }
+
     const { data, error } = await supabase
       .from("assessment_sessions")
       .insert({
         user_id: auth.user.id,
         class_id: classId || null,
+        session_type: sessionType,
         started_at: new Date().toISOString(),
       })
       .select()

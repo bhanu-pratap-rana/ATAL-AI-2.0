@@ -162,6 +162,7 @@ export type Database = {
           class_id: string | null
           created_at: string
           id: string
+          session_type: string
           started_at: string
           submitted_at: string | null
           updated_at: string
@@ -171,6 +172,7 @@ export type Database = {
           class_id?: string | null
           created_at?: string
           id?: string
+          session_type?: string
           started_at?: string
           submitted_at?: string | null
           updated_at?: string
@@ -180,6 +182,7 @@ export type Database = {
           class_id?: string | null
           created_at?: string
           id?: string
+          session_type?: string
           started_at?: string
           submitted_at?: string | null
           updated_at?: string
@@ -969,6 +972,8 @@ export type Database = {
         Row: {
           class_name: string | null
           created_at: string | null
+          curriculum_completed: boolean
+          curriculum_completed_at: string | null
           gender: string
           name: string
           phone: string | null
@@ -982,6 +987,8 @@ export type Database = {
         Insert: {
           class_name?: string | null
           created_at?: string | null
+          curriculum_completed?: boolean
+          curriculum_completed_at?: string | null
           gender: string
           name: string
           phone?: string | null
@@ -995,6 +1002,8 @@ export type Database = {
         Update: {
           class_name?: string | null
           created_at?: string | null
+          curriculum_completed?: boolean
+          curriculum_completed_at?: string | null
           gender?: string
           name?: string
           phone?: string | null

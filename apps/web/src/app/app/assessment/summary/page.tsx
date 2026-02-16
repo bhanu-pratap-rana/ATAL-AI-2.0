@@ -27,7 +27,7 @@ export default async function AssessmentSummaryPage({
   const [sessionResult, responsesResult] = await Promise.all([
     supabase
       .from("assessment_sessions")
-      .select("id, user_id, started_at, submitted_at")
+      .select("id, user_id, started_at, submitted_at, session_type")
       .eq("id", sessionId)
       .maybeSingle(),
     supabase
@@ -43,6 +43,8 @@ export default async function AssessmentSummaryPage({
   if (sessionError || !session || session.user_id !== user.id) {
     redirect("/app/assessment/start");
   }
+
+  const sessionType = (session.session_type as "pre" | "adaptive" | "post") || "adaptive";
 
   if (responsesError || !responses || responses.length === 0) {
     redirect("/app/assessment/start");
@@ -114,6 +116,20 @@ export default async function AssessmentSummaryPage({
     responses.reduce((sum, r) => sum + (r.rt_ms || 0), 0) / totalQuestions,
   );
 
+  // For post-assessments, fetch comparison data
+  let comparisonData = null;
+  if (sessionType === "post") {
+    const { data: comparison } = await supabase.rpc("get_assessment_comparison", {
+      p_user_id: user.id,
+    });
+    if (comparison) {
+      comparisonData = comparison as {
+        pre: { score: number; modules: Record<string, { score: number; total: number; correct: number }> } | null;
+        post: { score: number; modules: Record<string, { score: number; total: number; correct: number }> } | null;
+      };
+    }
+  }
+
   return (
     <AssessmentSummary
       score={score}
@@ -121,6 +137,8 @@ export default async function AssessmentSummaryPage({
       correctAnswers={correctAnswers}
       moduleBreakdown={moduleBreakdown}
       avgResponseTime={avgResponseTime}
+      sessionType={sessionType}
+      comparisonData={comparisonData}
       irtData={
         irtScore
           ? {

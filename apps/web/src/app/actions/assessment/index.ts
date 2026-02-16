@@ -24,3 +24,6 @@ export {
   calculateIRTScore,
   startAssessment,
 } from "./assessment-submission";
+
+// Assessment status for pre/post prompts
+export { getAssessmentStatus, type AssessmentStatus } from "./assessment-status";

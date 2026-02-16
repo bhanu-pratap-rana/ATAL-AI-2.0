@@ -15,10 +15,13 @@ import {
   getDashboardStats,
   type DashboardStats,
 } from "@/app/actions/dashboard-stats";
+import { getAssessmentStatus, type AssessmentStatus } from "@/app/actions/assessment";
 import { SyncStatusIndicator } from "@/components/offline/SyncStatusIndicator";
 import { BadgesDisplay } from "@/components/gamification/BadgesDisplay";
 import { LeaderboardCompact } from "@/components/gamification/Leaderboard";
 import { PointsSummary } from "@/components/gamification/PointsHistory";
+import { PreAssessmentPrompt } from "@/components/assessment/PreAssessmentPrompt";
+import { PostAssessmentPrompt } from "@/components/assessment/PostAssessmentPrompt";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLanguage } from "@/lib/i18n";
 import { LanguageSelector } from "@/components/learn/LanguageSelector";
@@ -194,6 +197,9 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [enrolledClassId, setEnrolledClassId] = useState<string | null>(null);
+  const [assessmentStatus, setAssessmentStatus] = useState<AssessmentStatus | null>(null);
+  const [showPrePrompt, setShowPrePrompt] = useState(false);
+  const [showPostPrompt, setShowPostPrompt] = useState(false);
   const supabase = createClient();
 
   // Check app_metadata.role (set during teacher registration via admin API)
@@ -239,12 +245,16 @@ export default function DashboardPage() {
           : Promise.resolve({ data: null });
 
         const statsPromise = getDashboardStats();
+        const assessmentStatusPromise = !isTeacher
+          ? getAssessmentStatus()
+          : Promise.resolve({ success: false } as const);
 
         // Execute all in parallel
-        const [profileResult, enrollmentResult, statsResult] = await Promise.all([
+        const [profileResult, enrollmentResult, statsResult, assessmentStatusResult] = await Promise.all([
           profilePromise,
           enrollmentPromise,
           statsPromise,
+          assessmentStatusPromise,
         ]);
 
         // Set profile name
@@ -260,6 +270,24 @@ export default function DashboardPage() {
         // Set stats
         if (statsResult.success && statsResult.data) {
           setStats(statsResult.data);
+        }
+
+        // Set assessment status and show appropriate prompt (students only)
+        if (!isTeacher && assessmentStatusResult.success && assessmentStatusResult.data) {
+          const status = assessmentStatusResult.data;
+          setAssessmentStatus(status);
+
+          // Show pre-assessment prompt if student hasn't taken one and hasn't dismissed it
+          const dismissedPre = localStorage.getItem("dismissed_pre_assessment");
+          if (!status.hasPreAssessment && !dismissedPre) {
+            setShowPrePrompt(true);
+          }
+
+          // Show post-assessment prompt if curriculum completed but no post-assessment
+          const dismissedPost = localStorage.getItem("dismissed_post_assessment");
+          if (status.curriculumCompleted && !status.hasPostAssessment && !dismissedPost) {
+            setShowPostPrompt(true);
+          }
         }
       }
 
@@ -446,7 +474,7 @@ export default function DashboardPage() {
                     router.push(
                       isTeacherOrAdmin
                         ? "/app/teacher/classes"
-                        : "/app/assessment/start",
+                        : "/app/assessment/start?type=pre",
                     )
                   }
                   variant="default"
@@ -461,7 +489,8 @@ export default function DashboardPage() {
           {/* Gamification Section - Badges, Points & Leaderboard */}
           {!isTeacherOrAdmin && user && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-              <motion.div variants={itemVariants}>
+              {/* Badges - takes 2/3 width on desktop to avoid cramped grid */}
+              <motion.div variants={itemVariants} className="lg:col-span-2">
                 <Card className="h-full">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -477,27 +506,30 @@ export default function DashboardPage() {
                   </CardContent>
                 </Card>
               </motion.div>
-              <motion.div variants={itemVariants}>
-                <Card className="h-full">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      ⭐ {t("dashboard.points")}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <PointsSummary studentId={user.id} />
-                  </CardContent>
-                </Card>
-              </motion.div>
-              {enrolledClassId && (
+              {/* Points + Leaderboard stacked in right 1/3 */}
+              <div className="space-y-6">
                 <motion.div variants={itemVariants}>
-                  <LeaderboardCompact
-                    classId={enrolledClassId}
-                    currentUserId={user.id}
-                    limit={5}
-                  />
+                  <Card className="h-full">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        ⭐ {t("dashboard.points")}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <PointsSummary studentId={user.id} />
+                    </CardContent>
+                  </Card>
                 </motion.div>
-              )}
+                {enrolledClassId && (
+                  <motion.div variants={itemVariants}>
+                    <LeaderboardCompact
+                      classId={enrolledClassId}
+                      currentUserId={user.id}
+                      limit={5}
+                    />
+                  </motion.div>
+                )}
+              </div>
             </div>
           )}
 
@@ -520,6 +552,26 @@ export default function DashboardPage() {
           </div>
         </motion.div>
       </main>
+
+      {/* Pre/Post Assessment Prompt Modals (students only) */}
+      {!isTeacherOrAdmin && (
+        <>
+          <PreAssessmentPrompt
+            open={showPrePrompt}
+            onDismiss={() => {
+              setShowPrePrompt(false);
+              localStorage.setItem("dismissed_pre_assessment", "true");
+            }}
+          />
+          <PostAssessmentPrompt
+            open={showPostPrompt}
+            onDismiss={() => {
+              setShowPostPrompt(false);
+              localStorage.setItem("dismissed_post_assessment", "true");
+            }}
+          />
+        </>
+      )}
     </div>
   );
 }
