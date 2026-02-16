@@ -37,6 +37,9 @@ function AssessmentStartContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const classId = searchParams.get("classId");
+  const typeParam = searchParams.get("type");
+  const sessionType: "pre" | "adaptive" | "post" =
+    typeParam === "pre" || typeParam === "post" ? typeParam : "adaptive";
 
   const [selectedLanguage, setSelectedLanguage] = useState<"en" | "hi" | "as">(
     "en",
@@ -53,7 +56,7 @@ function AssessmentStartContent() {
     try {
       // Start session and fetch adaptive questions in parallel
       const [sessionResult, questionsResult] = await Promise.all([
-        startAssessment(classId || undefined),
+        startAssessment(classId || undefined, sessionType),
         getAdaptiveQuestions(selectedLanguage),
       ]);
 
@@ -123,14 +126,15 @@ function AssessmentStartContent() {
             <div className="text-center mb-8">
               {/* Icon Box - Primary Light */}
               <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-light rounded-lg mb-4">
-                <span className="text-3xl">📝</span>
+                <span className="text-3xl">{sessionType === "post" ? "🎓" : "📝"}</span>
               </div>
               <h1 className="text-3xl font-bold text-text-primary mb-2">
-                Pre-Assessment
+                {sessionType === "pre" ? "Pre-Assessment" : sessionType === "post" ? "Post-Assessment" : "Assessment"}
               </h1>
               <p className="text-text-secondary">
-                This assessment helps us understand your current digital
-                literacy skills
+                {sessionType === "post"
+                  ? "Measure your improvement after completing the curriculum"
+                  : "This assessment helps us understand your current digital literacy skills"}
               </p>
             </div>
 

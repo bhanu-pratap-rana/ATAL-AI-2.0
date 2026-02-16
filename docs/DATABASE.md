@@ -1,6 +1,6 @@
 # ATAL AI Database Documentation
 
-> **Last Updated:** February 15, 2026 (via Supabase MCP - live verification)
+> **Last Updated:** February 16, 2026 (via Supabase MCP - live verification)
 > **Status:** PRODUCTION READY - 30 public tables + 2 storage buckets, RLS 100% enabled
 > **Database:** Supabase PostgreSQL 17.6.1.038 (Project: hnlsqznoviwnyrkskfay, Region: ap-southeast-1)
 > **Project Status:** ACTIVE_HEALTHY
@@ -18,7 +18,7 @@
 | **Total Rows** | 2,491 | curriculum_content: 750, practice_questions: 450, schools: 393, etc. |
 | **Migrations** | 7 applied (via Supabase) | Latest: remove_dead_rls_write_policies_modules_topics |
 | **RLS Policies** | 84 public + 3 storage = 87 total | All tables protected (6 dead policies removed Feb 15) |
-| **Functions** | 59 | 11 trigger + 48 RPC |
+| **Functions** | 62 | 11 trigger + 51 RPC |
 | **Extensions** | 8 active | pgcrypto 1.3, vector 0.8.0, pg_trgm 1.6, uuid-ossp 1.1, pg_stat_statements 1.11, pg_graphql 1.5.11, supabase_vault 0.3.1, plpgsql 1.0 |
 
 ### Live Row Counts (February 15, 2026)
@@ -182,10 +182,12 @@ Student details and demographics.
 | class_name | text | YES | - | Class/grade |
 | village | text | YES | - | Village/location |
 | gender | text | NO | - | 'male', 'female' (CHECK constraint) |
+| curriculum_completed | boolean | NO | false | All 5 categories mastered (>=70%) |
+| curriculum_completed_at | timestamptz | YES | - | When curriculum was completed |
 | created_at | timestamptz | YES | now() | - |
 | updated_at | timestamptz | YES | now() | - |
 
-**Code Usage:** [apps/web/src/app/actions/student.ts](apps/web/src/app/actions/student.ts) - saveStudentProfile()
+**Code Usage:** [apps/web/src/app/actions/student.ts](apps/web/src/app/actions/student.ts) - saveStudentProfile(), [apps/web/src/app/actions/assessment/assessment-status.ts](apps/web/src/app/actions/assessment/assessment-status.ts) - getAssessmentStatus()
 
 ---
 
@@ -480,19 +482,21 @@ IRT-calibrated assessment items.
 ### 4. Assessment & Progress (6 tables)
 
 #### assessment_sessions
-Assessment lifecycle tracking.
+Assessment lifecycle tracking. Supports pre-assessment (diagnostic), adaptive (in-course), and post-assessment (summative) session types.
 
 | Column | Type | Nullable | Default | Description |
 |--------|------|----------|---------|-------------|
 | id | uuid | NO | gen_random_uuid() | Primary key |
 | user_id | uuid | NO | - | FK to users.id |
 | class_id | uuid | YES | - | FK to classes.id |
+| session_type | text | NO | 'adaptive' | 'pre', 'adaptive', 'post' (CHECK constraint) |
 | started_at | timestamptz | NO | now() | Start time |
 | submitted_at | timestamptz | YES | - | Submit time |
 | created_at | timestamptz | NO | now() | - |
 | updated_at | timestamptz | NO | now() | - |
 
-**Row Count:** 108
+**Indexes:** `idx_assessment_sessions_type` on `(user_id, session_type)`
+**Row Count:** 108 (all existing sessions defaulted to 'adaptive')
 **Code Usage:** [apps/web/src/app/actions/assessment/assessment-submission.ts](apps/web/src/app/actions/assessment/assessment-submission.ts)
 
 ---
@@ -842,13 +846,16 @@ Offline sync tracking.
 | match_curriculum_hybrid | record | Hybrid search (vector + keyword) |
 | match_curriculum_content_simple | text | Simple text match for RAG |
 
-### Assessment RPCs (3)
+### Assessment RPCs (6)
 
 | Function | Return Type | Description |
 |----------|-------------|-------------|
 | submit_assessment | jsonb | Submit and score assessment |
 | update_knowledge_state | jsonb | Update topic mastery |
 | update_progress_atomic | jsonb | Atomic progress update |
+| get_assessment_comparison | jsonb | Compare pre vs post assessment scores per module |
+| check_curriculum_completion | jsonb | Check if all 5 categories mastered (>=70%), auto-marks `student_profiles.curriculum_completed` |
+| has_assessment_type | boolean | Check if student has completed a specific assessment type ('pre'/'post') |
 
 ### Gamification RPCs (3)
 
@@ -1034,6 +1041,8 @@ auth.role() = 'service_role'
 | MCP-3 | Feb 15 | Fix FK ON DELETE: topics.unit_id→CASCADE, profiles.school_id→SET NULL |
 | MCP-4 | Feb 15 | Remove 6 dead RLS write policies on modules and topics |
 | MCP-5 | Feb 15 | Fix teacher assessment RLS: enrollment-based access (replaces broken class_id JOIN) |
+| 161 | Feb 16 | Add `session_type` to `assessment_sessions` + `curriculum_completed` to `student_profiles` |
+| 162 | Feb 16 | RPCs: `get_assessment_comparison`, `check_curriculum_completion`, `has_assessment_type` |
 
 ---
 
@@ -1109,13 +1118,13 @@ All table types are defined in [apps/web/src/types/database.ts](apps/web/src/typ
 | Project Status | `get_project` | ACTIVE_HEALTHY |
 | PostgreSQL Version | `get_project` | 17.6.1.038 |
 | Table Count | `list_tables` | 30 public tables |
-| Functions | `information_schema.routines` | 59 (11 trigger + 48 RPC) |
+| Functions | `information_schema.routines` | 62 (11 trigger + 51 RPC) |
 | RLS Policies | `pg_policies` | 86 public + 3 storage = 89 total |
 | Extensions | `pg_extension` | 8 active |
 | Storage Buckets | `storage.buckets` | 2 buckets (both with restrictions) |
 
 ---
 
-*Document updated: February 15, 2026 via Supabase MCP*
+*Document updated: February 16, 2026 via Supabase MCP*
 *Database: hnlsqznoviwnyrkskfay (ap-southeast-1)*
 *Project: ATAL AI 1.0 | Status: ACTIVE_HEALTHY*
