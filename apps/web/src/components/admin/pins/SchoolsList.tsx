@@ -46,7 +46,7 @@ export function SchoolsList({
             <button
               key={school.schoolId}
               onClick={() => onSelectSchool(school)}
-              className={`w-full text-left px-4 py-3 border-b border-border transition-colors hover:bg-muted ${
+              className={`w-full text-left px-4 py-3 border-b border-border transition-colors hover:bg-surface-dark ${
                 selectedSchool?.schoolId === school.schoolId
                   ? "bg-primary/10 border-l-4 border-l-primary"
                   : ""

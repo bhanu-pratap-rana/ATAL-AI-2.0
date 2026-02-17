@@ -15,11 +15,11 @@ import { AlertCircle, TrendingDown, Zap } from "lucide-react";
 function getAlertClassName(level: string): string {
   switch (level) {
     case "critical":
-      return "border-red-600 bg-red-100 text-red-800";
+      return "border-error bg-error/10 text-error";
     case "error":
-      return "border-orange-600 bg-orange-100 text-orange-800";
+      return "border-accent bg-accent/10 text-accent";
     default:
-      return "border-yellow-600 bg-yellow-100 text-yellow-800";
+      return "border-warning bg-warning/10 text-warning";
   }
 }
 
@@ -36,12 +36,12 @@ interface UtilizationColors {
  */
 function getUtilizationColors(percent: number): UtilizationColors {
   if (percent > 85) {
-    return { textClass: "text-red-600", barClass: "bg-red-500" };
+    return { textClass: "text-error", barClass: "bg-error" };
   }
   if (percent > 70) {
-    return { textClass: "text-orange-600", barClass: "bg-orange-500" };
+    return { textClass: "text-accent", barClass: "bg-accent" };
   }
-  return { textClass: "text-green-600", barClass: "bg-green-500" };
+  return { textClass: "text-success", barClass: "bg-success" };
 }
 
 export default function PerformanceMonitoringPage() {
@@ -84,7 +84,7 @@ export default function PerformanceMonitoringPage() {
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-4xl font-bold">Database Performance Monitoring</h1>
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-text-tertiary">
           Last updated: {new Date().toLocaleTimeString()}
         </div>
       </div>
@@ -93,13 +93,13 @@ export default function PerformanceMonitoringPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-sm font-medium text-text-secondary">
               Total Queries
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{stats.totalQueries}</div>
-            <p className="text-xs text-gray-500 mt-2">
+            <p className="text-xs text-text-tertiary mt-2">
               {stats.successfulQueries} success, {stats.failedQueries} failed
             </p>
           </CardContent>
@@ -107,15 +107,15 @@ export default function PerformanceMonitoringPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-sm font-medium text-text-secondary">
               Slow Queries (&gt;1s)
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-orange-600">
+            <div className="text-3xl font-bold text-accent">
               {stats.slowQueries}
             </div>
-            <p className="text-xs text-gray-500 mt-2">
+            <p className="text-xs text-text-tertiary mt-2">
               {(
                 (stats.slowQueries / Math.max(stats.totalQueries, 1)) *
                 100
@@ -127,7 +127,7 @@ export default function PerformanceMonitoringPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-sm font-medium text-text-secondary">
               Avg Duration
             </CardTitle>
           </CardHeader>
@@ -135,7 +135,7 @@ export default function PerformanceMonitoringPage() {
             <div className="text-3xl font-bold">
               {stats.avgDuration.toFixed(0)}ms
             </div>
-            <p className="text-xs text-gray-500 mt-2">
+            <p className="text-xs text-text-tertiary mt-2">
               P95: {stats.p95Duration.toFixed(0)}ms
             </p>
           </CardContent>
@@ -143,22 +143,22 @@ export default function PerformanceMonitoringPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-sm font-medium text-text-secondary">
               P99 Duration
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-red-600">
+            <div className="text-3xl font-bold text-error">
               {stats.p99Duration.toFixed(0)}ms
             </div>
-            <p className="text-xs text-gray-500 mt-2">Slowest 1% of queries</p>
+            <p className="text-xs text-text-tertiary mt-2">Slowest 1% of queries</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Connection Pool Stats */}
       {poolMetrics && (
-        <Card className="border-blue-200">
+        <Card className="border-info/30">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Zap className="w-5 h-5" />
@@ -168,19 +168,19 @@ export default function PerformanceMonitoringPage() {
           <CardContent>
             <div className="grid grid-cols-3 gap-6">
               <div>
-                <p className="text-sm text-gray-600 mb-2">Active Connections</p>
+                <p className="text-sm text-text-secondary mb-2">Active Connections</p>
                 <p className="text-2xl font-bold">
                   {poolMetrics.activeConnections}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600 mb-2">Max Connections</p>
+                <p className="text-sm text-text-secondary mb-2">Max Connections</p>
                 <p className="text-2xl font-bold">
                   {poolMetrics.maxConnections}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600 mb-2">Utilization</p>
+                <p className="text-sm text-text-secondary mb-2">Utilization</p>
                 <div className="flex items-center gap-2">
                   <p
                     className={`text-2xl font-bold ${getUtilizationColors(poolMetrics.utilizationPercent).textClass}`}
@@ -193,7 +193,7 @@ export default function PerformanceMonitoringPage() {
 
             {/* Pool Utilization Bar */}
             <div className="mt-6">
-              <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+              <div className="h-3 bg-surface-dark rounded-full overflow-hidden">
                 <div
                   className={`h-full transition-all ${getUtilizationColors(poolMetrics.utilizationPercent).barClass}`}
                   style={{ width: `${poolMetrics.utilizationPercent}%` }}
@@ -206,9 +206,9 @@ export default function PerformanceMonitoringPage() {
 
       {/* Pool Alerts */}
       {poolAlerts.length > 0 && (
-        <Card className="border-red-200 bg-red-50">
+        <Card className="border-error/30 bg-error/10">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-700">
+            <CardTitle className="flex items-center gap-2 text-error">
               <AlertCircle className="w-5 h-5" />
               Connection Pool Alerts
             </CardTitle>
@@ -235,13 +235,13 @@ export default function PerformanceMonitoringPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <TrendingDown className="w-5 h-5 text-orange-600" />
+            <TrendingDown className="w-5 h-5 text-accent" />
             Slowest Queries (&gt; 1 second)
           </CardTitle>
         </CardHeader>
         <CardContent>
           {slowQueries.length === 0 ? (
-            <p className="text-green-600 font-semibold">
+            <p className="text-success font-semibold">
               ✅ No slow queries detected
             </p>
           ) : (
@@ -249,26 +249,26 @@ export default function PerformanceMonitoringPage() {
               {slowQueries.map((query, idx) => (
                 <div
                   key={`slow-query-${idx}-${query.queryName}`}
-                  className="border-l-4 border-orange-500 pl-4 py-3 bg-orange-50 rounded"
+                  className="border-l-4 border-accent pl-4 py-3 bg-accent/5 rounded"
                 >
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="font-semibold text-sm">{query.queryName}</p>
                       {query.tableNames && query.tableNames.length > 0 && (
-                        <p className="text-xs text-gray-600 mt-1">
+                        <p className="text-xs text-text-secondary mt-1">
                           Tables: {query.tableNames.join(", ")}
                         </p>
                       )}
                     </div>
-                    <span className="text-red-600 font-bold text-sm">
+                    <span className="text-error font-bold text-sm">
                       {query.duration.toFixed(0)}ms
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">
+                  <p className="text-xs text-text-tertiary mt-2">
                     {new Date(query.timestamp).toLocaleString()}
                   </p>
                   {query.userId && (
-                    <p className="text-xs text-gray-600">
+                    <p className="text-xs text-text-secondary">
                       User: {query.userId}
                     </p>
                   )}
@@ -281,9 +281,9 @@ export default function PerformanceMonitoringPage() {
 
       {/* Failed Queries Log */}
       {failedQueries.length > 0 && (
-        <Card className="border-red-200">
+        <Card className="border-error/30">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-700">
+            <CardTitle className="flex items-center gap-2 text-error">
               <AlertCircle className="w-5 h-5" />
               Failed Queries
             </CardTitle>
@@ -293,22 +293,22 @@ export default function PerformanceMonitoringPage() {
               {failedQueries.map((query, idx) => (
                 <div
                   key={`failed-query-${idx}-${query.queryName}`}
-                  className="border-l-4 border-red-500 pl-4 py-3 bg-red-50 rounded"
+                  className="border-l-4 border-error pl-4 py-3 bg-error/10 rounded"
                 >
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="font-semibold text-sm">{query.queryName}</p>
                       {query.error && (
-                        <p className="text-xs text-red-600 mt-1">
+                        <p className="text-xs text-error mt-1">
                           {query.error}
                         </p>
                       )}
                     </div>
-                    <span className="text-gray-600 text-xs">
+                    <span className="text-text-secondary text-xs">
                       {query.duration.toFixed(0)}ms
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">
+                  <p className="text-xs text-text-tertiary mt-2">
                     {new Date(query.timestamp).toLocaleString()}
                   </p>
                 </div>
@@ -336,7 +336,7 @@ export default function PerformanceMonitoringPage() {
                 id="refresh-interval-select"
                 value={refreshInterval}
                 onChange={(e) => setRefreshInterval(Number(e.target.value))}
-                className="mt-2 px-3 py-2 border border-gray-300 rounded-md text-sm"
+                className="mt-2 px-3 py-2 border border-border rounded-md text-sm"
               >
                 <option value={1000}>1 second</option>
                 <option value={5000}>5 seconds</option>
@@ -353,7 +353,7 @@ export default function PerformanceMonitoringPage() {
                   setSlowQueries([]);
                   setFailedQueries([]);
                 }}
-                className="px-4 py-2 bg-gray-600 text-white rounded-md text-sm hover:bg-gray-700"
+                className="px-4 py-2 bg-text-secondary text-white rounded-md text-sm hover:bg-text-primary"
               >
                 Clear Metrics
               </button>

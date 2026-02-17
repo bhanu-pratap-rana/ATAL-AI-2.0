@@ -53,7 +53,7 @@ export function SchoolSearchBar({
             <button
               key={school.schoolId}
               onClick={() => onSelectSchool(school)}
-              className="w-full text-left px-4 py-3 hover:bg-muted transition-colors border-b border-border last:border-b-0"
+              className="w-full text-left px-4 py-3 hover:bg-surface-dark transition-colors border-b border-border last:border-b-0"
               disabled={loadingSchoolDetails}
             >
               <p className="font-medium text-text">{school.schoolName}</p>

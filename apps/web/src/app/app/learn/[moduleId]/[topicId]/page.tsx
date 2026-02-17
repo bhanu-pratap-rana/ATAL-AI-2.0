@@ -533,7 +533,7 @@ export default function LessonPage() {
   ): string => {
     if (showResult) {
       if (isCorrect) return "bg-success-light border-success";
-      return isSelected ? "bg-error-light border-error" : "bg-muted";
+      return isSelected ? "bg-error-light border-error" : "bg-surface";
     }
     return isSelected
       ? "border-primary bg-primary/10"
@@ -666,21 +666,21 @@ export default function LessonPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 p-4 md:p-6">
+      <div className="min-h-screen bg-gradient-to-b from-cream to-surface/30 p-4 md:p-6">
         <div className="max-w-3xl mx-auto space-y-6">
           <div className="animate-pulse space-y-4">
-            <div className="h-4 w-32 bg-muted rounded" />
+            <div className="h-4 w-32 bg-surface rounded" />
             <Card>
               <CardHeader>
-                <div className="h-8 w-64 bg-muted rounded" />
-                <div className="h-4 w-48 bg-muted rounded mt-2" />
+                <div className="h-8 w-64 bg-surface rounded" />
+                <div className="h-4 w-48 bg-surface rounded mt-2" />
               </CardHeader>
             </Card>
             <Card>
               <CardContent className="p-6 space-y-4">
-                <div className="h-4 w-full bg-muted rounded" />
-                <div className="h-4 w-full bg-muted rounded" />
-                <div className="h-4 w-3/4 bg-muted rounded" />
+                <div className="h-4 w-full bg-surface rounded" />
+                <div className="h-4 w-full bg-surface rounded" />
+                <div className="h-4 w-3/4 bg-surface rounded" />
               </CardContent>
             </Card>
           </div>
@@ -690,7 +690,7 @@ export default function LessonPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+    <div className="min-h-screen bg-gradient-to-b from-cream to-surface/30">
       <div className="flex">
         {/* Main Content Area */}
         <main
@@ -701,7 +701,7 @@ export default function LessonPage() {
             <div className="flex flex-wrap items-center justify-between gap-4">
               <Link
                 href={`/app/learn/${moduleId}`}
-                className="inline-flex items-center text-sm text-muted-foreground hover:text-primary"
+                className="inline-flex items-center text-sm text-text-secondary hover:text-primary"
               >
                 ← Back to Module
               </Link>
@@ -728,13 +728,13 @@ export default function LessonPage() {
                     <CardTitle className="text-2xl flex items-center gap-2">
                       {activeDynamicLesson ? activeDynamicLesson.title : lesson.title_en}
                       {!isOnline && (
-                        <span className="text-sm text-muted-foreground flex items-center gap-1">
+                        <span className="text-sm text-text-secondary flex items-center gap-1">
                           <WifiOff className="h-4 w-4" />
                           Offline
                         </span>
                       )}
                     </CardTitle>
-                    <p className="text-muted-foreground">
+                    <p className="text-text-secondary">
                       {activeDynamicLesson ? activeDynamicLesson.description : lesson.title_as}
                     </p>
                   </div>
@@ -759,15 +759,15 @@ export default function LessonPage() {
                 {activeDynamicError && (
                   <Card className="border-destructive">
                     <CardContent className="p-6 text-center">
-                      <WifiOff className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                      <WifiOff className="h-12 w-12 mx-auto mb-4 text-text-secondary" />
                       <p className="text-destructive mb-2 font-medium">
                         {!isOnline ? "No Internet Connection" : "Failed to generate AI lesson"}
                       </p>
-                      <p className="text-muted-foreground mb-4 text-sm">
+                      <p className="text-text-secondary mb-4 text-sm">
                         {activeDynamicError}
                       </p>
                       {!isOnline && (
-                        <p className="text-muted-foreground text-sm">
+                        <p className="text-text-secondary text-sm">
                           Please connect to the internet to download the content.
                         </p>
                       )}
@@ -827,7 +827,7 @@ export default function LessonPage() {
                         })}
                       </div>
                       {practiceSubmitted && (
-                        <p className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">
+                        <p className="text-sm text-text-secondary bg-surface p-3 rounded-lg">
                           💡 {q.explanation}
                         </p>
                       )}
@@ -841,7 +841,7 @@ export default function LessonPage() {
                         <div className="text-4xl font-bold">
                           {calculateScore()}%
                         </div>
-                        <p className="text-muted-foreground">
+                        <p className="text-text-secondary">
                           {calculateScore() >= MASTERY_THRESHOLDS.PASSING
                             ? "🎉 Great job! You passed!"
                             : "Keep learning and try again!"}
@@ -926,14 +926,14 @@ export default function LessonPage() {
                   <span className="text-2xl">🤖</span>
                   <div>
                     <h3 className="font-semibold">AI Tutor</h3>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-text-secondary">
                       Ask me anything!
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={() => setShowAITutor(false)}
-                  className="text-muted-foreground hover:text-primary p-2 hover:bg-muted rounded-lg transition-colors"
+                  className="text-text-secondary hover:text-primary p-2 hover:bg-surface-dark rounded-lg transition-colors"
                   aria-label="Close AI Tutor"
                 >
                   <X className="w-5 h-5" />
@@ -973,7 +973,7 @@ export default function LessonPage() {
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {messages.length <= 1 ? (
                 <div className="text-center py-6">
-                  <p className="text-muted-foreground text-sm mb-3">
+                  <p className="text-text-secondary text-sm mb-3">
                     {inputMode === "voice"
                       ? "Tap the microphone to start!"
                       : "Ask me anything about this lesson!"}
@@ -996,7 +996,7 @@ export default function LessonPage() {
                     <div className="text-center mb-2">
                       <button
                         onClick={() => setShowAllMessages(true)}
-                        className="px-3 py-1 text-xs bg-muted text-muted-foreground rounded-full hover:bg-muted/80 transition-colors"
+                        className="px-3 py-1 text-xs bg-surface text-text-secondary rounded-full hover:bg-surface-dark/80 transition-colors"
                       >
                         ↑ Show {hiddenMessageCount} earlier messages
                       </button>
@@ -1011,7 +1011,7 @@ export default function LessonPage() {
                         className={`max-w-[90%] sm:max-w-[80%] p-3 rounded-lg ${
                           msg.role === "user"
                             ? "bg-primary text-primary-foreground"
-                            : "bg-muted"
+                            : "bg-surface"
                         }`}
                       >
                         <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
@@ -1022,7 +1022,7 @@ export default function LessonPage() {
               )}
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="bg-muted p-3 rounded-lg">
+                  <div className="bg-surface p-3 rounded-lg">
                     <div className="flex gap-1">
                       <span className="animate-bounce">●</span>
                       <span className="animate-bounce delay-100">●</span>
@@ -1080,7 +1080,7 @@ export default function LessonPage() {
                 <span className="text-2xl">🤖</span>
                 <div>
                   <SheetTitle className="text-base font-semibold">AI Tutor</SheetTitle>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-text-secondary">
                     Ask me anything!
                   </p>
                 </div>
@@ -1119,7 +1119,7 @@ export default function LessonPage() {
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {messages.length <= 1 ? (
                 <div className="text-center py-6">
-                  <p className="text-muted-foreground text-sm mb-3">
+                  <p className="text-text-secondary text-sm mb-3">
                     {inputMode === "voice"
                       ? "Tap the microphone to start!"
                       : "Ask me anything about this lesson!"}
@@ -1142,7 +1142,7 @@ export default function LessonPage() {
                     <div className="text-center mb-2">
                       <button
                         onClick={() => setShowAllMessages(true)}
-                        className="px-3 py-1 text-xs bg-muted text-muted-foreground rounded-full hover:bg-muted/80 transition-colors"
+                        className="px-3 py-1 text-xs bg-surface text-text-secondary rounded-full hover:bg-surface-dark/80 transition-colors"
                       >
                         ↑ Show {hiddenMessageCount} earlier messages
                       </button>
@@ -1157,7 +1157,7 @@ export default function LessonPage() {
                         className={`max-w-[90%] sm:max-w-[80%] p-3 rounded-lg ${
                           msg.role === "user"
                             ? "bg-primary text-primary-foreground"
-                            : "bg-muted"
+                            : "bg-surface"
                         }`}
                       >
                         <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
@@ -1168,7 +1168,7 @@ export default function LessonPage() {
               )}
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="bg-muted p-3 rounded-lg">
+                  <div className="bg-surface p-3 rounded-lg">
                     <div className="flex gap-1">
                       <span className="animate-bounce">●</span>
                       <span className="animate-bounce delay-100">●</span>

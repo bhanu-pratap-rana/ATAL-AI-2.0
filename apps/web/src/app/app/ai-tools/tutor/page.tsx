@@ -208,7 +208,7 @@ export default function AITutorPage() {
                 className={`px-4 py-2.5 min-h-[44px] rounded-lg text-sm font-medium transition-colors ${
                   voiceMode === "one-shot"
                     ? "bg-primary text-white"
-                    : "bg-gray-100 text-text-secondary hover:bg-gray-200"
+                    : "bg-surface-dark text-text-secondary hover:bg-surface-dark"
                 }`}
               >
                 One-shot
@@ -218,7 +218,7 @@ export default function AITutorPage() {
                 className={`px-4 py-2.5 min-h-[44px] rounded-lg text-sm font-medium transition-colors ${
                   voiceMode === "conversational"
                     ? "bg-primary text-white"
-                    : "bg-gray-100 text-text-secondary hover:bg-gray-200"
+                    : "bg-surface-dark text-text-secondary hover:bg-surface-dark"
                 }`}
               >
                 Conversational
@@ -230,7 +230,7 @@ export default function AITutorPage() {
               <span className="text-xs text-text-secondary">
                 Response: <strong className="text-primary">{getLanguageName(language)}</strong>
               </span>
-              <span className="text-xs text-green-600" title="Speak in any language (English, Hindi, Assamese) - AI will understand and adapt">
+              <span className="text-xs text-success" title="Speak in any language (English, Hindi, Assamese) - AI will understand and adapt">
                 🎤 Speak any language
               </span>
             </div>
@@ -241,7 +241,7 @@ export default function AITutorPage() {
               <button
                 onClick={() => setAutoTTS(!autoTTS)}
                 className={`relative w-10 h-5 rounded-full transition-colors ${
-                  autoTTS ? "bg-primary" : "bg-gray-300"
+                  autoTTS ? "bg-primary" : "bg-surface-dark"
                 }`}
                 aria-label={autoTTS ? "Disable auto-TTS" : "Enable auto-TTS"}
               >
@@ -305,7 +305,7 @@ export default function AITutorPage() {
                     <div className="text-center mb-4">
                       <button
                         onClick={() => setShowAllMessages(true)}
-                        className="px-3 py-1 text-xs bg-gray-100 text-text-secondary rounded-full hover:bg-gray-200 transition-colors"
+                        className="px-3 py-1 text-xs bg-surface-dark text-text-secondary rounded-full hover:bg-surface-dark transition-colors"
                       >
                         ↑ Show {hiddenMessageCount} earlier message{hiddenMessageCount !== 1 ? 's' : ''}
                       </button>

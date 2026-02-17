@@ -43,7 +43,7 @@ function getStatusIcon(status: TopicProgress["status"], masteryScore: number) {
   if (status === "in_progress" || masteryScore > 0) {
     return <PlayCircle className="h-5 w-5 text-primary" />;
   }
-  return <Circle className="h-5 w-5 text-muted-foreground" />;
+  return <Circle className="h-5 w-5 text-text-secondary" />;
 }
 
 function getStatusKey(status: TopicProgress["status"], masteryScore: number): string {
@@ -76,7 +76,7 @@ export const TopicRow = memo(function TopicRow({
         "flex items-center justify-between p-4 rounded-lg border transition-colors",
         isMastered && "bg-success/5 border-success/20",
         isInProgress && !isMastered && "bg-primary/5 border-primary/20",
-        !isMastered && !isInProgress && "bg-background border-border hover:bg-muted/50"
+        !isMastered && !isInProgress && "bg-background border-border hover:bg-surface-dark/50"
       )}
     >
       <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -86,12 +86,12 @@ export const TopicRow = memo(function TopicRow({
           <div className="flex items-center gap-2">
             <h4 className="font-medium text-sm truncate">{topic.name}</h4>
             {topic.isDownloaded && (
-              <span className="text-xs bg-muted px-2 py-0.5 rounded text-muted-foreground">
+              <span className="text-xs bg-surface px-2 py-0.5 rounded text-text-secondary">
                 {t("learn.offline")}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2 text-xs text-text-secondary">
             <span>{t(getStatusKey(topic.progress.status, topic.progress.masteryScore))}</span>
             <span>•</span>
             <span>{topic.durationMinutes} {t("learn.minutes")}</span>
@@ -151,7 +151,7 @@ export const TopicRow = memo(function TopicRow({
           >
             <Download
               className={cn(
-                "h-4 w-4 text-muted-foreground",
+                "h-4 w-4 text-text-secondary",
                 isDownloading && "animate-spin"
               )}
             />
@@ -163,7 +163,7 @@ export const TopicRow = memo(function TopicRow({
           <Button
             variant={isMastered ? "outline" : "default"}
             size="sm"
-            className="whitespace-nowrap"
+            className="truncate"
           >
             {isMastered ? t("learn.reviewModule") : isInProgress ? t("common.continue") : t("common.start")}
           </Button>

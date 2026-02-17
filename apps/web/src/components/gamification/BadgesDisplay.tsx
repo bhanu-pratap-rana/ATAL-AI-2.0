@@ -41,9 +41,9 @@ interface BadgesDisplayProps {
 // Rarity colors and styles - using semantic CSS variables where possible
 const RARITY_STYLES = {
   common: {
-    bg: "bg-muted",
+    bg: "bg-surface",
     border: "border-muted-foreground/30",
-    text: "text-muted-foreground",
+    text: "text-text-secondary",
     glow: "",
   },
   uncommon: {
@@ -282,8 +282,8 @@ export const BadgesDisplay = memo(function BadgesDisplay({
    */
   const BADGE_CLASSES = {
     icon: { earned: "group-hover:scale-110", locked: "grayscale" },
-    card: { locked: "bg-muted/50 border-dashed border-muted-foreground/30 opacity-60" },
-    text: { locked: "text-muted-foreground" },
+    card: { locked: "bg-surface/50 border-dashed border-muted-foreground/30 opacity-60" },
+    text: { locked: "text-text-secondary" },
   } as const;
 
   const getBadgeCardClass = (status: "earned" | "locked", rarity: string): string => {
@@ -300,11 +300,11 @@ export const BadgesDisplay = memo(function BadgesDisplay({
 
   if (loading) {
     return (
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
         {[1, 2, 3, 4, 5].map((i) => (
           <div key={`badge-skeleton-${i}`} className="animate-pulse text-center p-3">
-            <div className="w-12 h-12 mx-auto bg-muted rounded-full" />
-            <div className="h-3 bg-muted rounded mt-2 mx-2" />
+            <div className="w-12 h-12 mx-auto bg-surface rounded-full" />
+            <div className="h-3 bg-surface rounded mt-2 mx-2" />
           </div>
         ))}
       </div>
@@ -314,29 +314,29 @@ export const BadgesDisplay = memo(function BadgesDisplay({
   return (
     <div className="space-y-6">
       {/* Stats Summary */}
-      <div className="flex justify-center gap-6 text-center">
+      <div className="flex flex-wrap justify-center gap-4 sm:gap-6 text-center">
         <div>
           <div className="text-2xl font-bold text-primary">
             {earnedBadges.length}
           </div>
-          <div className="text-xs text-muted-foreground">{t("gamification.earned")}</div>
+          <div className="text-xs text-text-secondary">{t("gamification.earned")}</div>
         </div>
         <div>
-          <div className="text-2xl font-bold text-muted-foreground">
+          <div className="text-2xl font-bold text-text-secondary">
             {lockedBadges.length}
           </div>
-          <div className="text-xs text-muted-foreground">{t("gamification.locked")}</div>
+          <div className="text-xs text-text-secondary">{t("gamification.locked")}</div>
         </div>
         <div>
           <div className="text-2xl font-bold text-warning">
             {earnedBadges.reduce((sum, b) => sum + b.points_value, 0)}
           </div>
-          <div className="text-xs text-muted-foreground">{t("gamification.points")}</div>
+          <div className="text-xs text-text-secondary">{t("gamification.points")}</div>
         </div>
       </div>
 
       {/* Badges Grid */}
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
         {displayBadges.map((badge) => {
           const isEarned = earnedIds.has(badge.id);
 
@@ -348,7 +348,7 @@ export const BadgesDisplay = memo(function BadgesDisplay({
             >
               {/* Lock Icon for Locked Badges */}
               {!isEarned && (
-                <div className="absolute top-1 right-1 text-xs text-muted-foreground">
+                <div className="absolute top-1 right-1 text-xs text-text-secondary">
                   🔒
                 </div>
               )}
@@ -371,7 +371,7 @@ export const BadgesDisplay = memo(function BadgesDisplay({
               >
                 {badge.rarity}
               </div>
-              <div className="text-[10px] text-muted-foreground">
+              <div className="text-[10px] text-text-secondary">
                 +{badge.points_value}
               </div>
             </button>
@@ -395,8 +395,8 @@ export const BadgesDisplay = memo(function BadgesDisplay({
               <h3 id="badge-modal-title" className="text-xl font-bold">
                 {selectedBadge.name_en}
               </h3>
-              <p className="text-muted-foreground">{selectedBadge.name_as}</p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-text-secondary">{selectedBadge.name_as}</p>
+              <p className="text-sm text-text-secondary">
                 {selectedBadge.name_hi}
               </p>
 
@@ -417,7 +417,7 @@ export const BadgesDisplay = memo(function BadgesDisplay({
                     ✓ {t("gamification.earned")} • +{selectedBadge.points_value} {t("gamification.points")}
                   </span>
                 ) : (
-                  <span className="inline-block px-4 py-2 bg-muted text-muted-foreground rounded-full">
+                  <span className="inline-block px-4 py-2 bg-surface text-text-secondary rounded-full">
                     🔒 {t("gamification.locked")}
                   </span>
                 )}
@@ -427,7 +427,7 @@ export const BadgesDisplay = memo(function BadgesDisplay({
               <button
                 type="button"
                 onClick={() => setSelectedBadge(null)}
-                className="mt-4 text-sm text-muted-foreground hover:text-primary"
+                className="mt-4 text-sm text-text-secondary hover:text-primary"
                 aria-label="Close badge details"
               >
                 {t("common.close")}
@@ -465,7 +465,7 @@ export function BadgesCompact({
         </div>
       ))}
       {remaining > 0 && (
-        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
+        <div className="w-8 h-8 rounded-full bg-surface flex items-center justify-center text-xs font-medium">
           +{remaining}
         </div>
       )}

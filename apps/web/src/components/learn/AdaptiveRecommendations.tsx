@@ -264,12 +264,12 @@ export function AdaptiveRecommendations({
     return (
       <Card className="animate-pulse">
         <CardHeader>
-          <div className="h-5 bg-muted rounded w-1/3" />
+          <div className="h-5 bg-surface rounded w-1/3" />
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <div className="h-4 bg-muted rounded w-full" />
-            <div className="h-4 bg-muted rounded w-3/4" />
+            <div className="h-4 bg-surface rounded w-full" />
+            <div className="h-4 bg-surface rounded w-3/4" />
           </div>
         </CardContent>
       </Card>
@@ -287,7 +287,7 @@ export function AdaptiveRecommendations({
           <span>🤖</span>
           <span>{t("learn.aiRecommendations")}</span>
         </CardTitle>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-text-secondary">
           {t("learn.basedOnProgress")}
         </p>
       </CardHeader>

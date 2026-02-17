@@ -242,8 +242,8 @@ export default function IRTItemBankAdminPage() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-bold text-text">IRT Item Bank</h1>
-                <div className="bg-purple-100 p-1.5 rounded-lg">
-                  <Database className="w-4 h-4 text-purple-600" />
+                <div className="bg-secondary/10 p-1.5 rounded-lg">
+                  <Database className="w-4 h-4 text-secondary" />
                 </div>
               </div>
               <p className="text-sm text-text-secondary">
@@ -276,11 +276,11 @@ export default function IRTItemBankAdminPage() {
             <div className="text-sm text-text-secondary">Total Questions</div>
           </div>
           <div className="bg-white rounded-lg border border-border p-4">
-            <div className="text-2xl font-bold text-green-600">{activeCount}</div>
+            <div className="text-2xl font-bold text-success">{activeCount}</div>
             <div className="text-sm text-text-secondary">Active</div>
           </div>
           <div className="bg-white rounded-lg border border-border p-4">
-            <div className="text-2xl font-bold text-gray-500">
+            <div className="text-2xl font-bold text-text-tertiary">
               {totalCount - activeCount}
             </div>
             <div className="text-sm text-text-secondary">Inactive</div>
@@ -295,9 +295,9 @@ export default function IRTItemBankAdminPage() {
 
         {/* Error State */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
-            <p className="text-red-700">{error}</p>
+          <div className="bg-error/10 border border-error/30 rounded-lg p-4 mb-6 flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-error flex-shrink-0" />
+            <p className="text-error">{error}</p>
             <Button
               variant="outline"
               size="sm"
@@ -416,11 +416,11 @@ export default function IRTItemBankAdminPage() {
         </div>
 
         {/* Info Section */}
-        <div className="mt-8 bg-purple-50 border border-purple-200 rounded-lg p-6">
-          <h3 className="font-semibold text-purple-900 mb-2">
+        <div className="mt-8 bg-secondary/5 border border-secondary/20 rounded-lg p-6">
+          <h3 className="font-semibold text-secondary mb-2">
             About IRT Parameters
           </h3>
-          <ul className="text-sm text-purple-800 space-y-2 list-disc list-inside">
+          <ul className="text-sm text-text-secondary space-y-2 list-disc list-inside">
             <li>
               <strong>Difficulty (b):</strong> How hard the question is. Range:
               -3 (very easy) to +3 (very hard)

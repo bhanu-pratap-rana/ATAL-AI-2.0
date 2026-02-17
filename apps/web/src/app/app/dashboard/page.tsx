@@ -11,6 +11,7 @@ import { authLogger } from "@/lib/auth-logger";
 import { isTeacherOrHigher } from "@/lib/auth/role-utils";
 import type { User } from "@supabase/supabase-js";
 import { LogOut } from "lucide-react";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import {
   getDashboardStats,
   type DashboardStats,
@@ -316,12 +317,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-cream">
-        <div className="text-center">
-          <div className="w-12 h-12 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-text-secondary">{t("common.loading")}</p>
-        </div>
-      </div>
+      <LoadingSpinner message={t("common.loading")} size="lg" fullPage />
     );
   }
 
@@ -329,7 +325,7 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-cream">
       {/* Header */}
       <header className="bg-white border-b border-border-light sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-4">
+        <div className="container-responsive max-w-7xl py-4">
           <div className="flex items-center justify-between">
             {/* Logo & Title */}
             <div className="flex items-center gap-3 md:gap-4">
@@ -379,7 +375,7 @@ export default function DashboardPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 md:py-8">
+      <main className="container-responsive max-w-7xl py-6 md:py-8">
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -404,7 +400,7 @@ export default function DashboardPage() {
                   const messages = getWelcomeMessages(isTeacherOrAdmin, userName, t);
                   return (
                     <>
-                      <h2 className="text-2xl md:text-3xl font-bold mb-1 text-white drop-shadow-sm">
+                      <h2 className="text-2xl md:text-3xl font-bold mb-1 text-white drop-shadow-sm truncate">
                         {messages.greeting}
                       </h2>
                       <p className="text-sm md:text-base text-white/90">

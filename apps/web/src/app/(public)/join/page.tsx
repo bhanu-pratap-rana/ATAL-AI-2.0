@@ -231,7 +231,7 @@ function PhoneOTPStep({
         <div className="space-y-2">
           <Label htmlFor="phone">Phone Number</Label>
           <div className="flex items-center border border-input rounded-md">
-            <span className="px-3 text-text-secondary font-medium bg-muted">
+            <span className="px-3 text-text-secondary font-medium bg-surface">
               +91
             </span>
             <Input

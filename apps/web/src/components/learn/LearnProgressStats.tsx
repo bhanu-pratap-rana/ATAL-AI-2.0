@@ -31,10 +31,10 @@ export function LearnProgressStats({
       <CardContent className="p-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-center">
           <div>
-            <div className="text-3xl font-bold text-primary">
+            <div className="text-2xl sm:text-3xl font-bold text-primary">
               {overallProgress}%
             </div>
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-text-secondary">
               {t("learn.overallProgress")}
             </div>
           </div>
@@ -42,7 +42,7 @@ export function LearnProgressStats({
             <div className="text-3xl font-bold text-warning">
               {totalPoints}
             </div>
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-text-secondary">
               {t("learn.totalPoints")}
             </div>
           </div>
@@ -50,7 +50,7 @@ export function LearnProgressStats({
             <div className="text-3xl font-bold text-success">
               {currentStreak}
             </div>
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-text-secondary">
               {t("learn.dayStreak")} 🔥
             </div>
           </div>
@@ -58,13 +58,13 @@ export function LearnProgressStats({
 
         {/* Overall Progress Bar */}
         <div className="mt-4">
-          <div className="h-3 bg-muted rounded-full overflow-hidden">
+          <div className="h-3 bg-surface rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-primary to-success transition-all duration-500"
               style={{ width: `${overallProgress}%` }}
             />
           </div>
-          <div className="flex justify-between text-xs text-muted-foreground mt-1">
+          <div className="flex justify-between text-xs text-text-secondary mt-1">
             <span>{completedTopics} {t("learn.topicsCompleted")}</span>
             <span>{totalTopics - completedTopics} {t("learn.remaining")}</span>
           </div>

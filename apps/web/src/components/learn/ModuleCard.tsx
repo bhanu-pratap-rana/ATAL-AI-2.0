@@ -93,7 +93,7 @@ export function ModuleCard({
                 {!isUnlocked && <span className="text-sm">🔒</span>}
               </CardTitle>
               {secondaryName && (
-                <p className="text-xs text-muted-foreground">{secondaryName}</p>
+                <p className="text-xs text-text-secondary">{secondaryName}</p>
               )}
             </div>
           </div>
@@ -101,12 +101,12 @@ export function ModuleCard({
             <div className="text-sm font-medium">
               {progress.topics_completed}/{module.topics}
             </div>
-            <div className="text-xs text-muted-foreground">{t("learn.topics")}</div>
+            <div className="text-xs text-text-secondary">{t("learn.topics")}</div>
           </div>
         </div>
       </CardHeader>
       <CardContent className="pt-0">
-        <p className="text-sm text-muted-foreground mb-3">
+        <p className="text-sm text-text-secondary mb-3">
           {moduleDescription}
         </p>
 
@@ -118,7 +118,7 @@ export function ModuleCard({
 
         {/* Progress Bar */}
         <div className="space-y-1">
-          <div className="h-2 bg-muted rounded-full overflow-hidden">
+          <div className="h-2 bg-surface rounded-full overflow-hidden">
             <div
               className={`h-full transition-all duration-500 ${
                 progress.is_complete
@@ -128,7 +128,7 @@ export function ModuleCard({
               style={{ width: `${progressPercent}%` }}
             />
           </div>
-          <div className="flex justify-between text-xs text-muted-foreground">
+          <div className="flex justify-between text-xs text-text-secondary">
             <span>{progressPercent}% {t("learn.complete")}</span>
             <span>{t("learn.avg")} {progress.average_mastery}%</span>
           </div>
@@ -149,7 +149,7 @@ export function ModuleCard({
         )}
 
         {!isUnlocked && (
-          <div className="mt-4 text-center text-sm text-muted-foreground">
+          <div className="mt-4 text-center text-sm text-text-secondary">
             {t("learn.completeToUnlock", { n: String(index) })}
           </div>
         )}

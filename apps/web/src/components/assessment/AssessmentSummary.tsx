@@ -284,7 +284,7 @@ export function AssessmentSummary({
               Your Improvement
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-              <div className="text-center p-4 bg-muted/50 rounded-lg">
+              <div className="text-center p-4 bg-surface/50 rounded-lg">
                 <div className="text-sm text-text-tertiary mb-1">Pre-Assessment</div>
                 <div className="text-3xl font-bold text-text-secondary">
                   {Math.round(comparisonData.pre.score)}%
@@ -296,9 +296,9 @@ export function AssessmentSummary({
                   {score}%
                 </div>
               </div>
-              <div className="text-center p-4 bg-green-50 rounded-lg">
+              <div className="text-center p-4 bg-success/10 rounded-lg">
                 <div className="text-sm text-text-tertiary mb-1">Improvement</div>
-                <div className={`text-3xl font-bold ${score - comparisonData.pre.score > 0 ? "text-green-600" : "text-red-600"}`}>
+                <div className={`text-3xl font-bold ${score - comparisonData.pre.score > 0 ? "text-success" : "text-error"}`}>
                   {score - Math.round(comparisonData.pre.score) > 0 ? "+" : ""}
                   {Math.round(score - comparisonData.pre.score)}%
                 </div>
@@ -318,20 +318,20 @@ export function AssessmentSummary({
                       {CATEGORY_NAMES[module] || module.replace(/_/g, " ")}
                     </div>
                     <div className="flex-1 flex items-center gap-2">
-                      <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
+                      <div className="flex-1 bg-surface rounded-full h-2 overflow-hidden">
                         <div
                           className="h-full bg-text-tertiary/40 rounded-full"
                           style={{ width: `${Math.round(preScore)}%` }}
                         />
                       </div>
-                      <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
+                      <div className="flex-1 bg-surface rounded-full h-2 overflow-hidden">
                         <div
                           className="h-full bg-primary rounded-full"
                           style={{ width: `${postScore}%` }}
                         />
                       </div>
                     </div>
-                    <div className={`w-14 text-right text-sm font-bold ${diff > 0 ? "text-green-600" : diff < 0 ? "text-red-600" : "text-text-tertiary"}`}>
+                    <div className={`w-14 text-right text-sm font-bold ${diff > 0 ? "text-success" : diff < 0 ? "text-error" : "text-text-tertiary"}`}>
                       {diff > 0 ? "+" : ""}{diff}%
                     </div>
                   </div>
@@ -380,10 +380,10 @@ export function AssessmentSummary({
                   {categories.map((cat) => (
                     <div
                       key={cat.category}
-                      className="flex items-center justify-between p-3 rounded-lg bg-muted/30"
+                      className="flex items-center justify-between p-3 rounded-lg bg-surface/30"
                     >
                       <div className="flex items-center gap-2">
-                        <span className={cat.score >= MASTERY_THRESHOLDS.PASSING ? "text-green-600" : "text-amber-600"}>
+                        <span className={cat.score >= MASTERY_THRESHOLDS.PASSING ? "text-success" : "text-warning"}>
                           {cat.score >= MASTERY_THRESHOLDS.PASSING ? "✓" : "→"}
                         </span>
                         <span className="text-sm font-medium text-text-primary">
@@ -391,7 +391,7 @@ export function AssessmentSummary({
                         </span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className={`text-sm font-bold ${cat.score >= MASTERY_THRESHOLDS.PASSING ? "text-green-600" : "text-amber-600"}`}>
+                        <span className={`text-sm font-bold ${cat.score >= MASTERY_THRESHOLDS.PASSING ? "text-success" : "text-warning"}`}>
                           {cat.score}%
                         </span>
                         {cat.score < MASTERY_THRESHOLDS.PASSING && (
@@ -442,23 +442,23 @@ export function AssessmentSummary({
                     return (
                       <div
                         key={cat.category}
-                        className="flex items-center justify-between p-3 rounded-lg bg-muted/30"
+                        className="flex items-center justify-between p-3 rounded-lg bg-surface/30"
                       >
                         <div className="flex items-center gap-2">
-                          <span className={cat.score >= MASTERY_THRESHOLDS.PASSING ? "text-green-600" : "text-amber-600"}>
+                          <span className={cat.score >= MASTERY_THRESHOLDS.PASSING ? "text-success" : "text-warning"}>
                             {cat.score >= MASTERY_THRESHOLDS.PASSING ? "✓" : "!"}
                           </span>
                           <span className="text-sm font-medium text-text-primary">
                             {cat.name}
                           </span>
                           {improved && (
-                            <span className="text-xs text-green-600 font-medium">
+                            <span className="text-xs text-success font-medium">
                               +{cat.score - (preScore ?? 0)}%
                             </span>
                           )}
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className={`text-sm font-bold ${cat.score >= MASTERY_THRESHOLDS.PASSING ? "text-green-600" : "text-amber-600"}`}>
+                          <span className={`text-sm font-bold ${cat.score >= MASTERY_THRESHOLDS.PASSING ? "text-success" : "text-warning"}`}>
                             {cat.score}%
                           </span>
                           {cat.score < MASTERY_THRESHOLDS.PASSING && (
@@ -476,9 +476,9 @@ export function AssessmentSummary({
                 </div>
 
                 {allMastered && (
-                  <div className="text-center p-4 bg-green-50 rounded-lg mb-4">
+                  <div className="text-center p-4 bg-success/10 rounded-lg mb-4">
                     <span className="text-3xl block mb-1">🎓</span>
-                    <p className="text-sm font-semibold text-green-700">Curriculum Mastery Achieved!</p>
+                    <p className="text-sm font-semibold text-success">Curriculum Mastery Achieved!</p>
                   </div>
                 )}
               </>

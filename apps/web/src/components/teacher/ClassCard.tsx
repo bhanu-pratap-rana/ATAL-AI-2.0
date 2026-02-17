@@ -55,15 +55,15 @@ export function ClassCard({ classData }: ClassCardProps) {
 
   return (
     <>
-      <Card className="hover:shadow-lg transition-shadow">
+      <Card className="card-hover">
         <CardHeader>
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-start gap-2 flex-1">
               <span className="text-2xl">📚</span>
               <div className="flex-1">
-                <CardTitle className="text-primary">{classData.name}</CardTitle>
+                <CardTitle className="text-primary truncate">{classData.name}</CardTitle>
                 {classData.subject && (
-                  <p className="text-sm text-text-secondary mt-1">
+                  <p className="text-sm text-text-secondary mt-1 truncate">
                     📖 {classData.subject}
                   </p>
                 )}

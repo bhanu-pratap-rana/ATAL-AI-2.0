@@ -729,7 +729,7 @@ export function AssessmentRunner({
               <h2
                 ref={questionRef}
                 id="question-text"
-                className={`text-xl md:text-2xl font-bold text-text-primary ${fontClass}`}
+                className={`text-xl md:text-2xl font-bold text-text-primary break-words ${fontClass}`}
                 tabIndex={-1}
               >
                 {currentQuestion.questionText}
@@ -770,7 +770,7 @@ export function AssessmentRunner({
                           )}
                         </div>
                         <span
-                          className={`text-base text-text-primary ${fontClass}`}
+                          className={`text-base text-text-primary break-words ${fontClass}`}
                         >
                           <span className="font-semibold mr-2">{label}.</span>
                           {option.text}

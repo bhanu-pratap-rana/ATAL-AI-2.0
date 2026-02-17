@@ -39,15 +39,15 @@ function formatDuration(ms: number): string {
 
 // Get score color helper
 function getScoreColor(score: number): string {
-  if (score >= 80) return "text-green-600";
-  if (score >= 60) return "text-yellow-600";
-  return "text-red-600";
+  if (score >= 80) return "text-success";
+  if (score >= 60) return "text-warning";
+  return "text-error";
 }
 
 function getScoreBg(score: number): string {
-  if (score >= 80) return "bg-green-100";
-  if (score >= 60) return "bg-yellow-100";
-  return "bg-red-100";
+  if (score >= 80) return "bg-success/10";
+  if (score >= 60) return "bg-warning/10";
+  return "bg-error/10";
 }
 
 export default async function AssessmentDetailPage({
@@ -200,21 +200,21 @@ export default async function AssessmentDetailPage({
               {/* Quick Stats */}
               <div className="flex gap-4 sm:gap-6 text-center">
                 <div>
-                  <div className="flex items-center gap-1 justify-center text-green-600">
+                  <div className="flex items-center gap-1 justify-center text-success">
                     <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                     <span className="text-xl sm:text-2xl font-bold">{correctAnswers}</span>
                   </div>
                   <p className="text-xs text-text-secondary">Correct</p>
                 </div>
                 <div>
-                  <div className="flex items-center gap-1 justify-center text-red-600">
+                  <div className="flex items-center gap-1 justify-center text-error">
                     <XCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                     <span className="text-xl sm:text-2xl font-bold">{incorrectAnswers}</span>
                   </div>
                   <p className="text-xs text-text-secondary">Incorrect</p>
                 </div>
                 <div>
-                  <div className="flex items-center gap-1 justify-center text-blue-600">
+                  <div className="flex items-center gap-1 justify-center text-info">
                     <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
                     <span className="text-xl sm:text-2xl font-bold">
                       {Math.round(avgTimeMs / 1000)}s

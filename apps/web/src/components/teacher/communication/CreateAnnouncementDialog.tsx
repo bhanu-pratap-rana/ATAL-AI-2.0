@@ -122,7 +122,7 @@ export function CreateAnnouncementDialog({
               <Label htmlFor="announcement-body">Message</Label>
               <textarea
                 id="announcement-body"
-                className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder="Write your announcement here..."
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
@@ -163,7 +163,7 @@ export function CreateAnnouncementDialog({
                     checked={isPinned}
                     onChange={(e) => setIsPinned(e.target.checked)}
                     disabled={loading}
-                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                    className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                   />
                   <span className="text-sm text-text-secondary">
                     {isPinned ? "Pinned" : "Not pinned"}

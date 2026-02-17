@@ -210,7 +210,7 @@ function SchoolFinderModal({
                 className="w-full text-left p-3 hover:bg-surface transition-colors"
                 disabled={loading}
               >
-                <div className="font-semibold text-sm text-foreground">
+                <div className="font-semibold text-sm text-text-primary">
                   {school.school_name}
                 </div>
                 <div className="text-xs text-text-secondary mt-1">
@@ -536,7 +536,7 @@ export default function AdminSchoolsPage() {
       <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface p-6 flex items-center justify-center">
         <div className="max-w-md mx-auto text-center">
           <Shield className="h-12 w-12 text-error mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-foreground mb-2">
+          <h1 className="text-2xl font-bold text-text-primary mb-2">
             Access Denied
           </h1>
           <p className="text-text-secondary mb-6">
@@ -571,7 +571,7 @@ export default function AdminSchoolsPage() {
         <div className="flex items-center justify-center gap-3 mb-8">
           <Shield className="h-8 w-8 text-primary" />
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-foreground">
+            <h1 className="text-2xl font-bold text-text-primary">
               School PIN Management
             </h1>
             <p className="text-xs text-text-secondary">
@@ -632,7 +632,7 @@ export default function AdminSchoolsPage() {
                     className="w-full text-left p-3 hover:bg-surface transition-colors flex justify-between items-center"
                   >
                     <div>
-                      <div className="font-semibold text-sm text-foreground">
+                      <div className="font-semibold text-sm text-text-primary">
                         {school.school_name}
                       </div>
                       <div className="text-xs text-text-secondary mt-1">
@@ -782,7 +782,7 @@ export default function AdminSchoolsPage() {
 
             {/* Help */}
             <div className="mt-6 bg-gradient-to-r from-cream to-surface border border-primary/20 p-4 rounded-lg">
-              <h3 className="font-semibold text-foreground text-sm mb-2">
+              <h3 className="font-semibold text-text-primary text-sm mb-2">
                 📋 Quick Guide
               </h3>
               <ul className="text-sm text-text-secondary space-y-2">

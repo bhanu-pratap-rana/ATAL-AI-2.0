@@ -225,7 +225,7 @@ export function UploadMaterialDialog({
               <Label htmlFor="material-description">Description (optional)</Label>
               <textarea
                 id="material-description"
-                className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder="Brief description of this material..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -285,7 +285,7 @@ export function UploadMaterialDialog({
                   className={`flex-1 px-3 py-2 text-sm rounded-md border transition-colors ${
                     sourceMode === "file"
                       ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-background border-input hover:bg-muted"
+                      : "bg-background border-input hover:bg-surface-dark"
                   }`}
                 >
                   📎 Upload File
@@ -297,7 +297,7 @@ export function UploadMaterialDialog({
                   className={`flex-1 px-3 py-2 text-sm rounded-md border transition-colors ${
                     sourceMode === "url"
                       ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-background border-input hover:bg-muted"
+                      : "bg-background border-input hover:bg-surface-dark"
                   }`}
                 >
                   🔗 Paste URL

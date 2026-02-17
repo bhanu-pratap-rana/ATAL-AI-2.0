@@ -16,11 +16,11 @@ interface StudentMaterialsCardProps {
 }
 
 const fileTypeConfig: Record<string, { icon: typeof FileText; label: string; className: string }> = {
-  document: { icon: FileText, label: "Document", className: "text-blue-600" },
-  video: { icon: Video, label: "Video", className: "text-purple-600" },
-  image: { icon: Image, label: "Image", className: "text-green-600" },
-  link: { icon: FileText, label: "Link", className: "text-cyan-600" },
-  other: { icon: File, label: "File", className: "text-gray-600" },
+  document: { icon: FileText, label: "Document", className: "text-info" },
+  video: { icon: Video, label: "Video", className: "text-secondary" },
+  image: { icon: Image, label: "Image", className: "text-success" },
+  link: { icon: FileText, label: "Link", className: "text-accent" },
+  other: { icon: File, label: "File", className: "text-text-secondary" },
 };
 
 function formatFileSize(bytes: number | null): string {

@@ -53,7 +53,7 @@ export function TeacherSignUpStep({
               className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-colors text-xs sm:text-sm ${
                 state.signupMethod === "email"
                   ? "bg-primary text-white shadow-md"
-                  : "bg-muted text-text-secondary hover:bg-muted/80"
+                  : "bg-surface text-text-secondary hover:bg-surface-dark"
               }`}
               disabled={state.loading}
             >
@@ -64,7 +64,7 @@ export function TeacherSignUpStep({
               className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-colors text-xs sm:text-sm ${
                 state.signupMethod === "phone"
                   ? "bg-primary text-white shadow-md"
-                  : "bg-muted text-text-secondary hover:bg-muted/80"
+                  : "bg-surface text-text-secondary hover:bg-surface-dark"
               }`}
               disabled={state.loading}
             >
@@ -198,7 +198,7 @@ export function TeacherSignUpStep({
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone Number</Label>
                   <div className="flex gap-2">
-                    <div className="flex items-center px-3 bg-muted rounded-lg">
+                    <div className="flex items-center px-3 bg-surface rounded-lg">
                       <span className="text-sm font-medium text-text-secondary">
                         +91
                       </span>

@@ -20,25 +20,25 @@ interface LearningStyleCardProps {
 // Style-specific gradient colors
 const STYLE_COLORS = {
   visual: {
-    gradient: "from-blue-500 to-blue-600",
-    bg: "bg-blue-50",
-    border: "border-blue-200",
-    text: "text-blue-700",
-    bar: "bg-blue-500",
+    gradient: "from-info to-info/80",
+    bg: "bg-info/5",
+    border: "border-info/30",
+    text: "text-info",
+    bar: "bg-info",
   },
   text: {
-    gradient: "from-green-500 to-green-600",
-    bg: "bg-green-50",
-    border: "border-green-200",
-    text: "text-green-700",
-    bar: "bg-green-500",
+    gradient: "from-success to-success/80",
+    bg: "bg-success/5",
+    border: "border-success/30",
+    text: "text-success",
+    bar: "bg-success",
   },
   auditory: {
-    gradient: "from-purple-500 to-purple-600",
-    bg: "bg-purple-50",
-    border: "border-purple-200",
-    text: "text-purple-700",
-    bar: "bg-purple-500",
+    gradient: "from-secondary to-secondary/80",
+    bg: "bg-secondary/5",
+    border: "border-secondary/30",
+    text: "text-secondary",
+    bar: "bg-secondary",
   },
 };
 

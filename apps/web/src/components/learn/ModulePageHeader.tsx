@@ -28,7 +28,7 @@ export function ModulePageHeader({ moduleId, moduleName }: ModulePageHeaderProps
       <div className="flex flex-wrap items-center justify-between gap-4">
         <Link
           href="/app/learn"
-          className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
+          className="inline-flex items-center text-sm text-text-secondary hover:text-primary transition-colors"
         >
           ← Back to Learning Path
         </Link>

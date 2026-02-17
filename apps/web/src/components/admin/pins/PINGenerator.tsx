@@ -46,7 +46,7 @@ export function PINGenerator({
           type="text"
           value={selectedSchool.schoolCode}
           disabled
-          className="bg-muted"
+          className="bg-surface"
         />
       </div>
 

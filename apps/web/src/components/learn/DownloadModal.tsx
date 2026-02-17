@@ -133,10 +133,10 @@ export const DownloadModal = memo(function DownloadModal({
               >
                 {includeTTS && "✓"}
               </div>
-              <Volume2 className="h-5 w-5 text-muted-foreground" />
+              <Volume2 className="h-5 w-5 text-text-secondary" />
               <div className="flex-1 text-left">
                 <div className="text-sm font-medium">{t("learn.yesIncludeTTS")}</div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-xs text-text-secondary">
                   {t("learn.mbExtra", { size: ESTIMATED_TTS_SIZE_MB })}
                 </div>
               </div>
@@ -144,8 +144,8 @@ export const DownloadModal = memo(function DownloadModal({
           </div>
 
           {/* Estimated Size */}
-          <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-            <span className="text-sm text-muted-foreground">
+          <div className="flex items-center justify-between p-3 bg-surface/50 rounded-lg">
+            <span className="text-sm text-text-secondary">
               {t("learn.estimatedDownloadSize")}
             </span>
             <span className="font-medium">~{estimatedSize} MB</span>

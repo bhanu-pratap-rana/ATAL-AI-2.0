@@ -17,7 +17,7 @@ export default function HomePage() {
           {/* Teacher Button */}
           <Button
             onClick={() => router.push("/teacher/start")}
-            className="w-full h-16 text-lg shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5 transition-all"
+            className="w-full h-14 text-lg shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5 transition-all"
             variant="default"
           >
             <span className="text-2xl mr-3">👨‍🏫</span>
@@ -32,7 +32,7 @@ export default function HomePage() {
           {/* Student Button */}
           <Button
             onClick={() => router.push("/student/start")}
-            className="w-full h-16 text-lg border-2 hover:border-primary hover:shadow-[var(--shadow-primary-sm)] hover:-translate-y-0.5 transition-all"
+            className="w-full h-14 text-lg border-2 hover:border-primary hover:shadow-[var(--shadow-primary-sm)] hover:-translate-y-0.5 transition-all"
             variant="outline"
           >
             <span className="text-2xl mr-3">🎓</span>

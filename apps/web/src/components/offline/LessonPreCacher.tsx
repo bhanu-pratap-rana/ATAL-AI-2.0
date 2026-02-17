@@ -42,7 +42,7 @@ function getCacheStatusIcon(status: CacheStatus) {
     case "done":
       return <CheckCircle className="h-4 w-4 text-success" />;
     default:
-      return <Download className="h-4 w-4 text-muted-foreground" />;
+      return <Download className="h-4 w-4 text-text-secondary" />;
   }
 }
 

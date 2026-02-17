@@ -19,6 +19,7 @@ import Link from "next/link";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { UnitAccordion, type UnitData } from "@/components/learn/UnitAccordion";
 import { LanguageSelector } from "@/components/learn/LanguageSelector";
 import { DownloadModal } from "@/components/learn/DownloadModal";
@@ -192,18 +193,14 @@ export default function ModuleUnitsPage({
 
   // Loading state
   if (isLoading || !moduleId) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <LoadingSpinner size="lg" fullPage />;
   }
 
   // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 p-4 md:p-6">
-        <div className="max-w-4xl mx-auto">
+      <div className="min-h-screen bg-gradient-to-b from-cream to-surface/30 p-4 md:p-6">
+        <div className="container-responsive max-w-4xl">
           <Card className="p-6 text-center">
             <p className="text-error mb-4">{error}</p>
             <Link href="/app/learn">
@@ -225,13 +222,13 @@ export default function ModuleUnitsPage({
       : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 p-4 md:p-6">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-b from-cream to-surface/30 p-4 md:p-6">
+      <div className="container-responsive max-w-4xl space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <Link
             href="/app/learn"
-            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+            className="flex items-center gap-2 text-text-secondary hover:text-text-primary transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             <span>{t("nav.backToLearningPath")}</span>
@@ -309,7 +306,7 @@ export default function ModuleUnitsPage({
         {/* Empty state if no units */}
         {data.units.length === 0 && (
           <Card className="p-6 text-center">
-            <p className="text-muted-foreground">
+            <p className="text-text-secondary">
               {t("learn.noUnitsAvailable")}
             </p>
           </Card>

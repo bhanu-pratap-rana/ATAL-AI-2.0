@@ -264,7 +264,7 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
             className={`flex-1 py-2 px-3 rounded-lg font-medium transition-colors text-sm ${
               state.signinTab === "email"
                 ? "bg-primary text-white"
-                : "bg-muted text-text-secondary hover:bg-muted/80"
+                : "bg-surface text-text-secondary hover:bg-surface-dark"
             }`}
             disabled={isLoading}
           >
@@ -275,7 +275,7 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
             className={`flex-1 py-2 px-3 rounded-lg font-medium transition-colors text-sm ${
               state.signinTab === "phone"
                 ? "bg-primary text-white"
-                : "bg-muted text-text-secondary hover:bg-muted/80"
+                : "bg-surface text-text-secondary hover:bg-surface-dark"
             }`}
             disabled={isLoading}
           >
@@ -286,7 +286,7 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
             className={`flex-1 py-2 px-3 rounded-lg font-medium transition-colors text-sm ${
               state.signinTab === "username"
                 ? "bg-primary text-white"
-                : "bg-muted text-text-secondary hover:bg-muted/80"
+                : "bg-surface text-text-secondary hover:bg-surface-dark"
             }`}
             disabled={isLoading}
           >

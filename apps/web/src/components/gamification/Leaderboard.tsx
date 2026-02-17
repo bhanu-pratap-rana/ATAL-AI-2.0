@@ -46,7 +46,7 @@ function getRankDisplay(rank: number) {
   }
 
   return (
-    <span className="text-sm font-bold text-muted-foreground">
+    <span className="text-sm font-bold text-text-secondary">
       #{rank}
     </span>
   );
@@ -128,12 +128,12 @@ export function Leaderboard({
         {[1, 2, 3, 4, 5].map((position) => (
           <div
             key={`position-${position}`}
-            className="animate-pulse flex items-center gap-3 p-3 rounded-lg bg-muted"
+            className="animate-pulse flex items-center gap-3 p-3 rounded-lg bg-surface"
           >
-            <div className="w-8 h-8 bg-muted-foreground/20 rounded-full" />
+            <div className="w-8 h-8 bg-surface-foreground/20 rounded-full" />
             <div className="flex-1 space-y-2">
-              <div className="h-4 bg-muted-foreground/20 rounded w-1/3" />
-              <div className="h-3 bg-muted-foreground/20 rounded w-1/4" />
+              <div className="h-4 bg-surface-foreground/20 rounded w-1/3" />
+              <div className="h-3 bg-surface-foreground/20 rounded w-1/4" />
             </div>
           </div>
         ))}
@@ -157,7 +157,7 @@ export function Leaderboard({
 
   if (leaders.length === 0) {
     return (
-      <div className="text-center py-8 text-muted-foreground">
+      <div className="text-center py-8 text-text-secondary">
         <p>No students have earned points yet.</p>
         <p className="text-sm mt-2">Be the first to complete an assessment!</p>
       </div>
@@ -175,7 +175,7 @@ export function Leaderboard({
             className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
               isCurrentUser
                 ? "bg-primary/10 border-2 border-primary"
-                : "bg-muted/50 hover:bg-muted"
+                : "bg-surface/50 hover:bg-surface-dark"
             }`}
           >
             {/* Rank */}
@@ -186,7 +186,7 @@ export function Leaderboard({
             {/* Name */}
             <div className="flex-1">
               <p
-                className={`font-medium ${isCurrentUser ? "text-primary" : "text-text-primary"}`}
+                className={`font-medium truncate ${isCurrentUser ? "text-primary" : "text-text-primary"}`}
               >
                 {leader.name}
                 {isCurrentUser && (
@@ -202,7 +202,7 @@ export function Leaderboard({
               <p className="font-bold text-warning">
                 {leader.points.toLocaleString()}
               </p>
-              <p className="text-xs text-muted-foreground">points</p>
+              <p className="text-xs text-text-secondary">points</p>
             </div>
           </div>
         );
