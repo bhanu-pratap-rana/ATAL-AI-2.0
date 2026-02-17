@@ -115,13 +115,14 @@ const nextConfig: NextConfig = {
         headers: [
           // Content Security Policy - prevent XSS and injection attacks
           // Note: 'unsafe-inline' for style-src is acceptable with proper Content-Type
-          // Scripts are bundled by Next.js Turbopack (no unsafe-inline needed)
+          // 'unsafe-inline' for script-src is required because Next.js injects inline <script>
+          // tags for hydration data, route manifests, and chunk loading even in production builds
           {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              // Script src: self + Google Fonts only (cdn.jsdelivr.net removed - not used, supply chain risk)
-              "script-src 'self' fonts.googleapis.com",
+              // Script src: self + unsafe-inline (required for Next.js hydration scripts)
+              "script-src 'self' 'unsafe-inline' fonts.googleapis.com",
               // Style src: self + unsafe-inline for Tailwind/CSS-in-JS generated styles
               "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
               "font-src 'self' fonts.gstatic.com data:",
