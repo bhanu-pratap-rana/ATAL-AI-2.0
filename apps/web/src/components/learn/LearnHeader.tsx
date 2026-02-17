@@ -60,7 +60,7 @@ export function LearnHeader({
       <div className="flex flex-wrap items-center justify-between gap-4">
         <Link
           href={resolvedBackLink.href}
-          className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
+          className="inline-flex items-center text-sm text-text-secondary hover:text-primary transition-colors"
         >
           ← {resolvedBackLink.label}
         </Link>
@@ -72,7 +72,7 @@ export function LearnHeader({
       <div className="text-center space-y-2">
         <h1 className="text-3xl font-bold">{displayTitle}</h1>
         {displayDescription && (
-          <p className="text-muted-foreground">{displayDescription}</p>
+          <p className="text-text-secondary">{displayDescription}</p>
         )}
       </div>
     </div>

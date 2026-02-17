@@ -386,7 +386,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
             className={`flex-1 py-2 px-3 rounded-lg font-medium transition-colors text-sm ${
               state.signupTab === "email"
                 ? "bg-primary text-white"
-                : "bg-muted text-text-secondary hover:bg-muted/80"
+                : "bg-surface text-text-secondary hover:bg-surface-dark"
             }`}
             disabled={isLoading}
           >
@@ -397,7 +397,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
             className={`flex-1 py-2 px-3 rounded-lg font-medium transition-colors text-sm ${
               state.signupTab === "phone"
                 ? "bg-primary text-white"
-                : "bg-muted text-text-secondary hover:bg-muted/80"
+                : "bg-surface text-text-secondary hover:bg-surface-dark"
             }`}
             disabled={isLoading}
           >
@@ -408,7 +408,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
             className={`flex-1 py-2 px-3 rounded-lg font-medium transition-colors text-sm ${
               state.signupTab === "guest"
                 ? "bg-primary text-white"
-                : "bg-muted text-text-secondary hover:bg-muted/80"
+                : "bg-surface text-text-secondary hover:bg-surface-dark"
             }`}
             disabled={isLoading}
           >

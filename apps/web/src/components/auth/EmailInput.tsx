@@ -68,7 +68,7 @@ export function EmailInput({
         disabled={disabled}
         autoFocus={autoFocus}
         required={required}
-        className="bg-muted"
+        className="bg-surface"
         aria-label={label}
         aria-describedby={getInputDescriptionId(id, error, helperText)}
       />

@@ -155,7 +155,7 @@ export function LessonCompletionModal({
         <CardContent className="space-y-5">
           {/* Score */}
           <div className="text-center">
-            <p className="text-sm text-muted-foreground mb-1">
+            <p className="text-sm text-text-secondary mb-1">
               {LABELS.score[language]}
             </p>
             <div className="text-5xl font-bold mb-2">
@@ -165,7 +165,7 @@ export function LessonCompletionModal({
               value={score}
               className={`h-3 ${isPassing ? "[&>div]:bg-success" : "[&>div]:bg-warning"}`}
             />
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-text-secondary mt-1">
               {LABELS.attempt[language]} #{attempts}
             </p>
           </div>

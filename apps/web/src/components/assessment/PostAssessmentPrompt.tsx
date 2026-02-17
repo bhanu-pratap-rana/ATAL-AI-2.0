@@ -40,8 +40,8 @@ export function PostAssessmentPrompt({ open, onDismiss }: PostAssessmentPromptPr
           </DialogDescription>
         </DialogHeader>
 
-        <div className="bg-green-50 border-l-4 border-green-500 p-3 rounded-md mt-2">
-          <ul className="text-sm text-green-800 space-y-1">
+        <div className="bg-success/5 border-l-4 border-success p-3 rounded-md mt-2">
+          <ul className="text-sm text-success space-y-1">
             <li>Compare your scores with the pre-assessment</li>
             <li>See your improvement in each category</li>
             <li>Get a complete learning summary</li>

@@ -330,8 +330,8 @@ export default async function LearnPage() {
   const overallProgress = totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 p-4 md:p-6">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-b from-cream to-surface/30 p-4 md:p-6">
+      <div className="container-responsive max-w-4xl space-y-6">
         {/* Header with Language Selector and Back to Dashboard */}
         <LearnHeader
           title="learn.yourPath"

@@ -160,7 +160,7 @@ function ResetPasswordContent() {
               disabled={isLoading || Boolean(searchParams.get("email"))}
               className="w-full"
             />
-            <p className="text-xs text-gray-600">
+            <p className="text-xs text-text-secondary">
               We sent a verification code to this email address
             </p>
           </div>
@@ -180,7 +180,7 @@ function ResetPasswordContent() {
               maxLength={OTP_LENGTH}
               className="w-full text-center text-2xl tracking-widest font-mono"
             />
-            <p className="text-xs text-gray-600">
+            <p className="text-xs text-text-secondary">
               Enter the 6-digit code from your email
             </p>
           </div>
@@ -199,7 +199,7 @@ function ResetPasswordContent() {
               disabled={isLoading}
               className="w-full"
             />
-            <p className="text-xs text-gray-600">Minimum 8 characters</p>
+            <p className="text-xs text-text-secondary">Minimum 8 characters</p>
           </div>
 
           {/* Confirm Password Field */}
@@ -220,8 +220,8 @@ function ResetPasswordContent() {
 
           {/* Error Message */}
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-              <p className="text-sm text-red-700">{error}</p>
+            <div className="p-3 bg-error/10 border border-error/30 rounded-md">
+              <p className="text-sm text-error">{error}</p>
             </div>
           )}
 
@@ -242,12 +242,12 @@ function ResetPasswordContent() {
 
           {/* Back to Login Link */}
           <div className="text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-text-secondary">
               Remember your password?{" "}
               <button
                 type="button"
                 onClick={() => router.push("/student/start")}
-                className="text-blue-600 hover:underline font-medium"
+                className="text-primary hover:underline font-medium"
               >
                 Sign in here
               </button>

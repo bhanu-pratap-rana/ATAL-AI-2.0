@@ -142,11 +142,11 @@ export function RosterTable({ enrollments, classId }: RosterTableProps) {
                         {initial}
                       </div>
                       <div className="flex flex-col">
-                        <span className="font-medium text-sm md:text-base">
+                        <span className="font-medium text-sm md:text-base truncate max-w-[140px] sm:max-w-[200px]">
                           {displayName}
                         </span>
                         {/* Mobile-only: Show roll number and class inline */}
-                        <div className="flex gap-2 text-xs text-muted-foreground sm:hidden">
+                        <div className="flex flex-wrap gap-2 text-xs text-text-secondary sm:hidden">
                           {enrollment.student?.roll_number && (
                             <span>#{enrollment.student.roll_number}</span>
                           )}
@@ -156,21 +156,21 @@ export function RosterTable({ enrollments, classId }: RosterTableProps) {
                         </div>
                       </div>
                     </div>
-                    <span className="text-xs text-muted-foreground xl:hidden ml-10 md:ml-0">
+                    <span className="text-xs text-text-secondary xl:hidden ml-10 md:ml-0">
                       {enrolledDate}
                     </span>
                   </div>
                 </TableCell>
-                <TableCell className="hidden sm:table-cell text-muted-foreground">
+                <TableCell className="hidden sm:table-cell text-text-secondary">
                   {enrollment.student?.roll_number || "-"}
                 </TableCell>
-                <TableCell className="hidden md:table-cell text-muted-foreground">
+                <TableCell className="hidden md:table-cell text-text-secondary">
                   {enrollment.student?.class_name || "-"}
                 </TableCell>
-                <TableCell className="hidden lg:table-cell text-muted-foreground">
+                <TableCell className="hidden lg:table-cell text-text-secondary">
                   {enrollment.student?.phone || "-"}
                 </TableCell>
-                <TableCell className="hidden xl:table-cell text-muted-foreground">
+                <TableCell className="hidden xl:table-cell text-text-secondary">
                   {enrolledDate}
                 </TableCell>
                 <TableCell className="text-right">

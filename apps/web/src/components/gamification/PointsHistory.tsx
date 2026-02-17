@@ -52,37 +52,37 @@ const SOURCE_CONFIG: Record<
 > = {
   lesson_complete: {
     icon: BookOpen,
-    color: "text-green-600 bg-green-100",
+    color: "text-success bg-success/10",
     labelKey: "gamification.sourceLesson",
   },
   badge_earned: {
     icon: Award,
-    color: "text-yellow-600 bg-yellow-100",
+    color: "text-warning bg-warning/10",
     labelKey: "gamification.sourceBadge",
   },
   streak_bonus: {
     icon: Flame,
-    color: "text-orange-600 bg-orange-100",
+    color: "text-accent bg-accent/10",
     labelKey: "gamification.sourceStreak",
   },
   voice_usage: {
     icon: Mic,
-    color: "text-purple-600 bg-purple-100",
+    color: "text-info bg-info/10",
     labelKey: "gamification.sourceVoice",
   },
   question_asked: {
     icon: HelpCircle,
-    color: "text-blue-600 bg-blue-100",
+    color: "text-secondary bg-secondary/10",
     labelKey: "gamification.sourceQuestion",
   },
   assessment_complete: {
     icon: Star,
-    color: "text-cyan-600 bg-cyan-100",
+    color: "text-secondary bg-secondary/10",
     labelKey: "gamification.sourceAssessment",
   },
   default: {
     icon: TrendingUp,
-    color: "text-gray-600 bg-gray-100",
+    color: "text-text-secondary bg-surface-dark",
     labelKey: "gamification.sourceOther",
   },
 };
@@ -253,12 +253,12 @@ export function PointsHistory({
       <div className="space-y-3">
         {[1, 2, 3, 4, 5].map((i) => (
           <div key={`skeleton-${i}`} className="animate-pulse flex items-center gap-3">
-            <div className="w-10 h-10 bg-muted rounded-full" />
+            <div className="w-10 h-10 bg-surface rounded-full" />
             <div className="flex-1">
-              <div className="h-4 bg-muted rounded w-3/4 mb-1" />
-              <div className="h-3 bg-muted rounded w-1/2" />
+              <div className="h-4 bg-surface rounded w-3/4 mb-1" />
+              <div className="h-3 bg-surface rounded w-1/2" />
             </div>
-            <div className="h-5 bg-muted rounded w-16" />
+            <div className="h-5 bg-surface rounded w-16" />
           </div>
         ))}
       </div>
@@ -290,7 +290,7 @@ export function PointsHistory({
                   {entry.description || t(config.labelKey)}
                 </span>
               </div>
-              <span className="font-medium text-green-600">+{entry.points}</span>
+              <span className="font-medium text-success">+{entry.points}</span>
             </div>
           );
         })}
@@ -335,7 +335,7 @@ export function PointsHistory({
               "text-xs px-2 py-1 rounded-full transition-colors",
               selectedSource === null
                 ? "bg-primary text-white"
-                : "bg-surface hover:bg-muted"
+                : "bg-surface hover:bg-surface"
             )}
           >
             {t("gamification.all")}
@@ -350,7 +350,7 @@ export function PointsHistory({
                   "text-xs px-2 py-1 rounded-full transition-colors",
                   selectedSource === source
                     ? "bg-primary text-white"
-                    : "bg-surface hover:bg-muted"
+                    : "bg-surface hover:bg-surface"
                 )}
               >
                 {t(config.labelKey)}
@@ -414,7 +414,7 @@ export function PointsHistory({
               <div
                 className={cn(
                   "font-bold text-lg shrink-0",
-                  entry.points > 0 ? "text-green-600" : "text-red-600"
+                  entry.points > 0 ? "text-success" : "text-error"
                 )}
               >
                 {entry.points > 0 ? "+" : ""}
@@ -486,8 +486,8 @@ export function PointsSummary({
   if (loading) {
     return (
       <div className="animate-pulse">
-        <div className="h-8 bg-muted rounded w-20 mb-1" />
-        <div className="h-4 bg-muted rounded w-24" />
+        <div className="h-8 bg-surface rounded w-20 mb-1" />
+        <div className="h-4 bg-surface rounded w-24" />
       </div>
     );
   }
@@ -502,7 +502,7 @@ export function PointsSummary({
       </div>
       {todayPoints > 0 && (
         <div className="border-l border-border pl-6">
-          <div className="text-xl font-bold text-green-600">+{todayPoints}</div>
+          <div className="text-xl font-bold text-success">+{todayPoints}</div>
           <div className="text-sm text-text-secondary">{t("gamification.today")}</div>
         </div>
       )}

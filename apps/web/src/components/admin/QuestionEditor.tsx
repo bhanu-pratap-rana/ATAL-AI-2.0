@@ -58,10 +58,10 @@ interface QuestionEditorProps {
 }
 
 function getDifficultyColor(difficulty: number): string {
-  if (difficulty <= -1) return "text-green-600 bg-green-100";
-  if (difficulty <= 0.5) return "text-yellow-600 bg-yellow-100";
-  if (difficulty <= 1.5) return "text-orange-600 bg-orange-100";
-  return "text-red-600 bg-red-100";
+  if (difficulty <= -1) return "text-success bg-success/10";
+  if (difficulty <= 0.5) return "text-warning bg-warning/10";
+  if (difficulty <= 1.5) return "text-accent bg-accent/10";
+  return "text-error bg-error/10";
 }
 
 function getDifficultyLabel(difficulty: number): string {
@@ -138,7 +138,7 @@ export function QuestionEditor({ question, onUpdate }: QuestionEditorProps) {
         <div
           className={cn(
             "w-3 h-3 rounded-full shrink-0",
-            isActive ? "bg-green-500" : "bg-gray-300"
+            isActive ? "bg-success" : "bg-surface-dark"
           )}
           title={isActive ? "Active" : "Inactive"}
         />
@@ -208,7 +208,7 @@ export function QuestionEditor({ question, onUpdate }: QuestionEditorProps) {
                     className={cn(
                       "flex items-center gap-2 p-2 rounded border",
                       isCorrect
-                        ? "border-green-500 bg-green-50"
+                        ? "border-success bg-success/5"
                         : "border-border"
                     )}
                   >
@@ -216,8 +216,8 @@ export function QuestionEditor({ question, onUpdate }: QuestionEditorProps) {
                       className={cn(
                         "w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium",
                         isCorrect
-                          ? "bg-green-500 text-white"
-                          : "bg-gray-200 text-gray-600"
+                          ? "bg-success text-white"
+                          : "bg-surface-dark text-text-secondary"
                       )}
                     >
                       {key}
@@ -226,7 +226,7 @@ export function QuestionEditor({ question, onUpdate }: QuestionEditorProps) {
                       {question.options[key]}
                     </span>
                     {isCorrect && (
-                      <CheckCircle className="w-4 h-4 text-green-600" />
+                      <CheckCircle className="w-4 h-4 text-success" />
                     )}
                   </div>
                 );
@@ -359,7 +359,7 @@ export function QuestionEditor({ question, onUpdate }: QuestionEditorProps) {
                       onClick={() => setIsActive(!isActive)}
                       className={cn(
                         "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors",
-                        isActive ? "bg-green-500" : "bg-gray-200"
+                        isActive ? "bg-success" : "bg-surface-dark"
                       )}
                     >
                       <span
@@ -377,13 +377,13 @@ export function QuestionEditor({ question, onUpdate }: QuestionEditorProps) {
                   <div className="mt-1 flex items-center gap-2">
                     {(question.is_active ?? true) ? (
                       <>
-                        <CheckCircle className="w-4 h-4 text-green-600" />
-                        <span className="font-medium text-green-600">Active</span>
+                        <CheckCircle className="w-4 h-4 text-success" />
+                        <span className="font-medium text-success">Active</span>
                       </>
                     ) : (
                       <>
-                        <AlertCircle className="w-4 h-4 text-gray-400" />
-                        <span className="font-medium text-gray-500">Inactive</span>
+                        <AlertCircle className="w-4 h-4 text-text-tertiary" />
+                        <span className="font-medium text-text-tertiary">Inactive</span>
                       </>
                     )}
                   </div>

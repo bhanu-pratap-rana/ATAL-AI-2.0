@@ -66,11 +66,11 @@ function getDifficultyLabel(difficulty: number | null): {
   label: string;
   color: string;
 } {
-  if (difficulty === null) return { label: "Unknown", color: "text-gray-500" };
-  if (difficulty <= -1) return { label: "Easy", color: "text-green-600" };
-  if (difficulty <= 0.5) return { label: "Medium", color: "text-yellow-600" };
-  if (difficulty <= 1.5) return { label: "Hard", color: "text-orange-600" };
-  return { label: "Very Hard", color: "text-red-600" };
+  if (difficulty === null) return { label: "Unknown", color: "text-text-tertiary" };
+  if (difficulty <= -1) return { label: "Easy", color: "text-success" };
+  if (difficulty <= 0.5) return { label: "Medium", color: "text-warning" };
+  if (difficulty <= 1.5) return { label: "Hard", color: "text-primary" };
+  return { label: "Very Hard", color: "text-error" };
 }
 
 type FilterMode = "all" | "correct" | "incorrect";
@@ -128,7 +128,7 @@ export function AssessmentBreakdown({
                 "px-3 py-1 text-sm rounded-full transition-colors",
                 filterMode === "all"
                   ? "bg-primary text-white"
-                  : "bg-surface hover:bg-muted"
+                  : "bg-surface hover:bg-surface-dark"
               )}
             >
               All ({responses.length})
@@ -138,8 +138,8 @@ export function AssessmentBreakdown({
               className={cn(
                 "px-3 py-1 text-sm rounded-full transition-colors",
                 filterMode === "correct"
-                  ? "bg-green-600 text-white"
-                  : "bg-surface hover:bg-muted"
+                  ? "bg-success text-white"
+                  : "bg-surface hover:bg-surface-dark"
               )}
             >
               Correct ({correctCount})
@@ -149,8 +149,8 @@ export function AssessmentBreakdown({
               className={cn(
                 "px-3 py-1 text-sm rounded-full transition-colors",
                 filterMode === "incorrect"
-                  ? "bg-red-600 text-white"
-                  : "bg-surface hover:bg-muted"
+                  ? "bg-error text-white"
+                  : "bg-surface hover:bg-surface-dark"
               )}
             >
               Incorrect ({incorrectCount})
@@ -183,8 +183,8 @@ export function AssessmentBreakdown({
               className={cn(
                 "overflow-hidden transition-colors",
                 isCorrect
-                  ? "border-green-200 bg-green-50/30"
-                  : "border-red-200 bg-red-50/30"
+                  ? "border-success/30 bg-success/5"
+                  : "border-error/30 bg-error/5"
               )}
             >
               {/* Header - Always Visible */}
@@ -196,7 +196,7 @@ export function AssessmentBreakdown({
                 <div
                   className={cn(
                     "w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-white font-medium",
-                    isCorrect ? "bg-green-500" : "bg-red-500"
+                    isCorrect ? "bg-success" : "bg-error"
                   )}
                 >
                   {index + 1}
@@ -207,8 +207,8 @@ export function AssessmentBreakdown({
                   className={cn(
                     "w-6 h-6 rounded-full flex items-center justify-center shrink-0",
                     isCorrect
-                      ? "bg-green-100 text-green-600"
-                      : "bg-red-100 text-red-600"
+                      ? "bg-success/10 text-success"
+                      : "bg-error/10 text-error"
                   )}
                 >
                   {isCorrect ? (
@@ -273,9 +273,9 @@ export function AssessmentBreakdown({
                           className={cn(
                             "p-3 rounded-lg border-2 flex items-start gap-3",
                             isCorrectAnswer
-                              ? "border-green-500 bg-green-50"
+                              ? "border-success bg-success/10"
                               : isChosen
-                                ? "border-red-500 bg-red-50"
+                                ? "border-error bg-error/10"
                                 : "border-border bg-surface"
                           )}
                         >
@@ -284,10 +284,10 @@ export function AssessmentBreakdown({
                             className={cn(
                               "w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium shrink-0",
                               isCorrectAnswer
-                                ? "bg-green-500 text-white"
+                                ? "bg-success text-white"
                                 : isChosen
-                                  ? "bg-red-500 text-white"
-                                  : "bg-gray-200 text-gray-600"
+                                  ? "bg-error text-white"
+                                  : "bg-surface-dark text-text-secondary"
                             )}
                           >
                             {key}
@@ -300,10 +300,10 @@ export function AssessmentBreakdown({
 
                           {/* Indicator Icons */}
                           {isCorrectAnswer && (
-                            <Check className="w-5 h-5 text-green-600 shrink-0" />
+                            <Check className="w-5 h-5 text-success shrink-0" />
                           )}
                           {isChosen && !isCorrectAnswer && (
-                            <X className="w-5 h-5 text-red-600 shrink-0" />
+                            <X className="w-5 h-5 text-error shrink-0" />
                           )}
                         </div>
                       );

@@ -154,19 +154,19 @@ export function ConversationalVoiceChat({
         {/* Pulsing rings for listening state */}
         {state === "listening" && (
           <>
-            <div className="absolute inset-0 rounded-full bg-green-400 animate-ping opacity-20" style={{ animationDuration: "1.5s" }} />
-            <div className="absolute inset-[-8px] rounded-full bg-green-400 animate-ping opacity-10" style={{ animationDuration: "2s" }} />
+            <div className="absolute inset-0 rounded-full bg-success animate-ping opacity-20" style={{ animationDuration: "1.5s" }} />
+            <div className="absolute inset-[-8px] rounded-full bg-success animate-ping opacity-10" style={{ animationDuration: "2s" }} />
           </>
         )}
 
         {/* Speaking wave animation */}
         {state === "speaking" && (
-          <div className="absolute inset-[-12px] rounded-full border-4 border-blue-400 animate-pulse opacity-50" />
+          <div className="absolute inset-[-12px] rounded-full border-4 border-info animate-pulse opacity-50" />
         )}
 
         {/* Processing spinner */}
         {state === "processing" && (
-          <div className="absolute inset-[-8px] rounded-full border-4 border-orange-400 border-t-transparent animate-spin" />
+          <div className="absolute inset-[-8px] rounded-full border-4 border-accent border-t-transparent animate-spin" />
         )}
 
         <button
@@ -195,11 +195,11 @@ export function ConversationalVoiceChat({
           {getStateLabel(state)}
         </p>
         {state === "speaking" && (
-          <p className="text-sm text-gray-500 mt-1">Tap to interrupt</p>
+          <p className="text-sm text-text-tertiary mt-1">Tap to interrupt</p>
         )}
         {/* Show hint that mic will auto-open after AI finishes */}
         {showTapHint && state === "idle" && (
-          <p className="text-sm text-green-600 mt-1 animate-pulse">
+          <p className="text-sm text-success mt-1 animate-pulse">
             🎤 Resuming...
           </p>
         )}
@@ -208,8 +208,8 @@ export function ConversationalVoiceChat({
       {/* Interim Transcript */}
       {interimTranscript && (
         <div className="w-full max-w-full sm:max-w-md px-4 mb-4">
-          <div className="bg-gray-100 rounded-2xl px-4 py-3 sm:px-6 sm:py-4 text-center">
-            <p className="text-sm sm:text-base text-gray-700 italic break-words">&quot;{interimTranscript}&quot;</p>
+          <div className="bg-surface-dark rounded-2xl px-4 py-3 sm:px-6 sm:py-4 text-center">
+            <p className="text-sm sm:text-base text-text-primary italic break-words">&quot;{interimTranscript}&quot;</p>
           </div>
         </div>
       )}
@@ -217,8 +217,8 @@ export function ConversationalVoiceChat({
       {/* Error Message */}
       {error && (
         <div className="w-full max-w-md px-4 mb-4">
-          <div className="bg-red-50 border border-red-200 rounded-2xl px-6 py-4 text-center">
-            <p className="text-red-700 text-sm">{error}</p>
+          <div className="bg-error/10 border border-error/30 rounded-2xl px-6 py-4 text-center">
+            <p className="text-error text-sm">{error}</p>
             <button
               onClick={startListening}
               className="mt-3 px-6 py-2.5 min-h-[44px] text-sm sm:text-base bg-primary/10 text-primary font-medium rounded-lg hover:bg-primary/20 transition-colors"
@@ -230,8 +230,8 @@ export function ConversationalVoiceChat({
       )}
 
       {/* Language Indicator */}
-      <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500">
-        <span className="w-2 h-2 rounded-full bg-green-500" />
+      <div className="flex items-center gap-2 text-xs sm:text-sm text-text-tertiary">
+        <span className="w-2 h-2 rounded-full bg-success" />
         {autoDetectLanguage ? (
           <span>
             {detectedLanguage ? (
@@ -252,7 +252,7 @@ export function ConversationalVoiceChat({
             <div
               key={i}
               className={`w-1 rounded-full transition-all duration-150 ${
-                state === "listening" ? "bg-green-500" : "bg-blue-500"
+                state === "listening" ? "bg-success" : "bg-info"
               }`}
               style={{
                 height: `${Math.random() * 24 + 8}px`,
@@ -321,12 +321,12 @@ function getStateLabel(state: VoiceState): string {
 function getStateTextColor(state: VoiceState): string {
   switch (state) {
     case "idle":
-      return "text-gray-600";
+      return "text-text-secondary";
     case "listening":
-      return "text-green-600";
+      return "text-success";
     case "processing":
-      return "text-orange-600";
+      return "text-accent";
     case "speaking":
-      return "text-blue-600";
+      return "text-info";
   }
 }

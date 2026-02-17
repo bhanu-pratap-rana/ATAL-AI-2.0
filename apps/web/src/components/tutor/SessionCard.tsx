@@ -96,7 +96,7 @@ export function SessionCard({ session, isExpanded, onToggle }: SessionCardProps)
                 {session.message_count} messages
               </span>
               {voiceMessages > 0 && (
-                <span className="flex items-center gap-1 text-purple-600">
+                <span className="flex items-center gap-1 text-info">
                   <Mic className="w-4 h-4" />
                   {voiceMessages} voice
                 </span>
@@ -147,7 +147,7 @@ export function SessionCard({ session, isExpanded, onToggle }: SessionCardProps)
                       ? "bg-primary text-white"
                       : message.role === "assistant"
                         ? "bg-surface border border-border-light text-text-primary"
-                        : "bg-gray-100 text-text-secondary text-sm italic"
+                        : "bg-surface text-text-secondary text-sm italic"
                   }`}
                 >
                   {/* Message header for user messages */}

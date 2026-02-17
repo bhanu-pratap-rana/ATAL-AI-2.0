@@ -151,7 +151,7 @@ describe("PerformanceMonitoringPage", () => {
 
       await waitFor(() => {
         expect(screen.getByText("25.0%")).toBeInTheDocument();
-        expect(screen.getByText("25.0%").closest("p")).toHaveClass("text-green-600");
+        expect(screen.getByText("25.0%").closest("p")).toHaveClass("text-success");
       });
     });
 
@@ -166,7 +166,7 @@ describe("PerformanceMonitoringPage", () => {
 
       await waitFor(() => {
         expect(screen.getByText("75.0%")).toBeInTheDocument();
-        expect(screen.getByText("75.0%").closest("p")).toHaveClass("text-orange-600");
+        expect(screen.getByText("75.0%").closest("p")).toHaveClass("text-accent");
       });
     });
 
@@ -181,7 +181,7 @@ describe("PerformanceMonitoringPage", () => {
 
       await waitFor(() => {
         expect(screen.getByText("90.0%")).toBeInTheDocument();
-        expect(screen.getByText("90.0%").closest("p")).toHaveClass("text-red-600");
+        expect(screen.getByText("90.0%").closest("p")).toHaveClass("text-error");
       });
     });
   });
@@ -259,7 +259,7 @@ describe("PerformanceMonitoringPage", () => {
 
       await waitFor(() => {
         const alertDiv = screen.getByText("Pool exhausted").closest("div");
-        expect(alertDiv).toHaveClass("border-red-600");
+        expect(alertDiv).toHaveClass("border-error");
       });
     });
   });

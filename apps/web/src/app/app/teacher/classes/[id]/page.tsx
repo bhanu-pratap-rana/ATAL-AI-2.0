@@ -233,7 +233,7 @@ export default async function ClassDetailPage({
                 <div className="text-center sm:text-left">
                   <CardTitle className="flex items-center justify-center sm:justify-start gap-2 text-xl md:text-3xl">
                     <span>📚</span>
-                    <span className="bg-gradient-to-r from-primary via-primary-dark to-cyan bg-clip-text text-transparent">
+                    <span className="bg-gradient-to-r from-primary via-primary-dark to-cyan bg-clip-text text-transparent line-clamp-2 break-words">
                       {classData.name}
                     </span>
                   </CardTitle>

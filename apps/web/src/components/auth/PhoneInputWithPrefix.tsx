@@ -67,7 +67,7 @@ export function PhoneInputWithPrefix({
     <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
       <div className="flex gap-2">
-        <div className="flex items-center px-3 bg-muted border border-input rounded-md min-w-fit">
+        <div className="flex items-center px-3 bg-surface border border-input rounded-md min-w-fit">
           <span className="font-semibold text-text-primary">{prefix}</span>
         </div>
         <Input
@@ -81,7 +81,7 @@ export function PhoneInputWithPrefix({
           maxLength={maxLength}
           autoFocus={autoFocus}
           required={required}
-          className="bg-muted"
+          className="bg-surface"
           aria-label={label}
           aria-describedby={getInputDescriptionId(id, error, helperText)}
         />

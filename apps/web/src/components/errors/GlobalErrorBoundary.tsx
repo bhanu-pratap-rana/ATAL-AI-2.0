@@ -63,8 +63,8 @@ export class GlobalErrorBoundary extends React.Component<Props, State> {
 
             {/* Error Details (collapsed by default) */}
             {this.state.error && (
-              <details className="text-left mb-8 p-4 bg-muted rounded-lg">
-                <summary className="cursor-pointer text-sm font-medium text-muted-foreground mb-2">
+              <details className="text-left mb-8 p-4 bg-surface rounded-lg">
+                <summary className="cursor-pointer text-sm font-medium text-text-secondary mb-2">
                   Error Details
                 </summary>
                 <pre className="text-xs text-error overflow-auto max-h-40">
@@ -85,7 +85,7 @@ export class GlobalErrorBoundary extends React.Component<Props, State> {
               </button>
               <Link
                 href="/app/dashboard"
-                className="flex-1 px-6 py-3 bg-white text-text-secondary border-2 border-border rounded-lg hover:bg-muted transition-colors font-medium inline-flex items-center justify-center"
+                className="flex-1 px-6 py-3 bg-white text-text-secondary border-2 border-border rounded-lg hover:bg-surface-dark transition-colors font-medium inline-flex items-center justify-center"
               >
                 Go to Dashboard
               </Link>
@@ -93,7 +93,7 @@ export class GlobalErrorBoundary extends React.Component<Props, State> {
 
             {/* Support Link */}
             <div className="pt-6 border-t border-border">
-              <p className="text-sm text-muted-foreground mb-2">Need help?</p>
+              <p className="text-sm text-text-secondary mb-2">Need help?</p>
               <Link
                 href="/app/settings"
                 className="text-primary hover:underline text-sm font-medium"

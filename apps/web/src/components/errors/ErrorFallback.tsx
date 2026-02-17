@@ -29,10 +29,10 @@ export function ErrorFallback({ error, reset, context }: ErrorFallbackProps) {
           <span className="text-4xl" role="img" aria-label="Error">!</span>
         </div>
 
-        <h2 className="text-xl font-semibold text-foreground mb-2">
+        <h2 className="text-xl font-semibold text-text-primary mb-2">
           Something went wrong
         </h2>
-        <p className="text-muted-foreground mb-6 text-sm">
+        <p className="text-text-secondary mb-6 text-sm">
           An error occurred while loading this page. Your data is safe.
         </p>
 

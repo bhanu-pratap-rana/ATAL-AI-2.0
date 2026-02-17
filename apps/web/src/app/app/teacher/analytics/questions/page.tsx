@@ -39,10 +39,10 @@ interface QuestionStats {
 }
 
 function getSuccessRateColor(rate: number): string {
-  if (rate >= 80) return "text-green-600";
-  if (rate >= 60) return "text-yellow-600";
-  if (rate >= 40) return "text-orange-600";
-  return "text-red-600";
+  if (rate >= 80) return "text-success";
+  if (rate >= 60) return "text-warning";
+  if (rate >= 40) return "text-accent";
+  return "text-error";
 }
 
 function formatTime(ms: number): string {
@@ -225,25 +225,25 @@ export default async function PracticeQuestionAnalyticsPage() {
               <p className="text-xs text-text-secondary">Total Attempts</p>
             </CardContent>
           </Card>
-          <Card className="bg-green-100 border-green-200">
+          <Card className="bg-success/10 border-success/30">
             <CardContent className="py-4 text-center">
-              <p className="text-2xl font-bold text-green-600">
+              <p className="text-2xl font-bold text-success">
                 {overallSuccessRate}%
               </p>
               <p className="text-xs text-text-secondary">Success Rate</p>
             </CardContent>
           </Card>
-          <Card className="bg-yellow-100 border-yellow-200">
+          <Card className="bg-warning/10 border-warning/30">
             <CardContent className="py-4 text-center">
-              <p className="text-2xl font-bold text-yellow-600">
+              <p className="text-2xl font-bold text-warning">
                 {hintUsageRate}%
               </p>
               <p className="text-xs text-text-secondary">Hint Usage</p>
             </CardContent>
           </Card>
-          <Card className="bg-blue-100 border-blue-200">
+          <Card className="bg-info/10 border-info/30">
             <CardContent className="py-4 text-center">
-              <p className="text-2xl font-bold text-blue-600">
+              <p className="text-2xl font-bold text-info">
                 {questionStats.length}
               </p>
               <p className="text-xs text-text-secondary">Questions Answered</p>
@@ -298,7 +298,7 @@ export default async function PracticeQuestionAnalyticsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <TrendingDown className="w-5 h-5 text-red-500" />
+                <TrendingDown className="w-5 h-5 text-error" />
                 Most Challenging Questions
               </CardTitle>
             </CardHeader>
@@ -316,10 +316,10 @@ export default async function PracticeQuestionAnalyticsPage() {
                     return (
                       <div
                         key={q.questionId}
-                        className="p-3 bg-red-50 rounded-lg border border-red-100"
+                        className="p-3 bg-error/10 rounded-lg border border-error/20"
                       >
                         <div className="flex items-start gap-3">
-                          <span className="w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-xs font-bold shrink-0">
+                          <span className="w-6 h-6 rounded-full bg-error text-white flex items-center justify-center text-xs font-bold shrink-0">
                             {index + 1}
                           </span>
                           <div className="flex-1 min-w-0">
@@ -358,7 +358,7 @@ export default async function PracticeQuestionAnalyticsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-green-500" />
+                <TrendingUp className="w-5 h-5 text-success" />
                 Well-Mastered Questions
               </CardTitle>
             </CardHeader>
@@ -376,10 +376,10 @@ export default async function PracticeQuestionAnalyticsPage() {
                     return (
                       <div
                         key={q.questionId}
-                        className="p-3 bg-green-50 rounded-lg border border-green-100"
+                        className="p-3 bg-success/5 rounded-lg border border-success/20"
                       >
                         <div className="flex items-start gap-3">
-                          <span className="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center text-xs font-bold shrink-0">
+                          <span className="w-6 h-6 rounded-full bg-success text-white flex items-center justify-center text-xs font-bold shrink-0">
                             {index + 1}
                           </span>
                           <div className="flex-1 min-w-0">
@@ -479,7 +479,7 @@ export default async function PracticeQuestionAnalyticsPage() {
                           <td className="py-2 px-3 text-center text-text-secondary">
                             {q.hintUsageCount > 0 ? (
                               <span className="flex items-center justify-center gap-1">
-                                <Lightbulb className="w-4 h-4 text-yellow-500" />
+                                <Lightbulb className="w-4 h-4 text-warning" />
                                 {q.hintUsageCount}
                               </span>
                             ) : (

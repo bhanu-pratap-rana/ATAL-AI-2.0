@@ -29,7 +29,7 @@ function ToggleSwitch({
       onClick={() => onCheckedChange(!checked)}
       className={cn(
         "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-        checked ? "bg-primary" : "bg-gray-200"
+        checked ? "bg-primary" : "bg-surface-dark"
       )}
     >
       <span
@@ -115,10 +115,10 @@ export function FeatureFlagToggle({ flag, onUpdate }: FeatureFlagToggleProps) {
 
   const getRolloutColor = (percentage: number) => {
     if (percentage === 0) return "text-text-tertiary";
-    if (percentage < 25) return "text-orange-600";
-    if (percentage < 75) return "text-yellow-600";
+    if (percentage < 25) return "text-accent";
+    if (percentage < 75) return "text-warning";
     if (percentage < 100) return "text-cyan";
-    return "text-green-600";
+    return "text-success";
   };
 
   return (
@@ -138,8 +138,8 @@ export function FeatureFlagToggle({ flag, onUpdate }: FeatureFlagToggleProps) {
               className={cn(
                 "text-xs font-medium px-2 py-0.5 rounded-full",
                 localEnabled
-                  ? "bg-green-100 text-green-700"
-                  : "bg-gray-100 text-gray-600"
+                  ? "bg-success/10 text-success"
+                  : "bg-surface-dark text-text-secondary"
               )}
             >
               {localEnabled ? "Enabled" : "Disabled"}
@@ -205,7 +205,7 @@ export function FeatureFlagToggle({ flag, onUpdate }: FeatureFlagToggleProps) {
                 min={0}
                 max={100}
                 step={1}
-                className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary"
+                className="flex-1 h-2 bg-surface-dark rounded-lg appearance-none cursor-pointer accent-primary"
               />
               <Input
                 type="number"

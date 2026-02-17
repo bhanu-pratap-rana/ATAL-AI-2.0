@@ -128,7 +128,7 @@ export default async function TeacherDashboardPage() {
   // If teacher has no classes, show onboarding
   if (metrics.totalClasses === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 p-4 md:p-6">
+      <div className="min-h-screen bg-gradient-to-b from-cream to-surface/30 p-4 md:p-6">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold mb-6">Teacher Dashboard</h1>
 
@@ -138,7 +138,7 @@ export default async function TeacherDashboardPage() {
               <h2 className="text-2xl font-semibold mb-2">
                 Welcome to ATAL AI!
               </h2>
-              <p className="text-muted-foreground mb-6">
+              <p className="text-text-secondary mb-6">
                 Create your first class to start tracking student progress.
               </p>
               <Link href="/app/teacher/classes">
@@ -160,13 +160,13 @@ export default async function TeacherDashboardPage() {
   const selectedClass = metrics.classes[0];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-b from-cream to-surface/30 p-4 md:p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Teacher Dashboard</h1>
-            <p className="text-muted-foreground">
+            <p className="text-text-secondary">
               Monitor student progress and AI tutor usage in real-time
             </p>
           </div>
@@ -179,7 +179,7 @@ export default async function TeacherDashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+              <CardTitle className="text-sm font-medium text-text-secondary">
                 Total Classes
               </CardTitle>
             </CardHeader>
@@ -190,7 +190,7 @@ export default async function TeacherDashboardPage() {
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+              <CardTitle className="text-sm font-medium text-text-secondary">
                 Total Students
               </CardTitle>
             </CardHeader>
@@ -201,7 +201,7 @@ export default async function TeacherDashboardPage() {
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+              <CardTitle className="text-sm font-medium text-text-secondary">
                 Active (7 days)
               </CardTitle>
             </CardHeader>
@@ -214,7 +214,7 @@ export default async function TeacherDashboardPage() {
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+              <CardTitle className="text-sm font-medium text-text-secondary">
                 At Risk
               </CardTitle>
             </CardHeader>
@@ -255,7 +255,7 @@ export default async function TeacherDashboardPage() {
           <h2 className="text-2xl font-semibold">
             {selectedClass.name} - Student Progress
           </h2>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 text-sm text-text-secondary">
             <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
             <span>Real-time updates</span>
           </div>
@@ -268,8 +268,8 @@ export default async function TeacherDashboardPage() {
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <Card key={i} className="animate-pulse">
                   <CardContent className="p-4">
-                    <div className="h-4 bg-muted rounded w-3/4 mb-2" />
-                    <div className="h-3 bg-muted rounded w-1/2" />
+                    <div className="h-4 bg-surface rounded w-3/4 mb-2" />
+                    <div className="h-3 bg-surface rounded w-1/2" />
                   </CardContent>
                 </Card>
               ))}
@@ -285,7 +285,7 @@ export default async function TeacherDashboardPage() {
             <h2 className="text-2xl font-semibold">
               Recent AI Tutor Interactions
             </h2>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-text-secondary">
               Monitor student questions and AI responses for quality assurance
             </p>
           </div>
@@ -296,8 +296,8 @@ export default async function TeacherDashboardPage() {
                 {[1, 2, 3].map((i) => (
                   <Card key={i} className="animate-pulse">
                     <CardContent className="p-4">
-                      <div className="h-4 bg-muted rounded w-1/4 mb-2" />
-                      <div className="h-3 bg-muted rounded w-3/4" />
+                      <div className="h-4 bg-surface rounded w-1/4 mb-2" />
+                      <div className="h-3 bg-surface rounded w-3/4" />
                     </CardContent>
                   </Card>
                 ))}

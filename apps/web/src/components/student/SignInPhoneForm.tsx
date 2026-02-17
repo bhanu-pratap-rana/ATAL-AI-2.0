@@ -90,7 +90,7 @@ export function SignInPhoneForm({
           Phone Number
         </Label>
         <div className="flex items-center border-2 border-border rounded-md overflow-hidden focus-within:border-primary focus-within:ring-3 focus-within:ring-primary-light transition-all">
-          <span className="px-3 text-text-secondary font-medium bg-muted h-full py-3">
+          <span className="px-3 text-text-secondary font-medium bg-surface h-full py-3">
             +91
           </span>
           <Input

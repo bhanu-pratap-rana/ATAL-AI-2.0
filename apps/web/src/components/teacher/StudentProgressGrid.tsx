@@ -48,7 +48,7 @@ function getActivityStatusColor(status: string): string {
     case "recent":
       return "bg-warning";
     default:
-      return "bg-muted";
+      return "bg-surface";
   }
 }
 
@@ -222,8 +222,8 @@ export function StudentProgressGrid({
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <Card key={`progress-skeleton-${i}`} className="animate-pulse">
             <CardContent className="p-4">
-              <div className="h-4 bg-muted rounded w-3/4 mb-2" />
-              <div className="h-3 bg-muted rounded w-1/2" />
+              <div className="h-4 bg-surface rounded w-3/4 mb-2" />
+              <div className="h-3 bg-surface rounded w-1/2" />
             </CardContent>
           </Card>
         ))}
@@ -241,7 +241,7 @@ export function StudentProgressGrid({
 
   if (students.length === 0) {
     return (
-      <div className="text-center py-8 text-muted-foreground">
+      <div className="text-center py-8 text-text-secondary">
         <p>No students enrolled in this class yet.</p>
       </div>
     );
@@ -304,7 +304,7 @@ function StudentProgressCard({
           />
         </div>
         {student.email && (
-          <p className="text-xs text-muted-foreground truncate">
+          <p className="text-xs text-text-secondary truncate">
             Roll No: {student.email}
           </p>
         )}
@@ -316,7 +316,7 @@ function StudentProgressCard({
             <span>Progress</span>
             <span>{progressPercent}%</span>
           </div>
-          <div className="h-2 bg-muted rounded-full overflow-hidden">
+          <div className="h-2 bg-surface rounded-full overflow-hidden">
             <div
               className={`h-full transition-all ${getProgressBarColor(progressPercent, student.is_at_risk)}`}
               style={{ width: `${progressPercent}%` }}
@@ -327,13 +327,13 @@ function StudentProgressCard({
         {/* Stats */}
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div>
-            <span className="text-muted-foreground">Mastered:</span>{" "}
+            <span className="text-text-secondary">Mastered:</span>{" "}
             <span className="font-medium">
               {student.topics_mastered}/{student.total_topics}
             </span>
           </div>
           <div>
-            <span className="text-muted-foreground">Avg:</span>{" "}
+            <span className="text-text-secondary">Avg:</span>{" "}
             <span className="font-medium">{student.average_mastery}%</span>
           </div>
         </div>
@@ -346,7 +346,7 @@ function StudentProgressCard({
         )}
 
         {/* Activity */}
-        <div className="mt-2 text-xs text-muted-foreground">
+        <div className="mt-2 text-xs text-text-secondary">
           {activity.label}
         </div>
       </CardContent>

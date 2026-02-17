@@ -30,10 +30,10 @@ interface AnnouncementListProps {
 }
 
 const priorityConfig = {
-  low: { label: "Low", className: "bg-blue-100 text-blue-800" },
-  normal: { label: "Normal", className: "bg-green-100 text-green-800" },
-  high: { label: "High", className: "bg-yellow-100 text-yellow-800" },
-  urgent: { label: "Urgent", className: "bg-red-100 text-red-800" },
+  low: { label: "Low", className: "bg-info/10 text-info" },
+  normal: { label: "Normal", className: "bg-success/10 text-success" },
+  high: { label: "High", className: "bg-warning/10 text-warning" },
+  urgent: { label: "Urgent", className: "bg-error/10 text-error" },
 };
 
 export function AnnouncementList({
