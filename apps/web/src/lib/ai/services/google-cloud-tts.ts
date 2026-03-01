@@ -381,7 +381,7 @@ export class GoogleCloudTTSService {
       // Service account mode — verify we can get an access token
       await this.getAccessToken();
       return { available: true, provider: "google-cloud" };
-    } catch (error) {
+    } catch (_error) {
       return {
         available: false,
         provider: "google-cloud",

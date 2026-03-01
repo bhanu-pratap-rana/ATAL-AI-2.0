@@ -182,7 +182,7 @@ export const BadgesDisplay = memo(function BadgesDisplay({
       setEarnedIds(new Set());
       setLoading(false);
     }
-  }, [studentId]);
+  }, [studentId, t]);
 
   useEffect(() => {
     fetchBadges();
