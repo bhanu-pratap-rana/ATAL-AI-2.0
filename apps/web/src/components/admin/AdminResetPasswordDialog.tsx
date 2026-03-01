@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { resetAdminPassword } from "@/app/actions/admin-management";
 import { Button } from "@/components/ui/button";
 import { PasswordInput } from "@/components/ui/PasswordInput";
@@ -35,6 +35,13 @@ export function AdminResetPasswordDialog({
     type: "success" | "error";
     text: string;
   } | null>(null);
+  const callbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (callbackTimerRef.current) clearTimeout(callbackTimerRef.current);
+    };
+  }, []);
 
   if (!isOpen) {
     return null;
@@ -69,7 +76,7 @@ export function AdminResetPasswordDialog({
         setMessage({ type: "success", text: "Password reset successfully" });
         toast.success("Password reset successfully");
 
-        setTimeout(() => {
+        callbackTimerRef.current = setTimeout(() => {
           setNewPassword("");
           setConfirmPassword("");
           onClose();

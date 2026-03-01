@@ -6,7 +6,7 @@
 
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { joinClass } from "@/app/actions/student";
@@ -39,6 +39,13 @@ export function JoinClassStep({
   isLoading,
 }: JoinClassStepProps) {
   const router = useRouter();
+  const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
+    };
+  }, []);
 
   // ========================================
   // JOIN CLASS
@@ -82,7 +89,7 @@ export function JoinClassStep({
           actions.resetJoinClass();
 
           // Redirect to dashboard
-          setTimeout(() => {
+          redirectTimerRef.current = setTimeout(() => {
             router.push("/app/dashboard");
           }, 500);
         } else {

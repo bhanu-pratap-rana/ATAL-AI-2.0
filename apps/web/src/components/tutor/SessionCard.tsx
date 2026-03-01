@@ -142,7 +142,7 @@ export function SessionCard({ session, isExpanded, onToggle }: SessionCardProps)
                 className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[85%] rounded-lg px-4 py-2.5 ${
+                  className={`max-w-[92%] sm:max-w-[85%] rounded-lg px-4 py-2.5 ${
                     message.role === "user"
                       ? "bg-primary text-white"
                       : message.role === "assistant"

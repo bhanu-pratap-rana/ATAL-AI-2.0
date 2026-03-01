@@ -263,6 +263,7 @@ export class GoogleCloudTTSService {
       method: "POST",
       headers,
       body: JSON.stringify(request),
+      signal: AbortSignal.timeout(10000), // 10 second timeout
     });
 
     if (!response.ok) {
@@ -371,17 +372,20 @@ export class GoogleCloudTTSService {
     }
 
     try {
-      // Try a minimal synthesis to verify credentials work
-      await this.synthesize("test", "en", { useWaveNet: false });
-      return {
-        available: true,
-        provider: "google-cloud",
-      };
+      // Validate credentials without making a billable API call
+      // If we can get an access token or have an API key, the service is available
+      if (this.apiKey) {
+        // API key mode — key exists and isConfigured() passed
+        return { available: true, provider: "google-cloud" };
+      }
+      // Service account mode — verify we can get an access token
+      await this.getAccessToken();
+      return { available: true, provider: "google-cloud" };
     } catch (error) {
       return {
         available: false,
         provider: "google-cloud",
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: "Google Cloud TTS credentials invalid",
       };
     }
   }

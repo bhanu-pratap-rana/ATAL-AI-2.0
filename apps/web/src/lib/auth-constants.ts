@@ -5,25 +5,19 @@
 
 // Password validation
 export const PASSWORD_MIN_LENGTH = 8;
-export const PASSWORD_MAX_LENGTH = 128;
 
 // OTP validation
 export const OTP_LENGTH = 6;
-export const OTP_EXPIRY_MINUTES = 10;
 
 // PIN validation (for class joining)
 export const PIN_LENGTH = 4;
-export const PIN_MAX_ATTEMPTS = 3;
 
 // Phone number validation (India-specific)
 export const PHONE_COUNTRY_CODE = "+91";
 export const PHONE_DIGIT_LENGTH = 10;
-export const PHONE_TOTAL_LENGTH =
-  PHONE_COUNTRY_CODE.length + PHONE_DIGIT_LENGTH; // 13 (+91 + 10 digits)
 
 // Email validation
 export const EMAIL_MAX_LENGTH = 254;
-export const EMAIL_VERIFIED_REQUIRED = false; // Can be false for demo, true for production
 // Strict regex for email validation - allows standard email formats
 // Matches: local@domain.extension where both local and domain have specific character restrictions
 export const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -161,16 +155,3 @@ export const AUTH_ERRORS = {
   PHONE_IN_USE: "This phone number is already registered.",
 };
 
-// Success messages
-export const SUCCESS_MESSAGES = {
-  OTP_SENT: "OTP sent to your email!",
-  OTP_SENT_PHONE: "OTP sent to your phone!",
-  EMAIL_VERIFIED: "Email verified successfully!",
-  PHONE_VERIFIED: "Phone verified successfully!",
-  ACCOUNT_CREATED: "Account created successfully! 🎉",
-  SIGNED_IN: "Signed in successfully! 🎉",
-  SIGNED_OUT: "Signed out successfully",
-  PASSWORD_CHANGED: "Password changed successfully",
-  PROFILE_UPDATED: "Profile updated successfully",
-  CLASS_JOINED: "Successfully joined class! 🎉",
-};

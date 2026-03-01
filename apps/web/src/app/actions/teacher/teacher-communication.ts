@@ -130,7 +130,7 @@ export async function createAnnouncement(input: {
 
     if (error) {
       authLogger.error("[createAnnouncement] Database error", error);
-      return { success: false, error: error.message };
+      return { success: false, error: "Failed to create announcement" };
     }
 
     revalidatePath(`/app/teacher/classes/${validatedInput.classId}`);
@@ -140,8 +140,7 @@ export async function createAnnouncement(input: {
     authLogger.error("[createAnnouncement] Unexpected error", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
     };
   }
 }
@@ -208,11 +207,15 @@ export async function updateAnnouncement(input: {
       .update(updateData)
       .eq("id", validatedInput.announcementId)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       authLogger.error("[updateAnnouncement] Database error", error);
-      return { success: false, error: error.message };
+      return { success: false, error: "Failed to update announcement" };
+    }
+
+    if (!data) {
+      return { success: false, error: "Announcement not found" };
     }
 
     revalidatePath(`/app/teacher/classes/${announcement.class_id}`);
@@ -222,8 +225,7 @@ export async function updateAnnouncement(input: {
     authLogger.error("[updateAnnouncement] Unexpected error", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
     };
   }
 }
@@ -279,7 +281,7 @@ export async function deleteAnnouncement(announcementId: string) {
 
     if (error) {
       authLogger.error("[deleteAnnouncement] Database error", error);
-      return { success: false, error: error.message };
+      return { success: false, error: "Failed to delete announcement" };
     }
 
     revalidatePath(`/app/teacher/classes/${announcement.class_id}`);
@@ -289,8 +291,7 @@ export async function deleteAnnouncement(announcementId: string) {
     authLogger.error("[deleteAnnouncement] Unexpected error", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
     };
   }
 }
@@ -335,7 +336,7 @@ export async function getClassAnnouncements(classId: string) {
 
       if (fallbackError) {
         authLogger.error("[getClassAnnouncements] Database error", fallbackError);
-        return { success: false, error: fallbackError.message };
+        return { success: false, error: "Failed to load announcements" };
       }
 
       return { success: true, data: fallbackData };
@@ -346,8 +347,7 @@ export async function getClassAnnouncements(classId: string) {
     authLogger.error("[getClassAnnouncements] Unexpected error", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
     };
   }
 }
@@ -424,7 +424,7 @@ export async function uploadMaterial(input: {
 
     if (error) {
       authLogger.error("[uploadMaterial] Database error", error);
-      return { success: false, error: error.message };
+      return { success: false, error: "Failed to upload material" };
     }
 
     revalidatePath(`/app/teacher/classes/${validatedInput.classId}`);
@@ -434,8 +434,7 @@ export async function uploadMaterial(input: {
     authLogger.error("[uploadMaterial] Unexpected error", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
     };
   }
 }
@@ -555,7 +554,7 @@ export async function uploadMaterialFile(formData: FormData) {
     authLogger.error("[uploadMaterialFile] Unexpected error", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
     };
   }
 }
@@ -616,7 +615,7 @@ export async function deleteMaterial(materialId: string) {
 
     if (error) {
       authLogger.error("[deleteMaterial] Database error", error);
-      return { success: false, error: error.message };
+      return { success: false, error: "Failed to delete material" };
     }
 
     revalidatePath(`/app/teacher/classes/${material.class_id}`);
@@ -626,8 +625,7 @@ export async function deleteMaterial(materialId: string) {
     authLogger.error("[deleteMaterial] Unexpected error", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
     };
   }
 }
@@ -661,7 +659,7 @@ export async function getClassMaterials(classId: string) {
 
     if (error) {
       authLogger.error("[getClassMaterials] Database error", error);
-      return { success: false, error: error.message };
+      return { success: false, error: "Failed to load materials" };
     }
 
     return { success: true, data };
@@ -669,8 +667,7 @@ export async function getClassMaterials(classId: string) {
     authLogger.error("[getClassMaterials] Unexpected error", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
     };
   }
 }
@@ -756,7 +753,7 @@ export async function markAnnouncementRead(announcementId: string) {
     if (error && error.code !== "23505") {
       // Ignore duplicate key errors
       authLogger.error("[markAnnouncementRead] Database error", error);
-      return { success: false, error: error.message };
+      return { success: false, error: "Failed to mark announcement as read" };
     }
 
     return { success: true };
@@ -764,8 +761,7 @@ export async function markAnnouncementRead(announcementId: string) {
     authLogger.error("[markAnnouncementRead] Unexpected error", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
     };
   }
 }
@@ -793,7 +789,7 @@ export async function getStudentUnreadAnnouncements() {
 
     if (error) {
       authLogger.error("[getStudentUnreadAnnouncements] RPC error", error);
-      return { success: false, error: error.message };
+      return { success: false, error: "Failed to load announcements" };
     }
 
     return { success: true, data: data || [] };
@@ -801,8 +797,7 @@ export async function getStudentUnreadAnnouncements() {
     authLogger.error("[getStudentUnreadAnnouncements] Unexpected error", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
     };
   }
 }
@@ -862,7 +857,7 @@ export async function getStudentClassAnnouncements(classId: string) {
 
     if (announcementsError) {
       authLogger.error("[getStudentClassAnnouncements] Database error", announcementsError);
-      return { success: false, error: announcementsError.message };
+      return { success: false, error: "Failed to load announcements" };
     }
 
     // Transform to include is_read status
@@ -882,8 +877,7 @@ export async function getStudentClassAnnouncements(classId: string) {
     authLogger.error("[getStudentClassAnnouncements] Unexpected error", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
     };
   }
 }
@@ -938,7 +932,7 @@ export async function getStudentClassMaterials(classId: string) {
 
     if (materialsError) {
       authLogger.error("[getStudentClassMaterials] Database error", materialsError);
-      return { success: false, error: materialsError.message };
+      return { success: false, error: "Failed to load materials" };
     }
 
     const transformedMaterials = materials || [];
@@ -948,8 +942,7 @@ export async function getStudentClassMaterials(classId: string) {
     authLogger.error("[getStudentClassMaterials] Unexpected error", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
     };
   }
 }

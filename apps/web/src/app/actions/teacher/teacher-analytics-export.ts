@@ -249,8 +249,7 @@ export async function getClassAnalytics(classId: string) {
     authLogger.error("[getClassAnalytics] Unexpected error", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
     };
   }
 }
@@ -378,7 +377,7 @@ export async function exportStudentProgress(classId: string) {
     authLogger.error("[exportStudentProgress] Error", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to export data",
+      error: "Failed to export data",
     };
   }
 }
@@ -479,7 +478,7 @@ export async function exportAIInteractions(
     authLogger.error("[exportAIInteractions] Error", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to export data",
+      error: "Failed to export data",
     };
   }
 }

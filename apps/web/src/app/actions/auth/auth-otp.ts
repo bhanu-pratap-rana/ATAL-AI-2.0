@@ -86,7 +86,11 @@ async function checkRateLimits(
 async function handleEmailEnumerationCheck(
   email: string,
 ): Promise<{ shouldProceed: true } | { shouldProceed: false; error: string }> {
-  const emailCheck = await checkEmailExistsInAuth(email);
+  // Parallelize independent lookups for better performance
+  const [emailCheck, adminClient] = await Promise.all([
+    checkEmailExistsInAuth(email),
+    createAdminClient(),
+  ]);
 
   authLogger.debug("[requestOtp] checkEmailExistsInAuth result", {
     email: maskEmail(email),
@@ -98,7 +102,6 @@ async function handleEmailEnumerationCheck(
 
   // BACKUP CHECK: Query public.users table directly
   // This is more reliable than auth.users lookup
-  const adminClient = await createAdminClient();
   const { data: userByEmail } = await adminClient
     .from("users")
     .select("id, email, role")
@@ -294,8 +297,7 @@ export async function requestOtp(email: string) {
     authLogger.error("[requestOtp] Unexpected error", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
     };
   }
 }
@@ -340,7 +342,7 @@ export async function verifyOtp(email: string, token: string) {
 
     if (error) {
       authLogger.error("[verifyOtp] Verification failed", error);
-      return { success: false, error: error.message };
+      return { success: false, error: "Verification failed. Please try again." };
     }
 
     // SECURITY: Only trust app_metadata.role (server-side set, immutable by client)
@@ -369,8 +371,7 @@ export async function verifyOtp(email: string, token: string) {
     authLogger.error("[verifyOtp] Unexpected error", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
     };
   }
 }
@@ -449,8 +450,7 @@ export async function sendForgotPasswordOtp(email: string) {
     authLogger.error("[sendForgotPasswordOtp] Unexpected error", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
     };
   }
 }
@@ -538,7 +538,7 @@ export async function resetPasswordWithOtp(
       );
       return {
         success: false,
-        error: updateError.message,
+        error: "Failed to update password. Please try again.",
       };
     }
 
@@ -576,8 +576,7 @@ export async function resetPasswordWithOtp(
     authLogger.error("[resetPasswordWithOtp] Unexpected error", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
     };
   }
 }

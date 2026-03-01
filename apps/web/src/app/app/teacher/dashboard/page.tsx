@@ -15,6 +15,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser, createClient } from "@/lib/supabase-server";
+import { authLogger } from "@/lib/auth-logger";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StudentProgressGrid } from "@/components/teacher/StudentProgressGrid";
@@ -32,7 +33,7 @@ async function getDashboardMetrics(teacherId: string) {
     .eq("teacher_id", teacherId);
 
   if (classesError) {
-    console.error("[TeacherDashboard] Classes query error:", classesError.message);
+    authLogger.error("[TeacherDashboard] Classes query error:", { error: classesError.message });
   }
 
   if (!classes || classes.length === 0) {
@@ -54,7 +55,7 @@ async function getDashboardMetrics(teacherId: string) {
     .in("class_id", classIds);
 
   if (enrollError) {
-    console.error("[TeacherDashboard] Enrollments query error:", enrollError.message);
+    authLogger.error("[TeacherDashboard] Enrollments query error:", { error: enrollError.message });
   }
 
   const studentIds = enrollments?.map((e) => e.student_id) || [];
@@ -74,32 +75,34 @@ async function getDashboardMetrics(teacherId: string) {
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-  const { data: activeKnowledgeState, error: activeError } = await supabase
-    .from("student_knowledge_state")
-    .select("student_id")
-    .in("student_id", studentIds)
-    .gte("last_attempt_at", sevenDaysAgo.toISOString());
+  // PERF: Parallelize independent queries (active students + at-risk students)
+  const [
+    { data: activeKnowledgeState, error: activeError },
+    { data: atRiskData, error: riskError },
+  ] = await Promise.all([
+    supabase
+      .from("student_knowledge_state")
+      .select("student_id")
+      .in("student_id", studentIds)
+      .gte("last_attempt_at", sevenDaysAgo.toISOString()),
+    supabase
+      .from("student_knowledge_state")
+      .select("student_id")
+      .in("student_id", studentIds)
+      .lt("mastery_score", 40)
+      .gt("attempts", 3),
+  ]);
 
   if (activeError) {
-    console.error("[TeacherDashboard] Active students query error:", activeError.message);
+    authLogger.error("[TeacherDashboard] Active students query error:", { error: activeError.message });
+  }
+  if (riskError) {
+    authLogger.error("[TeacherDashboard] At-risk query error:", { error: riskError.message });
   }
 
   const activeStudentIds = new Set(
     activeKnowledgeState?.map((k) => k.student_id) || [],
   );
-
-  // Get at-risk students (low mastery after multiple attempts)
-  const { data: atRiskData, error: riskError } = await supabase
-    .from("student_knowledge_state")
-    .select("student_id")
-    .in("student_id", studentIds)
-    .lt("mastery_score", 40)
-    .gt("attempts", 3);
-
-  if (riskError) {
-    console.error("[TeacherDashboard] At-risk query error:", riskError.message);
-  }
-
   const atRiskStudentIds = new Set(atRiskData?.map((k) => k.student_id) || []);
 
   return {

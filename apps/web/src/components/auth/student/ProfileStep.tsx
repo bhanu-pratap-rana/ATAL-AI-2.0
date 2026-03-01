@@ -60,6 +60,10 @@ export function ProfileStep({
           name: state.profileName,
           gender: state.profileGender as "male" | "female",
           phone: sanitizedPhone,
+          rollNumber: state.profileRollNumber || undefined,
+          schoolName: state.profileSchoolName || undefined,
+          className: state.profileClassName || undefined,
+          village: state.profileVillage || undefined,
         });
 
         if (!result.success) {
@@ -89,6 +93,10 @@ export function ProfileStep({
       state.profileName,
       state.profileGender,
       state.profilePhone,
+      state.profileRollNumber,
+      state.profileSchoolName,
+      state.profileClassName,
+      state.profileVillage,
       actions,
     ],
   );
@@ -138,6 +146,54 @@ export function ProfileStep({
             onChange={(e) =>
               actions.setProfilePhone(e.target.value)
             }
+            disabled={isLoading}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="profile-roll-number">Roll Number (Optional)</Label>
+          <Input
+            id="profile-roll-number"
+            type="text"
+            placeholder="e.g., 12345"
+            value={state.profileRollNumber}
+            onChange={(e) => actions.setProfileRollNumber(e.target.value)}
+            disabled={isLoading}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="profile-school-name">School Name (Optional)</Label>
+          <Input
+            id="profile-school-name"
+            type="text"
+            placeholder="e.g., Government High School"
+            value={state.profileSchoolName}
+            onChange={(e) => actions.setProfileSchoolName(e.target.value)}
+            disabled={isLoading}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="profile-class-name">Class (Optional)</Label>
+          <Input
+            id="profile-class-name"
+            type="text"
+            placeholder="e.g., Class 5"
+            value={state.profileClassName}
+            onChange={(e) => actions.setProfileClassName(e.target.value)}
+            disabled={isLoading}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="profile-village">Village / Location (Optional)</Label>
+          <Input
+            id="profile-village"
+            type="text"
+            placeholder="e.g., Rangapara"
+            value={state.profileVillage}
+            onChange={(e) => actions.setProfileVillage(e.target.value)}
             disabled={isLoading}
           />
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { deleteAdminAccount } from "@/app/actions/admin-management";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,6 +50,13 @@ export function AdminDeleteDialog({
     type: "success" | "error";
     text: string;
   } | null>(null);
+  const callbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (callbackTimerRef.current) clearTimeout(callbackTimerRef.current);
+    };
+  }, []);
 
   const isConfirmed =
     emailConfirmation.toLowerCase() === adminEmail.toLowerCase();
@@ -76,7 +83,7 @@ export function AdminDeleteDialog({
         });
         toast.success("Admin account deleted");
 
-        setTimeout(() => {
+        callbackTimerRef.current = setTimeout(() => {
           setEmailConfirmation("");
           onClose();
           if (onSuccess) {

@@ -1,9 +1,15 @@
 "use server";
 
+import { z } from "zod";
 import { createClient } from "@/lib/supabase-server";
 import { authLogger } from "@/lib/auth-logger";
 import { checkSchoolFinderRateLimit } from "@/lib/rate-limiter-distributed";
 import { RATE_LIMIT_ERRORS } from "@/lib/constants/error-messages";
+
+// Input validation schemas
+const DistrictSchema = z.string().min(1, "District is required").max(100).trim();
+const BlockSchema = z.string().min(1).max(100).trim();
+const SchoolCodeSchema = z.string().min(1, "School code is required").max(20).trim();
 
 // Types
 export interface District {
@@ -71,6 +77,12 @@ export async function getDistricts() {
  */
 export async function getBlocksByDistrict(district: string) {
   try {
+    const validation = DistrictSchema.safeParse(district);
+    if (!validation.success) {
+      return { success: false, error: validation.error.issues[0]?.message || "Invalid district", data: [] };
+    }
+    district = validation.data;
+
     // SECURITY: Rate limit school finder to prevent abuse
     const isAllowed = await checkSchoolFinderRateLimit(district);
     if (!isAllowed) {
@@ -127,6 +139,20 @@ export async function getSchoolsByDistrictAndBlock(
   block?: string,
 ) {
   try {
+    const districtValidation = DistrictSchema.safeParse(district);
+    if (!districtValidation.success) {
+      return { success: false, error: districtValidation.error.issues[0]?.message || "Invalid district", data: [] };
+    }
+    district = districtValidation.data;
+
+    if (block) {
+      const blockValidation = BlockSchema.safeParse(block);
+      if (!blockValidation.success) {
+        return { success: false, error: blockValidation.error.issues[0]?.message || "Invalid block", data: [] };
+      }
+      block = blockValidation.data;
+    }
+
     // SECURITY: Rate limit school search to prevent abuse
     // Use district as identifier since this is public search
     const isAllowed = await checkSchoolFinderRateLimit(district);
@@ -181,8 +207,13 @@ export async function getSchoolsByDistrictAndBlock(
  */
 export async function getSchoolPinStatus(schoolCode: string) {
   try {
+    const validation = SchoolCodeSchema.safeParse(schoolCode);
+    if (!validation.success) {
+      return { success: false, error: validation.error.issues[0]?.message || "Invalid school code", exists: false };
+    }
+
     // SECURITY: Rate limit school finder to prevent abuse
-    const normalizedCode = schoolCode.toUpperCase().trim();
+    const normalizedCode = validation.data.toUpperCase();
     const isAllowed = await checkSchoolFinderRateLimit(normalizedCode);
     if (!isAllowed) {
       authLogger.warn("[getSchoolPinStatus] Rate limit exceeded", {

@@ -43,7 +43,7 @@ const CURRICULUM_FILES = [
 ];
 
 // Embedding configuration
-const EMBEDDING_MODEL = 'text-embedding-004';
+const EMBEDDING_MODEL = 'gemini-embedding-001';
 const _EMBEDDING_DIMENSIONS = 768;
 const CHUNK_SIZE = 1000;
 const CHUNK_OVERLAP = 200;

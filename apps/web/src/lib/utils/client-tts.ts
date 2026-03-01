@@ -83,18 +83,6 @@ export function stopTTS(): void {
 }
 
 /**
- * Check if TTS is currently playing
- */
-export function isTTSPlaying(): boolean {
-  const contextPlaying = currentSource !== null;
-  const browserPlaying =
-    typeof window !== "undefined" &&
-    window.speechSynthesis &&
-    window.speechSynthesis.speaking;
-  return Boolean(contextPlaying || browserPlaying);
-}
-
-/**
  * Speak text using server API (Google Cloud TTS) with browser fallback
  *
  * Priority:
@@ -411,37 +399,3 @@ async function speakWithBrowser(
   });
 }
 
-/**
- * Check if TTS API is available
- */
-export async function checkTTSAvailability(): Promise<{
-  available: boolean;
-  provider: "api" | "browser";
-  error?: string;
-}> {
-  try {
-    const response = await fetch("/api/voice/tts", {
-      method: "GET",
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      if (data.available && data.provider !== "browser") {
-        return { available: true, provider: "api" };
-      }
-    }
-  } catch {
-    // API not available
-  }
-
-  // Check browser fallback
-  if (typeof window !== "undefined" && window.speechSynthesis) {
-    return {
-      available: true,
-      provider: "browser",
-      error: "Using browser TTS (may sound less natural)",
-    };
-  }
-
-  return { available: false, provider: "browser", error: "No TTS available" };
-}

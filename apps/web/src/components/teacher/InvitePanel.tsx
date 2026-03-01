@@ -137,7 +137,7 @@ export function InvitePanel({
             <div className="qr-container bg-white p-3 md:p-4 rounded-lg border-2 border-primary/30 shadow-sm">
               <canvas ref={canvasRef} className="w-full h-auto" />
             </div>
-            <p className="text-xs text-text-muted mt-2 text-center max-w-[256px]">
+            <p className="text-xs text-text-muted mt-2 text-center max-w-[200px] sm:max-w-[256px]">
               Students can scan this to auto-fill the class code
             </p>
           </div>

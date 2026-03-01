@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { saveStudentProfile } from "@/app/actions/student";
@@ -46,6 +46,13 @@ export function StudentProfileEditor({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (successTimerRef.current) clearTimeout(successTimerRef.current);
+    };
+  }, []);
 
   // Form state
   const [name, setName] = useState(profile?.name || "");
@@ -89,7 +96,7 @@ export function StudentProfileEditor({
       if (result.success) {
         setSuccess(true);
         setIsEditing(false);
-        setTimeout(() => setSuccess(false), PROFILE_TIMING.successMessage);
+        successTimerRef.current = setTimeout(() => setSuccess(false), PROFILE_TIMING.successMessage);
       } else {
         setError(result.error || "Failed to save profile");
       }

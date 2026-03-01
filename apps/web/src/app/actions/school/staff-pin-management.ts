@@ -206,13 +206,12 @@ async function rotatePinViaRPC(
   }
 
   if (!rotateResult?.[0]?.success) {
-    const errorMsg = rotateResult?.[0]?.error_message || "Failed to rotate PIN";
     authLogger.error("[rotateStaffPin] RPC rotation failed", {
-      error: errorMsg,
+      error: rotateResult?.[0]?.error_message, // Log raw error server-side only
     });
     return {
       success: false,
-      error: errorMsg,
+      error: "Failed to rotate PIN",
     };
   }
 

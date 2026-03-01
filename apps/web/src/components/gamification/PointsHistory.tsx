@@ -286,7 +286,7 @@ export function PointsHistory({
             >
               <div className="flex items-center gap-2">
                 <IconComponent className={cn("w-4 h-4", config.color.split(" ")[0])} />
-                <span className="text-text-secondary truncate max-w-[150px]">
+                <span className="text-text-secondary truncate max-w-[100px] sm:max-w-[150px]">
                   {entry.description || t(config.labelKey)}
                 </span>
               </div>

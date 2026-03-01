@@ -252,37 +252,21 @@ export const AuthEmailSchema = z
  * Schema for password validation in auth flows
  *
  * Rules:
+ * NIST 800-63B aligned: length over complexity
  * - Minimum 8 characters
  * - Maximum 64 characters (supports long passphrases)
- * - At least one uppercase letter
- * - At least one lowercase letter
- * - At least one number
- * - At least one special character
- * - Breach checking done server-side via HaveIBeenPwned API (optional, Task 3.3)
+ * - No complexity requirements (uppercase, special chars, etc.)
+ * - Breach checking done server-side via HaveIBeenPwned API (optional)
  *
  * Security Rationale:
- * - Complexity rules protect against dictionary attacks
- * - Educational platform handling student data requires strong passwords
- * - Prevents common weak passwords like "password123"
- * - Complements breach checking for defense in depth
+ * - NIST research shows length is more effective than complexity rules
+ * - Complexity rules lead to predictable patterns (Password1!)
+ * - Aligned with client-side NIST_2025_PASSWORD_RULES in password-utils.ts
  */
 export const AuthPasswordSchema = z
   .string()
   .min(8, "Password must be at least 8 characters")
-  .max(64, "Password too long")
-  .refine(
-    (pwd) => /[A-Z]/.test(pwd),
-    "Password must contain at least one uppercase letter",
-  )
-  .refine(
-    (pwd) => /[a-z]/.test(pwd),
-    "Password must contain at least one lowercase letter",
-  )
-  .refine((pwd) => /\d/.test(pwd), "Password must contain at least one number")
-  .refine(
-    (pwd) => /[!@#$%^&*()_+=[\]{};':"\\|,.<>/?-]/.test(pwd),
-    "Password must contain at least one special character",
-  );
+  .max(64, "Password too long");
 
 /**
  * Schema for OTP token

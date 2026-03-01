@@ -198,27 +198,3 @@ export const RATE_LIMITS = {
     refillInterval: 1000,
   } as RateLimitConfig,
 } as const;
-
-/**
- * OTP-specific constants (used by auth-constants.ts)
- */
-export const OTP_LIMITS = {
-  /** Seconds between OTP requests */
-  requestCooldownSeconds: 60,
-  /** Maximum failed OTP attempts before lockout */
-  maxAttempts: 5,
-} as const;
-
-/**
- * Window-based rate limits (for simple counters)
- */
-export const WINDOW_LIMITS = {
-  /** Login rate limit window in milliseconds (1 hour) */
-  loginWindowMs: 60 * 60 * 1000,
-  /** Admin operations window in milliseconds (1 minute) */
-  adminWindowMs: 60 * 1000,
-  /** Max requests per admin window */
-  adminMaxRequests: 10,
-} as const;
-
-export type RateLimitKey = keyof typeof RATE_LIMITS;

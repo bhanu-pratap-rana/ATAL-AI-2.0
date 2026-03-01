@@ -89,7 +89,7 @@ export async function completeLessonAndUpdateProgress(
       authLogger.error("[completeLessonAndUpdateProgress] RPC returned failure", {
         error: data?.error,
       });
-      return { success: false, error: data?.error || "Database update failed" };
+      return { success: false, error: "Database update failed" };
     }
 
     authLogger.success("[completeLessonAndUpdateProgress] Progress updated", {

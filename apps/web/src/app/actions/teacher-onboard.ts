@@ -341,7 +341,8 @@ export async function setPassword(
     });
 
     if (updateError) {
-      return { success: false, error: updateError.message };
+      authLogger.error("[Set Password] Update error", { error: updateError.message });
+      return { success: false, error: "Failed to set password. Please try again." };
     }
 
     return { success: true };
@@ -590,8 +591,7 @@ export async function getTeacherProfile() {
     authLogger.error("[getTeacherProfile] Unexpected error", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
       profile: null,
     };
   }

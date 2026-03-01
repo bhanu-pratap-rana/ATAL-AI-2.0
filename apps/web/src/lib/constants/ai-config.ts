@@ -58,7 +58,7 @@ export const AI_PROVIDERS = {
     name: "Google Gemini",
     defaultModel: "gemini-2.5-flash-preview-05-20",
     baseUrl: "https://generativelanguage.googleapis.com/v1",
-    embeddingModel: "text-embedding-004",
+    embeddingModel: "gemini-embedding-001",
     embeddingDimensions: 768,
   },
   groq: {
@@ -72,20 +72,6 @@ export const AI_PROVIDERS = {
     baseUrl: "http://localhost:11434",
   },
   // NOTE: OpenAI removed - project uses only Google products
-} as const;
-
-/**
- * TTS (Text-to-Speech) configurations
- */
-export const TTS_CONFIG = {
-  ai4bharat: {
-    name: "AI4Bharat Indic-Parler-TTS",
-    huggingFaceUrl:
-      "https://api-inference.huggingface.co/models/ai4bharat/indic-parler-tts",
-    supportedLanguages: ["en", "hi", "as"] as const,
-    defaultVoice: "female",
-    defaultEmotion: "friendly",
-  },
 } as const;
 
 /**

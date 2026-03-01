@@ -164,7 +164,7 @@ export async function createAdminUser(
       authLogger.error("[createAdminUser] Failed to create user", createError);
       return {
         success: false,
-        error: createError?.message || "Failed to create user account",
+        error: "Failed to create user account",
       };
     }
 

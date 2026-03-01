@@ -214,7 +214,7 @@ function ChunkImage({
   // Image loaded successfully
   return (
     <div className="rounded-lg overflow-hidden border">
-      <div className="relative w-full h-[250px] bg-white">
+      <div className="relative w-full h-[200px] md:h-[250px] bg-white">
         <Image
           src={imageState.url}
           alt={visualDescription || "Lesson visual"}

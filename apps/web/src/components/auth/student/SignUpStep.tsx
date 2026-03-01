@@ -329,8 +329,18 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
       actions.setIsLoading(true);
       actions.setSignupUsernameError(null);
 
-      if (!state.signupUsername.trim()) {
+      const trimmedUsername = state.signupUsername.trim();
+      if (!trimmedUsername) {
         actions.setSignupUsernameError("Username is required");
+        actions.setIsLoading(false);
+        return;
+      }
+
+      // Client-side username validation: 3-20 chars, alphanumeric + underscores
+      if (!/^[a-zA-Z0-9_]{3,20}$/.test(trimmedUsername)) {
+        actions.setSignupUsernameError(
+          "Username must be 3-20 characters (letters, numbers, underscores only)",
+        );
         actions.setIsLoading(false);
         return;
       }
@@ -344,6 +354,18 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
         return;
       }
 
+      const matchValidation = validatePasswordMatch(
+        state.signupUsernamePassword,
+        state.signupUsernamePasswordConfirm,
+      );
+      if (!matchValidation.valid) {
+        actions.setSignupUsernameError(
+          matchValidation.error || "Passwords do not match",
+        );
+        actions.setIsLoading(false);
+        return;
+      }
+
       try {
         authLogger.debug("[SignUp Username] Attempting username registration");
         const result = await registerWithUsername(
@@ -352,6 +374,14 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
         );
 
         if (result.success) {
+          // H10 FIX: If session creation failed, redirect to sign-in
+          if (result.requiresSignIn) {
+            authLogger.warn("[SignUp Username] Account created but session failed — redirecting to sign-in");
+            toast.success("Account created! Please sign in with your username and password.");
+            actions.resetSignupUsername();
+            actions.setMainStep("signin");
+            return;
+          }
           authLogger.success("[SignUp Username] Registration successful");
           toast.success("Account created! Now set up your profile.");
           actions.resetSignupUsername();
@@ -373,7 +403,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
         actions.setIsLoading(false);
       }
     },
-    [state.signupUsername, state.signupUsernamePassword, actions],
+    [state.signupUsername, state.signupUsernamePassword, state.signupUsernamePasswordConfirm, actions],
   );
 
   return (
@@ -683,6 +713,22 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
                 })()}
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="signup-username-confirm">Confirm Password</Label>
+              <Input
+                id="signup-username-confirm"
+                type="password"
+                placeholder="Re-enter your password"
+                value={state.signupUsernamePasswordConfirm}
+                onChange={(e) =>
+                  actions.setSignupUsernamePasswordConfirm(e.target.value)
+                }
+                required
+                disabled={isLoading}
+                autoComplete="new-password"
+              />
+            </div>
+
             {state.signupUsernameError && (
               <p className="text-sm text-error">{state.signupUsernameError}</p>
             )}
@@ -691,7 +737,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
               type="submit"
               className="w-full text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5"
               disabled={
-                isLoading || !state.signupUsername || !state.signupUsernamePassword
+                isLoading || !state.signupUsername || !state.signupUsernamePassword || !state.signupUsernamePasswordConfirm
               }
             >
               {isLoading ? "Creating account..." : "Create Account"}

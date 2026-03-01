@@ -278,13 +278,12 @@ export async function rotateSchoolPIN(
 
     // Check if function returned success
     if (!data?.[0]?.success) {
-      const errorMsg = data?.[0]?.error_message || "Failed to rotate PIN";
       authLogger.error("[rotateSchoolPIN] PIN rotation failed", {
-        error: errorMsg,
+        error: data?.[0]?.error_message, // Log raw error server-side only
       });
       return {
         success: false,
-        error: errorMsg,
+        error: "Failed to rotate PIN",
       };
     }
 
@@ -366,7 +365,7 @@ export async function getAllSchoolsWithPINs(): Promise<AdminPINActionResult> {
         schoolName: school.school_name,
         schoolCode: school.school_code || "N/A",
         districtName: school.district || "Unknown District",
-        hasPIN: pinInfo !== null,
+        hasPIN: pinInfo !== undefined,
         lastRotatedAt: pinInfo?.rotated_at || null,
         createdAt: pinInfo?.created_at || new Date().toISOString(),
       };

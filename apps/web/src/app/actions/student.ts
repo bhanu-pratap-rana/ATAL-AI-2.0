@@ -51,13 +51,15 @@ export async function saveStudentProfile(params: StudentProfileParams) {
       gender: validatedInput.gender,
     });
 
-    // SECURITY: Verify caller is authenticated and is a student (not teacher/admin)
-    const auth = await verifyStudentAuth("saveStudentProfile");
-    if (!auth.authorized) {
-      return auth.error;
+    // SECURITY: Verify caller is authenticated
+    // NOTE: We use getCurrentUser() here instead of verifyStudentAuth() because
+    // this function creates the student profile — the profile doesn't exist yet
+    // for first-time users, so verifyStudentAuth() (which checks for an existing
+    // profile) would always reject new students.
+    const user = await getCurrentUser();
+    if (!user) {
+      return { success: false, error: "Not authenticated" };
     }
-
-    const user = auth.user;
 
     authLogger.debug("[saveStudentProfile] User authenticated", {
       userId: user.id,
@@ -96,12 +98,11 @@ export async function saveStudentProfile(params: StudentProfileParams) {
         p_user_id: user.id,
         p_name: validatedInput.name,
         p_gender: validatedInput.gender,
-        p_date_of_birth: null, // Not in current schema - reserved for future
         p_phone: validatedInput.phone || null,
-        p_location: validatedInput.village || null,
-        p_medium: null, // Not in current schema - reserved for future
-        p_board: null, // Not in current schema - reserved for future
-        p_class: validatedInput.className || null,
+        p_roll_number: validatedInput.rollNumber || null,
+        p_school_name: validatedInput.schoolName || null,
+        p_village: validatedInput.village || null,
+        p_class_name: validatedInput.className || null,
       },
     );
 
@@ -150,8 +151,7 @@ export async function saveStudentProfile(params: StudentProfileParams) {
     authLogger.error("[saveStudentProfile] Unexpected error", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
     };
   }
 }
@@ -205,8 +205,7 @@ export async function getStudentProfile() {
     authLogger.error("[getStudentProfile] Unexpected error", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "Failed to load profile",
       profile: null,
     };
   }
@@ -228,6 +227,12 @@ export async function previewClass(classCode: string): Promise<{
   error?: string;
 }> {
   try {
+    // SECURITY: Require authentication for class preview
+    const user = await getCurrentUser();
+    if (!user) {
+      return { success: false, error: "Authentication required" };
+    }
+
     // Validate input using schema (consistent with other functions)
     let validatedClassCode;
     try {
@@ -311,15 +316,13 @@ function verifyPin(pin: string, storedPin: string | null): boolean {
   if (!storedPin) {
     return false;
   }
-  try {
-    return timingSafeEqual(Buffer.from(pin), Buffer.from(storedPin));
-  } catch (error) {
-    authLogger.error(
-      "[Student] PIN verification failed",
-      error instanceof Error ? error : { error: String(error) },
-    );
+  const pinBuffer = Buffer.from(pin);
+  const storedBuffer = Buffer.from(storedPin);
+  // timingSafeEqual throws if lengths differ — check first
+  if (pinBuffer.length !== storedBuffer.length) {
     return false;
   }
+  return timingSafeEqual(pinBuffer, storedBuffer);
 }
 
 /**
@@ -519,8 +522,7 @@ export async function joinClass({ classCode, pin }: JoinClassParams) {
     authLogger.error("[joinClass] Unexpected error", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
     };
   }
 }

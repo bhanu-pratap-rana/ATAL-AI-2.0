@@ -277,8 +277,7 @@ export async function getAdaptiveQuestions(
     authLogger.error("[getAdaptiveQuestions] Unexpected error", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
       questions: [],
     };
   }

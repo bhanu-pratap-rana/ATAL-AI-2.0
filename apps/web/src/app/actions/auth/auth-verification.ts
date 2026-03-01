@@ -167,7 +167,7 @@ export async function signOutUser(): Promise<{
 
     if (error) {
       authLogger.error("[signOutUser] Sign out failed", error);
-      return { success: false, error: error.message };
+      return { success: false, error: "Sign out failed. Please try again." };
     }
 
     revalidatePath("/", "layout");

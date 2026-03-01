@@ -7,7 +7,10 @@ import { queryMonitor } from "@/lib/supabase-query-wrapper";
 import { connectionPoolMonitor } from "@/lib/monitoring/connection-pool-monitor";
 import type { ConnectionPoolMetrics, PoolAlert } from "@/types/monitoring";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, TrendingDown, Zap } from "lucide-react";
+import { AlertCircle, Shield, TrendingDown, Zap } from "lucide-react";
+import { checkAdminAuth } from "@/app/actions/school";
+import { clientLogger } from "@/lib/client-logger";
+import { Button } from "@/components/ui/button";
 
 /**
  * Helper: Get alert styling based on severity level
@@ -45,6 +48,8 @@ function getUtilizationColors(percent: number): UtilizationColors {
 }
 
 export default function PerformanceMonitoringPage() {
+  const [authorized, setAuthorized] = useState<boolean | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
   const [stats, setStats] = useState(queryMonitor.getStats());
   const [slowQueries, setSlowQueries] = useState(
     queryMonitor.getSlowestQueries(10),
@@ -57,6 +62,29 @@ export default function PerformanceMonitoringPage() {
   );
   const [poolAlerts, setPoolAlerts] = useState<PoolAlert[]>([]);
   const [refreshInterval, setRefreshInterval] = useState(5000);
+
+  // SECURITY: Check admin authorization on mount
+  useEffect(() => {
+    async function verifyAuth() {
+      try {
+        const result = await checkAdminAuth();
+        if (result.authorized) {
+          setAuthorized(true);
+        } else {
+          setAuthorized(false);
+          setAuthError(result.error || "Unauthorized");
+        }
+      } catch (error) {
+        clientLogger.error(
+          "[PerformanceMonitoringPage] Failed to verify authorization",
+          error instanceof Error ? error : new Error(String(error))
+        );
+        setAuthorized(false);
+        setAuthError("Failed to verify authorization");
+      }
+    }
+    verifyAuth();
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(async () => {
@@ -79,6 +107,42 @@ export default function PerformanceMonitoringPage() {
 
     return () => clearInterval(interval);
   }, [refreshInterval]);
+
+  // Show loading while checking auth
+  if (authorized === null && !authError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface p-6 flex items-center justify-center">
+        <div className="text-text-secondary">Verifying authorization...</div>
+      </div>
+    );
+  }
+
+  // Show authorization error
+  if (!authorized || authError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface p-6 flex items-center justify-center">
+        <div className="max-w-md mx-auto text-center">
+          <Shield className="h-12 w-12 text-error mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-text-primary mb-2">
+            Access Denied
+          </h1>
+          <p className="text-text-secondary mb-6">
+            {authError ||
+              "You do not have permission to access this page. Admin access required."}
+          </p>
+          <div className="space-y-3">
+            <Button
+              onClick={() => (globalThis.location.href = "/admin/login")}
+              className="w-full"
+              variant="default"
+            >
+              Admin Login
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 space-y-6">

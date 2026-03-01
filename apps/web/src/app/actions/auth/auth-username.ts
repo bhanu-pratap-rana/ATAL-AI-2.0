@@ -87,6 +87,7 @@ export async function registerWithUsername(
   success: boolean;
   error?: string;
   userId?: string;
+  requiresSignIn?: boolean;
 }> {
   try {
     // Validate username and password using Zod schemas
@@ -164,7 +165,6 @@ export async function registerWithUsername(
       return { success: false, error: "Failed to create account" };
     }
 
-    // SECURITY FIX #3: Atomic signup - ensure username AND profile creation succeed together
     // Store username mapping
     const { error: insertError } = await adminClient.from("usernames").insert({
       user_id: authData.user.id,
@@ -184,42 +184,28 @@ export async function registerWithUsername(
       };
     }
 
-    // Create student profile atomically using UPSERT RPC
-    // This prevents orphaned users if profile creation fails
-    const { error: profileError } = await adminClient.rpc(
-      "upsert_student_profile",
-      {
-        p_user_id: authData.user.id,
-        p_name: trimmedUsername, // Use username as initial name
-        p_gender: null,
-        p_date_of_birth: null,
-        p_phone: null,
-        p_location: null,
-        p_medium: null,
-        p_board: null,
-        p_class: null,
-      },
-    );
+    // Student profile will be created in ProfileStep via saveStudentProfile()
+    // ProfileStep collects required fields (name, gender) that we don't have at registration time
 
-    if (profileError) {
-      // Rollback: delete both username and auth user
+    // Sign in the user to establish a session (auth cookies)
+    // admin.createUser() does NOT create a session — we must sign in explicitly
+    const supabase = await createClient();
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: internalEmail,
+      password: password,
+    });
+
+    if (signInError) {
       authLogger.error(
-        "[registerWithUsername] Failed to create student profile, rolling back",
-        profileError,
+        "[registerWithUsername] User created but sign-in failed",
+        signInError,
       );
-      await adminClient
-        .from("usernames")
-        .delete()
-        .eq("user_id", authData.user.id);
-      await adminClient.auth.admin.deleteUser(authData.user.id);
-      return {
-        success: false,
-        error: "Failed to complete registration. Please try again.",
-      };
+      // Account created but no session — tell client to redirect to sign-in
+      return { success: true, userId: authData.user.id, requiresSignIn: true };
     }
 
     authLogger.success(
-      "[registerWithUsername] User registered successfully with profile",
+      "[registerWithUsername] User registered and signed in successfully",
       {
         userId: authData.user.id,
         username: trimmedUsername,
@@ -231,8 +217,7 @@ export async function registerWithUsername(
     authLogger.error("[registerWithUsername] Unexpected error", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
     };
   }
 }
@@ -350,8 +335,7 @@ export async function signInWithUsername(
     authLogger.error("[signInWithUsername] Unexpected error", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
     };
   }
 }

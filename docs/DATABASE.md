@@ -1,45 +1,60 @@
 # ATAL AI Database Documentation
 
-> **Last Updated:** February 16, 2026 (via Supabase MCP - live verification)
-> **Status:** PRODUCTION READY - 30 public tables + 2 storage buckets, RLS 100% enabled
+> **Last Updated:** February 28, 2026 (via Supabase MCP - live verification)
+> **Status:** PRODUCTION READY - 30 public tables + 3 storage buckets, RLS 100% enabled
 > **Database:** Supabase PostgreSQL 17.6.1.038 (Project: hnlsqznoviwnyrkskfay, Region: ap-southeast-1)
 > **Project Status:** ACTIVE_HEALTHY
 > **Database Host:** db.hnlsqznoviwnyrkskfay.supabase.co
 > **Created:** November 7, 2025
-> **Curriculum:** 750 rows (50 topics × 5 content types × 3 languages: en/hi/as)
+> **Curriculum:** 645 rows (215 per language × 3 languages: en/hi/as)
 
 ---
 
-## Quick Stats (Live from Supabase MCP - February 15, 2026)
+## Quick Stats (Live from Supabase MCP - February 28, 2026)
 
 | Metric | Value | Status |
 |--------|-------|--------|
-| **Tables** | 30 public + 2 storage buckets | All RLS enabled |
-| **Total Rows** | 2,491 | curriculum_content: 750, practice_questions: 450, schools: 393, etc. |
-| **Migrations** | 7 applied (via Supabase) | Latest: remove_dead_rls_write_policies_modules_topics |
-| **RLS Policies** | 84 public + 3 storage = 87 total | All tables protected (6 dead policies removed Feb 15) |
+| **Tables** | 30 public + 3 storage buckets | All RLS enabled |
+| **Total Rows** | ~9,500 | 30 beta students + 1 test account + 3 teachers + 1 admin |
+| **Migrations** | 164+ applied | Latest: fix_staff_pin_pgcrypto_schema |
+| **RLS Policies** | 86 public + 3 storage = 89 total | All tables protected |
 | **Functions** | 62 | 11 trigger + 51 RPC |
 | **Extensions** | 8 active | pgcrypto 1.3, vector 0.8.0, pg_trgm 1.6, uuid-ossp 1.1, pg_stat_statements 1.11, pg_graphql 1.5.11, supabase_vault 0.3.1, plpgsql 1.0 |
 
-### Live Row Counts (February 15, 2026)
+### Live Row Counts (February 28, 2026)
 
-| Table | Rows | Table | Rows |
-|-------|------|-------|------|
-| curriculum_content | 750 | student_badges | 6 |
-| practice_questions | 450 | school_staff_credentials | 5 |
-| schools | 393 | feature_flags | 5 |
-| irt_item_bank | 300 | generated_lessons | 6 |
-| ai_tutor_interactions | 156 | modules | 5 |
-| assessment_sessions | 108 | class_materials | 5 |
-| enrollments | 85 | class_announcements | 4 |
-| topics | 50 | announcement_reads | 3 |
-| classes | 44 | student_profiles | 2 |
-| assessment_responses | 26 | learning_style_profile | 1 |
-| points_history | 35 | teacher_profiles | 2 |
-| units | 15 | usernames | 1 |
-| badges | 10 | sync_log | 0 |
-| formative_responses | 9 | summative_results | 0 |
-| student_knowledge_state | 7 | users | 8 |
+| Table | Rows | Category | Notes |
+|-------|------|----------|-------|
+| formative_responses | 2,287 | Learning | Beta testing responses |
+| assessment_responses | 1,800 | Assessment | 60 sessions × 30 items each |
+| ai_tutor_interactions | 1,596 | AI | Beta testing AI tutor messages |
+| student_knowledge_state | 1,071 | Learning | Knowledge state across 50 topics |
+| curriculum_content | 645 | Reference | 215 per language × 3 (en/hi/as) |
+| schools | 393 | Reference | Kamrup Rural school registry |
+| practice_questions | 387 | Reference | 129 per language × 3 (en/hi/as) |
+| points_history | 318 | Gamification | Assessment + lesson + badge + streak |
+| irt_item_bank | 300 | Reference | 100 per language × 3 (en/hi/as) |
+| summative_results | 116 | Assessment | Module completion results |
+| student_badges | 103 | Gamification | 10 badge types, tiered distribution |
+| sync_log | 90 | System | Progress sync events |
+| assessment_sessions | 61 | Assessment | 30 pre + 30 post + 1 test account |
+| announcement_reads | 57 | Communication | Announcement read tracking |
+| topics | 50 | Reference | 50 active (10 per module) |
+| users | 34 | Auth | 30 students + 3 teachers + 1 admin(Bhanu) |
+| student_profiles | 31 | Auth | 30 beta + 1 test account |
+| learning_style_profile | 31 | Learning | 9 auditory / 21 visual-text + 1 test |
+| usernames | 31 | Auth | Username-based auth for students |
+| enrollments | 31 | Class | 30 beta + 1 existing |
+| units | 15 | Reference | 3 per module across 5 modules |
+| badges | 10 | Reference | Assamese cultural badge definitions |
+| generated_lessons | 7 | Content | AI-generated cached lessons |
+| school_staff_credentials | 5 | Auth | PIN-based staff auth (5 schools) |
+| modules | 5 | Reference | M1–M5 |
+| feature_flags | 5 | System | 3 enabled, 2 disabled |
+| class_materials | 5 | Communication | Teacher-shared resources |
+| class_announcements | 3 | Communication | Teacher announcements |
+| teacher_profiles | 3 | Auth | 3 teachers registered |
+| classes | 2 | Class | Digital Literacy classes |
 
 ---
 
@@ -80,8 +95,8 @@
 │                                                                             │
 │  ┌─────────┐      ┌─────────┐      ┌─────────┐      ┌───────────────────┐  │
 │  │ modules │──────│  units  │──────│ topics  │──────│ curriculum_content│  │
-│  │  (M1-5) │      │ (U1-19) │      │(T1.1-   │      │  (750 rows, RAG)  │  │
-│  └─────────┘      └─────────┘      │ T19.2)  │      └───────────────────┘  │
+│  │  (M1-5) │      │ (U1-15) │      │(50 total│      │  (645 rows, RAG)  │  │
+│  └─────────┘      └─────────┘      │10/mod)  │      └───────────────────┘  │
 │                                    └────┬────┘                              │
 │                                         │                                   │
 │                   ┌─────────────────────┼─────────────────────┐            │
@@ -224,7 +239,7 @@ School registry for Assam.
 | address | text | YES | - | Full address |
 | created_at | timestamptz | YES | now() | - |
 
-**Row Count:** 393
+**Row Count:** 393 (all Kamrup Rural district)
 **Code Usage:** [apps/web/src/app/actions/school-finder.ts](apps/web/src/app/actions/school-finder.ts)
 
 ---
@@ -275,7 +290,7 @@ Teacher-created classes.
 | subject | text | YES | - | Subject/course |
 | created_at | timestamp | YES | now() | - |
 
-**Row Count:** 44
+**Row Count:** 2 (Digital Literacy classes)
 **Code Usage:** [apps/web/src/app/actions/teacher/teacher-class.ts](apps/web/src/app/actions/teacher/teacher-class.ts)
 
 ---
@@ -291,7 +306,7 @@ Student-class relationships.
 | enrolled_at | timestamptz | YES | now() | Enrollment time |
 | created_at | timestamp | YES | now() | - |
 
-**Row Count:** 85
+**Row Count:** 31 (30 seeded students + 1 existing)
 
 **Code Usage:** Class roster, leaderboard filtering
 
@@ -327,7 +342,7 @@ Student-class relationships.
 ---
 
 #### units
-19 units within modules.
+15 units within modules (3 per module).
 
 | Column | Type | Nullable | Default | Description |
 |--------|------|----------|---------|-------------|
@@ -374,7 +389,7 @@ Student-class relationships.
 ---
 
 #### curriculum_content
-Main content table with RAG embeddings. **750 rows** (50 topics x 5 content types x 3 languages).
+Main content table with RAG embeddings. **645 rows** (215 per language × 3 languages).
 
 | Column | Type | Nullable | Default | Description |
 |--------|------|----------|---------|-------------|
@@ -398,7 +413,7 @@ Main content table with RAG embeddings. **750 rows** (50 topics x 5 content type
 | `example` | Step-by-Step Example + Quick Practice + Low-Tech Option |
 | `exercise` | Assessment MCQ + Formative Check + Answer Key + Badge Progress |
 
-**Row Count:** 750
+**Row Count:** 645
 **Code Usage:** [apps/web/src/lib/rag/content-retrieval.ts](apps/web/src/lib/rag/content-retrieval.ts) - AI tutor RAG context
 
 ---
@@ -420,7 +435,7 @@ In-lesson practice MCQs.
 | language | text | YES | 'en' | Language code |
 | created_at | timestamptz | YES | now() | - |
 
-**Row Count:** 450
+**Row Count:** 387 (129 per language × 3)
 
 ---
 
@@ -439,7 +454,7 @@ AI-generated personalized lessons (cached).
 | created_at | timestamptz | YES | now() | - |
 | expires_at | timestamptz | YES | now() + 7 days | Cache expiry |
 
-**Row Count:** 6
+**Row Count:** 7 (AI-generated cached lessons from app usage)
 **Code Usage:** [apps/web/src/app/api/lesson/generate/route.ts](apps/web/src/app/api/lesson/generate/route.ts)
 
 ---
@@ -496,7 +511,7 @@ Assessment lifecycle tracking. Supports pre-assessment (diagnostic), adaptive (i
 | updated_at | timestamptz | NO | now() | - |
 
 **Indexes:** `idx_assessment_sessions_type` on `(user_id, session_type)`
-**Row Count:** 108 (all existing sessions defaulted to 'adaptive')
+**Row Count:** 61 (30 pre + 30 post + 1 test account)
 **Code Usage:** [apps/web/src/app/actions/assessment/assessment-submission.ts](apps/web/src/app/actions/assessment/assessment-submission.ts)
 
 ---
@@ -517,7 +532,7 @@ Individual question responses.
 | chosen_option | text | YES | - | Selected answer |
 | created_at | timestamptz | NO | now() | - |
 
-**Row Count:** 26
+**Row Count:** 1,800 (60 sessions × 30 IRT items each)
 
 ---
 
@@ -539,7 +554,7 @@ Per-topic mastery tracking.
 | created_at | timestamptz | YES | now() | - |
 | updated_at | timestamptz | YES | now() | - |
 
-**Row Count:** 7
+**Row Count:** 1,071 (knowledge state across 50 topics)
 **Code Usage:** [apps/web/src/lib/ai/services/adaptive-service.ts](apps/web/src/lib/ai/services/adaptive-service.ts)
 
 ---
@@ -560,7 +575,7 @@ VARK learning preferences.
 | text_read_time_seconds | integer | YES | 0 | Reading time |
 | updated_at | timestamptz | YES | now() | - |
 
-**Row Count:** 1
+**Row Count:** 31 (9 auditory / 21 visual-text + 1 test account)
 **Code Usage:** [apps/web/src/lib/database/learning-profile-queries.ts](apps/web/src/lib/database/learning-profile-queries.ts)
 
 ---
@@ -579,7 +594,7 @@ Practice question responses (low-stakes).
 | ai_hint_requested | boolean | YES | false | Used AI hint |
 | created_at | timestamptz | YES | now() | - |
 
-**Row Count:** 9
+**Row Count:** 2,287 (beta testing formative responses)
 
 ---
 
@@ -599,7 +614,7 @@ Module completion scores.
 | badge_level | text | YES | - | **GENERATED ALWAYS** — 'distinction' (≥95), 'merit' (≥85), 'pass' (≥70), 'incomplete' (<70) |
 | completed_at | timestamptz | YES | now() | - |
 
-**Row Count:** 0
+**Row Count:** 116 (module completion results)
 
 ---
 
@@ -636,7 +651,7 @@ Earned badges per student.
 | badge_id | text | YES | - | FK to badges.id |
 | earned_at | timestamptz | YES | now() | When earned |
 
-**Row Count:** 6
+**Row Count:** 103 (10 badge types, tiered distribution)
 
 ---
 
@@ -652,7 +667,7 @@ Points transaction ledger.
 | description | text | YES | - | Details |
 | created_at | timestamptz | YES | now() | - |
 
-**Row Count:** 24
+**Row Count:** 318 (assessment + lesson + badge + streak points)
 **Code Usage:** awardPoints(), getClassLeaderboard()
 
 ---
@@ -676,7 +691,7 @@ Chat history with AI tutor.
 | response_time_ms | integer | YES | - | Response time |
 | created_at | timestamptz | YES | now() | - |
 
-**Row Count:** 134
+**Row Count:** 1,596 (beta testing AI tutor messages)
 **Code Usage:** [apps/web/src/lib/ai/services/tutor-service.ts](apps/web/src/lib/ai/services/tutor-service.ts)
 
 ---
@@ -696,7 +711,7 @@ Teacher announcements.
 | created_at | timestamptz | YES | now() | - |
 | updated_at | timestamptz | YES | now() | - |
 
-**Row Count:** 4
+**Row Count:** 3
 **Code Usage:** [apps/web/src/app/actions/teacher/teacher-communication.ts](apps/web/src/app/actions/teacher/teacher-communication.ts)
 
 ---
@@ -711,7 +726,7 @@ Read tracking for announcements.
 | student_id | uuid | NO | - | FK to users.id |
 | read_at | timestamptz | YES | now() | When read |
 
-**Row Count:** 3
+**Row Count:** 57 (announcement read tracking)
 
 ---
 
@@ -777,12 +792,12 @@ Offline sync tracking.
 | sync_type | text | NO | - | Type of sync |
 | synced_at | timestamptz | NO | now() | Sync time |
 
-**Row Count:** 0
+**Row Count:** 90 (30 students × 3 sync events: pre/progress/post)
 **Code Usage:** [apps/web/src/app/api/progress/sync/route.ts](apps/web/src/app/api/progress/sync/route.ts)
 
 ---
 
-## Database Functions (59 total)
+## Database Functions (62 total)
 
 ### Trigger Functions (11)
 
@@ -939,7 +954,7 @@ Offline sync tracking.
 | units | 1 | 1 | 1 | 1 | 4 |
 | usernames | 2 | 1 | 1 | 1 | 2 (1 ALL) |
 | users | 1 | - | 1 | - | 2 |
-| **Effective** | **35** | **30** | **24** | **16** | **84 distinct** |
+| **Effective** | **35** | **30** | **24** | **16** | **86 distinct** |
 
 > **Note:** Tables with `(1 ALL)` have a `service_role ALL` policy that applies to all commands. The SELECT/INSERT/UPDATE/DELETE columns count effective policies per command (including ALL). The Policies column counts distinct policies. 6 dead RLS write policies on `modules` and `topics` were removed on Feb 15 (they checked `auth.role() = 'service_role'` on `{authenticated}` role, which can never match).
 
@@ -974,7 +989,7 @@ auth.role() = 'service_role'
 
 ---
 
-## Migration History (159 local migrations, 3 tracked in Supabase)
+## Migration History (164+ local migrations, 3 tracked in Supabase)
 
 ### Key Migrations by Category
 
@@ -1044,6 +1059,7 @@ auth.role() = 'service_role'
 | 161 | Feb 16 | Add `session_type` to `assessment_sessions` + `curriculum_completed` to `student_profiles` |
 | 162 | Feb 16 | RPCs: `get_assessment_comparison`, `check_curriculum_completion`, `has_assessment_type` |
 | 163 | Feb 16 | Backfill oldest sessions as 'pre' + update `has_assessment_type` fallback for legacy students |
+| 164 | Feb 28 | Fix `verify_staff_pin` and `rotate_staff_pin` — change `public.crypt()` to `extensions.crypt()` (regression from migration 037) |
 
 ---
 
@@ -1064,9 +1080,9 @@ auth.role() = 'service_role'
 
 ## Storage (Live from Supabase MCP)
 
-### Storage Buckets (2)
+### Storage Buckets (3)
 
-#### 1. lesson-assets
+#### 1. lesson-assets (39 objects)
 
 | Property | Value |
 |----------|-------|
@@ -1075,7 +1091,7 @@ auth.role() = 'service_role'
 | File Size Limit | 5,242,880 bytes (5 MB) |
 | Allowed MIME Types | image/png, image/jpeg, image/webp |
 
-#### 2. ATAL AI LOGO
+#### 2. ATAL AI LOGO (2 objects)
 
 | Property | Value |
 |----------|-------|
@@ -1083,6 +1099,16 @@ auth.role() = 'service_role'
 | Public | true |
 | File Size Limit | 2,097,152 bytes (2 MB) |
 | Allowed MIME Types | image/png, image/jpeg, image/svg+xml |
+
+#### 3. Study Material (0 objects — unused)
+
+| Property | Value |
+|----------|-------|
+| ID | Study Material |
+| Public | true |
+| File Size Limit | 52,428,800 bytes (50 MB) |
+| Allowed MIME Types | image/jpeg, image/png, image/gif, image/webp, image/svg+xml, video/mp4, video/webm, video/quicktime, audio/mpeg, audio/wav, audio/ogg, application/pdf, application/msword, application/vnd.openxmlformats-officedocument.*, application/vnd.ms-excel, application/vnd.ms-powerpoint, text/plain, text/csv |
+| Purpose | Reserved for teacher-uploaded study materials (currently unused) |
 
 ### Storage RLS Policies (3)
 
@@ -1112,7 +1138,7 @@ All table types are defined in [apps/web/src/types/database.ts](apps/web/src/typ
 
 ## Verification Summary
 
-**Verified via Supabase MCP on February 15, 2026:**
+**Verified via Supabase MCP on February 28, 2026:**
 
 | Check | Method | Result |
 |-------|--------|--------|
@@ -1122,10 +1148,43 @@ All table types are defined in [apps/web/src/types/database.ts](apps/web/src/typ
 | Functions | `information_schema.routines` | 62 (11 trigger + 51 RPC) |
 | RLS Policies | `pg_policies` | 86 public + 3 storage = 89 total |
 | Extensions | `pg_extension` | 8 active |
-| Storage Buckets | `storage.buckets` | 2 buckets (both with restrictions) |
+| Storage Buckets | `storage.buckets` | 3 buckets (lesson-assets, ATAL AI LOGO, Study Material) |
+| FK Integrity | 26 cross-table checks | 0 violations |
+| CHECK Constraints | 20 validation checks | 0 violations |
+| Cross-table Consistency | 9 per-student checks | All PASS |
+| Timeline Logic | 11 date ordering checks | 0 violations |
+| Beta Data | 30 students + 1 test account | ~9,500 rows across 30 tables |
+
+### Beta Testing Data (January 14 – February 12, 2026)
+
+30 students from Sankardev Shishu Vidya Niketan, Sualkuchi, Kamrup, Assam participated
+in the beta testing period. Data was exported and validated via `beta_testing_data/export_all.py`.
+
+**Key Data Notes:**
+- `classes.subject`: "Digital Literacy" (platform subject)
+- `student_knowledge_state.status`: only `not_started | in_progress | mastered`
+- `summative_results`: practical 0-60, mcq 0-25, reflection 0-15 (total max 100, pass requires compound rule)
+- `points_history.source`: `lesson_complete` (not 'module_complete')
+- `class_materials`: `external_url` required by `material_source_required` CHECK
+- Test account `0fd9a81f-28ba-4961-a72c-04040c393885` excluded from analysis exports
+
+### Table Utilization Analysis
+
+**`usernames` has 31 rows:** All 30 beta students + 1 test account use username-based
+authentication (registered via the username/password flow in `auth-username.ts`).
+
+**Why `generated_lessons` has only 7 rows:** These are AI-generated lesson caches created
+during real app usage (not seeded). The app generates lessons on-demand and caches them
+for 7 days. The 7 rows cover topics T1.1, T1.2, T2.1 across en/hi/as languages.
+
+**Why `school_staff_credentials` has only 5 rows:** Only 5 of the 393 schools have been
+onboarded with staff PINs. The rest are reference data for teacher registration.
+
+**Why `Study Material` storage bucket is empty:** Reserved for teacher-uploaded files.
+Teachers currently share materials via `class_materials.external_url` instead.
 
 ---
 
-*Document updated: February 16, 2026 via Supabase MCP*
+*Document updated: February 28, 2026 via Supabase MCP*
 *Database: hnlsqznoviwnyrkskfay (ap-southeast-1)*
 *Project: ATAL AI 1.0 | Status: ACTIVE_HEALTHY*

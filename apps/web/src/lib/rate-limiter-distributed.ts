@@ -40,8 +40,7 @@ function isTestEnvironment(): boolean {
 
   return (
     process.env.NODE_ENV === "test" ||
-    process.env.PLAYWRIGHT_TEST === "true" ||
-    process.env.CI === "true"
+    process.env.PLAYWRIGHT_TEST === "true"
   );
 }
 

@@ -317,13 +317,13 @@ export async function POST(request: NextRequest) {
           totalPointsAwarded += result.value.pointsAwarded;
         }
       } else {
-        const errorMessage =
-          result.reason instanceof Error
-            ? result.reason.message
-            : "Unknown error";
+        authLogger.error("[Progress Sync] Item sync failed", {
+          index,
+          error: result.reason instanceof Error ? result.reason.message : "Unknown error",
+        });
         failed.push({
           index, // Use the actual loop index, not indexOf
-          error: errorMessage,
+          error: "Sync failed",
         });
       }
     });

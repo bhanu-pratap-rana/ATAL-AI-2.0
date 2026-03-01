@@ -1,9 +1,9 @@
 /**
- * TTS API Route - AI4Bharat Text-to-Speech
+ * TTS API Route - Text-to-Speech
  *
  * Converts text to speech with Assamese support.
- * Primary: HuggingFace Inference API
- * Fallback: Self-hosted on Render.com
+ * Primary: Google Cloud TTS (Neural2/WaveNet voices)
+ * Fallback: Browser Speech Synthesis
  *
  * Supported Languages:
  * - English (en)
@@ -11,6 +11,7 @@
  * - Assamese (as) - Critical for ATAL AI
  */
 
+import { createHash } from "crypto";
 import { z } from "zod";
 import { ttsService } from "@/lib/ai/services/tts-service";
 import { getCurrentUser } from "@/lib/supabase-server";
@@ -64,7 +65,7 @@ export async function POST(request: Request): Promise<Response> {
     // API-002 FIX: Generate ETag from request parameters for efficient caching
     // Use a simple hash of the input to create a unique identifier
     const etagInput = `${text}:${language}:${emotion || "neutral"}`;
-    const etagHash = Buffer.from(etagInput).toString("base64").slice(0, 32);
+    const etagHash = createHash("sha256").update(etagInput).digest("hex").slice(0, 32);
     const etag = `"tts-${etagHash}"`;
 
     // Try to synthesize speech
@@ -97,7 +98,7 @@ export async function POST(request: Request): Promise<Response> {
           status: 200,
           headers: {
             // SEC-013 FIX: Use private cache for authenticated content
-            "Cache-Control": "private, max-age=86400", // Cache for 24 hours
+            "Cache-Control": "private, max-age=60", // Short cache — retry quickly when server TTS recovers
           },
         });
       }
@@ -106,17 +107,6 @@ export async function POST(request: Request): Promise<Response> {
     }
   } catch (error) {
     authLogger.error("[TTS API] Error:", error);
-
-    // Handle specific error types
-    if (error instanceof Error) {
-      if (error.message.includes("model is loading")) {
-        return Response.json(
-          { error: "TTS model is loading. Please try again in a few seconds." },
-          { status: 503 },
-        );
-      }
-    }
-
     return Response.json({ error: "TTS generation failed" }, { status: 500 });
   }
 }

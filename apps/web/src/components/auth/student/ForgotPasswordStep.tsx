@@ -6,7 +6,7 @@
 
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import {
   sendForgotPasswordOtp,
@@ -39,6 +39,14 @@ export function ForgotPasswordStep({
   actions,
   isLoading,
 }: ForgotPasswordStepProps) {
+  const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
+    };
+  }, []);
+
   const forgotPasswordOtpInput = useOTPInput(state.forgotPasswordOtp);
 
   // ========================================
@@ -132,7 +140,7 @@ export function ForgotPasswordStep({
           authLogger.success("[ForgotPassword] Password reset successful");
           toast.success("Password reset successful! Redirecting to login...");
           actions.resetForgotPassword();
-          setTimeout(() => {
+          redirectTimerRef.current = setTimeout(() => {
             actions.setMainStep("signin");
             actions.setSigninTab("email");
             actions.setSigninEmailAddress(state.forgotPasswordEmail);

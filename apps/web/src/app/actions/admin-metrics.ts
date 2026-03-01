@@ -130,7 +130,7 @@ async function fetchDashboardMetricsFromDB(): Promise<DashboardMetrics> {
       "[getDashboardMetrics] Failed to fetch auth users for admin count",
       authUsersResult.error,
     );
-    throw authUsersResult.error;
+    // Don't throw — admin count is non-critical, fall through with 0
   }
 
   // Extract counts with error handling for individual queries
@@ -147,9 +147,20 @@ async function fetchDashboardMetricsFromDB(): Promise<DashboardMetrics> {
   let studentCount = 0;
   if (studentError) {
     authLogger.error(
-      "[getDashboardMetrics] Failed to get student count from profiles",
+      "[getDashboardMetrics] Failed to get student count from profiles, trying fallback",
       studentError,
     );
+    // Fallback: try a simpler count query
+    try {
+      const { count, error } = await supabase
+        .from("student_profiles")
+        .select("user_id", { count: "exact", head: true });
+      if (!error && count !== null) {
+        studentCount = count;
+      }
+    } catch {
+      // Fallback also failed, keep 0
+    }
   } else {
     studentCount = studentProfileCount || 0;
   }

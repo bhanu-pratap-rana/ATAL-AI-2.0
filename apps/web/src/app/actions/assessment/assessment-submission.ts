@@ -173,6 +173,13 @@ export async function startAssessment(classId?: string, sessionType: "pre" | "ad
       return auth.error;
     }
 
+    // SECURITY: Rate limit assessment session creation to prevent abuse
+    const rateLimitKey = `assessment-start:${auth.user.id}`;
+    const isAllowed = await checkRateLimit(rateLimitKey, RATE_LIMITS.assessmentSubmission);
+    if (!isAllowed) {
+      return { success: false, error: "Too many requests. Please wait before starting another assessment." };
+    }
+
     const supabase = await createClient();
 
     // For pre/post assessments, check if one already exists
@@ -205,15 +212,16 @@ export async function startAssessment(classId?: string, sessionType: "pre" | "ad
       .single();
 
     if (error) {
-      return { success: false, error: error.message };
+      authLogger.error("[startAssessment] DB error", { error: error.message });
+      return { success: false, error: "Failed to start assessment" };
     }
 
     return { success: true, sessionId: data.id };
   } catch (error) {
+    authLogger.error("[startAssessment] Unexpected error", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
     };
   }
 }

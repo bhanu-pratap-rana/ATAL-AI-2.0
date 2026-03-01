@@ -127,5 +127,6 @@ export function handleOtpRequestError(error: {
     return "Please enter a valid email address.";
   }
 
-  return error.message;
+  authLogger.error("[requestOtp] Unhandled Supabase error", { rawMessage: error.message });
+  return "An unexpected error occurred. Please try again.";
 }

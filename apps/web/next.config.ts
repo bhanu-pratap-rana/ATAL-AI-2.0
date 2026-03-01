@@ -1,9 +1,7 @@
 import type { NextConfig } from 'next'
 import { withSentryConfig } from '@sentry/nextjs'
 
-// NOTE: next-pwa v5.6.0 removed — generates middleware incompatible with Next.js 16 edge runtime
-// causing MIDDLEWARE_INVOCATION_FAILED on Vercel. Even with disable:true, the wrapper still
-// injects middleware code. TODO: Migrate to @ducanh2912/next-pwa or serwist for Next.js 16 support
+// PWA uses native service worker (public/sw.js) — no next-pwa dependency needed
 
 const nextConfig: NextConfig = {
   // Next.js 16 has Turbopack enabled by default

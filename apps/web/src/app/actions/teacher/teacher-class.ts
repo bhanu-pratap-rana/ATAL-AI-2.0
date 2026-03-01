@@ -119,11 +119,15 @@ export async function updateClass(
       })
       .eq("id", validatedInput.classId)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       authLogger.error("[updateClass] Database error", { error: error.message });
       return { success: false, error: "Failed to update class. Please try again." };
+    }
+
+    if (!data) {
+      return { success: false, error: "Class not found" };
     }
 
     revalidatePath("/app/teacher/classes");

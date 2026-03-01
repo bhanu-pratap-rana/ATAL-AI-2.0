@@ -369,10 +369,14 @@ export class GamificationService {
     threshold: number,
   ): Promise<boolean> {
     const supabase = await createClient();
+    // Only check last 30 days to limit rows fetched
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const { data, error } = await supabase
       .from("ai_tutor_interactions")
       .select("created_at")
       .eq("student_id", studentId)
+      .gte("created_at", thirtyDaysAgo.toISOString())
       .limit(100);
 
     if (error) {
@@ -400,10 +404,14 @@ export class GamificationService {
     threshold: number,
   ): Promise<boolean> {
     const supabase = await createClient();
+    // Only check last 30 days to limit rows fetched
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const { data, error } = await supabase
       .from("ai_tutor_interactions")
       .select("created_at")
       .eq("student_id", studentId)
+      .gte("created_at", thirtyDaysAgo.toISOString())
       .limit(100);
 
     if (error) {

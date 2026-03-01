@@ -325,6 +325,8 @@ export const VoiceChat = memo(function VoiceChat({
 export function useTTS(language: Language) {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  // Track current blob URL for cleanup on stop
+  const audioUrlRef = useRef<string | null>(null);
   // FIX: Use ref to track speaking state without causing callback recreation
   const isSpeakingRef = useRef(false);
   // Track previous language for cleanup on change
@@ -347,11 +349,15 @@ export function useTTS(language: Language) {
     // Increment request ID to invalidate any in-flight responses
     requestIdRef.current++;
 
-    // Stop API-based audio
+    // Stop API-based audio and revoke blob URL to prevent memory leak
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.src = "";
       audioRef.current = null;
+    }
+    if (audioUrlRef.current) {
+      URL.revokeObjectURL(audioUrlRef.current);
+      audioUrlRef.current = null;
     }
     // Stop browser speech synthesis
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
@@ -403,7 +409,7 @@ export function useTTS(language: Language) {
         const response = await fetch("/api/voice/tts", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text, language }),
+          body: JSON.stringify({ text, language, emotion: "friendly" }),
           signal: abortController.signal,
         });
 
@@ -443,27 +449,24 @@ export function useTTS(language: Language) {
         }
 
         if (shouldUseBrowserTTS) {
-          // Use browser Speech Synthesis as primary TTS method
-          // Server TTS is disabled, browser TTS works well in Chrome/Edge
-          clientLogger.debug("[useTTS] Using browser Speech Synthesis");
+          // Use browser Speech Synthesis directly — server already told us to use browser TTS,
+          // so skip speakText() which would make another redundant API request.
+          clientLogger.debug("[useTTS] Using browser Speech Synthesis directly");
           if (typeof window !== "undefined" && "speechSynthesis" in window) {
-            // Import and use the enhanced speakText function dynamically
-            const { speakText } = await import("@/lib/utils/client-tts");
-            await speakText(text, {
-              language,
-              emotion: "friendly",
-              onStart: () => {
-                clientLogger.debug("[useTTS] Browser TTS started");
-              },
-              onEnd: () => {
-                isSpeakingRef.current = false;
-                setIsSpeaking(false);
-              },
-              onError: () => {
-                isSpeakingRef.current = false;
-                setIsSpeaking(false);
-              },
-            });
+            const langMap: Record<string, string> = { en: "en-IN", hi: "hi-IN", as: "bn-IN" };
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = langMap[language] || "en-IN";
+            utterance.rate = 0.95;
+            utterance.pitch = 1.0;
+            utterance.onend = () => {
+              isSpeakingRef.current = false;
+              setIsSpeaking(false);
+            };
+            utterance.onerror = () => {
+              isSpeakingRef.current = false;
+              setIsSpeaking(false);
+            };
+            window.speechSynthesis.speak(utterance);
             return;
           }
           throw new Error("TTS failed and no browser fallback available");
@@ -480,6 +483,7 @@ export function useTTS(language: Language) {
         }
 
         const audioUrl = URL.createObjectURL(audioBlob);
+        audioUrlRef.current = audioUrl;
 
         const audio = new Audio(audioUrl);
         audioRef.current = audio;
@@ -488,12 +492,14 @@ export function useTTS(language: Language) {
           isSpeakingRef.current = false;
           setIsSpeaking(false);
           URL.revokeObjectURL(audioUrl);
+          audioUrlRef.current = null;
         };
 
         audio.onerror = () => {
           isSpeakingRef.current = false;
           setIsSpeaking(false);
           URL.revokeObjectURL(audioUrl);
+          audioUrlRef.current = null;
         };
 
         await audio.play();

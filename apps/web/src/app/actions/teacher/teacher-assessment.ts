@@ -395,8 +395,7 @@ export async function getClassAssessmentResults(classId: string): Promise<{
     authLogger.error("[getClassAssessmentResults] Unexpected error", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
     };
   }
 }
@@ -671,8 +670,7 @@ export async function getTeacherAssessmentOverview(): Promise<{
     authLogger.error("[getTeacherAssessmentOverview] Unexpected error", error);
     return {
       success: false,
-      error:
-        error instanceof Error ? error.message : "An unexpected error occurred",
+      error: "An unexpected error occurred",
     };
   }
 }

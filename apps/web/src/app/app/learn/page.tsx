@@ -86,6 +86,9 @@ async function fetchModulesFromDB(): Promise<ModuleData[]> {
   // Now: Single query to get all topics, then count in memory
   const moduleIds = (data || []).map((m) => m.id);
 
+  // BUG-018 FIX: Guard against empty array — .in([]) returns all rows
+  if (moduleIds.length === 0) return [];
+
   const { data: topicsData } = await supabase
     .from("topics")
     .select("module_id")
@@ -133,6 +136,9 @@ async function getModuleProgress(
 
   // Get all module IDs from database
   const moduleIds = modules.map((m) => m.id);
+
+  // BUG-018 FIX: Guard against empty array — .in([]) returns all rows
+  if (moduleIds.length === 0) return new Map<string, ModuleProgress>();
 
   // Only fetch CURRICULUM module records (not assessment records)
   const { data, error } = await supabase

@@ -6,13 +6,11 @@
  */
 
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 import { z } from "zod";
 import type { User } from "@supabase/supabase-js";
 import { getCurrentUser } from "@/lib/supabase-server";
 import { checkRateLimit } from "@/lib/rate-limiter-distributed";
 import type { RateLimitConfig } from "@/lib/constants/rate-limits";
-import { authLogger } from "@/lib/auth-logger";
 
 /**
  * Authenticate user and check rate limit in one call.
@@ -77,50 +75,3 @@ export function validateRequestBody<T>(
   return { data: validation.data };
 }
 
-/**
- * Extract the correlation ID from the request (set by proxy middleware).
- * Falls back to generating a new ID if not present.
- */
-export function getRequestId(request: NextRequest): string {
-  return request.headers.get("x-request-id") || crypto.randomUUID();
-}
-
-/**
- * Log an API request with structured context including correlation ID.
- *
- * @example
- * ```ts
- * const requestId = getRequestId(request);
- * logApiRequest("tutor/chat", request.method, requestId, user.id);
- * // ... process request ...
- * logApiResponse("tutor/chat", 200, requestId, startTime);
- * ```
- */
-export function logApiRequest(
-  route: string,
-  method: string,
-  requestId: string,
-  userId?: string,
-): void {
-  authLogger.info(`[API] ${method} /api/${route}`, {
-    requestId,
-    userId,
-  });
-}
-
-/**
- * Log an API response with duration.
- */
-export function logApiResponse(
-  route: string,
-  status: number,
-  requestId: string,
-  startTime: number,
-): void {
-  const durationMs = Date.now() - startTime;
-  authLogger.info(`[API] ${status} /api/${route} (${durationMs}ms)`, {
-    requestId,
-    status,
-    durationMs,
-  });
-}

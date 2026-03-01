@@ -39,10 +39,16 @@ export class ConnectionPoolMonitor {
   /**
    * Initialize Supabase client lazily
    */
-  private getSupabaseClient(): SupabaseClient<Database> {
+  private getSupabaseClient(): SupabaseClient<Database> | null {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    // Guard: service role key unavailable client-side (not a NEXT_PUBLIC_ var)
+    if (!url || !key) {
+      return null;
+    }
     this.supabase ??= createClient<Database>(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      url,
+      key,
       {
         auth: { autoRefreshToken: false, persistSession: false },
       },
@@ -67,6 +73,7 @@ export class ConnectionPoolMonitor {
       // Get connection stats via typed RPC
       try {
         const supabase = this.getSupabaseClient();
+        if (!supabase) return null;
         const { data, error } = await supabase.rpc("get_connection_stats");
 
         if (error) {
