@@ -70,6 +70,7 @@ export function SyncStatusIndicator({
   compact = false,
 }: SyncStatusIndicatorProps) {
   const { isOnline } = useNetworkStatus();
+  const [mounted, setMounted] = useState(false);
   const [status, setStatus] = useState<SyncStatus>({
     pendingCount: 0,
     failedCount: 0,
@@ -79,8 +80,9 @@ export function SyncStatusIndicator({
   });
   const [isManualSyncing, setIsManualSyncing] = useState(false);
 
-  // Subscribe to sync status updates
+  // Prevent SSR/client hydration mismatch — network status is browser-only
   useEffect(() => {
+    setMounted(true);
     const unsubscribe = syncQueue.subscribe((newStatus) => {
       setStatus(newStatus);
     });
@@ -141,6 +143,15 @@ export function SyncStatusIndicator({
         : "All synced",
     };
   };
+
+  // Render neutral Check icon until mounted — avoids SSR/client icon mismatch
+  if (!mounted) {
+    const neutralSpan = <span className="text-success"><Check className="h-4 w-4" /></span>;
+    if (compact) {
+      return <div className={cn("relative inline-flex items-center justify-center", className)}>{neutralSpan}</div>;
+    }
+    return <Button variant="ghost" size="sm" className={cn("relative", className)} disabled>{neutralSpan}</Button>;
+  }
 
   const { icon, color, label } = getStatusDisplay();
   const canSync =

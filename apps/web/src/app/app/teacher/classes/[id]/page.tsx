@@ -2,14 +2,6 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient, getCurrentUser } from "@/lib/supabase-server";
 import { authLogger } from "@/lib/auth-logger";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { InviteStudentDialog } from "@/components/teacher/InviteStudentDialog";
 import { RosterTable } from "@/components/teacher/RosterTable";
 import { InvitePanel } from "@/components/teacher/InvitePanel";
@@ -217,127 +209,83 @@ export default async function ClassDetailPage({
     : [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream via-surface to-cyan-lightest page-layout">
-      <div className="container-responsive max-w-6xl">
-        {/* Header */}
-        <div className="mb-responsive">
-          <Link href="/app/teacher/classes">
-            <Button variant="ghost" className="mb-4 touch-target">
-              ← Back to Classes
-            </Button>
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+      <div className="max-w-6xl mx-auto space-y-4">
+        {/* Banner */}
+        <div className="rounded-[32px] p-6 text-white" style={{ background: "linear-gradient(135deg,#3B82F6,#6366F1)" }}>
+          <Link href="/app/teacher/classes" className="inline-flex items-center gap-2 text-white/80 text-xs font-black uppercase tracking-widest mb-4">
+            ← Classes
           </Link>
-
-          <Card className="card-responsive">
-            <CardHeader>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div className="text-center sm:text-left">
-                  <CardTitle className="flex items-center justify-center sm:justify-start gap-2 text-xl md:text-3xl">
-                    <span>📚</span>
-                    <span className="bg-gradient-to-r from-primary via-primary-dark to-cyan bg-clip-text text-transparent line-clamp-2 break-words">
-                      {classData.name}
-                    </span>
-                  </CardTitle>
-                  <CardDescription className="mt-2">
-                    {enrollments.length}{" "}
-                    {enrollments.length === 1 ? "student" : "students"} enrolled
-                  </CardDescription>
-                </div>
-                <InviteStudentDialog classId={id} />
-              </div>
-            </CardHeader>
-          </Card>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-xl sm:text-2xl font-black mb-1">📚 {classData.name}</h1>
+              <p className="text-white/80 text-sm font-bold">
+                {enrollments.length} {enrollments.length === 1 ? "student" : "students"} enrolled
+              </p>
+            </div>
+            <InviteStudentDialog classId={id} />
+          </div>
         </div>
 
         {/* Analytics Tiles */}
         {enrollments.length > 0 && (
-          <div className="mb-responsive">
-            <AnalyticsTiles
-              activeThisWeek={analytics?.activeThisWeek || 0}
-              avgMinutesPerDay={analytics?.avgMinutesPerDay || 0}
-              atRiskCount={analytics?.atRiskCount || 0}
-            />
-          </div>
+          <AnalyticsTiles
+            activeThisWeek={analytics?.activeThisWeek || 0}
+            avgMinutesPerDay={analytics?.avgMinutesPerDay || 0}
+            atRiskCount={analytics?.atRiskCount || 0}
+          />
         )}
 
         {/* Invite Panel with QR Code */}
-        <div className="mb-responsive">
-          <InvitePanel
-            classCode={classData.class_code}
-            joinPin={classData.join_pin || ""}
-            className={classData.name}
-          />
-        </div>
+        <InvitePanel
+          classCode={classData.class_code}
+          joinPin={classData.join_pin || ""}
+          className={classData.name}
+        />
 
         {/* Real-time Student Progress Grid */}
         {enrollments.length > 0 && (
-          <Card className="card-responsive mb-responsive">
-            <CardHeader>
-              <CardTitle className="text-lg md:text-xl flex items-center gap-2">
-                <span>📊</span> Real-time Student Progress
-              </CardTitle>
-              <CardDescription>
-                Live view of student learning progress and at-risk indicators
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <StudentProgressGrid classId={id} />
-            </CardContent>
-          </Card>
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+            <h2 className="font-black text-slate-800 text-lg mb-1 flex items-center gap-2">
+              <span>📊</span> Real-time Student Progress
+            </h2>
+            <p className="text-xs font-bold text-slate-400 mb-4">Live view of student learning progress and at-risk indicators</p>
+            <StudentProgressGrid classId={id} />
+          </div>
         )}
 
         {/* AI Tutor Interactions Log */}
         {enrollments.length > 0 && (
-          <Card className="card-responsive mb-responsive">
-            <CardHeader>
-              <CardTitle className="text-lg md:text-xl flex items-center gap-2">
-                <span>🤖</span> AI Tutor Activity
-              </CardTitle>
-              <CardDescription>
-                Recent AI tutor conversations from your students
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AIInteractionsLog classId={id} limit={15} />
-            </CardContent>
-          </Card>
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+            <h2 className="font-black text-slate-800 text-lg mb-1 flex items-center gap-2">
+              <span>🤖</span> AI Tutor Activity
+            </h2>
+            <p className="text-xs font-bold text-slate-400 mb-4">Recent AI tutor conversations from your students</p>
+            <AIInteractionsLog classId={id} limit={15} />
+          </div>
         )}
 
         {/* Teacher Communication: Announcements & Materials */}
-        <div className="mb-responsive">
-          <CommunicationSection
-            classId={id}
-            announcements={announcements}
-            materials={materials}
-          />
-        </div>
+        <CommunicationSection
+          classId={id}
+          announcements={announcements}
+          materials={materials}
+        />
 
         {/* Roster */}
-        <Card className="card-responsive">
-          <CardHeader>
-            <CardTitle className="text-lg md:text-xl">Class Roster</CardTitle>
-            <CardDescription>
-              View and manage students enrolled in this class
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {enrollments.length === 0 ? (
-              <div className="text-center py-8 md:py-12">
-                <div className="w-16 h-16 md:w-20 md:h-20 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-3xl md:text-4xl">👥</span>
-                </div>
-                <h3 className="heading-3 text-text-primary mb-2">
-                  No students enrolled yet
-                </h3>
-                <p className="text-text-secondary text-sm md:text-base px-4">
-                  Use the Invite Student button above or share the class details
-                  from the invitation section
-                </p>
-              </div>
-            ) : (
-              <RosterTable enrollments={enrollments} classId={id} />
-            )}
-          </CardContent>
-        </Card>
+        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+          <h2 className="font-black text-slate-800 text-lg mb-1">Class Roster</h2>
+          <p className="text-xs font-bold text-slate-400 mb-4">View and manage students enrolled in this class</p>
+          {enrollments.length === 0 ? (
+            <div className="text-center py-10">
+              <div className="text-4xl mb-4">👥</div>
+              <h3 className="font-black text-slate-800 text-lg mb-2">No students enrolled yet</h3>
+              <p className="font-bold text-slate-400 text-sm">Use the Invite Student button above or share the class details</p>
+            </div>
+          ) : (
+            <RosterTable enrollments={enrollments} classId={id} />
+          )}
+        </div>
       </div>
     </div>
   );

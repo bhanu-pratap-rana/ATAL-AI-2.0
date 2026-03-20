@@ -93,7 +93,7 @@ export const DownloadModal = memo(function DownloadModal({
                     "flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-all",
                     selectedLanguage === option.value
                       ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/50"
+                      : "border-slate-200 hover:border-primary/50"
                   )}
                 >
                   <span className="text-2xl">{option.flag}</span>
@@ -120,7 +120,7 @@ export const DownloadModal = memo(function DownloadModal({
                 "w-full flex items-center gap-3 p-3 rounded-lg border-2 transition-all",
                 includeTTS
                   ? "border-primary bg-primary/5"
-                  : "border-border hover:border-primary/50"
+                  : "border-slate-200 hover:border-primary/50"
               )}
             >
               <div
@@ -133,10 +133,10 @@ export const DownloadModal = memo(function DownloadModal({
               >
                 {includeTTS && "✓"}
               </div>
-              <Volume2 className="h-5 w-5 text-text-secondary" />
+              <Volume2 className="h-5 w-5 text-slate-500" />
               <div className="flex-1 text-left">
                 <div className="text-sm font-medium">{t("learn.yesIncludeTTS")}</div>
-                <div className="text-xs text-text-secondary">
+                <div className="text-xs text-slate-500">
                   {t("learn.mbExtra", { size: ESTIMATED_TTS_SIZE_MB })}
                 </div>
               </div>
@@ -144,8 +144,8 @@ export const DownloadModal = memo(function DownloadModal({
           </div>
 
           {/* Estimated Size */}
-          <div className="flex items-center justify-between p-3 bg-surface/50 rounded-lg">
-            <span className="text-sm text-text-secondary">
+          <div className="flex items-center justify-between p-3 bg-slate-50/50 rounded-lg">
+            <span className="text-sm text-slate-500">
               {t("learn.estimatedDownloadSize")}
             </span>
             <span className="font-medium">~{estimatedSize} MB</span>

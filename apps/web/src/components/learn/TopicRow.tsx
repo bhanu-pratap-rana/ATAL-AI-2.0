@@ -43,7 +43,7 @@ function getStatusIcon(status: TopicProgress["status"], masteryScore: number) {
   if (status === "in_progress" || masteryScore > 0) {
     return <PlayCircle className="h-5 w-5 text-primary" />;
   }
-  return <Circle className="h-5 w-5 text-text-secondary" />;
+  return <Circle className="h-5 w-5 text-slate-500" />;
 }
 
 function getStatusKey(status: TopicProgress["status"], masteryScore: number): string {
@@ -76,7 +76,7 @@ export const TopicRow = memo(function TopicRow({
         "flex items-center justify-between p-4 rounded-lg border transition-colors",
         isMastered && "bg-success/5 border-success/20",
         isInProgress && !isMastered && "bg-primary/5 border-primary/20",
-        !isMastered && !isInProgress && "bg-background border-border hover:bg-surface-dark/50"
+        !isMastered && !isInProgress && "bg-background border-slate-200 hover:bg-slate-100/50"
       )}
     >
       <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -86,12 +86,12 @@ export const TopicRow = memo(function TopicRow({
           <div className="flex items-center gap-2">
             <h4 className="font-medium text-sm truncate">{topic.name}</h4>
             {topic.isDownloaded && (
-              <span className="text-xs bg-surface px-2 py-0.5 rounded text-text-secondary">
+              <span className="text-xs bg-slate-50 px-2 py-0.5 rounded text-slate-500">
                 {t("learn.offline")}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2 text-xs text-text-secondary">
+          <div className="flex items-center gap-2 text-xs text-slate-500">
             <span>{t(getStatusKey(topic.progress.status, topic.progress.masteryScore))}</span>
             <span>•</span>
             <span>{topic.durationMinutes} {t("learn.minutes")}</span>
@@ -151,7 +151,7 @@ export const TopicRow = memo(function TopicRow({
           >
             <Download
               className={cn(
-                "h-4 w-4 text-text-secondary",
+                "h-4 w-4 text-slate-500",
                 isDownloading && "animate-spin"
               )}
             />

@@ -138,13 +138,14 @@ export function DialogContainer({
       <div className="flex items-center justify-between mb-4">
         <h2
           id="dialog-title"
-          className="text-lg font-semibold text-text-primary"
+          className="text-lg font-semibold text-slate-800"
         >
           {title}
         </h2>
         <button
+                type="button"
           onClick={onClose}
-          className="text-text-muted hover:text-text-primary transition-colors"
+          className="text-slate-400 hover:text-slate-800 transition-colors"
           aria-label="Close dialog"
         >
           <span className="text-2xl">×</span>

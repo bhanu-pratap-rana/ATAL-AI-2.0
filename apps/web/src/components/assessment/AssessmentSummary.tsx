@@ -80,6 +80,12 @@ const CATEGORY_TO_MODULE: Record<string, string> = {
   problem_solving_aptitude: "M5",
 };
 
+function getDiffClass(diff: number): string {
+  if (diff > 0) return "text-success";
+  if (diff < 0) return "text-error";
+  return "text-slate-400";
+}
+
 /** Find the module ID for the weakest category */
 function getWeakestModule(
   breakdown: Record<string, { total: number; correct: number }>,
@@ -184,7 +190,7 @@ export function AssessmentSummary({
   const scoreMessage = getScoreMessage(score);
 
   return (
-    <div className="min-h-screen bg-cream p-4 md:p-8">
+    <div className="min-h-screen bg-orange-50 p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
         {/* Header Card - Celebration */}
         <div className="card-gradient mb-6">
@@ -200,17 +206,17 @@ export function AssessmentSummary({
                   />
                 </div>
               )}
-              <span className="text-5xl mb-4 block">{scoreMessage.emoji}</span>
-              <h1 className="text-3xl md:text-4xl font-bold text-text-primary mb-2">
+              <span className="text-4xl sm:text-5xl mb-4 block">{scoreMessage.emoji}</span>
+              <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-2">
                 {scoreMessage.title}
               </h1>
-              <p className="text-lg text-text-secondary">
+              <p className="text-lg text-slate-500">
                 {scoreMessage.message}
               </p>
             </div>
 
             {/* Score and Level Row */}
-            <div className="flex flex-col md:flex-row items-center justify-center gap-8 py-6 border-t border-b border-border">
+            <div className="flex flex-col md:flex-row items-center justify-center gap-8 py-6 border-t border-b border-slate-200">
               {/* Score Circle */}
               <ResultCircle
                 percentage={score}
@@ -222,10 +228,10 @@ export function AssessmentSummary({
               <div className="flex flex-col gap-4 text-center md:text-left">
                 {/* Correct/Total */}
                 <div>
-                  <div className="text-3xl font-bold text-text-primary">
+                  <div className="text-xl sm:text-3xl font-bold text-slate-800">
                     {correctAnswers}/{totalQuestions}
                   </div>
-                  <div className="text-sm text-text-tertiary">
+                  <div className="text-sm text-slate-400">
                     Correct Answers
                   </div>
                 </div>
@@ -271,7 +277,7 @@ export function AssessmentSummary({
 
         {/* Level Card */}
         <div className="card mb-6">
-          <h2 className="text-2xl font-bold text-text-primary mb-4">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-4">
             Your Skill Level
           </h2>
           <LevelCard score={score} className="max-w-sm mx-auto" />
@@ -280,24 +286,24 @@ export function AssessmentSummary({
         {/* Pre vs Post Comparison (only for post-assessment with pre data) */}
         {sessionType === "post" && comparisonData?.pre && (
           <div className="card mb-6">
-            <h2 className="text-2xl font-bold text-text-primary mb-4">
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-4">
               Your Improvement
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-              <div className="text-center p-4 bg-surface/50 rounded-lg">
-                <div className="text-sm text-text-tertiary mb-1">Pre-Assessment</div>
-                <div className="text-3xl font-bold text-text-secondary">
+              <div className="text-center p-4 bg-slate-50/50 rounded-lg">
+                <div className="text-sm text-slate-400 mb-1">Pre-Assessment</div>
+                <div className="text-xl sm:text-3xl font-bold text-slate-500">
                   {Math.round(comparisonData.pre.score)}%
                 </div>
               </div>
               <div className="text-center p-4 bg-primary/10 rounded-lg">
-                <div className="text-sm text-text-tertiary mb-1">Post-Assessment</div>
-                <div className="text-3xl font-bold text-primary">
+                <div className="text-sm text-slate-400 mb-1">Post-Assessment</div>
+                <div className="text-xl sm:text-3xl font-bold text-primary">
                   {score}%
                 </div>
               </div>
               <div className="text-center p-4 bg-success/10 rounded-lg">
-                <div className="text-sm text-text-tertiary mb-1">Improvement</div>
+                <div className="text-sm text-slate-400 mb-1">Improvement</div>
                 <div className={`text-3xl font-bold ${score - comparisonData.pre.score > 0 ? "text-success" : "text-error"}`}>
                   {score - Math.round(comparisonData.pre.score) > 0 ? "+" : ""}
                   {Math.round(score - comparisonData.pre.score)}%
@@ -314,30 +320,30 @@ export function AssessmentSummary({
                 const diff = postScore - Math.round(preScore);
                 return (
                   <div key={module} className="flex items-center gap-3">
-                    <div className="w-40 text-sm font-medium text-text-secondary truncate">
+                    <div className="w-40 text-sm font-medium text-slate-500 truncate">
                       {CATEGORY_NAMES[module] || module.replace(/_/g, " ")}
                     </div>
                     <div className="flex-1 flex items-center gap-2">
-                      <div className="flex-1 bg-surface rounded-full h-2 overflow-hidden">
+                      <div className="flex-1 bg-slate-50 rounded-full h-2 overflow-hidden">
                         <div
                           className="h-full bg-text-tertiary/40 rounded-full"
                           style={{ width: `${Math.round(preScore)}%` }}
                         />
                       </div>
-                      <div className="flex-1 bg-surface rounded-full h-2 overflow-hidden">
+                      <div className="flex-1 bg-slate-50 rounded-full h-2 overflow-hidden">
                         <div
                           className="h-full bg-primary rounded-full"
                           style={{ width: `${postScore}%` }}
                         />
                       </div>
                     </div>
-                    <div className={`w-14 text-right text-sm font-bold ${diff > 0 ? "text-success" : diff < 0 ? "text-error" : "text-text-tertiary"}`}>
+                    <div className={`w-14 text-right text-sm font-bold ${getDiffClass(diff)}`}>
                       {diff > 0 ? "+" : ""}{diff}%
                     </div>
                   </div>
                 );
               })}
-              <div className="flex items-center gap-3 text-xs text-text-tertiary mt-2">
+              <div className="flex items-center gap-3 text-xs text-slate-400 mt-2">
                 <div className="w-40" />
                 <div className="flex-1 flex gap-2">
                   <div className="flex-1 flex items-center gap-1">
@@ -357,7 +363,7 @@ export function AssessmentSummary({
 
         {/* Next Steps — Smart Level Routing */}
         <div className="card">
-          <h2 className="text-2xl font-bold text-text-primary mb-4">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-4">
             What&apos;s Next?
           </h2>
 
@@ -369,7 +375,7 @@ export function AssessmentSummary({
 
             return (
               <>
-                <p className="text-text-secondary mb-4">
+                <p className="text-slate-500 mb-4">
                   {allStrong
                     ? "Great news! You scored well across all areas. You can start from the beginning or jump into any module."
                     : "Based on your pre-assessment, here are your recommended focus areas:"}
@@ -380,13 +386,13 @@ export function AssessmentSummary({
                   {categories.map((cat) => (
                     <div
                       key={cat.category}
-                      className="flex items-center justify-between p-3 rounded-lg bg-surface/30"
+                      className="flex items-center justify-between p-3 rounded-lg bg-slate-50/30"
                     >
                       <div className="flex items-center gap-2">
                         <span className={cat.score >= MASTERY_THRESHOLDS.PASSING ? "text-success" : "text-warning"}>
                           {cat.score >= MASTERY_THRESHOLDS.PASSING ? "✓" : "→"}
                         </span>
-                        <span className="text-sm font-medium text-text-primary">
+                        <span className="text-sm font-medium text-slate-800">
                           {cat.name}
                         </span>
                       </div>
@@ -396,6 +402,7 @@ export function AssessmentSummary({
                         </span>
                         {cat.score < MASTERY_THRESHOLDS.PASSING && (
                           <button
+                type="button"
                             onClick={() => router.push(`/app/learn/${cat.moduleId}`)}
                             className="text-xs text-primary hover:underline font-medium"
                           >
@@ -408,7 +415,7 @@ export function AssessmentSummary({
                 </div>
 
                 {weakCategories.length > 0 && (
-                  <p className="text-sm text-text-tertiary mb-4">
+                  <p className="text-sm text-slate-400 mb-4">
                     We recommend starting with{" "}
                     <strong>{weakCategories[0].name}</strong> — your area with
                     the most room for growth.
@@ -426,7 +433,7 @@ export function AssessmentSummary({
 
             return (
               <>
-                <p className="text-text-secondary mb-4">
+                <p className="text-slate-500 mb-4">
                   {allMastered
                     ? "You have mastered all categories! You have completed the ATAL AI digital literacy curriculum."
                     : "You have made progress! Here are the areas to revisit for further improvement:"}
@@ -442,13 +449,13 @@ export function AssessmentSummary({
                     return (
                       <div
                         key={cat.category}
-                        className="flex items-center justify-between p-3 rounded-lg bg-surface/30"
+                        className="flex items-center justify-between p-3 rounded-lg bg-slate-50/30"
                       >
                         <div className="flex items-center gap-2">
                           <span className={cat.score >= MASTERY_THRESHOLDS.PASSING ? "text-success" : "text-warning"}>
                             {cat.score >= MASTERY_THRESHOLDS.PASSING ? "✓" : "!"}
                           </span>
-                          <span className="text-sm font-medium text-text-primary">
+                          <span className="text-sm font-medium text-slate-800">
                             {cat.name}
                           </span>
                           {improved && (
@@ -463,6 +470,7 @@ export function AssessmentSummary({
                           </span>
                           {cat.score < MASTERY_THRESHOLDS.PASSING && (
                             <button
+                type="button"
                               onClick={() => router.push(`/app/learn/${cat.moduleId}`)}
                               className="text-xs text-primary hover:underline font-medium"
                             >
@@ -487,7 +495,7 @@ export function AssessmentSummary({
 
           {/* Adaptive: Generic message */}
           {sessionType === "adaptive" && (
-            <p className="text-text-secondary mb-6">
+            <p className="text-slate-500 mb-6">
               Based on your assessment, we&apos;ve identified learning modules
               that will help you grow your digital literacy skills.
             </p>

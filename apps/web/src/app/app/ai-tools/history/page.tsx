@@ -10,7 +10,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-server";
-import { Card, CardContent } from "@/components/ui/card";
 import { ConversationHistory } from "@/components/tutor/ConversationHistory";
 import { authLogger } from "@/lib/auth-logger";
 
@@ -108,66 +107,47 @@ export default async function ConversationHistoryPage() {
   const totalMessages = interactions?.length || 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream to-surface page-layout">
-      <div className="container-responsive max-w-4xl">
-        {/* Header */}
-        <div className="mb-responsive text-center sm:text-left">
-          <Link
-            href="/app/ai-tools"
-            className="text-primary hover:text-primary-dark mb-4 inline-flex items-center gap-1 text-sm md:text-base touch-target"
-          >
-            ← Back to AI Tools
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+      <div className="max-w-4xl mx-auto space-y-4">
+        {/* Banner */}
+        <div className="rounded-[32px] p-6 text-white" style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" }}>
+          <Link href="/app/ai-tools" className="inline-flex items-center gap-2 text-white/80 text-xs font-black uppercase tracking-widest mb-4">
+            ← AI Tools
           </Link>
-          <h1 className="heading-1 text-primary mb-2">💬 Conversation History</h1>
-          <p className="text-text-secondary text-sm md:text-base">
-            View your past conversations with the AI Tutor
-          </p>
+          <h1 className="text-xl sm:text-2xl font-black mb-1">Conversation History 💬</h1>
+          <p className="text-white/80 text-sm font-bold">View your past conversations with the AI Tutor</p>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 gap-responsive mb-responsive">
-          <Card className="card-responsive">
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <p className="text-3xl font-bold text-primary">{totalConversations}</p>
-                <p className="text-sm text-text-secondary">Conversations</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="card-responsive">
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <p className="text-3xl font-bold text-accent-dark">{totalMessages}</p>
-                <p className="text-sm text-text-secondary">Total Messages</p>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-center">
+            <p className="text-xl sm:text-2xl font-black text-orange-600 mb-1">{totalConversations}</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Conversations</p>
+          </div>
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-center">
+            <p className="text-xl sm:text-2xl font-black text-blue-600 mb-1">{totalMessages}</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Messages</p>
+          </div>
         </div>
 
         {/* Conversations List */}
         {sessions.length > 0 ? (
           <ConversationHistory sessions={sessions} />
         ) : (
-          <Card className="card-responsive">
-            <CardContent className="py-12">
-              <div className="text-center">
-                <div className="text-5xl mb-4">🤖</div>
-                <h3 className="text-lg font-semibold text-text-primary mb-2">
-                  No conversations yet
-                </h3>
-                <p className="text-text-secondary mb-6 max-w-md mx-auto">
-                  Start a conversation with the AI Tutor to get help with your learning.
-                  Your chat history will appear here.
-                </p>
-                <Link
-                  href="/app/ai-tools/tutor"
-                  className="inline-flex items-center justify-center px-6 py-2.5 bg-primary text-white rounded-lg font-medium hover:bg-primary-dark transition-colors"
-                >
-                  Start a Conversation
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8 sm:p-12 text-center">
+            <div className="text-4xl sm:text-5xl mb-4">🤖</div>
+            <h3 className="font-black text-slate-800 text-lg mb-2">No conversations yet</h3>
+            <p className="font-bold text-slate-400 text-sm mb-6 max-w-md mx-auto">
+              Start a conversation with the AI Tutor to get help with your learning.
+            </p>
+            <Link
+              href="/app/ai-tools/tutor"
+              className="px-6 py-3 rounded-2xl font-black text-sm text-white transition-all active:scale-95 inline-block"
+              style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)", boxShadow: "0 4px 14px rgba(249,136,25,0.39)" }}
+            >
+              Start a Conversation
+            </Link>
+          </div>
         )}
       </div>
     </div>

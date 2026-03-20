@@ -181,13 +181,13 @@ function ChunkImage({
   // Loading state with Lottie animation
   if (imageState.loading || showSuccess) {
     return (
-      <div className="bg-surface/30 rounded-lg p-6 border border-dashed flex flex-col items-center justify-center min-h-[200px]">
+      <div className="bg-slate-50/30 rounded-lg p-6 border border-dashed flex flex-col items-center justify-center min-h-[200px]">
         {showSuccess ? (
           <SuccessAnimation size={60} />
         ) : (
           <LoadingAnimation size={60} />
         )}
-        <p className="text-sm text-text-secondary mt-3">
+        <p className="text-sm text-slate-500 mt-3">
           {language === "en" ? "Loading visual..." : language === "hi" ? "चित्र लोड हो रहा है..." : "ছবি লোড হৈ আছে..."}
         </p>
       </div>
@@ -197,14 +197,14 @@ function ChunkImage({
   // Error state with fallback to description
   if (imageState.error || !imageState.url) {
     return (
-      <div className="bg-surface/50 rounded-lg p-4 border border-dashed">
-        <div className="flex items-center gap-2 text-text-secondary mb-2">
+      <div className="bg-slate-50/50 rounded-lg p-4 border border-dashed">
+        <div className="flex items-center gap-2 text-slate-500 mb-2">
           <ImageIcon className="h-4 w-4" />
           <span className="text-sm font-medium">
             {language === "en" ? "Visual Aid" : language === "hi" ? "दृश्य सहायता" : "দৃশ্য সহায়তা"}
           </span>
         </div>
-        <p className="text-sm text-text-secondary italic">
+        <p className="text-sm text-slate-500 italic">
           📊 {visualDescription}
         </p>
       </div>
@@ -225,7 +225,7 @@ function ChunkImage({
         />
       </div>
       {visualDescription && (
-        <p className="text-xs text-text-secondary p-2 bg-surface/50 text-center">
+        <p className="text-xs text-slate-500 p-2 bg-slate-50/50 text-center">
           {visualDescription}
         </p>
       )}
@@ -306,7 +306,7 @@ function CheckpointQuiz({
             } else if (isSelected && !isCorrect) {
               buttonClass += "bg-error/20 border-error text-error-dark";
             } else {
-              buttonClass += "bg-surface border-muted-foreground/20";
+              buttonClass += "bg-slate-50 border-muted-foreground/20";
             }
           } else {
             buttonClass += isSelected
@@ -316,6 +316,7 @@ function CheckpointQuiz({
 
           return (
             <button
+                type="button"
               key={index}
               onClick={() => !submitted && setSelected(index)}
               disabled={submitted}
@@ -443,7 +444,7 @@ export function LessonPlayer({
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-xl">{lesson.title}</CardTitle>
-              <p className="text-sm text-text-secondary">
+              <p className="text-sm text-slate-500">
                 {labels.duration[language]}: {lesson.totalDuration}
               </p>
             </div>
@@ -461,7 +462,7 @@ export function LessonPlayer({
               {autoVoice ? (
                 <Volume2 className="h-5 w-5 text-primary" />
               ) : (
-                <VolumeX className="h-5 w-5 text-text-secondary" />
+                <VolumeX className="h-5 w-5 text-slate-500" />
               )}
             </Button>
           </div>
@@ -481,6 +482,7 @@ export function LessonPlayer({
           <div className="flex gap-1 mt-3">
             {lesson.chunks.map((chunk, index) => (
               <button
+                type="button"
                 key={index}
                 onClick={() => setCurrentChunk(index)}
                 className={`flex-1 h-2 rounded-full transition-all ${
@@ -488,7 +490,7 @@ export function LessonPlayer({
                     ? "bg-primary"
                     : completedChunks.has(index)
                       ? "bg-success"
-                      : "bg-surface"
+                      : "bg-slate-50"
                 }`}
                 title={chunk.heading}
               />
@@ -505,7 +507,7 @@ export function LessonPlayer({
             <span className="text-sm font-medium uppercase tracking-wide">
               {getTypeLabel(currentChunkData.type, language)}
             </span>
-            <span className="text-sm text-text-secondary ml-auto">
+            <span className="text-sm text-slate-500 ml-auto">
               ~{currentChunkData.duration}
             </span>
           </div>
@@ -594,24 +596,24 @@ export function LessonPlayerSkeleton() {
     <div className="space-y-4 animate-pulse">
       <Card>
         <CardHeader className="pb-2">
-          <div className="h-6 bg-surface rounded w-1/2" />
-          <div className="h-4 bg-surface rounded w-1/4 mt-2" />
+          <div className="h-6 bg-slate-50 rounded w-1/2" />
+          <div className="h-4 bg-slate-50 rounded w-1/4 mt-2" />
         </CardHeader>
         <CardContent>
-          <div className="h-2 bg-surface rounded w-full" />
+          <div className="h-2 bg-slate-50 rounded w-full" />
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <div className="h-4 bg-surface rounded w-20" />
-          <div className="h-8 bg-surface rounded w-3/4 mt-2" />
+          <div className="h-4 bg-slate-50 rounded w-20" />
+          <div className="h-8 bg-slate-50 rounded w-3/4 mt-2" />
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            <div className="h-4 bg-surface rounded w-full" />
-            <div className="h-4 bg-surface rounded w-5/6" />
-            <div className="h-4 bg-surface rounded w-4/6" />
+            <div className="h-4 bg-slate-50 rounded w-full" />
+            <div className="h-4 bg-slate-50 rounded w-5/6" />
+            <div className="h-4 bg-slate-50 rounded w-4/6" />
           </div>
         </CardContent>
       </Card>

@@ -57,7 +57,7 @@ export function StepIndicator({
         className={`flex-1 p-3 rounded-lg text-center cursor-pointer transition ${
           currentStep === "delete"
             ? "bg-primary text-white"
-            : "bg-surface text-text-secondary hover:bg-surface-dark"
+            : "bg-slate-50 text-slate-500 hover:bg-slate-100"
         }`}
         onClick={handleDeleteClick}
         onKeyDown={handleDeleteKeyDown}
@@ -71,7 +71,7 @@ export function StepIndicator({
         className={`flex-1 p-3 rounded-lg text-center cursor-pointer transition ${
           currentStep === "create"
             ? "bg-primary text-white"
-            : "bg-surface text-text-secondary hover:bg-surface-dark"
+            : "bg-slate-50 text-slate-500 hover:bg-slate-100"
         }`}
         onClick={handleCreateClick}
         onKeyDown={handleCreateKeyDown}

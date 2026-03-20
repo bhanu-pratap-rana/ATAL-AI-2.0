@@ -24,7 +24,7 @@ import type { AuthState, AuthActions } from "@/hooks/useAuthState";
  * - Primary button
  * - Info box: primary-light bg with primary-dark text
  * - Error text: text-error
- * - Muted text: text-text-muted
+ * - Muted text: text-slate-400
  */
 
 interface SignUpPhoneFlowProps {
@@ -144,7 +144,7 @@ export function SignUpPhoneFlow({
       toast.success("Account created! 🎉");
       actions.resetSignupPhone();
       onSuccess();
-      router.push("/app/dashboard");
+      router.push("/app/student/dashboard");
     } catch (error) {
       authLogger.error("[SignUp Phone] Unexpected error", error);
       toast.error("Failed to verify OTP");
@@ -161,8 +161,8 @@ export function SignUpPhoneFlow({
           <Label htmlFor="signup-phone" className="text-text">
             Phone Number
           </Label>
-          <div className="flex items-center border-2 border-border rounded-md overflow-hidden focus-within:border-primary focus-within:ring-3 focus-within:ring-primary-light transition-all">
-            <span className="px-3 text-text-secondary font-medium bg-border-light h-full py-3">
+          <div className="flex items-center border-2 border-slate-200 rounded-md overflow-hidden focus-within:border-primary focus-within:ring-3 focus-within:ring-primary-light transition-all">
+            <span className="px-3 text-slate-500 font-medium bg-border-light h-full py-3">
               +91
             </span>
             <Input
@@ -177,7 +177,7 @@ export function SignUpPhoneFlow({
               maxLength={12}
             />
           </div>
-          <p className="text-xs text-text-muted">
+          <p className="text-xs text-slate-400">
             Enter your 10-digit phone number
           </p>
         </div>
@@ -223,7 +223,7 @@ export function SignUpPhoneFlow({
           maxLength={OTP_LENGTH}
           className="text-center text-2xl font-mono tracking-widest"
         />
-        <p className="text-xs text-text-muted">
+        <p className="text-xs text-slate-400">
           Enter the 6-digit code sent to your phone
         </p>
       </div>
@@ -290,7 +290,7 @@ export function SignUpPhoneFlow({
         <button
           type="button"
           onClick={() => actions.setSignupPhoneOtpStep("phone")}
-          className="text-sm text-text-secondary hover:text-primary hover:underline transition-colors"
+          className="text-sm text-slate-500 hover:text-primary hover:underline transition-colors"
           disabled={isLoading}
         >
           Change phone number

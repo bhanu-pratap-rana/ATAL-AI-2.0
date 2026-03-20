@@ -1,8 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient, getCurrentUser } from "@/lib/supabase-server";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { authLogger } from "@/lib/auth-logger";
 import { ChevronRight } from "lucide-react";
 
@@ -26,15 +24,10 @@ interface Enrollment {
   teacher: TeacherInfo | null;
 }
 
-/**
- * Fetch student's enrolled classes using authenticated Supabase client
- * Uses proper JWT authentication so RLS can verify auth.uid() = student_id
- */
 async function getStudentClasses(userId: string): Promise<Enrollment[]> {
   try {
     const supabase = await createClient();
 
-    // Fetch enrollments with class details
     const { data: enrollments, error: enrollmentError } = await supabase
       .from("enrollments")
       .select(
@@ -54,28 +47,18 @@ async function getStudentClasses(userId: string): Promise<Enrollment[]> {
       .order("created_at", { ascending: false });
 
     if (enrollmentError) {
-      authLogger.error(
-        "[getStudentClasses] Error fetching enrollments",
-        enrollmentError,
-      );
+      authLogger.error("[getStudentClasses] Error fetching enrollments", enrollmentError);
       return [];
     }
 
-    if (!enrollments || enrollments.length === 0) {
-      return [];
-    }
+    if (!enrollments || enrollments.length === 0) return [];
 
-    // Helper to extract class from Supabase response (handles both array and single object)
-    const getClassFromEnrollment = (
-      e: (typeof enrollments)[0],
-    ): ClassInfo | null => {
+    const getClassFromEnrollment = (e: (typeof enrollments)[0]): ClassInfo | null => {
       if (!e.class) return null;
-      // Supabase types can return array for relations, but single FK returns single object
       const classData = Array.isArray(e.class) ? e.class[0] : e.class;
       return classData as ClassInfo;
     };
 
-    // Fetch teacher names for each class
     const teacherIds = [
       ...new Set(
         enrollments
@@ -97,16 +80,13 @@ async function getStudentClasses(userId: string): Promise<Enrollment[]> {
       }
     }
 
-    // Combine enrollments with teacher info
     return enrollments.map((enrollment) => {
       const classData = getClassFromEnrollment(enrollment);
       return {
         id: enrollment.id,
         created_at: enrollment.created_at,
         class: classData as ClassInfo,
-        teacher: classData?.teacher_id
-          ? teacherMap.get(classData.teacher_id) || null
-          : null,
+        teacher: classData?.teacher_id ? teacherMap.get(classData.teacher_id) || null : null,
       };
     });
   } catch (error) {
@@ -118,90 +98,69 @@ async function getStudentClasses(userId: string): Promise<Enrollment[]> {
 export default async function StudentClassesPage() {
   const user = await getCurrentUser();
 
-  if (!user) {
-    redirect("/student/start");
-  }
+  if (!user) redirect("/student/start");
 
   const enrollments = await getStudentClasses(user.id);
 
+  const bannerStyle = { background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream to-surface page-layout">
-      <div className="container-responsive max-w-4xl">
-        {/* Header with Back Button */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-responsive">
-          <div className="text-center sm:text-left">
-            <h1 className="heading-1 bg-gradient-to-r from-primary to-cyan bg-clip-text text-transparent">
-              My Classes
-            </h1>
-            <p className="text-text-secondary mt-2 text-sm md:text-base">
-              Classes you&apos;re enrolled in
-            </p>
-          </div>
-          <Link href="/app/dashboard">
-            <Button variant="outline" className="w-full sm:w-auto">
-              ← Back to Dashboard
-            </Button>
-          </Link>
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+      <div className="max-w-4xl mx-auto space-y-4">
+        {/* Banner */}
+        <div className="rounded-[32px] p-6 text-white" style={bannerStyle}>
+          <h1 className="text-xl sm:text-2xl font-black mb-1">My Classes 👥</h1>
+          <p className="text-white/80 text-sm font-bold">Classes you&apos;re enrolled in</p>
         </div>
 
         {enrollments.length === 0 ? (
-          <Card className="text-center py-10 md:py-12">
-            <CardContent>
-              <div className="w-16 h-16 md:w-20 md:h-20 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-3xl md:text-4xl">📚</span>
-              </div>
-              <h3 className="heading-3 text-text-primary mb-2">
-                No classes yet
-              </h3>
-              <p className="text-text-secondary mb-6 text-sm md:text-base px-4">
-                Ask your teacher for a class code to get started
-              </p>
-              <Link href="/join">
-                <Button className="btn-mobile-full sm:w-auto">
-                  Join a Class
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8 sm:p-12 text-center">
+            <div className="text-4xl sm:text-5xl mb-4">📚</div>
+            <h3 className="font-black text-slate-800 text-lg mb-2">No classes yet</h3>
+            <p className="font-bold text-slate-400 text-sm mb-6 px-4">
+              Ask your teacher for a class code to get started
+            </p>
+            <Link
+              href="/join"
+              className="px-6 py-3 rounded-2xl font-black text-sm text-white transition-all active:scale-95 inline-block"
+              style={bannerStyle}
+            >
+              Join a Class
+            </Link>
+          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-responsive">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {enrollments.map((enrollment: Enrollment) => (
               <Link
                 key={enrollment.id}
                 href={`/app/student/classes/${enrollment.class.id}`}
               >
-                <Card className="hover:shadow-lg hover:border-primary/50 transition card-responsive cursor-pointer group">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="flex items-center justify-between text-base md:text-lg">
-                      <span className="flex items-center gap-2">
-                        <span>📚</span>
-                        <span className="truncate">{enrollment.class.name}</span>
-                      </span>
-                      <ChevronRight className="w-5 h-5 text-text-tertiary group-hover:text-primary transition" />
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <p className="text-sm text-text-secondary truncate">
-                        <span className="font-medium">Teacher:</span>{" "}
-                        {enrollment.teacher?.name || "Not available"}
-                      </p>
-                      {enrollment.class.subject && (
-                        <p className="text-sm text-text-secondary truncate">
-                          <span className="font-medium">Subject:</span>{" "}
-                          {enrollment.class.subject}
-                        </p>
-                      )}
-                      <p className="text-sm text-text-secondary">
-                        <span className="font-medium">Joined:</span>{" "}
-                        {new Date(enrollment.created_at).toLocaleDateString()}
-                      </p>
-                      <p className="text-xs text-primary mt-2 group-hover:underline">
-                        View announcements & materials →
-                      </p>
+                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-shadow cursor-pointer group">
+                  <div className="flex items-center justify-between gap-3 mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 bg-orange-50 rounded-2xl flex items-center justify-center text-xl flex-shrink-0">
+                        📚
+                      </div>
+                      <h3 className="font-black text-slate-800 text-base truncate">
+                        {enrollment.class.name}
+                      </h3>
                     </div>
-                  </CardContent>
-                </Card>
+                    <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-orange-400 transition-colors flex-shrink-0" />
+                  </div>
+                  <div className="space-y-1 pl-14">
+                    <p className="text-xs font-bold text-slate-400 truncate">
+                      Teacher: {enrollment.teacher?.name || "Not available"}
+                    </p>
+                    {enrollment.class.subject && (
+                      <p className="text-xs font-bold text-slate-400 truncate">
+                        Subject: {enrollment.class.subject}
+                      </p>
+                    )}
+                    <p className="text-xs font-bold text-slate-400">
+                      Joined: {new Date(enrollment.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
               </Link>
             ))}
           </div>

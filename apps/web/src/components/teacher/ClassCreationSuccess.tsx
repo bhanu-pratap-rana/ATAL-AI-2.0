@@ -37,7 +37,7 @@ export function ClassCreationSuccess({
               {classCode}
             </p>
           </div>
-          <p className="text-xs text-text-secondary">
+          <p className="text-xs text-slate-500">
             Students will enter this 6-character code
           </p>
         </div>
@@ -50,7 +50,7 @@ export function ClassCreationSuccess({
               {joinPin}
             </p>
           </div>
-          <p className="text-xs text-text-secondary">
+          <p className="text-xs text-slate-500">
             4-digit PIN for class security
           </p>
         </div>

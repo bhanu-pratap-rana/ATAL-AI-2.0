@@ -82,7 +82,7 @@ const SOURCE_CONFIG: Record<
   },
   default: {
     icon: TrendingUp,
-    color: "text-text-secondary bg-surface-dark",
+    color: "text-slate-500 bg-slate-100",
     labelKey: "gamification.sourceOther",
   },
 };
@@ -122,7 +122,7 @@ function formatDateKey(dateString: string | null): DateFormatResult | null {
       date: date.toLocaleDateString(undefined, {
         month: "short",
         day: "numeric",
-        year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
+        year: date.getFullYear() === now.getFullYear() ? undefined : "numeric",
       }),
     },
   };
@@ -253,12 +253,12 @@ export function PointsHistory({
       <div className="space-y-3">
         {[1, 2, 3, 4, 5].map((i) => (
           <div key={`skeleton-${i}`} className="animate-pulse flex items-center gap-3">
-            <div className="w-10 h-10 bg-surface rounded-full" />
+            <div className="w-10 h-10 bg-slate-50 rounded-full" />
             <div className="flex-1">
-              <div className="h-4 bg-surface rounded w-3/4 mb-1" />
-              <div className="h-3 bg-surface rounded w-1/2" />
+              <div className="h-4 bg-slate-50 rounded w-3/4 mb-1" />
+              <div className="h-3 bg-slate-50 rounded w-1/2" />
             </div>
-            <div className="h-5 bg-surface rounded w-16" />
+            <div className="h-5 bg-slate-50 rounded w-16" />
           </div>
         ))}
       </div>
@@ -270,7 +270,7 @@ export function PointsHistory({
       <div className="space-y-2">
         {/* Total Points Header */}
         <div className="flex items-center justify-between mb-3">
-          <span className="text-sm text-text-secondary">{t("gamification.totalPoints")}</span>
+          <span className="text-sm text-slate-500">{t("gamification.totalPoints")}</span>
           <span className="text-xl font-bold text-primary">{totalPoints}</span>
         </div>
 
@@ -286,7 +286,7 @@ export function PointsHistory({
             >
               <div className="flex items-center gap-2">
                 <IconComponent className={cn("w-4 h-4", config.color.split(" ")[0])} />
-                <span className="text-text-secondary truncate max-w-[100px] sm:max-w-[150px]">
+                <span className="text-slate-500 truncate max-w-[100px] sm:max-w-[150px]">
                   {entry.description || t(config.labelKey)}
                 </span>
               </div>
@@ -296,7 +296,7 @@ export function PointsHistory({
         })}
 
         {entries.length > 5 && (
-          <div className="text-xs text-text-tertiary text-center pt-2">
+          <div className="text-xs text-slate-400 text-center pt-2">
             {t("gamification.moreTransactions", { count: entries.length - 5 })}
           </div>
         )}
@@ -309,8 +309,8 @@ export function PointsHistory({
       {/* Header with Total and Filter */}
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-3xl font-bold text-primary">{totalPoints}</div>
-          <div className="text-sm text-text-secondary">{t("gamification.totalPoints")}</div>
+          <div className="text-xl sm:text-2xl font-bold text-blue-600">{totalPoints}</div>
+          <div className="text-sm text-slate-500">{t("gamification.totalPoints")}</div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -328,14 +328,15 @@ export function PointsHistory({
       {/* Source Filter */}
       {showFilter && uniqueSources.length > 1 && (
         <div className="flex flex-wrap items-center gap-2">
-          <Filter className="w-4 h-4 text-text-tertiary" />
+          <Filter className="w-4 h-4 text-slate-400" />
           <button
+                type="button"
             onClick={() => setSelectedSource(null)}
             className={cn(
               "text-xs px-2 py-1 rounded-full transition-colors",
               selectedSource === null
                 ? "bg-primary text-white"
-                : "bg-surface hover:bg-surface"
+                : "bg-slate-50 hover:bg-slate-50"
             )}
           >
             {t("gamification.all")}
@@ -344,13 +345,14 @@ export function PointsHistory({
             const config = getSourceConfig(source);
             return (
               <button
+                type="button"
                 key={source}
                 onClick={() => setSelectedSource(source)}
                 className={cn(
                   "text-xs px-2 py-1 rounded-full transition-colors",
                   selectedSource === source
                     ? "bg-primary text-white"
-                    : "bg-surface hover:bg-surface"
+                    : "bg-slate-50 hover:bg-slate-50"
                 )}
               >
                 {t(config.labelKey)}
@@ -364,9 +366,9 @@ export function PointsHistory({
       {entries.length === 0 && (
         <Card>
           <CardContent className="p-8 text-center">
-            <TrendingUp className="w-12 h-12 text-text-tertiary mx-auto mb-3" />
+            <TrendingUp className="w-12 h-12 text-slate-400 mx-auto mb-3" />
             <h3 className="font-medium text-text mb-1">{t("gamification.noPointsYet")}</h3>
-            <p className="text-sm text-text-secondary">
+            <p className="text-sm text-slate-500">
               {t("gamification.earnPointsHint")}
             </p>
           </CardContent>
@@ -386,7 +388,7 @@ export function PointsHistory({
           return (
             <div
               key={entry.id}
-              className="flex items-center gap-3 p-3 bg-white border border-border rounded-lg hover:shadow-sm transition-shadow"
+              className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-lg hover:shadow-sm transition-shadow"
             >
               {/* Icon */}
               <div
@@ -403,7 +405,7 @@ export function PointsHistory({
                 <div className="font-medium text-text truncate">
                   {entry.description || t(config.labelKey)}
                 </div>
-                <div className="text-xs text-text-tertiary flex items-center gap-2">
+                <div className="text-xs text-slate-400 flex items-center gap-2">
                   <span className="capitalize">{t(config.labelKey)}</span>
                   <span>•</span>
                   <span>{formattedDate}</span>
@@ -486,8 +488,8 @@ export function PointsSummary({
   if (loading) {
     return (
       <div className="animate-pulse">
-        <div className="h-8 bg-surface rounded w-20 mb-1" />
-        <div className="h-4 bg-surface rounded w-24" />
+        <div className="h-8 bg-slate-50 rounded w-20 mb-1" />
+        <div className="h-4 bg-slate-50 rounded w-24" />
       </div>
     );
   }
@@ -495,15 +497,15 @@ export function PointsSummary({
   return (
     <div className="flex items-center gap-6">
       <div>
-        <div className="text-3xl font-bold text-primary">
+        <div className="text-xl sm:text-3xl font-bold text-primary">
           {totalPoints ?? 0}
         </div>
-        <div className="text-sm text-text-secondary">{t("gamification.totalPoints")}</div>
+        <div className="text-sm text-slate-500">{t("gamification.totalPoints")}</div>
       </div>
       {todayPoints > 0 && (
-        <div className="border-l border-border pl-6">
+        <div className="border-l border-slate-200 pl-6">
           <div className="text-xl font-bold text-success">+{todayPoints}</div>
-          <div className="text-sm text-text-secondary">{t("gamification.today")}</div>
+          <div className="text-sm text-slate-500">{t("gamification.today")}</div>
         </div>
       )}
     </div>

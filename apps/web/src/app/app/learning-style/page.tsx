@@ -10,7 +10,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase-server";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   fetchLearningStyleProfile,
   createDefaultProfile,
@@ -70,7 +69,7 @@ export default async function LearningStylePage() {
   const isTeacher = role === "teacher" || role === "admin" || role === "super_admin";
   
   if (!isTeacher) {
-    redirect("/app/dashboard");
+    redirect("/app/student/dashboard");
   }
 
   // Fetch or create learning style profile
@@ -106,129 +105,71 @@ export default async function LearningStylePage() {
   const hasActivity = imagesViewed > 0 || voiceReplays > 0 || textReadTime > 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream to-surface page-layout">
-      <div className="container-responsive max-w-4xl">
-        {/* Header */}
-        <div className="mb-responsive text-center sm:text-left">
-          <Link
-            href="/app/dashboard"
-            className="text-primary hover:text-primary-dark mb-4 inline-flex items-center gap-1 text-sm md:text-base touch-target"
-          >
-            ← Back to Dashboard
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+      <div className="max-w-4xl mx-auto space-y-4">
+        {/* Banner */}
+        <div className="rounded-[32px] p-6 text-white" style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" }}>
+          <Link href="/app/student/dashboard" className="inline-flex items-center gap-2 text-white/80 text-xs font-black uppercase tracking-widest mb-4">
+            ← Dashboard
           </Link>
-          <h1 className="heading-1 text-primary mb-2">🧠 Your Learning Style</h1>
-          <p className="text-text-secondary text-sm md:text-base">
-            Discover how you learn best based on your interactions
-          </p>
+          <h1 className="text-xl sm:text-2xl font-black mb-1">🧠 Your Learning Style</h1>
+          <p className="text-white/80 text-sm font-bold">Discover how you learn best based on your interactions</p>
         </div>
 
         {/* Dominant Style Card */}
-        <Card className="card-responsive mb-responsive bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3 text-xl md:text-2xl">
-              <span className="text-3xl">{dominantInfo.icon}</span>
-              {dominantInfo.title}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-text-secondary mb-4">{dominantInfo.description}</p>
-            {!hasActivity && (
-              <div className="bg-warning-light/50 border border-warning/30 rounded-lg p-4 mb-4">
-                <p className="text-sm text-warning-dark">
-                  <strong>Note:</strong> Your learning style profile is still being calculated.
-                  Continue using the AI Tutor and learning materials to get more accurate results.
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="text-3xl">{dominantInfo.icon}</span>
+            <h2 className="text-xl font-black text-slate-800">{dominantInfo.title}</h2>
+          </div>
+          <p className="text-slate-500 font-bold text-sm mb-3">{dominantInfo.description}</p>
+          {!hasActivity && (
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+              <p className="text-sm font-bold text-amber-700">
+                <strong>Note:</strong> Your learning style profile is still being calculated.
+                Continue using the AI Tutor and learning materials to get more accurate results.
+              </p>
+            </div>
+          )}
+        </div>
 
         {/* Style Breakdown */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-responsive mb-responsive">
-          <LearningStyleCard
-            style="visual"
-            score={visualPercent}
-            isActive={dominantStyle === "visual"}
-            icon={STYLE_INFO.visual.icon}
-            title="Visual"
-            activityCount={imagesViewed}
-            activityLabel="images viewed"
-          />
-          <LearningStyleCard
-            style="text"
-            score={textPercent}
-            isActive={dominantStyle === "text"}
-            icon={STYLE_INFO.text.icon}
-            title="Text"
-            activityCount={Math.round(textReadTime / 60)}
-            activityLabel="minutes reading"
-          />
-          <LearningStyleCard
-            style="auditory"
-            score={auditoryPercent}
-            isActive={dominantStyle === "auditory"}
-            icon={STYLE_INFO.auditory.icon}
-            title="Auditory"
-            activityCount={voiceReplays}
-            activityLabel="voice replays"
-          />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <LearningStyleCard style="visual" score={visualPercent} isActive={dominantStyle === "visual"} icon={STYLE_INFO.visual.icon} title="Visual" activityCount={imagesViewed} activityLabel="images viewed" />
+          <LearningStyleCard style="text" score={textPercent} isActive={dominantStyle === "text"} icon={STYLE_INFO.text.icon} title="Text" activityCount={Math.round(textReadTime / 60)} activityLabel="minutes reading" />
+          <LearningStyleCard style="auditory" score={auditoryPercent} isActive={dominantStyle === "auditory"} icon={STYLE_INFO.auditory.icon} title="Auditory" activityCount={voiceReplays} activityLabel="voice replays" />
         </div>
 
         {/* Tips Section */}
-        <Card className="card-responsive">
-          <CardHeader>
-            <CardTitle className="text-lg md:text-xl">
-              💡 Tips for {dominantInfo.title}s
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-3">
-              {dominantInfo.tips.map((tip, index) => (
-                <li
-                  key={index}
-                  className="flex items-start gap-3 p-3 bg-surface rounded-lg border border-border-light"
-                >
-                  <span className="text-primary font-bold">✓</span>
-                  <span className="text-text-primary">{tip}</span>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
+        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+          <h2 className="font-black text-slate-800 text-lg mb-4">💡 Tips for {dominantInfo.title}s</h2>
+          <ul className="space-y-3">
+            {dominantInfo.tips.map((tip, index) => (
+              <li key={index} className="flex items-start gap-3 p-3 bg-slate-50 rounded-2xl">
+                <span className="text-orange-500 font-black">✓</span>
+                <span className="text-slate-700 font-bold text-sm">{tip}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
 
         {/* How It Works */}
-        <Card className="card-responsive mt-responsive">
-          <CardHeader>
-            <CardTitle className="text-lg md:text-xl">
-              📊 How Your Style Is Calculated
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-text-secondary mb-4">
-              Your learning style is determined by tracking how you interact with content:
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-              <div className="p-3 bg-surface rounded-lg border border-border-light">
-                <span className="font-medium text-primary">Visual Score</span>
-                <p className="text-text-tertiary mt-1">
-                  Increases when you view images and diagrams
-                </p>
+        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+          <h2 className="font-black text-slate-800 text-lg mb-3">📊 How Your Style Is Calculated</h2>
+          <p className="text-slate-500 font-bold text-sm mb-4">Your learning style is determined by tracking how you interact with content:</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+            {[
+              { label: "Visual Score", desc: "Increases when you view images and diagrams" },
+              { label: "Text Score", desc: "Increases based on time spent reading content" },
+              { label: "Auditory Score", desc: "Increases when you use voice features" },
+            ].map((item) => (
+              <div key={item.label} className="p-3 bg-slate-50 rounded-2xl">
+                <span className="font-black text-orange-500">{item.label}</span>
+                <p className="text-slate-400 font-bold mt-1 text-xs">{item.desc}</p>
               </div>
-              <div className="p-3 bg-surface rounded-lg border border-border-light">
-                <span className="font-medium text-primary">Text Score</span>
-                <p className="text-text-tertiary mt-1">
-                  Increases based on time spent reading content
-                </p>
-              </div>
-              <div className="p-3 bg-surface rounded-lg border border-border-light">
-                <span className="font-medium text-primary">Auditory Score</span>
-                <p className="text-text-tertiary mt-1">
-                  Increases when you use voice features
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

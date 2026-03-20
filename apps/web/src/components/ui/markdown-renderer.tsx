@@ -74,26 +74,26 @@ const markdownComponents: Record<string, unknown> = {
           ),
           h6: ({ node: _node, ...props }: MarkdownNodeProps) => (
             <h6 // NOSONAR S6850: Content comes from markdown via children prop
-              className="text-sm font-semibold mb-2 text-text-secondary leading-tight mt-2"
+              className="text-sm font-semibold mb-2 text-slate-500 leading-tight mt-2"
               {...props}
             />
           ),
 
           // Paragraph with proper spacing
           p: ({ node: _node, ...props }: MarkdownNodeProps) => (
-            <p className="mb-4 leading-7 text-text-primary" {...props} />
+            <p className="mb-4 leading-7 text-slate-800" {...props} />
           ),
 
           // Lists with proper indentation
           ul: ({ node: _node, ...props }: MarkdownNodeProps) => (
             <ul
-              className="list-disc list-inside mb-4 space-y-2 text-text-primary"
+              className="list-disc list-inside mb-4 space-y-2 text-slate-800"
               {...props}
             />
           ),
           ol: ({ node: _node, ...props }: MarkdownNodeProps) => (
             <ol
-              className="list-decimal list-inside mb-4 space-y-2 text-text-primary"
+              className="list-decimal list-inside mb-4 space-y-2 text-slate-800"
               {...props}
             />
           ),
@@ -106,13 +106,13 @@ const markdownComponents: Record<string, unknown> = {
             const { node: _node, inline, ...rest } = props;
             return inline ? (
               <code
-                className="bg-surface px-1.5 py-0.5 rounded text-sm font-mono text-error dark:text-error/80 break-words"
+                className="bg-slate-50 px-1.5 py-0.5 rounded text-sm font-mono text-error dark:text-error/80 break-words"
                 {...rest}
               />
             ) : (
-              <pre className="bg-surface border border-border rounded-lg overflow-x-auto p-4 mb-4">
+              <pre className="bg-slate-50 border border-slate-200 rounded-lg overflow-x-auto p-4 mb-4">
                 <code
-                  className="font-mono text-sm text-text-primary block"
+                  className="font-mono text-sm text-slate-800 block"
                   {...rest}
                 />
               </pre>
@@ -132,14 +132,14 @@ const markdownComponents: Record<string, unknown> = {
           // Blockquotes with left border
           blockquote: ({ node: _node, ...props }: MarkdownNodeProps) => (
             <blockquote
-              className="border-l-4 border-primary pl-4 italic my-4 text-text-secondary bg-surface/30 py-2 pr-4 rounded-r"
+              className="border-l-4 border-primary pl-4 italic my-4 text-slate-500 bg-slate-50/30 py-2 pr-4 rounded-r"
               {...props}
             />
           ),
 
           // Horizontal rule
           hr: ({ node: _node, ...props }: MarkdownNodeProps) => (
-            <hr className="my-6 border-border" {...props} />
+            <hr className="my-6 border-slate-200" {...props} />
           ),
 
           // Tables (GFM)
@@ -148,7 +148,7 @@ const markdownComponents: Record<string, unknown> = {
           table: ({ node: _node, children, ...props }: MarkdownNodeProps) => (
             <div className="overflow-x-auto mb-4">
               <table
-                className="w-full border-collapse border border-border rounded-lg"
+                className="w-full border-collapse border border-slate-200 rounded-lg"
                 role="table"
                 {...props}
               >
@@ -157,21 +157,21 @@ const markdownComponents: Record<string, unknown> = {
             </div>
           ),
           thead: ({ node: _node, ...props }: MarkdownNodeProps) => (
-            <thead className="bg-surface" {...props} />
+            <thead className="bg-slate-50" {...props} />
           ),
           tbody: ({ node: _node, ...props }: MarkdownNodeProps) => <tbody {...props} />,
           tr: ({ node: _node, ...props }: MarkdownNodeProps) => (
-            <tr className="border-b border-border" {...props} />
+            <tr className="border-b border-slate-200" {...props} />
           ),
           th: ({ node: _node, ...props }: MarkdownNodeProps) => (
             <th
-              className="border border-border px-4 py-2 text-left font-semibold text-text-primary bg-surface"
+              className="border border-slate-200 px-4 py-2 text-left font-semibold text-slate-800 bg-slate-50"
               {...props}
             />
           ),
           td: ({ node: _node, ...props }: MarkdownNodeProps) => (
             <td
-              className="border border-border px-4 py-2 text-text-primary"
+              className="border border-slate-200 px-4 py-2 text-slate-800"
               {...props}
             />
           ),
@@ -190,7 +190,7 @@ const markdownComponents: Record<string, unknown> = {
 
           // Strikethrough (GFM) - handled by remark-gfm as <del>
           del: ({ node: _node, ...props }: MarkdownNodeProps) => (
-            <del className="line-through text-text-secondary" {...props} />
+            <del className="line-through text-slate-500" {...props} />
           ),
         };
 

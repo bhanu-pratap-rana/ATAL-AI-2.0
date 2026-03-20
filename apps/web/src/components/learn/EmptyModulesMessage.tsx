@@ -14,7 +14,7 @@ export function EmptyModulesMessage() {
 
   return (
     <Card className="p-6 text-center">
-      <p className="text-text-secondary">{t("learn.loadingCurriculum")}</p>
+      <p className="text-slate-500">{t("learn.loadingCurriculum")}</p>
     </Card>
   );
 }

@@ -177,7 +177,7 @@ export function LevelCard({
       <h3 className={`text-lg font-bold ${config.colorClass}`}>
         {config.label}
       </h3>
-      <p className="text-sm text-text-secondary mt-1">{config.description}</p>
+      <p className="text-sm text-slate-500 mt-1">{config.description}</p>
     </div>
   );
 }
@@ -210,7 +210,7 @@ export function LevelProgress({
               key={level}
               className={`
                 flex flex-col items-center gap-1
-                ${isActive ? config.colorClass : "text-text-muted"}
+                ${isActive ? config.colorClass : "text-slate-400"}
               `}
             >
               <div

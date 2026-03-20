@@ -25,7 +25,7 @@ export function TeacherLoginStep({
   actions,
 }: TeacherLoginStepProps) {
   return (
-    <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
       <AuthCard
         title="Teacher Login"
         description="Sign in with your registered email and password"
@@ -45,7 +45,7 @@ export function TeacherLoginStep({
               required
               disabled={state.loading}
             />
-            <p className="text-xs text-text-secondary">
+            <p className="text-xs text-slate-500">
               Your registered email address
             </p>
           </div>
@@ -102,7 +102,7 @@ export function TeacherLoginStep({
               onClick={() => {
                 globalThis.location.href = "/";
               }}
-              className="text-sm text-text-secondary hover:text-primary hover:underline w-full text-center"
+              className="text-sm text-slate-500 hover:text-primary hover:underline w-full text-center"
               disabled={state.loading}
             >
               Back to home

@@ -237,7 +237,7 @@ export function LottieAnimation({
     return (
       <div
         style={{ width, height }}
-        className={`animate-pulse bg-surface rounded ${className}`}
+        className={`animate-pulse bg-slate-50 rounded ${className}`}
       />
     );
   }

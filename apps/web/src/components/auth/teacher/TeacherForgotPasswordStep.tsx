@@ -28,7 +28,7 @@ export function TeacherForgotPasswordStep({
   // Request OTP step
   if (!state.forgotOtpSent) {
     return (
-      <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
         <AuthCard
           title="Reset Password"
           description="Enter your email to receive a recovery code"
@@ -48,7 +48,7 @@ export function TeacherForgotPasswordStep({
                 required
                 disabled={state.loading}
               />
-              <p className="text-xs text-text-secondary">
+              <p className="text-xs text-slate-500">
                 We&apos;ll send a recovery code to this email
               </p>
             </div>
@@ -84,7 +84,7 @@ export function TeacherForgotPasswordStep({
 
   // Verify OTP and reset password step
   return (
-    <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
       <AuthCard
         title="Reset Password"
         description={`Enter the code sent to ${state.forgotEmail}`}
@@ -107,7 +107,7 @@ export function TeacherForgotPasswordStep({
               maxLength={6}
               className="text-center text-2xl font-mono tracking-widest"
             />
-            <p className="text-xs text-text-secondary">
+            <p className="text-xs text-slate-500">
               Enter the 6-digit code from your email
             </p>
           </div>
@@ -199,7 +199,7 @@ export function TeacherForgotPasswordStep({
                 actions.setForgotConfirmPassword("");
                 actions.setForgotOtpSent(false);
               }}
-              className="text-sm text-text-secondary hover:underline w-full text-center"
+              className="text-sm text-slate-500 hover:underline w-full text-center"
               disabled={state.loading}
             >
               Back to login

@@ -15,9 +15,6 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useParams, useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useChat } from "@ai-sdk/react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
 import { ConversationalVoiceChat } from "@/components/voice/ConversationalVoiceChat";
 import type { Language } from "@/hooks/useConversationalVoice";
 import { createClient } from "@/lib/supabase-browser";
@@ -33,7 +30,7 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { awardLessonCompletionPoints } from "@/app/actions/gamification";
 import { completeLessonAndUpdateProgress } from "@/app/actions/lesson-completion";
 import { stopTTS } from "@/lib/utils/client-tts";
-import { MASTERY_THRESHOLDS, MAX_SCORE_WITHOUT_QUIZ } from "@/lib/constants/thresholds";
+import { MAX_SCORE_WITHOUT_QUIZ } from "@/lib/constants/thresholds";
 
 // Lesson content interface
 interface LessonContent {
@@ -62,46 +59,6 @@ interface LessonContent {
   }>;
 }
 
-/**
- * Section navigation button info
- */
-interface SectionNavButton {
-  readonly label: string;
-  readonly onClick: () => void;
-  readonly className?: string;
-}
-
-/**
- * Get next section navigation button based on section and question state
- */
-function getNextSectionButton(
-  currentSection: number,
-  totalSections: number,
-  hasPracticeQuestions: boolean,
-  onNextSection: () => void,
-  onShowPractice: () => void,
-  onComplete: () => void,
-): SectionNavButton {
-  if (currentSection < totalSections - 1) {
-    return {
-      label: "Next →",
-      onClick: onNextSection,
-    };
-  }
-
-  if (hasPracticeQuestions) {
-    return {
-      label: "Practice Questions →",
-      onClick: onShowPractice,
-    };
-  }
-
-  return {
-    label: "Complete Lesson ✓",
-    onClick: onComplete,
-    className: "bg-success hover:bg-success-dark",
-  };
-}
 
 // Default content for topics without specific content in database
 const DEFAULT_LESSON: LessonContent = {
@@ -215,6 +172,12 @@ function buildLessonFromData(
   };
 }
 
+function getInputPlaceholder(language: string): string {
+  if (language === "as") return "আপোনাৰ প্ৰশ্ন লিখক...";
+  if (language === "hi") return "अपना प्रश्न टाइप करें...";
+  return "Type your question...";
+}
+
 export default function LessonPage() {
   const params = useParams();
   const router = useRouter();
@@ -242,12 +205,6 @@ export default function LessonPage() {
     };
   }, []);
 
-  const [currentSection, setCurrentSection] = useState(0);
-  const [showPractice, setShowPractice] = useState(false);
-  const [practiceAnswers, setPracticeAnswers] = useState<
-    Record<string, number | null>
-  >({});
-  const [practiceSubmitted, setPracticeSubmitted] = useState(false);
   const [showAITutor, setShowAITutor] = useState(false);
   const [inputMode, setInputMode] = useState<"text" | "voice">("text");
   // Use shared language hook with localStorage persistence
@@ -258,7 +215,7 @@ export default function LessonPage() {
 
   // Dynamic AI-generated lesson mode - default to AI mode
   // Note: setUseDynamicMode kept for future feature toggle
-  const [useDynamicMode, _setUseDynamicMode] = useState(true);
+  const [useDynamicMode] = useState(true);
 
   // Completion modal state
   const [completionData, setCompletionData] = useState<{
@@ -296,7 +253,7 @@ export default function LessonPage() {
         if (hasOffline) {
           const offlineData = await loadOfflineLesson(moduleId, topicId, language);
           if (offlineData?.lesson) {
-            setOfflineLesson(offlineData.lesson as ReturnType<typeof useDynamicLesson>["lesson"]);
+            setOfflineLesson(offlineData.lesson);
             setOfflineError(null);
             clientLogger.debug("[LessonPage] Loaded offline lesson", {
               moduleId,
@@ -467,10 +424,10 @@ export default function LessonPage() {
     if (inputMode !== "voice" || chatStatus === "streaming") return;
     if (messages.length === 0) return;
 
-    const lastMessage = messages[messages.length - 1];
+    const lastMessage = messages.at(-1);
     // Set pending AI response for ConversationalVoiceChat to speak
     if (
-      lastMessage.role === "assistant" &&
+      lastMessage?.role === "assistant" &&
       lastMessage.id !== "welcome" &&
       lastMessage.id !== lastSpokenIdRef.current &&
       lastMessage.content
@@ -498,100 +455,10 @@ export default function LessonPage() {
   // ROOT CAUSE FIX: Check dynamic mode FIRST before practice questions
   // Bug: Static lesson.practice_questions was being checked even in dynamic mode,
   // causing score=0 because practiceAnswers is empty when using LessonPlayer
-  const calculateScore = (completedChunksCount?: number, totalChunksCount?: number) => {
-    // DYNAMIC MODE: Calculate from chunk completion (LessonPlayer provides counts)
-    // Must check this FIRST because static lesson may have practice_questions
-    // that would incorrectly be used for score calculation
-    if (useDynamicMode && totalChunksCount && totalChunksCount > 0) {
-      const safeCompleted = completedChunksCount ?? totalChunksCount;
-      const completionRatio = safeCompleted / totalChunksCount;
-      // Max score without quiz verification to ensure students demonstrate knowledge
-      return Math.round(completionRatio * MAX_SCORE_WITHOUT_QUIZ);
-    }
-
-    // STATIC MODE with practice questions: Calculate from practice answers
-    if (lesson.practice_questions.length > 0) {
-      let correct = 0;
-      for (const q of lesson.practice_questions) {
-        if (practiceAnswers[q.id] === q.correct) {
-          correct++;
-        }
-      }
-      return Math.round((correct / lesson.practice_questions.length) * 100);
-    }
-
-    // Static mode without questions - minimal score
-    return 0;
-  };
-
-  // Helper: Get option button styling based on state
-  // Reduces nested ternary from 4 levels to simple if/else
-  const getOptionButtonClassName = (
-    showResult: boolean,
-    isCorrect: boolean,
-    isSelected: boolean,
-  ): string => {
-    if (showResult) {
-      if (isCorrect) return "bg-success-light border-success";
-      return isSelected ? "bg-error-light border-error" : "bg-surface";
-    }
-    return isSelected
-      ? "border-primary bg-primary/10"
-      : "hover:border-primary/50";
-  };
-
-  // Helper: Get input placeholder text by language
-  const getInputPlaceholder = (): string => {
-    switch (language) {
-      case "as":
-        return "আপোনাৰ প্ৰশ্ন লিখক...";
-      case "hi":
-        return "अपना प्रश्न टाइप करें...";
-      default:
-        return "Type your question...";
-    }
-  };
-
-  const handlePracticeSubmit = async () => {
-    setPracticeSubmitted(true);
-
-    // Save practice responses to database
-    try {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (user) {
-        // PERF-014 FIX: Save all responses in parallel (independent inserts)
-        const results = await Promise.all(
-          lesson.practice_questions
-            .filter((q) => practiceAnswers[q.id] !== null && practiceAnswers[q.id] !== undefined)
-            .map((q) =>
-              supabase.from("formative_responses").insert({
-                student_id: user.id,
-                topic_id: topicId,
-                question_id: q.id,
-                is_correct: practiceAnswers[q.id] === q.correct,
-                response_time_ms: null,
-                ai_hint_requested: false,
-              }),
-            ),
-        );
-        const insertErrors = results.filter((r) => r.error);
-        if (insertErrors.length > 0) {
-          clientLogger.error("[LessonPage] Some practice responses failed to save:", {
-            failedCount: insertErrors.length,
-            totalCount: results.length,
-          });
-        }
-      }
-    } catch (error) {
-      clientLogger.error(
-        "[LessonPage] Error saving practice responses",
-        error instanceof Error ? error : { error: String(error) },
-      );
-    }
+  const calculateScore = (completedChunksCount?: number, totalChunksCount?: number): number => {
+    if (!totalChunksCount || totalChunksCount === 0) return 0;
+    const safeCompleted = completedChunksCount ?? totalChunksCount;
+    return Math.round((safeCompleted / totalChunksCount) * MAX_SCORE_WITHOUT_QUIZ);
   };
 
   const handleComplete = async (completedChunksCount?: number, totalChunksCount?: number) => {
@@ -611,19 +478,7 @@ export default function LessonPage() {
       // Use atomic server action - handles progress update + cache invalidation
       const result = await completeLessonAndUpdateProgress(moduleId, topicId, score);
 
-      if (!result.success) {
-        clientLogger.error("[LessonPage] Failed to update progress", {
-          error: result.error,
-        });
-        // Still show completion modal with the calculated score on failure
-        setCompletionData({
-          score,
-          status: score >= 70 ? "mastered" : "in_progress",
-          attempts: 1,
-          pointsAwarded: 0,
-          newBadges: [],
-        });
-      } else {
+      if (result.success) {
         clientLogger.debug("[LessonPage] Progress updated successfully", {
           score: result.masteryScore,
           status: result.status,
@@ -652,6 +507,18 @@ export default function LessonPage() {
           pointsAwarded: pointsResult?.pointsAwarded || 0,
           newBadges: pointsResult?.newBadges || [],
         });
+      } else {
+        clientLogger.error("[LessonPage] Failed to update progress", {
+          error: result.error,
+        });
+        // Still show completion modal with the calculated score on failure
+        setCompletionData({
+          score,
+          status: score >= 70 ? "mastered" : "in_progress",
+          attempts: 1,
+          pointsAwarded: 0,
+          newBadges: [],
+        });
       }
     } catch (error) {
       clientLogger.error(
@@ -666,23 +533,19 @@ export default function LessonPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-cream to-surface/30 p-4 md:p-6">
+      <div className="min-h-screen bg-slate-50 p-4 md:p-6">
         <div className="max-w-3xl mx-auto space-y-6">
           <div className="animate-pulse space-y-4">
-            <div className="h-4 w-32 bg-surface rounded" />
-            <Card>
-              <CardHeader>
-                <div className="h-8 w-64 bg-surface rounded" />
-                <div className="h-4 w-48 bg-surface rounded mt-2" />
-              </CardHeader>
-            </Card>
-            <Card>
-              <CardContent className="p-6 space-y-4">
-                <div className="h-4 w-full bg-surface rounded" />
-                <div className="h-4 w-full bg-surface rounded" />
-                <div className="h-4 w-3/4 bg-surface rounded" />
-              </CardContent>
-            </Card>
+            <div className="h-4 w-32 bg-slate-100 rounded" />
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+              <div className="h-8 w-64 bg-slate-100 rounded" />
+              <div className="h-4 w-48 bg-slate-100 rounded mt-2" />
+            </div>
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-4">
+              <div className="h-4 w-full bg-slate-100 rounded" />
+              <div className="h-4 w-full bg-slate-100 rounded" />
+              <div className="h-4 w-3/4 bg-slate-100 rounded" />
+            </div>
           </div>
         </div>
       </div>
@@ -690,7 +553,7 @@ export default function LessonPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cream to-surface/30">
+    <div className="min-h-screen bg-slate-50">
       <div className="flex">
         {/* Main Content Area */}
         <main
@@ -701,7 +564,7 @@ export default function LessonPage() {
             <div className="flex flex-wrap items-center justify-between gap-4">
               <Link
                 href={`/app/learn/${moduleId}`}
-                className="inline-flex items-center text-sm text-text-secondary hover:text-primary"
+                className="inline-flex items-center text-sm text-slate-500 hover:text-primary"
               >
                 ← Back to Module
               </Link>
@@ -711,208 +574,69 @@ export default function LessonPage() {
                   stopTTS();
                   setLanguage(newLang);
                   setLanguageKey(prev => prev + 1); // Force content refetch
-                  // Reset all content state for clean language transition
-                  setCurrentSection(0);
-                  setShowPractice(false);
-                  setPracticeAnswers({});
-                  setPracticeSubmitted(false);
                 }}
               />
             </div>
 
             {/* Lesson Header */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-2xl flex items-center gap-2">
-                      {activeDynamicLesson ? activeDynamicLesson.title : lesson.title_en}
-                      {!isOnline && (
-                        <span className="text-sm text-text-secondary flex items-center gap-1">
-                          <WifiOff className="h-4 w-4" />
-                          Offline
-                        </span>
-                      )}
-                    </CardTitle>
-                    <p className="text-text-secondary">
-                      {activeDynamicLesson ? activeDynamicLesson.description : lesson.title_as}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    {/* AI Tutor Toggle */}
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowAITutor(!showAITutor)}
-                      className="gap-2"
-                    >
-                      🤖 {showAITutor ? "Hide" : "Show"} AI Tutor
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
-            {/* Dynamic AI Lesson Mode */}
-            {useDynamicMode ? (
-              <div className="space-y-4">
-                {activeDynamicLoading && <LessonPlayerSkeleton />}
-                {activeDynamicError && (
-                  <Card className="border-destructive">
-                    <CardContent className="p-6 text-center">
-                      <WifiOff className="h-12 w-12 mx-auto mb-4 text-text-secondary" />
-                      <p className="text-destructive mb-2 font-medium">
-                        {!isOnline ? "No Internet Connection" : "Failed to generate AI lesson"}
-                      </p>
-                      <p className="text-text-secondary mb-4 text-sm">
-                        {activeDynamicError}
-                      </p>
-                      {!isOnline && (
-                        <p className="text-text-secondary text-sm">
-                          Please connect to the internet to download the content.
-                        </p>
-                      )}
-                    </CardContent>
-                  </Card>
-                )}
-                {activeDynamicLesson && !activeDynamicLoading && (
-                  <LessonPlayer
-                    key={`${moduleId}-${topicId}-${language}`}
-                    lesson={activeDynamicLesson}
-                    language={language}
-                    voiceEnabled={inputMode === "voice"}
-                    onComplete={handleComplete}
-                  />
-                )}
-              </div>
-            ) : showPractice ? (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Practice Questions</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {lesson.practice_questions.map((q, qIdx) => (
-                    <div key={q.id} className="space-y-3">
-                      <p className="font-medium">
-                        {qIdx + 1}. {q.question}
-                      </p>
-                      <div className="space-y-2">
-                        {q.options.map((option, oIdx) => {
-                          const isSelected = practiceAnswers[q.id] === oIdx;
-                          const isCorrect = oIdx === q.correct;
-                          const showResult = practiceSubmitted;
-                          // Use question ID + option text for stable unique key
-                          const optionKey = `${q.id}-${option.slice(0, 20)}`;
-
-                          return (
-                            <button
-                              key={optionKey}
-                              onClick={() => {
-                                if (!practiceSubmitted) {
-                                  setPracticeAnswers({
-                                    ...practiceAnswers,
-                                    [q.id]: oIdx,
-                                  });
-                                }
-                              }}
-                              disabled={practiceSubmitted}
-                              className={`w-full text-left p-3 rounded-lg border transition-all ${getOptionButtonClassName(showResult, isCorrect, isSelected)}`}
-                            >
-                              <span className="font-medium mr-2">
-                                {String.fromCodePoint(65 + oIdx)}.
-                              </span>
-                              {option}
-                              {showResult && isCorrect && " ✓"}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      {practiceSubmitted && (
-                        <p className="text-sm text-text-secondary bg-surface p-3 rounded-lg">
-                          💡 {q.explanation}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-
-                  {/* Submit / Results */}
-                  <div className="pt-4 border-t">
-                    {practiceSubmitted ? (
-                      <div className="text-center space-y-4">
-                        <div className="text-4xl font-bold">
-                          {calculateScore()}%
-                        </div>
-                        <p className="text-text-secondary">
-                          {calculateScore() >= MASTERY_THRESHOLDS.PASSING
-                            ? "🎉 Great job! You passed!"
-                            : "Keep learning and try again!"}
-                        </p>
-                        <Button
-                          onClick={() => handleComplete()}
-                          className="bg-success hover:bg-success-dark"
-                        >
-                          Complete Lesson ✓
-                        </Button>
-                      </div>
-                    ) : (
-                      <Button
-                        onClick={handlePracticeSubmit}
-                        disabled={
-                          Object.keys(practiceAnswers).length <
-                          lesson.practice_questions.length
-                        }
-                        className="w-full"
-                      >
-                        Submit Answers
-                      </Button>
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-xl sm:text-xl sm:text-2xl font-black text-slate-800 flex items-center gap-2">
+                    {activeDynamicLesson ? activeDynamicLesson.title : lesson.title_en}
+                    {!isOnline && (
+                      <span className="text-sm text-slate-500 flex items-center gap-1">
+                        <WifiOff className="h-4 w-4" />
+                        Offline
+                      </span>
                     )}
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card>
-                <CardContent className="p-6">
-                  {lesson.sections[currentSection] && (
-                    <MarkdownRenderer
-                      content={lesson.sections[currentSection].content}
-                      className="prose prose-sm dark:prose-invert max-w-none"
-                    />
+                  </h1>
+                  <p className="text-slate-500 mt-1">
+                    {activeDynamicLesson ? activeDynamicLesson.description : lesson.title_as}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  {/* AI Tutor Toggle */}
+                  <button
+                type="button"
+                    onClick={() => setShowAITutor(!showAITutor)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-2xl font-black text-sm text-slate-700 border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
+                  >
+                    🤖 {showAITutor ? "Hide" : "Show"} AI Tutor
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Dynamic AI Lesson Mode (always active) */}
+            <div className="space-y-4">
+              {activeDynamicLoading && <LessonPlayerSkeleton />}
+              {activeDynamicError && (
+                <div className="bg-white rounded-3xl border border-red-200 shadow-sm p-6 text-center">
+                  <WifiOff className="h-12 w-12 mx-auto mb-4 text-slate-500" />
+                  <p className="text-red-600 mb-2 font-medium">
+                    {isOnline ? "Failed to generate AI lesson" : "No Internet Connection"}
+                  </p>
+                  <p className="text-slate-500 mb-4 text-sm">
+                    {activeDynamicError}
+                  </p>
+                  {!isOnline && (
+                    <p className="text-slate-500 text-sm">
+                      Please connect to the internet to download the content.
+                    </p>
                   )}
-
-                  {/* Navigation */}
-                  <div className="flex justify-between mt-8">
-                    <Button
-                      variant="outline"
-                      onClick={() =>
-                        setCurrentSection(Math.max(0, currentSection - 1))
-                      }
-                      disabled={currentSection === 0}
-                    >
-                      ← Previous
-                    </Button>
-
-                    {(() => {
-                      const navButton = getNextSectionButton(
-                        currentSection,
-                        lesson.sections.length,
-                        lesson.practice_questions.length > 0,
-                        () => setCurrentSection(currentSection + 1),
-                        () => setShowPractice(true),
-                        handleComplete,
-                      );
-
-                      return (
-                        <Button
-                          onClick={navButton.onClick}
-                          className={navButton.className}
-                        >
-                          {navButton.label}
-                        </Button>
-                      );
-                    })()}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                </div>
+              )}
+              {activeDynamicLesson && !activeDynamicLoading && (
+                <LessonPlayer
+                  key={`${moduleId}-${topicId}-${language}`}
+                  lesson={activeDynamicLesson}
+                  language={language}
+                  voiceEnabled={inputMode === "voice"}
+                  onComplete={handleComplete}
+                />
+              )}
+            </div>
           </div>
         </main>
 
@@ -926,14 +650,15 @@ export default function LessonPage() {
                   <span className="text-2xl">🤖</span>
                   <div>
                     <h3 className="font-semibold">AI Tutor</h3>
-                    <p className="text-xs text-text-secondary">
+                    <p className="text-xs text-slate-500">
                       Ask me anything!
                     </p>
                   </div>
                 </div>
                 <button
+                type="button"
                   onClick={() => setShowAITutor(false)}
-                  className="text-text-secondary hover:text-primary p-2 hover:bg-surface-dark rounded-lg transition-colors"
+                  className="text-slate-500 hover:text-primary p-2 hover:bg-slate-200 rounded-lg transition-colors"
                   aria-label="Close AI Tutor"
                 >
                   <X className="w-5 h-5" />
@@ -943,27 +668,27 @@ export default function LessonPage() {
               {/* Input Mode Selection */}
               <div className="flex gap-2 mt-3">
                 <LanguageSelector compact />
-                <Button
-                  variant={inputMode === "text" ? "default" : "outline"}
-                  size="sm"
+                <button
+                type="button"
                   onClick={() => setInputMode("text")}
+                  className={`px-3 py-1.5 rounded-xl font-black text-xs transition-colors ${inputMode === "text" ? "bg-white text-slate-800 shadow-sm" : "text-white/70 hover:text-white"}`}
                 >
                   Text
-                </Button>
-                <Button
-                  variant={inputMode === "voice" ? "default" : "outline"}
-                  size="sm"
+                </button>
+                <button
+                type="button"
                   onClick={() => setInputMode("voice")}
+                  className={`px-3 py-1.5 rounded-xl font-black text-xs transition-colors ${inputMode === "voice" ? "bg-white text-slate-800 shadow-sm" : "text-white/70 hover:text-white"}`}
                 >
                   Voice
-                </Button>
+                </button>
               </div>
             </div>
 
             {/* Error Display */}
             {chatError && (
-              <div className="mx-4 mt-3 p-3 bg-error/10 border border-error rounded-lg">
-                <p className="text-xs text-error">
+              <div className="mx-4 mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-xs text-red-600">
                   ⚠️ {chatError.message || "An error occurred. Please try again."}
                 </p>
               </div>
@@ -973,7 +698,7 @@ export default function LessonPage() {
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {messages.length <= 1 ? (
                 <div className="text-center py-6">
-                  <p className="text-text-secondary text-sm mb-3">
+                  <p className="text-slate-500 text-sm mb-3">
                     {inputMode === "voice"
                       ? "Tap the microphone to start!"
                       : "Ask me anything about this lesson!"}
@@ -981,6 +706,7 @@ export default function LessonPage() {
                   <div className="flex flex-wrap justify-center gap-2">
                     {suggestedQuestions.map((q) => (
                       <button
+                type="button"
                         key={q}
                         onClick={() => append({ role: "user", content: q })}
                         className="px-3 py-2 bg-primary/10 text-primary rounded-lg text-xs hover:bg-primary/20 transition-colors"
@@ -995,8 +721,9 @@ export default function LessonPage() {
                   {hasHiddenMessages && (
                     <div className="text-center mb-2">
                       <button
+                type="button"
                         onClick={() => setShowAllMessages(true)}
-                        className="px-3 py-1 text-xs bg-surface text-text-secondary rounded-full hover:bg-surface-dark/80 transition-colors"
+                        className="px-3 py-1 text-xs bg-slate-100 text-slate-500 rounded-full hover:bg-slate-200/80 transition-colors"
                       >
                         ↑ Show {hiddenMessageCount} earlier messages
                       </button>
@@ -1011,7 +738,7 @@ export default function LessonPage() {
                         className={`max-w-[90%] sm:max-w-[80%] p-3 rounded-lg ${
                           msg.role === "user"
                             ? "bg-primary text-primary-foreground"
-                            : "bg-surface"
+                            : "bg-slate-100"
                         }`}
                       >
                         <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
@@ -1022,7 +749,7 @@ export default function LessonPage() {
               )}
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="bg-surface p-3 rounded-lg">
+                  <div className="bg-slate-100 p-3 rounded-lg">
                     <div className="flex gap-1">
                       <span className="animate-bounce">●</span>
                       <span className="animate-bounce delay-100">●</span>
@@ -1045,12 +772,12 @@ export default function LessonPage() {
                     type="text"
                     value={input}
                     onChange={handleInputChange}
-                    placeholder={getInputPlaceholder()}
+                    placeholder={getInputPlaceholder(language)}
                     className="flex-1 rounded-md border bg-background px-3 py-2 text-sm min-h-[44px]"
                   />
-                  <Button type="submit" disabled={!input.trim() || isLoading}>
+                  <button type="submit" disabled={!input.trim() || isLoading} className="px-4 py-2 rounded-xl font-black text-sm text-white disabled:opacity-50 transition-all" style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" }}>
                     Send
-                  </Button>
+                  </button>
                 </form>
               ) : (
                 <div className="space-y-2">
@@ -1080,7 +807,7 @@ export default function LessonPage() {
                 <span className="text-2xl">🤖</span>
                 <div>
                   <SheetTitle className="text-base font-semibold">AI Tutor</SheetTitle>
-                  <p className="text-xs text-text-secondary">
+                  <p className="text-xs text-slate-500">
                     Ask me anything!
                   </p>
                 </div>
@@ -1089,27 +816,27 @@ export default function LessonPage() {
               {/* Input Mode Selection */}
               <div className="flex gap-2">
                 <LanguageSelector compact />
-                <Button
-                  variant={inputMode === "text" ? "default" : "outline"}
-                  size="sm"
+                <button
+                type="button"
                   onClick={() => setInputMode("text")}
+                  className={`px-3 py-1.5 rounded-xl font-black text-xs transition-colors ${inputMode === "text" ? "bg-slate-100 text-slate-800" : "text-slate-500 hover:bg-slate-50"}`}
                 >
                   Text
-                </Button>
-                <Button
-                  variant={inputMode === "voice" ? "default" : "outline"}
-                  size="sm"
+                </button>
+                <button
+                type="button"
                   onClick={() => setInputMode("voice")}
+                  className={`px-3 py-1.5 rounded-xl font-black text-xs transition-colors ${inputMode === "voice" ? "bg-slate-100 text-slate-800" : "text-slate-500 hover:bg-slate-50"}`}
                 >
                   Voice
-                </Button>
+                </button>
               </div>
             </div>
 
             {/* Error Display */}
             {chatError && (
-              <div className="mx-4 mt-3 p-3 bg-error/10 border border-error rounded-lg">
-                <p className="text-xs text-error">
+              <div className="mx-4 mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-xs text-red-600">
                   ⚠️ {chatError.message || "An error occurred. Please try again."}
                 </p>
               </div>
@@ -1119,7 +846,7 @@ export default function LessonPage() {
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {messages.length <= 1 ? (
                 <div className="text-center py-6">
-                  <p className="text-text-secondary text-sm mb-3">
+                  <p className="text-slate-500 text-sm mb-3">
                     {inputMode === "voice"
                       ? "Tap the microphone to start!"
                       : "Ask me anything about this lesson!"}
@@ -1127,6 +854,7 @@ export default function LessonPage() {
                   <div className="flex flex-wrap justify-center gap-2">
                     {suggestedQuestions.map((q) => (
                       <button
+                type="button"
                         key={q}
                         onClick={() => append({ role: "user", content: q })}
                         className="px-3 py-2 bg-primary/10 text-primary rounded-lg text-xs hover:bg-primary/20 transition-colors"
@@ -1141,8 +869,9 @@ export default function LessonPage() {
                   {hasHiddenMessages && (
                     <div className="text-center mb-2">
                       <button
+                type="button"
                         onClick={() => setShowAllMessages(true)}
-                        className="px-3 py-1 text-xs bg-surface text-text-secondary rounded-full hover:bg-surface-dark/80 transition-colors"
+                        className="px-3 py-1 text-xs bg-slate-100 text-slate-500 rounded-full hover:bg-slate-200/80 transition-colors"
                       >
                         ↑ Show {hiddenMessageCount} earlier messages
                       </button>
@@ -1157,7 +886,7 @@ export default function LessonPage() {
                         className={`max-w-[90%] sm:max-w-[80%] p-3 rounded-lg ${
                           msg.role === "user"
                             ? "bg-primary text-primary-foreground"
-                            : "bg-surface"
+                            : "bg-slate-100"
                         }`}
                       >
                         <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
@@ -1168,7 +897,7 @@ export default function LessonPage() {
               )}
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="bg-surface p-3 rounded-lg">
+                  <div className="bg-slate-100 p-3 rounded-lg">
                     <div className="flex gap-1">
                       <span className="animate-bounce">●</span>
                       <span className="animate-bounce delay-100">●</span>
@@ -1191,12 +920,12 @@ export default function LessonPage() {
                     type="text"
                     value={input}
                     onChange={handleInputChange}
-                    placeholder={getInputPlaceholder()}
+                    placeholder={getInputPlaceholder(language)}
                     className="flex-1 rounded-md border bg-background px-3 py-2 text-sm min-h-[44px]"
                   />
-                  <Button type="submit" disabled={!input.trim() || isLoading}>
+                  <button type="submit" disabled={!input.trim() || isLoading} className="px-4 py-2 rounded-xl font-black text-sm text-white disabled:opacity-50 transition-all" style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" }}>
                     Send
-                  </Button>
+                  </button>
                 </form>
               ) : (
                 <div className="space-y-2">

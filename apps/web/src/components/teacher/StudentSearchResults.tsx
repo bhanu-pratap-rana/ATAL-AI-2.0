@@ -45,7 +45,7 @@ export function StudentSearchResults({
               aria-label={`Select student: ${student.email} (ID: ${student.id})`}
             >
               <p className="font-medium text-sm">{student.email}</p>
-              <p className="text-xs text-text-secondary">
+              <p className="text-xs text-slate-500">
                 {student.id}
               </p>
             </button>

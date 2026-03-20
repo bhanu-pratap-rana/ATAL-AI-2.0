@@ -19,7 +19,7 @@ function renderErrorOrHelper(
   }
   if (helperText) {
     return (
-      <p id={`${id}-helper`} className="text-xs text-text-secondary">
+      <p id={`${id}-helper`} className="text-xs text-slate-500">
         {helperText}
       </p>
     );

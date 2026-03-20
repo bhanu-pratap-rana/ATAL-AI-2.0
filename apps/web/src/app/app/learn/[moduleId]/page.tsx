@@ -17,8 +17,6 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { UnitAccordion, type UnitData } from "@/components/learn/UnitAccordion";
 import { LanguageSelector } from "@/components/learn/LanguageSelector";
@@ -199,14 +197,14 @@ export default function ModuleUnitsPage({
   // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-cream to-surface/30 p-4 md:p-6">
-        <div className="container-responsive max-w-4xl">
-          <Card className="p-6 text-center">
-            <p className="text-error mb-4">{error}</p>
-            <Link href="/app/learn">
-              <Button variant="outline">{t("nav.backToLearningPath")}</Button>
+      <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 text-center">
+            <p className="text-red-600 mb-4">{error}</p>
+            <Link href="/app/learn" className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl font-black text-sm text-slate-700 border border-slate-200 bg-white hover:bg-slate-50 transition-colors">
+              {t("nav.backToLearningPath")}
             </Link>
-          </Card>
+          </div>
         </div>
       </div>
     );
@@ -222,13 +220,13 @@ export default function ModuleUnitsPage({
       : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cream to-surface/30 p-4 md:p-6">
-      <div className="container-responsive max-w-4xl space-y-6">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+      <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <Link
             href="/app/learn"
-            className="flex items-center gap-2 text-text-secondary hover:text-text-primary transition-colors"
+            className="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             <span>{t("nav.backToLearningPath")}</span>
@@ -238,13 +236,13 @@ export default function ModuleUnitsPage({
         </div>
 
         {/* Module Header Card */}
-        <Card className={`bg-gradient-to-r ${data.module.colorGradient} text-white`}>
-          <CardContent className="p-6">
+        <div className={`rounded-[32px] bg-gradient-to-r ${data.module.colorGradient} text-white`}>
+          <div className="p-6">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-4">
                 <div className="text-4xl sm:text-5xl">{data.module.icon}</div>
                 <div>
-                  <h1 className="text-2xl font-bold">{data.module.name}</h1>
+                  <h1 className="text-xl sm:text-2xl font-bold">{data.module.name}</h1>
                   <p className="text-white/80 mt-1">{data.module.description}</p>
                   <div className="flex gap-4 mt-2 text-sm text-white/70">
                     <span>{data.units.length} {t("learn.units")}</span>
@@ -279,8 +277,8 @@ export default function ModuleUnitsPage({
                 />
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Units Accordions */}
         <div className="space-y-4">
@@ -305,11 +303,11 @@ export default function ModuleUnitsPage({
 
         {/* Empty state if no units */}
         {data.units.length === 0 && (
-          <Card className="p-6 text-center">
-            <p className="text-text-secondary">
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 text-center">
+            <p className="text-slate-500">
               {t("learn.noUnitsAvailable")}
             </p>
-          </Card>
+          </div>
         )}
       </div>
 

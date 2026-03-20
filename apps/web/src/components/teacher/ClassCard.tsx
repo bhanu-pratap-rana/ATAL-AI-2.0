@@ -63,7 +63,7 @@ export function ClassCard({ classData }: ClassCardProps) {
               <div className="flex-1">
                 <CardTitle className="text-primary truncate">{classData.name}</CardTitle>
                 {classData.subject && (
-                  <p className="text-sm text-text-secondary mt-1 truncate">
+                  <p className="text-sm text-slate-500 mt-1 truncate">
                     📖 {classData.subject}
                   </p>
                 )}
@@ -79,13 +79,13 @@ export function ClassCard({ classData }: ClassCardProps) {
           {classData.class_code && classData.join_pin && (
             <div className="space-y-2">
               <div className="bg-primary-light border border-primary/20 rounded-lg p-3">
-                <p className="text-xs text-text-secondary">Class Code</p>
+                <p className="text-xs text-slate-500">Class Code</p>
                 <p className="font-mono font-bold text-primary text-lg">
                   {classData.class_code}
                 </p>
               </div>
               <div className="bg-primary-lighter border border-primary/10 rounded-lg p-3">
-                <p className="text-xs text-text-secondary">Join PIN</p>
+                <p className="text-xs text-slate-500">Join PIN</p>
                 <p className="font-mono font-bold text-primary-dark text-lg">
                   {classData.join_pin}
                 </p>

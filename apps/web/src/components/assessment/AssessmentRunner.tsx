@@ -123,7 +123,7 @@ function getOptionButtonClasses(isSelected: boolean): string {
   if (isSelected) {
     return "border-primary bg-primary-light shadow-primary-sm";
   }
-  return "border-border bg-white hover:border-primary/30 hover:bg-primary-lighter";
+  return "border-slate-200 bg-white hover:border-primary/30 hover:bg-primary-lighter";
 }
 
 /**
@@ -133,7 +133,7 @@ function getRadioButtonClasses(isSelected: boolean): string {
   if (isSelected) {
     return "border-primary bg-primary";
   }
-  return "border-border bg-white";
+  return "border-slate-200 bg-white";
 }
 
 /**
@@ -652,23 +652,23 @@ export function AssessmentRunner({
 
   if (!currentQuestion) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-cream">
+      <div className="flex items-center justify-center min-h-screen bg-orange-50">
         <div className="text-center">
           <div className="w-12 h-12 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-text-tertiary">Loading assessment...</p>
+          <p className="text-slate-400">Loading assessment...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-cream p-4 md:p-8">
+    <div className="min-h-screen bg-orange-50 p-4 md:p-8">
       <div className="max-w-3xl mx-auto">
         {/* Progress Header */}
         <output className="mb-4 block">
           <div className="flex items-center justify-between mb-2">
             <span
-              className="text-sm font-medium text-text-primary"
+              className="text-sm font-medium text-slate-800"
               id="progress-text"
             >
               Question {currentIndex + 1} of {questions.length}
@@ -729,7 +729,7 @@ export function AssessmentRunner({
               <h2
                 ref={questionRef}
                 id="question-text"
-                className={`text-xl md:text-2xl font-bold text-text-primary break-words ${fontClass}`}
+                className={`text-xl md:text-2xl font-bold text-slate-800 break-words ${fontClass}`}
                 tabIndex={-1}
               >
                 {currentQuestion.questionText}
@@ -770,7 +770,7 @@ export function AssessmentRunner({
                           )}
                         </div>
                         <span
-                          className={`text-base text-text-primary break-words ${fontClass}`}
+                          className={`text-base text-slate-800 break-words ${fontClass}`}
                         >
                           <span className="font-semibold mr-2">{label}.</span>
                           {option.text}
@@ -800,10 +800,10 @@ export function AssessmentRunner({
 
         {/* Helper Text */}
         <div className="mt-4 space-y-2">
-          <p className="text-sm text-text-secondary text-center">
+          <p className="text-sm text-slate-500 text-center">
             Take your time to read each question carefully
           </p>
-          <p className="text-xs text-text-tertiary text-center">
+          <p className="text-xs text-slate-400 text-center">
             Use arrow keys to navigate options, Enter/Space to submit, or 1-4
             for quick selection
           </p>

@@ -18,8 +18,8 @@ import type { UsePhoneInputReturn } from "@/hooks/usePhoneInput";
  * Design Rules Applied:
  * - Primary button
  * - Error text: text-error
- * - Muted text: text-text-muted
- * - Links: text-primary and text-text-secondary
+ * - Muted text: text-slate-400
+ * - Links: text-primary and text-slate-500
  */
 
 interface SignInPhoneFormProps {
@@ -72,7 +72,7 @@ export function SignInPhoneForm({
         authLogger.success("[SignIn Phone] Authentication successful");
         toast.success("Login successful!");
         onSuccess();
-        router.push("/app/dashboard");
+        router.push("/app/student/dashboard");
       }
     } catch (error) {
       authLogger.error("[SignIn Phone] Unexpected error", error);
@@ -89,8 +89,8 @@ export function SignInPhoneForm({
         <Label htmlFor="signin-phone" className="text-text">
           Phone Number
         </Label>
-        <div className="flex items-center border-2 border-border rounded-md overflow-hidden focus-within:border-primary focus-within:ring-3 focus-within:ring-primary-light transition-all">
-          <span className="px-3 text-text-secondary font-medium bg-surface h-full py-3">
+        <div className="flex items-center border-2 border-slate-200 rounded-md overflow-hidden focus-within:border-primary focus-within:ring-3 focus-within:ring-primary-light transition-all">
+          <span className="px-3 text-slate-500 font-medium bg-slate-50 h-full py-3">
             +91
           </span>
           <Input
@@ -105,7 +105,7 @@ export function SignInPhoneForm({
             maxLength={12}
           />
         </div>
-        <p className="text-xs text-text-muted">
+        <p className="text-xs text-slate-400">
           Enter your 10-digit phone number
         </p>
       </div>
@@ -154,7 +154,7 @@ export function SignInPhoneForm({
         <button
           type="button"
           onClick={() => actions.setMainStep("signup")}
-          className="text-text-secondary hover:text-primary hover:underline block w-full transition-colors"
+          className="text-slate-500 hover:text-primary hover:underline block w-full transition-colors"
           disabled={isLoading}
         >
           Don&apos;t have an account? Sign up

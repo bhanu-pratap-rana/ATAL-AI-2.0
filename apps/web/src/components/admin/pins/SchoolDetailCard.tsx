@@ -25,11 +25,11 @@ export function SchoolDetailCard({
           <h3 className="font-semibold text-success mb-2">{school.schoolName}</h3>
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <p className="text-sm text-text-secondary">School Code:</p>
+              <p className="text-sm text-slate-500">School Code:</p>
               <p className="text-sm font-mono text-text">{school.schoolCode}</p>
             </div>
             {school.districtName && (
-              <p className="text-sm text-text-secondary">
+              <p className="text-sm text-slate-500">
                 District: {school.districtName}
               </p>
             )}
@@ -41,12 +41,12 @@ export function SchoolDetailCard({
                   <p className="text-xs text-success font-medium mb-1">
                     ✓ PIN Configured
                   </p>
-                  <p className="text-xs text-text-secondary">
+                  <p className="text-xs text-slate-500">
                     Created:{" "}
                     {new Date(school.createdAt).toLocaleDateString()}
                   </p>
                   {school.lastRotatedAt && (
-                    <p className="text-xs text-text-secondary">
+                    <p className="text-xs text-slate-500">
                       Last rotated:{" "}
                       {new Date(school.lastRotatedAt).toLocaleDateString()}
                     </p>

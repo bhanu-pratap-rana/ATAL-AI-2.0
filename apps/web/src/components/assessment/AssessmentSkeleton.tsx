@@ -7,7 +7,7 @@
 
 export function AssessmentSkeleton() {
   return (
-    <div className="min-h-screen bg-cream p-4 md:p-8">
+    <div className="min-h-screen bg-orange-50 p-4 md:p-8">
       <div className="max-w-3xl mx-auto">
         {/* Progress Bar Skeleton */}
         <div className="mb-6 animate-pulse">
@@ -36,10 +36,10 @@ export function AssessmentSkeleton() {
               {[1, 2, 3, 4].map((item) => (
                 <div
                   key={`question-${item}`}
-                  className="p-4 rounded-md border-2 border-border bg-surface"
+                  className="p-4 rounded-md border-2 border-slate-200 bg-slate-50"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-border bg-white"></div>
+                    <div className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-slate-200 bg-white"></div>
                     <div className="h-6 bg-border rounded flex-1"></div>
                   </div>
                 </div>

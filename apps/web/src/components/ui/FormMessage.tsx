@@ -73,6 +73,7 @@ export function FormMessage({
       </div>
       {onClose && (
         <button
+                type="button"
           onClick={onClose}
           className="flex-shrink-0 text-lg opacity-70 hover:opacity-100 transition-opacity"
           aria-label="Close message"

@@ -121,10 +121,10 @@ export function InvitePanel({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-border p-responsive">
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-responsive">
       <div className="mb-4 md:mb-6">
-        <h2 className="heading-3 text-text-primary">Student Invitation</h2>
-        <p className="text-sm text-text-secondary mt-1">
+        <h2 className="heading-3 text-slate-800">Student Invitation</h2>
+        <p className="text-sm text-slate-500 mt-1">
           Share these codes with students to join your class
         </p>
       </div>
@@ -137,7 +137,7 @@ export function InvitePanel({
             <div className="qr-container bg-white p-3 md:p-4 rounded-lg border-2 border-primary/30 shadow-sm">
               <canvas ref={canvasRef} className="w-full h-auto" />
             </div>
-            <p className="text-xs text-text-muted mt-2 text-center max-w-[200px] sm:max-w-[256px]">
+            <p className="text-xs text-slate-400 mt-2 text-center max-w-[200px] sm:max-w-[256px]">
               Students can scan this to auto-fill the class code
             </p>
           </div>
@@ -171,7 +171,7 @@ export function InvitePanel({
             >
               📋 Copy Class Code
             </Button>
-            <p className="text-xs text-text-muted">
+            <p className="text-xs text-slate-400">
               Students will enter this 6-character code
             </p>
           </div>
@@ -192,7 +192,7 @@ export function InvitePanel({
             >
               📋 Copy PIN
             </Button>
-            <p className="text-xs text-text-muted">
+            <p className="text-xs text-slate-400">
               4-digit PIN for class security
             </p>
           </div>
@@ -206,7 +206,7 @@ export function InvitePanel({
             Direct Invite Link
           </span>
           <div className="bg-white rounded-md p-2 mb-3 border border-success/20 overflow-x-auto">
-            <p className="text-xs font-mono text-text-secondary break-all">
+            <p className="text-xs font-mono text-slate-500 break-all">
               {getInviteLink()}
             </p>
           </div>

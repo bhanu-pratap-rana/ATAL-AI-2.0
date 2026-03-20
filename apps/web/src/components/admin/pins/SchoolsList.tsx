@@ -21,15 +21,15 @@ export function SchoolsList({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-text-secondary">Loading schools...</p>
+        <p className="text-slate-500">Loading schools...</p>
       </div>
     );
   }
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-4 py-3 border-b border-border">
-        <p className="text-sm font-semibold text-text-secondary">
+      <div className="px-4 py-3 border-b border-slate-200">
+        <p className="text-sm font-semibold text-slate-500">
           Schools ({schools.length})
         </p>
       </div>
@@ -37,16 +37,17 @@ export function SchoolsList({
       <div className="flex-1 overflow-y-auto">
         {schools.length === 0 ? (
           <div className="flex items-center justify-center h-full p-4">
-            <p className="text-sm text-text-secondary text-center">
+            <p className="text-sm text-slate-500 text-center">
               No schools found
             </p>
           </div>
         ) : (
           schools.map((school) => (
             <button
+                type="button"
               key={school.schoolId}
               onClick={() => onSelectSchool(school)}
-              className={`w-full text-left px-4 py-3 border-b border-border transition-colors hover:bg-surface-dark ${
+              className={`w-full text-left px-4 py-3 border-b border-slate-200 transition-colors hover:bg-slate-100 ${
                 selectedSchool?.schoolId === school.schoolId
                   ? "bg-primary/10 border-l-4 border-l-primary"
                   : ""
@@ -56,7 +57,7 @@ export function SchoolsList({
                 {school.schoolName}
               </p>
               <div className="flex items-center justify-between mt-1">
-                <p className="text-xs font-mono text-text-secondary">
+                <p className="text-xs font-mono text-slate-500">
                   {school.schoolCode}
                 </p>
                 <span

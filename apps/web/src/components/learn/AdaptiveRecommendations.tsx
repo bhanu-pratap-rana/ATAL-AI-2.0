@@ -20,7 +20,6 @@ import { clientLogger } from "@/lib/client-logger";
 import {
   getModules,
   getModuleTopics,
-  type Module,
   type Topic,
 } from "@/lib/services/curriculum-service";
 import { useLanguage, getModuleName, getTopicName } from "@/lib/i18n";
@@ -51,15 +50,13 @@ export function AdaptiveRecommendations({
   const { language, t } = useLanguage();
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState(true);
-  const [_modules, setModules] = useState<Module[]>([]);
-  const [_topicsByModule, setTopicsByModule] = useState<Map<string, Topic[]>>(new Map());
 
   // Fetch modules and topics from database
   const fetchCurriculumData = useCallback(async () => {
     try {
       // Fetch all modules from database
       const modulesData = await getModules();
-      setModules(modulesData);
+
 
       // PERFORMANCE: Fetch topics for all modules in parallel instead of sequential
       // This reduces latency from O(n * requestTime) to O(requestTime)
@@ -72,7 +69,6 @@ export function AdaptiveRecommendations({
       modulesData.forEach((mod, index) => {
         topicsMap.set(mod.id, topicsResults[index]);
       });
-      setTopicsByModule(topicsMap);
 
       return { modulesData, topicsMap };
     } catch (error) {
@@ -264,12 +260,12 @@ export function AdaptiveRecommendations({
     return (
       <Card className="animate-pulse">
         <CardHeader>
-          <div className="h-5 bg-surface rounded w-1/3" />
+          <div className="h-5 bg-slate-50 rounded w-1/3" />
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <div className="h-4 bg-surface rounded w-full" />
-            <div className="h-4 bg-surface rounded w-3/4" />
+            <div className="h-4 bg-slate-50 rounded w-full" />
+            <div className="h-4 bg-slate-50 rounded w-3/4" />
           </div>
         </CardContent>
       </Card>
@@ -287,7 +283,7 @@ export function AdaptiveRecommendations({
           <span>🤖</span>
           <span>{t("learn.aiRecommendations")}</span>
         </CardTitle>
-        <p className="text-sm text-text-secondary">
+        <p className="text-sm text-slate-500">
           {t("learn.basedOnProgress")}
         </p>
       </CardHeader>

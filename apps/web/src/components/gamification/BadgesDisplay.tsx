@@ -41,9 +41,9 @@ interface BadgesDisplayProps {
 // Rarity colors and styles - using semantic CSS variables where possible
 const RARITY_STYLES = {
   common: {
-    bg: "bg-surface",
+    bg: "bg-slate-50",
     border: "border-muted-foreground/30",
-    text: "text-text-secondary",
+    text: "text-slate-500",
     glow: "",
   },
   uncommon: {
@@ -282,8 +282,8 @@ export const BadgesDisplay = memo(function BadgesDisplay({
    */
   const BADGE_CLASSES = {
     icon: { earned: "group-hover:scale-110", locked: "grayscale" },
-    card: { locked: "bg-surface/50 border-dashed border-muted-foreground/30 opacity-60" },
-    text: { locked: "text-text-secondary" },
+    card: { locked: "bg-slate-50/50 border-dashed border-muted-foreground/30 opacity-60" },
+    text: { locked: "text-slate-500" },
   } as const;
 
   const getBadgeCardClass = (status: "earned" | "locked", rarity: string): string => {
@@ -303,8 +303,8 @@ export const BadgesDisplay = memo(function BadgesDisplay({
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
         {[1, 2, 3, 4, 5].map((i) => (
           <div key={`badge-skeleton-${i}`} className="animate-pulse text-center p-3">
-            <div className="w-12 h-12 mx-auto bg-surface rounded-full" />
-            <div className="h-3 bg-surface rounded mt-2 mx-2" />
+            <div className="w-12 h-12 mx-auto bg-slate-50 rounded-full" />
+            <div className="h-3 bg-slate-50 rounded mt-2 mx-2" />
           </div>
         ))}
       </div>
@@ -316,22 +316,22 @@ export const BadgesDisplay = memo(function BadgesDisplay({
       {/* Stats Summary */}
       <div className="flex flex-wrap justify-center gap-4 sm:gap-6 text-center">
         <div>
-          <div className="text-2xl font-bold text-primary">
+          <div className="text-xl sm:text-2xl font-bold text-blue-600">
             {earnedBadges.length}
           </div>
-          <div className="text-xs text-text-secondary">{t("gamification.earned")}</div>
+          <div className="text-xs text-slate-500">{t("gamification.earned")}</div>
         </div>
         <div>
-          <div className="text-2xl font-bold text-text-secondary">
+          <div className="text-xl sm:text-2xl font-bold text-slate-500">
             {lockedBadges.length}
           </div>
-          <div className="text-xs text-text-secondary">{t("gamification.locked")}</div>
+          <div className="text-xs text-slate-500">{t("gamification.locked")}</div>
         </div>
         <div>
-          <div className="text-2xl font-bold text-warning">
+          <div className="text-xl sm:text-2xl font-bold text-amber-500">
             {earnedBadges.reduce((sum, b) => sum + b.points_value, 0)}
           </div>
-          <div className="text-xs text-text-secondary">{t("gamification.points")}</div>
+          <div className="text-xs text-slate-500">{t("gamification.points")}</div>
         </div>
       </div>
 
@@ -342,13 +342,14 @@ export const BadgesDisplay = memo(function BadgesDisplay({
 
           return (
             <button
+                type="button"
               key={badge.id}
               onClick={() => setSelectedBadge(badge)}
               className={`group relative p-3 rounded-xl border-2 transition-all duration-300 overflow-hidden text-center ${getBadgeCardClass(isEarned ? "earned" : "locked", badge.rarity)}`}
             >
               {/* Lock Icon for Locked Badges */}
               {!isEarned && (
-                <div className="absolute top-1 right-1 text-xs text-text-secondary">
+                <div className="absolute top-1 right-1 text-xs text-slate-500">
                   🔒
                 </div>
               )}
@@ -371,7 +372,7 @@ export const BadgesDisplay = memo(function BadgesDisplay({
               >
                 {badge.rarity}
               </div>
-              <div className="text-[10px] text-text-secondary">
+              <div className="text-[10px] text-slate-500">
                 +{badge.points_value}
               </div>
             </button>
@@ -389,14 +390,14 @@ export const BadgesDisplay = memo(function BadgesDisplay({
           <Card className="w-full">
             <CardContent className="p-6 text-center">
               {/* Icon */}
-              <div className="text-6xl mb-4">{selectedBadge.icon}</div>
+              <div className="text-4xl sm:text-5xl mb-4">{selectedBadge.icon}</div>
 
               {/* Name in all languages */}
               <h3 id="badge-modal-title" className="text-xl font-bold">
                 {selectedBadge.name_en}
               </h3>
-              <p className="text-text-secondary">{selectedBadge.name_as}</p>
-              <p className="text-sm text-text-secondary">
+              <p className="text-slate-500">{selectedBadge.name_as}</p>
+              <p className="text-sm text-slate-500">
                 {selectedBadge.name_hi}
               </p>
 
@@ -417,7 +418,7 @@ export const BadgesDisplay = memo(function BadgesDisplay({
                     ✓ {t("gamification.earned")} • +{selectedBadge.points_value} {t("gamification.points")}
                   </span>
                 ) : (
-                  <span className="inline-block px-4 py-2 bg-surface text-text-secondary rounded-full">
+                  <span className="inline-block px-4 py-2 bg-slate-50 text-slate-500 rounded-full">
                     🔒 {t("gamification.locked")}
                   </span>
                 )}
@@ -427,7 +428,7 @@ export const BadgesDisplay = memo(function BadgesDisplay({
               <button
                 type="button"
                 onClick={() => setSelectedBadge(null)}
-                className="mt-4 text-sm text-text-secondary hover:text-primary"
+                className="mt-4 text-sm text-slate-500 hover:text-primary"
                 aria-label="Close badge details"
               >
                 {t("common.close")}
@@ -465,7 +466,7 @@ export function BadgesCompact({
         </div>
       ))}
       {remaining > 0 && (
-        <div className="w-8 h-8 rounded-full bg-surface flex items-center justify-center text-xs font-medium">
+        <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-xs font-medium">
           +{remaining}
         </div>
       )}

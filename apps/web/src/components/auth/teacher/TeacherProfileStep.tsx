@@ -26,7 +26,7 @@ export function TeacherProfileStep({
   actions,
 }: TeacherProfileStepProps) {
   return (
-    <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
       <AuthCard
         title="Teacher Profile"
         description="Step 4 of 4: Complete your profile"
@@ -103,7 +103,7 @@ export function TeacherProfileStep({
               disabled={state.loading}
               maxLength={10}
             />
-            <p className="text-xs text-text-secondary">
+            <p className="text-xs text-slate-500">
               Enter 10-digit Indian mobile number (e.g., 9876543210)
             </p>
             {state.phone &&

@@ -30,7 +30,7 @@ export default function StudentStartPage() {
         data: { session },
       } = await supabase.auth.getSession();
       if (session) {
-        router.push("/app/dashboard");
+        router.push("/app/student/dashboard");
       }
     }
     checkAuth();

@@ -49,14 +49,14 @@ export function CommunicationSection({
       </CardHeader>
       <CardContent>
         {/* Custom Tab Navigation */}
-        <div className="flex border-b border-border mb-4">
+        <div className="flex border-b border-slate-200 mb-4">
           <button
             type="button"
             onClick={() => setActiveTab("announcements")}
             className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
               activeTab === "announcements"
                 ? "border-primary text-primary"
-                : "border-transparent text-text-secondary hover:text-text-primary hover:border-border"
+                : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-200"
             }`}
           >
             <span>📢</span>
@@ -73,7 +73,7 @@ export function CommunicationSection({
             className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
               activeTab === "materials"
                 ? "border-primary text-primary"
-                : "border-transparent text-text-secondary hover:text-text-primary hover:border-border"
+                : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-200"
             }`}
           >
             <span>📁</span>

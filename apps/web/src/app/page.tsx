@@ -1,62 +1,83 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { AuthCard } from "@/components/auth/AuthCard";
+import Image from "next/image";
+import { motion } from "framer-motion";
 
 export default function HomePage() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-cream flex items-center justify-center p-4">
-      <AuthCard
-        title="Welcome to ATAL AI"
-        description="Choose your role to get started"
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.4 }}
+        className="w-full max-w-md bg-white p-6 sm:p-10 rounded-[48px] shadow-2xl shadow-slate-200"
       >
-        <div className="space-y-6">
-          {/* Teacher Button */}
-          <Button
-            onClick={() => router.push("/teacher/start")}
-            className="w-full h-14 text-lg shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5 transition-all"
-            variant="default"
-          >
-            <span className="text-2xl mr-3">👨‍🏫</span>
-            <div className="text-left">
-              <div className="font-semibold">I&apos;m a Teacher</div>
-              <div className="text-xs font-normal opacity-90">
-                Register with school credentials
-              </div>
-            </div>
-          </Button>
+        {/* Logo */}
+        <div className="w-24 h-24 mx-auto mb-6 rounded-full overflow-hidden shadow-[0_0_0_3px_white,0_0_0_5px_#F98819,0_8px_24px_rgba(249,136,25,0.3)]">
+          <Image
+            src="/assets/logo.png"
+            alt="ATAL AI"
+            width={96}
+            height={96}
+            className="w-full h-full object-cover"
+            priority
+          />
+        </div>
 
-          {/* Student Button */}
-          <Button
+        <h1 className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight mb-3 text-center">
+          ATAL AI
+        </h1>
+        <p className="text-slate-400 font-bold mb-10 text-center">
+          Assam&apos;s Premier Digital Learning Platform
+        </p>
+
+        <div className="space-y-4">
+          {/* Student — primary orange */}
+          <button
+                type="button"
             onClick={() => router.push("/student/start")}
-            className="w-full h-14 text-lg border-2 hover:border-primary hover:shadow-[var(--shadow-primary-sm)] hover:-translate-y-0.5 transition-all"
-            variant="outline"
+            className="w-full flex items-center gap-4 p-5 rounded-2xl text-white font-black transition-all active:scale-95 hover:opacity-90"
+            style={{
+              background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)",
+              boxShadow: "0 4px 14px 0 rgba(249,136,25,0.39)",
+            }}
           >
-            <span className="text-2xl mr-3">🎓</span>
+            <span className="text-3xl">🎓</span>
             <div className="text-left">
-              <div className="font-semibold">I&apos;m a Student</div>
-              <div className="text-xs font-normal opacity-70">
+              <p className="text-base font-black leading-none">Student Login</p>
+              <p className="text-xs font-bold text-white/80 mt-1">
                 Sign in or create account
-              </div>
+              </p>
             </div>
-          </Button>
+          </button>
 
-          {/* Info Box - Cyan themed */}
-          <div className="bg-cyan-lightest border-l-4 border-cyan p-4 rounded-xl">
-            <p className="text-sm text-cyan-darkest">
-              <strong><span aria-hidden="true">💡</span> New here?</strong>
-              <br />
-              <span className="text-xs">
-                Teachers need school verification. Students can join with email,
-                phone, or as a guest.
-              </span>
-            </p>
+          {/* Teacher + Admin row */}
+          <div className="grid grid-cols-2 gap-4">
+            <button
+                type="button"
+              onClick={() => router.push("/teacher/start")}
+              className="flex flex-col items-center gap-2 p-5 rounded-2xl text-white font-black transition-all active:scale-95 hover:opacity-90"
+              style={{ background: "linear-gradient(135deg,#3B82F6,#6366F1)" }}
+            >
+              <span className="text-2xl">👩‍🏫</span>
+              <span className="text-sm font-black">Teacher</span>
+            </button>
+
+            <button
+                type="button"
+              onClick={() => router.push("/admin/login")}
+              className="flex flex-col items-center gap-2 p-5 rounded-2xl text-white font-black transition-all active:scale-95 hover:opacity-90"
+              style={{ background: "#0F172A" }}
+            >
+              <span className="text-2xl">🔐</span>
+              <span className="text-sm font-black">Admin</span>
+            </button>
           </div>
         </div>
-      </AuthCard>
+      </motion.div>
     </div>
   );
 }

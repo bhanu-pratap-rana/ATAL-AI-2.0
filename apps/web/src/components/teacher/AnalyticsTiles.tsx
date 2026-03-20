@@ -34,16 +34,16 @@ function getAtRiskStyles(atRiskCount: number): AtRiskStyles {
   const hasAtRiskStudents = atRiskCount > 0;
 
   return {
-    cardClass: `border-2 ${hasAtRiskStudents ? "border-warning/40 bg-gradient-to-br from-warning/10 to-warning/5" : "border-border bg-gradient-to-br from-surface to-surface-dark"}`,
+    cardClass: `border-2 ${hasAtRiskStudents ? "border-warning/40 bg-gradient-to-br from-warning/10 to-warning/5" : "border-slate-200 bg-gradient-to-br from-surface to-white-dark"}`,
     descriptionClass: hasAtRiskStudents
       ? "text-warning-dark font-medium"
-      : "text-text-primary font-medium",
+      : "text-slate-800 font-medium",
     iconBackgroundClass: hasAtRiskStudents ? "bg-warning" : "bg-text-tertiary",
     iconEmoji: hasAtRiskStudents ? "⚠️" : "✅",
     numberClass: hasAtRiskStudents
       ? "text-warning-dark"
-      : "text-text-primary",
-    textClass: hasAtRiskStudents ? "text-warning" : "text-text-secondary",
+      : "text-slate-800",
+    textClass: hasAtRiskStudents ? "text-warning" : "text-slate-500",
     statusMessage: hasAtRiskStudents
       ? "with mastery below 40%"
       : "All students engaged",
@@ -71,7 +71,7 @@ export function AnalyticsTiles({
         </CardHeader>
         <CardContent>
           <div className="space-y-1">
-            <div className="text-4xl font-bold text-success">
+            <div className="text-2xl sm:text-4xl font-bold text-success">
               {activeThisWeek}
             </div>
             <p className="text-sm text-success/80">
@@ -96,7 +96,7 @@ export function AnalyticsTiles({
         </CardHeader>
         <CardContent>
           <div className="space-y-1">
-            <div className="text-4xl font-bold text-cyan-dark">
+            <div className="text-2xl sm:text-4xl font-bold text-cyan-dark">
               {avgMinutesPerDay.toFixed(1)}
             </div>
             <p className="text-sm text-cyan">minutes per student per day</p>
@@ -123,7 +123,7 @@ export function AnalyticsTiles({
             </CardHeader>
             <CardContent>
               <div className="space-y-1">
-                <div className={`text-4xl font-bold ${styles.numberClass}`}>
+                <div className={`text-2xl sm:text-4xl font-bold ${styles.numberClass}`}>
                   {atRiskCount}
                 </div>
                 <p className={`text-sm ${styles.textClass}`}>

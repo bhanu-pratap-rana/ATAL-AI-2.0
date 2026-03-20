@@ -97,7 +97,7 @@ export function GuestJoinForm({
   return (
     <form onSubmit={handleGuestJoinClass} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="guest-class-code" className="text-text-primary">
+        <Label htmlFor="guest-class-code" className="text-slate-800">
           Class Code
         </Label>
         <Input
@@ -113,13 +113,13 @@ export function GuestJoinForm({
           maxLength={CLASS_CODE_LENGTH}
           className="uppercase font-mono text-center text-xl tracking-widest"
         />
-        <p className="text-xs text-text-tertiary">
+        <p className="text-xs text-slate-400">
           6-character code provided by your teacher
         </p>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="guest-pin" className="text-text-primary">
+        <Label htmlFor="guest-pin" className="text-slate-800">
           Class PIN
         </Label>
         <Input
@@ -133,7 +133,7 @@ export function GuestJoinForm({
           maxLength={PIN_LENGTH}
           className="text-center text-2xl font-mono tracking-widest"
         />
-        <p className="text-xs text-text-tertiary">
+        <p className="text-xs text-slate-400">
           4-digit PIN provided by your teacher
         </p>
       </div>

@@ -202,19 +202,19 @@ export default function IRTItemBankAdminPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-white flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          <p className="mt-4 text-text-secondary">Loading item bank...</p>
+          <p className="mt-4 text-slate-500">Loading item bank...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface">
+    <div className="min-h-screen bg-gradient-to-br from-surface via-background to-white">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-border">
+      <header className="bg-white shadow-sm border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             {/* Back Button */}
@@ -246,14 +246,14 @@ export default function IRTItemBankAdminPage() {
                   <Database className="w-4 h-4 text-secondary" />
                 </div>
               </div>
-              <p className="text-sm text-text-secondary">
+              <p className="text-sm text-slate-500">
                 Manage assessment questions and IRT parameters
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="text-sm text-text-secondary">{userEmail}</span>
+            <span className="text-sm text-slate-500">{userEmail}</span>
             <Button
               onClick={handleLogout}
               variant="destructive"
@@ -271,25 +271,25 @@ export default function IRTItemBankAdminPage() {
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-lg border border-border p-4">
-            <div className="text-2xl font-bold text-text">{totalCount}</div>
-            <div className="text-sm text-text-secondary">Total Questions</div>
+          <div className="bg-white rounded-lg border border-slate-200 p-4">
+            <div className="text-xl sm:text-2xl font-bold text-text">{totalCount}</div>
+            <div className="text-sm text-slate-500">Total Questions</div>
           </div>
-          <div className="bg-white rounded-lg border border-border p-4">
-            <div className="text-2xl font-bold text-success">{activeCount}</div>
-            <div className="text-sm text-text-secondary">Active</div>
+          <div className="bg-white rounded-lg border border-slate-200 p-4">
+            <div className="text-xl sm:text-2xl font-bold text-success">{activeCount}</div>
+            <div className="text-sm text-slate-500">Active</div>
           </div>
-          <div className="bg-white rounded-lg border border-border p-4">
-            <div className="text-2xl font-bold text-text-tertiary">
+          <div className="bg-white rounded-lg border border-slate-200 p-4">
+            <div className="text-xl sm:text-2xl font-bold text-slate-400">
               {totalCount - activeCount}
             </div>
-            <div className="text-sm text-text-secondary">Inactive</div>
+            <div className="text-sm text-slate-500">Inactive</div>
           </div>
-          <div className="bg-white rounded-lg border border-border p-4">
-            <div className="text-2xl font-bold text-primary">
+          <div className="bg-white rounded-lg border border-slate-200 p-4">
+            <div className="text-xl sm:text-2xl font-bold text-primary">
               {categories.length}
             </div>
-            <div className="text-sm text-text-secondary">Categories</div>
+            <div className="text-sm text-slate-500">Categories</div>
           </div>
         </div>
 
@@ -310,11 +310,11 @@ export default function IRTItemBankAdminPage() {
         )}
 
         {/* Filters */}
-        <div className="bg-white rounded-lg border border-border p-4 mb-6">
+        <div className="bg-white rounded-lg border border-slate-200 p-4 mb-6">
           <div className="flex flex-wrap items-center gap-4">
             {/* Search */}
             <div className="relative flex-1 min-w-[200px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
                 placeholder="Search by question or item code..."
                 value={searchQuery}
@@ -325,13 +325,13 @@ export default function IRTItemBankAdminPage() {
 
             {/* Category Filter */}
             <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-text-tertiary" />
+              <Filter className="w-4 h-4 text-slate-400" />
               <select
                 value={selectedCategory || ""}
                 onChange={(e) =>
                   setSelectedCategory(e.target.value || null)
                 }
-                className="text-sm border border-border rounded px-2 py-1"
+                className="text-sm border border-slate-200 rounded px-2 py-1"
               >
                 <option value="">All Categories</option>
                 {categories.map((cat) => (
@@ -346,7 +346,7 @@ export default function IRTItemBankAdminPage() {
             <select
               value={selectedLevel || ""}
               onChange={(e) => setSelectedLevel(e.target.value || null)}
-              className="text-sm border border-border rounded px-2 py-1"
+              className="text-sm border border-slate-200 rounded px-2 py-1"
             >
               <option value="">All Levels</option>
               {levels.map((level) => (
@@ -360,7 +360,7 @@ export default function IRTItemBankAdminPage() {
             <select
               value={selectedLanguage || ""}
               onChange={(e) => setSelectedLanguage(e.target.value || null)}
-              className="text-sm border border-border rounded px-2 py-1"
+              className="text-sm border border-slate-200 rounded px-2 py-1"
             >
               <option value="">All Languages</option>
               {languages.map((lang) => (
@@ -388,12 +388,12 @@ export default function IRTItemBankAdminPage() {
         {/* Questions List */}
         <div className="space-y-3">
           {filteredQuestions.length === 0 ? (
-            <div className="bg-white border border-border rounded-lg p-8 text-center">
-              <Database className="w-12 h-12 text-text-tertiary mx-auto mb-3" />
+            <div className="bg-white border border-slate-200 rounded-lg p-8 text-center">
+              <Database className="w-12 h-12 text-slate-400 mx-auto mb-3" />
               <h3 className="text-lg font-medium text-text mb-1">
                 {searchQuery ? "No questions found" : "No questions"}
               </h3>
-              <p className="text-text-secondary">
+              <p className="text-slate-500">
                 {searchQuery
                   ? `No questions match "${searchQuery}"`
                   : "Questions will appear here once added to the item bank."}
@@ -401,7 +401,7 @@ export default function IRTItemBankAdminPage() {
             </div>
           ) : (
             <>
-              <p className="text-sm text-text-secondary mb-2">
+              <p className="text-sm text-slate-500 mb-2">
                 Showing {filteredQuestions.length} of {totalCount} questions
               </p>
               {filteredQuestions.map((question) => (
@@ -420,7 +420,7 @@ export default function IRTItemBankAdminPage() {
           <h3 className="font-semibold text-secondary mb-2">
             About IRT Parameters
           </h3>
-          <ul className="text-sm text-text-secondary space-y-2 list-disc list-inside">
+          <ul className="text-sm text-slate-500 space-y-2 list-disc list-inside">
             <li>
               <strong>Difficulty (b):</strong> How hard the question is. Range:
               -3 (very easy) to +3 (very hard)

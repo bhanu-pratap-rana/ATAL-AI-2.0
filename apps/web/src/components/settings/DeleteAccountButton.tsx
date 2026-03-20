@@ -89,7 +89,7 @@ export function DeleteAccountButton({ userEmail }: DeleteAccountButtonProps) {
             <p className="text-sm text-error-dark">
               <strong>Warning:</strong> Deleting your account will:
             </p>
-            <ul className="text-sm text-text-secondary mt-2 list-disc list-inside">
+            <ul className="text-sm text-slate-500 mt-2 list-disc list-inside">
               <li>Remove all your profile data</li>
               <li>Unenroll you from all classes</li>
               <li>Delete all your assessment history</li>
@@ -99,10 +99,10 @@ export function DeleteAccountButton({ userEmail }: DeleteAccountButtonProps) {
           </div>
 
           <div>
-            <p className="text-sm text-text-secondary mb-2">
+            <p className="text-sm text-slate-500 mb-2">
               Account: <strong>{userEmail}</strong>
             </p>
-            <p className="text-sm text-text-secondary mb-2">
+            <p className="text-sm text-slate-500 mb-2">
               Type <strong>delete</strong> to confirm:
             </p>
             <Input

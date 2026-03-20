@@ -176,19 +176,19 @@ export default function FeatureFlagsAdminPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-white flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          <p className="mt-4 text-text-secondary">Loading feature flags...</p>
+          <p className="mt-4 text-slate-500">Loading feature flags...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface">
+    <div className="min-h-screen bg-gradient-to-br from-surface via-background to-white">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-border">
+      <header className="bg-white shadow-sm border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             {/* Back Button */}
@@ -220,14 +220,14 @@ export default function FeatureFlagsAdminPage() {
                   <Flag className="w-4 h-4 text-primary" />
                 </div>
               </div>
-              <p className="text-sm text-text-secondary">
+              <p className="text-sm text-slate-500">
                 Manage gradual rollouts and A/B testing
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="text-sm text-text-secondary">{userEmail}</span>
+            <span className="text-sm text-slate-500">{userEmail}</span>
             <Button
               onClick={handleLogout}
               variant="destructive"
@@ -245,23 +245,23 @@ export default function FeatureFlagsAdminPage() {
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-white rounded-lg border border-border p-4">
-            <div className="text-2xl font-bold text-text">{flags.length}</div>
-            <div className="text-sm text-text-secondary">Total Flags</div>
+          <div className="bg-white rounded-lg border border-slate-200 p-4">
+            <div className="text-xl sm:text-2xl font-bold text-text">{flags.length}</div>
+            <div className="text-sm text-slate-500">Total Flags</div>
           </div>
-          <div className="bg-white rounded-lg border border-border p-4">
-            <div className="text-2xl font-bold text-success">
+          <div className="bg-white rounded-lg border border-slate-200 p-4">
+            <div className="text-xl sm:text-2xl font-bold text-success">
               {enabledCount}
             </div>
-            <div className="text-sm text-text-secondary">
+            <div className="text-sm text-slate-500">
               Enabled ({fullRolloutCount} full, {partialRolloutCount} partial)
             </div>
           </div>
-          <div className="bg-white rounded-lg border border-border p-4">
-            <div className="text-2xl font-bold text-text-tertiary">
+          <div className="bg-white rounded-lg border border-slate-200 p-4">
+            <div className="text-xl sm:text-2xl font-bold text-slate-400">
               {flags.length - enabledCount}
             </div>
-            <div className="text-sm text-text-secondary">Disabled</div>
+            <div className="text-sm text-slate-500">Disabled</div>
           </div>
         </div>
 
@@ -284,7 +284,7 @@ export default function FeatureFlagsAdminPage() {
         {/* Search & Refresh */}
         <div className="flex items-center gap-3 mb-6">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-tertiary" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <Input
               placeholder="Search flags by name, ID, or description..."
               value={searchQuery}
@@ -308,12 +308,12 @@ export default function FeatureFlagsAdminPage() {
         {/* Flags List */}
         <div className="space-y-3">
           {filteredFlags.length === 0 ? (
-            <div className="bg-white border border-border rounded-lg p-8 text-center">
-              <Flag className="w-12 h-12 text-text-tertiary mx-auto mb-3" />
+            <div className="bg-white border border-slate-200 rounded-lg p-8 text-center">
+              <Flag className="w-12 h-12 text-slate-400 mx-auto mb-3" />
               <h3 className="text-lg font-medium text-text mb-1">
                 {searchQuery ? "No flags found" : "No feature flags"}
               </h3>
-              <p className="text-text-secondary">
+              <p className="text-slate-500">
                 {searchQuery
                   ? `No flags match "${searchQuery}"`
                   : "Feature flags will appear here once created in the database."}

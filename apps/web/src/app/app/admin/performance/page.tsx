@@ -3,14 +3,13 @@
 export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { queryMonitor } from "@/lib/supabase-query-wrapper";
 import { connectionPoolMonitor } from "@/lib/monitoring/connection-pool-monitor";
 import type { ConnectionPoolMetrics, PoolAlert } from "@/types/monitoring";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle, Shield, TrendingDown, Zap } from "lucide-react";
 import { checkAdminAuth } from "@/app/actions/school";
 import { clientLogger } from "@/lib/client-logger";
-import { Button } from "@/components/ui/button";
 
 /**
  * Helper: Get alert styling based on severity level
@@ -18,11 +17,11 @@ import { Button } from "@/components/ui/button";
 function getAlertClassName(level: string): string {
   switch (level) {
     case "critical":
-      return "border-error bg-error/10 text-error";
+      return "border-red-500 bg-red-50 text-red-700";
     case "error":
-      return "border-accent bg-accent/10 text-accent";
+      return "border-orange-500 bg-orange-50 text-orange-700";
     default:
-      return "border-warning bg-warning/10 text-warning";
+      return "border-amber-400 bg-amber-50 text-amber-700";
   }
 }
 
@@ -39,15 +38,16 @@ interface UtilizationColors {
  */
 function getUtilizationColors(percent: number): UtilizationColors {
   if (percent > 85) {
-    return { textClass: "text-error", barClass: "bg-error" };
+    return { textClass: "text-red-600", barClass: "bg-red-500" };
   }
   if (percent > 70) {
-    return { textClass: "text-accent", barClass: "bg-accent" };
+    return { textClass: "text-amber-600", barClass: "bg-amber-400" };
   }
-  return { textClass: "text-success", barClass: "bg-success" };
+  return { textClass: "text-emerald-600", barClass: "bg-emerald-500" };
 }
 
 export default function PerformanceMonitoringPage() {
+  const router = useRouter();
   const [authorized, setAuthorized] = useState<boolean | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
   const [stats, setStats] = useState(queryMonitor.getStats());
@@ -111,8 +111,8 @@ export default function PerformanceMonitoringPage() {
   // Show loading while checking auth
   if (authorized === null && !authError) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface p-6 flex items-center justify-center">
-        <div className="text-text-secondary">Verifying authorization...</div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-slate-400 font-bold">Verifying authorization...</div>
       </div>
     );
   }
@@ -120,287 +120,160 @@ export default function PerformanceMonitoringPage() {
   // Show authorization error
   if (!authorized || authError) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface p-6 flex items-center justify-center">
-        <div className="max-w-md mx-auto text-center">
-          <Shield className="h-12 w-12 text-error mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-text-primary mb-2">
-            Access Denied
-          </h1>
-          <p className="text-text-secondary mb-6">
-            {authError ||
-              "You do not have permission to access this page. Admin access required."}
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+        <div className="max-w-md mx-auto text-center bg-white rounded-[48px] p-6 sm:p-10 shadow-2xl shadow-slate-200">
+          <Shield className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 mb-2">Access Denied</h1>
+          <p className="text-slate-400 font-bold mb-6">
+            {authError || "You do not have permission to access this page. Admin access required."}
           </p>
-          <div className="space-y-3">
-            <Button
-              onClick={() => (globalThis.location.href = "/admin/login")}
-              className="w-full"
-              variant="default"
-            >
-              Admin Login
-            </Button>
-          </div>
+          <button
+                type="button"
+            onClick={() => router.push("/admin/login")}
+            className="w-full px-6 py-3 rounded-2xl font-black text-white transition-all active:scale-95"
+            style={{ background: "linear-gradient(135deg,#DC2626,#7C3AED)" }}
+          >
+            Admin Login
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-bold">Database Performance Monitoring</h1>
-        <div className="text-sm text-text-tertiary">
-          Last updated: {new Date().toLocaleTimeString()}
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+      <div className="max-w-6xl mx-auto space-y-4">
+        {/* Banner */}
+        <div className="rounded-[32px] p-6 text-white" style={{ background: "linear-gradient(135deg,#DC2626,#7C3AED)" }}>
+          <h1 className="text-xl sm:text-2xl font-black mb-1">Performance Monitoring 🔬</h1>
+          <p className="text-white/80 text-sm font-bold">Last updated: {new Date().toLocaleTimeString()}</p>
         </div>
-      </div>
 
-      {/* Query Performance Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-text-secondary">
-              Total Queries
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{stats.totalQueries}</div>
-            <p className="text-xs text-text-tertiary mt-2">
-              {stats.successfulQueries} success, {stats.failedQueries} failed
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-text-secondary">
-              Slow Queries (&gt;1s)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-accent">
-              {stats.slowQueries}
+        {/* Query Performance Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { value: stats.totalQueries, label: "Total Queries", sub: `${stats.successfulQueries} success, ${stats.failedQueries} failed`, color: "text-blue-600" },
+            { value: stats.slowQueries, label: "Slow Queries >1s", sub: `${((stats.slowQueries / Math.max(stats.totalQueries, 1)) * 100).toFixed(1)}% of total`, color: "text-amber-600" },
+            { value: `${stats.avgDuration.toFixed(0)}ms`, label: "Avg Duration", sub: `P95: ${stats.p95Duration.toFixed(0)}ms`, color: "text-slate-700" },
+            { value: `${stats.p99Duration.toFixed(0)}ms`, label: "P99 Duration", sub: "Slowest 1% of queries", color: "text-red-600" },
+          ].map((stat) => (
+            <div key={stat.label} className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-center">
+              <p className={`text-xl sm:text-2xl font-black mb-1 ${stat.color}`}>{stat.value}</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
+              <p className="text-[10px] font-bold text-slate-300 mt-1">{stat.sub}</p>
             </div>
-            <p className="text-xs text-text-tertiary mt-2">
-              {(
-                (stats.slowQueries / Math.max(stats.totalQueries, 1)) *
-                100
-              ).toFixed(1)}
-              % of total
-            </p>
-          </CardContent>
-        </Card>
+          ))}
+        </div>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-text-secondary">
-              Avg Duration
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">
-              {stats.avgDuration.toFixed(0)}ms
-            </div>
-            <p className="text-xs text-text-tertiary mt-2">
-              P95: {stats.p95Duration.toFixed(0)}ms
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-text-secondary">
-              P99 Duration
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-error">
-              {stats.p99Duration.toFixed(0)}ms
-            </div>
-            <p className="text-xs text-text-tertiary mt-2">Slowest 1% of queries</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Connection Pool Stats */}
-      {poolMetrics && (
-        <Card className="border-info/30">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Zap className="w-5 h-5" />
-              Connection Pool Status
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-3 gap-6">
-              <div>
-                <p className="text-sm text-text-secondary mb-2">Active Connections</p>
-                <p className="text-2xl font-bold">
-                  {poolMetrics.activeConnections}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-text-secondary mb-2">Max Connections</p>
-                <p className="text-2xl font-bold">
-                  {poolMetrics.maxConnections}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-text-secondary mb-2">Utilization</p>
-                <div className="flex items-center gap-2">
-                  <p
-                    className={`text-2xl font-bold ${getUtilizationColors(poolMetrics.utilizationPercent).textClass}`}
-                  >
-                    {poolMetrics.utilizationPercent.toFixed(1)}%
-                  </p>
+        {/* Connection Pool Stats */}
+        {poolMetrics && (
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+            <h2 className="font-black text-slate-800 text-lg mb-4 flex items-center gap-2">
+              <Zap className="w-5 h-5 text-blue-500" /> Connection Pool Status
+            </h2>
+            <div className="grid grid-cols-3 gap-6 mb-4">
+              {[
+                { value: poolMetrics.activeConnections, label: "Active Connections" },
+                { value: poolMetrics.maxConnections, label: "Max Connections" },
+                { value: `${poolMetrics.utilizationPercent.toFixed(1)}%`, label: "Utilization", colored: true },
+              ].map((item) => (
+                <div key={item.label} className="text-center">
+                  <p className={`text-xl sm:text-2xl font-black ${item.colored ? getUtilizationColors(poolMetrics.utilizationPercent).textClass : "text-slate-700"}`}>{item.value}</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">{item.label}</p>
                 </div>
-              </div>
+              ))}
             </div>
-
-            {/* Pool Utilization Bar */}
-            <div className="mt-6">
-              <div className="h-3 bg-surface-dark rounded-full overflow-hidden">
-                <div
-                  className={`h-full transition-all ${getUtilizationColors(poolMetrics.utilizationPercent).barClass}`}
-                  style={{ width: `${poolMetrics.utilizationPercent}%` }}
-                />
-              </div>
+            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div
+                className={`h-full transition-all ${getUtilizationColors(poolMetrics.utilizationPercent).barClass}`}
+                style={{ width: `${poolMetrics.utilizationPercent}%` }}
+              />
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        )}
 
-      {/* Pool Alerts */}
-      {poolAlerts.length > 0 && (
-        <Card className="border-error/30 bg-error/10">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-error">
-              <AlertCircle className="w-5 h-5" />
-              Connection Pool Alerts
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+        {/* Pool Alerts */}
+        {poolAlerts.length > 0 && (
+          <div className="bg-white rounded-3xl border border-red-100 shadow-sm p-6">
+            <h2 className="font-black text-red-600 text-lg mb-4 flex items-center gap-2">
+              <AlertCircle className="w-5 h-5" /> Connection Pool Alerts
+            </h2>
             <div className="space-y-3">
               {poolAlerts.slice(0, 5).map((alert, idx) => (
                 <div
                   key={`pool-alert-${idx}-${alert.timestamp}`}
-                  className={`p-3 rounded border-l-4 ${getAlertClassName(alert.level)}`}
+                  className={`p-3 rounded-2xl border-l-4 ${getAlertClassName(alert.level)}`}
                 >
-                  <p className="font-semibold text-sm">{alert.message}</p>
-                  <p className="text-xs mt-1">
-                    {new Date(alert.timestamp).toLocaleTimeString()}
-                  </p>
+                  <p className="font-black text-sm">{alert.message}</p>
+                  <p className="text-xs font-bold mt-1 opacity-70">{new Date(alert.timestamp).toLocaleTimeString()}</p>
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        )}
 
-      {/* Slow Queries Log */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingDown className="w-5 h-5 text-accent" />
-            Slowest Queries (&gt; 1 second)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+        {/* Slow Queries Log */}
+        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+          <h2 className="font-black text-slate-800 text-lg mb-4 flex items-center gap-2">
+            <TrendingDown className="w-5 h-5 text-amber-500" /> Slowest Queries (&gt; 1 second)
+          </h2>
           {slowQueries.length === 0 ? (
-            <p className="text-success font-semibold">
-              ✅ No slow queries detected
-            </p>
+            <p className="text-emerald-600 font-black">✅ No slow queries detected</p>
           ) : (
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {slowQueries.map((query, idx) => (
-                <div
-                  key={`slow-query-${idx}-${query.queryName}`}
-                  className="border-l-4 border-accent pl-4 py-3 bg-accent/5 rounded"
-                >
+                <div key={`slow-query-${idx}-${query.queryName}`} className="border-l-4 border-amber-400 pl-4 py-3 bg-amber-50 rounded-r-2xl">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="font-semibold text-sm">{query.queryName}</p>
+                      <p className="font-black text-sm text-slate-700">{query.queryName}</p>
                       {query.tableNames && query.tableNames.length > 0 && (
-                        <p className="text-xs text-text-secondary mt-1">
-                          Tables: {query.tableNames.join(", ")}
-                        </p>
+                        <p className="text-xs font-bold text-slate-400 mt-1">Tables: {query.tableNames.join(", ")}</p>
                       )}
                     </div>
-                    <span className="text-error font-bold text-sm">
-                      {query.duration.toFixed(0)}ms
-                    </span>
+                    <span className="text-red-500 font-black text-sm">{query.duration.toFixed(0)}ms</span>
                   </div>
-                  <p className="text-xs text-text-tertiary mt-2">
-                    {new Date(query.timestamp).toLocaleString()}
-                  </p>
-                  {query.userId && (
-                    <p className="text-xs text-text-secondary">
-                      User: {query.userId}
-                    </p>
-                  )}
+                  <p className="text-xs font-bold text-slate-400 mt-1">{new Date(query.timestamp).toLocaleString()}</p>
+                  {query.userId && <p className="text-xs font-bold text-slate-400">User: {query.userId}</p>}
                 </div>
               ))}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Failed Queries Log */}
-      {failedQueries.length > 0 && (
-        <Card className="border-error/30">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-error">
-              <AlertCircle className="w-5 h-5" />
-              Failed Queries
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+        {/* Failed Queries Log */}
+        {failedQueries.length > 0 && (
+          <div className="bg-white rounded-3xl border border-red-100 shadow-sm p-6">
+            <h2 className="font-black text-red-600 text-lg mb-4 flex items-center gap-2">
+              <AlertCircle className="w-5 h-5" /> Failed Queries
+            </h2>
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {failedQueries.map((query, idx) => (
-                <div
-                  key={`failed-query-${idx}-${query.queryName}`}
-                  className="border-l-4 border-error pl-4 py-3 bg-error/10 rounded"
-                >
+                <div key={`failed-query-${idx}-${query.queryName}`} className="border-l-4 border-red-400 pl-4 py-3 bg-red-50 rounded-r-2xl">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="font-semibold text-sm">{query.queryName}</p>
-                      {query.error && (
-                        <p className="text-xs text-error mt-1">
-                          {query.error}
-                        </p>
-                      )}
+                      <p className="font-black text-sm text-slate-700">{query.queryName}</p>
+                      {query.error && <p className="text-xs font-bold text-red-500 mt-1">{query.error}</p>}
                     </div>
-                    <span className="text-text-secondary text-xs">
-                      {query.duration.toFixed(0)}ms
-                    </span>
+                    <span className="text-slate-400 font-bold text-xs">{query.duration.toFixed(0)}ms</span>
                   </div>
-                  <p className="text-xs text-text-tertiary mt-2">
-                    {new Date(query.timestamp).toLocaleString()}
-                  </p>
+                  <p className="text-xs font-bold text-slate-400 mt-1">{new Date(query.timestamp).toLocaleString()}</p>
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        )}
 
-      {/* Refresh Control */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Monitoring Settings</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+        {/* Monitoring Settings */}
+        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+          <h2 className="font-black text-slate-800 text-lg mb-4">Monitoring Settings</h2>
+          <div className="flex items-center gap-4 flex-wrap">
             <div>
-              <label
-                htmlFor="refresh-interval-select"
-                className="text-sm font-medium"
-              >
-                Refresh Interval
-              </label>
+              <label htmlFor="refresh-interval-select" className="text-xs font-black text-slate-400 uppercase tracking-widest">Refresh Interval</label>
               <select
                 id="refresh-interval-select"
                 value={refreshInterval}
                 onChange={(e) => setRefreshInterval(Number(e.target.value))}
-                className="mt-2 px-3 py-2 border border-border rounded-md text-sm"
+                className="mt-2 block px-3 py-2 border border-slate-200 rounded-xl text-sm font-bold text-slate-700"
               >
                 <option value={1000}>1 second</option>
                 <option value={5000}>5 seconds</option>
@@ -409,22 +282,21 @@ export default function PerformanceMonitoringPage() {
                 <option value={60000}>1 minute</option>
               </select>
             </div>
-            <div className="pt-4 border-t">
-              <button
-                onClick={() => {
-                  queryMonitor.reset();
-                  connectionPoolMonitor.clearAlerts();
-                  setSlowQueries([]);
-                  setFailedQueries([]);
-                }}
-                className="px-4 py-2 bg-text-secondary text-white rounded-md text-sm hover:bg-text-primary"
-              >
-                Clear Metrics
-              </button>
-            </div>
+            <button
+                type="button"
+              onClick={() => {
+                queryMonitor.reset();
+                connectionPoolMonitor.clearAlerts();
+                setSlowQueries([]);
+                setFailedQueries([]);
+              }}
+              className="px-5 py-2 bg-slate-100 text-slate-600 rounded-2xl text-sm font-black hover:bg-slate-200 transition-colors mt-6"
+            >
+              Clear Metrics
+            </button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

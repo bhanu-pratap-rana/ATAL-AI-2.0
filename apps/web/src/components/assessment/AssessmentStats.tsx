@@ -39,13 +39,13 @@ export function AssessmentStats({
 }: AssessmentStatsProps) {
   return (
     <div className="card">
-      <h3 className="text-lg font-semibold text-text-primary mb-4">
+      <h3 className="text-lg font-semibold text-slate-800 mb-4">
         Quick Stats
       </h3>
       <div className="grid grid-cols-2 gap-4">
         {/* Response Time */}
         <div className="bg-primary-light p-4 rounded-lg">
-          <div className="text-2xl font-bold text-primary-dark">
+          <div className="text-xl sm:text-2xl font-bold text-primary-dark">
             {formatTime(avgResponseTime)}
           </div>
           <div className="text-xs text-primary/80">
@@ -55,7 +55,7 @@ export function AssessmentStats({
 
         {/* Modules Covered */}
         <div className="bg-success-light p-4 rounded-lg">
-          <div className="text-2xl font-bold text-success-dark">
+          <div className="text-xl sm:text-2xl font-bold text-success-dark">
             {Object.keys(moduleBreakdown).length}
           </div>
           <div className="text-xs text-success/80">Modules Covered</div>
@@ -64,8 +64,8 @@ export function AssessmentStats({
 
       {/* IRT-Enhanced Stats */}
       {irtData && (
-        <div className="mt-4 pt-4 border-t border-border">
-          <h4 className="text-sm font-medium text-text-secondary mb-3">
+        <div className="mt-4 pt-4 border-t border-slate-200">
+          <h4 className="text-sm font-medium text-slate-500 mb-3">
             Ability Estimate (IRT)
           </h4>
           <div className="grid grid-cols-2 gap-4">
@@ -86,7 +86,7 @@ export function AssessmentStats({
               </div>
             </div>
           </div>
-          <p className="mt-3 text-xs text-text-tertiary text-center">
+          <p className="mt-3 text-xs text-slate-400 text-center">
             Your ability level:{" "}
             <span className="font-semibold">
               {irtData.proficiencyLevel}

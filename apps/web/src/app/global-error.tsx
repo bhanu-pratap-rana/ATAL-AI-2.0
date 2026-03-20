@@ -91,6 +91,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
               }}
             >
               <button
+                type="button"
                 onClick={reset}
                 style={{
                   padding: "0.75rem 1.5rem",
@@ -123,6 +124,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
                 Try Again
               </button>
               <button
+                type="button"
                 onClick={() => (globalThis.location.href = "/")}
                 style={{
                   padding: "0.75rem 1.5rem",

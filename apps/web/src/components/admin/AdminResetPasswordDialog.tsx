@@ -121,9 +121,10 @@ export function AdminResetPasswordDialog({
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-text">Reset Password</h2>
           <button
+                type="button"
             onClick={handleClose}
             disabled={isLoading}
-            className="text-text-secondary hover:text-text disabled:opacity-50"
+            className="text-slate-500 hover:text-text disabled:opacity-50"
           >
             <X className="w-5 h-5" />
           </button>

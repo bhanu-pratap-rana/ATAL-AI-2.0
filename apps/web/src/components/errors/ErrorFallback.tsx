@@ -29,15 +29,16 @@ export function ErrorFallback({ error, reset, context }: ErrorFallbackProps) {
           <span className="text-4xl" role="img" aria-label="Error">!</span>
         </div>
 
-        <h2 className="text-xl font-semibold text-text-primary mb-2">
+        <h2 className="text-xl font-semibold text-slate-800 mb-2">
           Something went wrong
         </h2>
-        <p className="text-text-secondary mb-6 text-sm">
+        <p className="text-slate-500 mb-6 text-sm">
           An error occurred while loading this page. Your data is safe.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3">
           <button
+            type="button"
             onClick={reset}
             className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
           >

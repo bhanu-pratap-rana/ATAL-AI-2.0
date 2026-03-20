@@ -412,33 +412,36 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
         {/* Tab Navigation */}
         <div className="flex gap-2">
           <button
+                type="button"
             onClick={() => actions.setSignupTab("email")}
             className={`flex-1 py-2 px-3 rounded-lg font-medium transition-colors text-sm ${
               state.signupTab === "email"
                 ? "bg-primary text-white"
-                : "bg-surface text-text-secondary hover:bg-surface-dark"
+                : "bg-slate-50 text-slate-500 hover:bg-slate-100"
             }`}
             disabled={isLoading}
           >
             📧 Email
           </button>
           <button
+                type="button"
             onClick={() => actions.setSignupTab("phone")}
             className={`flex-1 py-2 px-3 rounded-lg font-medium transition-colors text-sm ${
               state.signupTab === "phone"
                 ? "bg-primary text-white"
-                : "bg-surface text-text-secondary hover:bg-surface-dark"
+                : "bg-slate-50 text-slate-500 hover:bg-slate-100"
             }`}
             disabled={isLoading}
           >
             📱 Phone
           </button>
           <button
+                type="button"
             onClick={() => actions.setSignupTab("guest")}
             className={`flex-1 py-2 px-3 rounded-lg font-medium transition-colors text-sm ${
               state.signupTab === "guest"
                 ? "bg-primary text-white"
-                : "bg-surface text-text-secondary hover:bg-surface-dark"
+                : "bg-slate-50 text-slate-500 hover:bg-slate-100"
             }`}
             disabled={isLoading}
           >
@@ -469,7 +472,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
                     maxLength={OTP_LENGTH}
                     className="text-center text-2xl font-mono tracking-widest"
                   />
-                  <p className="text-xs text-text-secondary">
+                  <p className="text-xs text-slate-500">
                     Enter the 6-digit code sent to your email
                   </p>
                 </div>
@@ -568,7 +571,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
                   {isLoading ? "Sending code..." : "Send Verification Code"}
                 </Button>
 
-                <p className="text-center text-sm text-text-secondary">
+                <p className="text-center text-sm text-slate-500">
                   Already have an account?{" "}
                   <button
                     type="button"
@@ -607,7 +610,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
                     maxLength={OTP_LENGTH}
                     className="text-center text-2xl font-mono tracking-widest"
                   />
-                  <p className="text-xs text-text-secondary">
+                  <p className="text-xs text-slate-500">
                     Enter the 6-digit code sent to your phone
                   </p>
                 </div>
@@ -651,7 +654,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
                   {isLoading ? "Sending code..." : "Send Verification Code"}
                 </Button>
 
-                <p className="text-center text-sm text-text-secondary">
+                <p className="text-center text-sm text-slate-500">
                   Already have an account?{" "}
                   <button
                     type="button"
@@ -743,7 +746,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
               {isLoading ? "Creating account..." : "Create Account"}
             </Button>
 
-            <p className="text-center text-sm text-text-secondary">
+            <p className="text-center text-sm text-slate-500">
               Already have an account?{" "}
               <button
                 type="button"

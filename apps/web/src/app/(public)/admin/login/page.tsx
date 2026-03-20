@@ -132,7 +132,7 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream flex items-center justify-center p-4">
+    <div className="min-h-screen bg-orange-50 flex items-center justify-center p-4">
       {/* Back Button */}
       <div className="absolute top-4 left-4">
         <Button onClick={() => router.push("/")} variant="outline" size="sm">
@@ -185,7 +185,7 @@ export default function AdminLoginPage() {
           <div className="space-y-2">
             <Label
               htmlFor="admin-email"
-              className="text-sm font-semibold text-text-primary"
+              className="text-sm font-semibold text-slate-800"
             >
               Admin Email
             </Label>
@@ -198,7 +198,7 @@ export default function AdminLoginPage() {
               disabled={isLoading}
               required
             />
-            <p className="text-xs text-text-tertiary">
+            <p className="text-xs text-slate-400">
               Example: atal.app.ai@gmail.com
             </p>
           </div>
@@ -207,7 +207,7 @@ export default function AdminLoginPage() {
           <div className="space-y-2">
             <Label
               htmlFor="admin-password"
-              className="text-sm font-semibold text-text-primary"
+              className="text-sm font-semibold text-slate-800"
             >
               Password
             </Label>
@@ -220,7 +220,7 @@ export default function AdminLoginPage() {
               disabled={isLoading}
               required
             />
-            <p className="text-xs text-text-tertiary">
+            <p className="text-xs text-slate-400">
               Enter your secure admin password
             </p>
           </div>

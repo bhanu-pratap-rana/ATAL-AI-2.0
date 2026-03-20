@@ -73,24 +73,23 @@ export function SessionCard({ session, isExpanded, onToggle }: SessionCardProps)
   const previewText = firstUserMessage?.content || "Conversation";
 
   // Count message types
-  const _userMessages = session.messages.filter((m) => m.role === "user").length;
   const voiceMessages = session.messages.filter((m) => m.input_mode === "voice").length;
 
   return (
     <Card className="card-responsive overflow-hidden transition-all duration-300">
       {/* Header - Clickable */}
       <CardHeader
-        className="cursor-pointer hover:bg-surface/50 transition-colors"
+        className="cursor-pointer hover:bg-slate-50/50 transition-colors"
         onClick={onToggle}
       >
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
             {/* Preview text */}
-            <p className="font-medium text-text-primary truncate">
+            <p className="font-medium text-slate-800 truncate">
               {truncateText(previewText, 80)}
             </p>
             {/* Meta info */}
-            <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-text-secondary">
+            <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-slate-500">
               <span className="flex items-center gap-1">
                 <MessageCircle className="w-4 h-4" />
                 {session.message_count} messages
@@ -101,7 +100,7 @@ export function SessionCard({ session, isExpanded, onToggle }: SessionCardProps)
                   {voiceMessages} voice
                 </span>
               )}
-              <span className="text-text-tertiary">
+              <span className="text-slate-400">
                 {formatDate(session.last_message_at)}
               </span>
             </div>
@@ -112,9 +111,9 @@ export function SessionCard({ session, isExpanded, onToggle }: SessionCardProps)
               {LANGUAGE_LABELS[session.language] || session.language}
             </span>
             {isExpanded ? (
-              <ChevronUp className="w-5 h-5 text-text-secondary" />
+              <ChevronUp className="w-5 h-5 text-slate-500" />
             ) : (
-              <ChevronDown className="w-5 h-5 text-text-secondary" />
+              <ChevronDown className="w-5 h-5 text-slate-500" />
             )}
           </div>
         </div>
@@ -122,7 +121,7 @@ export function SessionCard({ session, isExpanded, onToggle }: SessionCardProps)
 
       {/* Expanded Content */}
       {isExpanded && (
-        <CardContent className="pt-0 border-t border-border-light">
+        <CardContent className="pt-0 border-t border-slate-100">
           {/* Action buttons */}
           <div className="flex gap-3 mb-4 pt-4">
             <Link
@@ -146,8 +145,8 @@ export function SessionCard({ session, isExpanded, onToggle }: SessionCardProps)
                     message.role === "user"
                       ? "bg-primary text-white"
                       : message.role === "assistant"
-                        ? "bg-surface border border-border-light text-text-primary"
-                        : "bg-surface text-text-secondary text-sm italic"
+                        ? "bg-slate-50 border border-slate-100 text-slate-800"
+                        : "bg-slate-50 text-slate-500 text-sm italic"
                   }`}
                 >
                   {/* Message header for user messages */}
@@ -172,7 +171,7 @@ export function SessionCard({ session, isExpanded, onToggle }: SessionCardProps)
                   </p>
                   {/* Timestamp for assistant messages */}
                   {message.role === "assistant" && (
-                    <p className="text-xs text-text-tertiary mt-1">
+                    <p className="text-xs text-slate-400 mt-1">
                       {new Date(message.created_at).toLocaleTimeString([], {
                         hour: "2-digit",
                         minute: "2-digit",

@@ -86,7 +86,7 @@ export function CategoryBreakdown({
 
   return (
     <div className={`space-y-4 ${className}`}>
-      <h3 className="text-lg font-semibold text-text-primary">
+      <h3 className="text-lg font-semibold text-slate-800">
         Category Performance
       </h3>
 
@@ -104,12 +104,12 @@ export function CategoryBreakdown({
                   <span className="text-lg" aria-hidden="true">
                     {config.icon}
                   </span>
-                  <span className="text-sm font-medium text-text-primary">
+                  <span className="text-sm font-medium text-slate-800">
                     {config.label}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-text-secondary">
+                  <span className="text-sm text-slate-500">
                     {correct}/{total}
                   </span>
                   <span
@@ -162,7 +162,7 @@ export function CategoryStrengths({
 
   return (
     <div className="space-y-2">
-      <h4 className="text-sm font-semibold text-text-primary flex items-center gap-2">
+      <h4 className="text-sm font-semibold text-slate-800 flex items-center gap-2">
         <span>{icon}</span>
         {title}
       </h4>

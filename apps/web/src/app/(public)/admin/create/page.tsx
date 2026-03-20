@@ -114,10 +114,10 @@ export default function CreateAdminPage() {
   // Show loading while checking admin status
   if (checkingAdmin) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-white flex items-center justify-center p-4">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <p className="text-text-secondary">Checking system status...</p>
+          <p className="text-slate-500">Checking system status...</p>
         </div>
       </div>
     );
@@ -135,7 +135,7 @@ export default function CreateAdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-surface via-background to-white flex items-center justify-center p-4">
       <div className="absolute top-4 left-4">
         <Button
           onClick={() => (globalThis.location.href = "/admin/login")}
@@ -178,7 +178,7 @@ export default function CreateAdminPage() {
               disabled={isLoading}
               className="focus:ring-primary focus:border-primary"
             />
-            <p className="text-xs text-text-secondary">
+            <p className="text-xs text-slate-500">
               This email will be used to login to the admin panel
             </p>
           </div>
@@ -201,7 +201,7 @@ export default function CreateAdminPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-text"
               >
                 {showPassword ? (
                   <EyeOff className="w-4 h-4" />
@@ -210,7 +210,7 @@ export default function CreateAdminPage() {
                 )}
               </button>
             </div>
-            <p className="text-xs text-text-secondary">
+            <p className="text-xs text-slate-500">
               Use a strong, unique password
             </p>
           </div>
@@ -282,11 +282,11 @@ export default function CreateAdminPage() {
           </div>
 
           {/* Instructions Box */}
-          <div className="bg-surface border border-border rounded-lg p-4">
-            <p className="text-sm text-text-primary font-semibold mb-2">
+          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+            <p className="text-sm text-slate-800 font-semibold mb-2">
               📋 Next Steps:
             </p>
-            <ol className="text-xs text-text-secondary space-y-1 list-decimal list-inside">
+            <ol className="text-xs text-slate-500 space-y-1 list-decimal list-inside">
               <li>Create admin account with email and password</li>
               <li>Go to /admin/login</li>
               <li>Enter the email and password you just created</li>

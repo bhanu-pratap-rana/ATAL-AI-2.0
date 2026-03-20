@@ -62,20 +62,20 @@ export function ListItemCard({ item, modalType }: ListItemCardProps) {
     <>
       <div className="flex items-center justify-between">
         <div>
-          <h4 className="font-medium text-text-primary">{school.schoolName}</h4>
-          <p className="text-sm text-text-secondary">{school.district}</p>
+          <h4 className="font-medium text-slate-800">{school.schoolName}</h4>
+          <p className="text-sm text-slate-500">{school.district}</p>
         </div>
         <div className="text-right">
-          <p className="text-sm font-mono text-text-primary">
+          <p className="text-sm font-mono text-slate-800">
             {school.schoolCode}
           </p>
-          <p className="text-xs text-text-tertiary">
+          <p className="text-xs text-slate-400">
             {school.hasPIN ? "PIN Active" : "No PIN"}
           </p>
         </div>
       </div>
       {school.block && (
-        <p className="text-xs text-text-tertiary mt-2">Block: {school.block}</p>
+        <p className="text-xs text-slate-400 mt-2">Block: {school.block}</p>
       )}
     </>
   );
@@ -84,22 +84,22 @@ export function ListItemCard({ item, modalType }: ListItemCardProps) {
     <>
       <div className="flex items-center justify-between">
         <div>
-          <h4 className="font-medium text-text-primary">{teacher.name}</h4>
-          <p className="text-sm text-text-secondary">{teacher.email}</p>
+          <h4 className="font-medium text-slate-800">{teacher.name}</h4>
+          <p className="text-sm text-slate-500">{teacher.email}</p>
         </div>
         <div className="text-right">
-          <p className="text-sm text-text-primary">{teacher.schoolName}</p>
-          <p className="text-xs text-text-tertiary font-mono">
+          <p className="text-sm text-slate-800">{teacher.schoolName}</p>
+          <p className="text-xs text-slate-400 font-mono">
             {teacher.schoolCode}
           </p>
         </div>
       </div>
       {teacher.phone && (
-        <p className="text-xs text-text-tertiary mt-2">
+        <p className="text-xs text-slate-400 mt-2">
           Phone: {teacher.phone}
         </p>
       )}
-      <p className="text-xs text-text-tertiary mt-1">
+      <p className="text-xs text-slate-400 mt-1">
         Joined: {new Date(teacher.createdAt).toLocaleDateString()}
       </p>
     </>
@@ -109,30 +109,30 @@ export function ListItemCard({ item, modalType }: ListItemCardProps) {
     <>
       <div className="flex items-center justify-between">
         <div>
-          <h4 className="font-medium text-text-primary">{student.name}</h4>
+          <h4 className="font-medium text-slate-800">{student.name}</h4>
           {student.email && (
-            <p className="text-sm text-text-secondary">{student.email}</p>
+            <p className="text-sm text-slate-500">{student.email}</p>
           )}
           {student.phone && (
-            <p className="text-sm text-text-secondary">{student.phone}</p>
+            <p className="text-sm text-slate-500">{student.phone}</p>
           )}
         </div>
         {(student.schoolName || student.className) && (
           <div className="text-right">
             {student.schoolName && (
-              <p className="text-sm text-text-primary">{student.schoolName}</p>
+              <p className="text-sm text-slate-800">{student.schoolName}</p>
             )}
             {student.className && (
-              <p className="text-xs text-text-tertiary">{student.className}</p>
+              <p className="text-xs text-slate-400">{student.className}</p>
             )}
           </div>
         )}
       </div>
-      <p className="text-xs text-text-tertiary mt-2">
+      <p className="text-xs text-slate-400 mt-2">
         Joined: {new Date(student.createdAt).toLocaleDateString()}
       </p>
       {student.lastSignIn && (
-        <p className="text-xs text-text-tertiary">
+        <p className="text-xs text-slate-400">
           Last Sign In: {new Date(student.lastSignIn).toLocaleDateString()}
         </p>
       )}
@@ -143,15 +143,15 @@ export function ListItemCard({ item, modalType }: ListItemCardProps) {
     <>
       <div className="flex items-center justify-between">
         <div>
-          <h4 className="font-medium text-text-primary">{school.schoolName}</h4>
-          <p className="text-sm text-text-secondary">{school.districtName}</p>
+          <h4 className="font-medium text-slate-800">{school.schoolName}</h4>
+          <p className="text-sm text-slate-500">{school.districtName}</p>
         </div>
-        <p className="text-sm font-mono text-text-primary">
+        <p className="text-sm font-mono text-slate-800">
           {school.schoolCode}
         </p>
       </div>
       {school.lastRotatedAt && (
-        <p className="text-xs text-text-tertiary mt-2">
+        <p className="text-xs text-slate-400 mt-2">
           Last Rotated: {new Date(school.lastRotatedAt).toLocaleDateString()}
         </p>
       )}
@@ -162,10 +162,10 @@ export function ListItemCard({ item, modalType }: ListItemCardProps) {
     <>
       <div className="flex items-center justify-between">
         <div>
-          <h4 className="font-medium text-text-primary">{school.schoolName}</h4>
-          <p className="text-sm text-text-secondary">{school.district}</p>
+          <h4 className="font-medium text-slate-800">{school.schoolName}</h4>
+          <p className="text-sm text-slate-500">{school.district}</p>
         </div>
-        <p className="text-sm font-mono text-text-primary">
+        <p className="text-sm font-mono text-slate-800">
           {school.schoolCode}
         </p>
       </div>
@@ -174,7 +174,7 @@ export function ListItemCard({ item, modalType }: ListItemCardProps) {
   );
 
   return (
-    <div className="bg-surface rounded-md p-4 border border-border">
+    <div className="bg-slate-50 rounded-md p-4 border border-slate-200">
       {modalType === "schools" && renderSchoolItem(item as SchoolItem)}
       {modalType === "teachers" && renderTeacherItem(item as TeacherItem)}
       {modalType === "students" && renderStudentItem(item as StudentItem)}

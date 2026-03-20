@@ -130,9 +130,10 @@ export function AdminDeleteDialog({
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-text">Delete Admin Account</h2>
           <button
+                type="button"
             onClick={handleClose}
             disabled={isLoading}
-            className="text-text-secondary hover:text-text disabled:opacity-50"
+            className="text-slate-500 hover:text-text disabled:opacity-50"
           >
             <X className="w-5 h-5" />
           </button>
@@ -151,10 +152,10 @@ export function AdminDeleteDialog({
 
         {/* Email Confirmation */}
         <div className="space-y-3 mb-4">
-          <p className="text-sm text-text-secondary">
+          <p className="text-sm text-slate-500">
             To confirm deletion, please enter the admin email address:
           </p>
-          <p className="font-mono text-sm bg-surface p-2 rounded border border-border">
+          <p className="font-mono text-sm bg-slate-50 p-2 rounded border border-slate-200">
             {adminEmail}
           </p>
 

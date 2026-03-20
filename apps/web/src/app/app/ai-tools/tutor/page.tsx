@@ -5,16 +5,16 @@ import Link from "next/link";
 // NOSONAR S1874: useChat is marked deprecated but still functional in AI SDK 4.x
 // Migration to AI SDK 5.0+ would require a major refactor - keeping for now
 import { useChat } from "ai/react"; // NOSONAR
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { VoiceChat } from "@/components/voice/VoiceChat";
 import { ConversationalVoiceChat } from "@/components/voice/ConversationalVoiceChat";
 
+type TutorLanguage = "en" | "hi" | "as";
+
 /**
  * Helper: Get language display name
  */
-function getLanguageName(lang: "en" | "hi" | "as"): string {
+function getLanguageName(lang: TutorLanguage): string {
   switch (lang) {
     case "en":
       return "English";
@@ -25,19 +25,45 @@ function getLanguageName(lang: "en" | "hi" | "as"): string {
   }
 }
 
-/**
- * Get selector button styling based on active state
- */
-function getSelectorButtonClass(isActive: boolean): string {
-  if (isActive) {
-    return "bg-primary text-white";
+
+function getSuggestedQuestions(language: TutorLanguage): string[] {
+  if (language === "hi") {
+    return ["कंप्यूटर क्या है?", "इंटरनेट कैसे काम करता है?", "ईमेल क्या है?", "ऑनलाइन सुरक्षित कैसे रहें?"];
   }
-  return "bg-white text-text-secondary hover:bg-primary-light";
+  if (language === "as") {
+    return ["কম্পিউটাৰ কি?", "ইণ্টাৰনেট কেনেকৈ কাম কৰে?", "ইমেইল কি?", "অনলাইনত কেনেকৈ সুৰক্ষিত থাকিব?"];
+  }
+  return ["What is a computer?", "How does the internet work?", "What is email?", "How to stay safe online?"];
+}
+
+function getTextInputPlaceholder(language: TutorLanguage): string {
+  if (language === "hi") return "एक प्रश्न पूछें...";
+  if (language === "as") return "এটা প্ৰশ্ন সোধক...";
+  return "Ask a question...";
+}
+
+type Message = { role: string; id: string; content: string };
+
+function shouldSpeakMessage(
+  last: Message | undefined,
+  lastSpokenId: string | null,
+  autoTTS: boolean,
+  inputMode: string,
+  voiceMode: string,
+): boolean {
+  return !!(
+    last?.role === "assistant" &&
+    last.id !== lastSpokenId &&
+    autoTTS &&
+    inputMode === "voice" &&
+    voiceMode === "conversational" &&
+    last.content
+  );
 }
 
 export default function AITutorPage() {
   const { user: _user, loading: isAuthChecking } = useRequireAuth("/student/start");
-  const [language, setLanguage] = useState<"en" | "hi" | "as">("en");
+  const [language, setLanguage] = useState<TutorLanguage>("en");
   const [inputMode, setInputMode] = useState<"text" | "voice">("text");
   const [voiceMode, setVoiceMode] = useState<"one-shot" | "conversational">("conversational");
   const [autoTTS, setAutoTTS] = useState(true); // Enable by default for voice mode
@@ -76,18 +102,10 @@ export default function AITutorPage() {
   // Checks for new AI messages and triggers speech when streaming completes
   useEffect(() => {
     if (messages.length === 0 || status === "streaming") return;
-    const last = messages[messages.length - 1];
-    if (
-      last.role === "assistant" &&
-      last.id !== lastSpokenIdRef.current &&
-      autoTTS &&
-      inputMode === "voice" &&
-      voiceMode === "conversational" &&
-      last.content
-    ) {
-      lastSpokenIdRef.current = last.id;
-      // Use queueMicrotask to avoid synchronous setState in effect body
-      const content = last.content;
+    const last = messages.at(-1) as Message | undefined;
+    if (shouldSpeakMessage(last, lastSpokenIdRef.current, autoTTS, inputMode, voiceMode)) {
+      lastSpokenIdRef.current = last!.id;
+      const content = last!.content;
       queueMicrotask(() => setTextToSpeak(content));
     }
   }, [messages, status, autoTTS, inputMode, voiceMode]);
@@ -109,67 +127,48 @@ export default function AITutorPage() {
   const hasHiddenMessages = messages.length > VISIBLE_MESSAGE_LIMIT && !showAllMessages;
   const hiddenMessageCount = messages.length - VISIBLE_MESSAGE_LIMIT;
 
-  const suggestedQuestions = useMemo(() => {
-    // Language-specific suggestions
-    if (language === "hi") {
-      return [
-        "कंप्यूटर क्या है?",
-        "इंटरनेट कैसे काम करता है?",
-        "ईमेल क्या है?",
-        "ऑनलाइन सुरक्षित कैसे रहें?",
-      ];
+  const suggestedQuestions = useMemo(() => getSuggestedQuestions(language), [language]);
+
+  const handleSuggestedQuestion = useCallback((q: string) => {
+    if (inputMode === "voice") {
+      append({ role: "user", content: q });
+    } else {
+      handleInputChange({ target: { value: q } } as React.ChangeEvent<HTMLInputElement>);
     }
-    if (language === "as") {
-      return [
-        "কম্পিউটাৰ কি?",
-        "ইণ্টাৰনেট কেনেকৈ কাম কৰে?",
-        "ইমেইল কি?",
-        "অনলাইনত কেনেকৈ সুৰক্ষিত থাকিব?",
-      ];
-    }
-    return [
-      "What is a computer?",
-      "How does the internet work?",
-      "What is email?",
-      "How to stay safe online?",
-    ];
-  }, [language]);
+  }, [inputMode, append, handleInputChange]);
 
   // Show loading while checking auth
   if (isAuthChecking) {
     return (
-      <div className="min-h-screen bg-cream flex items-center justify-center">
-        <div className="animate-pulse text-text-secondary">Loading...</div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="animate-pulse text-slate-400 font-bold">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-cream page-layout">
-      <div className="container-responsive max-w-4xl">
-        {/* Header */}
-        <div className="mb-4">
-          <Link
-            href="/app/ai-tools"
-            className="text-primary hover:text-primary-dark mb-4 inline-flex items-center gap-1 text-sm touch-target"
-          >
-            ← Back to AI Tools
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+      <div className="max-w-4xl mx-auto space-y-4">
+        {/* Banner */}
+        <div className="rounded-[32px] p-6 text-white" style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" }}>
+          <Link href="/app/ai-tools" className="inline-flex items-center gap-2 text-white/80 text-xs font-black uppercase tracking-widest mb-4">
+            ← AI Tools
           </Link>
-          <h1 className="heading-2 text-primary mb-1">💬 AI Tutor</h1>
-          <p className="text-text-secondary text-sm">
-            Ask questions about digital literacy and get personalized help
-          </p>
+          <h1 className="text-xl sm:text-2xl font-black mb-1">AI Tutor 💬</h1>
+          <p className="text-white/80 text-sm font-bold">Ask questions about digital literacy and get personalized help</p>
         </div>
 
         {/* Language & Input Mode Selectors */}
-        <div className="flex flex-wrap gap-4 mb-4">
+        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 flex flex-wrap gap-3 items-center">
           {/* Language Selector */}
           <div className="flex gap-2">
             {(["en", "hi", "as"] as const).map((lang) => (
               <button
+                type="button"
                 key={lang}
                 onClick={() => setLanguage(lang)}
-                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${getSelectorButtonClass(language === lang)}`}
+                className={`px-3 py-1.5 rounded-xl text-sm font-black transition-colors ${language === lang ? "text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
+                style={language === lang ? { background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" } : {}}
               >
                 {getLanguageName(lang)}
               </button>
@@ -179,14 +178,18 @@ export default function AITutorPage() {
           {/* Input Mode Toggle */}
           <div className="flex gap-2 ml-auto">
             <button
+                type="button"
               onClick={() => setInputMode("text")}
-              className={`px-3 py-1 rounded-full text-sm font-medium transition-colors flex items-center gap-1 ${getSelectorButtonClass(inputMode === "text")}`}
+              className={`px-3 py-1.5 rounded-xl text-sm font-black transition-colors flex items-center gap-1 ${inputMode === "text" ? "text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
+              style={inputMode === "text" ? { background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" } : {}}
             >
               📝 Text
             </button>
             <button
+                type="button"
               onClick={() => setInputMode("voice")}
-              className={`px-3 py-1 rounded-full text-sm font-medium transition-colors flex items-center gap-1 ${getSelectorButtonClass(inputMode === "voice")}`}
+              className={`px-3 py-1.5 rounded-xl text-sm font-black transition-colors flex items-center gap-1 ${inputMode === "voice" ? "text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
+              style={inputMode === "voice" ? { background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" } : {}}
             >
               🎤 Voice
             </button>
@@ -195,57 +198,45 @@ export default function AITutorPage() {
 
         {/* Voice Mode Options - Only show when voice mode is active */}
         {inputMode === "voice" && (
-          <div className="flex flex-wrap items-center gap-4 mb-4 p-3 bg-white rounded-lg border border-border">
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 flex flex-wrap items-center gap-4">
             {/* Voice Mode Selector */}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-text-secondary">Mode:</span>
+              <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Mode:</span>
               <button
+                type="button"
                 onClick={() => setVoiceMode("one-shot")}
-                className={`px-4 py-2.5 min-h-[44px] rounded-lg text-sm font-medium transition-colors ${
-                  voiceMode === "one-shot"
-                    ? "bg-primary text-white"
-                    : "bg-surface-dark text-text-secondary hover:bg-surface-dark"
-                }`}
+                className={`px-4 py-2 rounded-xl text-sm font-black transition-colors ${voiceMode === "one-shot" ? "text-white" : "bg-slate-100 text-slate-500"}`}
+                style={voiceMode === "one-shot" ? { background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" } : {}}
               >
                 One-shot
               </button>
               <button
+                type="button"
                 onClick={() => setVoiceMode("conversational")}
-                className={`px-4 py-2.5 min-h-[44px] rounded-lg text-sm font-medium transition-colors ${
-                  voiceMode === "conversational"
-                    ? "bg-primary text-white"
-                    : "bg-surface-dark text-text-secondary hover:bg-surface-dark"
-                }`}
+                className={`px-4 py-2 rounded-xl text-sm font-black transition-colors ${voiceMode === "conversational" ? "text-white" : "bg-slate-100 text-slate-500"}`}
+                style={voiceMode === "conversational" ? { background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" } : {}}
               >
                 Conversational
               </button>
             </div>
 
-            {/* Language Info - Speak any language hint */}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-text-secondary">
-                Response: <strong className="text-primary">{getLanguageName(language)}</strong>
+              <span className="text-xs font-bold text-slate-400">
+                Response: <strong className="text-orange-500">{getLanguageName(language)}</strong>
               </span>
-              <span className="text-xs text-success" title="Speak in any language (English, Hindi, Assamese) - AI will understand and adapt">
-                🎤 Speak any language
-              </span>
+              <span className="text-xs font-bold text-emerald-500">🎤 Speak any language</span>
             </div>
 
             {/* Auto-TTS Toggle */}
             <div className="flex items-center gap-2 ml-auto">
-              <span className="text-xs text-text-secondary">Auto-speak:</span>
+              <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Auto-speak:</span>
               <button
+                type="button"
                 onClick={() => setAutoTTS(!autoTTS)}
-                className={`relative w-10 h-5 rounded-full transition-colors ${
-                  autoTTS ? "bg-primary" : "bg-surface-dark"
-                }`}
+                className={`relative w-10 h-5 rounded-full transition-colors ${autoTTS ? "bg-orange-400" : "bg-slate-200"}`}
                 aria-label={autoTTS ? "Disable auto-TTS" : "Enable auto-TTS"}
               >
-                <span
-                  className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${
-                    autoTTS ? "translate-x-5" : "translate-x-0"
-                  }`}
-                />
+                <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${autoTTS ? "translate-x-5" : "translate-x-0"}`} />
               </button>
             </div>
           </div>
@@ -253,172 +244,137 @@ export default function AITutorPage() {
 
         {/* Error Display */}
         {error && (
-          <Card className="mb-4 border-error bg-error/10">
-            <CardContent className="p-4">
-              <p className="text-sm text-error">
-                ⚠️ {error.message || "An error occurred. Please try again."}
-              </p>
-            </CardContent>
-          </Card>
+          <div className="bg-red-50 border border-red-100 rounded-3xl p-4">
+            <p className="text-sm font-bold text-red-500">
+              ⚠️ {error.message || "An error occurred. Please try again."}
+            </p>
+          </div>
         )}
 
         {/* Chat Area */}
-        <Card className="mb-4">
-          <CardContent className="p-4">
-            {/* Messages Display */}
-            <div className="h-[calc(100vh-450px)] sm:h-[400px] lg:h-[500px] overflow-y-auto space-y-4 mb-4">
-              {messages.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-text-secondary mb-4">
-                    {inputMode === "voice"
-                      ? "Tap the microphone to start a voice conversation!"
-                      : "Start a conversation with your AI tutor!"}
-                  </p>
-                  <div className="flex flex-wrap justify-center gap-2">
-                    {suggestedQuestions.map((q) => (
-                      <button
-                        key={q}
-                        onClick={() => {
-                          if (inputMode === "voice") {
-                            append({ role: "user", content: q });
-                          } else {
-                            handleInputChange({
-                              target: { value: q },
-                            } as React.ChangeEvent<HTMLInputElement>);
-                          }
-                        }}
-                        className="px-3 py-2 bg-primary-light text-primary rounded-lg text-sm hover:bg-primary-lighter transition-colors"
-                      >
-                        {q}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <>
-                  {/* PERF-007 FIX: Show "Load more" button when there are hidden messages */}
-                  {hasHiddenMessages && (
-                    <div className="text-center mb-4">
-                      <button
-                        onClick={() => setShowAllMessages(true)}
-                        className="px-3 py-1 text-xs bg-surface-dark text-text-secondary rounded-full hover:bg-surface-dark transition-colors"
-                      >
-                        ↑ Show {hiddenMessageCount} earlier message{hiddenMessageCount !== 1 ? 's' : ''}
-                      </button>
-                    </div>
-                  )}
-                  {visibleMessages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`flex ${
-                        message.role === "user" ? "justify-end" : "justify-start"
-                      }`}
+        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4">
+          {/* Messages Display */}
+          <div className="h-[calc(100vh-360px)] sm:h-[400px] lg:h-[500px] overflow-y-auto space-y-4 mb-4">
+            {messages.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-slate-400 font-bold mb-4">
+                  {inputMode === "voice" ? "Tap the microphone to start a voice conversation!" : "Start a conversation with your AI tutor!"}
+                </p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {suggestedQuestions.map((q) => (
+                    <button
+                type="button"
+                      key={q}
+                      onClick={() => handleSuggestedQuestion(q)}
+                      className="px-3 py-2 bg-orange-50 text-orange-600 rounded-xl text-sm font-bold hover:bg-orange-100 transition-colors"
                     >
-                      <div
-                        className={`max-w-[80%] rounded-2xl p-3 ${
-                          message.role === "user"
-                            ? "bg-primary text-white rounded-br-md"
-                            : "bg-white border border-border rounded-bl-md"
-                        }`}
-                      >
-                        <p className="whitespace-pre-wrap text-sm">
-                          {message.content}
-                        </p>
-                      </div>
-                    </div>
+                      {q}
+                    </button>
                   ))}
-                </>
-              )}
-              {isLoading && (
-                <div className="flex justify-start">
-                  <div className="bg-white border border-border rounded-2xl rounded-bl-md p-3">
-                    <div className="flex gap-1">
-                      <span className="w-2 h-2 bg-primary rounded-full animate-bounce" />
-                      <span className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:0.1s]" />
-                      <span className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:0.2s]" />
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* PERF-007 FIX: Show "Load more" button when there are hidden messages */}
+                {hasHiddenMessages && (
+                  <div className="text-center mb-4">
+                    <button
+                type="button"
+                      onClick={() => setShowAllMessages(true)}
+                      className="px-3 py-1 text-xs font-black bg-slate-100 text-slate-500 rounded-full hover:bg-slate-200 transition-colors"
+                    >
+                      ↑ Show {hiddenMessageCount} earlier message{hiddenMessageCount === 1 ? "" : "s"}
+                    </button>
+                  </div>
+                )}
+                {visibleMessages.map((message) => (
+                  <div key={message.id} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
+                    <div
+                      className={`max-w-[90%] sm:max-w-[80%] rounded-2xl p-3 ${message.role === "user" ? "text-white rounded-br-md" : "bg-slate-50 border border-slate-100 rounded-bl-md"}`}
+                      style={message.role === "user" ? { background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" } : {}}
+                    >
+                      <p className="whitespace-pre-wrap text-sm font-medium">{message.content}</p>
                     </div>
                   </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Input Form - Conditional based on mode */}
-            {inputMode === "voice" ? (
-              voiceMode === "conversational" ? (
-                <ConversationalVoiceChat
-                  language={language}
-                  onTranscript={(transcript) => {
-                    // Send transcript to AI - response language is controlled by UI selector
-                    // Voice auto-detect is disabled because Romanized text detection is unreliable
-                    if (transcript.trim()) {
-                      append({
-                        role: "user",
-                        content: transcript,
-                      });
-                    }
-                  }}
-                  disabled={isLoading}
-                  speakText={autoTTS ? textToSpeak : null}
-                  onSpokenComplete={handleSpokenComplete}
-                  // Auto-detect disabled - unreliable for voice (Romanized text)
-                  autoDetectLanguage={false}
-                />
-              ) : (
-                <VoiceChat
-                  language={language}
-                  onTranscript={(transcript) => {
-                    if (transcript.trim()) {
-                      append({
-                        role: "user",
-                        content: transcript,
-                      });
-                    }
-                  }}
-                  disabled={isLoading}
-                />
-              )
-            ) : (
-              <form onSubmit={handleSubmit} className="flex gap-2">
-                <input
-                  type="text"
-                  value={input}
-                  onChange={handleInputChange}
-                  placeholder={
-                    language === "hi"
-                      ? "एक प्रश्न पूछें..."
-                      : language === "as"
-                        ? "এটা প্ৰশ্ন সোধক..."
-                        : "Ask a question..."
-                  }
-                  className="flex-1 px-4 py-2 rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                  disabled={isLoading}
-                />
-                <Button type="submit" disabled={isLoading || !input.trim()}>
-                  {isLoading ? "..." : "Send"}
-                </Button>
-              </form>
+                ))}
+              </>
             )}
-          </CardContent>
-        </Card>
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className="bg-slate-50 border border-slate-100 rounded-2xl rounded-bl-md p-3">
+                  <div className="flex gap-1">
+                    <span className="w-2 h-2 bg-orange-400 rounded-full animate-bounce" />
+                    <span className="w-2 h-2 bg-orange-400 rounded-full animate-bounce [animation-delay:0.1s]" />
+                    <span className="w-2 h-2 bg-orange-400 rounded-full animate-bounce [animation-delay:0.2s]" />
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input Form - Conditional based on mode */}
+          {inputMode === "voice" && voiceMode === "conversational" && (
+            <ConversationalVoiceChat
+              language={language}
+              onTranscript={(transcript) => {
+                // Send transcript to AI - response language is controlled by UI selector
+                // Voice auto-detect is disabled because Romanized text detection is unreliable
+                if (transcript.trim()) {
+                  append({ role: "user", content: transcript });
+                }
+              }}
+              disabled={isLoading}
+              speakText={autoTTS ? textToSpeak : null}
+              onSpokenComplete={handleSpokenComplete}
+              // Auto-detect disabled - unreliable for voice (Romanized text)
+              autoDetectLanguage={false}
+            />
+          )}
+          {inputMode === "voice" && voiceMode !== "conversational" && (
+            <VoiceChat
+              language={language}
+              onTranscript={(transcript) => {
+                if (transcript.trim()) {
+                  append({ role: "user", content: transcript });
+                }
+              }}
+              disabled={isLoading}
+            />
+          )}
+          {inputMode !== "voice" && (
+            <form onSubmit={handleSubmit} className="flex gap-2">
+              <input
+                type="text"
+                value={input}
+                onChange={handleInputChange}
+                placeholder={getTextInputPlaceholder(language)}
+                className="flex-1 px-4 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-transparent font-medium text-sm"
+                disabled={isLoading}
+              />
+              <button
+                type="submit"
+                disabled={isLoading || !input.trim()}
+                className="px-5 py-3 rounded-2xl font-black text-sm text-white transition-all active:scale-95 disabled:opacity-50"
+                style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" }}
+              >
+                {isLoading ? "..." : "Send"}
+              </button>
+            </form>
+          )}
+        </div>
 
         {/* Tips - Only show in text mode */}
         {inputMode === "text" && (
-          <Card className="bg-primary-light border-primary/20">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-primary">
-                💡 Tips for better answers
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <ul className="text-xs text-text-secondary space-y-1">
-                <li>• Ask specific questions about digital literacy topics</li>
-                <li>• Include context about what you&apos;re trying to learn</li>
-                <li>• Feel free to ask follow-up questions</li>
-                <li>• Watch responses appear in real-time with streaming! ⚡</li>
-              </ul>
-            </CardContent>
-          </Card>
+          <div className="bg-orange-50 rounded-3xl border border-orange-100 p-4">
+            <p className="text-sm font-black text-orange-600 mb-2">💡 Tips for better answers</p>
+            <ul className="text-xs font-bold text-orange-500 space-y-1">
+              <li>• Ask specific questions about digital literacy topics</li>
+              <li>• Include context about what you&apos;re trying to learn</li>
+              <li>• Feel free to ask follow-up questions</li>
+              <li>• Watch responses appear in real-time with streaming! ⚡</li>
+            </ul>
+          </div>
         )}
       </div>
     </div>

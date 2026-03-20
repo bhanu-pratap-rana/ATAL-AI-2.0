@@ -98,14 +98,14 @@ export function PasswordValidationForm({
           <button
             type="button"
             onClick={togglePasswordVisibility}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-primary"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-800"
             aria-label={showPassword ? "Hide password" : "Show password"}
           >
             {getPasswordVisibilityIcon(showPassword)}
           </button>
         </div>
         {showValidation && (
-          <p className="text-xs text-text-secondary">
+          <p className="text-xs text-slate-500">
             Minimum 8 characters, must include uppercase, lowercase, number, and
             special character (!@#$%^&*)
           </p>
@@ -127,7 +127,7 @@ export function PasswordValidationForm({
           <button
             type="button"
             onClick={toggleConfirmVisibility}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-primary"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-800"
             aria-label={showConfirm ? "Hide password" : "Show password"}
           >
             {getPasswordVisibilityIcon(showConfirm)}

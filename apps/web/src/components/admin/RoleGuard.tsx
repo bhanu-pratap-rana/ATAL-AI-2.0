@@ -88,10 +88,10 @@ export function RoleGuard({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-white flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          <p className="mt-4 text-text-secondary">Loading...</p>
+          <p className="mt-4 text-slate-500">Loading...</p>
         </div>
       </div>
     );
@@ -111,15 +111,16 @@ function UnauthorizedFallback({ requiredRole }: Readonly<{ requiredRole: string 
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-surface via-background to-white flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-lg p-8 max-w-md text-center">
         <div className="text-4xl mb-4">🔒</div>
-        <h1 className="text-2xl font-bold text-text mb-2">Access Denied</h1>
-        <p className="text-text-secondary mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-text mb-2">Access Denied</h1>
+        <p className="text-slate-500 mb-6">
           You do not have permission to access this page. This area is
           restricted to {requiredRole} users only.
         </p>
         <button
+                type="button"
           onClick={() => router.push("/admin/login")}
           className="inline-block px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition"
         >

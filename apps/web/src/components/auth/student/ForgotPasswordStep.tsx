@@ -211,7 +211,7 @@ export function ForgotPasswordStep({
             {isLoading ? "Sending..." : "Send Reset Code"}
           </Button>
 
-          <p className="text-center text-sm text-text-secondary">
+          <p className="text-center text-sm text-slate-500">
             Remember your password?{" "}
             <button
               type="button"
@@ -246,7 +246,7 @@ export function ForgotPasswordStep({
             maxLength={OTP_LENGTH}
             className="text-center text-2xl font-mono tracking-widest"
           />
-          <p className="text-xs text-text-secondary">
+          <p className="text-xs text-slate-500">
             Enter the 6-digit code sent to {state.forgotPasswordEmail}
           </p>
         </div>
@@ -320,7 +320,7 @@ export function ForgotPasswordStep({
             actions.resetForgotPassword();
             actions.setMainStep("signin");
           }}
-          className="text-sm text-text-secondary hover:underline block w-full text-center"
+          className="text-sm text-slate-500 hover:underline block w-full text-center"
           disabled={isLoading}
         >
           Back to sign in

@@ -29,7 +29,7 @@ export function FormErrorHelper({
 
   if (helperText) {
     return (
-      <p id={helperId} className="text-xs text-text-secondary">
+      <p id={helperId} className="text-xs text-slate-500">
         {helperText}
       </p>
     );

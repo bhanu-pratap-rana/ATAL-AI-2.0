@@ -1,14 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient, getCurrentUser } from "@/lib/supabase-server";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { authLogger } from "@/lib/auth-logger";
 import {
   StudentAnnouncementsCard,
@@ -75,13 +67,10 @@ async function getStudentClassDetails(
       return null;
     }
 
-    if (!enrollment || !enrollment.class) {
-      return null;
-    }
+    const rawClass = enrollment?.class;
+    if (!rawClass) return null;
 
-    const classData = Array.isArray(enrollment.class)
-      ? enrollment.class[0]
-      : enrollment.class;
+    const classData = Array.isArray(rawClass) ? rawClass[0] : rawClass;
 
     // Fetch teacher info
     let teacher: TeacherInfo | null = null;
@@ -142,96 +131,52 @@ export default async function StudentClassDetailPage({
     : [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream via-surface to-cyan-lightest page-layout">
-      <div className="container-responsive max-w-4xl">
-        {/* Header */}
-        <div className="mb-responsive">
-          <Link href="/app/student/classes">
-            <Button variant="ghost" className="mb-4 touch-target">
-              ← Back to My Classes
-            </Button>
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+      <div className="max-w-4xl mx-auto space-y-4">
+        {/* Banner */}
+        <div className="rounded-[32px] p-6 text-white" style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" }}>
+          <Link href="/app/student/classes" className="inline-flex items-center gap-2 text-white/80 text-xs font-black uppercase tracking-widest mb-4">
+            ← My Classes
           </Link>
-
-          <Card className="card-responsive">
-            <CardHeader>
-              <div className="text-center sm:text-left">
-                <CardTitle className="flex items-center justify-center sm:justify-start gap-2 text-xl md:text-3xl">
-                  <span>📚</span>
-                  <span className="bg-gradient-to-r from-primary via-primary-dark to-cyan bg-clip-text text-transparent">
-                    {classDetails.class.name}
-                  </span>
-                </CardTitle>
-                <CardDescription className="mt-2">
-                  <span className="block sm:inline">
-                    Teacher: {classDetails.teacher?.name || "Not available"}
-                  </span>
-                  {classDetails.class.subject && (
-                    <span className="block sm:inline sm:ml-4">
-                      Subject: {classDetails.class.subject}
-                    </span>
-                  )}
-                </CardDescription>
-              </div>
-            </CardHeader>
-          </Card>
+          <h1 className="text-xl sm:text-2xl font-black mb-1">📚 {classDetails.class.name}</h1>
+          <p className="text-white/80 text-sm font-bold">
+            Teacher: {classDetails.teacher?.name ?? "Not available"}
+            {classDetails.class.subject && ` • ${classDetails.class.subject}`}
+          </p>
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-2 gap-4 mb-responsive">
-          <Card className="card-responsive">
-            <CardContent className="pt-6 text-center">
-              <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-2">
-                <span className="text-2xl">📢</span>
-              </div>
-              <p className="text-2xl font-bold text-text-primary">
-                {announcements.length}
-              </p>
-              <p className="text-sm text-text-secondary">Announcements</p>
-            </CardContent>
-          </Card>
-          <Card className="card-responsive">
-            <CardContent className="pt-6 text-center">
-              <div className="w-12 h-12 bg-cyan/20 rounded-full flex items-center justify-center mx-auto mb-2">
-                <span className="text-2xl">📁</span>
-              </div>
-              <p className="text-2xl font-bold text-text-primary">
-                {materials.length}
-              </p>
-              <p className="text-sm text-text-secondary">Materials</p>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 text-center">
+            <div className="text-3xl mb-1">📢</div>
+            <p className="text-xl sm:text-2xl font-black text-slate-800">{announcements.length}</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Announcements</p>
+          </div>
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 text-center">
+            <div className="text-3xl mb-1">📁</div>
+            <p className="text-xl sm:text-2xl font-black text-slate-800">{materials.length}</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Materials</p>
+          </div>
         </div>
 
         {/* Announcements */}
-        <div className="mb-responsive">
-          <StudentAnnouncementsCard announcements={announcements} />
-        </div>
+        <StudentAnnouncementsCard announcements={announcements} />
 
         {/* Materials */}
-        <div className="mb-responsive">
-          <StudentMaterialsCard materials={materials} />
-        </div>
+        <StudentMaterialsCard materials={materials} />
 
         {/* Quick Actions */}
-        <Card className="card-responsive">
-          <CardHeader>
-            <CardTitle className="text-lg">Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-3">
-              <Link href="/app/learn">
-                <Button variant="outline" className="w-full">
-                  <span className="mr-2">📖</span> Continue Learning
-                </Button>
-              </Link>
-              <Link href="/app/ai-tools/tutor">
-                <Button variant="outline" className="w-full">
-                  <span className="mr-2">🤖</span> AI Tutor
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5">
+          <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Quick Actions</p>
+          <div className="grid grid-cols-2 gap-3">
+            <Link href="/app/learn" className="py-3 rounded-2xl font-black text-sm text-slate-700 text-center bg-slate-50 border border-slate-100 transition-all active:scale-95">
+              📖 Continue Learning
+            </Link>
+            <Link href="/app/ai-tools/tutor" className="py-3 rounded-2xl font-black text-sm text-white text-center transition-all active:scale-95" style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" }}>
+              🤖 AI Tutor
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );

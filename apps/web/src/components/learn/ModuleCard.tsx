@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useLanguage, getLocalizedField } from "@/lib/i18n";
 
@@ -66,94 +65,91 @@ export function ModuleCard({
   };
 
   return (
-    <Card
-      className={`transition-all ${
+    <div
+      className={`bg-white rounded-3xl border p-5 shadow-[0_4px_20px_rgb(0,0,0,0.05)] transition-all ${
         isUnlocked
-          ? "hover:shadow-lg cursor-pointer"
-          : "opacity-60 cursor-not-allowed"
-      } ${progress.is_complete ? "border-success border-2" : ""}`}
+          ? "hover:shadow-[0_8px_30px_rgb(0,0,0,0.1)] cursor-pointer border-slate-100"
+          : "opacity-60 cursor-not-allowed border-slate-100"
+      } ${progress.is_complete ? "border-l-4 border-l-success border-slate-100" : ""}`}
     >
-      <CardHeader className="pb-2">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            {/* A11Y-002 FIX: Added role="img" and aria-label for screen reader accessibility */}
-            <div
-              className={`w-12 h-12 rounded-xl bg-gradient-to-br ${module.color} flex items-center justify-center text-2xl shadow-lg`}
-              role="img"
-              aria-label={`${moduleName} module icon`}
-            >
-              {module.icon}
-            </div>
-            <div>
-              <CardTitle className="text-lg flex items-center gap-2">
-                {moduleName}
-                {progress.is_complete && (
-                  <span className="text-success">✓</span>
-                )}
-                {!isUnlocked && <span className="text-sm">🔒</span>}
-              </CardTitle>
-              {secondaryName && (
-                <p className="text-xs text-text-secondary">{secondaryName}</p>
+      {/* Card Header */}
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center gap-3">
+          {/* A11Y-002 FIX: Added role="img" and aria-label for screen reader accessibility */}
+          <div
+            className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${module.color} flex items-center justify-center text-2xl shadow-md flex-shrink-0`}
+            role="img"
+            aria-label={`${moduleName} module icon`}
+          >
+            {module.icon}
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
+              {moduleName}
+              {progress.is_complete && (
+                <span className="text-success text-sm">✓</span>
               )}
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="text-sm font-medium">
-              {progress.topics_completed}/{module.topics}
-            </div>
-            <div className="text-xs text-text-secondary">{t("learn.topics")}</div>
+              {!isUnlocked && <span className="text-sm">🔒</span>}
+            </h3>
+            {secondaryName && (
+              <p className="text-xs text-slate-400">{secondaryName}</p>
+            )}
           </div>
         </div>
-      </CardHeader>
-      <CardContent className="pt-0">
-        <p className="text-sm text-text-secondary mb-3">
-          {moduleDescription}
+        <div className="text-right flex-shrink-0">
+          <div className="text-sm font-bold text-slate-700">
+            {progress.topics_completed}/{module.topics}
+          </div>
+          <div className="text-[10px] text-slate-400 uppercase tracking-wide">{t("learn.topics")}</div>
+        </div>
+      </div>
+
+      {/* Description */}
+      <p className="text-sm text-slate-500 mb-4 leading-relaxed">
+        {moduleDescription}
+      </p>
+
+      {culturalNote && (
+        <p className="text-xs text-warning-dark mb-3 flex items-center gap-1">
+          <span>🏔️</span> {culturalNote}
         </p>
+      )}
 
-        {culturalNote && (
-          <p className="text-xs text-warning-dark mb-3 flex items-center gap-1">
-            <span>🏔️</span> {culturalNote}
-          </p>
-        )}
-
-        {/* Progress Bar */}
-        <div className="space-y-1">
-          <div className="h-2 bg-surface rounded-full overflow-hidden">
-            <div
-              className={`h-full transition-all duration-500 ${
-                progress.is_complete
-                  ? "bg-success"
-                  : `bg-gradient-to-r ${module.color}`
-              }`}
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-          <div className="flex justify-between text-xs text-text-secondary">
-            <span>{progressPercent}% {t("learn.complete")}</span>
-            <span>{t("learn.avg")} {progress.average_mastery}%</span>
-          </div>
+      {/* Progress Bar */}
+      <div className="mb-4">
+        <div className="flex justify-between text-xs text-slate-400 mb-1.5">
+          <span className="font-semibold">{progressPercent}% {t("learn.complete")}</span>
+          <span>{t("learn.avg")} {progress.average_mastery}%</span>
         </div>
+        <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${
+              progress.is_complete
+                ? "bg-success"
+                : `bg-gradient-to-r ${module.color}`
+            }`}
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+      </div>
 
-        {/* Action Button */}
-        {isUnlocked && (
-          <div className="mt-4">
-            <Link href={`/app/learn/${module.id}`}>
-              <Button
-                className={`w-full bg-gradient-to-r ${module.color}`}
-                variant={progress.is_complete ? "outline" : "default"}
-              >
-                {getButtonLabel()}
-              </Button>
-            </Link>
-          </div>
-        )}
+      {/* Action Button */}
+      {isUnlocked && (
+        <Link href={`/app/learn/${module.id}`}>
+          <Button
+            className="w-full"
+            variant={progress.is_complete ? "outline" : "default"}
+          >
+            {getButtonLabel()}
+          </Button>
+        </Link>
+      )}
 
-        {!isUnlocked && (
-          <div className="mt-4 text-center text-sm text-text-secondary">
-            {t("learn.completeToUnlock", { n: String(index) })}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      {!isUnlocked && (
+        <div className="text-center text-sm text-slate-400">
+          {t("learn.completeToUnlock", { n: String(index) })}
+        </div>
+      )}
+    </div>
   );
 }

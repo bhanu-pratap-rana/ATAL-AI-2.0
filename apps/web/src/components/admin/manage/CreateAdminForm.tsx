@@ -74,7 +74,7 @@ export function CreateAdminForm({
           disabled={isLoading || completed}
           className="focus:ring-primary focus:border-primary"
         />
-        <p className="text-xs text-text-secondary">
+        <p className="text-xs text-slate-500">
           This email will be used to login to the admin panel
         </p>
       </div>
@@ -100,7 +100,7 @@ export function CreateAdminForm({
           <button
             type="button"
             onClick={() => onShowPasswordChange(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-text"
           >
             {showPassword ? (
               <EyeOff className="w-4 h-4" />

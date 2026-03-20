@@ -33,21 +33,21 @@ const Toaster = ({ ...props }: ToasterProps) => {
         classNames: {
           // Base toast styling
           toast:
-            "group toast group-[.toaster]:bg-white group-[.toaster]:text-text-primary group-[.toaster]:border-2 group-[.toaster]:border-primary/20 group-[.toaster]:shadow-lg group-[.toaster]:rounded-xl group-[.toaster]:min-h-[3rem] group-[.toaster]:px-4 group-[.toaster]:py-3",
+            "group toast group-[.toaster]:bg-white group-[.toaster]:text-slate-800 group-[.toaster]:border-2 group-[.toaster]:border-primary/20 group-[.toaster]:shadow-lg group-[.toaster]:rounded-xl group-[.toaster]:min-h-[3rem] group-[.toaster]:px-4 group-[.toaster]:py-3",
           // Toast title
           title: "group-[.toast]:font-semibold group-[.toast]:text-sm",
           // Toast description
           description:
-            "group-[.toast]:text-text-secondary group-[.toast]:text-sm",
+            "group-[.toast]:text-slate-500 group-[.toast]:text-sm",
           // Action button (primary action)
           actionButton:
             "group-[.toast]:bg-primary group-[.toast]:text-white group-[.toast]:font-semibold group-[.toast]:rounded-lg group-[.toast]:px-4 group-[.toast]:py-2 group-[.toast]:min-h-[2.5rem] group-[.toast]:hover:bg-primary-dark group-[.toast]:transition-colors",
           // Cancel button (secondary action)
           cancelButton:
-            "group-[.toast]:bg-surface group-[.toast]:text-text-secondary group-[.toast]:font-medium group-[.toast]:rounded-lg group-[.toast]:px-4 group-[.toast]:py-2 group-[.toast]:min-h-[2.5rem] group-[.toast]:hover:bg-surface-dark group-[.toast]:transition-colors",
+            "group-[.toast]:bg-slate-50 group-[.toast]:text-slate-500 group-[.toast]:font-medium group-[.toast]:rounded-lg group-[.toast]:px-4 group-[.toast]:py-2 group-[.toast]:min-h-[2.5rem] group-[.toast]:hover:bg-slate-100 group-[.toast]:transition-colors",
           // Close button
           closeButton:
-            "group-[.toast]:bg-surface group-[.toast]:text-text-secondary group-[.toast]:hover:bg-surface-dark group-[.toast]:border-0",
+            "group-[.toast]:bg-slate-50 group-[.toast]:text-slate-500 group-[.toast]:hover:bg-slate-100 group-[.toast]:border-0",
           // Success toast
           success:
             "group-[.toaster]:border-success/30 group-[.toaster]:bg-success-light/50",

@@ -90,7 +90,7 @@ export function JoinClassStep({
 
           // Redirect to dashboard
           redirectTimerRef.current = setTimeout(() => {
-            router.push("/app/dashboard");
+            router.push("/app/student/dashboard");
           }, 500);
         } else {
           authLogger.error("[JoinClass] Failed to join class", result);
@@ -138,7 +138,7 @@ export function JoinClassStep({
             className="uppercase text-center font-mono text-lg"
             maxLength={CLASS_CODE_LENGTH}
           />
-          <p className="text-xs text-text-secondary">
+          <p className="text-xs text-slate-500">
             Ask your teacher for the class code
           </p>
         </div>
@@ -158,7 +158,7 @@ export function JoinClassStep({
             maxLength={PIN_LENGTH}
             className="text-center text-2xl font-mono tracking-widest"
           />
-          <p className="text-xs text-text-secondary">
+          <p className="text-xs text-slate-500">
             4-digit PIN provided by your teacher
           </p>
         </div>
@@ -189,8 +189,8 @@ export function JoinClassStep({
 
         <button
           type="button"
-          onClick={() => router.push("/app/dashboard")}
-          className="text-sm text-text-secondary hover:underline block w-full text-center"
+          onClick={() => router.push("/app/student/dashboard")}
+          className="text-sm text-slate-500 hover:underline block w-full text-center"
           disabled={isLoading}
         >
           Skip for now →

@@ -147,7 +147,7 @@ export function LessonCompletionModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <Card className="w-full max-w-md animate-in fade-in zoom-in-95 duration-300">
         <CardHeader className="text-center pb-2">
-          <div className="text-5xl mb-2">{getScoreEmoji(score)}</div>
+          <div className="text-4xl sm:text-5xl mb-2">{getScoreEmoji(score)}</div>
           <CardTitle className="text-2xl">
             {LABELS.title[language]}
           </CardTitle>
@@ -155,17 +155,17 @@ export function LessonCompletionModal({
         <CardContent className="space-y-5">
           {/* Score */}
           <div className="text-center">
-            <p className="text-sm text-text-secondary mb-1">
+            <p className="text-sm text-slate-500 mb-1">
               {LABELS.score[language]}
             </p>
-            <div className="text-5xl font-bold mb-2">
+            <div className="text-3xl sm:text-5xl font-bold mb-2">
               {score}%
             </div>
             <Progress
               value={score}
               className={`h-3 ${isPassing ? "[&>div]:bg-success" : "[&>div]:bg-warning"}`}
             />
-            <p className="text-xs text-text-secondary mt-1">
+            <p className="text-xs text-slate-500 mt-1">
               {LABELS.attempt[language]} #{attempts}
             </p>
           </div>

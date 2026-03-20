@@ -49,7 +49,7 @@ export default function AdminManagePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-surface via-background to-white flex items-center justify-center p-4">
       <div className="absolute top-4 left-4">
         <Button
           onClick={redirectToLogin}
@@ -92,10 +92,10 @@ export default function AdminManagePage() {
             size="sm"
           >
             <div className="space-y-4">
-              <p className="text-sm text-text-secondary">
+              <p className="text-sm text-slate-500">
                 Are you sure you want to <strong className="text-error">permanently delete</strong> the user:
               </p>
-              <p className="text-lg font-semibold text-text-primary break-all bg-surface p-2 rounded">
+              <p className="text-lg font-semibold text-slate-800 break-all bg-slate-50 p-2 rounded">
                 {email}
               </p>
               <p className="text-xs text-error">

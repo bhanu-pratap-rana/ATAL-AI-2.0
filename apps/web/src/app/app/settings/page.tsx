@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase-server";
 import { isTeacherOrHigher } from "@/lib/auth/role-utils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StudentProfileEditor } from "@/components/settings/StudentProfileEditor";
 import { TeacherProfileEditor } from "@/components/settings/TeacherProfileEditor";
 import { DeleteAccountButton } from "@/components/settings/DeleteAccountButton";
@@ -18,18 +17,14 @@ interface BackNavigation {
 /**
  * Get back navigation based on user role
  */
-function getBackNavigation(isTeacherOrAdmin: boolean): BackNavigation {
-  if (isTeacherOrAdmin) {
-    return {
-      href: "/app/teacher/classes",
-      label: "Back to Classes",
-    };
+function getBackNavigation(role: string | undefined): BackNavigation {
+  if (role === "admin" || role === "super_admin") {
+    return { href: "/app/admin/dashboard", label: "Back to Dashboard" };
   }
-
-  return {
-    href: "/app/dashboard",
-    label: "Back to Dashboard",
-  };
+  if (role === "teacher") {
+    return { href: "/app/teacher/dashboard", label: "Back to Dashboard" };
+  }
+  return { href: "/app/student/dashboard", label: "Back to Dashboard" };
 }
 
 export default async function SettingsPage() {
@@ -103,79 +98,58 @@ export default async function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream page-layout">
-      <div className="container-responsive max-w-4xl">
-        {/* Header */}
-        <div className="mb-responsive">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+      <div className="max-w-2xl mx-auto space-y-4">
+        {/* Banner */}
+        <div
+          className="rounded-[32px] p-6 text-white"
+          style={{
+            background: isTeacherOrAdmin
+              ? "linear-gradient(135deg,#3B82F6,#6366F1)"
+              : "linear-gradient(135deg,#F98819 0%,#FFD166 100%)",
+          }}
+        >
           {(() => {
-            const nav = getBackNavigation(isTeacherOrAdmin);
+            const nav = getBackNavigation(appRole);
             return (
-              <Link
-                href={nav.href}
-                className="text-primary hover:text-primary-dark mb-4 inline-flex items-center gap-1 text-sm md:text-base touch-target"
-              >
+              <Link href={nav.href} className="inline-flex items-center gap-2 text-white/80 text-xs font-black uppercase tracking-widest mb-4">
                 ← {nav.label}
               </Link>
             );
           })()}
-          <h1 className="heading-1 text-primary mb-2">Profile</h1>
-          <p className="text-text-secondary text-sm md:text-base">
-            View and manage your profile information
-          </p>
+          <h1 className="text-xl sm:text-2xl font-black mb-1">My Profile 👤</h1>
+          <p className="text-white/80 text-sm font-bold capitalize">{userRole} Account</p>
         </div>
 
         {/* Account Info */}
-        <Card className="mb-4 md:mb-6 card-responsive">
-          <CardHeader>
-            <CardTitle className="text-lg md:text-xl">
-              Account Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Show Username for Quick Start users, Email for others */}
+        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+          <h2 className="font-black text-slate-800 text-lg mb-4">Account Information</h2>
+          <div className="space-y-4">
             {isUsernameAuth ? (
-              <div>
-                <span className="text-sm font-medium text-text-secondary">
-                  Username
-                </span>
-                <p className="text-text-primary font-mono">
-                  {username || "Not set"}
-                </p>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-slate-50">
+                <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Username</span>
+                <p className="font-black text-slate-800 font-mono text-sm">{username || "Not set"}</p>
               </div>
             ) : (
-              <div>
-                <span className="text-sm font-medium text-text-secondary">
-                  Email
-                </span>
-                <p className="text-text-primary break-all">
-                  {user.email || "Not set"}
-                </p>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-slate-50">
+                <span className="text-xs font-black text-slate-400 uppercase tracking-widest shrink-0">Email</span>
+                <p className="font-bold text-slate-800 break-all text-sm">{user.email || "Not set"}</p>
               </div>
             )}
-            <div>
-              <span className="text-sm font-medium text-text-secondary">
-                User ID
-              </span>
-              <p className="text-text-primary font-mono text-xs md:text-sm break-all">
-                {user.id}
-              </p>
+            <div className="flex justify-between items-center py-2 border-b border-slate-50">
+              <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Role</span>
+              <span className="px-3 py-1 bg-orange-50 text-orange-600 rounded-full text-xs font-black">{userRole}</span>
             </div>
-            <div>
-              <span className="text-sm font-medium text-text-secondary">
-                Role
-              </span>
-              <p className="text-text-primary">{userRole}</p>
+            <div className="flex justify-between items-center py-2 border-b border-slate-50">
+              <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Member Since</span>
+              <p className="font-bold text-slate-800 text-sm">{new Date(user.created_at || "").toLocaleDateString()}</p>
             </div>
-            <div>
-              <span className="text-sm font-medium text-text-secondary">
-                Account Created
-              </span>
-              <p className="text-text-primary">
-                {new Date(user.created_at || "").toLocaleDateString()}
-              </p>
+            <div className="py-2">
+              <span className="text-xs font-black text-slate-400 uppercase tracking-widest">User ID</span>
+              <p className="font-mono text-xs text-slate-500 break-all mt-1">{user.id}</p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Student Profile Section - Only show for students */}
         {!isTeacherOrAdmin && (
@@ -197,66 +171,38 @@ export default async function SettingsPage() {
 
         {/* Preferences - Only show for students */}
         {!isTeacherOrAdmin && (
-          <Card className="mb-4 md:mb-6 card-responsive">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
-                <span>Preferences</span>
-                <span className="px-2 py-0.5 bg-warning-light text-warning-dark rounded-full text-xs">
-                  Coming Soon
-                </span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 opacity-60">
-                  <div>
-                    <p className="font-medium text-text-primary">
-                      Language Preference
-                    </p>
-                    <p className="text-sm text-text-secondary">
-                      Choose your preferred language for assessments
-                    </p>
-                  </div>
-                  <span className="px-3 py-1 bg-surface-dark text-text-tertiary rounded-full text-sm w-fit">
-                    English
-                  </span>
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <h2 className="font-black text-slate-800 text-lg">Preferences</h2>
+              <span className="px-2 py-0.5 bg-amber-50 text-amber-600 rounded-full text-xs font-black">Coming Soon</span>
+            </div>
+            <div className="space-y-4 opacity-60">
+              <div className="flex items-center justify-between py-2 border-b border-slate-50">
+                <div>
+                  <p className="font-black text-slate-800 text-sm">Language Preference</p>
+                  <p className="text-xs font-bold text-slate-400">Choose your preferred language</p>
                 </div>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 opacity-60">
-                  <div>
-                    <p className="font-medium text-text-primary">
-                      Assessment Reminders
-                    </p>
-                    <p className="text-sm text-text-secondary">
-                      Get reminders for upcoming assessments
-                    </p>
-                  </div>
-                  <span className="px-3 py-1 bg-surface-dark text-text-tertiary rounded-full text-sm w-fit">
-                    Not Set
-                  </span>
-                </div>
-                <p className="text-xs text-text-tertiary pt-2">
-                  Preference settings will be available in a future update.
-                </p>
+                <span className="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-xs font-black">English</span>
               </div>
-            </CardContent>
-          </Card>
+              <div className="flex items-center justify-between py-2">
+                <div>
+                  <p className="font-black text-slate-800 text-sm">Assessment Reminders</p>
+                  <p className="text-xs font-bold text-slate-400">Get reminders for upcoming assessments</p>
+                </div>
+                <span className="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-xs font-black">Not Set</span>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Danger Zone */}
-        <Card className="border-error/30 bg-error-light/50 card-responsive">
-          <CardHeader>
-            <CardTitle className="text-error-dark text-lg md:text-xl">
-              Danger Zone
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-text-secondary mb-4">
-              Once you delete your account, there is no going back. Please be
-              certain.
-            </p>
-            <DeleteAccountButton userEmail={user.email || "your account"} />
-          </CardContent>
-        </Card>
+        <div className="bg-white rounded-3xl border border-red-100 shadow-sm p-6">
+          <h2 className="font-black text-red-600 text-lg mb-2">Danger Zone</h2>
+          <p className="text-sm font-bold text-slate-400 mb-4">
+            Once you delete your account, there is no going back. Please be certain.
+          </p>
+          <DeleteAccountButton userEmail={user.email || "your account"} />
+        </div>
       </div>
     </div>
   );
