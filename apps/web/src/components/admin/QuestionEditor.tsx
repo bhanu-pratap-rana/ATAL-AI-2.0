@@ -119,7 +119,6 @@ export function QuestionEditor({ question, onUpdate }: QuestionEditorProps) {
       : null;
 
   const optionKeys = Object.keys(question.options).sort();
-  const _correctOptionKey = optionKeys[question.correct_answer] || "?";
 
   return (
     <Card
@@ -130,20 +129,21 @@ export function QuestionEditor({ question, onUpdate }: QuestionEditorProps) {
     >
       {/* Header Row */}
       <button
+                type="button"
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full p-4 flex items-center gap-4 text-left hover:bg-surface/50 transition-colors"
+        className="w-full p-4 flex items-center gap-4 text-left hover:bg-slate-50/50 transition-colors"
       >
         {/* Status Indicator */}
         <div
           className={cn(
             "w-3 h-3 rounded-full shrink-0",
-            isActive ? "bg-success" : "bg-surface-dark"
+            isActive ? "bg-success" : "bg-slate-100"
           )}
           title={isActive ? "Active" : "Inactive"}
         />
 
         {/* Item Code */}
-        <code className="text-xs bg-surface px-2 py-1 rounded shrink-0">
+        <code className="text-xs bg-slate-50 px-2 py-1 rounded shrink-0">
           {question.item_code}
         </code>
 
@@ -152,7 +152,7 @@ export function QuestionEditor({ question, onUpdate }: QuestionEditorProps) {
           <div className="font-medium text-text truncate">
             {question.question_text}
           </div>
-          <div className="flex items-center gap-2 text-xs text-text-secondary mt-1">
+          <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
             <span className="capitalize">{question.category}</span>
             <span>•</span>
             <span className="capitalize">{question.level}</span>
@@ -173,31 +173,31 @@ export function QuestionEditor({ question, onUpdate }: QuestionEditorProps) {
 
         {/* Stats */}
         {accuracyRate !== null && (
-          <div className="text-xs text-text-tertiary shrink-0">
+          <div className="text-xs text-slate-400 shrink-0">
             {accuracyRate}% ({question.times_administered} attempts)
           </div>
         )}
 
         {/* Expand Icon */}
         {isExpanded ? (
-          <ChevronUp className="w-5 h-5 text-text-tertiary shrink-0" />
+          <ChevronUp className="w-5 h-5 text-slate-400 shrink-0" />
         ) : (
-          <ChevronDown className="w-5 h-5 text-text-tertiary shrink-0" />
+          <ChevronDown className="w-5 h-5 text-slate-400 shrink-0" />
         )}
       </button>
 
       {/* Expanded Content */}
       {isExpanded && (
-        <CardContent className="border-t border-border bg-white pt-4">
+        <CardContent className="border-t border-slate-200 bg-white pt-4">
           {/* Question Text */}
           <div className="mb-4">
-            <Label className="text-sm text-text-secondary">Question</Label>
+            <Label className="text-sm text-slate-500">Question</Label>
             <p className="mt-1 text-text">{question.question_text}</p>
           </div>
 
           {/* Options */}
           <div className="mb-4">
-            <Label className="text-sm text-text-secondary">Options</Label>
+            <Label className="text-sm text-slate-500">Options</Label>
             <div className="mt-1 space-y-2">
               {optionKeys.map((key, index) => {
                 const isCorrect = index === question.correct_answer;
@@ -208,7 +208,7 @@ export function QuestionEditor({ question, onUpdate }: QuestionEditorProps) {
                       "flex items-center gap-2 p-2 rounded border",
                       isCorrect
                         ? "border-success bg-success/5"
-                        : "border-border"
+                        : "border-slate-200"
                     )}
                   >
                     <span
@@ -216,7 +216,7 @@ export function QuestionEditor({ question, onUpdate }: QuestionEditorProps) {
                         "w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium",
                         isCorrect
                           ? "bg-success text-white"
-                          : "bg-surface-dark text-text-secondary"
+                          : "bg-slate-100 text-slate-500"
                       )}
                     >
                       {key}
@@ -234,7 +234,7 @@ export function QuestionEditor({ question, onUpdate }: QuestionEditorProps) {
           </div>
 
           {/* IRT Parameters */}
-          <div className="border-t border-border pt-4">
+          <div className="border-t border-slate-200 pt-4">
             <div className="flex items-center justify-between mb-3">
               <Label className="text-sm font-medium text-text">
                 IRT Parameters
@@ -278,7 +278,7 @@ export function QuestionEditor({ question, onUpdate }: QuestionEditorProps) {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {/* Difficulty */}
               <div>
-                <Label className="text-xs text-text-secondary">
+                <Label className="text-xs text-slate-500">
                   Difficulty (b)
                 </Label>
                 {isEditing ? (
@@ -292,14 +292,14 @@ export function QuestionEditor({ question, onUpdate }: QuestionEditorProps) {
                 ) : (
                   <div className="mt-1 font-medium">{question.difficulty.toFixed(2)}</div>
                 )}
-                <p className="text-xs text-text-tertiary mt-1">
+                <p className="text-xs text-slate-400 mt-1">
                   -3 (easy) to +3 (hard)
                 </p>
               </div>
 
               {/* Discrimination */}
               <div>
-                <Label className="text-xs text-text-secondary">
+                <Label className="text-xs text-slate-500">
                   Discrimination (a)
                 </Label>
                 {isEditing ? (
@@ -318,14 +318,14 @@ export function QuestionEditor({ question, onUpdate }: QuestionEditorProps) {
                     {question.discrimination.toFixed(2)}
                   </div>
                 )}
-                <p className="text-xs text-text-tertiary mt-1">
+                <p className="text-xs text-slate-400 mt-1">
                   0 to 3 (higher = more discriminating)
                 </p>
               </div>
 
               {/* Guessing */}
               <div>
-                <Label className="text-xs text-text-secondary">
+                <Label className="text-xs text-slate-500">
                   Guessing (c)
                 </Label>
                 {isEditing ? (
@@ -343,14 +343,14 @@ export function QuestionEditor({ question, onUpdate }: QuestionEditorProps) {
                     {question.guessing.toFixed(2)}
                   </div>
                 )}
-                <p className="text-xs text-text-tertiary mt-1">
+                <p className="text-xs text-slate-400 mt-1">
                   0 to 0.5 (prob. of lucky guess)
                 </p>
               </div>
 
               {/* Active Status */}
               <div>
-                <Label className="text-xs text-text-secondary">Status</Label>
+                <Label className="text-xs text-slate-500">Status</Label>
                 {isEditing ? (
                   <div className="mt-1">
                     <button
@@ -358,7 +358,7 @@ export function QuestionEditor({ question, onUpdate }: QuestionEditorProps) {
                       onClick={() => setIsActive(!isActive)}
                       className={cn(
                         "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors",
-                        isActive ? "bg-success" : "bg-surface-dark"
+                        isActive ? "bg-success" : "bg-slate-100"
                       )}
                     >
                       <span
@@ -381,8 +381,8 @@ export function QuestionEditor({ question, onUpdate }: QuestionEditorProps) {
                       </>
                     ) : (
                       <>
-                        <AlertCircle className="w-4 h-4 text-text-tertiary" />
-                        <span className="font-medium text-text-tertiary">Inactive</span>
+                        <AlertCircle className="w-4 h-4 text-slate-400" />
+                        <span className="font-medium text-slate-400">Inactive</span>
                       </>
                     )}
                   </div>
@@ -392,7 +392,7 @@ export function QuestionEditor({ question, onUpdate }: QuestionEditorProps) {
           </div>
 
           {/* Metadata */}
-          <div className="mt-4 pt-4 border-t border-border flex items-center gap-4 text-xs text-text-tertiary">
+          <div className="mt-4 pt-4 border-t border-slate-200 flex items-center gap-4 text-xs text-slate-400">
             <span>ID: {question.id.slice(0, 8)}...</span>
             {question.created_at && (
               <span>

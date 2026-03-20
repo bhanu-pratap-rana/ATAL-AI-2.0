@@ -58,7 +58,7 @@ export function LearningStyleCard({
       className={`card-responsive transition-all duration-300 ${
         isActive
           ? `${colors.bg} ${colors.border} border-2 shadow-lg scale-[1.02]`
-          : "bg-surface border-border-light hover:border-border"
+          : "bg-slate-50 border-slate-100 hover:border-slate-200"
       }`}
     >
       <CardContent className="pt-6">
@@ -66,7 +66,7 @@ export function LearningStyleCard({
         <div className="flex items-center gap-3 mb-4">
           <span className="text-3xl">{icon}</span>
           <div>
-            <h3 className={`font-semibold ${isActive ? colors.text : "text-text-primary"}`}>
+            <h3 className={`font-semibold ${isActive ? colors.text : "text-slate-800"}`}>
               {title}
             </h3>
             {isActive && (
@@ -80,8 +80,8 @@ export function LearningStyleCard({
         {/* Score Display */}
         <div className="mb-4">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm text-text-secondary">Score</span>
-            <span className={`text-2xl font-bold ${isActive ? colors.text : "text-text-primary"}`}>
+            <span className="text-sm text-slate-500">Score</span>
+            <span className={`text-2xl font-bold ${isActive ? colors.text : "text-slate-800"}`}>
               {score}%
             </span>
           </div>
@@ -95,10 +95,10 @@ export function LearningStyleCard({
         </div>
 
         {/* Activity Stat */}
-        <div className="pt-3 border-t border-border-light">
+        <div className="pt-3 border-t border-slate-100">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-text-tertiary">{activityLabel}</span>
-            <span className={`font-medium ${isActive ? colors.text : "text-text-secondary"}`}>
+            <span className="text-slate-400">{activityLabel}</span>
+            <span className={`font-medium ${isActive ? colors.text : "text-slate-500"}`}>
               {activityCount}
             </span>
           </div>

@@ -54,19 +54,19 @@ export default function AdminsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-white flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          <p className="mt-4 text-text-secondary">Loading...</p>
+          <p className="mt-4 text-slate-500">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface">
+    <div className="min-h-screen bg-gradient-to-br from-surface via-background to-white">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-border">
+      <header className="bg-white shadow-sm border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button
@@ -78,7 +78,7 @@ export default function AdminsPage() {
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Dashboard
             </Button>
-            <h1 className="text-2xl font-bold text-text">Admin Management</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-text">Admin Management</h1>
           </div>
 
           {!showCreateForm && (
@@ -97,7 +97,7 @@ export default function AdminsPage() {
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Create Form Section */}
         {showCreateForm && (
-          <section className="mb-8 bg-white rounded-lg shadow p-6 border border-border">
+          <section className="mb-8 bg-white rounded-lg shadow p-6 border border-slate-200">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-text">
                 Create New Admin Account
@@ -121,15 +121,15 @@ export default function AdminsPage() {
         )}
 
         {/* Admin List Section */}
-        <section className="bg-white rounded-lg shadow border border-border">
-          <div className="border-b border-border p-6">
+        <section className="bg-white rounded-lg shadow border border-slate-200">
+          <div className="border-b border-slate-200 p-6">
             <div className="flex items-center gap-3 mb-2">
               <Users className="w-6 h-6 text-primary" />
               <h2 className="text-xl font-bold text-text">
                 All Admin Accounts
               </h2>
             </div>
-            <p className="text-sm text-text-secondary">
+            <p className="text-sm text-slate-500">
               Manage all admin accounts in the system. You can create, delete,
               and reset passwords.
             </p>
@@ -151,7 +151,7 @@ export default function AdminsPage() {
               <h3 className="font-semibold text-accent-dark mb-2">
                 👑 Super Admin Role
               </h3>
-              <ul className="text-sm text-text-secondary space-y-2 list-disc list-inside">
+              <ul className="text-sm text-slate-500 space-y-2 list-disc list-inside">
                 <li>Full system access and management</li>
                 <li>Can create and delete admin accounts</li>
                 <li>Can reset admin passwords</li>
@@ -165,7 +165,7 @@ export default function AdminsPage() {
               <h3 className="font-semibold text-primary-dark mb-2">
                 👤 Regular Admin Role
               </h3>
-              <ul className="text-sm text-text-secondary space-y-2 list-disc list-inside">
+              <ul className="text-sm text-slate-500 space-y-2 list-disc list-inside">
                 <li>Limited to PIN management only</li>
                 <li>Can create and rotate school PINs</li>
                 <li>Can reset own password only</li>

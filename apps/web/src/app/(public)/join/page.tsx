@@ -34,8 +34,8 @@ function AuthSelectionStep({
       description="Choose how you'd like to continue"
     >
       <div className="space-y-4">
-        <div className="bg-surface/50 p-4 rounded-lg border border-border">
-          <p className="text-sm text-text-secondary mb-4">
+        <div className="bg-slate-50/50 p-4 rounded-lg border border-slate-200">
+          <p className="text-sm text-slate-500 mb-4">
             You need to sign in first to join a class. Choose one of the options
             below:
           </p>
@@ -174,7 +174,7 @@ function PhoneOTPStep({
               maxLength={OTP_LENGTH}
               className="text-center text-2xl font-mono tracking-widest"
             />
-            <p className="text-xs text-text-secondary">
+            <p className="text-xs text-slate-500">
               Enter the 6-digit code sent to your phone
             </p>
           </div>
@@ -211,7 +211,7 @@ function PhoneOTPStep({
             <button
               type="button"
               onClick={onBack}
-              className="text-sm text-text-secondary hover:underline block w-full"
+              className="text-sm text-slate-500 hover:underline block w-full"
               disabled={stepLoading || loading}
             >
               Back to options
@@ -231,7 +231,7 @@ function PhoneOTPStep({
         <div className="space-y-2">
           <Label htmlFor="phone">Phone Number</Label>
           <div className="flex items-center border border-input rounded-md">
-            <span className="px-3 text-text-secondary font-medium bg-surface">
+            <span className="px-3 text-slate-500 font-medium bg-slate-50">
               +91
             </span>
             <Input
@@ -246,7 +246,7 @@ function PhoneOTPStep({
               maxLength={12}
             />
           </div>
-          <p className="text-xs text-text-secondary">
+          <p className="text-xs text-slate-500">
             Enter your 10-digit phone number
           </p>
         </div>
@@ -276,7 +276,7 @@ function PhoneOTPStep({
           <button
             type="button"
             onClick={onBack}
-            className="text-sm text-text-secondary hover:underline block w-full"
+            className="text-sm text-slate-500 hover:underline block w-full"
             disabled={stepLoading || loading}
           >
             Back to options
@@ -411,17 +411,17 @@ function JoinClassForm({
             maxLength={6}
             className="uppercase font-mono text-center text-xl tracking-widest"
           />
-          <p className="text-xs text-text-secondary">
+          <p className="text-xs text-slate-500">
             6-character code provided by your teacher
           </p>
         </div>
 
         {/* Class Preview Section */}
         {previewLoading && (
-          <div className="bg-surface border border-border rounded-lg p-4">
+          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
             <div className="flex items-center gap-2">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-              <span className="text-sm text-text-secondary">
+              <span className="text-sm text-slate-500">
                 Looking up class...
               </span>
             </div>
@@ -444,28 +444,28 @@ function JoinClassForm({
             </div>
             <div className="space-y-1 text-sm">
               <div className="flex justify-between">
-                <span className="text-text-secondary">Class Name:</span>
-                <span className="font-medium text-text-primary">
+                <span className="text-slate-500">Class Name:</span>
+                <span className="font-medium text-slate-800">
                   {preview.className}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-text-secondary">Teacher:</span>
-                <span className="font-medium text-text-primary">
+                <span className="text-slate-500">Teacher:</span>
+                <span className="font-medium text-slate-800">
                   {preview.teacherName}
                 </span>
               </div>
               {preview.subject && (
                 <div className="flex justify-between">
-                  <span className="text-text-secondary">Subject:</span>
-                  <span className="font-medium text-text-primary">
+                  <span className="text-slate-500">Subject:</span>
+                  <span className="font-medium text-slate-800">
                     {preview.subject}
                   </span>
                 </div>
               )}
               <div className="flex justify-between">
-                <span className="text-text-secondary">Students:</span>
-                <span className="font-medium text-text-primary">
+                <span className="text-slate-500">Students:</span>
+                <span className="font-medium text-slate-800">
                   {preview.studentCount} enrolled
                 </span>
               </div>
@@ -489,7 +489,7 @@ function JoinClassForm({
             maxLength={4}
             className="text-center text-2xl font-mono tracking-widest"
           />
-          <p className="text-xs text-text-secondary">
+          <p className="text-xs text-slate-500">
             4-digit PIN provided by your teacher
           </p>
         </div>

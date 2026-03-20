@@ -40,23 +40,23 @@ const isTestEnvironment = () => {
 };
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 relative overflow-hidden",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl text-sm font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 relative overflow-hidden",
   {
     variants: {
       variant: {
         default:
-          "bg-gradient-to-br from-primary to-primary-light text-white shadow-md hover:shadow-lg border-2 border-white/20",
+          "bg-gradient-to-br from-primary to-primary-light text-white border-2 border-white/20 shadow-[0_4px_14px_0_rgba(249,136,25,0.39)] hover:shadow-[0_6px_20px_rgba(249,136,25,0.28)]",
         destructive:
           "bg-error text-white hover:bg-error/90 shadow-md border-2 border-white/20",
         outline:
-          "border-2 border-primary bg-white text-primary hover:bg-surface",
+          "border-2 border-primary bg-white text-primary hover:bg-slate-50",
         secondary:
-          "bg-surface text-text-primary hover:bg-border border-2 border-border",
+          "bg-slate-50 text-slate-800 hover:bg-border border-2 border-slate-200",
         ghost:
-          "hover:bg-surface hover:text-primary border-2 border-transparent",
+          "hover:bg-slate-50 hover:text-primary border-2 border-transparent",
         link: "text-primary underline-offset-4 hover:underline",
         gradient:
-          "bg-gradient-to-br from-primary to-primary-light text-white shadow-md hover:shadow-lg border-2 border-white/20",
+          "bg-gradient-to-br from-primary to-primary-light text-white border-2 border-white/20 shadow-[0_4px_14px_0_rgba(249,136,25,0.39)] hover:shadow-[0_6px_20px_rgba(249,136,25,0.28)]",
       },
       size: {
         default: "h-11 px-6 py-2.5",

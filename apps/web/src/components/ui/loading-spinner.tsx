@@ -30,7 +30,7 @@ export function LoadingSpinner({
         )}
       />
       {message && (
-        <p className="text-text-secondary text-sm animate-fade-in">
+        <p className="text-slate-500 text-sm animate-fade-in">
           {message}
         </p>
       )}
@@ -39,7 +39,7 @@ export function LoadingSpinner({
 
   if (fullPage) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-cream">
+      <div className="min-h-screen flex items-center justify-center bg-orange-50">
         {spinner}
       </div>
     );

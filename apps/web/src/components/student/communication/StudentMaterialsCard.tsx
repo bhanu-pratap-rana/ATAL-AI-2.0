@@ -20,7 +20,7 @@ const fileTypeConfig: Record<string, { icon: typeof FileText; label: string; cla
   video: { icon: Video, label: "Video", className: "text-secondary" },
   image: { icon: Image, label: "Image", className: "text-success" },
   link: { icon: FileText, label: "Link", className: "text-accent" },
-  other: { icon: File, label: "File", className: "text-text-secondary" },
+  other: { icon: File, label: "File", className: "text-slate-500" },
 };
 
 function formatFileSize(bytes: number | null): string {
@@ -101,7 +101,7 @@ export function StudentMaterialsCard({
             <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-3">
               <span className="text-2xl">📂</span>
             </div>
-            <p className="text-text-secondary text-sm">
+            <p className="text-slate-500 text-sm">
               No learning materials shared yet.
             </p>
           </div>
@@ -118,17 +118,17 @@ export function StudentMaterialsCard({
               return (
                 <div
                   key={material.id}
-                  className="rounded-lg border border-border bg-surface hover:bg-surface/80 transition overflow-hidden"
+                  className="rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-50/80 transition overflow-hidden"
                 >
                   <div className="flex items-center gap-3 p-3">
-                    <div className={`w-10 h-10 rounded-lg bg-surface flex items-center justify-center ${config.className}`}>
+                    <div className={`w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center ${config.className}`}>
                       <IconComponent className="w-5 h-5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-text-primary truncate">
+                      <h4 className="font-medium text-slate-800 truncate">
                         {material.title}
                       </h4>
-                      <div className="flex items-center gap-2 text-xs text-text-tertiary flex-wrap">
+                      <div className="flex items-center gap-2 text-xs text-slate-400 flex-wrap">
                         <Badge variant="secondary" className="text-xs">
                           {config.label}
                         </Badge>
@@ -136,7 +136,7 @@ export function StudentMaterialsCard({
                         <span>{formatRelativeTime(material.created_at)}</span>
                       </div>
                       {material.description && (
-                        <p className="text-sm text-text-secondary mt-1 line-clamp-2">
+                        <p className="text-sm text-slate-500 mt-1 line-clamp-2">
                           {material.description}
                         </p>
                       )}
@@ -171,7 +171,7 @@ export function StudentMaterialsCard({
                   {/* Inline Preview */}
                   {isShowingPreview && previewUrl && (
                     <div className="px-3 pb-3">
-                      <div className="rounded-lg overflow-hidden bg-black/5 border border-border">
+                      <div className="rounded-lg overflow-hidden bg-black/5 border border-slate-200">
                         {(material.material_type === "image" || material.mime_type?.startsWith("image/")) ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img

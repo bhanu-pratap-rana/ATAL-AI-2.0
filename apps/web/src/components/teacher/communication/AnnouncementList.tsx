@@ -69,10 +69,10 @@ export function AnnouncementList({
         <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
           <span className="text-3xl">📢</span>
         </div>
-        <h3 className="text-lg font-semibold text-text-primary mb-2">
+        <h3 className="text-lg font-semibold text-slate-800 mb-2">
           No announcements yet
         </h3>
-        <p className="text-text-secondary text-sm">
+        <p className="text-slate-500 text-sm">
           Create your first announcement to communicate with students.
         </p>
       </div>
@@ -94,7 +94,7 @@ export function AnnouncementList({
           className={`${
             announcement.is_pinned
               ? "border-primary/30 bg-primary/5"
-              : "border-border"
+              : "border-slate-200"
           }`}
         >
           <CardHeader className="pb-2">
@@ -126,7 +126,7 @@ export function AnnouncementList({
                   size="sm"
                   onClick={() => setConfirmDeleteId(announcement.id)}
                   disabled={deletingId === announcement.id}
-                  className="text-text-tertiary hover:text-error"
+                  className="text-slate-400 hover:text-error"
                 >
                   {deletingId === announcement.id ? "..." : "🗑️"}
                 </Button>
@@ -134,7 +134,7 @@ export function AnnouncementList({
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-text-secondary whitespace-pre-wrap">
+            <p className="text-slate-500 whitespace-pre-wrap">
               {announcement.body}
             </p>
           </CardContent>

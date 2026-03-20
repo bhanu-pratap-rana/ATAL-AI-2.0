@@ -52,6 +52,8 @@ interface AssessmentBreakdownProps {
   readonly showFilters?: boolean;
 }
 
+const FILTER_ICONS: Record<string, string> = { correct: "🎉", incorrect: "✨", all: "📝" };
+
 function formatTime(ms: number | null): string {
   if (!ms) return "-";
   if (ms < 1000) return "<1s";
@@ -66,7 +68,7 @@ function getDifficultyLabel(difficulty: number | null): {
   label: string;
   color: string;
 } {
-  if (difficulty === null) return { label: "Unknown", color: "text-text-tertiary" };
+  if (difficulty === null) return { label: "Unknown", color: "text-slate-400" };
   if (difficulty <= -1) return { label: "Easy", color: "text-success" };
   if (difficulty <= 0.5) return { label: "Medium", color: "text-warning" };
   if (difficulty <= 1.5) return { label: "Hard", color: "text-primary" };
@@ -121,36 +123,39 @@ export function AssessmentBreakdown({
         {/* Filter Buttons */}
         {showFilters && (
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-text-tertiary" />
+            <Filter className="w-4 h-4 text-slate-400" />
             <button
+                type="button"
               onClick={() => setFilterMode("all")}
               className={cn(
                 "px-3 py-1 text-sm rounded-full transition-colors",
                 filterMode === "all"
                   ? "bg-primary text-white"
-                  : "bg-surface hover:bg-surface-dark"
+                  : "bg-slate-50 hover:bg-slate-100"
               )}
             >
               All ({responses.length})
             </button>
             <button
+                type="button"
               onClick={() => setFilterMode("correct")}
               className={cn(
                 "px-3 py-1 text-sm rounded-full transition-colors",
                 filterMode === "correct"
                   ? "bg-success text-white"
-                  : "bg-surface hover:bg-surface-dark"
+                  : "bg-slate-50 hover:bg-slate-100"
               )}
             >
               Correct ({correctCount})
             </button>
             <button
+                type="button"
               onClick={() => setFilterMode("incorrect")}
               className={cn(
                 "px-3 py-1 text-sm rounded-full transition-colors",
                 filterMode === "incorrect"
                   ? "bg-error text-white"
-                  : "bg-surface hover:bg-surface-dark"
+                  : "bg-slate-50 hover:bg-slate-100"
               )}
             >
               Incorrect ({incorrectCount})
@@ -189,6 +194,7 @@ export function AssessmentBreakdown({
             >
               {/* Header - Always Visible */}
               <button
+                type="button"
                 onClick={() => toggleExpanded(response.id)}
                 className="w-full p-4 flex items-center gap-4 text-left hover:bg-white/50 transition-colors"
               >
@@ -223,7 +229,7 @@ export function AssessmentBreakdown({
                   <div className="font-medium text-text truncate">
                     {details?.question_text || `Question ${index + 1}`}
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-text-secondary mt-1">
+                  <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
                     <span className="capitalize">{response.module}</span>
                     <span>•</span>
                     <span className={difficulty.color}>{difficulty.label}</span>
@@ -242,20 +248,20 @@ export function AssessmentBreakdown({
                 {/* Expand Icon */}
                 <div className="shrink-0">
                   {isExpanded ? (
-                    <ChevronUp className="w-5 h-5 text-text-tertiary" />
+                    <ChevronUp className="w-5 h-5 text-slate-400" />
                   ) : (
-                    <ChevronDown className="w-5 h-5 text-text-tertiary" />
+                    <ChevronDown className="w-5 h-5 text-slate-400" />
                   )}
                 </div>
               </button>
 
               {/* Expanded Content */}
               {isExpanded && details && (
-                <CardContent className="border-t border-border bg-white pt-4">
+                <CardContent className="border-t border-slate-200 bg-white pt-4">
                   {/* Full Question Text */}
                   <div className="mb-4">
                     <h4 className="font-medium text-text mb-2">Question:</h4>
-                    <p className="text-text-secondary">
+                    <p className="text-slate-500">
                       {details.question_text}
                     </p>
                   </div>
@@ -276,7 +282,7 @@ export function AssessmentBreakdown({
                               ? "border-success bg-success/10"
                               : isChosen
                                 ? "border-error bg-error/10"
-                                : "border-border bg-surface"
+                                : "border-slate-200 bg-slate-50"
                           )}
                         >
                           {/* Option Key */}
@@ -287,14 +293,14 @@ export function AssessmentBreakdown({
                                 ? "bg-success text-white"
                                 : isChosen
                                   ? "bg-error text-white"
-                                  : "bg-surface-dark text-text-secondary"
+                                  : "bg-slate-100 text-slate-500"
                             )}
                           >
                             {key}
                           </span>
 
                           {/* Option Text */}
-                          <span className="flex-1 text-text-secondary">
+                          <span className="flex-1 text-slate-500">
                             {text}
                           </span>
 
@@ -313,7 +319,7 @@ export function AssessmentBreakdown({
                   {/* IRT Info (if available) */}
                   {(details.difficulty !== null ||
                     details.discrimination !== null) && (
-                    <div className="flex items-center gap-4 text-xs text-text-tertiary pt-3 border-t border-border">
+                    <div className="flex items-center gap-4 text-xs text-slate-400 pt-3 border-t border-slate-200">
                       <span className="flex items-center gap-1">
                         <Brain className="w-3 h-3" />
                         IRT Parameters:
@@ -342,7 +348,7 @@ export function AssessmentBreakdown({
         <Card>
           <CardContent className="p-8 text-center">
             <div className="text-4xl mb-3">
-              {filterMode === "correct" ? "🎉" : filterMode === "incorrect" ? "✨" : "📝"}
+              {FILTER_ICONS[filterMode] ?? "📝"}
             </div>
             <h3 className="font-medium text-text mb-1">
               {filterMode === "correct"
@@ -351,7 +357,7 @@ export function AssessmentBreakdown({
                   ? "Great! No incorrect answers!"
                   : "No questions found"}
             </h3>
-            <p className="text-sm text-text-secondary">
+            <p className="text-sm text-slate-500">
               {filterMode !== "all" && "Try changing the filter to see more questions."}
             </p>
           </CardContent>

@@ -1,7 +1,5 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase-server";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 // Format time in seconds to readable string
@@ -28,16 +26,16 @@ function formatRelativeTime(dateString: string): string {
 
 // Get skill level from score
 function getSkillLevel(score: number): { label: string; color: string } {
-  if (score >= 80) return { label: "Advanced", color: "bg-success text-white" };
+  if (score >= 80) return { label: "Advanced", color: "bg-emerald-500 text-white" };
   if (score >= 60)
-    return { label: "Intermediate", color: "bg-warning text-white" };
+    return { label: "Intermediate", color: "bg-amber-400 text-white" };
   return { label: "Beginner", color: "bg-info text-white" };
 }
 
 // Get score circle background color
 function getScoreCircleColor(score: number): string {
-  if (score >= 80) return "bg-success";
-  if (score >= 60) return "bg-warning";
+  if (score >= 80) return "bg-emerald-500";
+  if (score >= 60) return "bg-amber-400";
   return "bg-error";
 }
 
@@ -140,58 +138,40 @@ export default async function StudentAssessmentsPage() {
   const hasHistory = assessmentHistory.length > 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream to-surface page-layout">
-      <div className="container-responsive max-w-6xl">
-        {/* Header */}
-        <div className="mb-responsive">
-          <Link
-            href="/app/dashboard"
-            className="text-primary hover:text-primary-dark mb-4 inline-flex items-center gap-1 text-sm md:text-base touch-target"
-          >
-            ← Back to Dashboard
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+      <div className="max-w-2xl mx-auto space-y-4">
+        {/* Banner */}
+        <div className="rounded-[32px] p-6 text-white" style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" }}>
+          <Link href="/app/student/dashboard" className="inline-flex items-center gap-2 text-white/80 text-xs font-black uppercase tracking-widest mb-4">
+            ← Dashboard
           </Link>
-          <h1 className="heading-1 text-primary mb-2">📝 Assessments</h1>
-          <p className="text-text-secondary text-sm md:text-base">
-            View and complete your assessments
-          </p>
+          <h1 className="text-xl sm:text-2xl font-black mb-1">Assessments 📝</h1>
+          <p className="text-white/80 text-sm font-bold">Test your digital literacy skills</p>
         </div>
 
-        {/* Quick Start Card */}
-        <Card className="card-responsive mb-responsive bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-          <CardContent className="py-6">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-bold text-primary mb-1">
-                  Start a New Assessment
-                </h2>
-                <p className="text-text-secondary text-sm">
-                  Test your digital literacy skills with our comprehensive
-                  assessment
-                </p>
-              </div>
-              <Link href="/app/assessment/start">
-                <Button className="bg-primary hover:bg-primary-dark text-white whitespace-nowrap">
-                  Start Assessment
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Start New */}
+        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 flex items-center justify-between gap-4">
+          <div>
+            <h2 className="font-black text-slate-800 mb-1">Start a New Assessment</h2>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Comprehensive Digital Literacy Test</p>
+          </div>
+          <Link
+            href="/app/assessment/start"
+            className="px-5 py-3 rounded-2xl font-black text-sm text-white shrink-0 transition-all active:scale-95"
+            style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)", boxShadow: "0 4px 14px rgba(249,136,25,0.39)" }}
+          >
+            Start
+          </Link>
+        </div>
 
         {/* Assessment History */}
-        <Card className="card-responsive">
-          <CardHeader>
-            <CardTitle className="text-lg md:text-xl flex items-center gap-2">
-              <span>📊</span>
-              Assessment History
-              {hasHistory && (
-                <span className="text-sm font-normal text-text-secondary">
-                  ({assessmentHistory.length} completed)
-                </span>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-black text-slate-800 text-lg">📊 History</h2>
+            {hasHistory && (
+              <span className="text-xs font-black text-slate-400 uppercase tracking-widest">{assessmentHistory.length} completed</span>
+            )}
+          </div>
             {hasHistory ? (
               <div className="space-y-3">
                 {assessmentHistory.map((assessment) => {
@@ -199,7 +179,7 @@ export default async function StudentAssessmentsPage() {
                   return (
                     <div
                       key={assessment.id}
-                      className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-surface rounded-lg border border-border-light gap-3"
+                      className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-slate-50 rounded-2xl gap-3"
                     >
                       <div className="flex items-center gap-4">
                         {/* Score Circle */}
@@ -208,7 +188,7 @@ export default async function StudentAssessmentsPage() {
                         </div>
                         <div>
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="font-medium text-text-primary">
+                            <span className="font-medium text-slate-800">
                               Digital Literacy Assessment
                             </span>
                             <span
@@ -217,25 +197,22 @@ export default async function StudentAssessmentsPage() {
                               {skillLevel.label}
                             </span>
                           </div>
-                          <p className="text-sm text-text-secondary">
+                          <p className="text-sm text-slate-500">
                             {assessment.correctAnswers}/
                             {assessment.totalQuestions} correct •{" "}
                             {formatTime(assessment.timeSpent)}
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3 sm:flex-col sm:items-end">
-                        <span className="text-sm text-text-tertiary">
-                          {formatRelativeTime(
-                            assessment.submitted_at || assessment.started_at,
-                          )}
+                      <div className="flex items-center gap-3 sm:flex-col sm:items-end shrink-0">
+                        <span className="text-xs font-black text-slate-400">
+                          {formatRelativeTime(assessment.submitted_at || assessment.started_at)}
                         </span>
                         <Link
                           href={`/app/assessments/${assessment.id}`}
+                          className="px-3 py-1.5 rounded-xl border-2 border-slate-200 text-xs font-black text-slate-600 hover:border-orange-400 hover:text-orange-500 transition-all"
                         >
-                          <Button variant="outline" size="sm">
-                            View Details
-                          </Button>
+                          View
                         </Link>
                       </div>
                     </div>
@@ -243,64 +220,35 @@ export default async function StudentAssessmentsPage() {
                 })}
               </div>
             ) : (
-              <div className="text-center py-8 md:py-12">
+              <div className="text-center py-10">
                 <div className="text-4xl mb-4">📚</div>
-                <p className="text-text-tertiary text-base md:text-lg font-medium">
-                  No assessments completed yet
-                </p>
-                <p className="text-text-secondary text-sm mt-2 px-4 max-w-md mx-auto">
-                  Take your first assessment to test your digital literacy
-                  skills and track your progress over time.
-                </p>
-                <Link href="/app/assessment/start">
-                  <Button className="mt-4 bg-primary hover:bg-primary-dark text-white">
-                    Take Your First Assessment
-                  </Button>
+                <p className="font-black text-slate-800 text-lg mb-1">No assessments yet</p>
+                <p className="text-sm font-bold text-slate-400 mb-6">Take your first assessment to track progress</p>
+                <Link
+                  href="/app/assessment/start"
+                  className="px-6 py-3 rounded-2xl font-black text-sm text-white transition-all active:scale-95 inline-block"
+                  style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)", boxShadow: "0 4px 14px rgba(249,136,25,0.39)" }}
+                >
+                  Take First Assessment
                 </Link>
               </div>
             )}
-          </CardContent>
-        </Card>
+        </div>
 
-        {/* Stats Summary (if has history) */}
+        {/* Stats Summary */}
         {hasHistory && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-responsive">
-            <Card className="card-responsive bg-primary/10 border-primary/20">
-              <CardContent className="py-4 text-center">
-                <p className="text-2xl font-bold text-primary">
-                  {assessmentHistory.length}
-                </p>
-                <p className="text-xs text-text-secondary">Total Attempts</p>
-              </CardContent>
-            </Card>
-            <Card className="card-responsive bg-success/10 border-success/20">
-              <CardContent className="py-4 text-center">
-                <p className="text-2xl font-bold text-success-dark">
-                  {Math.round(
-                    assessmentHistory.reduce((sum, a) => sum + a.score, 0) /
-                      assessmentHistory.length,
-                  )}
-                  %
-                </p>
-                <p className="text-xs text-text-secondary">Average Score</p>
-              </CardContent>
-            </Card>
-            <Card className="card-responsive bg-info/10 border-info/20">
-              <CardContent className="py-4 text-center">
-                <p className="text-2xl font-bold text-info-dark">
-                  {Math.max(...assessmentHistory.map((a) => a.score))}%
-                </p>
-                <p className="text-xs text-text-secondary">Best Score</p>
-              </CardContent>
-            </Card>
-            <Card className="card-responsive bg-warning/10 border-warning/20">
-              <CardContent className="py-4 text-center">
-                <p className="text-2xl font-bold text-warning-dark">
-                  {assessmentHistory.filter((a) => a.score >= 60).length}
-                </p>
-                <p className="text-xs text-text-secondary">Passed (60%+)</p>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-2 gap-4">
+            {[
+              { value: assessmentHistory.length, label: "Total Attempts", color: "bg-orange-50 text-orange-600" },
+              { value: `${Math.round(assessmentHistory.reduce((sum, a) => sum + a.score, 0) / assessmentHistory.length)}%`, label: "Avg Score", color: "bg-emerald-50 text-emerald-600" },
+              { value: `${Math.max(...assessmentHistory.map((a) => a.score))}%`, label: "Best Score", color: "bg-blue-50 text-blue-600" },
+              { value: assessmentHistory.filter((a) => a.score >= 60).length, label: "Passed (60%+)", color: "bg-purple-50 text-purple-600" },
+            ].map((stat) => (
+              <div key={stat.label} className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-center">
+                <p className={`text-xl sm:text-2xl font-black mb-1 ${stat.color.split(" ")[1]}`}>{stat.value}</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
+              </div>
+            ))}
           </div>
         )}
       </div>

@@ -39,11 +39,11 @@ export function TeacherSetPasswordStep({
       "bg-cyan",
       "bg-success",
     ];
-    return colors[state.passwordStrength] || "bg-surface-dark";
+    return colors[state.passwordStrength] || "bg-slate-100";
   };
 
   return (
-    <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
       <AuthCard
         title="Create Password"
         description="Step 2 of 4: Secure your account"
@@ -73,12 +73,12 @@ export function TeacherSetPasswordStep({
                       className={`h-1 flex-1 rounded ${
                         strength <= state.passwordStrength
                           ? getPasswordStrengthColor()
-                          : "bg-surface-dark"
+                          : "bg-slate-100"
                       }`}
                     />
                   ))}
                 </div>
-                <p className="text-xs text-text-secondary">
+                <p className="text-xs text-slate-500">
                   Strength: {getPasswordStrengthLabel()}
                 </p>
                 {/* Show validation errors */}

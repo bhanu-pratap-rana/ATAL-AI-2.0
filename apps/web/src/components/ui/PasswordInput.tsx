@@ -97,7 +97,7 @@ export function PasswordInput({
           <button
             type="button"
             onClick={() => handleShowPasswordChange(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text disabled:opacity-50"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-text disabled:opacity-50"
             disabled={disabled}
             aria-label={showPassword ? ariaLabelHide : ariaLabelShow}
           >
@@ -116,7 +116,7 @@ export function PasswordInput({
         </p>
       )}
       {!error && helpText && (
-        <p id={ariaDescribedBy} className="text-xs text-text-secondary">
+        <p id={ariaDescribedBy} className="text-xs text-slate-500">
           {helpText}
         </p>
       )}

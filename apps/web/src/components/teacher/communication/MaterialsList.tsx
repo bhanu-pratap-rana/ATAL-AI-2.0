@@ -74,10 +74,10 @@ export function MaterialsList({ materials, classId: _classId }: MaterialsListPro
         <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
           <span className="text-3xl">📁</span>
         </div>
-        <h3 className="text-lg font-semibold text-text-primary mb-2">
+        <h3 className="text-lg font-semibold text-slate-800 mb-2">
           No materials shared yet
         </h3>
-        <p className="text-text-secondary text-sm">
+        <p className="text-slate-500 text-sm">
           Add learning materials to help your students.
         </p>
       </div>
@@ -98,7 +98,7 @@ export function MaterialsList({ materials, classId: _classId }: MaterialsListPro
         const url = material.external_url || material.file_url;
 
         return (
-          <Card key={material.id} className="border-border hover:shadow-sm transition-shadow">
+          <Card key={material.id} className="border-slate-200 hover:shadow-sm transition-shadow">
             <CardHeader className="pb-2">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
@@ -135,7 +135,7 @@ export function MaterialsList({ materials, classId: _classId }: MaterialsListPro
                     size="sm"
                     onClick={() => setConfirmDeleteId(material.id)}
                     disabled={deletingId === material.id}
-                    className="text-text-tertiary hover:text-error"
+                    className="text-slate-400 hover:text-error"
                   >
                     {deletingId === material.id ? "..." : "🗑️"}
                   </Button>
@@ -145,15 +145,15 @@ export function MaterialsList({ materials, classId: _classId }: MaterialsListPro
             {(material.description || url) && (
               <CardContent className="pt-0">
                 {material.description && (
-                  <p className="text-text-secondary text-sm mb-2">
+                  <p className="text-slate-500 text-sm mb-2">
                     {material.description}
                   </p>
                 )}
                 {url && (
                   <div className="flex items-center gap-2 text-sm">
-                    <span className="text-text-tertiary">Downloads:</span>
+                    <span className="text-slate-400">Downloads:</span>
                     <span className="font-medium">{material.download_count}</span>
-                    <span className="text-text-tertiary ml-4">Views:</span>
+                    <span className="text-slate-400 ml-4">Views:</span>
                     <span className="font-medium">{material.view_count}</span>
                   </div>
                 )}

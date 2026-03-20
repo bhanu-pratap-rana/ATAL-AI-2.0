@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase-server";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { getProgressStats } from "@/app/actions/dashboard-stats";
+import { BadgesDisplay } from "@/components/gamification/BadgesDisplay";
 
 // Format time in minutes to readable string
 function formatTime(minutes: number): string {
@@ -28,8 +28,8 @@ function formatRelativeTime(dateString: string): string {
 
 // Get score progress bar color based on performance level
 function getScoreColor(score: number): string {
-  if (score >= 80) return "bg-success";
-  if (score >= 60) return "bg-warning";
+  if (score >= 80) return "bg-emerald-500";
+  if (score >= 60) return "bg-amber-400";
   return "bg-error";
 }
 
@@ -52,184 +52,103 @@ export default async function ProgressPage() {
     (stats?.assessmentsTaken ?? 0) > 0 || (stats?.moduleBreakdown?.length ?? 0) > 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream to-surface page-layout">
-      <div className="container-responsive max-w-6xl">
-        {/* Header */}
-        <div className="mb-responsive text-center sm:text-left">
-          <Link
-            href="/app/dashboard"
-            className="text-primary hover:text-primary-dark mb-4 inline-flex items-center gap-1 text-sm md:text-base touch-target"
-          >
-            ← Back to Dashboard
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+      <div className="max-w-4xl mx-auto space-y-4">
+        {/* Banner */}
+        <div className="rounded-[32px] p-6 text-white" style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" }}>
+          <Link href="/app/student/dashboard" className="inline-flex items-center gap-2 text-white/80 text-xs font-black uppercase tracking-widest mb-4">
+            ← Dashboard
           </Link>
-          <h1 className="heading-1 text-primary mb-2">📊 Progress</h1>
-          <p className="text-text-secondary text-sm md:text-base">
-            Track your learning journey and performance
-          </p>
+          <h1 className="text-xl sm:text-2xl font-black mb-1">Progress 📊</h1>
+          <p className="text-white/80 text-sm font-bold">Track your learning journey and performance</p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-responsive mb-responsive">
-          <Card className="bg-gradient-to-br from-primary/20 to-primary/10 border-primary/30 card-responsive">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-primary-dark text-sm md:text-base">
-                Courses Completed
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl md:text-4xl font-bold text-primary">
-                {stats?.coursesCompleted ?? 0}
-              </p>
-              <p className="text-xs text-text-secondary mt-1">
-                Score ≥60% to complete
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-accent-light to-accent-light/50 border-accent/30 card-responsive">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-accent-dark text-sm md:text-base">
-                Assessments Taken
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl md:text-4xl font-bold text-accent-dark">
-                {stats?.assessmentsTaken ?? 0}
-              </p>
-              <p className="text-xs text-text-secondary mt-1">
-                Total completed
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-success-light to-success-light/50 border-success/30 card-responsive">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-success-dark text-sm md:text-base">
-                Average Score
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl md:text-4xl font-bold text-success-dark">
-                {stats?.averageScore == null ? "--" : `${stats.averageScore}%`}
-              </p>
-              <p className="text-xs text-text-secondary mt-1">
-                Across all attempts
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-info-light to-info-light/50 border-info/30 card-responsive">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-info-dark text-sm md:text-base">
-                Time Spent
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl md:text-4xl font-bold text-info-dark">
-                {stats?.totalTimeSpent
-                  ? formatTime(stats.totalTimeSpent)
-                  : "--"}
-              </p>
-              <p className="text-xs text-text-secondary mt-1">
-                Total learning time
-              </p>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { value: stats?.coursesCompleted ?? 0, label: "Courses Completed", color: "text-orange-600" },
+            { value: stats?.assessmentsTaken ?? 0, label: "Assessments Taken", color: "text-blue-600" },
+            { value: stats?.averageScore == null ? "--" : `${stats.averageScore}%`, label: "Average Score", color: "text-emerald-600" },
+            { value: stats?.totalTimeSpent ? formatTime(stats.totalTimeSpent) : "--", label: "Time Spent", color: "text-purple-600" },
+          ].map((stat) => (
+            <div key={stat.label} className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-center">
+              <p className={`text-xl sm:text-2xl font-black mb-1 ${stat.color}`}>{stat.value}</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
+            </div>
+          ))}
         </div>
 
         {/* Module Breakdown */}
         {hasData && (stats?.moduleBreakdown?.length ?? 0) > 0 && (
-          <Card className="card-responsive mb-responsive">
-            <CardHeader>
-              <CardTitle className="text-lg md:text-xl">
-                Module Performance
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {/* TYPE-001 FIX: Use optional chaining instead of non-null assertion */}
-                {stats?.moduleBreakdown?.map((module) => (
-                  <div key={module.module}>
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-sm font-medium text-text-primary">
-                        {module.module}
-                      </span>
-                      <span className="text-sm text-text-secondary">
-                        {module.correctAnswers}/{module.questionsAttempted}{" "}
-                        correct ({module.averageScore}%)
-                      </span>
-                    </div>
-                    <div className="w-full bg-border rounded-full h-2.5">
-                      <div
-                        className={`h-2.5 rounded-full transition-all duration-500 ${getScoreColor(module.averageScore)}`}
-                        style={{ width: `${module.averageScore}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Recent Assessments */}
-        <Card className="card-responsive">
-          <CardHeader>
-            <CardTitle className="text-lg md:text-xl">
-              Recent Activity
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {hasData && (stats?.recentAssessments?.length ?? 0) > 0 ? (
-              <div className="space-y-3">
-                {/* TYPE-002 FIX: Use optional chaining instead of non-null assertion */}
-                {stats?.recentAssessments?.map((assessment) => (
-                  <div
-                    key={assessment.id}
-                    className="flex items-center justify-between p-3 bg-surface rounded-lg border border-border-light"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${getScoreColor(assessment.score)}`}
-                      >
-                        {assessment.score}%
-                      </div>
-                      <div>
-                        <p className="font-medium text-text-primary">
-                          Assessment Completed
-                        </p>
-                        <p className="text-xs text-text-secondary">
-                          {assessment.totalQuestions} questions •{" "}
-                          {Math.round(assessment.timeSpent / 60)}m
-                        </p>
-                      </div>
-                    </div>
-                    <span className="text-sm text-text-tertiary">
-                      {formatRelativeTime(assessment.completedAt)}
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+            <h2 className="font-black text-slate-800 text-lg mb-4">Module Performance</h2>
+            <div className="space-y-4">
+              {stats?.moduleBreakdown?.map((module) => (
+                <div key={module.module}>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-sm font-black text-slate-700">{module.module}</span>
+                    <span className="text-xs font-bold text-slate-400">
+                      {module.correctAnswers}/{module.questionsAttempted} correct ({module.averageScore}%)
                     </span>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 md:py-12">
-                <div className="text-4xl mb-4">📚</div>
-                <p className="text-text-tertiary text-base md:text-lg font-medium">
-                  No activity yet
-                </p>
-                <p className="text-text-secondary text-sm mt-2 px-4 max-w-md mx-auto">
-                  Take your first assessment to start tracking your learning
-                  progress and see detailed performance metrics here.
-                </p>
-                <Link
-                  href="/app/assessment/start"
-                  className="inline-flex items-center justify-center mt-4 px-6 py-2.5 bg-primary text-white rounded-lg font-medium hover:bg-primary-dark transition-colors"
+                  <div className="w-full bg-slate-100 rounded-full h-1.5">
+                    <div
+                      className={`h-1.5 rounded-full transition-all duration-500 ${getScoreColor(module.averageScore)}`}
+                      style={{ width: `${module.averageScore}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Badges */}
+        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+          <h2 className="font-black text-slate-800 text-lg mb-4">🏅 My Badges</h2>
+          <BadgesDisplay studentId={user.id} showAll={true} />
+        </div>
+
+        {/* Recent Activity */}
+        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+          <h2 className="font-black text-slate-800 text-lg mb-4">Recent Activity</h2>
+          {hasData && (stats?.recentAssessments?.length ?? 0) > 0 ? (
+            <div className="space-y-3">
+              {stats?.recentAssessments?.map((assessment) => (
+                <div
+                  key={assessment.id}
+                  className="flex flex-wrap items-center justify-between gap-2 p-4 bg-slate-50 rounded-2xl"
                 >
-                  Start Your First Assessment
-                </Link>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0 ${getScoreColor(assessment.score)}`}>
+                      {assessment.score}%
+                    </div>
+                    <div>
+                      <p className="font-black text-slate-800 text-sm">Assessment Completed</p>
+                      <p className="text-xs font-bold text-slate-400">
+                        {assessment.totalQuestions} questions • {Math.round(assessment.timeSpent / 60)}m
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-xs font-black text-slate-400">{formatRelativeTime(assessment.completedAt)}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-10">
+              <div className="text-4xl mb-4">📚</div>
+              <p className="font-black text-slate-800 text-lg mb-1">No activity yet</p>
+              <p className="text-sm font-bold text-slate-400 mb-6">Take your first assessment to track progress</p>
+              <Link
+                href="/app/assessment/start"
+                className="px-6 py-3 rounded-2xl font-black text-sm text-white transition-all active:scale-95 inline-block"
+                style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)", boxShadow: "0 4px 14px rgba(249,136,25,0.39)" }}
+              >
+                Start First Assessment
+              </Link>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

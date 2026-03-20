@@ -65,7 +65,7 @@ export function SignInEmailForm({
         authLogger.success("[SignIn Email] Authentication successful");
         toast.success("Login successful!");
         onSuccess();
-        router.push("/app/dashboard");
+        router.push("/app/student/dashboard");
       }
     } catch (error) {
       authLogger.error("[SignIn Email] Unexpected error", error);
@@ -79,7 +79,7 @@ export function SignInEmailForm({
   return (
     <form onSubmit={handleSignInEmail} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="signin-email" className="text-text-primary">
+        <Label htmlFor="signin-email" className="text-slate-800">
           Email Address
         </Label>
         <Input
@@ -94,7 +94,7 @@ export function SignInEmailForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="signin-password" className="text-text-primary">
+        <Label htmlFor="signin-password" className="text-slate-800">
           Password
         </Label>
         <Input
@@ -135,7 +135,7 @@ export function SignInEmailForm({
         <button
           type="button"
           onClick={() => actions.setMainStep("signup")}
-          className="text-text-secondary hover:text-primary hover:underline block w-full transition-colors"
+          className="text-slate-500 hover:text-primary hover:underline block w-full transition-colors"
           disabled={isLoading}
         >
           Don&apos;t have an account? Sign up

@@ -4,9 +4,9 @@
  * Learn Page Header Component
  *
  * Provides consistent header across Learn pages with:
- * - Back to Dashboard link (translated)
+ * - Back to Dashboard link
  * - Language selector with localStorage persistence
- * - Page title and description (can use translation keys)
+ * - Page title
  */
 
 import Link from "next/link";
@@ -16,8 +16,6 @@ import { useLanguage } from "@/lib/i18n";
 interface LearnHeaderProps {
   /** Title to display - can be a translation key like "learn.yourPath" or plain text */
   readonly title?: string;
-  /** Description to display - can be a translation key or plain text */
-  readonly description?: string;
   /** Custom back link (overrides default) */
   readonly backLink?: {
     href: string;
@@ -25,56 +23,39 @@ interface LearnHeaderProps {
   };
   /** Whether to show the language selector */
   readonly showLanguageSelector?: boolean;
-  /** Use translation keys for title/description instead of literal strings */
+  /** Use translation keys for title instead of literal strings */
   readonly useTranslationKeys?: boolean;
 }
 
 export function LearnHeader({
   title,
-  description,
   backLink,
   showLanguageSelector = true,
   useTranslationKeys = false,
 }: LearnHeaderProps) {
   const { t } = useLanguage();
 
-  // Resolve title - use translation key or literal string
   const displayTitle = useTranslationKeys && title
     ? t(title)
     : title || t("learn.yourPath");
 
-  // Resolve description
-  const displayDescription = useTranslationKeys && description
-    ? t(description)
-    : description || t("learn.masterDigitalLiteracy");
-
-  // Resolve back link
   const resolvedBackLink = backLink || {
     href: "/app/dashboard",
-    label: t("nav.backToDashboard"),
+    label: "",
   };
 
   return (
-    <div className="space-y-4">
-      {/* Navigation Row */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+    <div className="flex items-center justify-between gap-3 mb-6">
+      <div className="flex items-center gap-3">
         <Link
           href={resolvedBackLink.href}
-          className="inline-flex items-center text-sm text-text-secondary hover:text-primary transition-colors"
+          className="w-9 h-9 bg-white rounded-xl border border-slate-100 shadow-sm flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors flex-shrink-0"
         >
-          ← {resolvedBackLink.label}
+          ←
         </Link>
-
-        {showLanguageSelector && <LanguageSelector />}
+        <h1 className="text-xl sm:text-2xl font-black text-slate-800">{displayTitle}</h1>
       </div>
-
-      {/* Title */}
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold">{displayTitle}</h1>
-        {displayDescription && (
-          <p className="text-text-secondary">{displayDescription}</p>
-        )}
-      </div>
+      {showLanguageSelector && <LanguageSelector variant="compact" />}
     </div>
   );
 }

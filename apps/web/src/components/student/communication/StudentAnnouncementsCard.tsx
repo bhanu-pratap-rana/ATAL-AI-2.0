@@ -97,7 +97,7 @@ export function StudentAnnouncementsCard({
             <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-3">
               <span className="text-2xl">📭</span>
             </div>
-            <p className="text-text-secondary text-sm">
+            <p className="text-slate-500 text-sm">
               No announcements from your teacher yet.
             </p>
           </div>
@@ -113,7 +113,7 @@ export function StudentAnnouncementsCard({
                       ? "border-primary/30 bg-primary/5"
                       : isUnread
                       ? "border-info/30 bg-info/5"
-                      : "border-border bg-surface"
+                      : "border-slate-200 bg-slate-50"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2 mb-2">
@@ -124,7 +124,7 @@ export function StudentAnnouncementsCard({
                       {isUnread && (
                         <span className="w-2 h-2 bg-info rounded-full" title="New" />
                       )}
-                      <h4 className="font-semibold text-text-primary">
+                      <h4 className="font-semibold text-slate-800">
                         {announcement.title}
                       </h4>
                     </div>
@@ -135,10 +135,10 @@ export function StudentAnnouncementsCard({
                       {priorityConfig[announcement.priority].label}
                     </Badge>
                   </div>
-                  <p className="text-sm text-text-secondary whitespace-pre-wrap mb-2">
+                  <p className="text-sm text-slate-500 whitespace-pre-wrap mb-2">
                     {announcement.body}
                   </p>
-                  <p className="text-xs text-text-tertiary">
+                  <p className="text-xs text-slate-400">
                     {formatRelativeTime(announcement.created_at)}
                   </p>
                 </div>

@@ -95,7 +95,7 @@ export default function AdminSetupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-surface via-background to-white flex items-center justify-center p-4">
       <div className="absolute top-4 left-4">
         <Button
           onClick={() => (globalThis.location.href = "/admin/login")}
@@ -139,7 +139,7 @@ export default function AdminSetupPage() {
               disabled={isLoading}
               className="focus:ring-primary focus:border-primary"
             />
-            <p className="text-xs text-text-secondary">
+            <p className="text-xs text-slate-500">
               Enter the email of the user account you want to make admin
             </p>
           </div>
@@ -225,11 +225,11 @@ export default function AdminSetupPage() {
           </div>
 
           {/* Troubleshooting Box */}
-          <div className="bg-surface border border-border rounded-lg p-4">
-            <p className="text-sm text-text-primary font-semibold mb-2">
+          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+            <p className="text-sm text-slate-800 font-semibold mb-2">
               🔧 Troubleshooting:
             </p>
-            <ul className="text-xs text-text-secondary space-y-1">
+            <ul className="text-xs text-slate-500 space-y-1">
               <li>
                 <strong>User not found:</strong> Make sure the user exists in
                 Supabase Users list

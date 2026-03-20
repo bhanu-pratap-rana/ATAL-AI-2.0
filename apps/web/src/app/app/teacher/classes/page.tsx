@@ -1,97 +1,90 @@
 import { redirect } from "next/navigation";
 import { createClient, getCurrentUser } from "@/lib/supabase-server";
 import { authLogger } from "@/lib/auth-logger";
-import { CreateClassDialog } from "@/components/teacher/CreateClassDialog";
-import { ClassCard } from "@/components/teacher/ClassCard";
-import { ProfileButton } from "@/components/teacher/ProfileButton";
-import { SignOutButton } from "@/components/teacher/SignOutButton";
+import { isTeacherOrHigher } from "@/lib/auth/role-utils";
+import { StudentsListClient } from "@/components/teacher/StudentsListClient";
 
-interface Class {
-  id: string;
-  name: string;
-  class_code: string;
-  teacher_id: string;
-  created_at: string;
+export interface StudentRow {
+  studentId: string;
+  name: string | null;
+  lastActiveAt: string | null;
+  avgMastery: number | null;
 }
 
-interface TeacherData {
-  classes: Class[];
-}
-
-async function getTeacherData(userId: string): Promise<TeacherData> {
+async function getTeacherStudents(teacherId: string): Promise<StudentRow[]> {
   try {
     const supabase = await createClient();
 
-    // PERF-004 FIX: Select only needed columns instead of SELECT *
-    const { data: classes, error } = await supabase
+    const { data: classes, error: classErr } = await supabase
       .from("classes")
-      .select("id, name, class_code, teacher_id, created_at")
-      .eq("teacher_id", userId)
-      .order("created_at", { ascending: false });
+      .select("id")
+      .eq("teacher_id", teacherId);
 
-    if (error && Object.keys(error).length > 0) {
-      authLogger.error("[getTeacherData] Failed to fetch classes", error);
+    if (classErr || !classes?.length) return [];
+
+    const classIds = classes.map((c) => c.id);
+
+    const { data: enrollments, error: enrollErr } = await supabase
+      .from("enrollments")
+      .select("student_id")
+      .in("class_id", classIds);
+
+    if (enrollErr || !enrollments?.length) return [];
+
+    const studentIds = [...new Set(enrollments.map((e) => e.student_id))];
+
+    const [profilesRes, knowledgeRes] = await Promise.all([
+      supabase
+        .from("student_profiles")
+        .select("user_id, name")
+        .in("user_id", studentIds),
+      supabase
+        .from("student_knowledge_state")
+        .select("student_id, mastery_score, last_attempt_at")
+        .in("student_id", studentIds),
+    ]);
+
+    if (profilesRes.error) {
+      authLogger.error("[getTeacherStudents] profiles error", profilesRes.error);
     }
 
-    return {
-      classes: classes || [],
-    };
+    const profileMap = new Map((profilesRes.data ?? []).map((p) => [p.user_id, p.name]));
+
+    const masteryMap = new Map<string, { total: number; count: number; lastActive: string | null }>();
+    for (const row of knowledgeRes.data ?? []) {
+      const existing = masteryMap.get(row.student_id);
+      const prevLast = existing?.lastActive ?? "";
+      const rowLast = row.last_attempt_at ?? "";
+      masteryMap.set(row.student_id, {
+        total: (existing?.total ?? 0) + (row.mastery_score ?? 0),
+        count: (existing?.count ?? 0) + 1,
+        lastActive: rowLast > prevLast ? rowLast : (existing?.lastActive ?? null),
+      });
+    }
+
+    return studentIds
+      .map((id) => {
+        const mastery = masteryMap.get(id);
+        return {
+          studentId: id,
+          name: profileMap.get(id) ?? null,
+          lastActiveAt: mastery?.lastActive ?? null,
+          avgMastery: mastery ? Math.round(mastery.total / mastery.count) : null,
+        };
+      })
+      .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
   } catch (error) {
-    authLogger.error("[getTeacherData] Unexpected error", error);
-    return {
-      classes: [],
-    };
+    authLogger.error("[getTeacherStudents] unexpected error", error);
+    return [];
   }
 }
 
 export default async function TeacherClassesPage() {
   const user = await getCurrentUser();
+  if (!user) redirect("/teacher/start");
+  if (!isTeacherOrHigher(user.app_metadata?.role)) redirect("/app/dashboard");
 
-  if (!user) {
-    redirect("/teacher/start");
-  }
+  const students = await getTeacherStudents(user.id);
 
-  const { classes } = await getTeacherData(user.id);
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-cream via-surface to-cyan-lightest page-layout">
-      <div className="container-responsive max-w-7xl">
-        {/* Header - Mobile Responsive */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-responsive">
-          <div className="text-center sm:text-left">
-            <h1 className="heading-1 bg-gradient-to-r from-primary via-primary-dark to-cyan bg-clip-text text-transparent">
-              My Classes
-            </h1>
-            <p className="text-text-secondary mt-2 text-sm md:text-base">
-              Manage your classes and students
-            </p>
-          </div>
-          <div className="flex items-center justify-center sm:justify-end gap-3 sm:gap-4">
-            <CreateClassDialog />
-            <ProfileButton />
-            <SignOutButton />
-          </div>
-        </div>
-
-        {/* Classes Grid */}
-        {classes.length === 0 ? (
-          <div className="text-center py-12 md:py-16 px-4">
-            <div className="w-20 h-20 md:w-24 md:h-24 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-4xl md:text-5xl">📚</span>
-            </div>
-            <h2 className="heading-2 text-text-primary mb-2">No classes yet</h2>
-            <p className="text-text-secondary mb-6 text-sm md:text-base">
-              Create your first class to get started
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-responsive">
-            {classes.map((classItem: Class) => (
-              <ClassCard key={classItem.id} classData={classItem} />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
+  return <StudentsListClient students={students} />;
 }

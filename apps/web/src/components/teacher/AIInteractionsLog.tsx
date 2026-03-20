@@ -130,8 +130,8 @@ export function AIInteractionsLog({
         {[1, 2, 3].map((i) => (
           <Card key={`interaction-skeleton-${i}`} className="animate-pulse">
             <CardContent className="p-4">
-              <div className="h-4 bg-surface rounded w-1/4 mb-2" />
-              <div className="h-3 bg-surface rounded w-3/4" />
+              <div className="h-4 bg-slate-50 rounded w-1/4 mb-2" />
+              <div className="h-3 bg-slate-50 rounded w-3/4" />
             </CardContent>
           </Card>
         ))}
@@ -149,7 +149,7 @@ export function AIInteractionsLog({
 
   if (interactions.length === 0) {
     return (
-      <div className="text-center py-8 text-text-secondary">
+      <div className="text-center py-8 text-slate-500">
         <p>No AI tutor interactions yet.</p>
         <p className="text-sm mt-1">
           Interactions will appear here when students use the AI tutor.
@@ -220,7 +220,7 @@ function getMessageBoxClass(messageRole: MessageRole): string {
     case "user":
       return "bg-primary/10 ml-8";
     case "assistant":
-      return "bg-surface mr-8";
+      return "bg-slate-50 mr-8";
     case "system":
       return "bg-warning/10 text-xs";
   }
@@ -271,7 +271,7 @@ function SessionCard({ session }: { readonly session: Session }) {
         tabIndex={0}
         aria-expanded={isExpanded}
         aria-label={`${isExpanded ? "Collapse" : "Expand"} conversation: ${truncate(firstQuestion, 40)}`}
-        className="py-3 cursor-pointer hover:bg-surface-dark/50 transition-colors"
+        className="py-3 cursor-pointer hover:bg-slate-100/50 transition-colors"
         onClick={() => setIsExpanded(!isExpanded)}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -290,13 +290,13 @@ function SessionCard({ session }: { readonly session: Session }) {
               <CardTitle className="text-sm font-medium">
                 {truncate(firstQuestion, 60)}
               </CardTitle>
-              <p className="text-xs text-text-secondary">
+              <p className="text-xs text-slate-500">
                 {formatTime(session.startTime)} • {session.messages.length}{" "}
                 messages • {session.totalTokens} tokens
               </p>
             </div>
           </div>
-          <span className="text-text-secondary" aria-hidden="true">
+          <span className="text-slate-500" aria-hidden="true">
             {isExpanded ? "▲" : "▼"}
           </span>
         </div>
@@ -321,7 +321,7 @@ function SessionCard({ session }: { readonly session: Session }) {
                       {getMessageRoleLabel(message.message_role)}
                     </span>
                     {message.input_mode === "voice" && (
-                      <span className="text-xs text-text-secondary">🎤</span>
+                      <span className="text-xs text-slate-500">🎤</span>
                     )}
                   </div>
                   <p className="whitespace-pre-wrap break-words">

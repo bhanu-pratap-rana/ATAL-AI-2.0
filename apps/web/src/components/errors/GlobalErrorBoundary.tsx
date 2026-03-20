@@ -45,26 +45,26 @@ export class GlobalErrorBoundary extends React.Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-cream flex items-center justify-center p-4">
+        <div className="min-h-screen bg-orange-50 flex items-center justify-center p-4">
           <div className="max-w-lg w-full bg-white rounded-2xl shadow-lg p-8 text-center" role="alert" aria-labelledby="global-error-heading">
             {/* Error Icon */}
             <div className="w-20 h-20 bg-error/10 rounded-full flex items-center justify-center mx-auto mb-6">
-              <span className="text-5xl">😕</span>
+              <span className="text-4xl sm:text-5xl">😕</span>
             </div>
 
             {/* Error Message */}
-            <h1 id="global-error-heading" className="text-3xl font-bold text-text-primary mb-3">
+            <h1 id="global-error-heading" className="text-xl sm:text-3xl font-bold text-slate-800 mb-3">
               Something Went Wrong
             </h1>
-            <p className="text-text-secondary mb-8">
+            <p className="text-slate-500 mb-8">
               We encountered an unexpected error. Don&apos;t worry, your data is
               safe. Please try reloading the page or go back to the dashboard.
             </p>
 
             {/* Error Details (collapsed by default) */}
             {this.state.error && (
-              <details className="text-left mb-8 p-4 bg-surface rounded-lg">
-                <summary className="cursor-pointer text-sm font-medium text-text-secondary mb-2">
+              <details className="text-left mb-8 p-4 bg-slate-50 rounded-lg">
+                <summary className="cursor-pointer text-sm font-medium text-slate-500 mb-2">
                   Error Details
                 </summary>
                 <pre className="text-xs text-error overflow-auto max-h-40">
@@ -78,6 +78,7 @@ export class GlobalErrorBoundary extends React.Component<Props, State> {
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
               <button
+                type="button"
                 onClick={this.handleReload}
                 className="flex-1 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium"
               >
@@ -85,15 +86,15 @@ export class GlobalErrorBoundary extends React.Component<Props, State> {
               </button>
               <Link
                 href="/app/dashboard"
-                className="flex-1 px-6 py-3 bg-white text-text-secondary border-2 border-border rounded-lg hover:bg-surface-dark transition-colors font-medium inline-flex items-center justify-center"
+                className="flex-1 px-6 py-3 bg-white text-slate-500 border-2 border-slate-200 rounded-lg hover:bg-slate-100 transition-colors font-medium inline-flex items-center justify-center"
               >
                 Go to Dashboard
               </Link>
             </div>
 
             {/* Support Link */}
-            <div className="pt-6 border-t border-border">
-              <p className="text-sm text-text-secondary mb-2">Need help?</p>
+            <div className="pt-6 border-t border-slate-200">
+              <p className="text-sm text-slate-500 mb-2">Need help?</p>
               <Link
                 href="/app/settings"
                 className="text-primary hover:underline text-sm font-medium"

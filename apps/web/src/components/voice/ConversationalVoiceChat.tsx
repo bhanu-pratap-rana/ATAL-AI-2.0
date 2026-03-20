@@ -198,7 +198,7 @@ export function ConversationalVoiceChat({
           {getStateLabel(state)}
         </p>
         {state === "speaking" && (
-          <p className="text-sm text-text-tertiary mt-1">Tap to interrupt</p>
+          <p className="text-sm text-slate-400 mt-1">Tap to interrupt</p>
         )}
         {/* Show hint that mic will auto-open after AI finishes */}
         {showTapHint && state === "idle" && (
@@ -211,8 +211,8 @@ export function ConversationalVoiceChat({
       {/* Interim Transcript */}
       {interimTranscript && (
         <div className="w-full max-w-full sm:max-w-md px-4 mb-4">
-          <div className="bg-surface-dark rounded-2xl px-4 py-3 sm:px-6 sm:py-4 text-center">
-            <p className="text-sm sm:text-base text-text-primary italic break-words">&quot;{interimTranscript}&quot;</p>
+          <div className="bg-slate-100 rounded-2xl px-4 py-3 sm:px-6 sm:py-4 text-center">
+            <p className="text-sm sm:text-base text-slate-800 italic break-words">&quot;{interimTranscript}&quot;</p>
           </div>
         </div>
       )}
@@ -223,6 +223,7 @@ export function ConversationalVoiceChat({
           <div className="bg-error/10 border border-error/30 rounded-2xl px-6 py-4 text-center">
             <p className="text-error text-sm">{error}</p>
             <button
+                type="button"
               onClick={startListening}
               className="mt-3 px-6 py-2.5 min-h-[44px] text-sm sm:text-base bg-primary/10 text-primary font-medium rounded-lg hover:bg-primary/20 transition-colors"
             >
@@ -233,7 +234,7 @@ export function ConversationalVoiceChat({
       )}
 
       {/* Language Indicator */}
-      <div className="flex items-center gap-2 text-xs sm:text-sm text-text-tertiary">
+      <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-400">
         <span className="w-2 h-2 rounded-full bg-success" />
         {autoDetectLanguage ? (
           <span>
@@ -324,7 +325,7 @@ function getStateLabel(state: VoiceState): string {
 function getStateTextColor(state: VoiceState): string {
   switch (state) {
     case "idle":
-      return "text-text-secondary";
+      return "text-slate-500";
     case "listening":
       return "text-success";
     case "processing":

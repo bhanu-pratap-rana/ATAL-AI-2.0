@@ -40,7 +40,7 @@ export function AssessmentTimer({
 
   return (
     <div
-      className={`inline-flex items-center gap-2 text-text-secondary ${className}`}
+      className={`inline-flex items-center gap-2 text-slate-500 ${className}`}
       role="timer"
       aria-label={`Elapsed time: ${formatTimeMMSS(elapsedSeconds)}`}
     >
@@ -71,7 +71,7 @@ export function CompactTimer({
 
   return (
     <span
-      className="text-sm font-mono font-medium text-text-tertiary tabular-nums"
+      className="text-sm font-mono font-medium text-slate-400 tabular-nums"
       role="timer"
       aria-label={`Elapsed time: ${formatTimeMMSS(elapsedSeconds)}`}
     >

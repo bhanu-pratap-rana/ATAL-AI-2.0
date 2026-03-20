@@ -29,7 +29,7 @@ export function PostAssessmentPrompt({ open, onDismiss }: PostAssessmentPromptPr
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <div className="text-center mb-2">
-            <span className="text-5xl block mb-3">🎓</span>
+            <span className="text-4xl sm:text-5xl block mb-3">🎓</span>
           </div>
           <DialogTitle className="text-center text-xl">
             Congratulations! Curriculum Complete!
@@ -59,7 +59,7 @@ export function PostAssessmentPrompt({ open, onDismiss }: PostAssessmentPromptPr
           <Button
             variant="ghost"
             onClick={onDismiss}
-            className="w-full text-text-tertiary"
+            className="w-full text-slate-400"
           >
             Remind me later
           </Button>

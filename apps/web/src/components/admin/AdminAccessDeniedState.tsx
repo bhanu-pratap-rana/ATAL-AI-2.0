@@ -12,7 +12,7 @@ export function AdminAccessDeniedState({
   onNavigateToLogin,
 }: AdminAccessDeniedStateProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-surface via-background to-white flex items-center justify-center p-4">
       <div className="absolute top-4 left-4">
         <Button
           onClick={onNavigateToLogin}
@@ -45,11 +45,11 @@ export function AdminAccessDeniedState({
             </div>
           </div>
 
-          <div className="bg-surface border border-border rounded-lg p-4">
-            <p className="text-sm text-text-primary font-semibold mb-2">
+          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+            <p className="text-sm text-slate-800 font-semibold mb-2">
               What to do:
             </p>
-            <ul className="text-xs text-text-secondary space-y-1 list-disc list-inside">
+            <ul className="text-xs text-slate-500 space-y-1 list-disc list-inside">
               <li>
                 Go to <strong>/admin/login</strong> to sign in
               </li>

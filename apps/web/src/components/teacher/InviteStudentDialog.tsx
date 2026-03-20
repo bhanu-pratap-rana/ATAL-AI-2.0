@@ -155,7 +155,7 @@ export function InviteStudentDialog({ classId }: InviteStudentDialogProps) {
                   {searching ? "..." : "Search"}
                 </Button>
               </div>
-              <p className="text-xs text-text-secondary">
+              <p className="text-xs text-slate-500">
                 Enter student email or user ID to find them
               </p>
             </div>

@@ -146,7 +146,7 @@ export function RosterTable({ enrollments, classId }: RosterTableProps) {
                           {displayName}
                         </span>
                         {/* Mobile-only: Show roll number and class inline */}
-                        <div className="flex flex-wrap gap-2 text-xs text-text-secondary sm:hidden">
+                        <div className="flex flex-wrap gap-2 text-xs text-slate-500 sm:hidden">
                           {enrollment.student?.roll_number && (
                             <span>#{enrollment.student.roll_number}</span>
                           )}
@@ -156,21 +156,21 @@ export function RosterTable({ enrollments, classId }: RosterTableProps) {
                         </div>
                       </div>
                     </div>
-                    <span className="text-xs text-text-secondary xl:hidden ml-10 md:ml-0">
+                    <span className="text-xs text-slate-500 xl:hidden ml-10 md:ml-0">
                       {enrolledDate}
                     </span>
                   </div>
                 </TableCell>
-                <TableCell className="hidden sm:table-cell text-text-secondary">
+                <TableCell className="hidden sm:table-cell text-slate-500">
                   {enrollment.student?.roll_number || "-"}
                 </TableCell>
-                <TableCell className="hidden md:table-cell text-text-secondary">
+                <TableCell className="hidden md:table-cell text-slate-500">
                   {enrollment.student?.class_name || "-"}
                 </TableCell>
-                <TableCell className="hidden lg:table-cell text-text-secondary">
+                <TableCell className="hidden lg:table-cell text-slate-500">
                   {enrollment.student?.phone || "-"}
                 </TableCell>
-                <TableCell className="hidden xl:table-cell text-text-secondary">
+                <TableCell className="hidden xl:table-cell text-slate-500">
                   {enrolledDate}
                 </TableCell>
                 <TableCell className="text-right">

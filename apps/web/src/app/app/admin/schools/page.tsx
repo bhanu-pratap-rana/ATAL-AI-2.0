@@ -18,7 +18,7 @@ import {
   type Block,
   type SchoolData,
 } from "@/app/actions/school-finder";
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -161,7 +161,7 @@ function SchoolFinderModal({
             id="district-select"
             value={selectedDistrict}
             onChange={(e) => setSelectedDistrict(e.target.value)}
-            className="w-full border border-border rounded-lg p-2 text-sm"
+            className="w-full border border-slate-200 rounded-lg p-2 text-sm"
             disabled={loading}
           >
             <option value="">-- Select District --</option>
@@ -181,7 +181,7 @@ function SchoolFinderModal({
               id="block-select"
               value={selectedBlock}
               onChange={(e) => setSelectedBlock(e.target.value)}
-              className="w-full border border-border rounded-lg p-2 text-sm"
+              className="w-full border border-slate-200 rounded-lg p-2 text-sm"
               disabled={loading}
             >
               <option value="">-- All Blocks --</option>
@@ -196,9 +196,10 @@ function SchoolFinderModal({
 
         {/* Schools List */}
         {schools.length > 0 && (
-          <div className="border border-border rounded-lg divide-y max-h-64 overflow-y-auto">
+          <div className="border border-slate-200 rounded-lg divide-y max-h-64 overflow-y-auto">
             {schools.map((school) => (
               <button
+                type="button"
                 key={school.id}
                 onClick={async () => {
                   try {
@@ -207,18 +208,18 @@ function SchoolFinderModal({
                     onClose();
                   }
                 }}
-                className="w-full text-left p-3 hover:bg-surface transition-colors"
+                className="w-full text-left p-3 hover:bg-slate-50 transition-colors"
                 disabled={loading}
               >
-                <div className="font-semibold text-sm text-text-primary">
+                <div className="font-semibold text-sm text-slate-800">
                   {school.school_name}
                 </div>
-                <div className="text-xs text-text-secondary mt-1">
+                <div className="text-xs text-slate-500 mt-1">
                   <strong>Code:</strong> {school.school_code} •{" "}
                   <strong>Block:</strong> {school.block || "N/A"}
                 </div>
                 {school.address && (
-                  <div className="text-xs text-text-tertiary mt-1">
+                  <div className="text-xs text-slate-400 mt-1">
                     {school.address}
                   </div>
                 )}
@@ -228,21 +229,20 @@ function SchoolFinderModal({
         )}
 
         {selectedDistrict && schools.length === 0 && !loading && (
-          <div className="text-center py-4 text-text-tertiary text-sm">
+          <div className="text-center py-4 text-slate-400 text-sm">
             No schools found in{" "}
             {selectedBlock ? `${selectedBlock} block` : "this district"}
           </div>
         )}
 
         {/* Close Button */}
-        <Button
+        <button
+                type="button"
           onClick={onClose}
-          variant="outline"
-          size="sm"
-          className="mt-4 w-full"
+          className="mt-4 w-full px-4 py-2 rounded-2xl font-black text-sm text-slate-700 border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
         >
           Close
-        </Button>
+        </button>
       </div>
     </div>
   );
@@ -266,11 +266,12 @@ function CopyButton({ text }: Readonly<{ text: string }>) {
 
   return (
     <button
+                type="button"
       onClick={handleCopy}
       className={`p-2 rounded transition-all ${
         copied
-          ? "bg-success-light text-success"
-          : "bg-surface hover:bg-surface-dark text-text-secondary"
+          ? "bg-emerald-50 text-emerald-600"
+          : "bg-slate-50 hover:bg-slate-100 text-slate-500"
       }`}
       title="Copy to clipboard"
     >
@@ -297,34 +298,34 @@ function PinStatusDisplay({
 }>) {
   if (!pinStatus) {
     return (
-      <Button
+      <button
+                type="button"
         onClick={() => onCheckStatus(schoolCode)}
-        variant="outline"
-        size="sm"
-        loading={loading}
+        disabled={loading}
+        className="px-4 py-2 rounded-2xl font-black text-sm text-slate-700 border border-slate-200 bg-white hover:bg-slate-50 transition-colors disabled:opacity-50"
       >
-        Check PIN Status
-      </Button>
+        {loading ? "Checking..." : "Check PIN Status"}
+      </button>
     );
   }
 
   if (pinStatus.exists) {
     return (
-      <div className="bg-cyan-lightest border-l-4 border-cyan p-4 rounded">
-        <p className="text-xs text-cyan-darkest font-semibold">✓ PIN Exists</p>
-        <p className="text-sm text-cyan-darkest mt-2">
+      <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
+        <p className="text-xs text-blue-800 font-semibold">✓ PIN Exists</p>
+        <p className="text-sm text-blue-800 mt-2">
           <strong>Created:</strong>{" "}
           {pinStatus.createdAt
             ? new Date(pinStatus.createdAt).toLocaleDateString()
             : "N/A"}
         </p>
         {pinStatus.lastRotatedAt && (
-          <p className="text-sm text-cyan-darkest">
+          <p className="text-sm text-blue-800">
             <strong>Last Rotated:</strong>{" "}
             {new Date(pinStatus.lastRotatedAt).toLocaleDateString()}
           </p>
         )}
-        <p className="text-xs text-cyan-dark mt-3 font-semibold">
+        <p className="text-xs text-blue-600 mt-3 font-semibold">
           👇 Scroll down to Step 3 to rotate the PIN
         </p>
       </div>
@@ -332,12 +333,12 @@ function PinStatusDisplay({
   }
 
   return (
-    <div className="bg-warning-light border-l-4 border-warning p-4 rounded">
-      <p className="text-xs text-warning-dark font-semibold">⚠ No PIN Found</p>
-      <p className="text-sm text-warning-dark mt-2">
+    <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded">
+      <p className="text-xs text-amber-800 font-semibold">⚠ No PIN Found</p>
+      <p className="text-sm text-amber-800 mt-2">
         This school doesn&apos;t have a PIN yet. Create one in Step 3.
       </p>
-      <p className="text-xs text-warning mt-3 font-semibold">
+      <p className="text-xs text-amber-600 mt-3 font-semibold">
         👇 Scroll down to Step 3 to create the PIN
       </p>
     </div>
@@ -522,9 +523,9 @@ export default function AdminSchoolsPage() {
   // Show loading state
   if (authorized === null) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface p-6 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 p-6 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-text-secondary">Verifying authorization...</p>
+          <p className="text-slate-500">Verifying authorization...</p>
         </div>
       </div>
     );
@@ -533,50 +534,58 @@ export default function AdminSchoolsPage() {
   // Show authorization error and redirect to admin login
   if (!authorized || authError) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface p-6 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 p-6 flex items-center justify-center">
         <div className="max-w-md mx-auto text-center">
-          <Shield className="h-12 w-12 text-error mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-text-primary mb-2">
+          <Shield className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-800 mb-2">
             Access Denied
           </h1>
-          <p className="text-text-secondary mb-6">
+          <p className="text-slate-500 mb-6">
             {authError ||
               "You do not have permission to access this page. Admin access required."}
           </p>
           <div className="space-y-3">
-            <Button
-              onClick={() => (globalThis.location.href = "/admin/login")}
-              className="w-full"
-              variant="default"
+            <Link
+              href="/admin/login"
+              className="block w-full py-3 rounded-2xl font-black text-sm text-white text-center"
+              style={{ background: "linear-gradient(135deg,#DC2626,#7C3AED)" }}
             >
               Admin Login
-            </Button>
-            <Button
-              onClick={() => (globalThis.location.href = "/")}
-              variant="outline"
-              className="w-full"
+            </Link>
+            <Link
+              href="/"
+              className="block w-full py-3 rounded-2xl font-black text-sm text-slate-700 text-center bg-white border border-slate-200"
             >
               Go Back Home
-            </Button>
+            </Link>
           </div>
         </div>
       </div>
     );
   }
 
+  const pinActionLabel = pinStatus?.exists ? "Rotate" : "Create";
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-surface via-background to-surface p-6">
+    <div className="min-h-screen bg-slate-50 p-6">
       <div className="max-w-3xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-center gap-3 mb-8">
-          <Shield className="h-8 w-8 text-primary" />
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-text-primary">
-              School PIN Management
-            </h1>
-            <p className="text-xs text-text-secondary">
-              Manage staff PINs and verify rotation history
-            </p>
+        {/* Red Gradient Banner */}
+        <div className="rounded-[32px] p-6 text-white mb-8" style={{ background: "linear-gradient(135deg, #DC2626 0%, #7C3AED 100%)" }}>
+          <h1 className="text-xl sm:text-2xl font-black mb-1">School Management</h1>
+          <p className="text-red-100 text-xs font-black uppercase tracking-widest mb-6">Assam Digital Initiative • Admin Portal</p>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-white/10 p-3 rounded-2xl text-center backdrop-blur-md">
+              <p className="text-xl font-black">124</p>
+              <p className="text-[8px] uppercase font-black text-red-100">Schools</p>
+            </div>
+            <div className="bg-white/10 p-3 rounded-2xl text-center backdrop-blur-md">
+              <Shield className="h-5 w-5 mx-auto mb-1" />
+              <p className="text-[8px] uppercase font-black text-red-100">PIN Mgmt</p>
+            </div>
+            <div className="bg-white/10 p-3 rounded-2xl text-center backdrop-blur-md">
+              <p className="text-xl font-black">🔐</p>
+              <p className="text-[8px] uppercase font-black text-red-100">Secure</p>
+            </div>
           </div>
         </div>
 
@@ -588,7 +597,7 @@ export default function AdminSchoolsPage() {
         />
 
         {/* Step 1: Find School */}
-        <div className="mb-6 p-6 bg-white border border-primary/20 rounded-lg">
+        <div className="mb-6 p-6 bg-white border border-slate-100 rounded-3xl">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Search className="h-5 w-5 text-primary" />
             Step 1: Find School
@@ -610,65 +619,65 @@ export default function AdminSchoolsPage() {
                   disabled={loading}
                   className="flex-1"
                 />
-                <Button
+                <button
+                type="button"
                   onClick={handleSearch}
                   disabled={loading}
-                  loading={loading}
-                  size="sm"
-                  className="shadow-[var(--shadow-primary-sm)]"
+                  className="px-4 py-2 rounded-2xl font-black text-sm text-white flex items-center justify-center disabled:opacity-50 transition-all active:scale-95 flex-shrink-0"
+                  style={{ background: "linear-gradient(135deg,#DC2626,#7C3AED)" }}
                 >
                   <Search className="h-4 w-4" />
-                </Button>
+                </button>
               </div>
             </div>
 
             {/* Search Results */}
             {searchResults.length > 0 && (
-              <div className="border border-border rounded-lg divide-y max-h-48 overflow-y-auto">
+              <div className="border border-slate-200 rounded-lg divide-y max-h-48 overflow-y-auto">
                 {searchResults.map((school) => (
                   <button
+                type="button"
                     key={school.id}
                     onClick={() => handleSelectSchool(school)}
-                    className="w-full text-left p-3 hover:bg-surface transition-colors flex justify-between items-center"
+                    className="w-full text-left p-3 hover:bg-slate-50 transition-colors flex justify-between items-center"
                   >
                     <div>
-                      <div className="font-semibold text-sm text-text-primary">
+                      <div className="font-semibold text-sm text-slate-800">
                         {school.school_name}
                       </div>
-                      <div className="text-xs text-text-secondary mt-1">
+                      <div className="text-xs text-slate-500 mt-1">
                         {school.school_code} • {school.district}
                       </div>
                     </div>
-                    <Copy className="h-4 w-4 text-text-tertiary" />
+                    <Copy className="h-4 w-4 text-slate-400" />
                   </button>
                 ))}
               </div>
             )}
 
             {/* Hierarchical Finder Button */}
-            <Button
+            <button
+                type="button"
               onClick={() => setFinderModalOpen(true)}
-              variant="outline"
-              size="sm"
-              className="w-full"
+              className="w-full px-4 py-2 rounded-2xl font-black text-sm text-slate-700 border border-slate-200 bg-white hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
             >
-              <MapPin className="h-4 w-4 mr-2" />
+              <MapPin className="h-4 w-4" />
               Or Browse by District &amp; Block
-            </Button>
+            </button>
           </div>
 
           {/* Selected School Display */}
           {selectedSchool && (
-            <div className="mt-4 bg-success-light border-l-4 border-success p-4 rounded">
+            <div className="mt-4 bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-xs text-success font-semibold">
+                  <p className="text-xs text-emerald-700 font-semibold">
                     ✓ Selected School
                   </p>
-                  <p className="text-sm text-success font-semibold mt-1">
+                  <p className="text-sm text-emerald-700 font-semibold mt-1">
                     {selectedSchool.name}
                   </p>
-                  <p className="text-xs text-success font-mono mt-1">
+                  <p className="text-xs text-emerald-700 font-mono mt-1">
                     Code: {selectedSchool.code}
                   </p>
                 </div>
@@ -680,7 +689,7 @@ export default function AdminSchoolsPage() {
 
         {/* Step 2: Check/Create PIN */}
         {selectedSchool && (
-          <div className="mb-6 p-6 bg-white border border-primary/20 rounded-lg">
+          <div className="mb-6 p-6 bg-white border border-slate-100 rounded-3xl">
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <Calendar className="h-5 w-5 text-primary" />
               Step 2: PIN Status
@@ -699,10 +708,10 @@ export default function AdminSchoolsPage() {
 
         {/* Step 3: Rotate/Create PIN */}
         {selectedSchool && (
-          <div className="p-6 bg-white border border-primary/20 rounded-lg">
+          <div className="p-6 bg-white border border-slate-100 rounded-3xl">
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <RefreshCw className="h-5 w-5 text-primary" />
-              Step 3: {pinStatus?.exists ? "Rotate" : "Create"} PIN
+              Step 3: {pinActionLabel} PIN
             </h2>
 
             <form onSubmit={handleRotatePin} className="space-y-4">
@@ -715,7 +724,7 @@ export default function AdminSchoolsPage() {
                   type="text"
                   value={schoolCode}
                   disabled
-                  className="bg-surface uppercase font-mono text-sm"
+                  className="bg-slate-50 uppercase font-mono text-sm"
                 />
               </div>
 
@@ -734,7 +743,7 @@ export default function AdminSchoolsPage() {
                   minLength={4}
                   className="font-mono text-sm"
                 />
-                <p className="text-xs text-text-secondary">
+                <p className="text-xs text-slate-500">
                   Min 4 characters (numeric recommended)
                 </p>
               </div>
@@ -756,7 +765,7 @@ export default function AdminSchoolsPage() {
                 />
               </div>
 
-              <div className="bg-warning/10 border-l-4 border-warning p-3 rounded text-xs text-warning-dark">
+              <div className="bg-amber-50 border-l-4 border-amber-400 p-3 rounded text-xs text-amber-800">
                 <p>
                   <strong>⚠️ Security Notice</strong>
                 </p>
@@ -768,24 +777,23 @@ export default function AdminSchoolsPage() {
                 </p>
               </div>
 
-              <Button
+              <button
                 type="submit"
-                className="w-full shadow-primary-hover"
                 disabled={loading || newPin !== confirmPin || newPin.length < 4}
-                loading={loading}
-                size="lg"
+                className="w-full px-4 py-3 rounded-2xl font-black text-sm text-white flex items-center justify-center gap-2 disabled:opacity-50 transition-all active:scale-95"
+                style={{ background: "linear-gradient(135deg,#DC2626,#7C3AED)" }}
               >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                {pinStatus?.exists ? "Rotate" : "Create"} PIN
-              </Button>
+                <RefreshCw className="h-4 w-4" />
+                {loading ? "Processing..." : `${pinActionLabel} PIN`}
+              </button>
             </form>
 
             {/* Help */}
-            <div className="mt-6 bg-gradient-to-r from-cream to-surface border border-primary/20 p-4 rounded-lg">
-              <h3 className="font-semibold text-text-primary text-sm mb-2">
+            <div className="mt-6 bg-blue-50 border border-slate-100 p-4 rounded-lg">
+              <h3 className="font-semibold text-slate-800 text-sm mb-2">
                 📋 Quick Guide
               </h3>
-              <ul className="text-sm text-text-secondary space-y-2">
+              <ul className="text-sm text-slate-500 space-y-2">
                 <li>
                   <strong>Step 1:</strong> Search schools or browse by
                   district/block

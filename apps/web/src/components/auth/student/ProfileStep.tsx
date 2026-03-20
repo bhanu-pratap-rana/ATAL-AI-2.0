@@ -128,7 +128,7 @@ export function ProfileStep({
             onChange={(e) => actions.setProfileGender(e.target.value as "male" | "female" | "")}
             required
             disabled={isLoading}
-            className="w-full px-3 py-2 border border-border rounded-lg bg-background text-text focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-background text-text focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
           >
             <option value="">Select gender</option>
             <option value="male">Male</option>

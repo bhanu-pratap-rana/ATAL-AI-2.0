@@ -7,8 +7,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { AuthCard } from "@/components/auth/AuthCard";
-import { Button } from "@/components/ui/button";
 import type { TeacherOnboardingActions } from "@/hooks/useTeacherOnboarding";
 
 interface TeacherChoiceStepProps {
@@ -19,50 +17,52 @@ export function TeacherChoiceStep({ actions }: TeacherChoiceStepProps) {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
-      <AuthCard
-        title="Teacher Portal"
-        description="Are you a new or existing teacher?"
-      >
-        <div className="space-y-3 sm:space-y-4">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+      <div className="w-full max-w-md bg-white p-6 sm:p-10 rounded-[48px] shadow-2xl shadow-slate-200">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center text-3xl" style={{ background: "linear-gradient(135deg,#3B82F6,#6366F1)" }}>
+            👩‍🏫
+          </div>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mb-1">Teacher Portal</h1>
+          <p className="text-slate-400 font-bold text-sm">Are you a new or existing teacher?</p>
+        </div>
+
+        <div className="space-y-3">
           {/* Create Account Button */}
-          <Button
+          <button
+                type="button"
             onClick={() => actions.setStep("auth")}
-            className="w-full h-14 text-base shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5 transition-all"
-            variant="default"
+            className="w-full flex items-center gap-4 p-5 rounded-2xl text-white font-black transition-all active:scale-95 hover:opacity-90"
+            style={{ background: "linear-gradient(135deg,#3B82F6,#6366F1)", boxShadow: "0 4px 14px 0 rgba(59,130,246,0.39)" }}
           >
-            <span className="text-xl mr-3">✨</span>
+            <span className="text-2xl">✨</span>
             <div className="text-left">
-              <div className="font-semibold">Create New Account</div>
-              <div className="text-xs font-normal opacity-90">
-                New teacher registration
-              </div>
+              <p className="text-base font-black leading-none">Create New Account</p>
+              <p className="text-xs font-bold text-white/80 mt-1">New teacher registration</p>
             </div>
-          </Button>
+          </button>
 
           {/* Login Button */}
-          <Button
+          <button
+                type="button"
             onClick={() => actions.setStep("login")}
-            className="w-full h-14 text-base border-2 hover:border-primary hover:shadow-[var(--shadow-primary-sm)] hover:-translate-y-0.5 transition-all"
-            variant="outline"
+            className="w-full flex items-center gap-4 p-5 rounded-2xl font-black transition-all active:scale-95 border-2 border-slate-200 hover:border-blue-400 hover:text-blue-600 text-slate-700"
           >
-            <span className="text-xl mr-3">🔓</span>
+            <span className="text-2xl">🔓</span>
             <div className="text-left">
-              <div className="font-semibold">Login to Account</div>
-              <div className="text-xs font-normal opacity-70">
-                Existing teacher login
-              </div>
+              <p className="text-base font-black leading-none">Login to Account</p>
+              <p className="text-xs font-bold text-slate-400 mt-1">Existing teacher login</p>
             </div>
-          </Button>
+          </button>
 
-          {/* Info Box - Cyan themed */}
-          <div className="bg-cyan-lightest border-l-4 border-cyan p-4 rounded-xl">
-            <p className="text-sm text-cyan-darkest">
+          {/* Info Box */}
+          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-xl">
+            <p className="text-sm text-blue-800">
               <strong>💡 Choose your option:</strong>
               <br />
-              <span className="text-xs">
-                New teachers need school verification. Existing teachers can
-                login with email & password.
+              <span className="text-xs text-blue-700">
+                New teachers need school verification. Existing teachers can login with email &amp; password.
               </span>
             </p>
           </div>
@@ -70,14 +70,15 @@ export function TeacherChoiceStep({ actions }: TeacherChoiceStepProps) {
           {/* Back Button */}
           <div className="text-center pt-2">
             <button
+                type="button"
               onClick={() => router.push("/")}
-              className="text-sm text-text-secondary hover:text-primary hover:underline"
+              className="text-sm font-bold text-slate-400 hover:text-blue-500 transition-colors"
             >
               ← Back to home
             </button>
           </div>
         </div>
-      </AuthCard>
+      </div>
     </div>
   );
 }

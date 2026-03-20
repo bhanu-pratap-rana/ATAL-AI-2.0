@@ -239,7 +239,8 @@ export function LanguageProvider({
  *   return (
  *     <div>
  *       <p>{t("common.loading")}</p>
- *       <button onClick={() => setLanguage("hi")}>
+ *       <button
+                type="button" onClick={() => setLanguage("hi")}>
  *         Switch to Hindi
  *       </button>
  *     </div>

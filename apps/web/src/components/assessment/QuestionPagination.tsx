@@ -106,9 +106,9 @@ export function QuestionPagination({
   // Get arrow button styling - S2301: use state parameter instead of boolean
   const getArrowButtonClass = (navigation: NavigationState): string => {
     if (navigation === "enabled") {
-      return "text-text-secondary hover:text-primary hover:bg-primary-lighter cursor-pointer";
+      return "text-slate-500 hover:text-primary hover:bg-primary-lighter cursor-pointer";
     }
-    return "text-text-muted cursor-not-allowed";
+    return "text-slate-400 cursor-not-allowed";
   };
 
   return (
@@ -135,7 +135,7 @@ export function QuestionPagination({
       <div className="flex items-center gap-2">
         {/* Show ellipsis if there are questions before the window */}
         {offset > 0 && (
-          <span className="text-text-muted text-sm px-1" aria-hidden="true">
+          <span className="text-slate-400 text-sm px-1" aria-hidden="true">
             ...
           </span>
         )}
@@ -172,7 +172,7 @@ export function QuestionPagination({
 
         {/* Show ellipsis if there are questions after the window */}
         {offset + WINDOW_SIZE < totalQuestions && (
-          <span className="text-text-muted text-sm px-1" aria-hidden="true">
+          <span className="text-slate-400 text-sm px-1" aria-hidden="true">
             ...
           </span>
         )}
@@ -199,7 +199,7 @@ export function QuestionPagination({
 // Legend component for explaining the pagination colors
 export function PaginationLegend() {
   return (
-    <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-text-secondary mt-2">
+    <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-slate-500 mt-2">
       <div className="flex items-center gap-1.5">
         <span className="w-3 h-3 rounded-full bg-info" aria-hidden="true" />
         <span>Current</span>

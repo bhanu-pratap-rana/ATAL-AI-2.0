@@ -40,12 +40,13 @@ export function TabNavigation({
 
   return (
     <div
-      className="flex gap-2 p-1 bg-surface rounded-xl"
+      className="flex gap-2 p-1 bg-slate-50 rounded-xl"
       role="tablist"
       aria-label="Navigation tabs"
     >
       {tabs.map((tab) => (
         <button
+                type="button"
           key={tab.id}
           role="tab"
           aria-selected={activeTab === tab.id}
@@ -56,7 +57,7 @@ export function TabNavigation({
             sizeClasses[size],
             activeTab === tab.id
               ? "bg-gradient-primary text-white shadow-sm"
-              : "bg-transparent text-text-secondary hover:bg-white hover:text-text-primary",
+              : "bg-transparent text-slate-500 hover:bg-white hover:text-slate-800",
             (disabled || tab.disabled) && "opacity-50 cursor-not-allowed",
           )}
           disabled={disabled || tab.disabled}

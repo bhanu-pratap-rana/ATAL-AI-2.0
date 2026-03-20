@@ -50,8 +50,8 @@ export const UnitAccordion = memo(function UnitAccordion({
       <CardHeader
         className={cn(
           "cursor-pointer select-none transition-colors",
-          "hover:bg-surface-dark/50",
-          isOpen && "bg-surface/30"
+          "hover:bg-slate-100/50",
+          isOpen && "bg-slate-50/30"
         )}
         onClick={() => setIsOpen(!isOpen)}
       >
@@ -73,7 +73,7 @@ export const UnitAccordion = memo(function UnitAccordion({
                 {isUnitComplete && <CheckCircle2 className="h-4 w-4 text-success" />}
               </h3>
               {unit.description && (
-                <p className="text-sm text-text-secondary">{unit.description}</p>
+                <p className="text-sm text-slate-500">{unit.description}</p>
               )}
             </div>
           </div>
@@ -84,7 +84,7 @@ export const UnitAccordion = memo(function UnitAccordion({
               <div className="text-sm font-medium">
                 {completedTopics}/{totalTopics}
               </div>
-              <div className="text-xs text-text-secondary">
+              <div className="text-xs text-slate-500">
                 {t("learn.percentComplete", { percent: progressPercent })}
               </div>
             </div>
@@ -92,7 +92,7 @@ export const UnitAccordion = memo(function UnitAccordion({
             {/* Chevron */}
             <ChevronDown
               className={cn(
-                "h-5 w-5 text-text-secondary transition-transform duration-200",
+                "h-5 w-5 text-slate-500 transition-transform duration-200",
                 isOpen && "rotate-180"
               )}
             />
@@ -100,7 +100,7 @@ export const UnitAccordion = memo(function UnitAccordion({
         </div>
 
         {/* Progress bar */}
-        <div className="mt-3 h-1.5 bg-surface rounded-full overflow-hidden">
+        <div className="mt-3 h-1.5 bg-slate-50 rounded-full overflow-hidden">
           <div
             className={cn(
               "h-full transition-all duration-500",

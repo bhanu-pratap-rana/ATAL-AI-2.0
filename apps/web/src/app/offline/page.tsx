@@ -116,6 +116,7 @@ export default function OfflinePage() {
         >
           {/* Primary Action - Try Again */}
           <button
+                type="button"
             onClick={() => globalThis.location.reload()}
             style={{
               width: "100%",
@@ -163,6 +164,7 @@ export default function OfflinePage() {
 
           {/* Secondary Action - Go Home */}
           <button
+                type="button"
             onClick={() => {
               globalThis.location.href = "/";
             }}

@@ -29,7 +29,7 @@ function ToggleSwitch({
       onClick={() => onCheckedChange(!checked)}
       className={cn(
         "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-        checked ? "bg-primary" : "bg-surface-dark"
+        checked ? "bg-primary" : "bg-slate-100"
       )}
     >
       <span
@@ -114,7 +114,7 @@ export function FeatureFlagToggle({ flag, onUpdate }: FeatureFlagToggleProps) {
   };
 
   const getRolloutColor = (percentage: number) => {
-    if (percentage === 0) return "text-text-tertiary";
+    if (percentage === 0) return "text-slate-400";
     if (percentage < 25) return "text-accent";
     if (percentage < 75) return "text-warning";
     if (percentage < 100) return "text-cyan";
@@ -122,12 +122,12 @@ export function FeatureFlagToggle({ flag, onUpdate }: FeatureFlagToggleProps) {
   };
 
   return (
-    <div className="bg-white border border-border rounded-lg overflow-hidden">
+    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
       {/* Main Row - Always Visible */}
       <div
         className={cn(
           "p-4 flex items-center justify-between gap-4",
-          isExpanded && "border-b border-border bg-surface"
+          isExpanded && "border-b border-slate-200 bg-slate-50"
         )}
       >
         {/* Flag Info */}
@@ -139,14 +139,14 @@ export function FeatureFlagToggle({ flag, onUpdate }: FeatureFlagToggleProps) {
                 "text-xs font-medium px-2 py-0.5 rounded-full",
                 localEnabled
                   ? "bg-success/10 text-success"
-                  : "bg-surface-dark text-text-secondary"
+                  : "bg-slate-100 text-slate-500"
               )}
             >
               {localEnabled ? "Enabled" : "Disabled"}
             </span>
           </div>
           {flag.description && (
-            <p className="text-sm text-text-secondary mt-1 line-clamp-1">
+            <p className="text-sm text-slate-500 mt-1 line-clamp-1">
               {flag.description}
             </p>
           )}
@@ -160,7 +160,7 @@ export function FeatureFlagToggle({ flag, onUpdate }: FeatureFlagToggleProps) {
             {localRollout}%
           </span>
           {flag.whitelist_user_ids.length > 0 && (
-            <span className="flex items-center gap-1 text-xs text-text-secondary">
+            <span className="flex items-center gap-1 text-xs text-slate-500">
               <Users className="w-3 h-3" />
               {flag.whitelist_user_ids.length}
             </span>
@@ -205,7 +205,7 @@ export function FeatureFlagToggle({ flag, onUpdate }: FeatureFlagToggleProps) {
                 min={0}
                 max={100}
                 step={1}
-                className="flex-1 h-2 bg-surface-dark rounded-lg appearance-none cursor-pointer accent-primary"
+                className="flex-1 h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-primary"
               />
               <Input
                 type="number"
@@ -223,7 +223,7 @@ export function FeatureFlagToggle({ flag, onUpdate }: FeatureFlagToggleProps) {
                 max={100}
               />
             </div>
-            <p className="text-xs text-text-tertiary">
+            <p className="text-xs text-slate-400">
               {localRollout === 0 && "Feature disabled for all non-whitelisted users"}
               {localRollout > 0 && localRollout < 100 &&
                 `~${localRollout}% of users will have access (based on user ID hash)`}
@@ -242,14 +242,14 @@ export function FeatureFlagToggle({ flag, onUpdate }: FeatureFlagToggleProps) {
               placeholder="Enter user UUIDs separated by commas"
               className="font-mono text-sm"
             />
-            <p className="text-xs text-text-tertiary">
+            <p className="text-xs text-slate-400">
               Whitelisted users always have access regardless of rollout percentage
             </p>
           </div>
 
           {/* Metadata */}
-          <div className="flex items-center gap-4 text-xs text-text-tertiary pt-2 border-t border-border">
-            <span>ID: <code className="bg-surface px-1 rounded">{flag.id}</code></span>
+          <div className="flex items-center gap-4 text-xs text-slate-400 pt-2 border-t border-slate-200">
+            <span>ID: <code className="bg-slate-50 px-1 rounded">{flag.id}</code></span>
             {flag.updated_at && (
               <span>
                 Updated: {new Date(flag.updated_at).toLocaleDateString()}

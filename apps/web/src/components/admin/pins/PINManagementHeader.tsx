@@ -18,9 +18,9 @@ export function PINManagementHeader({
   onDashboardClick,
 }: PINManagementHeaderProps) {
   return (
-    <div className="sticky top-0 z-10 bg-white border-b border-border">
+    <div className="sticky top-0 z-10 bg-white border-b border-slate-200">
       <div className="flex items-center justify-between px-6 py-4">
-        <h1 className="text-2xl font-bold text-text">School PIN Management</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-text">School PIN Management</h1>
 
         <div className="flex items-center gap-4">
           {isSuperAdmin && (

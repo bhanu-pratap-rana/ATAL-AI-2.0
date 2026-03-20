@@ -127,7 +127,7 @@ export function QuestionNavigation({
               variant="ghost"
               onClick={onClear}
               disabled={isSubmitting}
-              className="flex-1 text-text-secondary hover:text-text-primary min-h-[2.75rem]"
+              className="flex-1 text-slate-500 hover:text-slate-800 min-h-[2.75rem]"
               aria-label="Clear your selected answer"
             >
               Clear
@@ -170,7 +170,7 @@ export function QuestionNavigation({
               variant="ghost"
               onClick={onClear}
               disabled={isSubmitting}
-              className="text-text-secondary hover:text-text-primary"
+              className="text-slate-500 hover:text-slate-800"
               aria-label="Clear your selected answer"
             >
               ✕ Clear

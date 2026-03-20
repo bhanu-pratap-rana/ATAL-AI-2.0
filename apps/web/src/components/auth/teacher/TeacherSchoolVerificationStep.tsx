@@ -25,7 +25,7 @@ export function TeacherSchoolVerificationStep({
   actions,
 }: TeacherSchoolVerificationStepProps) {
   return (
-    <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
       <AuthCard
         title="School Verification"
         description="Step 3 of 4: Verify your school credentials"
@@ -49,7 +49,7 @@ export function TeacherSchoolVerificationStep({
               maxLength={10}
               className="uppercase font-mono"
             />
-            <p className="text-xs text-text-secondary">
+            <p className="text-xs text-slate-500">
               SEBA school code (e.g., 14H0182)
             </p>
           </div>
@@ -66,7 +66,7 @@ export function TeacherSchoolVerificationStep({
               disabled={state.loading}
               className="font-mono"
             />
-            <p className="text-xs text-text-secondary">
+            <p className="text-xs text-slate-500">
               Provided by your school administrator
             </p>
           </div>

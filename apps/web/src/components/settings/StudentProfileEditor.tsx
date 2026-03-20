@@ -142,7 +142,7 @@ export function StudentProfileEditor({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-text-secondary text-sm">
+          <p className="text-slate-500 text-sm">
             You haven&apos;t set up your student profile yet. Click &quot;Create
             Profile&quot; to add your information.
           </p>
@@ -208,7 +208,7 @@ export function StudentProfileEditor({
           <div>
             <label
               htmlFor="student-name"
-              className="text-sm font-medium text-text-secondary"
+              className="text-sm font-medium text-slate-500"
             >
               Name *
             </label>
@@ -218,11 +218,11 @@ export function StudentProfileEditor({
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full mt-1 px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="Enter your name"
               />
             ) : (
-              <p className="text-text-primary">{name || "Not set"}</p>
+              <p className="text-slate-800">{name || "Not set"}</p>
             )}
           </div>
 
@@ -230,7 +230,7 @@ export function StudentProfileEditor({
           <div>
             <span
               id="gender-group"
-              className="text-sm font-medium text-text-secondary"
+              className="text-sm font-medium text-slate-500"
             >
               Gender *
             </span>
@@ -262,7 +262,7 @@ export function StudentProfileEditor({
                 ))}
               </div>
             ) : (
-              <p className="text-text-primary capitalize">
+              <p className="text-slate-800 capitalize">
                 {gender || "Not set"}
               </p>
             )}
@@ -271,19 +271,19 @@ export function StudentProfileEditor({
           {/* Show Username for Quick Start users, Email for others */}
           {isUsernameAuth ? (
             <div>
-              <span className="text-sm font-medium text-text-secondary">
+              <span className="text-sm font-medium text-slate-500">
                 Username
               </span>
-              <p className="text-text-primary font-mono">
+              <p className="text-slate-800 font-mono">
                 {username || "Not set"}
               </p>
             </div>
           ) : (
             <div>
-              <span className="text-sm font-medium text-text-secondary">
+              <span className="text-sm font-medium text-slate-500">
                 Email
               </span>
-              <p className="text-text-primary">{userEmail || "Not set"}</p>
+              <p className="text-slate-800">{userEmail || "Not set"}</p>
             </div>
           )}
 
@@ -291,7 +291,7 @@ export function StudentProfileEditor({
           <div>
             <label
               htmlFor="student-phone"
-              className="text-sm font-medium text-text-secondary"
+              className="text-sm font-medium text-slate-500"
             >
               Phone
             </label>
@@ -304,14 +304,14 @@ export function StudentProfileEditor({
                   onChange={(e) =>
                     setPhone(sanitizeProfilePhone(e.target.value))
                   }
-                  className="w-full mt-1 px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   placeholder="10-digit mobile number"
                   maxLength={10}
                   aria-describedby="student-phone-helper"
                 />
                 <p
                   id="student-phone-helper"
-                  className="text-xs text-text-secondary mt-1"
+                  className="text-xs text-slate-500 mt-1"
                 >
                   Enter 10-digit Indian mobile number
                 </p>
@@ -322,7 +322,7 @@ export function StudentProfileEditor({
                 )}
               </>
             ) : (
-              <p className="text-text-primary">{phone || "Not set"}</p>
+              <p className="text-slate-800">{phone || "Not set"}</p>
             )}
           </div>
 
@@ -330,7 +330,7 @@ export function StudentProfileEditor({
           <div>
             <label
               htmlFor="student-rollnumber"
-              className="text-sm font-medium text-text-secondary"
+              className="text-sm font-medium text-slate-500"
             >
               Roll Number
             </label>
@@ -340,11 +340,11 @@ export function StudentProfileEditor({
                 type="text"
                 value={rollNumber}
                 onChange={(e) => setRollNumber(e.target.value)}
-                className="w-full mt-1 px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="e.g., 101, ST2024001"
               />
             ) : (
-              <p className="text-text-primary">{rollNumber || "Not set"}</p>
+              <p className="text-slate-800">{rollNumber || "Not set"}</p>
             )}
           </div>
 
@@ -352,7 +352,7 @@ export function StudentProfileEditor({
           <div>
             <label
               htmlFor="student-schoolname"
-              className="text-sm font-medium text-text-secondary"
+              className="text-sm font-medium text-slate-500"
             >
               School Name
             </label>
@@ -362,11 +362,11 @@ export function StudentProfileEditor({
                 type="text"
                 value={schoolName}
                 onChange={(e) => setSchoolName(e.target.value)}
-                className="w-full mt-1 px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="Enter your school name"
               />
             ) : (
-              <p className="text-text-primary">{schoolName || "Not set"}</p>
+              <p className="text-slate-800">{schoolName || "Not set"}</p>
             )}
           </div>
 
@@ -374,7 +374,7 @@ export function StudentProfileEditor({
           <div>
             <label
               htmlFor="student-class"
-              className="text-sm font-medium text-text-secondary"
+              className="text-sm font-medium text-slate-500"
             >
               Class
             </label>
@@ -384,11 +384,11 @@ export function StudentProfileEditor({
                 type="text"
                 value={className}
                 onChange={(e) => setClassName(e.target.value)}
-                className="w-full mt-1 px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="Enter your class"
               />
             ) : (
-              <p className="text-text-primary">{className || "Not set"}</p>
+              <p className="text-slate-800">{className || "Not set"}</p>
             )}
           </div>
 
@@ -396,7 +396,7 @@ export function StudentProfileEditor({
           <div>
             <label
               htmlFor="student-village"
-              className="text-sm font-medium text-text-secondary"
+              className="text-sm font-medium text-slate-500"
             >
               Village/Location
             </label>
@@ -406,11 +406,11 @@ export function StudentProfileEditor({
                 type="text"
                 value={village}
                 onChange={(e) => setVillage(e.target.value)}
-                className="w-full mt-1 px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="Enter your village or location"
               />
             ) : (
-              <p className="text-text-primary">{village || "Not set"}</p>
+              <p className="text-slate-800">{village || "Not set"}</p>
             )}
           </div>
         </div>

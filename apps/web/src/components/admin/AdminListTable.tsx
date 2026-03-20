@@ -195,7 +195,7 @@ export function AdminListTable({
   if (admins.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-text-secondary">No admin accounts found</p>
+        <p className="text-slate-500">No admin accounts found</p>
       </div>
     );
   }
@@ -205,7 +205,7 @@ export function AdminListTable({
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-border bg-surface">
+            <tr className="border-b border-slate-200 bg-slate-50">
               <th className="px-4 py-3 text-left font-semibold text-text">
                 Email
               </th>
@@ -227,7 +227,7 @@ export function AdminListTable({
             {admins.map((admin) => (
               <tr
                 key={admin.id}
-                className="border-b border-border hover:bg-surface"
+                className="border-b border-slate-200 hover:bg-slate-50"
               >
                 <td className="px-4 py-3 text-text">{admin.email}</td>
                 <td className="px-4 py-3">
@@ -237,10 +237,10 @@ export function AdminListTable({
                     {getRoleText(admin.role)}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-text-secondary">
+                <td className="px-4 py-3 text-slate-500">
                   {new Date(admin.created_at as string).toLocaleDateString()}
                 </td>
-                <td className="px-4 py-3 text-text-secondary">
+                <td className="px-4 py-3 text-slate-500">
                   {admin.last_sign_in_at
                     ? new Date(
                         admin.last_sign_in_at as string,
@@ -304,18 +304,20 @@ export function AdminListTable({
       {showResetModal && resetAdmin && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-            <div className="flex items-center justify-between p-6 border-b border-border">
+            <div className="flex items-center justify-between p-6 border-b border-slate-200">
               <h2 className="text-xl font-bold text-text">Reset Password</h2>
               <button
+                type="button"
                 onClick={closeResetModal}
-                className="text-text-tertiary hover:text-text-primary"
+                aria-label="Close password reset dialog"
+                className="text-slate-400 hover:text-slate-800"
               >
                 <X className="w-6 h-6" />
               </button>
             </div>
 
             <div className="p-6 space-y-4">
-              <p className="text-sm text-text-secondary">
+              <p className="text-sm text-slate-500">
                 Enter a new password for <strong>{resetAdmin.email}</strong>
               </p>
 
@@ -331,7 +333,7 @@ export function AdminListTable({
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-primary"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-800"
                 >
                   {showPassword ? (
                     <EyeOff className="w-4 h-4" />
@@ -344,7 +346,7 @@ export function AdminListTable({
               {resetError && <p className="text-sm text-error">{resetError}</p>}
             </div>
 
-            <div className="p-4 border-t border-border bg-surface flex gap-3">
+            <div className="p-4 border-t border-slate-200 bg-slate-50 flex gap-3">
               <Button
                 onClick={closeResetModal}
                 variant="outline"

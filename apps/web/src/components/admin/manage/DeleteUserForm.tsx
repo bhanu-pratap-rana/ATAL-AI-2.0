@@ -55,7 +55,7 @@ export function DeleteUserForm({
           disabled={isLoading}
           className="focus:ring-primary focus:border-primary"
         />
-        <p className="text-xs text-text-secondary">
+        <p className="text-xs text-slate-500">
           Enter the email of the user account to delete
         </p>
       </div>

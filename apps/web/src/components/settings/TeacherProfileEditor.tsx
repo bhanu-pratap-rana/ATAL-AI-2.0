@@ -190,7 +190,7 @@ export function TeacherProfileEditor({
           <div>
             <label
               htmlFor="teacher-name"
-              className="text-sm font-medium text-text-secondary"
+              className="text-sm font-medium text-slate-500"
             >
               Name *
             </label>
@@ -200,11 +200,11 @@ export function TeacherProfileEditor({
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full mt-1 px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="Enter your name"
               />
             ) : (
-              <p className="text-text-primary">{name || "Not set"}</p>
+              <p className="text-slate-800">{name || "Not set"}</p>
             )}
           </div>
 
@@ -212,7 +212,7 @@ export function TeacherProfileEditor({
           <div>
             <span
               id="teacher-gender-group"
-              className="text-sm font-medium text-text-secondary"
+              className="text-sm font-medium text-slate-500"
             >
               Gender *
             </span>
@@ -246,7 +246,7 @@ export function TeacherProfileEditor({
               </div>
             ) : (
               <p
-                className={`${gender ? "text-text-primary capitalize" : "text-warning-dark"}`}
+                className={`${gender ? "text-slate-800 capitalize" : "text-warning-dark"}`}
               >
                 {gender || "Not set - Please update"}
               </p>
@@ -255,17 +255,17 @@ export function TeacherProfileEditor({
 
           {/* Email (display only) */}
           <div>
-            <span className="text-sm font-medium text-text-secondary">
+            <span className="text-sm font-medium text-slate-500">
               Email
             </span>
-            <p className="text-text-primary">{userEmail || "Not set"}</p>
+            <p className="text-slate-800">{userEmail || "Not set"}</p>
           </div>
 
           {/* Phone */}
           <div>
             <label
               htmlFor="teacher-phone"
-              className="text-sm font-medium text-text-secondary"
+              className="text-sm font-medium text-slate-500"
             >
               Phone
             </label>
@@ -278,14 +278,14 @@ export function TeacherProfileEditor({
                   onChange={(e) =>
                     setPhone(sanitizeProfilePhone(e.target.value))
                   }
-                  className="w-full mt-1 px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                   placeholder="10-digit mobile number"
                   maxLength={10}
                   aria-describedby="teacher-phone-helper"
                 />
                 <p
                   id="teacher-phone-helper"
-                  className="text-xs text-text-secondary mt-1"
+                  className="text-xs text-slate-500 mt-1"
                 >
                   Enter 10-digit Indian mobile number
                 </p>
@@ -296,7 +296,7 @@ export function TeacherProfileEditor({
                 )}
               </>
             ) : (
-              <p className="text-text-primary">{phone || "Not set"}</p>
+              <p className="text-slate-800">{phone || "Not set"}</p>
             )}
           </div>
 
@@ -304,7 +304,7 @@ export function TeacherProfileEditor({
           <div>
             <label
               htmlFor="teacher-subject"
-              className="text-sm font-medium text-text-secondary"
+              className="text-sm font-medium text-slate-500"
             >
               Subject
             </label>
@@ -314,20 +314,20 @@ export function TeacherProfileEditor({
                 type="text"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                className="w-full mt-1 px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="Enter your subject"
               />
             ) : (
-              <p className="text-text-primary">{subject || "Not set"}</p>
+              <p className="text-slate-800">{subject || "Not set"}</p>
             )}
           </div>
 
           {/* School Code (read-only) */}
           <div>
-            <span className="text-sm font-medium text-text-secondary">
+            <span className="text-sm font-medium text-slate-500">
               School Code
             </span>
-            <p className="text-text-primary font-mono">
+            <p className="text-slate-800 font-mono">
               {profile.school_code || "Not set"}
             </p>
           </div>
@@ -336,7 +336,7 @@ export function TeacherProfileEditor({
           <div>
             <label
               htmlFor="teacher-village"
-              className="text-sm font-medium text-text-secondary"
+              className="text-sm font-medium text-slate-500"
             >
               Village/Location
             </label>
@@ -346,11 +346,11 @@ export function TeacherProfileEditor({
                 type="text"
                 value={village}
                 onChange={(e) => setVillage(e.target.value)}
-                className="w-full mt-1 px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="Enter your village or location"
               />
             ) : (
-              <p className="text-text-primary">{village || "Not set"}</p>
+              <p className="text-slate-800">{village || "Not set"}</p>
             )}
           </div>
         </div>

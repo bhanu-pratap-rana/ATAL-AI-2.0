@@ -21,7 +21,7 @@ interface ClassAssessmentCardProps {
  * Get score color based on value
  */
 function getScoreColor(score: number | null): string {
-  if (score === null) return "bg-surface text-text-tertiary";
+  if (score === null) return "bg-slate-50 text-slate-400";
   if (score >= 80) return "bg-success-light text-success-dark";
   if (score >= 60) return "bg-warning-light text-warning-dark";
   return "bg-error-light text-error-dark";
@@ -38,7 +38,7 @@ export function ClassAssessmentCard({
             {classData.className}
           </CardTitle>
           {classData.subject && (
-            <span className="text-sm text-text-secondary">
+            <span className="text-sm text-slate-500">
               {classData.subject}
             </span>
           )}
@@ -46,17 +46,17 @@ export function ClassAssessmentCard({
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-3 gap-4 mb-4">
-          <div className="text-center p-3 bg-surface rounded-lg">
+          <div className="text-center p-3 bg-slate-50 rounded-lg">
             <p className="text-xl font-bold text-primary">
               {classData.studentCount}
             </p>
-            <p className="text-xs text-text-secondary">Students</p>
+            <p className="text-xs text-slate-500">Students</p>
           </div>
-          <div className="text-center p-3 bg-surface rounded-lg">
+          <div className="text-center p-3 bg-slate-50 rounded-lg">
             <p className="text-xl font-bold text-info-dark">
               {classData.assessmentsTaken}
             </p>
-            <p className="text-xs text-text-secondary">
+            <p className="text-xs text-slate-500">
               Assessments
             </p>
           </div>

@@ -22,7 +22,7 @@ const variants: Record<BadgeVariant, string> = {
   error: "bg-error-light text-error",
   info: "bg-info-light text-info",
   accent: "bg-accent-light text-accent-dark",
-  secondary: "bg-surface-dark text-text-primary",
+  secondary: "bg-slate-100 text-slate-800",
 };
 
 export function Badge({

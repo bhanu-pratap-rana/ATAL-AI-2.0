@@ -238,7 +238,7 @@ export function DashboardMetrics() {
     }
 
     return items.length === 0 ? (
-      <p className="text-center text-text-tertiary py-8">{emptyMessage}</p>
+      <p className="text-center text-slate-400 py-8">{emptyMessage}</p>
     ) : (
       <div className="space-y-3">
         {items.map((item) => (
@@ -356,7 +356,7 @@ export function DashboardMetrics() {
       value: metrics.inactivePins,
       icon: Lock,
       color: "bg-border-light",
-      iconColor: "text-text-tertiary",
+      iconColor: "text-slate-400",
       hoverColor: "hover:border-text-tertiary",
       modalType: "inactivePINs" as ModalType,
     },
@@ -369,17 +369,18 @@ export function DashboardMetrics() {
           const Icon = card.icon;
           return (
             <button
+                type="button"
               key={card.title}
               onClick={() => openModal(card.modalType)}
-              className={`${card.color} rounded-lg p-6 border border-border text-left ${card.hoverColor} hover:shadow-md transition cursor-pointer`}
+              className={`${card.color} rounded-lg p-6 border border-slate-200 text-left ${card.hoverColor} hover:shadow-md transition cursor-pointer`}
             >
               <div className="flex items-center gap-3 mb-3">
                 <Icon className={`w-5 h-5 ${card.iconColor}`} />
-                <h3 className="text-sm text-text-secondary font-medium">
+                <h3 className="text-sm text-slate-500 font-medium">
                   {card.title}
                 </h3>
               </div>
-              <p className="text-3xl font-bold text-text-primary">
+              <p className="text-xl sm:text-3xl font-bold text-slate-800">
                 {card.value}
               </p>
               <p className={`text-xs ${card.iconColor} mt-2 underline`}>

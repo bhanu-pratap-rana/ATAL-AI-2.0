@@ -43,7 +43,7 @@ export default function AdminSchoolPINsPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="flex flex-col items-center gap-3">
           <Loader size={32} className="animate-spin text-primary" />
-          <p className="text-text-secondary">Loading...</p>
+          <p className="text-slate-500">Loading...</p>
         </div>
       </div>
     );
@@ -132,7 +132,7 @@ export default function AdminSchoolPINsPage() {
           </div>
 
           {/* Right Column: Schools List */}
-          <div className="bg-white border border-border rounded-lg overflow-hidden flex flex-col">
+          <div className="bg-white border border-slate-200 rounded-lg overflow-hidden flex flex-col">
             <SchoolsList
               schools={allSchools}
               selectedSchool={selectedSchool}

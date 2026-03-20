@@ -160,7 +160,7 @@ function ResetPasswordContent() {
               disabled={isLoading || Boolean(searchParams.get("email"))}
               className="w-full"
             />
-            <p className="text-xs text-text-secondary">
+            <p className="text-xs text-slate-500">
               We sent a verification code to this email address
             </p>
           </div>
@@ -180,7 +180,7 @@ function ResetPasswordContent() {
               maxLength={OTP_LENGTH}
               className="w-full text-center text-2xl tracking-widest font-mono"
             />
-            <p className="text-xs text-text-secondary">
+            <p className="text-xs text-slate-500">
               Enter the 6-digit code from your email
             </p>
           </div>
@@ -199,7 +199,7 @@ function ResetPasswordContent() {
               disabled={isLoading}
               className="w-full"
             />
-            <p className="text-xs text-text-secondary">Minimum 8 characters</p>
+            <p className="text-xs text-slate-500">Minimum 8 characters</p>
           </div>
 
           {/* Confirm Password Field */}
@@ -242,7 +242,7 @@ function ResetPasswordContent() {
 
           {/* Back to Login Link */}
           <div className="text-center">
-            <p className="text-sm text-text-secondary">
+            <p className="text-sm text-slate-500">
               Remember your password?{" "}
               <button
                 type="button"
@@ -264,7 +264,7 @@ export default function ResetPasswordPage() {
     <Suspense
       fallback={
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-          <div className="animate-pulse text-text-secondary">Loading...</div>
+          <div className="animate-pulse text-slate-500">Loading...</div>
         </div>
       }
     >

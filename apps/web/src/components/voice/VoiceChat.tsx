@@ -234,7 +234,7 @@ export const VoiceChat = memo(function VoiceChat({
         <p className="text-sm text-warning-dark">
           Voice input is not supported in this browser.
         </p>
-        <p className="text-xs text-text-secondary mt-1">
+        <p className="text-xs text-slate-500 mt-1">
           Please use Chrome, Edge, or Safari for voice features.
         </p>
       </div>
@@ -286,7 +286,7 @@ export const VoiceChat = memo(function VoiceChat({
       {/* Interim Transcript - Real-time feedback for screen readers */}
       {showInterimTranscript && interimTranscript && (
         <div className="text-center" aria-live="polite" aria-atomic="true">
-          <p className="text-sm text-text-secondary italic max-w-xs mx-auto">
+          <p className="text-sm text-slate-500 italic max-w-xs mx-auto">
             &quot;{interimTranscript}&quot;
           </p>
         </div>
@@ -304,7 +304,7 @@ export const VoiceChat = memo(function VoiceChat({
       )}
 
       {/* Language Indicator */}
-      <div className="text-center text-xs text-text-secondary">
+      <div className="text-center text-xs text-slate-500">
         Language: {LANGUAGE_DISPLAY_NAMES[language] || "অসমীয়া"}
       </div>
     </div>

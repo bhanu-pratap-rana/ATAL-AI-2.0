@@ -2,30 +2,21 @@
 
 import { useEffect, useState, memo, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { createClient } from "@/lib/supabase-browser";
-import { Button } from "@/components/ui/button";
-import { authLogger } from "@/lib/auth-logger";
 import { isTeacherOrHigher } from "@/lib/auth/role-utils";
 import type { User } from "@supabase/supabase-js";
-import { LogOut } from "lucide-react";
+import { Flame, ChevronRight, BookOpen } from "lucide-react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import {
   getDashboardStats,
   type DashboardStats,
 } from "@/app/actions/dashboard-stats";
-import { getAssessmentStatus, type AssessmentStatus } from "@/app/actions/assessment";
-import { SyncStatusIndicator } from "@/components/offline/SyncStatusIndicator";
-import { BadgesDisplay } from "@/components/gamification/BadgesDisplay";
-import { LeaderboardCompact } from "@/components/gamification/Leaderboard";
-import { PointsSummary } from "@/components/gamification/PointsHistory";
+import { getAssessmentStatus } from "@/app/actions/assessment";
 import { PreAssessmentPrompt } from "@/components/assessment/PreAssessmentPrompt";
 import { PostAssessmentPrompt } from "@/components/assessment/PostAssessmentPrompt";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLanguage } from "@/lib/i18n";
-import { LanguageSelector } from "@/components/learn/LanguageSelector";
 
 // Animation variants
 const containerVariants = {
@@ -86,10 +77,12 @@ function getWelcomeMessages(
 }
 
 // Feature card data
+// Students: only show items NOT in bottom nav (bottom nav = Home, Learn, AI Tutor, Rankings)
+// Teachers: show all relevant items (their bottom nav = Dashboard, Analytics, Students, System)
 const getFeatureCards = (
   isTeacher: boolean,
   t: (key: string) => string
-) => [
+) => isTeacher ? [
   {
     title: t("nav.learn"),
     description: t("dashboard.featureLearnDesc"),
@@ -100,7 +93,7 @@ const getFeatureCards = (
     title: t("nav.classes"),
     description: t("dashboard.featureClassesDesc"),
     emoji: "👥",
-    href: isTeacher ? "/app/teacher/classes" : "/app/student/classes",
+    href: "/app/teacher/classes",
   },
   {
     title: t("dashboard.featureProgress"),
@@ -118,7 +111,27 @@ const getFeatureCards = (
     title: t("nav.assessments"),
     description: t("dashboard.featureAssessmentsDesc"),
     emoji: "📝",
-    href: isTeacher ? "/app/teacher/assessments" : "/app/student/assessments",
+    href: "/app/teacher/assessments",
+  },
+  {
+    title: t("nav.profile"),
+    description: t("dashboard.featureProfileDesc"),
+    emoji: "👤",
+    href: "/app/settings",
+  },
+] : [
+  // Students: exclude Learn, AI Tools, Assessments (already in bottom nav)
+  {
+    title: t("nav.classes"),
+    description: t("dashboard.featureClassesDesc"),
+    emoji: "👥",
+    href: "/app/student/classes",
+  },
+  {
+    title: t("dashboard.featureProgress"),
+    description: t("dashboard.featureProgressDesc"),
+    emoji: "📊",
+    href: "/app/progress",
   },
   {
     title: t("nav.profile"),
@@ -141,15 +154,13 @@ const StatCard = memo(function StatCard({
   return (
     <motion.div
       variants={itemVariants}
-      className="bg-white rounded-2xl p-5 shadow-[var(--shadow-md)] border border-border-light flex items-center gap-4"
+      className="bg-white rounded-2xl p-4 shadow-[0_4px_20px_rgb(0,0,0,0.05)] border border-slate-100 flex flex-col items-center text-center gap-1"
     >
-      <div className="w-12 h-12 bg-primary-lightest rounded-xl flex items-center justify-center text-2xl flex-shrink-0">
+      <div className="w-10 h-10 bg-primary-lightest rounded-xl flex items-center justify-center text-xl flex-shrink-0">
         {icon}
       </div>
-      <div>
-        <p className="text-2xl font-bold text-text-primary">{value}</p>
-        <p className="text-sm text-text-secondary">{label}</p>
-      </div>
+      <p className="text-xl font-black text-slate-800 leading-none">{value}</p>
+      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-tight">{label}</p>
     </motion.div>
   );
 });
@@ -171,20 +182,18 @@ const FeatureCard = memo(function FeatureCard({
     <Link href={href} prefetch={true}>
       <motion.div
         variants={itemVariants}
-        whileHover={{ y: -4, boxShadow: "var(--shadow-primary)" }}
-        className="p-[3px] rounded-2xl bg-gradient-primary shadow-[var(--shadow-primary-sm)] cursor-pointer h-full"
+        whileHover={{ y: -2, boxShadow: "0 8px 24px rgba(0,0,0,0.08)" }}
+        className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 h-full cursor-pointer"
       >
-        <div className="bg-white rounded-xl p-5 h-full">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-primary-lightest rounded-lg flex items-center justify-center text-xl">
-              {emoji}
-            </div>
-            <h3 className="text-lg font-bold text-text-primary">{title}</h3>
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-11 h-11 bg-orange-50 rounded-2xl flex items-center justify-center text-xl flex-shrink-0">
+            {emoji}
           </div>
-          <p className="text-sm text-text-secondary leading-relaxed">
-            {description}
-          </p>
+          <h3 className="text-base font-black text-slate-800">{title}</h3>
         </div>
+        <p className="text-xs font-bold text-slate-400 leading-relaxed">
+          {description}
+        </p>
       </motion.div>
     </Link>
   );
@@ -192,13 +201,13 @@ const FeatureCard = memo(function FeatureCard({
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { language, t } = useLanguage();
+  const { t } = useLanguage();
   const [user, setUser] = useState<User | null>(null);
   const [profileName, setProfileName] = useState<string | null>(null);
+  const [studentClass, setStudentClass] = useState<string | null>(null);
+  const [rollNumber, setRollNumber] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [enrolledClassId, setEnrolledClassId] = useState<string | null>(null);
-  const [_assessmentStatus, setAssessmentStatus] = useState<AssessmentStatus | null>(null);
   const [showPrePrompt, setShowPrePrompt] = useState(false);
   const [showPostPrompt, setShowPostPrompt] = useState(false);
   const supabase = createClient();
@@ -219,94 +228,55 @@ export default function DashboardPage() {
       setUser(user);
 
       if (user) {
-        const role = user.app_metadata?.role;
-        // Check for teacher, admin, AND super_admin roles
-        const isTeacher = isTeacherOrHigher(role);
-
-        // Fetch profile, enrollment, and stats in PARALLEL (eliminates waterfall)
-        const profilePromise = isTeacher
-          ? supabase
-              .from("teacher_profiles")
-              .select("name")
-              .eq("user_id", user.id)
-              .maybeSingle()
-          : supabase
-              .from("student_profiles")
-              .select("name")
-              .eq("user_id", user.id)
-              .maybeSingle();
-
-        const enrollmentPromise = !isTeacher
-          ? supabase
-              .from("enrollments")
-              .select("class_id")
-              .eq("student_id", user.id)
-              .limit(1)
-              .maybeSingle()
-          : Promise.resolve({ data: null });
-
-        const statsPromise = getDashboardStats();
-        const assessmentStatusPromise = !isTeacher
-          ? getAssessmentStatus()
-          : Promise.resolve({ success: false } as const);
-
-        // Execute all in parallel
-        const [profileResult, enrollmentResult, statsResult, assessmentStatusResult] = await Promise.all([
-          profilePromise,
-          enrollmentPromise,
-          statsPromise,
-          assessmentStatusPromise,
-        ]);
-
-        // Set profile name
-        if (profileResult.data?.name) {
-          setProfileName(profileResult.data.name);
-        }
-
-        // Set enrollment (students only)
-        if (!isTeacher && enrollmentResult.data?.class_id) {
-          setEnrolledClassId(enrollmentResult.data.class_id);
-        }
-
-        // Set stats
-        if (statsResult.success && statsResult.data) {
-          setStats(statsResult.data);
-        }
-
-        // Set assessment status and show appropriate prompt (students only)
-        if (!isTeacher && assessmentStatusResult.success && assessmentStatusResult.data) {
-          const status = assessmentStatusResult.data;
-          setAssessmentStatus(status);
-
-          // Show pre-assessment prompt if student hasn't taken one and hasn't dismissed it
-          const dismissedPre = localStorage.getItem("dismissed_pre_assessment");
-          if (!status.hasPreAssessment && !dismissedPre) {
-            setShowPrePrompt(true);
-          }
-
-          // Show post-assessment prompt if curriculum completed but no post-assessment
-          const dismissedPost = localStorage.getItem("dismissed_post_assessment");
-          if (status.curriculumCompleted && !status.hasPostAssessment && !dismissedPost) {
-            setShowPostPrompt(true);
-          }
-        }
+        await loadUserData(user);
       }
 
       setLoading(false);
     }
+
+    async function loadUserData(user: User) {
+      const role = user.app_metadata?.role;
+      const isTeacher = isTeacherOrHigher(role);
+
+      const profilePromise = isTeacher
+        ? supabase.from("teacher_profiles").select("name").eq("user_id", user.id).maybeSingle()
+        : supabase.from("student_profiles").select("name, class_name, roll_number").eq("user_id", user.id).maybeSingle();
+
+      const assessmentStatusPromise = isTeacher
+        ? Promise.resolve({ success: false } as const)
+        : getAssessmentStatus();
+
+      const [profileResult, statsResult, assessmentStatusResult] = await Promise.all([
+        profilePromise,
+        getDashboardStats(),
+        assessmentStatusPromise,
+      ]);
+
+      applyProfileData(profileResult.data, isTeacher);
+      if (statsResult.success && statsResult.data) setStats(statsResult.data);
+      if (!isTeacher) applyAssessmentPrompts(assessmentStatusResult);
+    }
+
+    function applyProfileData(data: Record<string, unknown> | null, isTeacher: boolean) {
+      if (!data) return;
+      if (data.name) setProfileName(data.name as string);
+      if (!isTeacher) {
+        if (data.class_name) setStudentClass(data.class_name as string);
+        if (data.roll_number) setRollNumber(data.roll_number as string);
+      }
+    }
+
+    function applyAssessmentPrompts(result: { success: boolean; data?: { hasPreAssessment: boolean; curriculumCompleted: boolean; hasPostAssessment: boolean } }) {
+      if (!result.success || !result.data) return;
+      const status = result.data;
+      if (!status.hasPreAssessment && !localStorage.getItem("dismissed_pre_assessment")) setShowPrePrompt(true);
+      if (status.curriculumCompleted && !status.hasPostAssessment && !localStorage.getItem("dismissed_post_assessment")) setShowPostPrompt(true);
+    }
+
     getUserAndProfile();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function handleSignOut() {
-    try {
-      await supabase.auth.signOut();
-      router.refresh();
-      router.push("/student/start");
-    } catch (error) {
-      authLogger.error("[Dashboard] Sign out failed", error);
-    }
-  }
 
   // REACT-002 FIX: Memoize feature cards - MUST be before any early returns
   // to comply with Rules of Hooks (hooks must be called in same order every render)
@@ -321,220 +291,119 @@ export default function DashboardPage() {
     );
   }
 
+  // Redirect students to their dedicated dashboard (same pattern as teachers → /app/teacher/dashboard)
+  if (!isTeacherOrAdmin) {
+    router.replace("/app/student/dashboard");
+    return <LoadingSpinner message="" size="lg" fullPage />;
+  }
+
+  const welcomeMessages = getWelcomeMessages(isTeacherOrAdmin, userName, t);
+  const bannerStyle = isTeacherOrAdmin
+    ? { background: "linear-gradient(135deg,#3B82F6,#6366F1)" }
+    : { background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" };
+
   return (
-    <div className="min-h-screen bg-cream">
-      {/* Header */}
-      <header className="bg-white border-b border-border-light sticky top-0 z-50">
-        <div className="container-responsive max-w-7xl py-4">
-          <div className="flex items-center justify-between">
-            {/* Logo & Title */}
-            <div className="flex items-center gap-3 md:gap-4">
-              <div className="w-12 h-12 md:w-14 md:h-14 flex-shrink-0">
-                <Image
-                  src="/assets/logo.png"
-                  alt="ATAL AI Logo"
-                  width={56}
-                  height={56}
-                  className="w-full h-full object-contain rounded-full"
-                  style={{
-                    boxShadow: `
-                      0 0 0 2px white,
-                      0 0 0 3px var(--color-primary),
-                      0 2px 8px var(--shadow-primary-sm)
-                    `,
-                  }}
-                  priority
-                />
-              </div>
-              <div>
-                <h1 className="text-xl md:text-2xl font-bold text-text-primary">
-                  {t("dashboard.title")}
-                </h1>
-                <p className="text-xs md:text-sm text-text-secondary">
-                  {t("dashboard.subtitle")}
-                </p>
-              </div>
-            </div>
-
-            {/* Language Selector, Sync Status & Sign Out */}
-            <div className="flex items-center gap-2 md:gap-3">
-              <LanguageSelector variant="compact" className="hidden sm:block" />
-              <SyncStatusIndicator compact />
-              <Button
-                onClick={handleSignOut}
-                variant="outline"
-                size="sm"
-                className="gap-2"
-              >
-                <LogOut className="w-4 h-4" />
-                <span className="hidden sm:inline">{t("common.signOut")}</span>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="container-responsive max-w-7xl py-6 md:py-8">
+    <div className="min-h-screen bg-slate-50">
+      <div className="p-4 md:p-6">
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="max-w-4xl mx-auto space-y-4"
+      >
+        {/* Welcome Banner */}
         <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
+          variants={itemVariants}
+          className="rounded-[32px] p-6 text-white"
+          style={bannerStyle}
         >
-          {/* Mobile Language Selector */}
-          <motion.div variants={itemVariants} className="sm:hidden mb-4">
-            <div className="flex items-center justify-between bg-white rounded-xl p-3 shadow-sm">
-              <span className="text-sm text-text-secondary">{t("common.language")}</span>
-              <LanguageSelector variant="compact" />
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-2xl flex-shrink-0">
+              {isTeacherOrAdmin ? "👩‍🏫" : "🧑‍🎓"}
             </div>
-          </motion.div>
-
-          {/* Welcome Banner */}
-          <motion.div
-            variants={itemVariants}
-            className="gradient-primary rounded-2xl p-6 md:p-8 mb-8 shadow-[var(--shadow-primary)]"
-          >
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div>
-                {(() => {
-                  const messages = getWelcomeMessages(isTeacherOrAdmin, userName, t);
-                  return (
-                    <>
-                      <h2 className="text-2xl md:text-3xl font-bold mb-1 text-white drop-shadow-sm truncate">
-                        {messages.greeting}
-                      </h2>
-                      <p className="text-sm md:text-base text-white/90">
-                        {messages.description}
-                      </p>
-                    </>
-                  );
-                })()}
-              </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-xl sm:text-2xl font-black mb-1 truncate">{welcomeMessages.greeting}</h2>
+              {!isTeacherOrAdmin && (studentClass ?? rollNumber) && (
+                <p className="text-white/80 text-sm font-bold">
+                  {[studentClass, rollNumber ? `Roll No. ${rollNumber}` : null].filter(Boolean).join(" • ")}
+                </p>
+              )}
               {isTeacherOrAdmin && (
-                <Button
-                  onClick={() => router.push("/app/teacher/classes")}
-                  variant="secondary"
-                  className="bg-white text-primary hover:bg-surface shrink-0"
-                >
-                  {t("dashboard.createClass")}
-                </Button>
+                <p className="text-white/80 text-sm font-bold">{welcomeMessages.description}</p>
+              )}
+              {!isTeacherOrAdmin && stats?.streakDays != null && stats.streakDays > 0 && (
+                <div className="flex items-center gap-1.5 mt-3 bg-white/20 rounded-full px-3 py-1 w-fit">
+                  <Flame size={14} className="text-yellow-300 fill-yellow-300" />
+                  <span className="text-xs font-black">{stats.streakDays} {t("dashboard.dayStreak")}</span>
+                </div>
               )}
             </div>
-          </motion.div>
-
-          {/* Stats Grid - Real Data with Empty States */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <StatCard
-              icon="📚"
-              value={stats?.classesCount ?? 0}
-              label={isTeacherOrAdmin ? t("dashboard.classesCreated") : t("dashboard.classesJoined")}
-            />
-            <StatCard
-              icon="📝"
-              value={stats?.assessmentsCount ?? 0}
-              label={t("dashboard.assessments")}
-            />
-            <StatCard
-              icon="🎯"
-              value={
-                stats?.averageScore == null ? "--" : `${stats.averageScore}%`
-              }
-              label={t("dashboard.avgScore")}
-            />
-            <StatCard
-              icon="🔥"
-              value={stats?.streakDays ?? 0}
-              label={t("dashboard.dayStreak")}
-            />
           </div>
+        </motion.div>
 
-          {/* Empty State Message for New Users */}
-          {stats?.classesCount === 0 &&
-            stats?.assessmentsCount === 0 && (
-              <motion.div
-                variants={itemVariants}
-                className="bg-info-light border border-info/30 rounded-xl p-6 mb-8 text-center"
-              >
-                <p className="text-lg font-medium text-info-dark mb-2">
-                  {isTeacherOrAdmin
-                    ? t("dashboard.welcomeEmoji")
-                    : t("dashboard.welcomeStudentEmoji")}
-                </p>
-                <p className="text-sm text-text-secondary mb-4">
-                  {isTeacherOrAdmin
-                    ? t("dashboard.getStartedTeacher")
-                    : t("dashboard.getStartedStudent")}
-                </p>
-                <Button
-                  onClick={() =>
-                    router.push(
-                      isTeacherOrAdmin
-                        ? "/app/teacher/classes"
-                        : "/app/assessment/start?type=pre",
-                    )
-                  }
-                  variant="default"
-                >
-                  {isTeacherOrAdmin
-                    ? t("dashboard.createFirstClass")
-                    : t("dashboard.startAssessment")}
-                </Button>
-              </motion.div>
-            )}
+        {/* Stats Grid — 2-col for students, 4-col for teachers */}
+        {isTeacherOrAdmin ? (
+          <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard icon="📚" value={stats?.classesCount ?? 0} label={t("dashboard.classesCreated")} />
+            <StatCard icon="📝" value={stats?.assessmentsCount ?? 0} label={t("dashboard.assessments")} />
+            <StatCard icon="🎯" value={stats?.averageScore == null ? "--" : `${stats.averageScore}%`} label={t("dashboard.avgScore")} />
+            <StatCard icon="🔥" value={stats?.streakDays ?? 0} label={t("dashboard.dayStreak")} />
+          </motion.div>
+        ) : (
+          <motion.div variants={itemVariants} className="grid grid-cols-2 gap-4">
+            <StatCard icon="🎯" value={stats?.averageScore == null ? "--" : `${stats.averageScore}%`} label={t("dashboard.avgScore")} />
+            <StatCard icon="🔥" value={stats?.streakDays ?? 0} label={t("dashboard.dayStreak")} />
+          </motion.div>
+        )}
 
-          {/* Gamification Section - Badges, Points & Leaderboard */}
-          {!isTeacherOrAdmin && user && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-              {/* Badges - takes 2/3 width on desktop to avoid cramped grid */}
-              <motion.div variants={itemVariants} className="lg:col-span-2">
-                <Card className="h-full">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      🏆 {t("dashboard.yourBadges")}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <BadgesDisplay
-                      studentId={user.id}
-                      language={language}
-                      showAll={true}
-                    />
-                  </CardContent>
-                </Card>
-              </motion.div>
-              {/* Points + Leaderboard stacked in right 1/3 */}
-              <div className="space-y-6">
-                <motion.div variants={itemVariants}>
-                  <Card className="h-full">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        ⭐ {t("dashboard.points")}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <PointsSummary studentId={user.id} />
-                    </CardContent>
-                  </Card>
-                </motion.div>
-                {enrolledClassId && (
-                  <motion.div variants={itemVariants}>
-                    <LeaderboardCompact
-                      classId={enrolledClassId}
-                      currentUserId={user.id}
-                      limit={5}
-                    />
-                  </motion.div>
-                )}
+        {/* Empty State for New Users */}
+        {stats?.classesCount === 0 && stats?.assessmentsCount === 0 && (
+          <motion.div
+            variants={itemVariants}
+            className="bg-orange-50 border border-orange-100 rounded-3xl p-6 text-center"
+          >
+            <p className="font-black text-slate-800 text-lg mb-1">
+              {isTeacherOrAdmin ? t("dashboard.welcomeEmoji") : t("dashboard.welcomeStudentEmoji")}
+            </p>
+            <p className="font-bold text-slate-400 text-sm mb-4">
+              {isTeacherOrAdmin ? t("dashboard.getStartedTeacher") : t("dashboard.getStartedStudent")}
+            </p>
+            <button
+                type="button"
+              onClick={() => router.push(isTeacherOrAdmin ? "/app/teacher/classes" : "/app/assessment/start?type=pre")}
+              className="px-6 py-3 rounded-2xl font-black text-sm text-white transition-all active:scale-95 inline-block"
+              style={bannerStyle}
+            >
+              {isTeacherOrAdmin ? t("dashboard.createFirstClass") : t("dashboard.startAssessment")}
+            </button>
+          </motion.div>
+        )}
+
+        {/* Continue Learning Section - students only */}
+        {!isTeacherOrAdmin && (
+          <motion.div variants={itemVariants}>
+            <Link href="/app/learn" prefetch={true}>
+              <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 flex items-center gap-4 cursor-pointer hover:shadow-md transition-shadow">
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" }}>
+                  <BookOpen className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-black text-slate-800 text-base">Continue Learning</h3>
+                  <p className="text-xs font-bold text-slate-400 mt-0.5">Pick up where you left off</p>
+                </div>
+                <ChevronRight className="w-5 h-5 text-slate-300 flex-shrink-0" />
               </div>
-            </div>
-          )}
+            </Link>
+          </motion.div>
+        )}
 
-          {/* Feature Cards Grid */}
-          <div className="mb-6">
-            <h3 className="text-lg font-bold text-text-primary mb-4">
+        {/* Quick Actions - teachers only (students navigate via bottom nav) */}
+        {isTeacherOrAdmin && (
+          <motion.div variants={itemVariants}>
+            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">
               {t("dashboard.quickActions")}
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {featureCards.map((card) => (
                 <FeatureCard
                   key={card.title}
@@ -545,9 +414,10 @@ export default function DashboardPage() {
                 />
               ))}
             </div>
-          </div>
-        </motion.div>
-      </main>
+          </motion.div>
+        )}
+      </motion.div>
+      </div>
 
       {/* Pre/Post Assessment Prompt Modals (students only) */}
       {!isTeacherOrAdmin && (

@@ -66,8 +66,16 @@ export const AI_PROVIDERS = {
     defaultModel: "llama-3.3-70b-versatile",
     baseUrl: "https://api.groq.com/openai/v1",
   },
+  /**
+   * Ollama — local dev/testing fallback ONLY.
+   *
+   * This entry is NEVER selected in production; the active provider is
+   * resolved at runtime from environment variables (e.g. GEMINI_API_KEY).
+   * No production route imports AI_PROVIDERS.ollama.
+   * Safe to keep here for local developer experimentation.
+   */
   ollama: {
-    name: "Ollama",
+    name: "Ollama (dev-only)",
     defaultModel: "cogito:14b",
     baseUrl: "http://localhost:11434",
   },

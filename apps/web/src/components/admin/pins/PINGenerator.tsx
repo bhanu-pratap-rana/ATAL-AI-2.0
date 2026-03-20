@@ -46,7 +46,7 @@ export function PINGenerator({
           type="text"
           value={selectedSchool.schoolCode}
           disabled
-          className="bg-surface"
+          className="bg-slate-50"
         />
       </div>
 
@@ -69,7 +69,7 @@ export function PINGenerator({
               {showNewPin ? <EyeOff size={18} /> : <Eye size={18} />}
             </Button>
           </div>
-          <p className="text-xs text-text-secondary">
+          <p className="text-xs text-slate-500">
             This PIN will replace the current PIN when you rotate it.
           </p>
         </div>

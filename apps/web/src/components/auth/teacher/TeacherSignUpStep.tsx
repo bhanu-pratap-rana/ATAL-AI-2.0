@@ -40,7 +40,7 @@ export function TeacherSignUpStep({
   }, [actions]);
 
   return (
-    <div className="min-h-screen bg-cream flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-8 sm:px-6 md:px-8">
       <AuthCard
         title="Teacher Registration"
         description="Step 1 of 4: Choose your verification method"
@@ -49,22 +49,24 @@ export function TeacherSignUpStep({
           {/* Tab Navigation - Responsive sizing */}
           <div className="flex gap-2 sm:gap-3">
             <button
+                type="button"
               onClick={handleEmailMethodSelect}
               className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-colors text-xs sm:text-sm ${
                 state.signupMethod === "email"
                   ? "bg-primary text-white shadow-md"
-                  : "bg-surface text-text-secondary hover:bg-surface-dark"
+                  : "bg-slate-50 text-slate-500 hover:bg-slate-100"
               }`}
               disabled={state.loading}
             >
               <span className="hidden sm:inline">📧 </span>Email
             </button>
             <button
+                type="button"
               onClick={handlePhoneMethodSelect}
               className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-colors text-xs sm:text-sm ${
                 state.signupMethod === "phone"
                   ? "bg-primary text-white shadow-md"
-                  : "bg-surface text-text-secondary hover:bg-surface-dark"
+                  : "bg-slate-50 text-slate-500 hover:bg-slate-100"
               }`}
               disabled={state.loading}
             >
@@ -97,7 +99,7 @@ export function TeacherSignUpStep({
                       maxLength={6}
                       className="text-center text-2xl font-mono tracking-widest"
                     />
-                    <p className="text-xs text-text-secondary">
+                    <p className="text-xs text-slate-500">
                       Enter the 6-digit code sent to {state.email}
                     </p>
                   </div>
@@ -165,7 +167,7 @@ export function TeacherSignUpStep({
                         )}
                       </div>
                     )}
-                    <p className="text-xs text-text-secondary">
+                    <p className="text-xs text-slate-500">
                       We&apos;ll send a 6-digit code to this email
                     </p>
                   </div>
@@ -198,8 +200,8 @@ export function TeacherSignUpStep({
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone Number</Label>
                   <div className="flex gap-2">
-                    <div className="flex items-center px-3 bg-surface rounded-lg">
-                      <span className="text-sm font-medium text-text-secondary">
+                    <div className="flex items-center px-3 bg-slate-50 rounded-lg">
+                      <span className="text-sm font-medium text-slate-500">
                         +91
                       </span>
                     </div>
@@ -223,7 +225,7 @@ export function TeacherSignUpStep({
                   {state.phoneError && (
                     <p className="text-sm text-error">{state.phoneError}</p>
                   )}
-                  <p className="text-xs text-text-secondary">
+                  <p className="text-xs text-slate-500">
                     10-digit Indian phone number
                   </p>
                 </div>
@@ -265,7 +267,7 @@ export function TeacherSignUpStep({
                       maxLength={6}
                       className="text-center text-2xl font-mono tracking-widest"
                     />
-                    <p className="text-xs text-text-secondary">
+                    <p className="text-xs text-slate-500">
                       Enter the 6-digit code sent to +91{state.phoneNumber}
                     </p>
                   </div>

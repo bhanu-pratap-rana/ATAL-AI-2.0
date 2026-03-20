@@ -24,8 +24,8 @@ import type { UseOTPInputReturn } from "@/hooks/useOTPInput";
  * Design Rules Applied:
  * - Primary button with correct shadows
  * - Error text: text-error
- * - Muted text: text-text-muted
- * - Links: text-text-secondary
+ * - Muted text: text-slate-400
+ * - Links: text-slate-500
  */
 
 interface ForgotPasswordFlowProps {
@@ -165,7 +165,7 @@ export function ForgotPasswordFlow({
         <button
           type="button"
           onClick={() => actions.setMainStep("signin")}
-          className="text-sm text-text-secondary hover:text-primary hover:underline block w-full text-center transition-colors"
+          className="text-sm text-slate-500 hover:text-primary hover:underline block w-full text-center transition-colors"
           disabled={isLoading}
         >
           Back to sign in
@@ -192,7 +192,7 @@ export function ForgotPasswordFlow({
           maxLength={OTP_LENGTH}
           className="text-center text-2xl font-mono tracking-widest"
         />
-        <p className="text-xs text-text-muted">
+        <p className="text-xs text-slate-400">
           Enter the 6-digit code sent to your email
         </p>
       </div>
@@ -250,7 +250,7 @@ export function ForgotPasswordFlow({
       <button
         type="button"
         onClick={() => actions.setForgotPasswordStep("email")}
-        className="text-sm text-text-secondary hover:text-primary hover:underline block w-full text-center transition-colors"
+        className="text-sm text-slate-500 hover:text-primary hover:underline block w-full text-center transition-colors"
         disabled={isLoading}
       >
         Change email

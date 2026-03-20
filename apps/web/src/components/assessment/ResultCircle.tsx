@@ -135,7 +135,7 @@ export function ResultCircle({
           >
             {displayPercentage}%
           </span>
-          <span className="text-sm text-text-secondary mt-1">{label}</span>
+          <span className="text-sm text-slate-500 mt-1">{label}</span>
         </div>
       </div>
 

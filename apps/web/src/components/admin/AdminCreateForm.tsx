@@ -121,7 +121,7 @@ export function AdminCreateForm({
           disabled={isLoading}
           className="focus:ring-primary focus:border-primary"
         />
-        <p className="text-xs text-text-secondary">
+        <p className="text-xs text-slate-500">
           This email will be used to login to the admin panel
         </p>
       </div>

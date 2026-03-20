@@ -82,12 +82,13 @@ export function LanguageSelector({
     <div className={`flex gap-2 ${className}`} role="group" aria-label="Language selection">
       {SUPPORTED_LANGUAGES.map((lang) => (
         <button
+                type="button"
           key={lang.code}
           onClick={() => handleChange(lang.code)}
           className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors flex items-center gap-1.5 ${
             language === lang.code
               ? "bg-primary text-white"
-              : "bg-white text-text-secondary hover:bg-primary-light border border-border"
+              : "bg-white text-slate-500 hover:bg-primary-light border border-slate-200"
           }`}
           aria-label={`Switch to ${lang.label}`}
           aria-pressed={language === lang.code}

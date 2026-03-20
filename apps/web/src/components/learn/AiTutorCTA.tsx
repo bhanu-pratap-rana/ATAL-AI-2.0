@@ -19,7 +19,7 @@ export function AiTutorCTA() {
       <CardContent className="p-6 text-center">
         <div className="text-4xl mb-2">🤖</div>
         <h3 className="text-lg font-semibold mb-1">{t("learn.needHelp")}</h3>
-        <p className="text-sm text-text-secondary mb-4">
+        <p className="text-sm text-slate-500 mb-4">
           {t("learn.askAiTutor")}
         </p>
         <Link href="/app/ai-tools/tutor">

@@ -130,7 +130,7 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
 
           authLogger.success("[SignIn Email] Authentication successful");
           toast.success("Login successful!");
-          router.push("/app/dashboard");
+          router.push("/app/student/dashboard");
         }
       } catch (error) {
         authLogger.error("[SignIn Email] Unexpected error", error);
@@ -188,7 +188,7 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
 
           authLogger.success("[SignIn Phone] Authentication successful");
           toast.success("Login successful!");
-          router.push("/app/dashboard");
+          router.push("/app/student/dashboard");
         }
       } catch (error) {
         authLogger.error("[SignIn Phone] Unexpected error", error);
@@ -233,7 +233,7 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
         if (result.success) {
           authLogger.success("[SignIn Username] Authentication successful");
           toast.success("Login successful!");
-          router.push("/app/dashboard");
+          router.push("/app/student/dashboard");
         } else {
           authLogger.error("[SignIn Username] Authentication failed", {
             error: result.error,
@@ -260,33 +260,36 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
         {/* Tab Navigation */}
         <div className="flex gap-2">
           <button
+                type="button"
             onClick={() => actions.setSigninTab("email")}
             className={`flex-1 py-2 px-3 rounded-lg font-medium transition-colors text-sm ${
               state.signinTab === "email"
                 ? "bg-primary text-white"
-                : "bg-surface text-text-secondary hover:bg-surface-dark"
+                : "bg-slate-50 text-slate-500 hover:bg-slate-100"
             }`}
             disabled={isLoading}
           >
             📧 Email
           </button>
           <button
+                type="button"
             onClick={() => actions.setSigninTab("phone")}
             className={`flex-1 py-2 px-3 rounded-lg font-medium transition-colors text-sm ${
               state.signinTab === "phone"
                 ? "bg-primary text-white"
-                : "bg-surface text-text-secondary hover:bg-surface-dark"
+                : "bg-slate-50 text-slate-500 hover:bg-slate-100"
             }`}
             disabled={isLoading}
           >
             📱 Phone
           </button>
           <button
+                type="button"
             onClick={() => actions.setSigninTab("username")}
             className={`flex-1 py-2 px-3 rounded-lg font-medium transition-colors text-sm ${
               state.signinTab === "username"
                 ? "bg-primary text-white"
-                : "bg-surface text-text-secondary hover:bg-surface-dark"
+                : "bg-slate-50 text-slate-500 hover:bg-slate-100"
             }`}
             disabled={isLoading}
           >
@@ -338,7 +341,7 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
 
-            <p className="text-center text-sm text-text-secondary">
+            <p className="text-center text-sm text-slate-500">
               Don&apos;t have an account?{" "}
               <button
                 type="button"
@@ -394,7 +397,7 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
 
-            <p className="text-center text-sm text-text-secondary">
+            <p className="text-center text-sm text-slate-500">
               Don&apos;t have an account?{" "}
               <button
                 type="button"
@@ -452,7 +455,7 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
 
-            <p className="text-center text-sm text-text-secondary">
+            <p className="text-center text-sm text-slate-500">
               Don&apos;t have an account?{" "}
               <button
                 type="button"
