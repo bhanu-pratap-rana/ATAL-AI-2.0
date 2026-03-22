@@ -652,7 +652,7 @@ export function AssessmentRunner({
 
   if (!currentQuestion) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-orange-50">
+      <div className="flex items-center justify-center min-h-screen bg-slate-50">
         <div className="text-center">
           <div className="w-12 h-12 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-slate-400">Loading assessment...</p>
@@ -662,7 +662,7 @@ export function AssessmentRunner({
   }
 
   return (
-    <div className="min-h-screen bg-orange-50 p-4 md:p-8">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-8">
       <div className="max-w-3xl mx-auto">
         {/* Progress Header */}
         <output className="mb-4 block">
@@ -704,7 +704,7 @@ export function AssessmentRunner({
         {/* Rapid Tap Warning */}
         {showRapidWarning && (
           <div
-            className="mb-4 bg-warning-light border-l-4 border-warning p-4 rounded-md"
+            className="mb-4 bg-warning-light border-l-4 border-warning p-4 rounded-2xl"
             role="alert"
             aria-live="polite"
           >
@@ -716,8 +716,7 @@ export function AssessmentRunner({
         )}
 
         {/* Question Card */}
-        <div className="card-gradient">
-          <div className="bg-white rounded-xl p-6 md:p-8">
+        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 md:p-8">
             {/* Category Badge */}
             <div className="mb-6">
               <span
@@ -745,11 +744,11 @@ export function AssessmentRunner({
                 (option: { id: string; text: string }, index: number) => {
                   // Fixed positional labels: A, B, C, D always in order
                   // Option content shuffles but labels stay sequential
-                  const label = String.fromCharCode(65 + index); // A=65
+                  const label = String.fromCodePoint(65 + index); // A=65
                   return (
                     <label
                       key={option.id}
-                      className={`w-full text-left p-4 rounded-md border-2 transition-all duration-200 cursor-pointer focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 ${getOptionButtonClasses(selectedOption === index)} ${isSubmitting ? "pointer-events-none opacity-50" : ""}`}
+                      className={`w-full text-left p-4 rounded-2xl border-2 transition-all duration-200 cursor-pointer focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 ${getOptionButtonClasses(selectedOption === index)} ${isSubmitting ? "pointer-events-none opacity-50" : ""}`}
                     >
                       <input
                         type="radio"
@@ -795,7 +794,6 @@ export function AssessmentRunner({
               onClear={handleClear}
               onNext={handleNext}
             />
-          </div>
         </div>
 
         {/* Helper Text */}

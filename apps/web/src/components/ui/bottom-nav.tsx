@@ -11,7 +11,7 @@ import {
 const STUDENT_NAV = [
   { href: "/app/student/dashboard", icon: LayoutDashboard, label: "Home" },
   { href: "/app/learn", icon: BookOpen, label: "Learn" },
-  { href: "/app/ai-tools", icon: MessageSquare, label: "AI Tutor" },
+  { href: "/app/ai-tools", icon: MessageSquare, label: "AI Tools" },
   { href: "/app/settings", icon: UserCircle, label: "Profile" },
 ] as const;
 

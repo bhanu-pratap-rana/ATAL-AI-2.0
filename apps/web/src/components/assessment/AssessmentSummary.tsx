@@ -108,7 +108,7 @@ function getCategoryScores(
 ): { category: string; name: string; score: number; moduleId: string }[] {
   return Object.entries(breakdown).map(([category, data]) => ({
     category,
-    name: CATEGORY_NAMES[category] || category.replace(/_/g, " "),
+    name: CATEGORY_NAMES[category] || category.replaceAll("_", " "),
     score: data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0,
     moduleId: CATEGORY_TO_MODULE[category] || "M1",
   }));
@@ -190,11 +190,10 @@ export function AssessmentSummary({
   const scoreMessage = getScoreMessage(score);
 
   return (
-    <div className="min-h-screen bg-orange-50 p-4 md:p-8">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
         {/* Header Card - Celebration */}
-        <div className="card-gradient mb-6">
-          <div className="bg-white rounded-xl p-6 md:p-8">
+        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 md:p-8 mb-6">
             {/* Celebration Banner */}
             <div className="text-center mb-6">
               {/* Celebration Animation for high scores */}
@@ -207,7 +206,7 @@ export function AssessmentSummary({
                 </div>
               )}
               <span className="text-4xl sm:text-5xl mb-4 block">{scoreMessage.emoji}</span>
-              <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-2">
+              <h1 className="text-3xl md:text-4xl font-black text-slate-800 mb-2">
                 {scoreMessage.title}
               </h1>
               <p className="text-lg text-slate-500">
@@ -242,20 +241,19 @@ export function AssessmentSummary({
                 </div>
               </div>
             </div>
-          </div>
         </div>
 
         {/* Two Column Layout for Desktop */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Category Breakdown */}
-          <div className="card">
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
             <CategoryBreakdown categories={moduleBreakdown} />
           </div>
 
           {/* Strengths & Weaknesses + Stats */}
           <div className="space-y-6">
             {/* Strengths & Weaknesses */}
-            <div className="card space-y-4">
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-4">
               <CategoryStrengths
                 categories={moduleBreakdown}
                 type="strengths"
@@ -276,8 +274,8 @@ export function AssessmentSummary({
         </div>
 
         {/* Level Card */}
-        <div className="card mb-6">
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-4">
+        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 mb-6">
+          <h2 className="text-xl sm:text-2xl font-black text-slate-800 mb-4">
             Your Skill Level
           </h2>
           <LevelCard score={score} className="max-w-sm mx-auto" />
@@ -285,24 +283,24 @@ export function AssessmentSummary({
 
         {/* Pre vs Post Comparison (only for post-assessment with pre data) */}
         {sessionType === "post" && comparisonData?.pre && (
-          <div className="card mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-4">
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 mb-6">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-800 mb-4">
               Your Improvement
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-              <div className="text-center p-4 bg-slate-50/50 rounded-lg">
+              <div className="text-center p-4 bg-slate-50/50 rounded-2xl">
                 <div className="text-sm text-slate-400 mb-1">Pre-Assessment</div>
                 <div className="text-xl sm:text-3xl font-bold text-slate-500">
                   {Math.round(comparisonData.pre.score)}%
                 </div>
               </div>
-              <div className="text-center p-4 bg-primary/10 rounded-lg">
+              <div className="text-center p-4 bg-primary/10 rounded-2xl">
                 <div className="text-sm text-slate-400 mb-1">Post-Assessment</div>
-                <div className="text-xl sm:text-3xl font-bold text-primary">
+                <div className="text-xl sm:text-3xl font-black text-primary">
                   {score}%
                 </div>
               </div>
-              <div className="text-center p-4 bg-success/10 rounded-lg">
+              <div className="text-center p-4 bg-success/10 rounded-2xl">
                 <div className="text-sm text-slate-400 mb-1">Improvement</div>
                 <div className={`text-3xl font-bold ${score - comparisonData.pre.score > 0 ? "text-success" : "text-error"}`}>
                   {score - Math.round(comparisonData.pre.score) > 0 ? "+" : ""}
@@ -362,8 +360,8 @@ export function AssessmentSummary({
         )}
 
         {/* Next Steps — Smart Level Routing */}
-        <div className="card">
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-4">
+        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+          <h2 className="text-xl sm:text-2xl font-black text-slate-800 mb-4">
             What&apos;s Next?
           </h2>
 
@@ -386,7 +384,7 @@ export function AssessmentSummary({
                   {categories.map((cat) => (
                     <div
                       key={cat.category}
-                      className="flex items-center justify-between p-3 rounded-lg bg-slate-50/30"
+                      className="flex items-center justify-between p-3 rounded-2xl bg-slate-50/50"
                     >
                       <div className="flex items-center gap-2">
                         <span className={cat.score >= MASTERY_THRESHOLDS.PASSING ? "text-success" : "text-warning"}>
@@ -443,13 +441,13 @@ export function AssessmentSummary({
                 <div className="space-y-2 mb-6">
                   {categories.map((cat) => {
                     const preModule = comparisonData?.pre?.modules?.[cat.category];
-                    const preScore = preModule?.score != null ? Math.round(preModule.score) : null;
-                    const improved = preScore != null && cat.score > preScore;
+                    const preScore = preModule?.score == null ? null : Math.round(preModule.score);
+                    const improved = preScore !== null && cat.score > preScore;
 
                     return (
                       <div
                         key={cat.category}
-                        className="flex items-center justify-between p-3 rounded-lg bg-slate-50/30"
+                        className="flex items-center justify-between p-3 rounded-2xl bg-slate-50/50"
                       >
                         <div className="flex items-center gap-2">
                           <span className={cat.score >= MASTERY_THRESHOLDS.PASSING ? "text-success" : "text-warning"}>
@@ -484,7 +482,7 @@ export function AssessmentSummary({
                 </div>
 
                 {allMastered && (
-                  <div className="text-center p-4 bg-success/10 rounded-lg mb-4">
+                  <div className="text-center p-4 bg-success/10 rounded-2xl mb-4">
                     <span className="text-3xl block mb-1">🎓</span>
                     <p className="text-sm font-semibold text-success">Curriculum Mastery Achieved!</p>
                   </div>
@@ -549,7 +547,7 @@ export function AssessmentSummary({
               </Button>
             )}
             <Button
-              onClick={() => router.push("/app/dashboard")}
+              onClick={() => router.push("/app/student/dashboard")}
               variant="ghost"
               size="lg"
               className="flex-1"

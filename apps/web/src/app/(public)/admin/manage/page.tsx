@@ -1,5 +1,4 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useAdminManagement } from "@/hooks/useAdminManagement";
 import { AdminLoadingState } from "@/components/admin/manage/AdminLoadingState";

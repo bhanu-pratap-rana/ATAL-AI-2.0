@@ -40,7 +40,7 @@ export function LearnHeader({
     : title || t("learn.yourPath");
 
   const resolvedBackLink = backLink || {
-    href: "/app/dashboard",
+    href: "/app/student/dashboard",
     label: "",
   };
 
