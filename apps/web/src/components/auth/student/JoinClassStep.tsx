@@ -51,7 +51,7 @@ export function JoinClassStep({
   // JOIN CLASS
   // ========================================
   const handleJoinClassAfterProfile = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       actions.setIsLoading(true);
       actions.setJoinClassError(null);

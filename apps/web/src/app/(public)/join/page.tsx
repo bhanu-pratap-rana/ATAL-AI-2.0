@@ -97,7 +97,7 @@ function PhoneOTPStep({
   const phoneInput = usePhoneInput();
   const otpInput = useOTPInput();
 
-  async function handleSendOTPClick(e: React.FormEvent) {
+  async function handleSendOTPClick(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setStepLoading(true);
 
@@ -125,7 +125,7 @@ function PhoneOTPStep({
     }
   }
 
-  async function handleVerifyOTPClick(e: React.FormEvent) {
+  async function handleVerifyOTPClick(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setStepLoading(true);
 
@@ -355,7 +355,7 @@ function JoinClassForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [classCode]);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     // If we have a preview but haven't confirmed yet, show confirmation

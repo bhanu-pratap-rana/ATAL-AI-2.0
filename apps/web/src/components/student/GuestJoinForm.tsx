@@ -40,7 +40,7 @@ export function GuestJoinForm({
   const router = useRouter();
   const supabase = createClient();
 
-  async function handleGuestJoinClass(e: React.FormEvent) {
+  async function handleGuestJoinClass(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     actions.setIsLoading(true);
     actions.setGuestError(null);

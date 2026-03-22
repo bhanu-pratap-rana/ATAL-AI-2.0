@@ -47,7 +47,7 @@ function ResetPasswordContent() {
   };
 
   // Handle form submission
-  async function handleResetPassword(e: React.FormEvent) {
+  async function handleResetPassword(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setIsLoading(true);

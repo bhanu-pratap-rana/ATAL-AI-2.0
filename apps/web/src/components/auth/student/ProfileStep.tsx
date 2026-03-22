@@ -35,7 +35,7 @@ export function ProfileStep({
   // SAVE PROFILE
   // ========================================
   const handleSaveProfile = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       actions.setIsLoading(true);
       actions.setProfileError(null);

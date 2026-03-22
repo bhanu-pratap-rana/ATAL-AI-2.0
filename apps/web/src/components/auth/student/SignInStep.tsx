@@ -90,7 +90,7 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
   // SIGN IN - EMAIL HANDLER
   // ========================================
   const handleSignInEmail = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       actions.setIsLoading(true);
       actions.setSigninEmailError(null);
@@ -148,7 +148,7 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
   // SIGN IN - PHONE HANDLER
   // ========================================
   const handleSignInPhone = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       actions.setIsLoading(true);
       actions.setSigninPhoneError(null);
@@ -206,7 +206,7 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
   // SIGN IN - USERNAME HANDLER
   // ========================================
   const handleSignInUsername = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       actions.setIsLoading(true);
       actions.setSigninUsernameError(null);

@@ -53,7 +53,7 @@ export function ForgotPasswordStep({
   // FORGOT PASSWORD - REQUEST OTP
   // ========================================
   const handleForgotPasswordOtp = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       actions.setIsLoading(true);
       actions.setForgotPasswordError(null);
@@ -100,7 +100,7 @@ export function ForgotPasswordStep({
   // FORGOT PASSWORD - RESET WITH OTP
   // ========================================
   const handleResetPassword = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       actions.setIsLoading(true);
       actions.setForgotPasswordError(null);

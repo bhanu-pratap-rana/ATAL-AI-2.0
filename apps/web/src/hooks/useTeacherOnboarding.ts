@@ -199,15 +199,15 @@ export interface TeacherOnboardingActions {
   setVillage: (village: string) => void;
 
   // Handlers
-  handleTeacherLogin: (e: React.FormEvent) => Promise<void>;
-  handleForgotPasswordOtp: (e: React.FormEvent) => Promise<void>;
-  handleResetPassword: (e: React.FormEvent) => Promise<void>;
-  handleSendOTP: (e: React.FormEvent) => Promise<void>;
-  handleVerifyOTP: (e: React.FormEvent) => Promise<void>;
-  handleSetPassword: (e: React.FormEvent) => Promise<void>;
+  handleTeacherLogin: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
+  handleForgotPasswordOtp: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
+  handleResetPassword: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
+  handleSendOTP: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
+  handleVerifyOTP: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
+  handleSetPassword: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
   handlePasswordChange: (password: string) => void;
-  handleSchoolVerification: (e: React.FormEvent) => Promise<void>;
-  handleProfileSubmit: (e: React.FormEvent) => Promise<void>;
+  handleSchoolVerification: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
+  handleProfileSubmit: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
 
   // Utility
   resetForgotPassword: () => void;
@@ -553,7 +553,7 @@ export function useTeacherOnboarding() {
 
   // HANDLER: Email/Password Login
   const handleTeacherLogin = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       setLoginError("");
       setLoading(true);
@@ -590,7 +590,7 @@ export function useTeacherOnboarding() {
 
   // HANDLER: Send Forgot Password OTP
   const handleForgotPasswordOtp = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       setLoading(true);
 
@@ -617,7 +617,7 @@ export function useTeacherOnboarding() {
 
   // HANDLER: Reset Password with OTP
   const handleResetPassword = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
 
       const passwordValidation = validatePassword(state.forgotNewPassword);
@@ -672,7 +672,7 @@ export function useTeacherOnboarding() {
 
   // HANDLER: Send Email OTP
   const handleSendOTP = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       setLoading(true);
       setEmailError("");
@@ -726,7 +726,7 @@ export function useTeacherOnboarding() {
 
   // HANDLER: Verify Email OTP
   const handleVerifyOTP = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       setLoading(true);
 
@@ -755,7 +755,7 @@ export function useTeacherOnboarding() {
 
   // HANDLER: Set Password
   const handleSetPassword = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       setLoading(true);
 
@@ -823,7 +823,7 @@ export function useTeacherOnboarding() {
 
   // HANDLER: School Verification
   const handleSchoolVerification = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       setLoading(true);
 
@@ -857,7 +857,7 @@ export function useTeacherOnboarding() {
 
   // HANDLER: Profile Submit
   const handleProfileSubmit = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       setLoading(true);
 
