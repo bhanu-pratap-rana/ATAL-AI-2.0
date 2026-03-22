@@ -28,7 +28,7 @@ export function UnauthorizedMessage({
         <div className="flex gap-4">
           <AlertCircle className="w-6 h-6 text-error flex-shrink-0 mt-0.5" />
           <div className="flex-1">
-            <h3 className="font-semibold text-error mb-2">{title}</h3>
+            <h3 className="font-black text-error mb-2">{title}</h3>
             <p className="text-sm text-error/80 mb-4">{message}</p>
 
             <div className="flex gap-2">

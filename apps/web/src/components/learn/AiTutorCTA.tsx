@@ -18,7 +18,7 @@ export function AiTutorCTA() {
     <Card className="bg-gradient-to-r from-primary/10 to-cyan/10 border-primary/20">
       <CardContent className="p-6 text-center">
         <div className="text-4xl mb-2">🤖</div>
-        <h3 className="text-lg font-semibold mb-1">{t("learn.needHelp")}</h3>
+        <h3 className="text-lg font-black mb-1">{t("learn.needHelp")}</h3>
         <p className="text-sm text-slate-500 mb-4">
           {t("learn.askAiTutor")}
         </p>

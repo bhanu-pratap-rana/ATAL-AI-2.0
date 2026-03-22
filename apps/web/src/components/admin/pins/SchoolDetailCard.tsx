@@ -22,7 +22,7 @@ export function SchoolDetailCard({
     <div className="bg-success-light border-l-4 border-success rounded-lg p-4 mb-4">
       <div className="flex items-start justify-between">
         <div>
-          <h3 className="font-semibold text-success mb-2">{school.schoolName}</h3>
+          <h3 className="font-black text-success mb-2">{school.schoolName}</h3>
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <p className="text-sm text-slate-500">School Code:</p>

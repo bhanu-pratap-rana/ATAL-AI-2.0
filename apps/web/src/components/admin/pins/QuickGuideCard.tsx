@@ -9,7 +9,7 @@ export function QuickGuideCard() {
       <div className="flex gap-3">
         <div className="flex-shrink-0 text-2xl">📚</div>
         <div>
-          <h3 className="font-semibold text-cyan-darkest mb-2">
+          <h3 className="font-black text-cyan-darkest mb-2">
             How to manage school PINs
           </h3>
           <ol className="text-sm text-cyan-darkest space-y-1 list-decimal list-inside">

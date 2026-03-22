@@ -114,7 +114,7 @@ function UnauthorizedFallback({ requiredRole }: Readonly<{ requiredRole: string 
     <div className="min-h-screen bg-gradient-to-br from-surface via-background to-white flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-lg p-8 max-w-md text-center">
         <div className="text-4xl mb-4">🔒</div>
-        <h1 className="text-xl sm:text-2xl font-bold text-text mb-2">Access Denied</h1>
+        <h1 className="text-xl sm:text-2xl font-black text-text mb-2">Access Denied</h1>
         <p className="text-slate-500 mb-6">
           You do not have permission to access this page. This area is
           restricted to {requiredRole} users only.

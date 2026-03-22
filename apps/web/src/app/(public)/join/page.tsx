@@ -97,7 +97,7 @@ function PhoneOTPStep({
   const phoneInput = usePhoneInput();
   const otpInput = useOTPInput();
 
-  async function handleSendOTPClick(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSendOTPClick(e: React.SyntheticEvent) {
     e.preventDefault();
     setStepLoading(true);
 
@@ -125,7 +125,7 @@ function PhoneOTPStep({
     }
   }
 
-  async function handleVerifyOTPClick(e: React.FormEvent<HTMLFormElement>) {
+  async function handleVerifyOTPClick(e: React.SyntheticEvent) {
     e.preventDefault();
     setStepLoading(true);
 

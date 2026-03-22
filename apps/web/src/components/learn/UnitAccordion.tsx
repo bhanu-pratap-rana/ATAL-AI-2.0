@@ -68,7 +68,7 @@ export const UnitAccordion = memo(function UnitAccordion({
               )}
             </div>
             <div>
-              <h3 className="font-semibold text-base flex items-center gap-2">
+              <h3 className="font-black text-base flex items-center gap-2">
                 {t("learn.unit")} {unit.displayOrder}: {unit.name}
                 {isUnitComplete && <CheckCircle2 className="h-4 w-4 text-success" />}
               </h3>

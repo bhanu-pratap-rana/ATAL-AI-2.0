@@ -68,7 +68,7 @@ export default function AdminSchoolPINsPage() {
           <div className="col-span-2 space-y-6">
             {/* Step 1: Search */}
             <div>
-              <h2 className="text-lg font-semibold text-text mb-3">
+              <h2 className="text-lg font-black text-text mb-3">
                 Step 1: Find School
               </h2>
               <SchoolSearchBar
@@ -86,7 +86,7 @@ export default function AdminSchoolPINsPage() {
             {selectedSchool ? (
               <>
                 <div>
-                  <h2 className="text-lg font-semibold text-text mb-3">
+                  <h2 className="text-lg font-black text-text mb-3">
                     Step 2: PIN Status
                   </h2>
                   <SchoolDetailCard
@@ -109,7 +109,7 @@ export default function AdminSchoolPINsPage() {
 
                 {/* Step 3: PIN Management */}
                 <div>
-                  <h2 className="text-lg font-semibold text-text mb-3">
+                  <h2 className="text-lg font-black text-text mb-3">
                     Step 3: Generate/Rotate PIN
                   </h2>
                   <PINGenerator

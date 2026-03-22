@@ -96,7 +96,7 @@ export default function AdminDashboardPage() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-bold text-text">
+                <h1 className="text-xl sm:text-2xl font-black text-text">
                   Admin Dashboard
                 </h1>
                 {/* Super Admin Crown - Gold Accent */}
@@ -125,7 +125,7 @@ export default function AdminDashboardPage() {
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Metrics Section */}
         <section className="mb-8">
-          <h2 className="text-xl font-bold text-text mb-4">System Overview</h2>
+          <h2 className="text-xl font-black text-text mb-4">System Overview</h2>
           <DashboardMetrics />
         </section>
 
@@ -138,7 +138,7 @@ export default function AdminDashboardPage() {
               <div className="w-12 h-12 bg-primary-lighter rounded-lg flex items-center justify-center">
                 <Users className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="text-lg font-bold text-text">Admin Management</h3>
+              <h3 className="text-lg font-black text-text">Admin Management</h3>
             </div>
             <p className="text-sm text-slate-500 mb-4">
               Create new admin accounts, reset passwords, and manage admin
@@ -159,7 +159,7 @@ export default function AdminDashboardPage() {
               <div className="w-12 h-12 bg-primary-lighter rounded-lg flex items-center justify-center">
                 <Lock className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="text-lg font-bold text-text">
+              <h3 className="text-lg font-black text-text">
                 School PIN Management
               </h3>
             </div>
@@ -180,7 +180,7 @@ export default function AdminDashboardPage() {
         {/* Info Section */}
         <section className="mt-8">
           <div className="bg-cyan-lightest border border-cyan/30 rounded-lg p-6">
-            <h3 className="font-semibold text-cyan-darkest mb-2">
+            <h3 className="font-black text-cyan-darkest mb-2">
               ℹ️ Admin Dashboard Information
             </h3>
             <ul className="text-sm text-cyan-dark space-y-2 list-disc list-inside">

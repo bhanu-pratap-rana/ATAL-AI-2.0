@@ -649,7 +649,7 @@ export default function LessonPage() {
                 <div className="flex items-center gap-2">
                   <span className="text-2xl">🤖</span>
                   <div>
-                    <h3 className="font-semibold">AI Tutor</h3>
+                    <h3 className="font-black">AI Tutor</h3>
                     <p className="text-xs text-slate-500">
                       Ask me anything!
                     </p>
@@ -806,7 +806,7 @@ export default function LessonPage() {
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-2xl">🤖</span>
                 <div>
-                  <SheetTitle className="text-base font-semibold">AI Tutor</SheetTitle>
+                  <SheetTitle className="text-base font-black">AI Tutor</SheetTitle>
                   <p className="text-xs text-slate-500">
                     Ask me anything!
                   </p>

@@ -496,7 +496,7 @@ export async function uploadMaterialFile(formData: FormData) {
     }
 
     // Generate a safe storage path: classId/timestamp-filename
-    const sanitizedName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+    const sanitizedName = file.name.replaceAll(/[^a-zA-Z0-9._-]/g, "_");
     const storagePath = `${classId}/${Date.now()}-${sanitizedName}`;
 
     // Upload to Supabase Storage using admin client (auth verified above)

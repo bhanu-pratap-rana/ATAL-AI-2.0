@@ -598,7 +598,7 @@ export default function AdminSchoolsPage() {
 
         {/* Step 1: Find School */}
         <div className="mb-6 p-6 bg-white border border-slate-100 rounded-3xl">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <h2 className="text-lg font-black mb-4 flex items-center gap-2">
             <Search className="h-5 w-5 text-primary" />
             Step 1: Find School
           </h2>
@@ -690,7 +690,7 @@ export default function AdminSchoolsPage() {
         {/* Step 2: Check/Create PIN */}
         {selectedSchool && (
           <div className="mb-6 p-6 bg-white border border-slate-100 rounded-3xl">
-            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <h2 className="text-lg font-black mb-4 flex items-center gap-2">
               <Calendar className="h-5 w-5 text-primary" />
               Step 2: PIN Status
             </h2>
@@ -709,7 +709,7 @@ export default function AdminSchoolsPage() {
         {/* Step 3: Rotate/Create PIN */}
         {selectedSchool && (
           <div className="p-6 bg-white border border-slate-100 rounded-3xl">
-            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <h2 className="text-lg font-black mb-4 flex items-center gap-2">
               <RefreshCw className="h-5 w-5 text-primary" />
               Step 3: {pinActionLabel} PIN
             </h2>
@@ -790,7 +790,7 @@ export default function AdminSchoolsPage() {
 
             {/* Help */}
             <div className="mt-6 bg-blue-50 border border-slate-100 p-4 rounded-lg">
-              <h3 className="font-semibold text-slate-800 text-sm mb-2">
+              <h3 className="font-black text-slate-800 text-sm mb-2">
                 📋 Quick Guide
               </h3>
               <ul className="text-sm text-slate-500 space-y-2">

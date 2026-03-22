@@ -319,7 +319,7 @@ export function AssessmentSummary({
                 return (
                   <div key={module} className="flex items-center gap-3">
                     <div className="w-40 text-sm font-medium text-slate-500 truncate">
-                      {CATEGORY_NAMES[module] || module.replace(/_/g, " ")}
+                      {CATEGORY_NAMES[module] || module.replaceAll("\_", " ")}
                     </div>
                     <div className="flex-1 flex items-center gap-2">
                       <div className="flex-1 bg-slate-50 rounded-full h-2 overflow-hidden">
