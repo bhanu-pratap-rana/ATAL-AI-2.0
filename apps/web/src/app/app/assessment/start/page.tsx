@@ -112,12 +112,11 @@ function AssessmentStartContent() {
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
       {/* Card with Gradient Border */}
       <div className="max-w-2xl w-full">
-        <div className="card-gradient">
-          <div className="bg-white rounded-xl p-6 md:p-8">
+        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 md:p-8">
             {/* Error Display */}
             {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200/30 rounded-lg">
-                <p className="text-red-600 font-medium">{error}</p>
+              <div className="mb-6 p-4 bg-red-50 border border-red-200/30 rounded-2xl">
+                <p className="text-red-600 font-black">{error}</p>
                 <button
                 type="button"
                   onClick={() => setError(null)}
@@ -131,10 +130,10 @@ function AssessmentStartContent() {
             {/* Header */}
             <div className="text-center mb-8">
               {/* Icon Box - Primary Light */}
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-light rounded-lg mb-4">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-light rounded-2xl mb-4">
                 <span className="text-2xl sm:text-3xl">{sessionType === "post" ? "🎓" : "📝"}</span>
               </div>
-              <h1 className="text-xl sm:text-3xl font-bold text-slate-800 mb-2">
+              <h1 className="text-xl sm:text-3xl font-black text-slate-800 mb-2">
                 {getSessionTypeLabel(sessionType)}
               </h1>
               <p className="text-slate-500">
@@ -145,11 +144,11 @@ function AssessmentStartContent() {
             </div>
 
             {/* Assessment Info - Info Alert */}
-            <div className="bg-info-light border-l-4 border-info p-4 rounded-md mb-6">
+            <div className="bg-info-light border-l-4 border-info p-4 rounded-2xl mb-6">
               <div className="flex items-start gap-3">
                 <span className="text-2xl">ℹ️</span>
                 <div>
-                  <h3 className="font-semibold text-info-dark mb-2">
+                  <h3 className="font-black text-info-dark mb-2">
                     What to expect:
                   </h3>
                   <ul className="text-sm text-info-dark/80 space-y-1">
@@ -179,7 +178,7 @@ function AssessmentStartContent() {
                 <button
                 type="button"
                   onClick={() => setSelectedLanguage("en")}
-                  className={`p-4 rounded-md border-2 transition-all duration-200 ${
+                  className={`p-4 rounded-2xl border-2 transition-all duration-200 active:scale-95 ${
                     selectedLanguage === "en"
                       ? "border-primary bg-primary-light shadow-primary-sm"
                       : "border-slate-200 bg-white hover:border-primary/30 hover:bg-primary-lighter"
@@ -187,7 +186,7 @@ function AssessmentStartContent() {
                 >
                   <div className="text-center">
                     <span className="text-3xl mb-2 block">🇬🇧</span>
-                    <span className="font-semibold text-slate-800">
+                    <span className="font-black text-slate-800">
                       English
                     </span>
                   </div>
@@ -197,7 +196,7 @@ function AssessmentStartContent() {
                 <button
                 type="button"
                   onClick={() => setSelectedLanguage("hi")}
-                  className={`p-4 rounded-md border-2 transition-all duration-200 ${
+                  className={`p-4 rounded-2xl border-2 transition-all duration-200 active:scale-95 ${
                     selectedLanguage === "hi"
                       ? "border-primary bg-primary-light shadow-primary-sm"
                       : "border-slate-200 bg-white hover:border-primary/30 hover:bg-primary-lighter"
@@ -205,7 +204,7 @@ function AssessmentStartContent() {
                 >
                   <div className="text-center">
                     <span className="text-3xl mb-2 block">🇮🇳</span>
-                    <span className="font-semibold text-slate-800">
+                    <span className="font-black text-slate-800">
                       हिंदी
                     </span>
                   </div>
@@ -215,7 +214,7 @@ function AssessmentStartContent() {
                 <button
                 type="button"
                   onClick={() => setSelectedLanguage("as")}
-                  className={`p-4 rounded-md border-2 transition-all duration-200 ${
+                  className={`p-4 rounded-2xl border-2 transition-all duration-200 active:scale-95 ${
                     selectedLanguage === "as"
                       ? "border-primary bg-primary-light shadow-primary-sm"
                       : "border-slate-200 bg-white hover:border-primary/30 hover:bg-primary-lighter"
@@ -223,7 +222,7 @@ function AssessmentStartContent() {
                 >
                   <div className="text-center">
                     <span className="text-3xl mb-2 block">🇮🇳</span>
-                    <span className="font-semibold text-slate-800">
+                    <span className="font-black text-slate-800">
                       অসমীয়া
                     </span>
                   </div>
@@ -252,7 +251,6 @@ function AssessmentStartContent() {
                 Back
               </button>
             </div>
-          </div>
         </div>
       </div>
     </div>
