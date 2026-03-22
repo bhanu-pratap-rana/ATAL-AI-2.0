@@ -139,7 +139,7 @@ export default async function AssessmentDetailPage({
         {/* Banner */}
         <div className="rounded-[32px] p-6 text-white" style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" }}>
           <Link href="/app/student/assessments" className="inline-flex items-center gap-2 text-white/80 text-xs font-black uppercase tracking-widest mb-4">
-            <ArrowLeft className="w-4 h-4" /> Back to Rankings
+            <ArrowLeft className="w-4 h-4" /> Back to Assessments
           </Link>
           <h1 className="text-xl sm:text-2xl font-black mb-1">Assessment Details 📊</h1>
           <p className="text-white/80 text-sm font-bold">

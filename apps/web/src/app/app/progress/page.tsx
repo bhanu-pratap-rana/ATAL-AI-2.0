@@ -52,7 +52,7 @@ export default async function ProgressPage() {
     (stats?.assessmentsTaken ?? 0) > 0 || (stats?.moduleBreakdown?.length ?? 0) > 0;
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Banner */}
         <div className="rounded-[32px] p-6 text-white" style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" }}>
@@ -73,7 +73,7 @@ export default async function ProgressPage() {
           ].map((stat) => (
             <div key={stat.label} className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-center">
               <p className={`text-xl sm:text-2xl font-black mb-1 ${stat.color}`}>{stat.value}</p>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
+              <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
             </div>
           ))}
         </div>
@@ -85,10 +85,10 @@ export default async function ProgressPage() {
             <div className="space-y-4">
               {stats?.moduleBreakdown?.map((module) => (
                 <div key={module.module}>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm font-black text-slate-700">{module.module}</span>
-                    <span className="text-xs font-bold text-slate-400">
-                      {module.correctAnswers}/{module.questionsAttempted} correct ({module.averageScore}%)
+                  <div className="flex justify-between items-center gap-2 mb-1">
+                    <span className="text-sm font-black text-slate-700 truncate min-w-0">{module.module}</span>
+                    <span className="text-xs font-bold text-slate-400 shrink-0">
+                      {module.correctAnswers}/{module.questionsAttempted} ({module.averageScore}%)
                     </span>
                   </div>
                   <div className="w-full bg-slate-100 rounded-full h-1.5">

@@ -120,6 +120,8 @@ export function BadgesLeaderboardPanel({
           <p className="text-sm font-black text-slate-600 mb-2">🏆 Class Rankings</p>
           {!classId ? (
             <div className="text-center py-6">
+              <div className="text-3xl mb-2">👥</div>
+              <p className="text-xs font-black text-slate-600 mb-1">No Class Yet</p>
               <p className="text-xs font-bold text-slate-400">Join a class to see rankings</p>
             </div>
           ) : loadingLeaders ? (
@@ -130,7 +132,9 @@ export function BadgesLeaderboardPanel({
             </div>
           ) : leaders.length === 0 ? (
             <div className="text-center py-6">
-              <p className="text-xs font-bold text-slate-400">No rankings yet</p>
+              <div className="text-3xl mb-2">🏆</div>
+              <p className="text-xs font-black text-slate-600 mb-1">No Rankings Yet</p>
+              <p className="text-xs font-bold text-slate-400">Be the first to earn points!</p>
             </div>
           ) : (
             <div className="space-y-1.5">
@@ -142,7 +146,7 @@ export function BadgesLeaderboardPanel({
                     key={entry.studentId}
                     type="button"
                     onClick={() => selectStudent(entry.studentId, entry.name)}
-                    className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left transition-all ${
+                    className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left transition-all active:scale-95 ${
                       isViewing
                         ? "bg-orange-500 text-white shadow"
                         : isMe
@@ -156,7 +160,7 @@ export function BadgesLeaderboardPanel({
                     <span className={`flex-1 text-xs font-black truncate ${isViewing ? "text-white" : isMe ? "text-orange-600" : "text-slate-700"}`}>
                       {entry.name}{isMe ? " (You)" : ""}
                     </span>
-                    <span className={`text-[10px] font-bold flex-shrink-0 ${isViewing ? "text-white/80" : "text-amber-500"}`}>
+                    <span className={`text-[11px] font-bold flex-shrink-0 ${isViewing ? "text-white/80" : "text-amber-500"}`}>
                       {entry.points.toLocaleString()}
                     </span>
                   </button>

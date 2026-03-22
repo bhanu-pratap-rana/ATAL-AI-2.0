@@ -105,10 +105,13 @@ export default async function StudentClassesPage() {
   const bannerStyle = { background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Banner */}
         <div className="rounded-[32px] p-6 text-white" style={bannerStyle}>
+          <Link href="/app/student/dashboard" className="inline-flex items-center gap-2 text-white/80 text-xs font-black uppercase tracking-widest mb-4">
+            ← Dashboard
+          </Link>
           <h1 className="text-xl sm:text-2xl font-black mb-1">My Classes 👥</h1>
           <p className="text-white/80 text-sm font-bold">Classes you&apos;re enrolled in</p>
         </div>

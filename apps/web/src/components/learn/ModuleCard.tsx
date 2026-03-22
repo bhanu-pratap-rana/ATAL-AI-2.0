@@ -84,7 +84,7 @@ export function ModuleCard({
             {module.icon}
           </div>
           <div>
-            <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
+            <h3 className="text-base font-black text-slate-800 flex items-center gap-2">
               {moduleName}
               {progress.is_complete && (
                 <span className="text-success text-sm">✓</span>
@@ -100,7 +100,7 @@ export function ModuleCard({
           <div className="text-sm font-bold text-slate-700">
             {progress.topics_completed}/{module.topics}
           </div>
-          <div className="text-[10px] text-slate-400 uppercase tracking-wide">{t("learn.topics")}</div>
+          <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">{t("learn.topics")}</div>
         </div>
       </div>
 

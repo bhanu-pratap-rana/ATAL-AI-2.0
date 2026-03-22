@@ -1,5 +1,4 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { Loader } from "lucide-react";
 import { usePINManagement } from "@/hooks/usePINManagement";

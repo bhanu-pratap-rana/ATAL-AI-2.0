@@ -27,30 +27,30 @@ export function LearnProgressStats({
   const { t } = useLanguage();
 
   return (
-    <Card className="border-2">
+    <Card className="border border-slate-100 rounded-3xl shadow-sm">
       <CardContent className="p-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-center">
           <div>
-            <div className="text-xl sm:text-2xl font-bold text-primary">
+            <div className="text-xl sm:text-2xl font-black text-primary">
               {overallProgress}%
             </div>
-            <div className="text-sm text-slate-500">
+            <div className="text-sm font-bold text-slate-500">
               {t("learn.overallProgress")}
             </div>
           </div>
           <div>
-            <div className="text-xl sm:text-2xl font-bold text-amber-500">
+            <div className="text-xl sm:text-2xl font-black text-amber-500">
               {totalPoints}
             </div>
-            <div className="text-sm text-slate-500">
+            <div className="text-sm font-bold text-slate-500">
               {t("learn.totalPoints")}
             </div>
           </div>
           <div>
-            <div className="text-xl sm:text-2xl font-bold text-emerald-600">
+            <div className="text-xl sm:text-2xl font-black text-emerald-600">
               {currentStreak}
             </div>
-            <div className="text-sm text-slate-500">
+            <div className="text-sm font-bold text-slate-500">
               {t("learn.dayStreak")} 🔥
             </div>
           </div>

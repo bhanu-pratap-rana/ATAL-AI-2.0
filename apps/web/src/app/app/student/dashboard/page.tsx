@@ -9,7 +9,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { unstable_cache } from "next/cache";
-import { ChevronRight, Flame, BookOpen, BarChart2, PlusCircle, Trophy, ClipboardList } from "lucide-react";
+import { ChevronRight, Flame, BookOpen, Users, PlusCircle, Trophy, ClipboardList } from "lucide-react";
 import { getCurrentUser, createClient, createAdminClient } from "@/lib/supabase-server";
 import { BadgesLeaderboardPanel } from "@/components/gamification/BadgesLeaderboardPanel";
 import { isTeacherOrHigher } from "@/lib/auth/role-utils";
@@ -231,7 +231,7 @@ export default async function StudentDashboardPage() {
     { icon: "👥", value: classes.length, label: "Classes", href: "/app/student/classes" },
     { icon: "📝", value: assessmentCount, label: "Assessments", href: "/app/student/assessments" },
     { icon: "🎯", value: averageScore === null ? "--" : `${averageScore}%`, label: "Avg Score", href: "/app/progress" },
-    { icon: "🔥", value: streakDays, label: "Day Streak", href: "/app/progress" },
+    { icon: "🔥", value: streakDays, label: "Day Streak", href: "/app/learn" },
   ];
 
   // Quick Actions: must NOT duplicate bottom nav (Home / Learn / AI Tutor / Profile)
@@ -246,13 +246,13 @@ export default async function StudentDashboardPage() {
       href: "/app/student/assessments",
       icon: <Trophy className="w-6 h-6 text-amber-500" />,
       bg: "bg-amber-50",
-      label: "Rankings",
+      label: "Assessments",
     },
     {
-      href: "/app/progress",
-      icon: <BarChart2 className="w-6 h-6 text-green-500" />,
+      href: "/app/student/classes",
+      icon: <Users className="w-6 h-6 text-green-500" />,
       bg: "bg-green-50",
-      label: "Progress",
+      label: "My Classes",
     },
     {
       href: "/app/assessment/start",
@@ -313,7 +313,7 @@ export default async function StudentDashboardPage() {
                 {stat.icon}
               </div>
               <p className="text-xl font-black text-slate-800 leading-none">{stat.value}</p>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-tight">
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider leading-tight">
                 {stat.label}
               </p>
             </Link>
@@ -321,17 +321,17 @@ export default async function StudentDashboardPage() {
         </div>
 
         {/* ── Quick Actions ── */}
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {quickActions.map((action) => (
             <Link
               key={action.href}
               href={action.href}
-              className="flex flex-col items-center gap-2 p-3 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow"
+              className="flex flex-col items-center gap-2 p-3 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow active:scale-95"
             >
               <div className={`w-11 h-11 ${action.bg} rounded-xl flex items-center justify-center`}>
                 {action.icon}
               </div>
-              <span className="text-[10px] font-black text-slate-600 uppercase tracking-wider text-center leading-tight">
+              <span className="text-[11px] font-black text-slate-600 uppercase tracking-wider text-center leading-tight">
                 {action.label}
               </span>
             </Link>
@@ -384,7 +384,7 @@ export default async function StudentDashboardPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-black text-slate-800 text-sm truncate">{mod.name_en}</p>
-                        <p className="text-[10px] font-bold text-slate-400 mb-1">
+                        <p className="text-[11px] font-bold text-slate-400 mb-1">
                           {topicCount} topics
                         </p>
                         <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
@@ -396,7 +396,7 @@ export default async function StudentDashboardPage() {
                             }}
                           />
                         </div>
-                        <p className="text-[10px] font-bold text-slate-400 mt-0.5">{progress}% complete</p>
+                        <p className="text-[11px] font-bold text-slate-400 mt-0.5">{progress}% complete</p>
                       </div>
                       <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
                     </div>

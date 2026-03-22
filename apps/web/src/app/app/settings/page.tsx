@@ -98,7 +98,7 @@ export default async function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
       <div className="max-w-2xl mx-auto space-y-4">
         {/* Banner */}
         <div

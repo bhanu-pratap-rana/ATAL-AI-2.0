@@ -13,7 +13,6 @@ import { authLogger } from "@/lib/auth-logger";
 import { checkRateLimit } from "@/lib/rate-limiter-distributed";
 import { RATE_LIMITS } from "@/lib/constants/rate-limits";
 
-export const runtime = "nodejs";
 export const maxDuration = 30; // 30 seconds for image generation
 
 /**
