@@ -148,8 +148,8 @@ function SchoolFinderModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-auto">
-        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 max-w-2xl w-full mx-4 max-h-96 overflow-auto">
+        <h2 className="text-xl font-black mb-4 flex items-center gap-2">
           <MapPin className="h-5 w-5" />
           Find School by Location
         </h2>
@@ -537,7 +537,7 @@ export default function AdminSchoolsPage() {
       <div className="min-h-screen bg-slate-50 p-6 flex items-center justify-center">
         <div className="max-w-md mx-auto text-center">
           <Shield className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-800 mb-2">
+          <h1 className="text-xl sm:text-2xl font-black text-slate-800 mb-2">
             Access Denied
           </h1>
           <p className="text-slate-500 mb-6">
@@ -567,7 +567,7 @@ export default function AdminSchoolsPage() {
   const pinActionLabel = pinStatus?.exists ? "Rotate" : "Create";
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
+    <div className="min-h-screen bg-slate-50 p-6 pb-28">
       <div className="max-w-3xl mx-auto">
         {/* Red Gradient Banner */}
         <div className="rounded-[32px] p-6 text-white mb-8" style={{ background: "linear-gradient(135deg, #DC2626 0%, #7C3AED 100%)" }}>

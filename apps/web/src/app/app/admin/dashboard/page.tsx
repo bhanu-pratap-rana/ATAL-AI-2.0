@@ -65,7 +65,7 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Banner */}
         <div className="rounded-[32px] p-6 text-white" style={bannerStyle}>
@@ -81,7 +81,7 @@ export default function AdminDashboardPage() {
             ].map((s) => (
               <div key={s.label} className="bg-white/15 rounded-2xl p-4 text-center backdrop-blur-md">
                 <p className="text-xl sm:text-2xl font-black">{s.value}</p>
-                <p className="text-[10px] font-black uppercase tracking-widest text-red-100 mt-0.5">{s.label}</p>
+                <p className="text-[11px] font-black uppercase tracking-widest text-red-100 mt-0.5">{s.label}</p>
               </div>
             ))}
           </div>
@@ -96,7 +96,7 @@ export default function AdminDashboardPage() {
               </div>
               <div>
                 <p className="font-black text-slate-800 text-sm">Pending Approvals</p>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">
                   Schools requesting access
                 </p>
               </div>

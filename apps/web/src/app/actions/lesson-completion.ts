@@ -104,7 +104,7 @@ export async function completeLessonAndUpdateProgress(
     // PROPER CACHE INVALIDATION - invalidate all related paths
     revalidatePath(`/app/learn/${moduleId}`);
     revalidatePath("/app/learn");
-    revalidatePath("/app/dashboard");
+    revalidatePath("/app/student/dashboard");
 
     return {
       success: true,

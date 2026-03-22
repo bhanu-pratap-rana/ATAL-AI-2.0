@@ -34,7 +34,7 @@ function ResetPasswordContent() {
         data: { session },
       } = await supabase.auth.getSession();
       if (session) {
-        router.push("/app/dashboard");
+        router.push("/app/student/dashboard");
       }
     }
     checkAuth();
@@ -220,7 +220,7 @@ function ResetPasswordContent() {
 
           {/* Error Message */}
           {error && (
-            <div className="p-3 bg-error/10 border border-error/30 rounded-md">
+            <div className="p-3 bg-error/10 border border-error/30 rounded-2xl">
               <p className="text-sm text-error">{error}</p>
             </div>
           )}

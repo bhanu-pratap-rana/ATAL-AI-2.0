@@ -54,7 +54,7 @@ export default async function ClassAssessmentResultsPage({
   const role = user.app_metadata?.role;
   const isTeacherOrAdmin = isTeacherOrHigher(role);
   if (!isTeacherOrAdmin) {
-    redirect("/app/dashboard");
+    redirect("/app/student/dashboard");
   }
 
   // Fetch class assessment results
@@ -68,7 +68,7 @@ export default async function ClassAssessmentResultsPage({
   const hasStudents = results.results.length > 0;
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Banner */}
         <div className="rounded-[32px] p-6 text-white" style={{ background: "linear-gradient(135deg,#3B82F6,#6366F1)" }}>
@@ -89,7 +89,7 @@ export default async function ClassAssessmentResultsPage({
           ].map((s) => (
             <div key={s.label} className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-center">
               <p className={`text-xl sm:text-2xl font-black mb-0.5 ${s.color}`}>{s.value}</p>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</p>
+              <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{s.label}</p>
             </div>
           ))}
         </div>
@@ -111,7 +111,7 @@ export default async function ClassAssessmentResultsPage({
                       </div>
                       <div className="min-w-0">
                         <p className="font-black text-slate-800 text-sm truncate">{student.studentName}</p>
-                        <p className="text-[10px] font-bold text-slate-400">
+                        <p className="text-[11px] font-bold text-slate-400">
                           {student.rollNumber ? `Roll: ${student.rollNumber} • ` : ""}
                           {student.sessionsCompleted} sessions • {student.totalQuestions > 0 ? `${student.correctAnswers}/${student.totalQuestions} correct` : "No data"}
                           {student.lastAssessmentDate ? ` • ${formatRelativeTime(student.lastAssessmentDate)}` : ""}
@@ -142,7 +142,7 @@ export default async function ClassAssessmentResultsPage({
 
         {/* Legend */}
         <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Score Levels</p>
+          <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3">Score Levels</p>
           <div className="flex flex-wrap gap-4">
             {[
               { color: "bg-emerald-500", label: "Advanced (80%+)" },

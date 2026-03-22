@@ -106,7 +106,7 @@ export function BadgesLeaderboardPanel({
               <button
                 type="button"
                 onClick={resetToSelf}
-                className="text-[10px] font-black text-orange-500 hover:text-orange-600 uppercase tracking-widest"
+                className="text-[11px] font-black text-orange-500 hover:text-orange-600 uppercase tracking-widest"
               >
                 ← Mine
               </button>

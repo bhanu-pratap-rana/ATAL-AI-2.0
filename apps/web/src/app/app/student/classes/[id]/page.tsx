@@ -131,7 +131,7 @@ export default async function StudentClassDetailPage({
     : [];
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Banner */}
         <div className="rounded-[32px] p-6 text-white" style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" }}>
@@ -150,12 +150,12 @@ export default async function StudentClassDetailPage({
           <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 text-center">
             <div className="text-3xl mb-1">📢</div>
             <p className="text-xl sm:text-2xl font-black text-slate-800">{announcements.length}</p>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Announcements</p>
+            <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Announcements</p>
           </div>
           <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 text-center">
             <div className="text-3xl mb-1">📁</div>
             <p className="text-xl sm:text-2xl font-black text-slate-800">{materials.length}</p>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Materials</p>
+            <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Materials</p>
           </div>
         </div>
 

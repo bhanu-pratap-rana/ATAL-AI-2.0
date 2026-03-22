@@ -73,7 +73,7 @@ export async function awardLessonCompletionPoints(
     });
 
     // Revalidate dashboard to show updated points
-    revalidatePath("/app/dashboard");
+    revalidatePath("/app/student/dashboard");
 
     return {
       success: true,

@@ -145,7 +145,7 @@ export async function saveStudentProfile(params: StudentProfileParams) {
         result: rpcResult,
       },
     );
-    revalidatePath("/app/dashboard");
+    revalidatePath("/app/student/dashboard");
     return { success: true };
   } catch (error) {
     authLogger.error("[saveStudentProfile] Unexpected error", error);

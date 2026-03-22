@@ -360,7 +360,7 @@ export async function verifyOtp(email: string, token: string) {
     if (isTeacherOrHigher(role)) {
       redirect("/app/teacher/classes");
     } else {
-      redirect("/app/dashboard");
+      redirect("/app/student/dashboard");
     }
   } catch (error) {
     // Next.js redirect() throws a NEXT_REDIRECT error which is expected behavior
