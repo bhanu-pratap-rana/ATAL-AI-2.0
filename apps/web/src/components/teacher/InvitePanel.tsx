@@ -121,7 +121,7 @@ export function InvitePanel({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-responsive">
+    <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-responsive">
       <div className="mb-4 md:mb-6">
         <h2 className="heading-3 text-slate-800">Student Invitation</h2>
         <p className="text-sm text-slate-500 mt-1">
