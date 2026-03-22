@@ -124,7 +124,7 @@ export function StudentAnnouncementsCard({
                       {isUnread && (
                         <span className="w-2 h-2 bg-info rounded-full" title="New" />
                       )}
-                      <h4 className="font-semibold text-slate-800">
+                      <h4 className="font-black text-slate-800">
                         {announcement.title}
                       </h4>
                     </div>

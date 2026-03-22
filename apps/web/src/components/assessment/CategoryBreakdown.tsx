@@ -162,7 +162,7 @@ export function CategoryStrengths({
 
   return (
     <div className="space-y-2">
-      <h4 className="text-sm font-semibold text-slate-800 flex items-center gap-2">
+      <h4 className="text-sm font-black text-slate-800 flex items-center gap-2">
         <span>{icon}</span>
         {title}
       </h4>

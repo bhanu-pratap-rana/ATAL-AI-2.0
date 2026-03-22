@@ -367,7 +367,7 @@ export function PointsHistory({
         <Card>
           <CardContent className="p-8 text-center">
             <TrendingUp className="w-12 h-12 text-slate-400 mx-auto mb-3" />
-            <h3 className="font-medium text-text mb-1">{t("gamification.noPointsYet")}</h3>
+            <h3 className="font-black text-text mb-1">{t("gamification.noPointsYet")}</h3>
             <p className="text-sm text-slate-500">
               {t("gamification.earnPointsHint")}
             </p>
