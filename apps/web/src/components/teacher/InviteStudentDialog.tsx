@@ -72,7 +72,7 @@ export function InviteStudentDialog({ classId }: InviteStudentDialogProps) {
     }
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     if (!studentId) {

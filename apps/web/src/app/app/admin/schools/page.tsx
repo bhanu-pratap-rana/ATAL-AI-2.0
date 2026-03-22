@@ -473,7 +473,7 @@ export default function AdminSchoolsPage() {
   }
 
   // Rotate or create PIN
-  async function handleRotatePin(e: React.FormEvent) {
+  async function handleRotatePin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     if (!schoolCode.trim()) {

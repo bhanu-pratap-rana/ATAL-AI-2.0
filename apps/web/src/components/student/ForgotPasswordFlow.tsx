@@ -43,7 +43,7 @@ export function ForgotPasswordFlow({
   isLoading,
   onSuccess,
 }: ForgotPasswordFlowProps) {
-  async function handleForgotPasswordOtp(e: React.FormEvent) {
+  async function handleForgotPasswordOtp(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     actions.setIsLoading(true);
     actions.setForgotPasswordError(null);
@@ -78,7 +78,7 @@ export function ForgotPasswordFlow({
     }
   }
 
-  async function handleResetPassword(e: React.FormEvent) {
+  async function handleResetPassword(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     // Validate password

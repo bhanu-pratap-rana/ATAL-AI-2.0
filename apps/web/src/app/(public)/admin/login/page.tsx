@@ -62,7 +62,7 @@ export default function AdminLoginPage() {
     toast.success("Signed out successfully");
   }
 
-  async function handleAdminLogin(e: React.FormEvent) {
+  async function handleAdminLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setIsLoading(true);

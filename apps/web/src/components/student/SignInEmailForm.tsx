@@ -33,7 +33,7 @@ export function SignInEmailForm({
   const router = useRouter();
   const supabase = createClient();
 
-  async function handleSignInEmail(e: React.FormEvent) {
+  async function handleSignInEmail(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     actions.setIsLoading(true);
     actions.setSigninEmailError(null);

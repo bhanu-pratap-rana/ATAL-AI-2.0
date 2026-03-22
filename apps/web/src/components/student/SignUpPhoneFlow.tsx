@@ -47,7 +47,7 @@ export function SignUpPhoneFlow({
   const router = useRouter();
   const supabase = createClient();
 
-  async function handleSignUpPhoneSendOtp(e: React.FormEvent) {
+  async function handleSignUpPhoneSendOtp(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     actions.setIsLoading(true);
     actions.setSignupPhoneError(null);
@@ -82,7 +82,7 @@ export function SignUpPhoneFlow({
     }
   }
 
-  async function handleSignUpPhoneVerifyOtp(e: React.FormEvent) {
+  async function handleSignUpPhoneVerifyOtp(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     actions.setSignupPhoneError(null);
 

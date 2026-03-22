@@ -121,7 +121,7 @@ export function SignUpEmailFlow({
     }
   }, [resendCooldown, isResending, state.signupEmailAddress]);
 
-  async function handleSignUpEmailSendOtp(e: React.FormEvent) {
+  async function handleSignUpEmailSendOtp(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     actions.setIsLoading(true);
     actions.setSignupEmailError(null);
@@ -167,7 +167,7 @@ export function SignUpEmailFlow({
     }
   }
 
-  async function handleSignUpEmailVerifyAndCreate(e: React.FormEvent) {
+  async function handleSignUpEmailVerifyAndCreate(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     actions.setIsLoading(true);
     actions.setSignupEmailError(null);
