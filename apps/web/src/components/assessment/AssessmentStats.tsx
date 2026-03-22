@@ -39,7 +39,7 @@ export function AssessmentStats({
 }: AssessmentStatsProps) {
   return (
     <div className="card">
-      <h3 className="text-lg font-semibold text-slate-800 mb-4">
+      <h3 className="text-lg font-black text-slate-800 mb-4">
         Quick Stats
       </h3>
       <div className="grid grid-cols-2 gap-4">

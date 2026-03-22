@@ -111,7 +111,7 @@ function interpolate(
     return template;
   }
 
-  return template.replace(/\{(\w+)\}/g, (match, key) => {
+  return template.replaceAll(/\{(\w+)\}/g, (match, key) => {
     const value = values[key];
     return value !== undefined ? String(value) : match;
   });

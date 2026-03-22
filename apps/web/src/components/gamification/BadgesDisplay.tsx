@@ -393,7 +393,7 @@ export const BadgesDisplay = memo(function BadgesDisplay({
               <div className="text-4xl sm:text-5xl mb-4">{selectedBadge.icon}</div>
 
               {/* Name in all languages */}
-              <h3 id="badge-modal-title" className="text-xl font-bold">
+              <h3 id="badge-modal-title" className="text-xl font-black">
                 {selectedBadge.name_en}
               </h3>
               <p className="text-slate-500">{selectedBadge.name_as}</p>

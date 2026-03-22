@@ -66,7 +66,7 @@ export function LearningStyleCard({
         <div className="flex items-center gap-3 mb-4">
           <span className="text-3xl">{icon}</span>
           <div>
-            <h3 className={`font-semibold ${isActive ? colors.text : "text-slate-800"}`}>
+            <h3 className={`font-black ${isActive ? colors.text : "text-slate-800"}`}>
               {title}
             </h3>
             {isActive && (

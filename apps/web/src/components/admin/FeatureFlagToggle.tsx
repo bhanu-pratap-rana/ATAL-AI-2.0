@@ -133,7 +133,7 @@ export function FeatureFlagToggle({ flag, onUpdate }: FeatureFlagToggleProps) {
         {/* Flag Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3">
-            <h3 className="font-semibold text-text truncate">{flag.name}</h3>
+            <h3 className="font-black text-text truncate">{flag.name}</h3>
             <span
               className={cn(
                 "text-xs font-medium px-2 py-0.5 rounded-full",

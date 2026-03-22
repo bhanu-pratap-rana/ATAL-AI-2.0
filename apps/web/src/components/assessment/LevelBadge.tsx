@@ -174,7 +174,7 @@ export function LevelCard({
       <div className="text-4xl mb-2" aria-hidden="true">
         {config.icon}
       </div>
-      <h3 className={`text-lg font-bold ${config.colorClass}`}>
+      <h3 className={`text-lg font-black ${config.colorClass}`}>
         {config.label}
       </h3>
       <p className="text-sm text-slate-500 mt-1">{config.description}</p>

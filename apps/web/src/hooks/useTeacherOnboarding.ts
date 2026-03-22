@@ -200,9 +200,9 @@ export interface TeacherOnboardingActions {
 
   // Handlers
   handleTeacherLogin: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
-  handleForgotPasswordOtp: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
+  handleForgotPasswordOtp: (e: React.SyntheticEvent) => Promise<void>;
   handleResetPassword: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
-  handleSendOTP: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
+  handleSendOTP: (e: React.SyntheticEvent) => Promise<void>;
   handleVerifyOTP: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
   handleSetPassword: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
   handlePasswordChange: (password: string) => void;
@@ -590,7 +590,7 @@ export function useTeacherOnboarding() {
 
   // HANDLER: Send Forgot Password OTP
   const handleForgotPasswordOtp = useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
+    async (e: React.SyntheticEvent) => {
       e.preventDefault();
       setLoading(true);
 
@@ -672,7 +672,7 @@ export function useTeacherOnboarding() {
 
   // HANDLER: Send Email OTP
   const handleSendOTP = useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
+    async (e: React.SyntheticEvent) => {
       e.preventDefault();
       setLoading(true);
       setEmailError("");

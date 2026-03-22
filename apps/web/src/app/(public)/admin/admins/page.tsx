@@ -77,7 +77,7 @@ export default function AdminsPage() {
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Dashboard
             </Button>
-            <h1 className="text-xl sm:text-2xl font-bold text-text">Admin Management</h1>
+            <h1 className="text-xl sm:text-2xl font-black text-text">Admin Management</h1>
           </div>
 
           {!showCreateForm && (
@@ -98,7 +98,7 @@ export default function AdminsPage() {
         {showCreateForm && (
           <section className="mb-8 bg-white rounded-lg shadow p-6 border border-slate-200">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-text">
+              <h2 className="text-xl font-black text-text">
                 Create New Admin Account
               </h2>
               <Button
@@ -124,7 +124,7 @@ export default function AdminsPage() {
           <div className="border-b border-slate-200 p-6">
             <div className="flex items-center gap-3 mb-2">
               <Users className="w-6 h-6 text-primary" />
-              <h2 className="text-xl font-bold text-text">
+              <h2 className="text-xl font-black text-text">
                 All Admin Accounts
               </h2>
             </div>
@@ -147,7 +147,7 @@ export default function AdminsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Super Admin Info */}
             <div className="bg-accent-light border border-accent/30 rounded-lg p-6">
-              <h3 className="font-semibold text-accent-dark mb-2">
+              <h3 className="font-black text-accent-dark mb-2">
                 👑 Super Admin Role
               </h3>
               <ul className="text-sm text-slate-500 space-y-2 list-disc list-inside">
@@ -161,7 +161,7 @@ export default function AdminsPage() {
 
             {/* Regular Admin Info */}
             <div className="bg-primary-lighter border border-primary/30 rounded-lg p-6">
-              <h3 className="font-semibold text-primary-dark mb-2">
+              <h3 className="font-black text-primary-dark mb-2">
                 👤 Regular Admin Role
               </h3>
               <ul className="text-sm text-slate-500 space-y-2 list-disc list-inside">

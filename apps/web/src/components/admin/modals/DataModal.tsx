@@ -39,7 +39,7 @@ export function DataModal({
       <div className="relative w-full max-w-2xl mx-4 max-h-[80vh] overflow-y-auto rounded-lg bg-background shadow-lg">
         {/* Modal Header */}
         <div className="sticky top-0 bg-background border-b border-slate-200 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-slate-800">{title}</h2>
+          <h2 className="text-xl font-black text-slate-800">{title}</h2>
           <button
                 type="button"
             onClick={onClose}

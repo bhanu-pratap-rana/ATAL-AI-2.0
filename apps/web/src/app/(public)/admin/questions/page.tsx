@@ -240,7 +240,7 @@ export default function IRTItemBankAdminPage() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold text-text">IRT Item Bank</h1>
+                <h1 className="text-xl font-black text-text">IRT Item Bank</h1>
                 <div className="bg-secondary/10 p-1.5 rounded-lg">
                   <Database className="w-4 h-4 text-secondary" />
                 </div>
@@ -416,7 +416,7 @@ export default function IRTItemBankAdminPage() {
 
         {/* Info Section */}
         <div className="mt-8 bg-secondary/5 border border-secondary/20 rounded-lg p-6">
-          <h3 className="font-semibold text-secondary mb-2">
+          <h3 className="font-black text-secondary mb-2">
             About IRT Parameters
           </h3>
           <ul className="text-sm text-slate-500 space-y-2 list-disc list-inside">

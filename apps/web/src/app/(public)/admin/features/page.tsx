@@ -214,7 +214,7 @@ export default function FeatureFlagsAdminPage() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold text-text">Feature Flags</h1>
+                <h1 className="text-xl font-black text-text">Feature Flags</h1>
                 <div className="bg-primary-lighter p-1.5 rounded-lg">
                   <Flag className="w-4 h-4 text-primary" />
                 </div>
@@ -331,7 +331,7 @@ export default function FeatureFlagsAdminPage() {
 
         {/* Info Section */}
         <div className="mt-8 bg-cyan-lightest border border-cyan/30 rounded-lg p-6">
-          <h3 className="font-semibold text-cyan-darkest mb-2">
+          <h3 className="font-black text-cyan-darkest mb-2">
             How Feature Flags Work
           </h3>
           <ul className="text-sm text-cyan-dark space-y-2 list-disc list-inside">

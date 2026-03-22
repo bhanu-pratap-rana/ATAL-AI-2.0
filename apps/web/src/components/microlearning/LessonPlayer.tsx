@@ -322,7 +322,7 @@ function CheckpointQuiz({
               disabled={submitted}
               className={buttonClass}
             >
-              <span className="font-medium mr-2 text-sm sm:text-base">{String.fromCharCode(65 + index)}.</span>
+              <span className="font-medium mr-2 text-sm sm:text-base">{String.fromCodePoint(65 + index)}.</span>
               <span className="text-sm sm:text-base">{option}</span>
               {showResult && isCorrect && <CheckCircle className="inline ml-2 h-4 w-4" />}
             </button>

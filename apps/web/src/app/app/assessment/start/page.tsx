@@ -170,7 +170,7 @@ function AssessmentStartContent() {
 
             {/* Language Selection */}
             <div className="mb-8">
-              <Label className="text-base font-semibold mb-4 block text-slate-800">
+              <Label className="text-base font-black mb-4 block text-slate-800">
                 Choose your preferred language:
               </Label>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

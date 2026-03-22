@@ -31,9 +31,9 @@ function cleanAIText(response: string): string {
 
   // Replace smart quotes and typographic characters that break JSON
   cleaned = cleaned
-    .replace(/[\u201C\u201D\u201E\u201F\u2033\u2036]/g, '"')
-    .replace(/[\u2018\u2019\u201A\u201B\u2032\u2035]/g, "'")
-    .replace(/[\u2013\u2014]/g, "-");
+    .replaceAll(/[\u201C\u201D\u201E\u201F\u2033\u2036]/g, '"')
+    .replaceAll(/[\u2018\u2019\u201A\u201B\u2032\u2035]/g, "'")
+    .replaceAll(/[\u2013\u2014]/g, "-");
 
   // Extract JSON object if surrounded by other text
   if (!cleaned.startsWith("{")) {
@@ -54,7 +54,7 @@ function tryParseJSON(cleaned: string): unknown {
     return JSON.parse(cleaned);
   } catch {
     // Attempt repair: fix unescaped control characters
-    const repaired = cleaned.replace(/[\x00-\x1F\x7F]/g, (ch) => {
+    const repaired = cleaned.replaceAll(/[\x00-\x1F\x7F]/g, (ch) => {
       if (ch === "\n" || ch === "\r" || ch === "\t") return ch;
       return "";
     });

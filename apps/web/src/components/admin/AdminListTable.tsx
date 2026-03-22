@@ -305,7 +305,7 @@ export function AdminListTable({
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
             <div className="flex items-center justify-between p-6 border-b border-slate-200">
-              <h2 className="text-xl font-bold text-text">Reset Password</h2>
+              <h2 className="text-xl font-black text-text">Reset Password</h2>
               <button
                 type="button"
                 onClick={closeResetModal}

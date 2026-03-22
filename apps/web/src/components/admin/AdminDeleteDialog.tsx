@@ -128,7 +128,7 @@ export function AdminDeleteDialog({
       <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-text">Delete Admin Account</h2>
+          <h2 className="text-xl font-black text-text">Delete Admin Account</h2>
           <button
                 type="button"
             onClick={handleClose}

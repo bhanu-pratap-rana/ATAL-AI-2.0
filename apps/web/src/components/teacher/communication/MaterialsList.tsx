@@ -74,7 +74,7 @@ export function MaterialsList({ materials, classId: _classId }: MaterialsListPro
         <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
           <span className="text-3xl">📁</span>
         </div>
-        <h3 className="text-lg font-semibold text-slate-800 mb-2">
+        <h3 className="text-lg font-black text-slate-800 mb-2">
           No materials shared yet
         </h3>
         <p className="text-slate-500 text-sm">

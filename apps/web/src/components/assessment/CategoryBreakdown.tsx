@@ -86,7 +86,7 @@ export function CategoryBreakdown({
 
   return (
     <div className={`space-y-4 ${className}`}>
-      <h3 className="text-lg font-semibold text-slate-800">
+      <h3 className="text-lg font-black text-slate-800">
         Category Performance
       </h3>
 
