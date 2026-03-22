@@ -242,7 +242,7 @@ export default function ModuleUnitsPage({
               <div className="flex items-center gap-4">
                 <div className="text-4xl sm:text-5xl">{data.module.icon}</div>
                 <div>
-                  <h1 className="text-xl sm:text-2xl font-bold">{data.module.name}</h1>
+                  <h1 className="text-xl sm:text-2xl font-black">{data.module.name}</h1>
                   <p className="text-white/80 mt-1">{data.module.description}</p>
                   <div className="flex gap-4 mt-2 text-sm text-white/70">
                     <span>{data.units.length} {t("learn.units")}</span>
