@@ -376,7 +376,7 @@ export function DashboardMetrics() {
             >
               <div className="flex items-center gap-3 mb-3">
                 <Icon className={`w-5 h-5 ${card.iconColor}`} />
-                <h3 className="text-sm text-slate-500 font-medium">
+                <h3 className="text-sm text-slate-500 font-black">
                   {card.title}
                 </h3>
               </div>

@@ -119,7 +119,7 @@ export default async function ClassAssessmentResultsPage({
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${skillLevel.color}`}>{skillLevel.label}</span>
+                      <span className={`text-[11px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${skillLevel.color}`}>{skillLevel.label}</span>
                       <div className={`w-12 h-9 rounded-xl flex items-center justify-center font-black text-sm ${getScoreColor(student.averageScore)}`}>
                         {student.averageScore === null ? "-" : `${student.averageScore}%`}
                       </div>

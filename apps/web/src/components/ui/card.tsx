@@ -8,7 +8,7 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-2xl border border-slate-100 bg-white text-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.05)] transition-all",
+      "rounded-3xl border border-slate-100 bg-white text-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.05)] transition-all",
       className,
     )}
     {...props}
@@ -39,7 +39,7 @@ const CardTitle = React.forwardRef<
   <h3 // NOSONAR S6850: Composable pattern - content provided via children prop
     ref={ref}
     className={cn(
-      "text-2xl font-semibold leading-none tracking-tight",
+      "text-2xl font-black leading-none tracking-tight",
       className,
     )}
     {...props}

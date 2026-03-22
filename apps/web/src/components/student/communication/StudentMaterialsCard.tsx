@@ -125,7 +125,7 @@ export function StudentMaterialsCard({
                       <IconComponent className="w-5 h-5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-slate-800 truncate">
+                      <h4 className="font-black text-slate-800 truncate">
                         {material.title}
                       </h4>
                       <div className="flex items-center gap-2 text-xs text-slate-400 flex-wrap">

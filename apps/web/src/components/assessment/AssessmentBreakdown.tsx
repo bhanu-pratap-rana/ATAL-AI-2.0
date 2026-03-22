@@ -260,7 +260,7 @@ export function AssessmentBreakdown({
                 <CardContent className="border-t border-slate-200 bg-white pt-4">
                   {/* Full Question Text */}
                   <div className="mb-4">
-                    <h4 className="font-medium text-text mb-2">Question:</h4>
+                    <h4 className="font-black text-text mb-2">Question:</h4>
                     <p className="text-slate-500">
                       {details.question_text}
                     </p>
@@ -268,7 +268,7 @@ export function AssessmentBreakdown({
 
                   {/* Answer Options */}
                   <div className="space-y-2 mb-4">
-                    <h4 className="font-medium text-text">Answer Options:</h4>
+                    <h4 className="font-black text-text">Answer Options:</h4>
                     {Object.entries(details.options).map(([key, text]) => {
                       const isChosen = response.chosen_option === key;
                       const isCorrectAnswer = details.correct_answer === key;
@@ -350,7 +350,7 @@ export function AssessmentBreakdown({
             <div className="text-4xl mb-3">
               {FILTER_ICONS[filterMode] ?? "📝"}
             </div>
-            <h3 className="font-medium text-text mb-1">
+            <h3 className="font-black text-text mb-1">
               {filterMode === "correct"
                 ? "No correct answers to show"
                 : filterMode === "incorrect"

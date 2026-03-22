@@ -309,7 +309,7 @@ export default function FeatureFlagsAdminPage() {
           {filteredFlags.length === 0 ? (
             <div className="bg-white border border-slate-200 rounded-lg p-8 text-center">
               <Flag className="w-12 h-12 text-slate-400 mx-auto mb-3" />
-              <h3 className="text-lg font-medium text-text mb-1">
+              <h3 className="text-lg font-black text-text mb-1">
                 {searchQuery ? "No flags found" : "No feature flags"}
               </h3>
               <p className="text-slate-500">

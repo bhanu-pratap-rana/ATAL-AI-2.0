@@ -65,7 +65,7 @@ export function AssessmentStats({
       {/* IRT-Enhanced Stats */}
       {irtData && (
         <div className="mt-4 pt-4 border-t border-slate-200">
-          <h4 className="text-sm font-medium text-slate-500 mb-3">
+          <h4 className="text-sm font-black text-slate-500 mb-3">
             Ability Estimate (IRT)
           </h4>
           <div className="grid grid-cols-2 gap-4">

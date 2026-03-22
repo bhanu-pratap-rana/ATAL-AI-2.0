@@ -88,7 +88,7 @@ export function BottomNav() {
                 <Icon size={20} strokeWidth={active ? 2.5 : 2} />
               </div>
               <span
-                className={`text-[9px] font-black uppercase tracking-widest transition-opacity ${
+                className={`text-[11px] font-black uppercase tracking-widest transition-opacity ${
                   active ? "opacity-100" : "opacity-40"
                 }`}
               >

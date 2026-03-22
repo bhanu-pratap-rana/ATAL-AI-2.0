@@ -84,7 +84,7 @@ export const TopicRow = memo(function TopicRow({
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h4 className="font-medium text-sm truncate">{topic.name}</h4>
+            <h4 className="font-black text-sm truncate">{topic.name}</h4>
             {topic.isDownloaded && (
               <span className="text-xs bg-slate-50 px-2 py-0.5 rounded text-slate-500">
                 {t("learn.offline")}

@@ -62,7 +62,7 @@ export function ListItemCard({ item, modalType }: ListItemCardProps) {
     <>
       <div className="flex items-center justify-between">
         <div>
-          <h4 className="font-medium text-slate-800">{school.schoolName}</h4>
+          <h4 className="font-black text-slate-800">{school.schoolName}</h4>
           <p className="text-sm text-slate-500">{school.district}</p>
         </div>
         <div className="text-right">
@@ -84,7 +84,7 @@ export function ListItemCard({ item, modalType }: ListItemCardProps) {
     <>
       <div className="flex items-center justify-between">
         <div>
-          <h4 className="font-medium text-slate-800">{teacher.name}</h4>
+          <h4 className="font-black text-slate-800">{teacher.name}</h4>
           <p className="text-sm text-slate-500">{teacher.email}</p>
         </div>
         <div className="text-right">
@@ -109,7 +109,7 @@ export function ListItemCard({ item, modalType }: ListItemCardProps) {
     <>
       <div className="flex items-center justify-between">
         <div>
-          <h4 className="font-medium text-slate-800">{student.name}</h4>
+          <h4 className="font-black text-slate-800">{student.name}</h4>
           {student.email && (
             <p className="text-sm text-slate-500">{student.email}</p>
           )}
@@ -143,7 +143,7 @@ export function ListItemCard({ item, modalType }: ListItemCardProps) {
     <>
       <div className="flex items-center justify-between">
         <div>
-          <h4 className="font-medium text-slate-800">{school.schoolName}</h4>
+          <h4 className="font-black text-slate-800">{school.schoolName}</h4>
           <p className="text-sm text-slate-500">{school.districtName}</p>
         </div>
         <p className="text-sm font-mono text-slate-800">
@@ -162,7 +162,7 @@ export function ListItemCard({ item, modalType }: ListItemCardProps) {
     <>
       <div className="flex items-center justify-between">
         <div>
-          <h4 className="font-medium text-slate-800">{school.schoolName}</h4>
+          <h4 className="font-black text-slate-800">{school.schoolName}</h4>
           <p className="text-sm text-slate-500">{school.district}</p>
         </div>
         <p className="text-sm font-mono text-slate-800">

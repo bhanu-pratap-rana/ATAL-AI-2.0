@@ -91,7 +91,7 @@ export function StudentsListClient({ students }: Readonly<{ students: StudentRow
                     {student.avgMastery !== null && (
                       <p className="text-lg font-black text-blue-600">{student.avgMastery}%</p>
                     )}
-                    <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${badge.color}`}>
+                    <span className={`text-[11px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${badge.color}`}>
                       {badge.label}
                     </span>
                   </div>

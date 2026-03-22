@@ -9,7 +9,7 @@ export default function AppLayout({
   return (
     <>
       <AppTopHeader />
-      <div className="pb-24">{children}</div>
+      <div className="pb-28">{children}</div>
       <BottomNav />
     </>
   );
