@@ -138,7 +138,7 @@ export default async function TeacherDashboardPage() {
   const user = await getCurrentUser();
 
   if (!user) redirect("/teacher/start");
-  if (!isTeacherOrHigher(user.app_metadata?.role)) redirect("/app/dashboard");
+  if (!isTeacherOrHigher(user.app_metadata?.role)) redirect("/app/student/dashboard");
 
   const [metrics, teacherName, recentStudents] = await Promise.all([
     getDashboardMetrics(user.id),
@@ -150,7 +150,7 @@ export default async function TeacherDashboardPage() {
 
   if (metrics.totalClasses === 0) {
     return (
-      <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+      <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
         <div className="max-w-4xl mx-auto space-y-4">
           <div className="rounded-[32px] p-6 text-white" style={bannerStyle}>
             <div className="flex items-start gap-4">
@@ -182,7 +182,7 @@ export default async function TeacherDashboardPage() {
   const selectedClass = metrics.classes[0];
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Banner */}
         <div className="rounded-[32px] p-6 text-white" style={bannerStyle}>
@@ -196,11 +196,11 @@ export default async function TeacherDashboardPage() {
           <div className="grid grid-cols-2 gap-3 mt-4">
             <div className="bg-white/10 p-3 rounded-2xl backdrop-blur-md text-center">
               <p className="text-xl sm:text-2xl font-black">{metrics.totalStudents}</p>
-              <p className="text-[10px] uppercase font-black text-blue-100">Total Students</p>
+              <p className="text-[11px] uppercase font-black text-blue-100">Total Students</p>
             </div>
             <div className="bg-white/10 p-3 rounded-2xl backdrop-blur-md text-center">
               <p className="text-xl sm:text-2xl font-black">{metrics.activeStudents}</p>
-              <p className="text-[10px] uppercase font-black text-blue-100">Active This Week</p>
+              <p className="text-[11px] uppercase font-black text-blue-100">Active This Week</p>
             </div>
           </div>
         </div>
@@ -241,7 +241,7 @@ export default async function TeacherDashboardPage() {
             <div key={stat.label} className="bg-white rounded-2xl p-4 shadow-[0_4px_20px_rgb(0,0,0,0.05)] border border-slate-100 flex flex-col items-center text-center gap-1">
               <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-xl flex-shrink-0">{stat.icon}</div>
               <p className="text-xl font-black text-slate-800 leading-none">{stat.value}</p>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-tight">{stat.label}</p>
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider leading-tight">{stat.label}</p>
             </div>
           ))}
         </div>

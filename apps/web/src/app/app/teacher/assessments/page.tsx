@@ -20,7 +20,7 @@ export default async function TeacherAssessmentsPage() {
   const role = user.app_metadata?.role;
   const isTeacherOrAdmin = isTeacherOrHigher(role);
   if (!isTeacherOrAdmin) {
-    redirect("/app/dashboard");
+    redirect("/app/student/dashboard");
   }
 
   // Fetch real assessment data
@@ -30,7 +30,7 @@ export default async function TeacherAssessmentsPage() {
   const hasClasses = (overview?.classes.length ?? 0) > 0;
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
       <div className="max-w-6xl mx-auto space-y-4">
         {/* Banner */}
         <div className="rounded-[32px] p-6 text-white" style={{ background: "linear-gradient(135deg,#3B82F6,#6366F1)" }}>
@@ -51,7 +51,7 @@ export default async function TeacherAssessmentsPage() {
             ].map((stat) => (
               <div key={stat.label} className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-center">
                 <p className={`text-xl sm:text-2xl font-black mb-1 ${stat.color}`}>{stat.value}</p>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
+                <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
               </div>
             ))}
           </div>

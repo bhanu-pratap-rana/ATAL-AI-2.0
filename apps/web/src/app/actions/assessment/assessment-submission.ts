@@ -391,7 +391,7 @@ export async function submitAssessment(
       correctAnswers,
     });
 
-    revalidatePath("/app/dashboard");
+    revalidatePath("/app/student/dashboard");
     revalidatePath("/app/progress");
 
     return {

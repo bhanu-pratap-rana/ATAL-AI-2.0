@@ -107,7 +107,7 @@ export default async function ConversationHistoryPage() {
   const totalMessages = interactions?.length || 0;
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Banner */}
         <div className="rounded-[32px] p-6 text-white" style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" }}>
@@ -122,11 +122,11 @@ export default async function ConversationHistoryPage() {
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-center">
             <p className="text-xl sm:text-2xl font-black text-orange-600 mb-1">{totalConversations}</p>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Conversations</p>
+            <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Conversations</p>
           </div>
           <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-center">
             <p className="text-xl sm:text-2xl font-black text-blue-600 mb-1">{totalMessages}</p>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Messages</p>
+            <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Total Messages</p>
           </div>
         </div>
 

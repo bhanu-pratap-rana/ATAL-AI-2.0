@@ -7,7 +7,7 @@
 
 export function AssessmentSkeleton() {
   return (
-    <div className="min-h-screen bg-orange-50 p-4 md:p-8">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-8">
       <div className="max-w-3xl mx-auto">
         {/* Progress Bar Skeleton */}
         <div className="mb-6 animate-pulse">
@@ -18,9 +18,8 @@ export function AssessmentSkeleton() {
           <div className="h-2 bg-border rounded-full"></div>
         </div>
 
-        {/* Question Card Skeleton with Gradient Border */}
-        <div className="card-gradient">
-          <div className="bg-white rounded-xl p-6 md:p-8 animate-pulse">
+        {/* Question Card Skeleton */}
+        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 md:p-8 animate-pulse">
             {/* Module Badge */}
             <div className="mb-6">
               <div className="h-6 bg-primary-light rounded-full w-32 mb-4"></div>
@@ -36,7 +35,7 @@ export function AssessmentSkeleton() {
               {[1, 2, 3, 4].map((item) => (
                 <div
                   key={`question-${item}`}
-                  className="p-4 rounded-md border-2 border-slate-200 bg-slate-50"
+                  className="p-4 rounded-2xl border-2 border-slate-200 bg-slate-50"
                 >
                   <div className="flex items-start gap-3">
                     <div className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-slate-200 bg-white"></div>
@@ -48,9 +47,8 @@ export function AssessmentSkeleton() {
 
             {/* Button Skeleton */}
             <div className="mt-6 flex justify-end">
-              <div className="h-11 bg-border rounded-md w-32"></div>
+              <div className="h-11 bg-border rounded-2xl w-32"></div>
             </div>
-          </div>
         </div>
 
         {/* Helper Text Skeleton */}

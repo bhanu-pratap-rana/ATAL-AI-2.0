@@ -160,7 +160,7 @@ const StatCard = memo(function StatCard({
         {icon}
       </div>
       <p className="text-xl font-black text-slate-800 leading-none">{value}</p>
-      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-tight">{label}</p>
+      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider leading-tight">{label}</p>
     </motion.div>
   );
 });
@@ -304,7 +304,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="p-4 md:p-6">
+      <div className="p-4 md:p-6 pb-28">
       <motion.div
         variants={containerVariants}
         initial="hidden"

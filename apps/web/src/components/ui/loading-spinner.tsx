@@ -39,7 +39,7 @@ export function LoadingSpinner({
 
   if (fullPage) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-orange-50">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
         {spinner}
       </div>
     );

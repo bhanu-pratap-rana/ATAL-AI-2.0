@@ -63,7 +63,7 @@ export function AppTopHeader() {
             <p className="font-black text-slate-800 text-sm leading-none">
               {config.label}
             </p>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
               ATAL AI SYSTEM
             </p>
           </div>

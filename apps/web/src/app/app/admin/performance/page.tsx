@@ -140,7 +140,7 @@ export default function PerformanceMonitoringPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
       <div className="max-w-6xl mx-auto space-y-4">
         {/* Banner */}
         <div className="rounded-[32px] p-6 text-white" style={{ background: "linear-gradient(135deg,#DC2626,#7C3AED)" }}>
@@ -158,8 +158,8 @@ export default function PerformanceMonitoringPage() {
           ].map((stat) => (
             <div key={stat.label} className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-center">
               <p className={`text-xl sm:text-2xl font-black mb-1 ${stat.color}`}>{stat.value}</p>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
-              <p className="text-[10px] font-bold text-slate-300 mt-1">{stat.sub}</p>
+              <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
+              <p className="text-[11px] font-bold text-slate-300 mt-1">{stat.sub}</p>
             </div>
           ))}
         </div>
@@ -178,7 +178,7 @@ export default function PerformanceMonitoringPage() {
               ].map((item) => (
                 <div key={item.label} className="text-center">
                   <p className={`text-xl sm:text-2xl font-black ${item.colored ? getUtilizationColors(poolMetrics.utilizationPercent).textClass : "text-slate-700"}`}>{item.value}</p>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">{item.label}</p>
+                  <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mt-1">{item.label}</p>
                 </div>
               ))}
             </div>

@@ -197,7 +197,7 @@ export default function ModuleUnitsPage({
   // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+      <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 text-center">
             <p className="text-red-600 mb-4">{error}</p>
@@ -220,7 +220,7 @@ export default function ModuleUnitsPage({
       : 0;
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">

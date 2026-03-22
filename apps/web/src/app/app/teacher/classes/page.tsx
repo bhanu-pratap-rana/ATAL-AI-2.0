@@ -82,7 +82,7 @@ async function getTeacherStudents(teacherId: string): Promise<StudentRow[]> {
 export default async function TeacherClassesPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/teacher/start");
-  if (!isTeacherOrHigher(user.app_metadata?.role)) redirect("/app/dashboard");
+  if (!isTeacherOrHigher(user.app_metadata?.role)) redirect("/app/student/dashboard");
 
   const students = await getTeacherStudents(user.id);
 

@@ -35,7 +35,7 @@ export function StudentsListClient({ students }: Readonly<{ students: StudentRow
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Search bar */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3 px-4 py-3">
@@ -80,7 +80,7 @@ export function StudentsListClient({ students }: Readonly<{ students: StudentRow
                       <p className="font-black text-slate-800 text-sm truncate">
                         {student.name ?? "Unknown Student"}
                       </p>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                         Last active: {getRelativeTime(student.lastActiveAt)}
                       </p>
                     </div>

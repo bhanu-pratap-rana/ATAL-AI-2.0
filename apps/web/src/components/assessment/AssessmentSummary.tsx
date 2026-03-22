@@ -190,7 +190,7 @@ export function AssessmentSummary({
   const scoreMessage = getScoreMessage(score);
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-8">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-8 pb-28">
       <div className="max-w-4xl mx-auto">
         {/* Header Card - Celebration */}
         <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 md:p-8 mb-6">

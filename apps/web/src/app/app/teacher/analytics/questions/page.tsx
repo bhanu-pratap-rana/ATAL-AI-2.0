@@ -193,7 +193,7 @@ export default async function PracticeQuestionAnalyticsPage() {
   const growthDisplay = overallSuccessRate > 0 ? `+${Math.min(overallSuccessRate, 99)}%` : "N/A";
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Banner */}
         <div className="rounded-[32px] p-6 text-white" style={{ background: "linear-gradient(135deg,#3B82F6,#6366F1)" }}>
@@ -212,7 +212,7 @@ export default async function PracticeQuestionAnalyticsPage() {
             </div>
             <div>
               <p className="text-xl sm:text-2xl font-black text-emerald-600">{growthDisplay}</p>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Success Rate</p>
+              <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Success Rate</p>
             </div>
           </div>
           <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
@@ -221,14 +221,14 @@ export default async function PracticeQuestionAnalyticsPage() {
             </div>
             <div>
               <p className="text-xl sm:text-2xl font-black text-red-600">{atRiskCount}</p>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">At-Risk Topics</p>
+              <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">At-Risk Topics</p>
             </div>
           </div>
         </div>
 
         {/* Syllabus Completion */}
         <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Syllabus Completion</p>
+          <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4">Syllabus Completion</p>
           {Object.keys(moduleStats).length === 0 ? (
             <p className="text-slate-400 font-bold text-center py-4">No module data available yet</p>
           ) : (
@@ -245,7 +245,7 @@ export default async function PracticeQuestionAnalyticsPage() {
                     <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
                       <div className={`h-full rounded-full ${barColor} transition-all`} style={{ width: `${successRate}%` }} />
                     </div>
-                    <p className="text-[10px] font-bold text-slate-400 mt-0.5">{stats.total} attempts • {stats.questions} questions</p>
+                    <p className="text-[11px] font-bold text-slate-400 mt-0.5">{stats.total} attempts • {stats.questions} questions</p>
                   </div>
                 );
               })}
@@ -330,12 +330,12 @@ export default async function PracticeQuestionAnalyticsPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-slate-100">
-                    <th className="text-left py-3 px-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Question</th>
-                    <th className="text-center py-3 px-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Module</th>
-                    <th className="text-center py-3 px-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Attempts</th>
-                    <th className="text-center py-3 px-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Success</th>
-                    <th className="text-center py-3 px-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Avg Time</th>
-                    <th className="text-center py-3 px-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Hints</th>
+                    <th className="text-left py-3 px-3 text-[11px] font-black text-slate-400 uppercase tracking-widest">Question</th>
+                    <th className="text-center py-3 px-3 text-[11px] font-black text-slate-400 uppercase tracking-widest">Module</th>
+                    <th className="text-center py-3 px-3 text-[11px] font-black text-slate-400 uppercase tracking-widest">Attempts</th>
+                    <th className="text-center py-3 px-3 text-[11px] font-black text-slate-400 uppercase tracking-widest">Success</th>
+                    <th className="text-center py-3 px-3 text-[11px] font-black text-slate-400 uppercase tracking-widest">Avg Time</th>
+                    <th className="text-center py-3 px-3 text-[11px] font-black text-slate-400 uppercase tracking-widest">Hints</th>
                   </tr>
                 </thead>
                 <tbody>
