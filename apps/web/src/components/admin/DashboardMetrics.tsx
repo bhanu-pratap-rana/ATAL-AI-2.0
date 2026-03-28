@@ -291,11 +291,11 @@ export function DashboardMetrics() {
     // These elements have no stable ID, don't reorder, and are temporary
     const skeletonKeys = ["s1", "s2", "s3", "s4", "s5"] as const;
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {skeletonKeys.map((key) => (
           <div
             key={key}
-            className="bg-border-light rounded-lg p-4 h-24 animate-pulse"
+            className="bg-border-light rounded-2xl p-4 h-24 animate-pulse"
           ></div>
         ))}
       </div>
@@ -304,7 +304,7 @@ export function DashboardMetrics() {
 
   if (error) {
     return (
-      <div className="bg-error-light border border-error rounded-md p-4">
+      <div className="bg-error-light border border-error rounded-2xl p-4">
         <p className="text-sm text-error-dark">{error}</p>
       </div>
     );
@@ -364,7 +364,7 @@ export function DashboardMetrics() {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {metricCards.map((card) => {
           const Icon = card.icon;
           return (
@@ -372,7 +372,7 @@ export function DashboardMetrics() {
                 type="button"
               key={card.title}
               onClick={() => openModal(card.modalType)}
-              className={`${card.color} rounded-lg p-6 border border-slate-200 text-left ${card.hoverColor} hover:shadow-md transition cursor-pointer`}
+              className={`${card.color} rounded-2xl p-6 border border-slate-200 text-left ${card.hoverColor} hover:shadow-md transition cursor-pointer`}
             >
               <div className="flex items-center gap-3 mb-3">
                 <Icon className={`w-5 h-5 ${card.iconColor}`} />
@@ -380,7 +380,7 @@ export function DashboardMetrics() {
                   {card.title}
                 </h3>
               </div>
-              <p className="text-xl sm:text-3xl font-bold text-slate-800">
+              <p className="text-xl sm:text-3xl font-black text-slate-800">
                 {card.value}
               </p>
               <p className={`text-xs ${card.iconColor} mt-2 underline`}>

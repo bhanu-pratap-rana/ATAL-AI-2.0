@@ -230,7 +230,7 @@ export const VoiceChat = memo(function VoiceChat({
   // Browser not supported
   if (!isSupported) {
     return (
-      <div className="text-center p-4 bg-warning/10 border border-warning/30 rounded-lg">
+      <div className="text-center p-4 bg-warning/10 border border-warning/30 rounded-2xl">
         <p className="text-sm text-warning-dark">
           Voice input is not supported in this browser.
         </p>
@@ -295,7 +295,7 @@ export const VoiceChat = memo(function VoiceChat({
       {/* Error Message - A11Y-005 FIX: Added aria-live for screen reader announcements */}
       {error && (
         <div
-          className="text-center p-3 bg-error/10 border border-error/30 rounded-lg"
+          className="text-center p-3 bg-error/10 border border-error/30 rounded-2xl"
           role="alert"
           aria-live="assertive"
         >

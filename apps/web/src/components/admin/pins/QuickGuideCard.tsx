@@ -5,7 +5,7 @@
 
 export function QuickGuideCard() {
   return (
-    <div className="bg-cyan-lightest border-l-4 border-cyan p-4 rounded-lg">
+    <div className="bg-cyan-lightest border-l-4 border-cyan p-4 rounded-2xl">
       <div className="flex gap-3">
         <div className="flex-shrink-0 text-2xl">📚</div>
         <div>

@@ -241,7 +241,7 @@ export default function IRTItemBankAdminPage() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-black text-text">IRT Item Bank</h1>
-                <div className="bg-secondary/10 p-1.5 rounded-lg">
+                <div className="bg-secondary/10 p-1.5 rounded-xl">
                   <Database className="w-4 h-4 text-secondary" />
                 </div>
               </div>
@@ -270,22 +270,22 @@ export default function IRTItemBankAdminPage() {
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-lg border border-slate-200 p-4">
-            <div className="text-xl sm:text-2xl font-bold text-text">{totalCount}</div>
+          <div className="bg-white rounded-3xl border border-slate-100 p-4">
+            <div className="text-xl sm:text-2xl font-black text-text">{totalCount}</div>
             <div className="text-sm text-slate-500">Total Questions</div>
           </div>
-          <div className="bg-white rounded-lg border border-slate-200 p-4">
-            <div className="text-xl sm:text-2xl font-bold text-success">{activeCount}</div>
+          <div className="bg-white rounded-3xl border border-slate-100 p-4">
+            <div className="text-xl sm:text-2xl font-black text-success">{activeCount}</div>
             <div className="text-sm text-slate-500">Active</div>
           </div>
-          <div className="bg-white rounded-lg border border-slate-200 p-4">
-            <div className="text-xl sm:text-2xl font-bold text-slate-400">
+          <div className="bg-white rounded-3xl border border-slate-100 p-4">
+            <div className="text-xl sm:text-2xl font-black text-slate-400">
               {totalCount - activeCount}
             </div>
             <div className="text-sm text-slate-500">Inactive</div>
           </div>
-          <div className="bg-white rounded-lg border border-slate-200 p-4">
-            <div className="text-xl sm:text-2xl font-bold text-primary">
+          <div className="bg-white rounded-3xl border border-slate-100 p-4">
+            <div className="text-xl sm:text-2xl font-black text-primary">
               {categories.length}
             </div>
             <div className="text-sm text-slate-500">Categories</div>
@@ -294,7 +294,7 @@ export default function IRTItemBankAdminPage() {
 
         {/* Error State */}
         {error && (
-          <div className="bg-error/10 border border-error/30 rounded-lg p-4 mb-6 flex items-center gap-3">
+          <div className="bg-error/10 border border-error/30 rounded-2xl p-4 mb-6 flex items-center gap-3">
             <AlertCircle className="w-5 h-5 text-error flex-shrink-0" />
             <p className="text-error">{error}</p>
             <Button
@@ -309,7 +309,7 @@ export default function IRTItemBankAdminPage() {
         )}
 
         {/* Filters */}
-        <div className="bg-white rounded-lg border border-slate-200 p-4 mb-6">
+        <div className="bg-white rounded-3xl border border-slate-100 p-4 mb-6">
           <div className="flex flex-wrap items-center gap-4">
             {/* Search */}
             <div className="relative flex-1 min-w-[200px]">
@@ -387,7 +387,7 @@ export default function IRTItemBankAdminPage() {
         {/* Questions List */}
         <div className="space-y-3">
           {filteredQuestions.length === 0 ? (
-            <div className="bg-white border border-slate-200 rounded-lg p-8 text-center">
+            <div className="bg-white border border-slate-100 rounded-3xl p-8 text-center">
               <Database className="w-12 h-12 text-slate-400 mx-auto mb-3" />
               <h3 className="text-lg font-black text-text mb-1">
                 {searchQuery ? "No questions found" : "No questions"}
@@ -415,7 +415,7 @@ export default function IRTItemBankAdminPage() {
         </div>
 
         {/* Info Section */}
-        <div className="mt-8 bg-secondary/5 border border-secondary/20 rounded-lg p-6">
+        <div className="mt-8 bg-secondary/5 border border-secondary/20 rounded-2xl p-6">
           <h3 className="font-black text-secondary mb-2">
             About IRT Parameters
           </h3>

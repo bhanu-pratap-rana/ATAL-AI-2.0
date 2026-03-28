@@ -35,6 +35,44 @@ function formatFileSize(bytes: number | null): string {
   return `${size.toFixed(1)} ${units[unitIndex]}`;
 }
 
+/**
+ * Renders the appropriate media preview element for a material.
+ * Extracted to avoid S3358 nested ternary.
+ */
+function MaterialPreview({ material, previewUrl }: Readonly<{ material: Material; previewUrl: string }>) {
+  const isImage =
+    material.material_type === "image" || material.mime_type?.startsWith("image/");
+  const isVideo =
+    material.material_type === "video" || material.mime_type?.startsWith("video/");
+
+  if (isImage) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={previewUrl}
+        alt={material.title}
+        className="max-w-full max-h-[400px] mx-auto block"
+        loading="lazy"
+      />
+    );
+  }
+  if (isVideo) {
+    return (
+      <video
+        src={previewUrl}
+        controls
+        className="max-w-full max-h-[400px] mx-auto block"
+        preload="metadata"
+      >
+        {/* S4084: track element required for accessibility */}
+        <track kind="captions" src="" default />
+        Your browser does not support video playback.
+      </video>
+    );
+  }
+  return null;
+}
+
 function isPreviewable(material: Material): boolean {
   const mimeType = material.mime_type || "";
   const materialType = material.material_type;
@@ -118,10 +156,10 @@ export function StudentMaterialsCard({
               return (
                 <div
                   key={material.id}
-                  className="rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-50/80 transition overflow-hidden"
+                  className="rounded-2xl border border-slate-200 bg-slate-50 hover:bg-slate-50/80 transition overflow-hidden"
                 >
                   <div className="flex items-center gap-3 p-3">
-                    <div className={`w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center ${config.className}`}>
+                    <div className={`w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center ${config.className}`}>
                       <IconComponent className="w-5 h-5" />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -171,25 +209,8 @@ export function StudentMaterialsCard({
                   {/* Inline Preview */}
                   {isShowingPreview && previewUrl && (
                     <div className="px-3 pb-3">
-                      <div className="rounded-lg overflow-hidden bg-black/5 border border-slate-200">
-                        {(material.material_type === "image" || material.mime_type?.startsWith("image/")) ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={previewUrl}
-                            alt={material.title}
-                            className="max-w-full max-h-[400px] mx-auto block"
-                            loading="lazy"
-                          />
-                        ) : (material.material_type === "video" || material.mime_type?.startsWith("video/")) ? (
-                          <video
-                            src={previewUrl}
-                            controls
-                            className="max-w-full max-h-[400px] mx-auto block"
-                            preload="metadata"
-                          >
-                            Your browser does not support video playback.
-                          </video>
-                        ) : null}
+                      <div className="rounded-2xl overflow-hidden bg-black/5 border border-slate-200">
+                        <MaterialPreview material={material} previewUrl={previewUrl} />
                       </div>
                     </div>
                   )}

@@ -102,7 +102,7 @@ export function RosterTable({ enrollments, classId }: RosterTableProps) {
   }
 
   return (
-    <div className="overflow-hidden rounded-md border">
+    <div className="overflow-hidden rounded-2xl border">
       <Table
         role="table"
         aria-label="Class roster with student enrollment information"

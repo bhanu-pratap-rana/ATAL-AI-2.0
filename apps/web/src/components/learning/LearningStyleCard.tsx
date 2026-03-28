@@ -81,7 +81,7 @@ export function LearningStyleCard({
         <div className="mb-4">
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm text-slate-500">Score</span>
-            <span className={`text-2xl font-bold ${isActive ? colors.text : "text-slate-800"}`}>
+            <span className={`text-2xl font-black ${isActive ? colors.text : "text-slate-800"}`}>
               {score}%
             </span>
           </div>

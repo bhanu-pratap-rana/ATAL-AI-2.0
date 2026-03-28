@@ -112,7 +112,7 @@ export default function AdminSetupPage() {
       >
         <div className="space-y-6">
           {/* Info Box */}
-          <div className="bg-info-light border border-info/30 rounded-lg p-4">
+          <div className="bg-info-light border border-info/30 rounded-2xl p-4">
             <p className="text-sm text-info-dark">
               <strong>ℹ️ What this does:</strong>
               <br />
@@ -146,7 +146,7 @@ export default function AdminSetupPage() {
           {/* Message Display */}
           {message && (
             <div
-              className={`flex gap-3 p-4 rounded-lg border ${
+              className={`flex gap-3 p-4 rounded-2xl border ${
                 message.type === "success"
                   ? "bg-success-light border-success/30"
                   : "bg-error-light border-error/30"
@@ -206,7 +206,7 @@ export default function AdminSetupPage() {
           </div>
 
           {/* Instructions Box */}
-          <div className="bg-cyan-lightest border border-cyan/30 rounded-lg p-4">
+          <div className="bg-cyan-lightest border border-cyan/30 rounded-2xl p-4">
             <p className="text-sm text-cyan-darkest font-semibold mb-2">
               📋 How to use:
             </p>
@@ -224,7 +224,7 @@ export default function AdminSetupPage() {
           </div>
 
           {/* Troubleshooting Box */}
-          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
             <p className="text-sm text-slate-800 font-semibold mb-2">
               🔧 Troubleshooting:
             </p>

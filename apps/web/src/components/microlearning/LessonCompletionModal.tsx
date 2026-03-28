@@ -158,7 +158,7 @@ export function LessonCompletionModal({
             <p className="text-sm text-slate-500 mb-1">
               {LABELS.score[language]}
             </p>
-            <div className="text-3xl sm:text-5xl font-bold mb-2">
+            <div className="text-3xl sm:text-5xl font-black mb-2">
               {score}%
             </div>
             <Progress
@@ -177,7 +177,7 @@ export function LessonCompletionModal({
 
           {/* Points */}
           {pointsAwarded > 0 && (
-            <div className="flex items-center justify-center gap-2 bg-warning/10 rounded-lg p-3">
+            <div className="flex items-center justify-center gap-2 bg-warning/10 rounded-2xl p-3">
               <Star className="h-5 w-5 text-warning" />
               <span className="font-semibold">
                 +{pointsAwarded} {LABELS.points[language]}
@@ -191,7 +191,7 @@ export function LessonCompletionModal({
               {newBadges.map((badge) => (
                 <div
                   key={badge.id}
-                  className="flex items-center justify-center gap-2 bg-primary/10 rounded-lg p-3"
+                  className="flex items-center justify-center gap-2 bg-primary/10 rounded-2xl p-3"
                 >
                   <Trophy className="h-5 w-5 text-primary" />
                   <span className="font-semibold">

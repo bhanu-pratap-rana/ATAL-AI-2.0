@@ -239,12 +239,12 @@ export default function ModuleUnitsPage({
         <div className={`rounded-[32px] bg-gradient-to-r ${data.module.colorGradient} text-white`}>
           <div className="p-6">
             <div className="flex items-start justify-between">
-              <div className="flex items-center gap-4">
-                <div className="text-4xl sm:text-5xl">{data.module.icon}</div>
-                <div>
-                  <h1 className="text-xl sm:text-2xl font-black">{data.module.name}</h1>
-                  <p className="text-white/80 mt-1">{data.module.description}</p>
-                  <div className="flex gap-4 mt-2 text-sm text-white/70">
+              <div className="flex items-center gap-4 min-w-0">
+                <div className="text-4xl sm:text-5xl flex-shrink-0">{data.module.icon}</div>
+                <div className="min-w-0">
+                  <h1 className="text-xl sm:text-2xl font-black truncate">{data.module.name}</h1>
+                  <p className="text-white/80 mt-1 text-sm">{data.module.description}</p>
+                  <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-sm text-white/70">
                     <span>{data.units.length} {t("learn.units")}</span>
                     <span>{data.totalTopics} {t("learn.topics")}</span>
                     <span>

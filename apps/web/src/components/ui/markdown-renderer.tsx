@@ -44,37 +44,37 @@ const markdownComponents: Record<string, unknown> = {
           // Headings with semantic sizing and primary color
           h1: ({ node: _node, ...props }: MarkdownNodeProps) => (
             <h1 // NOSONAR S6850: Content comes from markdown via children prop
-              className="text-3xl font-bold mb-4 text-primary leading-tight"
+              className="text-3xl font-black mb-4 text-primary leading-tight"
               {...props}
             />
           ),
           h2: ({ node: _node, ...props }: MarkdownNodeProps) => (
             <h2 // NOSONAR S6850: Content comes from markdown via children prop
-              className="text-2xl font-semibold mb-3 text-primary leading-tight mt-6"
+              className="text-2xl font-black mb-3 text-primary leading-tight mt-6"
               {...props}
             />
           ),
           h3: ({ node: _node, ...props }: MarkdownNodeProps) => (
             <h3 // NOSONAR S6850: Content comes from markdown via children prop
-              className="text-xl font-semibold mb-2 text-primary leading-tight mt-4"
+              className="text-xl font-black mb-2 text-primary leading-tight mt-4"
               {...props}
             />
           ),
           h4: ({ node: _node, ...props }: MarkdownNodeProps) => (
             <h4 // NOSONAR S6850: Content comes from markdown via children prop
-              className="text-lg font-semibold mb-2 leading-tight mt-3"
+              className="text-lg font-black mb-2 leading-tight mt-3"
               {...props}
             />
           ),
           h5: ({ node: _node, ...props }: MarkdownNodeProps) => (
             <h5 // NOSONAR S6850: Content comes from markdown via children prop
-              className="text-base font-semibold mb-2 leading-tight mt-2"
+              className="text-base font-black mb-2 leading-tight mt-2"
               {...props}
             />
           ),
           h6: ({ node: _node, ...props }: MarkdownNodeProps) => (
             <h6 // NOSONAR S6850: Content comes from markdown via children prop
-              className="text-sm font-semibold mb-2 text-slate-500 leading-tight mt-2"
+              className="text-sm font-black mb-2 text-slate-500 leading-tight mt-2"
               {...props}
             />
           ),

@@ -26,6 +26,14 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function proxy(request: NextRequest) {
+  // Block dev-only routes in production
+  if (
+    process.env.NODE_ENV === "production" &&
+    request.nextUrl.pathname.startsWith("/ui-preview")
+  ) {
+    return new NextResponse(null, { status: 404 });
+  }
+
   // Start with a pass-through response that forwards the request unchanged.
   // setAll() below will replace this with a new response that carries the
   // refreshed session cookies.
@@ -66,6 +74,8 @@ export async function proxy(request: NextRequest) {
   return supabaseResponse;
 }
 
+export default proxy;
+
 export const config = {
   matcher: [
     /*
@@ -78,6 +88,6 @@ export const config = {
      * This pattern intentionally includes /api/* routes so that
      * the session is also refreshed before API Route Handlers run.
      */
-    "/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+    "/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)", // NOSONAR — String.raw breaks Next.js static matcher analysis
   ],
 };

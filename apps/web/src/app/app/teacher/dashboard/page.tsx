@@ -156,7 +156,7 @@ export default async function TeacherDashboardPage() {
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-2xl flex-shrink-0">👩‍🏫</div>
               <div className="min-w-0">
-                <h1 className="text-xl sm:text-xl sm:text-2xl font-black mb-1 truncate">Welcome, {teacherName}!</h1>
+                <h1 className="text-xl sm:text-2xl font-black mb-1 truncate">Welcome, {teacherName}!</h1>
                 <p className="text-blue-100 text-sm font-bold">Create your first class to start tracking student progress.</p>
               </div>
             </div>
@@ -164,7 +164,7 @@ export default async function TeacherDashboardPage() {
 
           <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8 sm:p-12 text-center">
             <div className="text-4xl sm:text-6xl mb-4">👥</div>
-            <h2 className="text-xl sm:text-xl sm:text-2xl font-black text-slate-800 mb-2">Welcome to ATAL AI!</h2>
+            <h2 className="text-xl sm:text-2xl font-black text-slate-800 mb-2">Welcome to ATAL AI!</h2>
             <p className="font-bold text-slate-400 text-sm mb-6">Create your first class to start tracking student progress.</p>
             <Link
               href="/app/teacher/classes"
@@ -189,7 +189,7 @@ export default async function TeacherDashboardPage() {
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-2xl flex-shrink-0">👩‍🏫</div>
             <div className="flex-1 min-w-0">
-              <h1 className="text-xl sm:text-xl sm:text-2xl font-black mb-1 truncate">{teacherName}</h1>
+              <h1 className="text-xl sm:text-2xl font-black mb-1 truncate">{teacherName}</h1>
               <p className="text-blue-100 text-xs font-black uppercase tracking-widest">Class Instructor • ATAL AI</p>
             </div>
           </div>
@@ -231,7 +231,7 @@ export default async function TeacherDashboardPage() {
         )}
 
         {/* Stat Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
             { icon: "📚", value: metrics.totalClasses, label: "Classes" },
             { icon: "👥", value: metrics.totalStudents, label: "Students" },

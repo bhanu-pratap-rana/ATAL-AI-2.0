@@ -215,7 +215,7 @@ export default function FeatureFlagsAdminPage() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-black text-text">Feature Flags</h1>
-                <div className="bg-primary-lighter p-1.5 rounded-lg">
+                <div className="bg-primary-lighter p-1.5 rounded-xl">
                   <Flag className="w-4 h-4 text-primary" />
                 </div>
               </div>
@@ -244,20 +244,20 @@ export default function FeatureFlagsAdminPage() {
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-white rounded-lg border border-slate-200 p-4">
-            <div className="text-xl sm:text-2xl font-bold text-text">{flags.length}</div>
+          <div className="bg-white rounded-3xl border border-slate-100 p-4">
+            <div className="text-xl sm:text-2xl font-black text-text">{flags.length}</div>
             <div className="text-sm text-slate-500">Total Flags</div>
           </div>
-          <div className="bg-white rounded-lg border border-slate-200 p-4">
-            <div className="text-xl sm:text-2xl font-bold text-success">
+          <div className="bg-white rounded-3xl border border-slate-100 p-4">
+            <div className="text-xl sm:text-2xl font-black text-success">
               {enabledCount}
             </div>
             <div className="text-sm text-slate-500">
               Enabled ({fullRolloutCount} full, {partialRolloutCount} partial)
             </div>
           </div>
-          <div className="bg-white rounded-lg border border-slate-200 p-4">
-            <div className="text-xl sm:text-2xl font-bold text-slate-400">
+          <div className="bg-white rounded-3xl border border-slate-100 p-4">
+            <div className="text-xl sm:text-2xl font-black text-slate-400">
               {flags.length - enabledCount}
             </div>
             <div className="text-sm text-slate-500">Disabled</div>
@@ -266,7 +266,7 @@ export default function FeatureFlagsAdminPage() {
 
         {/* Error State */}
         {error && (
-          <div className="bg-error-light border border-error/30 rounded-lg p-4 mb-6 flex items-center gap-3">
+          <div className="bg-error-light border border-error/30 rounded-2xl p-4 mb-6 flex items-center gap-3">
             <AlertCircle className="w-5 h-5 text-error flex-shrink-0" />
             <p className="text-error-dark">{error}</p>
             <Button
@@ -307,7 +307,7 @@ export default function FeatureFlagsAdminPage() {
         {/* Flags List */}
         <div className="space-y-3">
           {filteredFlags.length === 0 ? (
-            <div className="bg-white border border-slate-200 rounded-lg p-8 text-center">
+            <div className="bg-white border border-slate-100 rounded-3xl p-8 text-center">
               <Flag className="w-12 h-12 text-slate-400 mx-auto mb-3" />
               <h3 className="text-lg font-black text-text mb-1">
                 {searchQuery ? "No flags found" : "No feature flags"}
@@ -330,7 +330,7 @@ export default function FeatureFlagsAdminPage() {
         </div>
 
         {/* Info Section */}
-        <div className="mt-8 bg-cyan-lightest border border-cyan/30 rounded-lg p-6">
+        <div className="mt-8 bg-cyan-lightest border border-cyan/30 rounded-2xl p-6">
           <h3 className="font-black text-cyan-darkest mb-2">
             How Feature Flags Work
           </h3>

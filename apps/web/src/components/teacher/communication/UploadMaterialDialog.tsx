@@ -123,7 +123,7 @@ export function UploadMaterialDialog({
   }, [title]);
 
   const handleSubmit = useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
+    async (e: React.SyntheticEvent) => {
       e.preventDefault();
 
       if (sourceMode === "url" && !externalUrl) {

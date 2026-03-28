@@ -29,7 +29,7 @@ export function AdminAccessDeniedState({
         description="This page is for first-time setup only"
       >
         <div className="space-y-6">
-          <div className="bg-error-light border border-error/30 rounded-lg p-4">
+          <div className="bg-error-light border border-error/30 rounded-2xl p-4">
             <div className="flex gap-3">
               <ShieldAlert className="w-6 h-6 text-error flex-shrink-0" />
               <div>
@@ -45,7 +45,7 @@ export function AdminAccessDeniedState({
             </div>
           </div>
 
-          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
             <p className="text-sm text-slate-800 font-semibold mb-2">
               What to do:
             </p>

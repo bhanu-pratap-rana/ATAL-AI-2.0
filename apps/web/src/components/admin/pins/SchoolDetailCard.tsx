@@ -19,7 +19,7 @@ export function SchoolDetailCard({
   copied,
 }: SchoolDetailCardProps) {
   return (
-    <div className="bg-success-light border-l-4 border-success rounded-lg p-4 mb-4">
+    <div className="bg-success-light border-l-4 border-success rounded-2xl p-4 mb-4">
       <div className="flex items-start justify-between">
         <div>
           <h3 className="font-black text-success mb-2">{school.schoolName}</h3>

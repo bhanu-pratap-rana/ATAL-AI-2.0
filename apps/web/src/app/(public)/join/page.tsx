@@ -34,7 +34,7 @@ function AuthSelectionStep({
       description="Choose how you'd like to continue"
     >
       <div className="space-y-4">
-        <div className="bg-slate-50/50 p-4 rounded-lg border border-slate-200">
+        <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-200">
           <p className="text-sm text-slate-500 mb-4">
             You need to sign in first to join a class. Choose one of the options
             below:
@@ -355,7 +355,7 @@ function JoinClassForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [classCode]);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault();
 
     // If we have a preview but haven't confirmed yet, show confirmation
@@ -418,7 +418,7 @@ function JoinClassForm({
 
         {/* Class Preview Section */}
         {previewLoading && (
-          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
             <div className="flex items-center gap-2">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
               <span className="text-sm text-slate-500">
@@ -435,7 +435,7 @@ function JoinClassForm({
         )}
 
         {preview && (
-          <div className="bg-success-light border border-success/30 rounded-lg p-4 space-y-2">
+          <div className="bg-success-light border border-success/30 rounded-2xl p-4 space-y-2">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-success text-lg">✓</span>
               <span className="font-medium text-success-dark">
@@ -496,7 +496,7 @@ function JoinClassForm({
 
         {/* Confirmation Message */}
         {showConfirm && preview && (
-          <div className="bg-primary/10 border border-primary/30 rounded-lg p-3">
+          <div className="bg-primary/10 border border-primary/30 rounded-2xl p-3">
             <p className="text-sm text-primary-dark text-center">
               Ready to join <strong>{preview.className}</strong> with{" "}
               {preview.teacherName}?

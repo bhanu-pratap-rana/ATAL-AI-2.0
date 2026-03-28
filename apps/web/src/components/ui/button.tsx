@@ -45,7 +45,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-gradient-to-br from-primary to-primary-light text-white border-2 border-white/20 shadow-[0_4px_14px_0_rgba(249,136,25,0.39)] hover:shadow-[0_6px_20px_rgba(249,136,25,0.28)]",
+          "bg-gradient-to-br from-primary to-primary-light text-white border-2 border-white/20 shadow-[0_4px_14px_0_rgba(249,136,25,0.39)] hover:brightness-[1.08] hover:shadow-[0_6px_20px_rgba(249,136,25,0.5)] active:brightness-[0.92] active:shadow-[0_2px_6px_rgba(249,136,25,0.2)] active:translate-y-px",
         destructive:
           "bg-error text-white hover:bg-error/90 shadow-md border-2 border-white/20",
         outline:
@@ -56,7 +56,7 @@ const buttonVariants = cva(
           "hover:bg-slate-50 hover:text-primary border-2 border-transparent",
         link: "text-primary underline-offset-4 hover:underline",
         gradient:
-          "bg-gradient-to-br from-primary to-primary-light text-white border-2 border-white/20 shadow-[0_4px_14px_0_rgba(249,136,25,0.39)] hover:shadow-[0_6px_20px_rgba(249,136,25,0.28)]",
+          "bg-gradient-to-br from-primary to-primary-light text-white border-2 border-white/20 shadow-[0_4px_14px_0_rgba(249,136,25,0.39)] hover:brightness-[1.08] hover:shadow-[0_6px_20px_rgba(249,136,25,0.5)] active:brightness-[0.92] active:shadow-[0_2px_6px_rgba(249,136,25,0.2)] active:translate-y-px",
       },
       size: {
         default: "h-11 px-6 py-2.5",

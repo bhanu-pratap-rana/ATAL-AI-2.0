@@ -40,7 +40,7 @@ export function PreAssessmentPrompt({ open, onDismiss }: PreAssessmentPromptProp
           </DialogDescription>
         </DialogHeader>
 
-        <div className="bg-info-light border-l-4 border-info p-3 rounded-md mt-2">
+        <div className="bg-info-light border-l-4 border-info p-3 rounded-2xl mt-2">
           <ul className="text-sm text-info-dark/80 space-y-1">
             <li>30 questions across 5 digital literacy areas</li>
             <li>No time limit — take your time</li>

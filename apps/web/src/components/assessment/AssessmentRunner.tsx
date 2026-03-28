@@ -116,24 +116,23 @@ function getLanguageFontClass(language: "en" | "hi" | "as"): string {
   }
 }
 
-/**
- * Helper: Get option button classes based on selection state
- */
-function getOptionButtonClasses(isSelected: boolean): string {
-  if (isSelected) {
-    return "border-primary bg-primary-light shadow-primary-sm";
-  }
-  return "border-slate-200 bg-white hover:border-primary/30 hover:bg-primary-lighter";
+/** Option label selection states — S2301: use status keys, not boolean params */
+const OPTION_CLASSES = {
+  selected: "border-primary bg-primary-light shadow-primary-sm",
+  unselected: "border-slate-200 bg-white hover:border-primary/30 hover:bg-primary-lighter active:bg-primary-lighter/80 active:border-primary/50 active:scale-[0.99]",
+} as const;
+
+const RADIO_CLASSES = {
+  selected: "border-primary bg-primary",
+  unselected: "border-slate-200 bg-white",
+} as const;
+
+function getOptionButtonClasses(status: "selected" | "unselected"): string {
+  return OPTION_CLASSES[status];
 }
 
-/**
- * Helper: Get radio button classes based on selection state
- */
-function getRadioButtonClasses(isSelected: boolean): string {
-  if (isSelected) {
-    return "border-primary bg-primary";
-  }
-  return "border-slate-200 bg-white";
+function getRadioButtonClasses(status: "selected" | "unselected"): string {
+  return RADIO_CLASSES[status];
 }
 
 /**
@@ -728,7 +727,7 @@ export function AssessmentRunner({
               <h2
                 ref={questionRef}
                 id="question-text"
-                className={`text-xl md:text-2xl font-bold text-slate-800 break-words ${fontClass}`}
+                className={`text-xl md:text-2xl font-black text-slate-800 break-words ${fontClass}`}
                 tabIndex={-1}
               >
                 {currentQuestion.questionText}
@@ -748,7 +747,7 @@ export function AssessmentRunner({
                   return (
                     <label
                       key={option.id}
-                      className={`w-full text-left p-4 rounded-2xl border-2 transition-all duration-200 cursor-pointer focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 ${getOptionButtonClasses(selectedOption === index)} ${isSubmitting ? "pointer-events-none opacity-50" : ""}`}
+                      className={`w-full text-left p-4 rounded-2xl border-2 transition-all duration-200 cursor-pointer focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 ${getOptionButtonClasses(selectedOption === index ? "selected" : "unselected")} ${isSubmitting ? "pointer-events-none opacity-50" : ""}`}
                     >
                       <input
                         type="radio"
@@ -762,7 +761,7 @@ export function AssessmentRunner({
                       <div className="flex items-start gap-3">
                         <div
                           aria-hidden="true"
-                          className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${getRadioButtonClasses(selectedOption === index)}`}
+                          className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${getRadioButtonClasses(selectedOption === index ? "selected" : "unselected")}`}
                         >
                           {selectedOption === index && (
                             <div className="w-3 h-3 bg-white rounded-full" />

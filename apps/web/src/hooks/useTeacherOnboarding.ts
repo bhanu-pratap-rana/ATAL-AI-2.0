@@ -199,15 +199,15 @@ export interface TeacherOnboardingActions {
   setVillage: (village: string) => void;
 
   // Handlers
-  handleTeacherLogin: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
+  handleTeacherLogin: (e: React.SyntheticEvent) => Promise<void>;
   handleForgotPasswordOtp: (e: React.SyntheticEvent) => Promise<void>;
-  handleResetPassword: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
+  handleResetPassword: (e: React.SyntheticEvent) => Promise<void>;
   handleSendOTP: (e: React.SyntheticEvent) => Promise<void>;
-  handleVerifyOTP: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
-  handleSetPassword: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
+  handleVerifyOTP: (e: React.SyntheticEvent) => Promise<void>;
+  handleSetPassword: (e: React.SyntheticEvent) => Promise<void>;
   handlePasswordChange: (password: string) => void;
-  handleSchoolVerification: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
-  handleProfileSubmit: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
+  handleSchoolVerification: (e: React.SyntheticEvent) => Promise<void>;
+  handleProfileSubmit: (e: React.SyntheticEvent) => Promise<void>;
 
   // Utility
   resetForgotPassword: () => void;
@@ -553,7 +553,7 @@ export function useTeacherOnboarding() {
 
   // HANDLER: Email/Password Login
   const handleTeacherLogin = useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
+    async (e: React.SyntheticEvent) => {
       e.preventDefault();
       setLoginError("");
       setLoading(true);
@@ -617,7 +617,7 @@ export function useTeacherOnboarding() {
 
   // HANDLER: Reset Password with OTP
   const handleResetPassword = useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
+    async (e: React.SyntheticEvent) => {
       e.preventDefault();
 
       const passwordValidation = validatePassword(state.forgotNewPassword);
@@ -726,7 +726,7 @@ export function useTeacherOnboarding() {
 
   // HANDLER: Verify Email OTP
   const handleVerifyOTP = useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
+    async (e: React.SyntheticEvent) => {
       e.preventDefault();
       setLoading(true);
 
@@ -755,7 +755,7 @@ export function useTeacherOnboarding() {
 
   // HANDLER: Set Password
   const handleSetPassword = useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
+    async (e: React.SyntheticEvent) => {
       e.preventDefault();
       setLoading(true);
 
@@ -823,7 +823,7 @@ export function useTeacherOnboarding() {
 
   // HANDLER: School Verification
   const handleSchoolVerification = useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
+    async (e: React.SyntheticEvent) => {
       e.preventDefault();
       setLoading(true);
 
@@ -857,7 +857,7 @@ export function useTeacherOnboarding() {
 
   // HANDLER: Profile Submit
   const handleProfileSubmit = useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
+    async (e: React.SyntheticEvent) => {
       e.preventDefault();
       setLoading(true);
 

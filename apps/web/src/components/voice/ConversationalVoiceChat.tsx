@@ -194,7 +194,7 @@ export function ConversationalVoiceChat({
 
       {/* State Label */}
       <div className="text-center mb-4">
-        <p className={`text-lg font-medium transition-colors duration-300 ${getStateTextColor(state)}`}>
+        <p className={`text-lg font-black transition-colors duration-300 ${getStateTextColor(state)}`}>
           {getStateLabel(state)}
         </p>
         {state === "speaking" && (

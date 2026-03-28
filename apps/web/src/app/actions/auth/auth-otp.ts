@@ -8,7 +8,7 @@ import {
   checkOtpVerifyRateLimit,
   checkPasswordResetRateLimit,
   checkEnumerationRateLimit,
-} from "@/lib/rate-limiter-distributed";
+} from "@/lib/redis-rate-limiter.server";
 import { isTeacherOrHigher } from "@/lib/auth/role-utils";
 import {
   AuthEmailSchema,

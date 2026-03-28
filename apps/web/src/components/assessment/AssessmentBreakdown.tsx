@@ -277,7 +277,7 @@ export function AssessmentBreakdown({
                         <div
                           key={key}
                           className={cn(
-                            "p-3 rounded-lg border-2 flex items-start gap-3",
+                            "p-3 rounded-2xl border-2 flex items-start gap-3",
                             isCorrectAnswer
                               ? "border-success bg-success/10"
                               : isChosen

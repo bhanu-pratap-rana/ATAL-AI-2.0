@@ -17,7 +17,7 @@ export function TeacherCompleteStep() {
       >
         <div className="text-center space-y-4">
           <div className="text-4xl sm:text-6xl">🎉</div>
-          <p className="text-lg font-semibold">You&apos;re all set!</p>
+          <p className="text-lg font-black">You&apos;re all set!</p>
           <p className="text-sm text-slate-500">
             Redirecting to your teacher dashboard...
           </p>

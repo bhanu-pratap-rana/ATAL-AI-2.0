@@ -14,6 +14,13 @@ import { createClient } from "@/lib/supabase-browser";
 import { clientLogger } from "@/lib/client-logger";
 import { BadgesDisplay } from "./BadgesDisplay";
 
+/** Returns the text color class for a leaderboard entry name. Extracted to avoid S3358. */
+function getLeaderNameColor(isViewing: boolean, isMe: boolean): string {
+  if (isViewing) return "text-white";
+  if (isMe) return "text-orange-600";
+  return "text-slate-700";
+}
+
 interface LeaderEntry {
   studentId: string;
   name: string;
@@ -157,7 +164,7 @@ export function BadgesLeaderboardPanel({
                     <span className="text-base w-6 text-center flex-shrink-0">
                       {RANK_ICONS[entry.rank] ?? `#${entry.rank}`}
                     </span>
-                    <span className={`flex-1 text-xs font-black truncate ${isViewing ? "text-white" : isMe ? "text-orange-600" : "text-slate-700"}`}>
+                    <span className={`flex-1 text-xs font-black truncate ${getLeaderNameColor(isViewing, isMe)}`}>
                       {entry.name}{isMe ? " (You)" : ""}
                     </span>
                     <span className={`text-[11px] font-bold flex-shrink-0 ${isViewing ? "text-white/80" : "text-amber-500"}`}>

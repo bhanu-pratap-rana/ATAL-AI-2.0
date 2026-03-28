@@ -134,7 +134,7 @@ export function InvitePanel({
         <div className="space-y-4 order-2 md:order-1">
           <div className="flex flex-col items-center">
             <span className="mb-2 text-sm font-medium">QR Code</span>
-            <div className="qr-container bg-white p-3 md:p-4 rounded-lg border-2 border-primary/30 shadow-sm">
+            <div className="qr-container bg-white p-3 md:p-4 rounded-2xl border-2 border-primary/30 shadow-sm">
               <canvas ref={canvasRef} className="w-full h-auto" />
             </div>
             <p className="text-xs text-slate-400 mt-2 text-center max-w-[200px] sm:max-w-[256px]">
@@ -158,8 +158,8 @@ export function InvitePanel({
           {/* Class Code */}
           <div className="space-y-2">
             <span className="text-sm font-medium">Class Code</span>
-            <div className="bg-gradient-to-br from-primary/10 to-primary/5 border-2 border-primary/30 rounded-lg p-3 md:p-4">
-              <p className="text-xl sm:text-2xl md:text-3xl font-mono font-bold text-center text-primary tracking-widest break-all">
+            <div className="bg-gradient-to-br from-primary/10 to-primary/5 border-2 border-primary/30 rounded-2xl p-3 md:p-4">
+              <p className="text-xl sm:text-2xl md:text-3xl font-mono font-black text-center text-primary tracking-widest break-all">
                 {classCode}
               </p>
             </div>
@@ -179,8 +179,8 @@ export function InvitePanel({
           {/* Join PIN */}
           <div className="space-y-2">
             <span className="text-sm font-medium">Join PIN</span>
-            <div className="bg-gradient-to-br from-primary-lighter to-primary-light border-2 border-primary/30 rounded-lg p-3 md:p-4">
-              <p className="text-xl sm:text-2xl md:text-3xl font-mono font-bold text-center text-primary tracking-widest">
+            <div className="bg-gradient-to-br from-primary-lighter to-primary-light border-2 border-primary/30 rounded-2xl p-3 md:p-4">
+              <p className="text-xl sm:text-2xl md:text-3xl font-mono font-black text-center text-primary tracking-widest">
                 {joinPin}
               </p>
             </div>
@@ -201,7 +201,7 @@ export function InvitePanel({
 
       {/* Invite Link Section */}
       <div className="mt-4 md:mt-6 space-y-4">
-        <div className="bg-gradient-to-br from-success-light/50 to-success-light/30 border-2 border-success/30 rounded-lg p-responsive">
+        <div className="bg-gradient-to-br from-success-light/50 to-success-light/30 border-2 border-success/30 rounded-2xl p-responsive">
           <span className="text-sm font-medium mb-2 block">
             Direct Invite Link
           </span>

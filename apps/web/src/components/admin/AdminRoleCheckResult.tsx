@@ -11,7 +11,7 @@ export function AdminRoleCheckResult({
 }: AdminRoleCheckResultProps) {
   return (
     <div
-      className={`flex gap-3 p-4 rounded-lg border ${
+      className={`flex gap-3 p-4 rounded-2xl border ${
         isAdmin
           ? "bg-success-light border-success/30"
           : "bg-warning-light border-warning/30"

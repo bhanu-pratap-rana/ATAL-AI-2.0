@@ -116,7 +116,7 @@ export function AdminResetPasswordDialog({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+      <div className="bg-white rounded-3xl shadow-lg max-w-md w-full p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-black text-text">Reset Password</h2>
@@ -131,7 +131,7 @@ export function AdminResetPasswordDialog({
         </div>
 
         {/* Info */}
-        <div className="bg-info-light border border-info/30 rounded-lg p-4 mb-4">
+        <div className="bg-info-light border border-info/30 rounded-2xl p-4 mb-4">
           <p className="text-sm text-info-dark">
             <strong>Admin:</strong> {adminEmail}
           </p>
@@ -172,7 +172,7 @@ export function AdminResetPasswordDialog({
         {/* Message Display */}
         {message && (
           <div
-            className={`flex gap-3 p-3 rounded-lg border mb-4 ${
+            className={`flex gap-3 p-3 rounded-2xl border mb-4 ${
               message.type === "success"
                 ? "bg-success-light border-success/30"
                 : "bg-error-light border-error/30"

@@ -46,14 +46,14 @@ export function ClassAssessmentCard({
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-3 gap-4 mb-4">
-          <div className="text-center p-3 bg-slate-50 rounded-lg">
-            <p className="text-xl font-bold text-primary">
+          <div className="text-center p-3 bg-slate-50 rounded-2xl">
+            <p className="text-xl font-black text-primary">
               {classData.studentCount}
             </p>
             <p className="text-xs text-slate-500">Students</p>
           </div>
-          <div className="text-center p-3 bg-slate-50 rounded-lg">
-            <p className="text-xl font-bold text-info-dark">
+          <div className="text-center p-3 bg-slate-50 rounded-2xl">
+            <p className="text-xl font-black text-info-dark">
               {classData.assessmentsTaken}
             </p>
             <p className="text-xs text-slate-500">
@@ -61,9 +61,9 @@ export function ClassAssessmentCard({
             </p>
           </div>
           <div
-            className={`text-center p-3 rounded-lg ${getScoreColor(classData.averageScore)}`}
+            className={`text-center p-3 rounded-2xl ${getScoreColor(classData.averageScore)}`}
           >
-            <p className="text-xl font-bold">
+            <p className="text-xl font-black">
               {classData.averageScore === null
                 ? "-"
                 : `${classData.averageScore}%`}

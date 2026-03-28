@@ -28,7 +28,7 @@ export function useFormSubmission<T>(
   onSuccess?: (data: T) => void,
 ) {
   return useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
+    async (e: React.SyntheticEvent) => {
       e.preventDefault();
       onErrorChange(null);
 

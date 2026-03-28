@@ -82,7 +82,7 @@ export function SignUpPhoneFlow({
     }
   }
 
-  async function handleSignUpPhoneVerifyOtp(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSignUpPhoneVerifyOtp(e: React.SyntheticEvent) {
     e.preventDefault();
     actions.setSignupPhoneError(null);
 

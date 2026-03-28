@@ -31,7 +31,7 @@ export function CreateClassDialog() {
   } | null>(null);
 
   const handleSubmit = useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
+    async (e: React.SyntheticEvent) => {
       e.preventDefault();
       setLoading(true);
 

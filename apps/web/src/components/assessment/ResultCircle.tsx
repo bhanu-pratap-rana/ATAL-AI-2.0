@@ -131,7 +131,7 @@ export function ResultCircle({
         {/* Center content */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span
-            className={`text-4xl md:text-5xl font-bold tabular-nums ${getColorClass(percentage)}`}
+            className={`text-4xl md:text-5xl font-black tabular-nums ${getColorClass(percentage)}`}
           >
             {displayPercentage}%
           </span>
@@ -140,7 +140,7 @@ export function ResultCircle({
       </div>
 
       {/* Performance text */}
-      <p className={`mt-4 text-lg font-semibold ${getColorClass(percentage)}`}>
+      <p className={`mt-4 text-lg font-black ${getColorClass(percentage)}`}>
         {getPerformanceText(percentage)}
       </p>
     </div>

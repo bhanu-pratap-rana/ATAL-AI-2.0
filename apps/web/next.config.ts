@@ -5,9 +5,10 @@ import { withSentryConfig } from '@sentry/nextjs'
 
 const nextConfig: NextConfig = {
   // Next.js 16 has Turbopack enabled by default
-  // Empty turbopack config silences the webpack/turbopack conflict warning
-  // This allows the build to proceed while Sentry uses its webpack plugin
-  turbopack: {},
+  // root: set to repo root so Turbopack resolves workspace paths correctly
+  turbopack: {
+    root: '../../',
+  },
 
   // Next.js 16 has instrumentation enabled by default
   // No experimental flags needed for Sentry integration
@@ -23,6 +24,11 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+
+  // ioredis is a Node.js-only package — exclude from SSR bundles.
+  // Redis initialization lives in lib/redis-rate-limiter.server.ts (server-only)
+  // so ioredis is never imported transitively by client components.
+  serverExternalPackages: ['ioredis'],
 
   // Optimize package imports for faster builds and smaller bundles
   // Per Vercel React Best Practices: https://vercel.com/blog/introducing-react-best-practices

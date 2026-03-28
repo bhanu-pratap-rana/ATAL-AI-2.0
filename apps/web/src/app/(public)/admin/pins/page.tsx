@@ -131,7 +131,7 @@ export default function AdminSchoolPINsPage() {
           </div>
 
           {/* Right Column: Schools List */}
-          <div className="bg-white border border-slate-200 rounded-lg overflow-hidden flex flex-col">
+          <div className="bg-white border border-slate-100 rounded-3xl overflow-hidden flex flex-col">
             <SchoolsList
               schools={allSchools}
               selectedSchool={selectedSchool}

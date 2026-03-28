@@ -83,6 +83,17 @@ interface LessonPlayerProps {
 /**
  * Get icon for chunk type
  */
+/** Language label maps — extracted to avoid S3358 nested ternaries. */
+const LANG_LABELS: Record<string, Record<SupportedLanguage, string>> = {
+  loadingVisual: { en: "Loading visual...", hi: "चित्र लोड हो रहा है...", as: "ছবি লোড হৈ আছে..." },
+  visualAid:    { en: "Visual Aid",        hi: "दृश्य सहायता",          as: "দৃশ্য সহায়তা" },
+  speaking:     { en: "Speaking...",       hi: "बोल रहा है...",          as: "কৈ আছে..." },
+};
+
+function getLangLabel(key: keyof typeof LANG_LABELS, language: SupportedLanguage): string {
+  return LANG_LABELS[key][language] ?? LANG_LABELS[key].en;
+}
+
 function getChunkIcon(type: LessonChunk["type"]) {
   const iconProps = { className: "h-5 w-5" };
   switch (type) {
@@ -181,14 +192,14 @@ function ChunkImage({
   // Loading state with Lottie animation
   if (imageState.loading || showSuccess) {
     return (
-      <div className="bg-slate-50/30 rounded-lg p-6 border border-dashed flex flex-col items-center justify-center min-h-[200px]">
+      <div className="bg-slate-50/30 rounded-2xl p-6 border border-dashed flex flex-col items-center justify-center min-h-[160px] sm:min-h-[200px]">
         {showSuccess ? (
           <SuccessAnimation size={60} />
         ) : (
           <LoadingAnimation size={60} />
         )}
         <p className="text-sm text-slate-500 mt-3">
-          {language === "en" ? "Loading visual..." : language === "hi" ? "चित्र लोड हो रहा है..." : "ছবি লোড হৈ আছে..."}
+          {getLangLabel("loadingVisual", language)}
         </p>
       </div>
     );
@@ -197,11 +208,11 @@ function ChunkImage({
   // Error state with fallback to description
   if (imageState.error || !imageState.url) {
     return (
-      <div className="bg-slate-50/50 rounded-lg p-4 border border-dashed">
+      <div className="bg-slate-50/50 rounded-2xl p-4 border border-dashed">
         <div className="flex items-center gap-2 text-slate-500 mb-2">
           <ImageIcon className="h-4 w-4" />
           <span className="text-sm font-medium">
-            {language === "en" ? "Visual Aid" : language === "hi" ? "दृश्य सहायता" : "দৃশ্য সহায়তা"}
+            {getLangLabel("visualAid", language)}
           </span>
         </div>
         <p className="text-sm text-slate-500 italic">
@@ -213,7 +224,7 @@ function ChunkImage({
 
   // Image loaded successfully
   return (
-    <div className="rounded-lg overflow-hidden border">
+    <div className="rounded-2xl overflow-hidden border">
       <div className="relative w-full h-[200px] md:h-[250px] bg-white">
         <Image
           src={imageState.url}
@@ -291,7 +302,7 @@ function CheckpointQuiz({
 
   return (
     <div className="space-y-4">
-      <p className="font-medium text-lg">{question.question}</p>
+      <p className="font-black text-lg">{question.question}</p>
 
       <div className="space-y-2">
         {question.options.map((option, index) => {
@@ -317,7 +328,7 @@ function CheckpointQuiz({
           return (
             <button
                 type="button"
-              key={index}
+              key={option}
               onClick={() => !submitted && setSelected(index)}
               disabled={submitted}
               className={buttonClass}
@@ -480,21 +491,20 @@ export function LessonPlayer({
 
           {/* Chunk indicators */}
           <div className="flex gap-1 mt-3">
-            {lesson.chunks.map((chunk, index) => (
-              <button
-                type="button"
-                key={index}
-                onClick={() => setCurrentChunk(index)}
-                className={`flex-1 h-2 rounded-full transition-all ${
-                  index === safeChunk
-                    ? "bg-primary"
-                    : completedChunks.has(index)
-                      ? "bg-success"
-                      : "bg-slate-50"
-                }`}
-                title={chunk.heading}
-              />
-            ))}
+            {lesson.chunks.map((chunk, index) => {
+              let indicatorColor = "bg-slate-50";
+              if (index === safeChunk) indicatorColor = "bg-primary";
+              else if (completedChunks.has(index)) indicatorColor = "bg-success";
+              return (
+                <button
+                  type="button"
+                  key={chunk.heading}
+                  onClick={() => setCurrentChunk(index)}
+                  className={`flex-1 h-2 rounded-full transition-all ${indicatorColor}`}
+                  title={chunk.heading}
+                />
+              );
+            })}
           </div>
         </CardContent>
       </Card>
@@ -519,7 +529,7 @@ export function LessonPlayer({
             <div className="flex items-center gap-2 text-primary animate-pulse">
               <Volume2 className="h-4 w-4" />
               <span className="text-sm">
-                {language === "en" ? "Speaking..." : language === "hi" ? "बोल रहा है..." : "কৈ আছে..."}
+                {getLangLabel("speaking", language)}
               </span>
             </div>
           )}

@@ -40,7 +40,7 @@ export function SignInPhoneForm({
   const router = useRouter();
   const supabase = createClient();
 
-  async function handleSignInPhone(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSignInPhone(e: React.SyntheticEvent) {
     e.preventDefault();
     actions.setIsLoading(true);
     actions.setSigninPhoneError(null);

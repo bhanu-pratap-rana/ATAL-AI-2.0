@@ -316,19 +316,19 @@ export const BadgesDisplay = memo(function BadgesDisplay({
       {/* Stats Summary */}
       <div className="flex flex-wrap justify-center gap-4 sm:gap-6 text-center">
         <div>
-          <div className="text-xl sm:text-2xl font-bold text-blue-600">
+          <div className="text-xl sm:text-2xl font-black text-blue-600">
             {earnedBadges.length}
           </div>
           <div className="text-xs text-slate-500">{t("gamification.earned")}</div>
         </div>
         <div>
-          <div className="text-xl sm:text-2xl font-bold text-slate-500">
+          <div className="text-xl sm:text-2xl font-black text-slate-500">
             {lockedBadges.length}
           </div>
           <div className="text-xs text-slate-500">{t("gamification.locked")}</div>
         </div>
         <div>
-          <div className="text-xl sm:text-2xl font-bold text-amber-500">
+          <div className="text-xl sm:text-2xl font-black text-amber-500">
             {earnedBadges.reduce((sum, b) => sum + b.points_value, 0)}
           </div>
           <div className="text-xs text-slate-500">{t("gamification.points")}</div>
@@ -383,7 +383,7 @@ export const BadgesDisplay = memo(function BadgesDisplay({
       {/* Badge Detail Modal - Using native dialog for accessibility (S6819) */}
       <dialog
         ref={dialogRef}
-        className="max-w-md w-full p-0 bg-transparent backdrop:bg-black/50 rounded-lg"
+        className="w-[calc(100vw-2rem)] max-w-md mx-auto p-0 bg-transparent backdrop:bg-black/50 rounded-lg"
         aria-labelledby="badge-modal-title"
       >
         {selectedBadge && (
@@ -406,7 +406,7 @@ export const BadgesDisplay = memo(function BadgesDisplay({
 
               {/* Cultural Note */}
               {selectedBadge.cultural_note && (
-                <p className="mt-4 text-sm italic text-warning bg-warning/10 p-3 rounded-lg">
+                <p className="mt-4 text-sm italic text-warning bg-warning/10 p-3 rounded-2xl">
                   🏔️ {selectedBadge.cultural_note}
                 </p>
               )}

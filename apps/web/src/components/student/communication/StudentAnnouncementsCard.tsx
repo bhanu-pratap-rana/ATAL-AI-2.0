@@ -108,7 +108,7 @@ export function StudentAnnouncementsCard({
               return (
                 <div
                   key={announcement.id}
-                  className={`p-4 rounded-lg border ${
+                  className={`p-4 rounded-2xl border {
                     announcement.is_pinned
                       ? "border-primary/30 bg-primary/5"
                       : isUnread
