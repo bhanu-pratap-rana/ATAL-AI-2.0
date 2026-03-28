@@ -94,7 +94,7 @@ export default function AdminManagePage() {
               <p className="text-sm text-slate-500">
                 Are you sure you want to <strong className="text-error">permanently delete</strong> the user:
               </p>
-              <p className="text-lg font-semibold text-slate-800 break-all bg-slate-50 p-2 rounded">
+              <p className="text-lg font-black text-slate-800 break-all bg-slate-50 p-2 rounded">
                 {email}
               </p>
               <p className="text-xs text-error">
@@ -138,7 +138,7 @@ export default function AdminManagePage() {
           )}
 
           {/* Instructions Box */}
-          <div className="bg-cyan-lightest border border-cyan/30 rounded-lg p-4">
+          <div className="bg-cyan-lightest border border-cyan/30 rounded-2xl p-4">
             <p className="text-sm text-cyan-darkest font-semibold mb-2">
               📋 How It Works:
             </p>

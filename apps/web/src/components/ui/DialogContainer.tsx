@@ -127,7 +127,7 @@ export function DialogContainer({
     <dialog
       ref={dialogRef}
       className={`
-        bg-white rounded-lg shadow-lg p-6 w-full mx-4
+        bg-white rounded-3xl shadow-lg p-6 w-full mx-4
         backdrop:bg-black/50
         ${sizeClasses[size]}
         ${className}
@@ -138,7 +138,7 @@ export function DialogContainer({
       <div className="flex items-center justify-between mb-4">
         <h2
           id="dialog-title"
-          className="text-lg font-semibold text-slate-800"
+          className="text-lg font-black text-slate-800"
         >
           {title}
         </h2>

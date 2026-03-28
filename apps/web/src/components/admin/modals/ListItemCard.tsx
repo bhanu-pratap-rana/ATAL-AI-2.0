@@ -174,7 +174,7 @@ export function ListItemCard({ item, modalType }: ListItemCardProps) {
   );
 
   return (
-    <div className="bg-slate-50 rounded-md p-4 border border-slate-200">
+    <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200">
       {modalType === "schools" && renderSchoolItem(item as SchoolItem)}
       {modalType === "teachers" && renderTeacherItem(item as TeacherItem)}
       {modalType === "students" && renderStudentItem(item as StudentItem)}

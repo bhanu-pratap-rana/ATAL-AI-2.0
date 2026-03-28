@@ -44,8 +44,8 @@ export function AssessmentStats({
       </h3>
       <div className="grid grid-cols-2 gap-4">
         {/* Response Time */}
-        <div className="bg-primary-light p-4 rounded-lg">
-          <div className="text-xl sm:text-2xl font-bold text-primary-dark">
+        <div className="bg-primary-light p-4 rounded-2xl">
+          <div className="text-xl sm:text-2xl font-black text-primary-dark">
             {formatTime(avgResponseTime)}
           </div>
           <div className="text-xs text-primary/80">
@@ -54,8 +54,8 @@ export function AssessmentStats({
         </div>
 
         {/* Modules Covered */}
-        <div className="bg-success-light p-4 rounded-lg">
-          <div className="text-xl sm:text-2xl font-bold text-success-dark">
+        <div className="bg-success-light p-4 rounded-2xl">
+          <div className="text-xl sm:text-2xl font-black text-success-dark">
             {Object.keys(moduleBreakdown).length}
           </div>
           <div className="text-xs text-success/80">Modules Covered</div>
@@ -69,16 +69,16 @@ export function AssessmentStats({
             Ability Estimate (IRT)
           </h4>
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-secondary-light p-3 rounded-lg">
-              <div className="text-xl font-bold text-secondary-dark">
+            <div className="bg-secondary-light p-3 rounded-2xl">
+              <div className="text-xl font-black text-secondary-dark">
                 θ = {irtData.theta.toFixed(2)}
               </div>
               <div className="text-xs text-secondary/80">
                 Ability Score
               </div>
             </div>
-            <div className="bg-warning-light p-3 rounded-lg">
-              <div className="text-xl font-bold text-warning-dark">
+            <div className="bg-warning-light p-3 rounded-2xl">
+              <div className="text-xl font-black text-warning-dark">
                 ±{irtData.standardError.toFixed(2)}
               </div>
               <div className="text-xs text-warning/80">

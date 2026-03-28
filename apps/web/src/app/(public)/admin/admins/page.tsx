@@ -96,7 +96,7 @@ export default function AdminsPage() {
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Create Form Section */}
         {showCreateForm && (
-          <section className="mb-8 bg-white rounded-lg shadow p-6 border border-slate-200">
+          <section className="mb-8 bg-white rounded-3xl shadow p-6 border border-slate-100">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-black text-text">
                 Create New Admin Account
@@ -120,7 +120,7 @@ export default function AdminsPage() {
         )}
 
         {/* Admin List Section */}
-        <section className="bg-white rounded-lg shadow border border-slate-200">
+        <section className="bg-white rounded-3xl shadow border border-slate-100">
           <div className="border-b border-slate-200 p-6">
             <div className="flex items-center gap-3 mb-2">
               <Users className="w-6 h-6 text-primary" />
@@ -146,7 +146,7 @@ export default function AdminsPage() {
         <section className="mt-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Super Admin Info */}
-            <div className="bg-accent-light border border-accent/30 rounded-lg p-6">
+            <div className="bg-accent-light border border-accent/30 rounded-2xl p-6">
               <h3 className="font-black text-accent-dark mb-2">
                 👑 Super Admin Role
               </h3>
@@ -160,7 +160,7 @@ export default function AdminsPage() {
             </div>
 
             {/* Regular Admin Info */}
-            <div className="bg-primary-lighter border border-primary/30 rounded-lg p-6">
+            <div className="bg-primary-lighter border border-primary/30 rounded-2xl p-6">
               <h3 className="font-black text-primary-dark mb-2">
                 👤 Regular Admin Role
               </h3>

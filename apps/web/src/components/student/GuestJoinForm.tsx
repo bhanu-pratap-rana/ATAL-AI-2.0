@@ -40,7 +40,7 @@ export function GuestJoinForm({
   const router = useRouter();
   const supabase = createClient();
 
-  async function handleGuestJoinClass(e: React.FormEvent<HTMLFormElement>) {
+  async function handleGuestJoinClass(e: React.SyntheticEvent) {
     e.preventDefault();
     actions.setIsLoading(true);
     actions.setGuestError(null);
@@ -139,7 +139,7 @@ export function GuestJoinForm({
       </div>
 
       {/* Info Box - Primary Light */}
-      <div className="bg-primary-light border border-primary/20 rounded-md p-4">
+      <div className="bg-primary-light border border-primary/20 rounded-2xl p-4">
         <p className="text-xs text-primary-dark">
           <strong>📌 Note:</strong> You can add your roll number and profile
           details later in the Settings page.

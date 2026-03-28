@@ -292,3 +292,4 @@ client_secret*.json
 # Test output files
 test-imagen-output.png
 test-*-output.*
+.gstack/

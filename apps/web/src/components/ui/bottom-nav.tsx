@@ -66,7 +66,10 @@ export function BottomNav() {
   const colors = getActiveColor(role);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-slate-100 pb-6 pt-3 px-6 z-[300]">
+    <nav
+      className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-slate-100 pt-3 px-4 sm:px-6 z-[300]"
+      style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
+    >
       <div className="max-w-xl mx-auto flex justify-around items-end">
         {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
           const isExact = ["/app/student/dashboard", "/app/teacher/dashboard", "/app/admin/dashboard", "/app/settings"].includes(href);
@@ -88,7 +91,7 @@ export function BottomNav() {
                 <Icon size={20} strokeWidth={active ? 2.5 : 2} />
               </div>
               <span
-                className={`text-[11px] font-black uppercase tracking-widest transition-opacity ${
+                className={`text-[10px] sm:text-[11px] font-black uppercase tracking-wider sm:tracking-widest transition-opacity ${
                   active ? "opacity-100" : "opacity-40"
                 }`}
               >

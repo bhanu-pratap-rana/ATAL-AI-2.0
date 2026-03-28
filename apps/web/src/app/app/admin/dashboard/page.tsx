@@ -7,6 +7,11 @@ import { checkAdminAuth } from "@/app/actions/school";
 import { createClient } from "@/lib/supabase-browser";
 import { clientLogger } from "@/lib/client-logger";
 
+function fmt(n: number): string {
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
+  return String(n);
+}
+
 interface AdminStats {
   schools: number;
   teachers: number;
@@ -59,9 +64,12 @@ export default function AdminDashboardPage() {
     );
   }
 
-  function fmt(n: number): string {
-    if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
-    return String(n);
+  if (!authorized) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <p className="font-bold text-slate-400">Access denied.</p>
+      </div>
+    );
   }
 
   return (

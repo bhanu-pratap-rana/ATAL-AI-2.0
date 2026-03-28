@@ -144,7 +144,7 @@ export const DownloadModal = memo(function DownloadModal({
           </div>
 
           {/* Estimated Size */}
-          <div className="flex items-center justify-between p-3 bg-slate-50/50 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-slate-50/50 rounded-2xl">
             <span className="text-sm text-slate-500">
               {t("learn.estimatedDownloadSize")}
             </span>

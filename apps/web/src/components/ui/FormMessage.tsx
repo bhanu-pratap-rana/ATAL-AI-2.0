@@ -62,12 +62,12 @@ export function FormMessage({
     <div
       role="alert"
       className={`
-        flex items-start gap-3 p-3 rounded-lg border-l-4
+        flex items-start gap-3 p-3 rounded-2xl border-l-4
         ${styles.bg} ${styles.border} ${styles.text}
         ${className}
       `}
     >
-      <span className="flex-shrink-0 text-lg font-bold">{styles.icon}</span>
+      <span className="flex-shrink-0 text-lg font-black">{styles.icon}</span>
       <div className="flex-1">
         <p className="text-sm font-medium">{text}</p>
       </div>

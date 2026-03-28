@@ -85,7 +85,7 @@ export function DeleteAccountButton({ userEmail }: DeleteAccountButtonProps) {
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          <div className="bg-error-light/50 border border-error/30 rounded-lg p-3">
+          <div className="bg-error-light/50 border border-error/30 rounded-2xl p-3">
             <p className="text-sm text-error-dark">
               <strong>Warning:</strong> Deleting your account will:
             </p>

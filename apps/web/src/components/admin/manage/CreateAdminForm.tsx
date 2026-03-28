@@ -46,7 +46,7 @@ export function CreateAdminForm({
     <>
       {/* Success Badge */}
       {completed && (
-        <div className="bg-success-light border border-success/30 rounded-lg p-4">
+        <div className="bg-success-light border border-success/30 rounded-2xl p-4">
           <div className="flex gap-2">
             <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
             <p className="text-sm text-success">
@@ -133,7 +133,7 @@ export function CreateAdminForm({
       {/* Message Display */}
       {message && (
         <div
-          className={`flex gap-3 p-4 rounded-lg border whitespace-pre-wrap ${
+          className={`flex gap-3 p-4 rounded-2xl border whitespace-pre-wrap ${
             message.type === "success"
               ? "bg-success-light border-success/30"
               : "bg-error-light border-error/30"
@@ -182,7 +182,7 @@ export function CreateAdminForm({
       )}
 
       {/* Security Notice */}
-      <div className="bg-warning-light border border-warning/30 rounded-lg p-4">
+      <div className="bg-warning-light border border-warning/30 rounded-2xl p-4">
         <p className="text-xs text-warning-dark">
           <strong>🔒 Security:</strong> Store your admin password
           securely. You&apos;ll need it to login to the admin panel.

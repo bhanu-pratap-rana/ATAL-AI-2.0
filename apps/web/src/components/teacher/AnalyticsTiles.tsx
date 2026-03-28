@@ -71,7 +71,7 @@ export function AnalyticsTiles({
         </CardHeader>
         <CardContent>
           <div className="space-y-1">
-            <div className="text-2xl sm:text-4xl font-bold text-success">
+            <div className="text-2xl sm:text-4xl font-black text-success">
               {activeThisWeek}
             </div>
             <p className="text-sm text-success/80">
@@ -96,7 +96,7 @@ export function AnalyticsTiles({
         </CardHeader>
         <CardContent>
           <div className="space-y-1">
-            <div className="text-2xl sm:text-4xl font-bold text-cyan-dark">
+            <div className="text-2xl sm:text-4xl font-black text-cyan-dark">
               {avgMinutesPerDay.toFixed(1)}
             </div>
             <p className="text-sm text-cyan">minutes per student per day</p>
@@ -123,7 +123,7 @@ export function AnalyticsTiles({
             </CardHeader>
             <CardContent>
               <div className="space-y-1">
-                <div className={`text-2xl sm:text-4xl font-bold ${styles.numberClass}`}>
+                <div className={`text-2xl sm:text-4xl font-black ${styles.numberClass}`}>
                   {atRiskCount}
                 </div>
                 <p className={`text-sm ${styles.textClass}`}>

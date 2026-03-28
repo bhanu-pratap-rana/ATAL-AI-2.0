@@ -59,7 +59,7 @@ export function PINGenerator({
               type={showNewPin ? "text" : "password"}
               value={newPin}
               disabled
-              className="font-mono font-bold text-lg text-center bg-primary/5 border-primary"
+              className="font-mono font-black text-lg text-center bg-primary/5 border-primary"
             />
             <Button
               onClick={() => onShowNewPinChange(!showNewPin)}
@@ -123,7 +123,7 @@ export function PINGenerator({
       </div>
 
       {/* Security Notice */}
-      <div className="bg-blue-lightest border-l-4 border-blue p-3 rounded-lg">
+      <div className="bg-blue-lightest border-l-4 border-blue p-3 rounded-2xl">
         <p className="text-xs text-blue-darkest">
           <strong>🔒 Security:</strong> Staff PINs are encrypted and never
           exposed to clients. Only school administrators can view and rotate

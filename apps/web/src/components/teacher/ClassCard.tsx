@@ -78,15 +78,15 @@ export function ClassCard({ classData }: ClassCardProps) {
           {/* Class Code and PIN display - Both use primary colors for consistency */}
           {classData.class_code && classData.join_pin && (
             <div className="space-y-2">
-              <div className="bg-primary-light border border-primary/20 rounded-lg p-3">
+              <div className="bg-primary-light border border-primary/20 rounded-2xl p-3">
                 <p className="text-xs text-slate-500">Class Code</p>
-                <p className="font-mono font-bold text-primary text-lg">
+                <p className="font-mono font-black text-primary text-lg">
                   {classData.class_code}
                 </p>
               </div>
-              <div className="bg-primary-lighter border border-primary/10 rounded-lg p-3">
+              <div className="bg-primary-lighter border border-primary/10 rounded-2xl p-3">
                 <p className="text-xs text-slate-500">Join PIN</p>
-                <p className="font-mono font-bold text-primary-dark text-lg">
+                <p className="font-mono font-black text-primary-dark text-lg">
                   {classData.join_pin}
                 </p>
               </div>
@@ -133,7 +133,7 @@ export function ClassCard({ classData }: ClassCardProps) {
 
           <div className="space-y-4">
             {/* Edit Section - Uses primary color */}
-            <div className="space-y-3 p-4 bg-primary-light rounded-lg border border-primary/20">
+            <div className="space-y-3 p-4 bg-primary-light rounded-2xl border border-primary/20">
               <p className="font-medium text-sm text-primary-dark">
                 Edit Class Details
               </p>
@@ -206,7 +206,7 @@ export function ClassCard({ classData }: ClassCardProps) {
             </div>
 
             {/* Delete Section - Uses error/destructive color */}
-            <div className="space-y-3 p-4 bg-error-light rounded-lg border border-error/20">
+            <div className="space-y-3 p-4 bg-error-light rounded-2xl border border-error/20">
               <p className="font-medium text-sm text-error-dark">
                 Delete Class
               </p>

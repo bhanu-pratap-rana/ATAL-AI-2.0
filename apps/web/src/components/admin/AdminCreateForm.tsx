@@ -155,7 +155,7 @@ export function AdminCreateForm({
       {/* Message Display */}
       {message && (
         <div
-          className={`flex gap-3 p-4 rounded-lg border ${
+          className={`flex gap-3 p-4 rounded-2xl border ${
             message.type === "success"
               ? "bg-success-light border-success/30"
               : "bg-error-light border-error/30"

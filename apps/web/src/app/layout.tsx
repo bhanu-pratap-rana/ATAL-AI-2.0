@@ -88,6 +88,7 @@ export const viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
+  viewportFit: "cover", // enables env(safe-area-inset-*) for notched / Dynamic Island devices
 };
 
 export default function RootLayout({

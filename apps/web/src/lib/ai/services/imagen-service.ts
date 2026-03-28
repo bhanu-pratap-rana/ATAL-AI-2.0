@@ -398,7 +398,7 @@ function translatePromptToEnglish(prompt: string, language: SupportedLanguage): 
 
   // Replace known terms
   for (const [term, translation] of Object.entries(translations)) {
-    englishPrompt = englishPrompt.replace(new RegExp(term, "g"), translation);
+    englishPrompt = englishPrompt.replaceAll(term, translation);
   }
 
   // If prompt is still mostly non-English, create a generic educational prompt

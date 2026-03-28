@@ -152,7 +152,7 @@ export default function CreateAdminPage() {
       >
         <div className="space-y-6">
           {/* Info Box */}
-          <div className="bg-cyan-lightest border border-cyan/30 rounded-lg p-4">
+          <div className="bg-cyan-lightest border border-cyan/30 rounded-2xl p-4">
             <p className="text-sm text-cyan-darkest">
               <strong>ℹ️ First Time Setup:</strong>
               <br />
@@ -233,7 +233,7 @@ export default function CreateAdminPage() {
           {/* Message Display */}
           {message && (
             <div
-              className={`flex gap-3 p-4 rounded-lg border whitespace-pre-wrap ${
+              className={`flex gap-3 p-4 rounded-2xl border whitespace-pre-wrap ${
                 message.type === "success"
                   ? "bg-success-light border-success/30"
                   : "bg-error-light border-error/30"
@@ -273,7 +273,7 @@ export default function CreateAdminPage() {
           </Button>
 
           {/* Security Notice */}
-          <div className="bg-warning-light border border-warning/30 rounded-lg p-4">
+          <div className="bg-warning-light border border-warning/30 rounded-2xl p-4">
             <p className="text-xs text-warning-dark">
               <strong>🔒 Security:</strong> Store your admin password securely.
               You&apos;ll need it to login to the admin panel.
@@ -281,7 +281,7 @@ export default function CreateAdminPage() {
           </div>
 
           {/* Instructions Box */}
-          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
             <p className="text-sm text-slate-800 font-semibold mb-2">
               📋 Next Steps:
             </p>

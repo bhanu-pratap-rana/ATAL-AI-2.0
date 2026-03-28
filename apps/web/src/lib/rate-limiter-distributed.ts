@@ -82,7 +82,7 @@ interface RedisClient {
   eval(script: string, numKeys: number, ...args: string[]): Promise<number>;
 }
 
-interface RateLimitConfig {
+export interface RateLimitConfig {
   maxTokens: number; // Maximum tokens in bucket
   refillRate: number; // Tokens per second (e.g., 1 token per 600 seconds = 6 per hour)
   refillInterval: number; // Refill check interval in milliseconds
@@ -644,8 +644,12 @@ export class RateLimitManager {
 }
 
 /**
- * Export singleton instance
- * Can be replaced with Redis-backed instance in production
+ * Export singleton instance (in-memory).
+ *
+ * For distributed production deployments (Vercel multi-instance), import from
+ * @/lib/redis-rate-limiter.server instead — it connects to Valkey/Redis when
+ * REDIS_URL is set and falls back to in-memory otherwise. That module is server-only
+ * so it cannot be bundled into client components.
  */
 export const defaultRateLimitManager = new RateLimitManager();
 

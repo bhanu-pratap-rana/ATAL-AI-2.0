@@ -122,7 +122,7 @@ export function FeatureFlagToggle({ flag, onUpdate }: FeatureFlagToggleProps) {
   };
 
   return (
-    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+    <div className="bg-white border border-slate-100 rounded-3xl overflow-hidden">
       {/* Main Row - Always Visible */}
       <div
         className={cn(

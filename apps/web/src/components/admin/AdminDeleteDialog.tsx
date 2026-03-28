@@ -125,7 +125,7 @@ export function AdminDeleteDialog({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+      <div className="bg-white rounded-3xl shadow-lg max-w-md w-full p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-black text-text">Delete Admin Account</h2>
@@ -140,7 +140,7 @@ export function AdminDeleteDialog({
         </div>
 
         {/* Warning */}
-        <div className="bg-error-light border border-error/30 rounded-lg p-4 mb-4">
+        <div className="bg-error-light border border-error/30 rounded-2xl p-4 mb-4">
           <div className="flex gap-3">
             <AlertCircle className="w-5 h-5 text-error flex-shrink-0 mt-0.5" />
             <p className="text-sm text-error">

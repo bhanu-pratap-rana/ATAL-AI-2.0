@@ -295,30 +295,17 @@ export default function LessonPage() {
       try {
         const supabase = createClient();
 
-        // PERF: Fetch language content + English fallback + questions in parallel
-        // Eliminates waterfall of 4 sequential queries for non-English users
-        const needsFallback = language !== "en";
+        // PERF: Fetch language content + questions in parallel (ADR-005: no English fallback)
         const contentQuery = supabase
           .from("curriculum_content")
           .select("content_type, content, metadata")
           .eq("topic_id", topicId)
           .eq("module_id", moduleId)
           .eq("language", language);
-        const fallbackContentQuery = needsFallback
-          ? supabase
-              .from("curriculum_content")
-              .select("content_type, content, metadata")
-              .eq("topic_id", topicId)
-              .eq("module_id", moduleId)
-              .eq("language", "en")
-          : Promise.resolve({ data: null, error: null });
         const questionsQuery = fetchPracticeQuestions(supabase, topicId, language);
-        const fallbackQuestionsQuery = needsFallback
-          ? fetchPracticeQuestions(supabase, topicId, "en")
-          : Promise.resolve([]);
 
-        const [contentResult, fallbackResult, langQuestions, fallbackQuestions] =
-          await Promise.all([contentQuery, fallbackContentQuery, questionsQuery, fallbackQuestionsQuery]);
+        const [contentResult, langQuestions] =
+          await Promise.all([contentQuery, questionsQuery]);
 
         if (contentResult.error) {
           clientLogger.error(
@@ -332,11 +319,11 @@ export default function LessonPage() {
           return;
         }
 
-        // Use language-specific content, fall back to English
-        const contentData = contentResult.data?.length
-          ? contentResult.data
-          : fallbackResult.data;
-        const questions = langQuestions.length ? langQuestions : fallbackQuestions;
+        // ADR-005: No silent fallback. If content is not available in selected
+        // language, show DEFAULT_LESSON which surfaces a "coming soon" message.
+        // Do NOT fall back to English — specs/learn-redesign/decisions.md.
+        const contentData = contentResult.data?.length ? contentResult.data : null;
+        const questions = langQuestions.length ? langQuestions : [];
 
         if (contentData && contentData.length > 0) {
           const lesson = buildLessonFromData(contentData, questions, topicId);
@@ -687,7 +674,7 @@ export default function LessonPage() {
 
             {/* Error Display */}
             {chatError && (
-              <div className="mx-4 mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <div className="mx-4 mt-3 p-3 bg-red-50 border border-red-200 rounded-2xl">
                 <p className="text-xs text-red-600">
                   ⚠️ {chatError.message || "An error occurred. Please try again."}
                 </p>
@@ -709,7 +696,7 @@ export default function LessonPage() {
                 type="button"
                         key={q}
                         onClick={() => append({ role: "user", content: q })}
-                        className="px-3 py-2 bg-primary/10 text-primary rounded-lg text-xs hover:bg-primary/20 transition-colors"
+                        className="px-3 py-2 bg-primary/10 text-primary rounded-2xl text-xs hover:bg-primary/20 transition-colors"
                       >
                         {q}
                       </button>
@@ -735,7 +722,7 @@ export default function LessonPage() {
                       className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                     >
                       <div
-                        className={`max-w-[90%] sm:max-w-[80%] p-3 rounded-lg ${
+                        className={`max-w-[90%] sm:max-w-[80%] p-3 rounded-2xl ${
                           msg.role === "user"
                             ? "bg-primary text-primary-foreground"
                             : "bg-slate-100"
@@ -749,7 +736,7 @@ export default function LessonPage() {
               )}
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="bg-slate-100 p-3 rounded-lg">
+                  <div className="bg-slate-100 p-3 rounded-2xl">
                     <div className="flex gap-1">
                       <span className="animate-bounce">●</span>
                       <span className="animate-bounce delay-100">●</span>
@@ -835,7 +822,7 @@ export default function LessonPage() {
 
             {/* Error Display */}
             {chatError && (
-              <div className="mx-4 mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <div className="mx-4 mt-3 p-3 bg-red-50 border border-red-200 rounded-2xl">
                 <p className="text-xs text-red-600">
                   ⚠️ {chatError.message || "An error occurred. Please try again."}
                 </p>
@@ -857,7 +844,7 @@ export default function LessonPage() {
                 type="button"
                         key={q}
                         onClick={() => append({ role: "user", content: q })}
-                        className="px-3 py-2 bg-primary/10 text-primary rounded-lg text-xs hover:bg-primary/20 transition-colors"
+                        className="px-3 py-2 bg-primary/10 text-primary rounded-2xl text-xs hover:bg-primary/20 transition-colors"
                       >
                         {q}
                       </button>
@@ -883,7 +870,7 @@ export default function LessonPage() {
                       className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                     >
                       <div
-                        className={`max-w-[90%] sm:max-w-[80%] p-3 rounded-lg ${
+                        className={`max-w-[90%] sm:max-w-[80%] p-3 rounded-2xl ${
                           msg.role === "user"
                             ? "bg-primary text-primary-foreground"
                             : "bg-slate-100"
@@ -897,7 +884,7 @@ export default function LessonPage() {
               )}
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="bg-slate-100 p-3 rounded-lg">
+                  <div className="bg-slate-100 p-3 rounded-2xl">
                     <div className="flex gap-1">
                       <span className="animate-bounce">●</span>
                       <span className="animate-bounce delay-100">●</span>

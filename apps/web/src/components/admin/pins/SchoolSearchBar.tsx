@@ -48,7 +48,7 @@ export function SchoolSearchBar({
 
       {/* Suggestions Dropdown */}
       {showSuggestions && visibleSchools.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-100 rounded-2xl shadow-lg z-10 max-h-60 overflow-y-auto">
           {visibleSchools.map((school) => (
             <button
                 type="button"
@@ -74,7 +74,7 @@ export function SchoolSearchBar({
 
       {/* No results message */}
       {showSuggestions && filteredSchools.length === 0 && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-lg shadow-lg z-10 px-4 py-3 text-sm text-slate-500">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-100 rounded-2xl shadow-lg z-10 px-4 py-3 text-sm text-slate-500">
           No schools found
         </div>
       )}

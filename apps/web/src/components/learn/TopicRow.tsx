@@ -60,6 +60,13 @@ function getStatusKey(status: TopicProgress["status"], masteryScore: number): st
  * PERF-013 FIX: Memoize TopicRow to prevent re-renders when parent state changes
  * Only re-renders when topic, moduleId, onDownload, or isDownloading props change
  */
+/** Returns the correct button label key based on topic progress state. Extracted to avoid S3358. */
+function getTopicButtonLabel(isMastered: boolean, isInProgress: boolean): string {
+  if (isMastered) return "learn.reviewModule";
+  if (isInProgress) return "common.continue";
+  return "common.start";
+}
+
 export const TopicRow = memo(function TopicRow({
   topic,
   moduleId,
@@ -165,7 +172,7 @@ export const TopicRow = memo(function TopicRow({
             size="sm"
             className="truncate"
           >
-            {isMastered ? t("learn.reviewModule") : isInProgress ? t("common.continue") : t("common.start")}
+            {t(getTopicButtonLabel(isMastered, isInProgress))}
           </Button>
         </Link>
       </div>

@@ -44,7 +44,7 @@ export function CreateAnnouncementDialog({
   }, []);
 
   const handleSubmit = useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
+    async (e: React.SyntheticEvent) => {
       e.preventDefault();
       setLoading(true);
 

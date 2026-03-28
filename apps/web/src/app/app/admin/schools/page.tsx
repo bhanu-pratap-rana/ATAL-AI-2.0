@@ -473,7 +473,7 @@ export default function AdminSchoolsPage() {
   }
 
   // Rotate or create PIN
-  async function handleRotatePin(e: React.FormEvent<HTMLFormElement>) {
+  async function handleRotatePin(e: React.SyntheticEvent) {
     e.preventDefault();
 
     if (!schoolCode.trim()) {
@@ -576,15 +576,15 @@ export default function AdminSchoolsPage() {
           <div className="grid grid-cols-3 gap-3">
             <div className="bg-white/10 p-3 rounded-2xl text-center backdrop-blur-md">
               <p className="text-xl font-black">124</p>
-              <p className="text-[8px] uppercase font-black text-red-100">Schools</p>
+              <p className="text-[11px] uppercase font-black text-red-100">Schools</p>
             </div>
             <div className="bg-white/10 p-3 rounded-2xl text-center backdrop-blur-md">
               <Shield className="h-5 w-5 mx-auto mb-1" />
-              <p className="text-[8px] uppercase font-black text-red-100">PIN Mgmt</p>
+              <p className="text-[11px] uppercase font-black text-red-100">PIN Mgmt</p>
             </div>
             <div className="bg-white/10 p-3 rounded-2xl text-center backdrop-blur-md">
               <p className="text-xl font-black">🔐</p>
-              <p className="text-[8px] uppercase font-black text-red-100">Secure</p>
+              <p className="text-[11px] uppercase font-black text-red-100">Secure</p>
             </div>
           </div>
         </div>
@@ -789,7 +789,7 @@ export default function AdminSchoolsPage() {
             </form>
 
             {/* Help */}
-            <div className="mt-6 bg-blue-50 border border-slate-100 p-4 rounded-lg">
+            <div className="mt-6 bg-blue-50 border border-slate-100 p-4 rounded-2xl">
               <h3 className="font-black text-slate-800 text-sm mb-2">
                 📋 Quick Guide
               </h3>

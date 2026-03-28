@@ -17,6 +17,7 @@ import {
   ASSESSMENT_LIMITS,
   PIN_LIMITS,
 } from "@/lib/constants/validation-limits";
+import { OTP_LENGTH } from "@/lib/auth-constants";
 
 // ============================================================================
 // Student Schemas
@@ -273,8 +274,7 @@ export const AuthPasswordSchema = z
  */
 export const OtpTokenSchema = z
   .string()
-  .min(1, "Verification code is required")
-  .max(10, "Verification code too long")
+  .length(OTP_LENGTH, `Enter your ${OTP_LENGTH}-digit verification code`)
   .regex(/^\d+$/, "Verification code must contain only digits");
 
 /**

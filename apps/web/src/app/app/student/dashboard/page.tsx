@@ -78,7 +78,7 @@ const getModulesFromDB = unstable_cache(fetchModulesFromDB, ["modules-list-dashb
 async function getStudentDashboardData(userId: string): Promise<StudentDashboardData> {
   const supabase = await createClient();
 
-  const [profileResult, enrollmentsResult, assessmentsResult, streakResult, modules] =
+  const [profileResult, enrollmentsResult, completedAssessmentsResult, streakResult, modules] =
     await Promise.all([
       supabase
         .from("student_profiles")
@@ -95,9 +95,9 @@ async function getStudentDashboardData(userId: string): Promise<StudentDashboard
 
       supabase
         .from("assessment_sessions")
-        .select("theta_estimate")
-        .eq("student_id", userId)
-        .eq("status", "completed"),
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .not("submitted_at", "is", null),
 
       supabase
         .from("student_knowledge_state")
@@ -146,19 +146,7 @@ async function getStudentDashboardData(userId: string): Promise<StudentDashboard
     };
   });
 
-  // Average score from assessment theta (convert to 0-100 range approximately)
-  const sessions = assessmentsResult.data ?? [];
-  const validScores = sessions
-    .map((s) => s.theta_estimate)
-    .filter((t): t is number => t != null);
-  const averageScore =
-    validScores.length > 0
-      ? Math.round(
-          ((validScores.reduce((a, b) => a + b, 0) / validScores.length) + 3) / 6 * 100
-        )
-      : null;
-
-  // Calculate streak from recent activity
+  // Calculate streak and mastery scores from student_knowledge_state
   const knowledgeRows = streakResult.data ?? [];
   const activityDates = knowledgeRows
     .map((r) => r.last_attempt_at)
@@ -191,6 +179,16 @@ async function getStudentDashboardData(userId: string): Promise<StudentDashboard
     moduleProgress.set(moduleId, Math.round(avg * 100));
   }
 
+  // Average mastery score across all topics (mastery_score is 0–1; convert to 0–100)
+  // assessment_sessions has no score column; student_knowledge_state is the canonical source
+  const allMasteryScores = knowledgeRows
+    .map((r) => r.mastery_score)
+    .filter((s): s is number => s != null);
+  const averageScore =
+    allMasteryScores.length > 0
+      ? Math.round((allMasteryScores.reduce((a, b) => a + b, 0) / allMasteryScores.length) * 100)
+      : null;
+
   return {
     profile: {
       name: profileResult.data?.name ?? null,
@@ -198,7 +196,7 @@ async function getStudentDashboardData(userId: string): Promise<StudentDashboard
       roll_number: profileResult.data?.roll_number ?? null,
     },
     classes,
-    assessmentCount: sessions.length,
+    assessmentCount: completedAssessmentsResult.count ?? 0,
     averageScore,
     streakDays,
     modules,

@@ -128,7 +128,7 @@ export function Leaderboard({
         {[1, 2, 3, 4, 5].map((position) => (
           <div
             key={`position-${position}`}
-            className="animate-pulse flex items-center gap-3 p-3 rounded-lg bg-slate-50"
+            className="animate-pulse flex items-center gap-3 p-3 rounded-2xl bg-slate-50"
           >
             <div className="w-8 h-8 bg-slate-50-foreground/20 rounded-full" />
             <div className="flex-1 space-y-2">
@@ -185,7 +185,7 @@ export function Leaderboard({
             </div>
 
             {/* Name */}
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <p
                 className={`font-medium truncate ${isCurrentUser ? "text-primary" : "text-slate-800"}`}
               >
@@ -200,7 +200,7 @@ export function Leaderboard({
 
             {/* Points */}
             <div className="text-right">
-              <p className="font-bold text-warning">
+              <p className="font-black text-warning">
                 {leader.points.toLocaleString()}
               </p>
               <p className="text-xs text-slate-500">points</p>

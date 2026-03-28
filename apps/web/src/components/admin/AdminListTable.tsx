@@ -185,7 +185,7 @@ export function AdminListTable({
 
   if (error) {
     return (
-      <div className="bg-error-light border border-error/30 rounded-lg p-4 flex gap-3">
+      <div className="bg-error-light border border-error/30 rounded-2xl p-4 flex gap-3">
         <AlertCircle className="w-5 h-5 text-error flex-shrink-0 mt-0.5" />
         <p className="text-sm text-error">{error}</p>
       </div>
@@ -303,7 +303,7 @@ export function AdminListTable({
       {/* Password Reset Modal */}
       {showResetModal && resetAdmin && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+          <div className="bg-white rounded-3xl shadow-xl max-w-md w-full">
             <div className="flex items-center justify-between p-6 border-b border-slate-200">
               <h2 className="text-xl font-black text-text">Reset Password</h2>
               <button

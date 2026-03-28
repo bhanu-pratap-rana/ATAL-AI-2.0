@@ -94,17 +94,17 @@ export default function AdminDashboardPage() {
                 priority
               />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-black text-text">
                   Admin Dashboard
                 </h1>
                 {/* Super Admin Crown - Gold Accent */}
-                <div className="bg-accent-light p-1.5 rounded-lg">
+                <div className="bg-accent-light p-1.5 rounded-lg flex-shrink-0">
                   <Crown className="w-4 h-4 text-accent-dark" />
                 </div>
               </div>
-              <p className="text-sm text-slate-500 mt-1">
+              <p className="text-sm text-slate-500 mt-1 truncate">
                 Welcome back, {userEmail}
               </p>
             </div>
@@ -113,10 +113,10 @@ export default function AdminDashboardPage() {
           <Button
             onClick={handleLogout}
             variant="destructive"
-            className="gap-2"
+            className="gap-2 flex-shrink-0"
           >
             <LogOut className="w-4 h-4" />
-            Logout
+            <span className="hidden sm:inline">Logout</span>
           </Button>
         </div>
       </header>
@@ -132,10 +132,10 @@ export default function AdminDashboardPage() {
         {/* Quick Actions */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Admin Management Card */}
-          <div className="bg-white rounded-lg shadow p-6 border border-slate-200">
+          <div className="bg-white rounded-3xl shadow p-6 border border-slate-100">
             <div className="flex items-center gap-3 mb-4">
               {/* Icon Box - Primary Light */}
-              <div className="w-12 h-12 bg-primary-lighter rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-primary-lighter rounded-2xl flex items-center justify-center">
                 <Users className="w-6 h-6 text-primary" />
               </div>
               <h3 className="text-lg font-black text-text">Admin Management</h3>
@@ -153,10 +153,10 @@ export default function AdminDashboardPage() {
           </div>
 
           {/* PIN Management Card */}
-          <div className="bg-white rounded-lg shadow p-6 border border-slate-200">
+          <div className="bg-white rounded-3xl shadow p-6 border border-slate-100">
             <div className="flex items-center gap-3 mb-4">
               {/* Icon Box - Primary Light */}
-              <div className="w-12 h-12 bg-primary-lighter rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-primary-lighter rounded-2xl flex items-center justify-center">
                 <Lock className="w-6 h-6 text-primary" />
               </div>
               <h3 className="text-lg font-black text-text">
@@ -179,7 +179,7 @@ export default function AdminDashboardPage() {
 
         {/* Info Section */}
         <section className="mt-8">
-          <div className="bg-cyan-lightest border border-cyan/30 rounded-lg p-6">
+          <div className="bg-cyan-lightest border border-cyan/30 rounded-2xl p-6">
             <h3 className="font-black text-cyan-darkest mb-2">
               ℹ️ Admin Dashboard Information
             </h3>

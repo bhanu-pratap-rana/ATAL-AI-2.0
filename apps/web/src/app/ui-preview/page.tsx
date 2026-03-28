@@ -2,7 +2,7 @@
 
 /**
  * ATAL AI — Full UI Preview (Student + Teacher + Admin)
- * Route: /ui-preview  (dev only)
+ * Route: /ui-preview  (dev only — blocked in production)
  */
 
 import React, { useState } from "react";
@@ -51,10 +51,10 @@ const LESSON_STEPS = [
 ];
 
 // ─── PRIMITIVES ───────────────────────────────────────────────────────────────
-function Btn({ children, variant="primary", className="", onClick, style={} }:{
+function Btn({ children, variant="primary", className="", onClick, style={} }:Readonly<{
   children:React.ReactNode; variant?:string; className?:string;
   onClick?:()=>void; style?:React.CSSProperties;
-}) {
+}>) {
   const S:Record<string,React.CSSProperties> = {
     primary:   { background:GRAD, color:"#fff", boxShadow:GLOW, border:"2px solid rgba(255,255,255,0.2)" },
     secondary: { background:"#fff", color:PRIMARY, border:"2px solid #FDE8CC" },
@@ -72,9 +72,9 @@ function Btn({ children, variant="primary", className="", onClick, style={} }:{
   );
 }
 
-function GCard({ children, className="", hover=true, style={} }:{
+function GCard({ children, className="", hover=true, style={} }:Readonly<{
   children:React.ReactNode; className?:string; hover?:boolean; style?:React.CSSProperties;
-}) {
+}>) {
   return (
     <div
       className={`bg-white rounded-2xl border border-slate-100 p-5 transition-all ${hover?"hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)] hover:-translate-y-1":""} ${className}`}
@@ -83,7 +83,7 @@ function GCard({ children, className="", hover=true, style={} }:{
   );
 }
 
-function StatusBadge({ status }:{ status:string }) {
+function StatusBadge({ status }:Readonly<{ status:string }>) {
   const map:Record<string,string> = {
     proficient:"bg-emerald-100 text-emerald-700",
     developing:"bg-blue-100 text-blue-700",
@@ -98,7 +98,7 @@ function StatusBadge({ status }:{ status:string }) {
   );
 }
 
-function StatPill({ icon, value, label }:{ icon:string; value:string|number; label:string }) {
+function StatPill({ icon, value, label }:Readonly<{ icon:string; value:string|number; label:string }>) {
   return (
     <div className="bg-white rounded-2xl p-4 flex flex-col items-center text-center gap-1 border border-slate-100"
       style={{ boxShadow:"0 4px 20px rgb(0,0,0,0.05)" }}>
@@ -110,16 +110,48 @@ function StatPill({ icon, value, label }:{ icon:string; value:string|number; lab
 }
 
 // ─── SHARED HEADER ────────────────────────────────────────────────────────────
-function AppHeader({ role, onSignOut }:{ role:string; onSignOut:()=>void }) {
-  const roleLabel = role === "teacher" ? "Teacher Console" : role === "admin" ? "Admin Panel" : "Digital Literacy Platform";
-  const roleBadgeColor = role === "admin" ? "#DC2626" : role === "teacher" ? "#3B82F6" : PRIMARY;
+function getRoleClass(role: string): string {
+  if (role === "Teacher") return "bg-blue-100 text-blue-700";
+  if (role === "Student") return "bg-orange-100 text-orange-700";
+  return "bg-purple-100 text-purple-700";
+}
+function getSecurityIcon(level: string): React.ReactNode {
+  if (level === "warning") return <AlertTriangle size={18}/>;
+  if (level === "info") return <Lock size={18}/>;
+  return <CheckCircle2 size={18}/>;
+}
+
+function getRoleLabel(role: string): string {
+  if (role === "teacher") return "Teacher Console";
+  if (role === "admin") return "Admin Panel";
+  return "Digital Literacy Platform";
+}
+function getRoleBadgeColor(role: string): string {
+  if (role === "admin") return "#DC2626";
+  if (role === "teacher") return "#3B82F6";
+  return PRIMARY;
+}
+function getRoleBg(role: string): string {
+  if (role === "admin") return "linear-gradient(135deg,#DC2626,#7C3AED)";
+  if (role === "teacher") return "linear-gradient(135deg,#3B82F6,#6366F1)";
+  return GRAD;
+}
+function getRoleInitials(role: string): string {
+  if (role === "admin") return "AD";
+  if (role === "teacher") return "TC";
+  return "AI";
+}
+
+function AppHeader({ role, onSignOut }:Readonly<{ role:string; onSignOut:()=>void }>) {
+  const roleLabel = getRoleLabel(role);
+  const roleBadgeColor = getRoleBadgeColor(role);
   return (
     <header className="sticky top-0 z-50 -mx-4 px-4 py-3 flex items-center justify-between border-b border-slate-100"
       style={{ background:"rgba(255,255,255,0.88)", backdropFilter:"blur(16px)" }}>
       <div className="flex items-center gap-3">
         <div className="w-11 h-11 rounded-2xl flex items-center justify-center text-white font-black text-sm shadow-lg"
-          style={{ background: role==="admin" ? "linear-gradient(135deg,#DC2626,#7C3AED)" : role==="teacher" ? "linear-gradient(135deg,#3B82F6,#6366F1)" : GRAD, boxShadow:GLOW }}>
-          {role==="admin" ? "AD" : role==="teacher" ? "TC" : "AI"}
+          style={{ background: getRoleBg(role), boxShadow:GLOW }}>
+          {getRoleInitials(role)}
         </div>
         <div>
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">ATAL AI</p>
@@ -146,7 +178,7 @@ const STUDENT_NAV = [
   { id:"me",        icon:User,            label:"Me"     },
 ];
 
-function BottomNav({ active, onChange }:{ active:string; onChange:(id:string)=>void }) {
+function BottomNav({ active, onChange }:Readonly<{ active:string; onChange:(id:string)=>void }>) {
   return (
     <nav className="fixed bottom-0 left-0 right-0 pb-6 pt-3 px-6 border-t border-slate-100"
       style={{ background:"rgba(255,255,255,0.82)", backdropFilter:"blur(20px)", zIndex:300 }}>
@@ -177,7 +209,7 @@ const TEACHER_NAV = [
   { id:"settings",  label:"Settings",   icon:Settings        },
 ];
 
-function TeacherSidebar({ active, onChange }:{ active:string; onChange:(id:string)=>void }) {
+function TeacherSidebar({ active, onChange }:Readonly<{ active:string; onChange:(id:string)=>void }>) {
   return (
     <aside className="hidden md:flex flex-col w-56 bg-white border-r border-slate-100 min-h-screen pt-6 px-3 gap-1"
       style={{ boxShadow:"2px 0 20px rgb(0,0,0,0.03)" }}>
@@ -199,7 +231,7 @@ function TeacherSidebar({ active, onChange }:{ active:string; onChange:(id:strin
 }
 
 // ─── AUTH ─────────────────────────────────────────────────────────────────────
-function AuthView({ onAuth }:{ onAuth:(role:string)=>void }) {
+function AuthView({ onAuth }:Readonly<{ onAuth:(role:string)=>void }>) {
   const [step, setStep] = useState<"login"|"profile">("login");
   return (
     <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden" style={{ background:"#F8FAFC" }}>
@@ -221,12 +253,12 @@ function AuthView({ onAuth }:{ onAuth:(role:string)=>void }) {
                 </div>
                 <div className="space-y-4">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase ml-2 tracking-widest">Email / Username / Phone</label>
-                    <input className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 outline-none text-sm font-medium" placeholder="arjun@example.com"/>
+                    <label htmlFor="preview-identifier" className="text-[10px] font-black text-slate-400 uppercase ml-2 tracking-widest">Email / Username / Phone</label>
+                    <input id="preview-identifier" className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 outline-none text-sm font-medium" placeholder="arjun@example.com"/>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase ml-2 tracking-widest">Password</label>
-                    <input className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 outline-none text-sm font-medium" type="password" placeholder="••••••••"/>
+                    <label htmlFor="preview-password" className="text-[10px] font-black text-slate-400 uppercase ml-2 tracking-widest">Password</label>
+                    <input id="preview-password" className="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 outline-none text-sm font-medium" type="password" placeholder="••••••••"/>
                   </div>
                   <div className="space-y-3 pt-2">
                     <Btn onClick={()=>setStep("profile")} className="w-full py-5 text-base">Student Portal →</Btn>
@@ -280,7 +312,7 @@ function AuthView({ onAuth }:{ onAuth:(role:string)=>void }) {
 }
 
 // ─── STUDENT DASHBOARD ────────────────────────────────────────────────────────
-function StudentDashboard({ setView, onSignOut }:{ setView:(v:string)=>void; onSignOut:()=>void }) {
+function StudentDashboard({ setView, onSignOut }:Readonly<{ setView:(v:string)=>void; onSignOut:()=>void }>) {
   return (
     <div className="pb-32 pt-6 px-4 max-w-4xl mx-auto space-y-8">
       <AppHeader role="student" onSignOut={onSignOut}/>
@@ -370,8 +402,8 @@ function StudentDashboard({ setView, onSignOut }:{ setView:(v:string)=>void; onS
           </h3>
           <GCard className="p-3" hover={false}>
             <div className="flex gap-2">
-              {["🏆","🔥","🛡️","⚡"].map((b,i)=>(
-                <div key={i} className="flex-1 aspect-square rounded-2xl flex items-center justify-center text-xl cursor-pointer hover:bg-orange-50 transition-all"
+              {(["🏆","🔥","🛡️","⚡"] as const).map((b, i)=>(
+                <div key={b} className="flex-1 aspect-square rounded-2xl flex items-center justify-center text-xl cursor-pointer hover:bg-orange-50 transition-all"
                   style={{ background:"#F8FAFC", filter:i<2?"none":"grayscale(100%)" }}>{b}</div>
               ))}
             </div>
@@ -408,7 +440,7 @@ function StudentDashboard({ setView, onSignOut }:{ setView:(v:string)=>void; onS
             { emoji:"👥", title:"Classes",     desc:"View your class"       },
             { emoji:"👤", title:"Profile",     desc:"Manage account"        },
           ].map(item=>(
-            <div key={item.title} className="p-[2px] rounded-2xl cursor-pointer hover:-translate-y-1 transition-all"
+            <button type="button" key={item.title} className="p-[2px] rounded-2xl cursor-pointer hover:-translate-y-1 transition-all text-left w-full"
               style={{ background:GRAD, boxShadow:"0 4px 14px rgba(249,136,25,0.2)" }} onClick={()=>setView("lesson")}>
               <div className="bg-white rounded-2xl p-4 h-full">
                 <div className="flex items-center gap-2 mb-2">
@@ -417,7 +449,7 @@ function StudentDashboard({ setView, onSignOut }:{ setView:(v:string)=>void; onS
                 </div>
                 <p className="text-[11px] text-slate-400 leading-relaxed">{item.desc}</p>
               </div>
-            </div>
+            </button>
           ))}
         </div>
       </section>
@@ -426,7 +458,7 @@ function StudentDashboard({ setView, onSignOut }:{ setView:(v:string)=>void; onS
 }
 
 // ─── LESSON PLAYER ────────────────────────────────────────────────────────────
-function LessonPlayer({ onBack }:{ onBack:()=>void }) {
+function LessonPlayer({ onBack }:Readonly<{ onBack:()=>void }>) {
   const [step, setStep] = useState(0);
   const cur = LESSON_STEPS[step];
   return (
@@ -474,7 +506,7 @@ function LessonPlayer({ onBack }:{ onBack:()=>void }) {
 }
 
 // ─── TEACHER CONSOLE ─────────────────────────────────────────────────────────
-function TeacherConsole({ onSignOut }:{ onSignOut:()=>void }) {
+function TeacherConsole({ onSignOut }:Readonly<{ onSignOut:()=>void }>) {
   const [tab, setTab] = useState("dashboard");
 
   return (
@@ -580,8 +612,8 @@ function TeacherConsole({ onSignOut }:{ onSignOut:()=>void }) {
                     { student:"Arjun Das",   q:"What is RAM?",                   time:"2 min ago" },
                     { student:"Priya Gogoi", q:"How does the internet work?",     time:"15 min ago" },
                     { student:"Meena Borah", q:"Explain binary numbers",          time:"1 hr ago" },
-                  ].map((item,i)=>(
-                    <GCard key={i} hover={false} className="flex items-center justify-between p-4">
+                  ].map((item)=>(
+                    <GCard key={item.student} hover={false} className="flex items-center justify-between p-4">
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-black text-xs">
                           {item.student.split(" ").map(n=>n[0]).join("")}
@@ -654,8 +686,8 @@ function TeacherConsole({ onSignOut }:{ onSignOut:()=>void }) {
                   { label:"Avg Completion", value:"52%", icon:<TrendingUp size={20}/>, color:"#3B82F6" },
                   { label:"Pre-Assessment", value:"68%", icon:<Target size={20}/>, color:PRIMARY },
                   { label:"Active Today",   value:"38",  icon:<UserCheck size={20}/>, color:"#10B981" },
-                ].map((m,i)=>(
-                  <GCard key={i} hover={false}>
+                ].map((m)=>(
+                  <GCard key={m.label} hover={false}>
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white" style={{ background:m.color }}>
                         {m.icon}
@@ -676,14 +708,14 @@ function TeacherConsole({ onSignOut }:{ onSignOut:()=>void }) {
                     { label:"75-89  (Good)",       count:18, pct:43 },
                     { label:"60-74  (Average)",    count:12, pct:29 },
                     { label:"Below 60 (At Risk)",  count:4,  pct:9  },
-                  ].map((r,i)=>(
-                    <div key={i}>
+                  ].map((r)=>(
+                    <div key={r.label}>
                       <div className="flex justify-between text-xs font-bold text-slate-500 mb-1">
                         <span>{r.label}</span><span>{r.count} students</span>
                       </div>
                       <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
-                        <motion.div initial={{ width:0 }} animate={{ width:`${r.pct}%` }} transition={{ duration:0.7, delay:i*0.1 }}
-                          className="h-full rounded-full" style={{ background:i===3?"#EF4444":GRAD }}/>
+                        <motion.div initial={{ width:0 }} animate={{ width:`${r.pct}%` }} transition={{ duration:0.7 }}
+                          className="h-full rounded-full" style={{ background:r.label.includes("At Risk")?"#EF4444":GRAD }}/>
                       </div>
                     </div>
                   ))}
@@ -731,7 +763,7 @@ const ADMIN_NAV = [
   { id:"security",  label:"Security",      icon:ShieldCheck     },
 ];
 
-function AdminPanel({ onSignOut }:{ onSignOut:()=>void }) {
+function AdminPanel({ onSignOut }:Readonly<{ onSignOut:()=>void }>) {
   const [tab, setTab] = useState("overview");
 
   return (
@@ -793,8 +825,8 @@ function AdminPanel({ onSignOut }:{ onSignOut:()=>void }) {
                   { label:"Avg Completion Rate", value:"58%", trend:"+4%", color:"#10B981" },
                   { label:"Active This Week",     value:"3.1k", trend:"+12%", color:"#3B82F6" },
                   { label:"Assessments Done",     value:"890", trend:"+7%", color:PRIMARY },
-                ].map((m,i)=>(
-                  <GCard key={i} hover={false}>
+                ].map((m)=>(
+                  <GCard key={m.label} hover={false}>
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{m.label}</p>
                     <div className="flex items-end justify-between">
                       <p className="text-3xl font-black text-slate-900">{m.value}</p>
@@ -813,8 +845,8 @@ function AdminPanel({ onSignOut }:{ onSignOut:()=>void }) {
                     { icon:"👩‍🏫", text:"3 new teachers registered",                time:"14 min ago", color:"#3B82F6" },
                     { icon:"⚠️",  text:"4 students flagged as at-risk",            time:"1 hr ago",   color:"#F59E0B" },
                     { icon:"📊",  text:"Monthly report generated for District A", time:"3 hr ago",   color:PRIMARY   },
-                  ].map((a,i)=>(
-                    <GCard key={i} hover={false} className="flex items-center gap-4 p-4">
+                  ].map((a)=>(
+                    <GCard key={a.text} hover={false} className="flex items-center gap-4 p-4">
                       <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-lg flex-shrink-0" style={{ background:`${a.color}15` }}>{a.icon}</div>
                       <p className="text-sm font-bold text-slate-700 flex-1">{a.text}</p>
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">{a.time}</span>
@@ -885,8 +917,8 @@ function AdminPanel({ onSignOut }:{ onSignOut:()=>void }) {
                   { label:"Total Users", value:"4,318", icon:"👥", color:"#3B82F6" },
                   { label:"Teachers",   value:"96",     icon:"👩‍🏫", color:PRIMARY   },
                   { label:"Admins",     value:"8",      icon:"🔐", color:"#7C3AED"  },
-                ].map((m,i)=>(
-                  <GCard key={i} hover={false} className="flex items-center gap-4">
+                ].map((m)=>(
+                  <GCard key={m.label} hover={false} className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl" style={{ background:`${m.color}15` }}>{m.icon}</div>
                     <div>
                       <p className="text-2xl font-black text-slate-900">{m.value}</p>
@@ -909,8 +941,8 @@ function AdminPanel({ onSignOut }:{ onSignOut:()=>void }) {
                       { name:"Meera Sharma", role:"Teacher", school:"Govt HS Guwahati", status:"active" },
                       { name:"Arjun Das",    role:"Student", school:"Kendriya Vidyalaya", status:"active" },
                       { name:"Ravi Kumar",   role:"Teacher", school:"Navodaya Vidyalaya", status:"pending" },
-                    ].map((u,i)=>(
-                      <tr key={i} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                    ].map((u)=>(
+                      <tr key={u.name} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-full bg-slate-200 flex items-center justify-center text-xs font-black text-slate-500">
@@ -920,7 +952,7 @@ function AdminPanel({ onSignOut }:{ onSignOut:()=>void }) {
                           </div>
                         </td>
                         <td className="px-5 py-4">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${u.role==="Teacher"?"bg-blue-100 text-blue-700":u.role==="Student"?"bg-orange-100 text-orange-700":"bg-purple-100 text-purple-700"}`}>{u.role}</span>
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${getRoleClass(u.role)}`}>{u.role}</span>
                         </td>
                         <td className="px-5 py-4 text-slate-500 font-medium">{u.school}</td>
                         <td className="px-5 py-4"><StatusBadge status={u.status}/></td>
@@ -949,13 +981,13 @@ function AdminPanel({ onSignOut }:{ onSignOut:()=>void }) {
                   { level:"warning", text:"3 failed login attempts from IP 103.21.x.x",   time:"5 min ago" },
                   { level:"info",    text:"Service role key last rotated 28 days ago",      time:"—"         },
                   { level:"success", text:"All RLS policies active and verified",           time:"Ongoing"   },
-                ].map((a,i)=>{
+                ].map((a)=>{
                   const colors:Record<string,string> = { warning:"#F59E0B", info:"#3B82F6", success:"#10B981" };
                   return (
-                    <GCard key={i} hover={false} className="flex items-center gap-4 p-4">
+                    <GCard key={a.text} hover={false} className="flex items-center gap-4 p-4">
                       <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
                         style={{ background:`${colors[a.level]}15`, color:colors[a.level] }}>
-                        {a.level==="warning"?<AlertTriangle size={18}/>:a.level==="info"?<Lock size={18}/>:<CheckCircle2 size={18}/>}
+                        {getSecurityIcon(a.level)}
                       </div>
                       <p className="text-sm font-bold text-slate-700 flex-1">{a.text}</p>
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">{a.time}</span>
@@ -968,10 +1000,10 @@ function AdminPanel({ onSignOut }:{ onSignOut:()=>void }) {
               <GCard hover={false}>
                 <h4 className="font-black text-slate-800 mb-4 flex items-center gap-2"><Lock size={16}/> PIN Management</h4>
                 <div className="space-y-3">
-                  {["Teacher PIN Reset","Admin PIN Update","Bulk PIN Generation"].map((action,i)=>(
-                    <div key={i} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50">
+                  {["Teacher PIN Reset","Admin PIN Update","Bulk PIN Generation"].map((action)=>(
+                    <div key={action} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50">
                       <span className="text-sm font-bold text-slate-700">{action}</span>
-                      <Btn variant="outline" className="text-xs py-2 px-3">{i===2?"Generate":"Reset"}</Btn>
+                      <Btn variant="outline" className="text-xs py-2 px-3">{action==="Bulk PIN Generation"?"Generate":"Reset"}</Btn>
                     </div>
                   ))}
                 </div>
@@ -985,8 +1017,8 @@ function AdminPanel({ onSignOut }:{ onSignOut:()=>void }) {
                     { endpoint:"OTP / Auth",    used:42,  limit:100 },
                     { endpoint:"AI Tutor Chat", used:280, limit:500 },
                     { endpoint:"TTS Voice",     used:95,  limit:200 },
-                  ].map((r,i)=>(
-                    <div key={i}>
+                  ].map((r)=>(
+                    <div key={r.endpoint}>
                       <div className="flex justify-between text-xs font-bold text-slate-500 mb-1">
                         <span>{r.endpoint}</span>
                         <span>{r.used}/{r.limit} req/hr</span>

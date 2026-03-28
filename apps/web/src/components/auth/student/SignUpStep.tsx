@@ -47,7 +47,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
   // SIGN UP - EMAIL OTP SEND
   // ========================================
   const handleSignUpEmailSendOtp = useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
+    async (e: React.SyntheticEvent) => {
       e.preventDefault();
       actions.setIsLoading(true);
       actions.setSignupEmailError(null);
@@ -107,7 +107,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
   // SIGN UP - EMAIL OTP VERIFY & CREATE
   // ========================================
   const handleSignUpEmailVerifyAndCreate = useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
+    async (e: React.SyntheticEvent) => {
       e.preventDefault();
       actions.setIsLoading(true);
       actions.setSignupEmailError(null);
@@ -209,7 +209,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
   // SIGN UP - PHONE OTP SEND
   // ========================================
   const handleSignUpPhoneSendOtp = useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
+    async (e: React.SyntheticEvent) => {
       e.preventDefault();
       actions.setIsLoading(true);
       actions.setSignupPhoneError(null);
@@ -270,7 +270,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
   // SIGN UP - PHONE OTP VERIFY
   // ========================================
   const handleSignUpPhoneVerifyOtp = useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
+    async (e: React.SyntheticEvent) => {
       e.preventDefault();
       actions.setIsLoading(true);
       actions.setSignupPhoneError(null);
@@ -324,7 +324,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
   // SIGN UP - USERNAME (Quick Start)
   // ========================================
   const handleUsernameSignup = useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
+    async (e: React.SyntheticEvent) => {
       e.preventDefault();
       actions.setIsLoading(true);
       actions.setSignupUsernameError(null);

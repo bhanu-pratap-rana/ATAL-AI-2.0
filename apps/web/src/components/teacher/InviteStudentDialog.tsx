@@ -72,7 +72,7 @@ export function InviteStudentDialog({ classId }: InviteStudentDialogProps) {
     }
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault();
 
     if (!studentId) {
@@ -175,7 +175,7 @@ export function InviteStudentDialog({ classId }: InviteStudentDialogProps) {
 
             {/* Selected Student Info */}
             {selectedStudent && (
-              <div className="p-3 bg-cyan-lightest border border-cyan/30 rounded-lg">
+              <div className="p-3 bg-cyan-lightest border border-cyan/30 rounded-2xl">
                 <p className="text-sm font-medium text-cyan-darkest">
                   Selected Student:
                 </p>

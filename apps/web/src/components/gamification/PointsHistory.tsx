@@ -271,7 +271,7 @@ export function PointsHistory({
         {/* Total Points Header */}
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm text-slate-500">{t("gamification.totalPoints")}</span>
-          <span className="text-xl font-bold text-primary">{totalPoints}</span>
+          <span className="text-xl font-black text-primary">{totalPoints}</span>
         </div>
 
         {/* Recent entries */}
@@ -309,7 +309,7 @@ export function PointsHistory({
       {/* Header with Total and Filter */}
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-xl sm:text-2xl font-bold text-blue-600">{totalPoints}</div>
+          <div className="text-xl sm:text-2xl font-black text-blue-600">{totalPoints}</div>
           <div className="text-sm text-slate-500">{t("gamification.totalPoints")}</div>
         </div>
 
@@ -415,7 +415,7 @@ export function PointsHistory({
               {/* Points */}
               <div
                 className={cn(
-                  "font-bold text-lg shrink-0",
+                  "font-black text-lg shrink-0",
                   entry.points > 0 ? "text-success" : "text-error"
                 )}
               >
@@ -497,14 +497,14 @@ export function PointsSummary({
   return (
     <div className="flex items-center gap-6">
       <div>
-        <div className="text-xl sm:text-3xl font-bold text-primary">
+        <div className="text-xl sm:text-3xl font-black text-primary">
           {totalPoints ?? 0}
         </div>
         <div className="text-sm text-slate-500">{t("gamification.totalPoints")}</div>
       </div>
       {todayPoints > 0 && (
         <div className="border-l border-slate-200 pl-6">
-          <div className="text-xl font-bold text-success">+{todayPoints}</div>
+          <div className="text-xl font-black text-success">+{todayPoints}</div>
           <div className="text-sm text-slate-500">{t("gamification.today")}</div>
         </div>
       )}

@@ -59,16 +59,16 @@ export function AppTopHeader() {
           >
             <Icon size={20} className="text-white" strokeWidth={2.5} />
           </div>
-          <div>
-            <p className="font-black text-slate-800 text-sm leading-none">
+          <div className="min-w-0">
+            <p className="font-black text-slate-800 text-sm leading-none truncate">
               {config.label}
             </p>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+            <p className="hidden min-[375px]:block text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
               ATAL AI SYSTEM
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <LanguageSelector variant="compact" />
           <SyncStatusIndicator compact />
           <button

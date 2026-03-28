@@ -9,7 +9,10 @@ export default function AppLayout({
   return (
     <>
       <AppTopHeader />
-      <div className="pb-28">{children}</div>
+      {/* pb-32: base clearance for the fixed bottom nav.
+          The extra 4 rem (vs pb-28) absorbs the iOS home-indicator safe area
+          (up to ~34 px) so content is never obscured on notched iPhones. */}
+      <div className="pb-32">{children}</div>
       <BottomNav />
     </>
   );

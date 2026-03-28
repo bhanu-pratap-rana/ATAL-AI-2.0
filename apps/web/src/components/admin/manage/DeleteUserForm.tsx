@@ -30,7 +30,7 @@ export function DeleteUserForm({
   return (
     <>
       {/* Warning Box */}
-      <div className="bg-error-light border border-error/30 rounded-lg p-4">
+      <div className="bg-error-light border border-error/30 rounded-2xl p-4">
         <p className="text-sm text-error">
           <strong>⚠️ Warning:</strong>
           <br />
@@ -63,7 +63,7 @@ export function DeleteUserForm({
       {/* Message Display */}
       {message && (
         <div
-          className={`flex gap-3 p-4 rounded-lg border ${
+          className={`flex gap-3 p-4 rounded-2xl border ${
             message.type === "success"
               ? "bg-success-light border-success/30"
               : "bg-error-light border-error/30"

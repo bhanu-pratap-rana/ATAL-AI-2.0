@@ -276,7 +276,7 @@ export function SuccessAnimation({
   );
 }
 
-export function LoadingAnimation({ size = 60 }: { size?: number }) {
+export function LoadingAnimation({ size = 60 }: Readonly<{ size?: number }>) {
   return (
     <LottieAnimation
       animation="loading"
@@ -290,10 +290,10 @@ export function LoadingAnimation({ size = 60 }: { size?: number }) {
 export function CelebrationAnimation({
   size = 200,
   onComplete,
-}: {
+}: Readonly<{
   size?: number;
   onComplete?: () => void;
-}) {
+}>) {
   return (
     <LottieAnimation
       animation="celebration"
@@ -305,7 +305,7 @@ export function CelebrationAnimation({
   );
 }
 
-export function ThinkingAnimation({ size = 60 }: { size?: number }) {
+export function ThinkingAnimation({ size = 60 }: Readonly<{ size?: number }>) {
   return (
     <LottieAnimation
       animation="thinking"

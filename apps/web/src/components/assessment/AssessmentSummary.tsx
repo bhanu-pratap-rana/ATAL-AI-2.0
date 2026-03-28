@@ -227,7 +227,7 @@ export function AssessmentSummary({
               <div className="flex flex-col gap-4 text-center md:text-left">
                 {/* Correct/Total */}
                 <div>
-                  <div className="text-xl sm:text-3xl font-bold text-slate-800">
+                  <div className="text-xl sm:text-3xl font-black text-slate-800">
                     {correctAnswers}/{totalQuestions}
                   </div>
                   <div className="text-sm text-slate-400">
@@ -290,7 +290,7 @@ export function AssessmentSummary({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
               <div className="text-center p-4 bg-slate-50/50 rounded-2xl">
                 <div className="text-sm text-slate-400 mb-1">Pre-Assessment</div>
-                <div className="text-xl sm:text-3xl font-bold text-slate-500">
+                <div className="text-xl sm:text-3xl font-black text-slate-500">
                   {Math.round(comparisonData.pre.score)}%
                 </div>
               </div>
@@ -302,7 +302,7 @@ export function AssessmentSummary({
               </div>
               <div className="text-center p-4 bg-success/10 rounded-2xl">
                 <div className="text-sm text-slate-400 mb-1">Improvement</div>
-                <div className={`text-3xl font-bold ${score - comparisonData.pre.score > 0 ? "text-success" : "text-error"}`}>
+                <div className={`text-3xl font-black ${score - comparisonData.pre.score > 0 ? "text-success" : "text-error"}`}>
                   {score - Math.round(comparisonData.pre.score) > 0 ? "+" : ""}
                   {Math.round(score - comparisonData.pre.score)}%
                 </div>
@@ -318,7 +318,7 @@ export function AssessmentSummary({
                 const diff = postScore - Math.round(preScore);
                 return (
                   <div key={module} className="flex items-center gap-3">
-                    <div className="w-40 text-sm font-medium text-slate-500 truncate">
+                    <div className="w-24 sm:w-36 md:w-40 text-sm font-medium text-slate-500 truncate">
                       {CATEGORY_NAMES[module] || module.replaceAll("\_", " ")}
                     </div>
                     <div className="flex-1 flex items-center gap-2">
@@ -335,14 +335,14 @@ export function AssessmentSummary({
                         />
                       </div>
                     </div>
-                    <div className={`w-14 text-right text-sm font-bold ${getDiffClass(diff)}`}>
+                    <div className={`w-10 sm:w-14 text-right text-sm font-bold ${getDiffClass(diff)}`}>
                       {diff > 0 ? "+" : ""}{diff}%
                     </div>
                   </div>
                 );
               })}
               <div className="flex items-center gap-3 text-xs text-slate-400 mt-2">
-                <div className="w-40" />
+                <div className="w-24 sm:w-36 md:w-40" />
                 <div className="flex-1 flex gap-2">
                   <div className="flex-1 flex items-center gap-1">
                     <div className="w-3 h-2 bg-text-tertiary/40 rounded" />
@@ -353,7 +353,7 @@ export function AssessmentSummary({
                     <span>Post</span>
                   </div>
                 </div>
-                <div className="w-14" />
+                <div className="w-10 sm:w-14" />
               </div>
             </div>
           </div>
