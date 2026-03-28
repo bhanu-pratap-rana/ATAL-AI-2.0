@@ -7,6 +7,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { GraduationCap } from "lucide-react";
 import type { TeacherOnboardingActions } from "@/hooks/useTeacherOnboarding";
 
 interface TeacherChoiceStepProps {
@@ -21,8 +22,8 @@ export function TeacherChoiceStep({ actions }: TeacherChoiceStepProps) {
       <div className="w-full max-w-md bg-white p-6 sm:p-10 rounded-[48px] shadow-2xl shadow-slate-200">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center text-3xl" style={{ background: "linear-gradient(135deg,#3B82F6,#6366F1)" }}>
-            👩‍🏫
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center" style={{ background: "var(--gradient-primary)", boxShadow: "var(--shadow-primary-sm)" }}>
+            <GraduationCap className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mb-1">Teacher Portal</h1>
           <p className="text-slate-400 font-bold text-sm">Are you a new or existing teacher?</p>
@@ -34,9 +35,9 @@ export function TeacherChoiceStep({ actions }: TeacherChoiceStepProps) {
                 type="button"
             onClick={() => actions.setStep("auth")}
             className="w-full flex items-center gap-4 p-5 rounded-2xl text-white font-black transition-all active:scale-95 hover:opacity-90"
-            style={{ background: "linear-gradient(135deg,#3B82F6,#6366F1)", boxShadow: "0 4px 14px 0 rgba(59,130,246,0.39)" }}
+            style={{ background: "var(--gradient-primary)", boxShadow: "var(--shadow-primary)" }}
           >
-            <span className="text-2xl">✨</span>
+            <GraduationCap className="w-6 h-6 flex-shrink-0" />
             <div className="text-left">
               <p className="text-base font-black leading-none">Create New Account</p>
               <p className="text-xs font-bold text-white/80 mt-1">New teacher registration</p>
@@ -47,9 +48,9 @@ export function TeacherChoiceStep({ actions }: TeacherChoiceStepProps) {
           <button
                 type="button"
             onClick={() => actions.setStep("login")}
-            className="w-full flex items-center gap-4 p-5 rounded-2xl font-black transition-all active:scale-95 border-2 border-slate-200 hover:border-blue-400 hover:text-blue-600 text-slate-700"
+            className="w-full flex items-center gap-4 p-5 rounded-2xl font-black transition-all active:scale-95 border-2 border-slate-200 hover:border-primary/40 hover:text-primary text-slate-700"
           >
-            <span className="text-2xl">🔓</span>
+            <GraduationCap className="w-6 h-6 flex-shrink-0 text-slate-400" />
             <div className="text-left">
               <p className="text-base font-black leading-none">Login to Account</p>
               <p className="text-xs font-bold text-slate-400 mt-1">Existing teacher login</p>
@@ -57,11 +58,11 @@ export function TeacherChoiceStep({ actions }: TeacherChoiceStepProps) {
           </button>
 
           {/* Info Box */}
-          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-xl">
-            <p className="text-sm text-blue-800">
-              <strong>💡 Choose your option:</strong>
+          <div className="bg-info-light border-l-4 border-info p-4 rounded-xl">
+            <p className="text-sm text-info-dark">
+              <strong>New or returning?</strong>
               <br />
-              <span className="text-xs text-blue-700">
+              <span className="text-xs text-info-dark/80">
                 New teachers need school verification. Existing teachers can login with email &amp; password.
               </span>
             </p>
@@ -72,7 +73,7 @@ export function TeacherChoiceStep({ actions }: TeacherChoiceStepProps) {
             <button
                 type="button"
               onClick={() => router.push("/")}
-              className="text-sm font-bold text-slate-400 hover:text-blue-500 transition-colors"
+              className="text-sm font-bold text-slate-400 hover:text-primary transition-colors"
             >
               ← Back to home
             </button>
