@@ -80,7 +80,7 @@ export function StudentsListClient({ students }: Readonly<{ students: StudentRow
                       <p className="font-black text-slate-800 text-sm truncate">
                         {student.name ?? "Unknown Student"}
                       </p>
-                      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                         Last active: {getRelativeTime(student.lastActiveAt)}
                       </p>
                     </div>
@@ -91,7 +91,7 @@ export function StudentsListClient({ students }: Readonly<{ students: StudentRow
                     {student.avgMastery !== null && (
                       <p className="text-lg font-black text-blue-600">{student.avgMastery}%</p>
                     )}
-                    <span className={`text-[11px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${badge.color}`}>
+                    <span className={`text-xs font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${badge.color}`}>
                       {badge.label}
                     </span>
                   </div>

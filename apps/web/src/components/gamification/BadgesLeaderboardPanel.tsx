@@ -113,7 +113,7 @@ export function BadgesLeaderboardPanel({
               <button
                 type="button"
                 onClick={resetToSelf}
-                className="text-[11px] font-black text-orange-500 hover:text-orange-600 uppercase tracking-widest"
+                className="text-xs font-black text-orange-500 hover:text-orange-600 uppercase tracking-widest"
               >
                 ← Mine
               </button>
@@ -167,7 +167,7 @@ export function BadgesLeaderboardPanel({
                     <span className={`flex-1 text-xs font-black truncate ${getLeaderNameColor(isViewing, isMe)}`}>
                       {entry.name}{isMe ? " (You)" : ""}
                     </span>
-                    <span className={`text-[11px] font-bold flex-shrink-0 ${isViewing ? "text-white/80" : "text-amber-500"}`}>
+                    <span className={`text-xs font-bold flex-shrink-0 ${isViewing ? "text-white/80" : "text-amber-500"}`}>
                       {entry.points.toLocaleString()}
                     </span>
                   </button>
