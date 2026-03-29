@@ -100,7 +100,7 @@ export function ModuleCard({
           <div className="text-sm font-bold text-slate-700">
             {progress.topics_completed}/{module.topics}
           </div>
-          <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">{t("learn.topics")}</div>
+          <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t("learn.topics")}</div>
         </div>
       </div>
 

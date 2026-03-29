@@ -368,11 +368,11 @@ export const BadgesDisplay = memo(function BadgesDisplay({
 
               {/* Rarity + Points */}
               <div
-                className={`text-[11px] mt-0.5 capitalize ${getBadgeTextClass(isEarned ? "earned" : "locked", badge.rarity)}`}
+                className={`text-xs mt-0.5 capitalize ${getBadgeTextClass(isEarned ? "earned" : "locked", badge.rarity)}`}
               >
                 {badge.rarity}
               </div>
-              <div className="text-[11px] text-slate-500">
+              <div className="text-xs text-slate-500">
                 +{badge.points_value}
               </div>
             </button>
