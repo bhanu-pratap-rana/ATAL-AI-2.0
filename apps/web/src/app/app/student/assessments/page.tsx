@@ -241,12 +241,12 @@ export default async function StudentAssessmentsPage() {
             {[
               { value: assessmentHistory.length, label: "Total Attempts", color: "bg-orange-50 text-orange-600" },
               { value: `${Math.round(assessmentHistory.reduce((sum, a) => sum + a.score, 0) / assessmentHistory.length)}%`, label: "Avg Score", color: "bg-emerald-50 text-emerald-600" },
-              { value: `${Math.max(...assessmentHistory.map((a) => a.score))}%`, label: "Best Score", color: "bg-blue-50 text-blue-600" },
-              { value: assessmentHistory.filter((a) => a.score >= 60).length, label: "Passed (60%+)", color: "bg-purple-50 text-purple-600" },
+              { value: `${Math.max(...assessmentHistory.map((a) => a.score))}%`, label: "Best Score", color: "bg-primary-lightest text-primary" },
+              { value: assessmentHistory.filter((a) => a.score >= 60).length, label: "Passed (60%+)", color: "bg-success/10 text-success" },
             ].map((stat) => (
               <div key={stat.label} className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-center">
                 <p className={`text-xl sm:text-2xl font-black mb-1 ${stat.color.split(" ")[1]}`}>{stat.value}</p>
-                <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
+                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
               </div>
             ))}
           </div>
