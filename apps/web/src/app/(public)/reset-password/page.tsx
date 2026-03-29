@@ -143,7 +143,7 @@ function ResetPasswordContent() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-lightest to-primary-lighter/40 px-4 py-8">
       <AuthCard title="Reset Password">
         <form onSubmit={handleResetPassword} className="space-y-4">
           {/* Email Field */}
@@ -263,7 +263,7 @@ export default function ResetPasswordPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-lightest to-primary-lighter/40">
           <div className="animate-pulse text-slate-500">Loading...</div>
         </div>
       }
