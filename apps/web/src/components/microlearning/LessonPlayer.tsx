@@ -21,6 +21,7 @@ import { useTTS } from "@/components/voice/VoiceChat";
 import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
 import { LoadingAnimation, SuccessAnimation } from "@/components/animations";
 import type { SupportedLanguage } from "@/types/common";
+import { getTranslation } from "@/lib/i18n";
 import {
   ChevronLeft,
   ChevronRight,
@@ -83,16 +84,6 @@ interface LessonPlayerProps {
 /**
  * Get icon for chunk type
  */
-/** Language label maps — extracted to avoid S3358 nested ternaries. */
-const LANG_LABELS: Record<string, Record<SupportedLanguage, string>> = {
-  loadingVisual: { en: "Loading visual...", hi: "चित्र लोड हो रहा है...", as: "ছবি লোড হৈ আছে..." },
-  visualAid:    { en: "Visual Aid",        hi: "दृश्य सहायता",          as: "দৃশ্য সহায়তা" },
-  speaking:     { en: "Speaking...",       hi: "बोल रहा है...",          as: "কৈ আছে..." },
-};
-
-function getLangLabel(key: keyof typeof LANG_LABELS, language: SupportedLanguage): string {
-  return LANG_LABELS[key][language] ?? LANG_LABELS[key].en;
-}
 
 function getChunkIcon(type: LessonChunk["type"]) {
   const iconProps = { className: "h-5 w-5" };
@@ -199,7 +190,7 @@ function ChunkImage({
           <LoadingAnimation size={60} />
         )}
         <p className="text-sm text-slate-500 mt-3">
-          {getLangLabel("loadingVisual", language)}
+          {getTranslation("lessonPlayer.loadingVisual", language)}
         </p>
       </div>
     );
@@ -212,7 +203,7 @@ function ChunkImage({
         <div className="flex items-center gap-2 text-slate-500 mb-2">
           <ImageIcon className="h-4 w-4" />
           <span className="text-sm font-medium">
-            {getLangLabel("visualAid", language)}
+            {getTranslation("lessonPlayer.visualAid", language)}
           </span>
         </div>
         <p className="text-sm text-slate-500 italic">
@@ -260,17 +251,15 @@ function getChunkColor(type: LessonChunk["type"]): string {
   }
 }
 
-/**
- * Get type label in language
- */
+const CHUNK_TYPE_KEYS: Record<LessonChunk["type"], string> = {
+  concept: "lessonPlayer.typeConcept",
+  example: "lessonPlayer.typeExample",
+  practice: "lessonPlayer.typePractice",
+  checkpoint: "lessonPlayer.typeCheckpoint",
+};
+
 function getTypeLabel(type: LessonChunk["type"], language: SupportedLanguage): string {
-  const labels: Record<LessonChunk["type"], Record<SupportedLanguage, string>> = {
-    concept: { en: "Concept", hi: "अवधारणा", as: "ধাৰণা" },
-    example: { en: "Example", hi: "उदाहरण", as: "উদাহৰণ" },
-    practice: { en: "Practice", hi: "अभ्यास", as: "অভ্যাস" },
-    checkpoint: { en: "Quiz", hi: "प्रश्नोत्तरी", as: "কুইজ" },
-  };
-  return labels[type][language];
+  return getTranslation(CHUNK_TYPE_KEYS[type], language);
 }
 
 /**
@@ -292,12 +281,6 @@ function CheckpointQuiz({
     if (selected === null) return;
     setSubmitted(true);
     onAnswer(selected === question.correctIndex);
-  };
-
-  const labels = {
-    submit: { en: "Check Answer", hi: "उत्तर जाँचें", as: "উত্তৰ পৰীক্ষা কৰক" },
-    correct: { en: "Correct!", hi: "सही!", as: "শুদ্ধ!" },
-    incorrect: { en: "Not quite", hi: "बिल्कुल नहीं", as: "ঠিক নহয়" },
   };
 
   return (
@@ -343,7 +326,7 @@ function CheckpointQuiz({
 
       {!submitted && (
         <Button onClick={handleSubmit} disabled={selected === null} className="w-full">
-          {labels.submit[language]}
+          {getTranslation("lessonPlayer.checkAnswer", language)}
         </Button>
       )}
 
@@ -352,7 +335,9 @@ function CheckpointQuiz({
           className={`p-4 rounded-lg ${selected === question.correctIndex ? "bg-success/20" : "bg-warning/20"}`}
         >
           <p className="font-bold mb-1">
-            {selected === question.correctIndex ? labels.correct[language] : labels.incorrect[language]}
+            {selected === question.correctIndex
+              ? getTranslation("lessonPlayer.correct", language)
+              : getTranslation("lessonPlayer.incorrect", language)}
           </p>
           <p className="text-sm">{question.explanation}</p>
         </div>
@@ -434,14 +419,6 @@ export function LessonPlayer({
     }
   }, [safeChunk]);
 
-  const labels = {
-    previous: { en: "Previous", hi: "पिछला", as: "পূৰ্বৱৰ্তী" },
-    next: { en: "Next", hi: "अगला", as: "পৰৱৰ্তী" },
-    complete: { en: "Complete Lesson", hi: "पाठ पूरा करें", as: "পাঠ সম্পূৰ্ণ কৰক" },
-    duration: { en: "Duration", hi: "अवधि", as: "সময়কাল" },
-    progress: { en: "Progress", hi: "प्रगति", as: "অগ্ৰগতি" },
-  };
-
   // Guard: if lesson has no chunks, show skeleton
   if (!currentChunkData) {
     return <LessonPlayerSkeleton />;
@@ -456,7 +433,7 @@ export function LessonPlayer({
             <div>
               <CardTitle className="text-xl">{lesson.title}</CardTitle>
               <p className="text-sm text-slate-500">
-                {labels.duration[language]}: {lesson.totalDuration}
+                {getTranslation("lessonPlayer.duration", language)}: {lesson.totalDuration}
               </p>
             </div>
             <Button
@@ -481,7 +458,7 @@ export function LessonPlayer({
         <CardContent>
           <div className="space-y-1">
             <div className="flex justify-between text-sm">
-              <span>{labels.progress[language]}</span>
+              <span>{getTranslation("lessonPlayer.progress", language)}</span>
               <span>
                 {safeChunk + 1} / {totalChunks}
               </span>
@@ -529,7 +506,7 @@ export function LessonPlayer({
             <div className="flex items-center gap-2 text-primary animate-pulse">
               <Volume2 className="h-4 w-4" />
               <span className="text-sm">
-                {getLangLabel("speaking", language)}
+                {getTranslation("lessonPlayer.speaking", language)}
               </span>
             </div>
           )}
@@ -569,7 +546,7 @@ export function LessonPlayer({
           className="flex-1"
         >
           <ChevronLeft className="h-4 w-4 mr-1" />
-          {labels.previous[language]}
+          {getTranslation("lessonPlayer.previous", language)}
         </Button>
 
         <Button
@@ -584,11 +561,11 @@ export function LessonPlayer({
           {safeChunk === totalChunks - 1 ? (
             <>
               <CheckCircle className="h-4 w-4 mr-1" />
-              {labels.complete[language]}
+              {getTranslation("lessonPlayer.completeLesson", language)}
             </>
           ) : (
             <>
-              {labels.next[language]}
+              {getTranslation("lessonPlayer.next", language)}
               <ChevronRight className="h-4 w-4 ml-1" />
             </>
           )}

@@ -499,6 +499,15 @@ export async function resetPasswordWithOtp(
       email: validatedEmail.slice(0, 5) + "...",
     });
 
+    // SECURITY: Rate limit OTP verification to prevent brute-force on password reset
+    const verifyAllowed = await checkOtpVerifyRateLimit(validatedEmail);
+    if (!verifyAllowed) {
+      return {
+        success: false,
+        error: "Too many verification attempts. Please try again later.",
+      };
+    }
+
     const supabase = await createClient();
 
     // First verify the OTP

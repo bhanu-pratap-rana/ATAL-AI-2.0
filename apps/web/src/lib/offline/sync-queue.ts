@@ -85,6 +85,7 @@ export class SyncQueue {
   private lastSyncAt: number | null = null;
   private lastError: string | null = null;
   private readonly subscribers: Set<SyncStatusCallback> = new Set();
+  private lastNotifiedStatus: SyncStatus | null = null;
 
   /**
    * Subscribe to sync status updates
@@ -140,6 +141,19 @@ export class SyncQueue {
    */
   private async notifySubscribers(): Promise<void> {
     const status = await this.getStatus();
+    // Skip notification if nothing changed — prevents redundant re-renders on every sync tick
+    const prev = this.lastNotifiedStatus;
+    if (
+      prev !== null &&
+      prev.pendingCount === status.pendingCount &&
+      prev.failedCount === status.failedCount &&
+      prev.isSyncing === status.isSyncing &&
+      prev.lastSyncAt === status.lastSyncAt &&
+      prev.lastError === status.lastError
+    ) {
+      return;
+    }
+    this.lastNotifiedStatus = status;
     this.subscribers.forEach((callback) => {
       try {
         callback(status);
@@ -328,8 +342,7 @@ export class SyncQueue {
    * Get items that failed after max retries
    */
   async getFailedItems(): Promise<QueuedMutation[]> {
-    const allItems = await offlineDB.syncQueue.toArray();
-    return allItems.filter((item) => item.retries >= MAX_RETRIES);
+    return offlineDB.syncQueue.where("retries").aboveOrEqual(MAX_RETRIES).toArray();
   }
 
   /**
@@ -482,13 +495,11 @@ export class SyncQueue {
    * Get current sync status
    */
   async getStatus(): Promise<SyncStatus> {
-    const allItems = await offlineDB.syncQueue.toArray();
-    const pendingCount = allItems.filter(
-      (item) => item.retries < MAX_RETRIES,
-    ).length;
-    const failedCount = allItems.filter(
-      (item) => item.retries >= MAX_RETRIES,
-    ).length;
+    // PERF: Use indexed Dexie queries instead of loading all rows into memory
+    const [pendingCount, failedCount] = await Promise.all([
+      offlineDB.syncQueue.where("retries").below(MAX_RETRIES).count(),
+      offlineDB.syncQueue.where("retries").aboveOrEqual(MAX_RETRIES).count(),
+    ]);
 
     return {
       pendingCount,

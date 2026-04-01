@@ -277,5 +277,36 @@
     "textInput": "टेक्स्ट इनपुट",
     "newChat": "नई चैट",
     "chatHistory": "चैट इतिहास"
+  },
+  "lessonPlayer": {
+    "loadingVisual": "चित्र लोड हो रहा है...",
+    "visualAid": "दृश्य सहायता",
+    "speaking": "बोल रहा है...",
+    "typeConcept": "अवधारणा",
+    "typeExample": "उदाहरण",
+    "typePractice": "अभ्यास",
+    "typeCheckpoint": "प्रश्नोत्तरी",
+    "checkAnswer": "उत्तर जाँचें",
+    "correct": "सही!",
+    "incorrect": "बिल्कुल नहीं",
+    "previous": "पिछला",
+    "next": "अगला",
+    "completeLesson": "पाठ पूरा करें",
+    "duration": "अवधि",
+    "progress": "प्रगति"
+  },
+  "lessonCompletion": {
+    "title": "पाठ पूरा हुआ!",
+    "score": "आपका स्कोर",
+    "points": "अर्जित अंक",
+    "newBadge": "नया बैज!",
+    "continue": "जारी रखें",
+    "reviewAgain": "फिर से पढ़ें",
+    "attempt": "प्रयास",
+    "msgExcellentFirst": "बहुत बढ़िया! आपने \"{topic}\" को पहली बार में ही सीख लिया!",
+    "msgExcellent": "शानदार! आपने \"{topic}\" में महारत हासिल कर ली!",
+    "msgGood": "बहुत अच्छा! आपने \"{topic}\" पास कर लिया। ऐसे ही आगे बढ़ते रहें!",
+    "msgOk": "\"{topic}\" पर अच्छा प्रयास! समझ मजबूत करने के लिए एक बार फिर पढ़ें।",
+    "msgKeepGoing": "हिम्मत न हारें! \"{topic}\" में अभ्यास जरूरी है। पाठ दोबारा पढ़कर प्रयास करें।"
   }
 }

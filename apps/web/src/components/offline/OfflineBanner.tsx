@@ -13,7 +13,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { WifiOff, Cloud, RefreshCw } from "lucide-react";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { syncQueue, type SyncStatus } from "@/lib/offline/sync-queue";
@@ -57,6 +57,7 @@ export function OfflineBanner({
   const [isVisible, setIsVisible] = useState(false);
   const [showSyncingMessage, setShowSyncingMessage] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [, startTransition] = useTransition();
 
   // Prevent hydration mismatch by only rendering after mount
   useEffect(() => {
@@ -66,7 +67,9 @@ export function OfflineBanner({
 
   // Subscribe to sync status
   useEffect(() => {
-    const unsubscribe = syncQueue.subscribe(setStatus);
+    const unsubscribe = syncQueue.subscribe((newStatus) => {
+      startTransition(() => setStatus(newStatus));
+    });
     return unsubscribe;
   }, []);
 
