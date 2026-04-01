@@ -13,7 +13,7 @@
 
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useTransition } from "react";
 import { WifiOff, RefreshCw, AlertCircle, Check } from "lucide-react";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import { Button } from "@/components/ui/button";
@@ -79,12 +79,13 @@ export function SyncStatusIndicator({
     lastError: null,
   });
   const [isManualSyncing, setIsManualSyncing] = useState(false);
+  const [, startTransition] = useTransition();
 
   // Prevent SSR/client hydration mismatch — network status is browser-only
   useEffect(() => {
     setMounted(true);
     const unsubscribe = syncQueue.subscribe((newStatus) => {
-      setStatus(newStatus);
+      startTransition(() => setStatus(newStatus));
     });
     return unsubscribe;
   }, []);
@@ -230,9 +231,12 @@ export function useSyncStatus() {
     lastSyncAt: null,
     lastError: null,
   });
+  const [, startTransition] = useTransition();
 
   useEffect(() => {
-    const unsubscribe = syncQueue.subscribe(setStatus);
+    const unsubscribe = syncQueue.subscribe((newStatus) => {
+      startTransition(() => setStatus(newStatus));
+    });
     return unsubscribe;
   }, []);
 

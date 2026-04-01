@@ -277,5 +277,36 @@
     "textInput": "টেক্সট ইনপুট",
     "newChat": "নতুন চাট",
     "chatHistory": "চাট ইতিহাস"
+  },
+  "lessonPlayer": {
+    "loadingVisual": "ছবি লোড হৈ আছে...",
+    "visualAid": "দৃশ্য সহায়তা",
+    "speaking": "কৈ আছে...",
+    "typeConcept": "ধাৰণা",
+    "typeExample": "উদাহৰণ",
+    "typePractice": "অভ্যাস",
+    "typeCheckpoint": "কুইজ",
+    "checkAnswer": "উত্তৰ পৰীক্ষা কৰক",
+    "correct": "শুদ্ধ!",
+    "incorrect": "ঠিক নহয়",
+    "previous": "পূৰ্বৱৰ্তী",
+    "next": "পৰৱৰ্তী",
+    "completeLesson": "পাঠ সম্পূৰ্ণ কৰক",
+    "duration": "সময়কাল",
+    "progress": "অগ্ৰগতি"
+  },
+  "lessonCompletion": {
+    "title": "পাঠ সম্পূৰ্ণ!",
+    "score": "আপোনাৰ স্ক'ৰ",
+    "points": "অৰ্জিত পইণ্ট",
+    "newBadge": "নতুন বেজ!",
+    "continue": "আগবাঢ়ক",
+    "reviewAgain": "পুনৰ পঢ়ক",
+    "attempt": "প্ৰচেষ্টা",
+    "msgExcellentFirst": "অতি উত্তম! আপুনি \"{topic}\" প্ৰথম চেষ্টাতে আয়ত্ত কৰিলে!",
+    "msgExcellent": "অসাধাৰণ! আপুনি \"{topic}\" আয়ত্ত কৰিলে!",
+    "msgGood": "ভাল কৰিলে! আপুনি \"{topic}\" পাছ কৰিলে। এনেদৰে আগবাঢ়ক!",
+    "msgOk": "\"{topic}\"-ত ভাল প্ৰচেষ্টা! বুজাবুজি শক্তিশালী কৰিবলৈ আৰু এবাৰ পঢ়ক।",
+    "msgKeepGoing": "আগবাঢ়ক! \"{topic}\"-ত অভ্যাস দৰকাৰ। পাঠটো পুনৰ পঢ়ি চেষ্টা কৰক।"
   }
 }

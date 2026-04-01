@@ -38,6 +38,14 @@ function getManager(): RateLimitManager {
         enableOfflineQueue: false,
         maxRetriesPerRequest: 1,
       });
+      // Prevent unhandled 'error' events from crashing the Node process when
+      // Redis is unreachable. RedisRateLimiter already sets redisAvailable=false
+      // on the first failed operation and routes subsequent calls to in-memory.
+      client.on("error", (err: Error) => {
+        authLogger.warn("[RateLimit] Redis connection error — in-memory fallback active", {
+          error: err.message,
+        });
+      });
       authLogger.info("[RateLimit] Redis/Valkey backend initialised");
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       _manager = new RateLimitManager(client as any);
@@ -47,6 +55,8 @@ function getManager(): RateLimitManager {
         error: err instanceof Error ? err.message : String(err),
       });
     }
+  } else {
+    authLogger.info("[RateLimit] REDIS_URL not set — using in-memory rate limiter");
   }
 
   _manager = new RateLimitManager();

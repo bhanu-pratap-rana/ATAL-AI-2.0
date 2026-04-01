@@ -277,5 +277,36 @@
     "textInput": "Text Input",
     "newChat": "New Chat",
     "chatHistory": "Chat History"
+  },
+  "lessonPlayer": {
+    "loadingVisual": "Loading visual...",
+    "visualAid": "Visual Aid",
+    "speaking": "Speaking...",
+    "typeConcept": "Concept",
+    "typeExample": "Example",
+    "typePractice": "Practice",
+    "typeCheckpoint": "Quiz",
+    "checkAnswer": "Check Answer",
+    "correct": "Correct!",
+    "incorrect": "Not quite",
+    "previous": "Previous",
+    "next": "Next",
+    "completeLesson": "Complete Lesson",
+    "duration": "Duration",
+    "progress": "Progress"
+  },
+  "lessonCompletion": {
+    "title": "Lesson Complete!",
+    "score": "Your Score",
+    "points": "Points Earned",
+    "newBadge": "New Badge!",
+    "continue": "Continue",
+    "reviewAgain": "Review Again",
+    "attempt": "Attempt",
+    "msgExcellentFirst": "Excellent work! You mastered \"{topic}\" on your first try!",
+    "msgExcellent": "Outstanding! You've achieved mastery of \"{topic}\"!",
+    "msgGood": "Well done! You've passed \"{topic}\". Keep up the great work!",
+    "msgOk": "Good effort on \"{topic}\"! Review the content once more to strengthen your understanding.",
+    "msgKeepGoing": "Keep going! \"{topic}\" takes practice. Try reviewing the lesson and attempting again."
   }
 }

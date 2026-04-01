@@ -33,7 +33,7 @@
  */
 
 // Context and hooks
-export { LanguageProvider, useLanguage, useLanguageOptional } from "./LanguageProvider";
+export { LanguageProvider, useLanguage, useLanguageOptional, getTranslation } from "./LanguageProvider";
 
 // Types
 export type {

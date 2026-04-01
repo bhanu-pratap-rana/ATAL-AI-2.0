@@ -268,3 +268,26 @@ export function useLanguage(): LanguageContextValue {
 export function useLanguageOptional(): LanguageContextValue | null {
   return useContext(LanguageContext);
 }
+
+/**
+ * Standalone translation function — no React context needed.
+ *
+ * Use this in components that receive an explicit `language` prop instead of
+ * reading from context (e.g. LessonPlayer, LessonCompletionModal).
+ *
+ * @example
+ * getTranslation("lessonPlayer.typeConcept", language) // → "अवधारणा"
+ * getTranslation("lessonCompletion.msgGood", language, { topic: "Internet Safety" })
+ */
+export function getTranslation(
+  key: string,
+  language: SupportedLanguage,
+  values?: InterpolationValues,
+): string {
+  let value = getNestedValue(TRANSLATIONS[language], key);
+  if (value === undefined && language !== "en") {
+    value = getNestedValue(TRANSLATIONS.en, key);
+  }
+  if (value === undefined) return key;
+  return interpolate(value, values);
+}
