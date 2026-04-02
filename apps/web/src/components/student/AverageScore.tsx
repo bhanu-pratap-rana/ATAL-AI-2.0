@@ -8,29 +8,29 @@ interface Props {
 /**
  * AverageScore — async Server Component
  *
- * Fetches correctness % strictly from assessment_responses.
- * Designed to be wrapped in <Suspense> so it streams independently
- * of the rest of the student dashboard.
+ * Fetches correctness % strictly from assessment_responses using a single
+ * atomic query. Designed to be wrapped in <Suspense> so it streams
+ * independently of the rest of the student dashboard.
  */
 export async function AverageScore({ userId }: Props) {
   const supabase = await createClient();
 
-  const [{ count: total }, { count: correct }] = await Promise.all([
-    supabase
-      .from("assessment_responses")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", userId),
-    supabase
-      .from("assessment_responses")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", userId)
-      .eq("is_correct", true),
-  ]);
+  let value = "--";
 
-  const value =
-    total && total > 0 && correct !== null
-      ? `${Math.round((correct / total) * 100)}%`
-      : "--";
+  try {
+    const { data, error } = await supabase
+      .from("assessment_responses")
+      .select("is_correct")
+      .eq("user_id", userId);
+
+    if (!error && data && data.length > 0) {
+      const total = data.length;
+      const correct = data.filter((r) => r.is_correct).length;
+      value = `${Math.round((correct / total) * 100)}%`;
+    }
+  } catch {
+    // Network or RLS error — fall back to "--" rather than crashing the page segment
+  }
 
   return (
     <Link
