@@ -32,6 +32,9 @@ students and teachers.
   `assessment_responses` (correct items ÷ total items × 100). Matches the calculation on the
   `/progress` page. Removes dependence on the `mastery_score` IRT scale (0–1) which was
   confusing to display as a student-facing metric.
+- **AverageScore query is atomic:** Rewrote from two separate COUNT round-trips to a single
+  `.select("is_correct")` query — eliminates the non-atomic race window between total and
+  correct counts. Dashboard no longer crashes on Supabase errors; falls back to "--" gracefully.
 
 ## [0.1.0.0] - 2026-04-02
 
