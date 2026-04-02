@@ -38,11 +38,11 @@
   --color-primary-lighter: #FFE4CC;
   --color-primary-lightest: #FFF5EB;
 
-  /* Primary Gradients */
-  --gradient-primary: linear-gradient(135deg, #F98819 0%, #FFAB4A 100%);
+  /* Primary Gradients — orange (#F98819) → gold (#FFD166) matches brand */
+  --gradient-primary: linear-gradient(135deg, #F98819 0%, #FFD166 100%);
   --gradient-primary-hover: linear-gradient(135deg, #E07510 0%, #F98819 100%);
-  --gradient-primary-vertical: linear-gradient(180deg, #F98819 0%, #FFAB4A 100%);
-  --gradient-header: linear-gradient(135deg, #F98819 0%, #FFAB4A 100%);
+  --gradient-primary-vertical: linear-gradient(180deg, #F98819 0%, #FFD166 100%);
+  --gradient-header: linear-gradient(135deg, #F98819 0%, #FFD166 100%);
 
   /* Primary Shadows */
   --shadow-primary: 0 8px 24px rgba(249, 136, 25, 0.3);
