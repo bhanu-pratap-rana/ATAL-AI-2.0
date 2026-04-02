@@ -580,7 +580,7 @@ export function LessonPlayer({
  */
 export function LessonPlayerSkeleton() {
   return (
-    <div className="space-y-4 animate-pulse">
+    <div className="space-y-4 animate-pulse min-h-[400px]">
       <Card>
         <CardHeader className="pb-2">
           <div className="h-6 bg-slate-50 rounded w-1/2" />

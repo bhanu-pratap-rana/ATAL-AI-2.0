@@ -6,12 +6,14 @@
  * quick actions, module cards with progress, and enrolled classes.
  */
 
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { unstable_cache } from "next/cache";
 import { ChevronRight, Flame, BookOpen, Users, PlusCircle, Trophy, ClipboardList } from "lucide-react";
 import { getCurrentUser, createClient, createAdminClient } from "@/lib/supabase-server";
 import { BadgesLeaderboardPanel } from "@/components/gamification/BadgesLeaderboardPanel";
+import { AverageScore, AverageScoreSkeleton } from "@/components/student/AverageScore";
 import { isTeacherOrHigher } from "@/lib/auth/role-utils";
 import { authLogger } from "@/lib/auth-logger";
 
@@ -44,7 +46,6 @@ interface StudentDashboardData {
   profile: StudentProfile;
   classes: EnrolledClass[];
   assessmentCount: number;
-  averageScore: number | null;
   streakDays: number;
   modules: ModuleData[];
   moduleProgress: Map<string, number>; // moduleId → % complete (0-100)
@@ -86,8 +87,6 @@ async function getStudentDashboardData(userId: string): Promise<StudentDashboard
     tutorInteractionsResult,
     assessmentActivityResult,
     modules,
-    totalResponsesResult,
-    correctResponsesResult,
   ] = await Promise.all([
       supabase
         .from("student_profiles")
@@ -132,19 +131,6 @@ async function getStudentDashboardData(userId: string): Promise<StudentDashboard
         .limit(60),
 
       getModulesFromDB(),
-
-      // Average score: total responses for this student
-      supabase
-        .from("assessment_responses")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", userId),
-
-      // Average score: correct responses for this student
-      supabase
-        .from("assessment_responses")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", userId)
-        .eq("is_correct", true),
     ]);
 
   // Build enrolled classes with teacher names
@@ -221,13 +207,6 @@ async function getStudentDashboardData(userId: string): Promise<StudentDashboard
     moduleProgress.set(moduleId, Math.round(avg * 100));
   }
 
-  // Average score: correctness % from assessment_responses (Option B)
-  // More intuitive for teachers — shows "how many questions did the student get right"
-  const totalResponses = totalResponsesResult.count ?? 0;
-  const correctResponses = correctResponsesResult.count ?? 0;
-  const averageScore =
-    totalResponses > 0 ? Math.round((correctResponses / totalResponses) * 100) : null;
-
   return {
     profile: {
       name: profileResult.data?.name ?? null,
@@ -236,7 +215,6 @@ async function getStudentDashboardData(userId: string): Promise<StudentDashboard
     },
     classes,
     assessmentCount: completedAssessmentsResult.count ?? 0,
-    averageScore,
     streakDays,
     modules,
     moduleProgress,
@@ -258,16 +236,14 @@ export default async function StudentDashboardPage() {
   if (isTeacherOrHigher(user.app_metadata?.role)) redirect("/app/teacher/dashboard");
 
   const data = await getStudentDashboardData(user.id);
-  const { profile, classes, assessmentCount, averageScore, streakDays, modules, moduleProgress } =
-    data;
+  const { profile, classes, assessmentCount, streakDays, modules, moduleProgress } = data;
 
   const displayName = profile.name ?? user.email?.split("@")[0] ?? "Student";
   const bannerStyle = { background: "var(--gradient-primary)" };
 
-  const stats = [
+  const statCards = [
     { icon: "👥", value: classes.length, label: "Classes", href: "/app/student/classes" },
     { icon: "📝", value: assessmentCount, label: "Assessments", href: "/app/student/assessments" },
-    { icon: "🎯", value: averageScore === null ? "--" : `${averageScore}%`, label: "Avg Score", href: "/app/progress" },
     { icon: "🔥", value: streakDays, label: "Day Streak", href: "/app/learn" },
   ];
 
@@ -340,7 +316,7 @@ export default async function StudentDashboardPage() {
 
         {/* ── Stat Cards (clickable) ── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {stats.map((stat) => (
+          {statCards.map((stat) => (
             <Link
               key={stat.label}
               href={stat.href}
@@ -355,6 +331,10 @@ export default async function StudentDashboardPage() {
               </p>
             </Link>
           ))}
+          {/* Avg Score streams independently — doesn't block the rest of the stat grid */}
+          <Suspense fallback={<AverageScoreSkeleton />}>
+            <AverageScore userId={user.id} />
+          </Suspense>
         </div>
 
         {/* ── Quick Actions ── */}
