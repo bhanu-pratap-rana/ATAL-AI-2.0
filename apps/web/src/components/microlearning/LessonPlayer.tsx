@@ -183,7 +183,7 @@ function ChunkImage({
   // Loading state with Lottie animation
   if (imageState.loading || showSuccess) {
     return (
-      <div className="bg-slate-50/30 rounded-2xl p-6 border border-dashed flex flex-col items-center justify-center min-h-[160px] sm:min-h-[200px]">
+      <div className="bg-slate-50/30 rounded-2xl p-6 border border-dashed flex flex-col items-center justify-center h-[200px] md:h-[250px]">
         {showSuccess ? (
           <SuccessAnimation size={60} />
         ) : (
