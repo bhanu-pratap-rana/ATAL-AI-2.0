@@ -353,7 +353,7 @@ export default async function LearnPage() {
         />
 
         {/* Adaptive Recommendations */}
-        <Suspense fallback={null}>
+        <Suspense fallback={<div className="h-[120px] rounded-2xl bg-slate-100 animate-pulse" />}>
           <AdaptiveRecommendations userId={user.id} limit={3} />
         </Suspense>
 
