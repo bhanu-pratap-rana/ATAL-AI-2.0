@@ -155,6 +155,8 @@ npm run lint         # Run ESLint
 
 Comprehensive documentation is available in the [`docs/`](./docs/) directory:
 
+- **[CHANGELOG.md](./CHANGELOG.md)** - Release history and notable changes per version
+- **[TODOS.md](./TODOS.md)** - Deferred work and open items from engineering review
 - **[DATABASE.md](./docs/DATABASE.md)** - Database schema, migrations, and setup guide
 - **[TESTING_GUIDE.md](./docs/TESTING_GUIDE.md)** - Testing procedures and QA checklist
 - **[ATAL_AI_IMPLEMENTATION_PLAN.md](./docs/ATAL_AI_IMPLEMENTATION_PLAN.md)** - Detailed implementation roadmap
@@ -171,7 +173,7 @@ The application uses the following main tables:
 - **students** - Student profiles and metadata
 - **enrollments** - Student-class relationships
 - **assessments** - Assessment/quiz definitions
-- **assessment_results** - Student assessment scores
+- **assessment_responses** - Student assessment answers and correctness tracking
 
 ### Running Migrations
 
@@ -202,8 +204,8 @@ The application uses Row Level Security (RLS) to ensure:
 - **Border**: `#E8E8E8` - Default borders
 
 ### Gradient System
-- **Primary Gradient**: `linear-gradient(135deg, #FF8C42 0%, #FFD166 100%)`
-- Used on buttons, cards, borders, and accents
+- **Primary Gradient**: `linear-gradient(135deg, #F98819 0%, #FFD166 100%)` — stored as `var(--gradient-primary)`
+- Used on buttons, cards, borders, and accents via CSS variable (no inline literals)
 - Orange-tinted shadows for brand consistency
 
 ### Animations
@@ -578,5 +580,5 @@ For issues and questions:
 
 **Built with ❤️ for digital empowerment in India**
 
-Last updated: 2026-01-04
-Version: 1.1.0 - Production Ready (92/100 health score, all critical issues resolved)
+Last updated: 2026-04-02
+Version: 1.0.0.0 - Production Ready

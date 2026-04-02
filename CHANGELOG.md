@@ -3,6 +3,36 @@
 All notable changes to ATAL AI are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.0.0] - 2026-04-02 — Production Ready
+
+This release marks ATAL AI's production readiness milestone. Security, performance, and data
+integrity work from Phase 2 code quality hardening — the platform is now safe to ship to
+students and teachers.
+
+### Security
+- **IRT answer key protected (OI-1 closed):** Column-level RLS applied to `irt_item_bank`.
+  `correct_answer`, difficulty/discrimination/guessing IRT parameters, `scoring_key`,
+  `model_answer`, and `answer_explanation` are no longer accessible to authenticated students.
+  16 safe columns (question text, options, unit metadata) remain readable for lesson rendering.
+  Students can no longer reverse-engineer correct answers from the API.
+- **RLS query plan optimized (OI-4 closed):** `assessment_responses` select policy now wraps
+  `auth.uid()` in `(SELECT auth.uid())` — Postgres caches the value once per query instead of
+  re-evaluating the function on every row. Scales cleanly as response tables grow.
+
+### Added
+- **AverageScore streams independently:** Student dashboard Avg Score card is now an async
+  Server Component wrapped in `<Suspense>`. The rest of the dashboard renders immediately — the
+  score streams in when its two-query fetch completes. No more waiting on the slowest card.
+- **Sync log broadcasts realtime (OI-2 closed):** `sync_log` added to `supabase_realtime`
+  publication. PWA offline sync events now broadcast to subscribed clients — ready for
+  `BackgroundSyncInitializer` re-activation.
+
+### Changed
+- **Average score = correctness %, not IRT mastery:** Avg Score card now reads from
+  `assessment_responses` (correct items ÷ total items × 100). Matches the calculation on the
+  `/progress` page. Removes dependence on the `mastery_score` IRT scale (0–1) which was
+  confusing to display as a student-facing metric.
+
 ## [0.1.0.0] - 2026-04-02
 
 ### Added
