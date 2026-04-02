@@ -78,8 +78,15 @@ const getModulesFromDB = unstable_cache(fetchModulesFromDB, ["modules-list-dashb
 async function getStudentDashboardData(userId: string): Promise<StudentDashboardData> {
   const supabase = await createClient();
 
-  const [profileResult, enrollmentsResult, completedAssessmentsResult, streakResult, modules] =
-    await Promise.all([
+  const [
+    profileResult,
+    enrollmentsResult,
+    completedAssessmentsResult,
+    streakResult,
+    tutorInteractionsResult,
+    assessmentActivityResult,
+    modules,
+  ] = await Promise.all([
       supabase
         .from("student_profiles")
         .select("name, class_name, roll_number")
@@ -104,6 +111,22 @@ async function getStudentDashboardData(userId: string): Promise<StudentDashboard
         .select("module, mastery_score, last_attempt_at")
         .eq("student_id", userId)
         .order("last_attempt_at", { ascending: false })
+        .limit(60),
+
+      // Streak: include AI Tutor activity (aligned with /learn page streak logic)
+      supabase
+        .from("ai_tutor_interactions")
+        .select("created_at")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(60),
+
+      // Streak: include Assessment session activity (aligned with /learn page streak logic)
+      supabase
+        .from("assessment_sessions")
+        .select("started_at")
+        .eq("user_id", userId)
+        .order("started_at", { ascending: false })
         .limit(60),
 
       getModulesFromDB(),
@@ -146,10 +169,14 @@ async function getStudentDashboardData(userId: string): Promise<StudentDashboard
     };
   });
 
-  // Calculate streak and mastery scores from student_knowledge_state
+  // Calculate streak from all activity sources (lessons + AI tutor + assessments)
+  // Aligned with /learn page streak logic to avoid under-counting
   const knowledgeRows = streakResult.data ?? [];
-  const activityDates = knowledgeRows
-    .map((r) => r.last_attempt_at)
+  const activityDates = [
+    ...knowledgeRows.map((r) => r.last_attempt_at),
+    ...(tutorInteractionsResult.data ?? []).map((r) => r.created_at),
+    ...(assessmentActivityResult.data ?? []).map((r) => r.started_at),
+  ]
     .filter(Boolean)
     .map((d) => new Date(d as string).toDateString());
   const uniqueDates = [...new Set(activityDates)];
