@@ -223,7 +223,7 @@ export default async function StudentDashboardPage() {
     data;
 
   const displayName = profile.name ?? user.email?.split("@")[0] ?? "Student";
-  const bannerStyle = { background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" };
+  const bannerStyle = { background: "var(--gradient-primary)" };
 
   const stats = [
     { icon: "👥", value: classes.length, label: "Classes", href: "/app/student/classes" },
@@ -376,7 +376,7 @@ export default async function StudentDashboardPage() {
                     <div className="flex items-center gap-3 p-3 rounded-2xl hover:bg-slate-50 transition-colors -mx-1 px-2">
                       <div
                         className="w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-                        style={{ background: mod.color_gradient || "linear-gradient(135deg,#F98819,#FFD166)" }}
+                        style={{ background: mod.color_gradient || "var(--gradient-primary)" }}
                       >
                         {mod.icon || "📚"}
                       </div>
@@ -390,7 +390,7 @@ export default async function StudentDashboardPage() {
                             className="h-full rounded-full transition-all"
                             style={{
                               width: `${progress}%`,
-                              background: "linear-gradient(90deg,#F98819,#FFD166)",
+                              background: "var(--gradient-primary-vertical)",
                             }}
                           />
                         </div>

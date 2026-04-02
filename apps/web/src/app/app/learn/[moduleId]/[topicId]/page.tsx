@@ -762,7 +762,7 @@ export default function LessonPage() {
                     placeholder={getInputPlaceholder(language)}
                     className="flex-1 rounded-md border bg-background px-3 py-2 text-sm min-h-[44px]"
                   />
-                  <button type="submit" disabled={!input.trim() || isLoading} className="px-4 py-2 rounded-xl font-black text-sm text-white disabled:opacity-50 transition-all" style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" }}>
+                  <button type="submit" disabled={!input.trim() || isLoading} className="px-4 py-2 rounded-xl font-black text-sm text-white disabled:opacity-50 transition-all" style={{ background: "var(--gradient-primary)" }}>
                     Send
                   </button>
                 </form>
@@ -910,7 +910,7 @@ export default function LessonPage() {
                     placeholder={getInputPlaceholder(language)}
                     className="flex-1 rounded-md border bg-background px-3 py-2 text-sm min-h-[44px]"
                   />
-                  <button type="submit" disabled={!input.trim() || isLoading} className="px-4 py-2 rounded-xl font-black text-sm text-white disabled:opacity-50 transition-all" style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" }}>
+                  <button type="submit" disabled={!input.trim() || isLoading} className="px-4 py-2 rounded-xl font-black text-sm text-white disabled:opacity-50 transition-all" style={{ background: "var(--gradient-primary)" }}>
                     Send
                   </button>
                 </form>
