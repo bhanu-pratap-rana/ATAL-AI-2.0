@@ -86,6 +86,8 @@ async function getStudentDashboardData(userId: string): Promise<StudentDashboard
     tutorInteractionsResult,
     assessmentActivityResult,
     modules,
+    totalResponsesResult,
+    correctResponsesResult,
   ] = await Promise.all([
       supabase
         .from("student_profiles")
@@ -130,6 +132,19 @@ async function getStudentDashboardData(userId: string): Promise<StudentDashboard
         .limit(60),
 
       getModulesFromDB(),
+
+      // Average score: total responses for this student
+      supabase
+        .from("assessment_responses")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", userId),
+
+      // Average score: correct responses for this student
+      supabase
+        .from("assessment_responses")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .eq("is_correct", true),
     ]);
 
   // Build enrolled classes with teacher names
@@ -206,15 +221,12 @@ async function getStudentDashboardData(userId: string): Promise<StudentDashboard
     moduleProgress.set(moduleId, Math.round(avg * 100));
   }
 
-  // Average mastery score across all topics (mastery_score is 0–1; convert to 0–100)
-  // assessment_sessions has no score column; student_knowledge_state is the canonical source
-  const allMasteryScores = knowledgeRows
-    .map((r) => r.mastery_score)
-    .filter((s): s is number => s != null);
+  // Average score: correctness % from assessment_responses (Option B)
+  // More intuitive for teachers — shows "how many questions did the student get right"
+  const totalResponses = totalResponsesResult.count ?? 0;
+  const correctResponses = correctResponsesResult.count ?? 0;
   const averageScore =
-    allMasteryScores.length > 0
-      ? Math.round((allMasteryScores.reduce((a, b) => a + b, 0) / allMasteryScores.length) * 100)
-      : null;
+    totalResponses > 0 ? Math.round((correctResponses / totalResponses) * 100) : null;
 
   return {
     profile: {
