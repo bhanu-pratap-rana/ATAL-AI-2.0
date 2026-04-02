@@ -300,7 +300,7 @@ export default function DashboardPage() {
   const welcomeMessages = getWelcomeMessages(isTeacherOrAdmin, userName, t);
   const bannerStyle = isTeacherOrAdmin
     ? { background: "linear-gradient(135deg,#3B82F6,#6366F1)" }
-    : { background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" };
+    : { background: "var(--gradient-primary)" };
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -384,7 +384,7 @@ export default function DashboardPage() {
           <motion.div variants={itemVariants}>
             <Link href="/app/learn" prefetch={true}>
               <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 flex items-center gap-4 cursor-pointer hover:shadow-md transition-shadow">
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" }}>
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: "var(--gradient-primary)" }}>
                   <BookOpen className="w-7 h-7 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
