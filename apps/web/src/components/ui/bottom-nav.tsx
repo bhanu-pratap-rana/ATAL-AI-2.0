@@ -44,8 +44,8 @@ function getRole(pathname: string): "student" | "teacher" | "admin" {
 }
 
 function getActiveColor(role: "student" | "teacher" | "admin") {
-  if (role === "teacher") return { bg: "bg-blue-600", text: "text-blue-600", shadow: "0 4px 14px rgba(37,99,235,0.35)" };
-  if (role === "admin") return { bg: "bg-red-600", text: "text-red-600", shadow: "0 4px 14px rgba(220,38,38,0.35)" };
+  if (role === "teacher") return { bg: "bg-role-teacher", text: "text-role-teacher", shadow: "0 4px 14px rgba(37,99,235,0.35)" };
+  if (role === "admin") return { bg: "bg-role-admin", text: "text-role-admin", shadow: "0 4px 14px rgba(220,38,38,0.35)" };
   return { bg: "bg-primary", text: "text-primary", shadow: "0 4px 14px rgba(249,136,25,0.35)" };
 }
 
