@@ -324,7 +324,7 @@ function SessionCard({ session }: { readonly session: Session }) {
                       <span className="text-xs text-slate-500">🎤</span>
                     )}
                   </div>
-                  <p className="whitespace-pre-wrap break-words">
+                  <p className="whitespace-pre-wrap wrap-break-word">
                     {truncate(message.message_content, 300)}
                   </p>
                 </div>

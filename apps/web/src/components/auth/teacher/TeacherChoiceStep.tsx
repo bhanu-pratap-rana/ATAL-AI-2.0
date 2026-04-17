@@ -37,7 +37,7 @@ export function TeacherChoiceStep({ actions }: TeacherChoiceStepProps) {
             className="w-full flex items-center gap-4 p-5 rounded-2xl text-white font-black transition-all active:scale-95 hover:opacity-90"
             style={{ background: "var(--gradient-primary)", boxShadow: "var(--shadow-primary)" }}
           >
-            <GraduationCap className="w-6 h-6 flex-shrink-0" />
+            <GraduationCap className="w-6 h-6 shrink-0" />
             <div className="text-left">
               <p className="text-base font-black leading-none">Create New Account</p>
               <p className="text-xs font-bold text-white/80 mt-1">New teacher registration</p>
@@ -50,7 +50,7 @@ export function TeacherChoiceStep({ actions }: TeacherChoiceStepProps) {
             onClick={() => actions.setStep("login")}
             className="w-full flex items-center gap-4 p-5 rounded-2xl font-black transition-all active:scale-95 border-2 border-slate-200 hover:border-primary/40 hover:text-primary text-slate-700"
           >
-            <GraduationCap className="w-6 h-6 flex-shrink-0 text-slate-400" />
+            <GraduationCap className="w-6 h-6 shrink-0 text-slate-400" />
             <div className="text-left">
               <p className="text-base font-black leading-none">Login to Account</p>
               <p className="text-xs font-bold text-slate-400 mt-1">Existing teacher login</p>

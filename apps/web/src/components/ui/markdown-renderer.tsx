@@ -106,7 +106,7 @@ const markdownComponents: Record<string, unknown> = {
             const { node: _node, inline, ...rest } = props;
             return inline ? (
               <code
-                className="bg-slate-50 px-1.5 py-0.5 rounded text-sm font-mono text-error dark:text-error/80 break-words"
+                className="bg-slate-50 px-1.5 py-0.5 rounded text-sm font-mono text-error dark:text-error/80 wrap-break-word"
                 {...rest}
               />
             ) : (
@@ -122,7 +122,7 @@ const markdownComponents: Record<string, unknown> = {
           // Links with accessible styling
           a: ({ node: _node, ...props }: MarkdownNodeProps) => (
             <a // NOSONAR S6827: Content comes from markdown via children prop
-              className="text-primary hover:text-primary/80 underline underline-offset-2 break-words"
+              className="text-primary hover:text-primary/80 underline underline-offset-2 wrap-break-word"
               target="_blank"
               rel="noopener noreferrer"
               {...props}

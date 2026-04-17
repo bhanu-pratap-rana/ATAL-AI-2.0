@@ -31,7 +31,7 @@ export function AdminAccessDeniedState({
         <div className="space-y-6">
           <div className="bg-error-light border border-error/30 rounded-2xl p-4">
             <div className="flex gap-3">
-              <ShieldAlert className="w-6 h-6 text-error flex-shrink-0" />
+              <ShieldAlert className="w-6 h-6 text-error shrink-0" />
               <div>
                 <p className="text-sm font-semibold text-error">
                   Admin Account Already Exists
@@ -64,7 +64,7 @@ export function AdminAccessDeniedState({
 
           <Button
             onClick={onNavigateToLogin}
-            className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary"
+            className="w-full bg-linear-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary"
           >
             Go to Admin Login
           </Button>

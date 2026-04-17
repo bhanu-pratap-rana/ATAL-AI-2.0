@@ -119,7 +119,7 @@ export function MaterialsList({ materials, classId: _classId }: MaterialsListPro
                     )}
                   </CardDescription>
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="flex items-center gap-2 shrink-0">
                   <Badge variant="secondary">{typeInfo.label}</Badge>
                   <Button
                     variant="ghost"

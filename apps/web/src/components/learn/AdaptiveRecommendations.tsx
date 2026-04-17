@@ -294,7 +294,7 @@ export function AdaptiveRecommendations({
             href={`/app/learn/${rec.moduleId}/${rec.topicId}`}
           >
             <Card
-              className={`transition-all hover:shadow-md hover:scale-[1.02] cursor-pointer bg-gradient-to-r ${rec.color} text-white`}
+              className={`transition-all hover:shadow-md hover:scale-[1.02] cursor-pointer bg-linear-to-r ${rec.color} text-white`}
             >
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">

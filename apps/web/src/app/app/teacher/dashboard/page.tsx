@@ -154,7 +154,7 @@ export default async function TeacherDashboardPage() {
         <div className="max-w-4xl mx-auto space-y-4">
           <div className="rounded-[32px] p-6 text-white" style={bannerStyle}>
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-2xl flex-shrink-0">👩‍🏫</div>
+              <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-2xl shrink-0">👩‍🏫</div>
               <div className="min-w-0">
                 <h1 className="text-xl sm:text-2xl font-black mb-1 truncate">Welcome, {teacherName}!</h1>
                 <p className="text-blue-100 text-sm font-bold">Create your first class to start tracking student progress.</p>
@@ -187,7 +187,7 @@ export default async function TeacherDashboardPage() {
         {/* Banner */}
         <div className="rounded-[32px] p-6 text-white" style={bannerStyle}>
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-2xl flex-shrink-0">👩‍🏫</div>
+            <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-2xl shrink-0">👩‍🏫</div>
             <div className="flex-1 min-w-0">
               <h1 className="text-xl sm:text-2xl font-black mb-1 truncate">{teacherName}</h1>
               <p className="text-blue-100 text-xs font-black uppercase tracking-widest">Class Instructor • ATAL AI</p>
@@ -218,7 +218,7 @@ export default async function TeacherDashboardPage() {
               {recentStudents.map((s) => (
                 <div key={s.id} className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center font-black text-slate-500 text-sm flex-shrink-0">
+                    <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center font-black text-slate-500 text-sm shrink-0">
                       {(s.name ?? "?").charAt(0).toUpperCase()}
                     </div>
                     <p className="font-bold text-slate-800 text-sm truncate">{s.name ?? "Unknown"}</p>
@@ -239,7 +239,7 @@ export default async function TeacherDashboardPage() {
             { icon: "⚠️", value: metrics.atRiskStudents, label: "At Risk" },
           ].map((stat) => (
             <div key={stat.label} className="bg-white rounded-2xl p-4 shadow-[0_4px_20px_rgb(0,0,0,0.05)] border border-slate-100 flex flex-col items-center text-center gap-1">
-              <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-xl flex-shrink-0">{stat.icon}</div>
+              <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-xl shrink-0">{stat.icon}</div>
               <p className="text-xl font-black text-slate-800 leading-none">{stat.value}</p>
               <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider leading-tight">{stat.label}</p>
             </div>
