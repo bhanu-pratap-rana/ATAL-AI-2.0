@@ -33,6 +33,14 @@ const eslintConfig = defineConfig([
       ],
     },
   },
+  // Jest config files are CommonJS by convention (next/jest ships as CJS);
+  // require() is expected there.
+  {
+    files: ["jest.config.js", "jest.database.config.js", "jest.database.setup.js"],
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;
