@@ -49,18 +49,34 @@ async function enqueueDummyMutation(page: import("@playwright/test").Page): Prom
   });
 }
 
+/**
+ * Escape hatch for CDP commands not in Playwright's typed whitelist.
+ * ServiceWorker.getRegistrations and ServiceWorker.dispatchSyncEvent are
+ * valid Chrome DevTools Protocol methods but are not typed by
+ * @playwright/test's CDPSession.send overload set.
+ */
+type UntypedCdpSend = (method: string, params?: Record<string, unknown>) => Promise<unknown>;
+
+type SwRegistration = {
+  isDeleted: boolean;
+  scopeURL: string;
+  registrationId: string;
+};
+
 /** Use CDP to dispatch a Background Sync event directly to the active SW. */
 async function dispatchSwSyncEvent(cdp: CDPSession, origin: string, tag: string): Promise<boolean> {
+  const send = cdp.send as unknown as UntypedCdpSend;
   try {
-    await cdp.send("ServiceWorker.enable");
+    await send("ServiceWorker.enable");
 
     // Give SW time to activate after going online
     await new Promise((r) => setTimeout(r, 500));
 
-    const { registrations } = await cdp.send("ServiceWorker.getRegistrations");
+    const { registrations } = (await send("ServiceWorker.getRegistrations")) as {
+      registrations: SwRegistration[];
+    };
     const reg = registrations.find(
-      (r: { isDeleted: boolean; scopeURL: string }) =>
-        !r.isDeleted && r.scopeURL.startsWith(origin),
+      (r) => !r.isDeleted && r.scopeURL.startsWith(origin),
     );
 
     if (!reg) {
@@ -68,9 +84,9 @@ async function dispatchSwSyncEvent(cdp: CDPSession, origin: string, tag: string)
       return false;
     }
 
-    await cdp.send("ServiceWorker.dispatchSyncEvent", {
+    await send("ServiceWorker.dispatchSyncEvent", {
       origin,
-      registrationId: (reg as { registrationId: string }).registrationId,
+      registrationId: reg.registrationId,
       tag,
       lastChance: false,
     });
