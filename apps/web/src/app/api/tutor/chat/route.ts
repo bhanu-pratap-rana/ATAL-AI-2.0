@@ -115,22 +115,17 @@ export async function POST(request: Request): Promise<Response> {
     // SEC-2 FIX: Truncate user query to limit prompt injection surface
     const userQuery = (latestMessage?.content ?? "").slice(0, 4000);
 
-    // Get curriculum context via RAG (direct pgvector - NO LangChain)
-    // Uses multilingual context to prioritize same-language content
-    const context = await ragService.getMultilingualContext(
-      userQuery,
-      language,
-      {
+    // Curriculum context (RAG) and learning profile are independent; fetch in parallel.
+    const [context, learningProfile] = await Promise.all([
+      ragService.getMultilingualContext(userQuery, language, {
         filterTopic: topicId || null,
         matchCount: topicId ? 3 : 5,
-      },
-    );
-
-    // Get student's learning style for personalization
-    const learningProfile = await adaptiveService.getAdaptedContent(
-      authenticatedUser.id,
-      topicId || "general",
-    );
+      }),
+      adaptiveService.getAdaptedContent(
+        authenticatedUser.id,
+        topicId || "general",
+      ),
+    ]);
 
     // Build personalized Socratic system prompt
     const systemPrompt = buildSystemPrompt({
