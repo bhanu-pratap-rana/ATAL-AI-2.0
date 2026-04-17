@@ -102,7 +102,7 @@ export default async function StudentClassesPage() {
 
   const enrollments = await getStudentClasses(user.id);
 
-  const bannerStyle = { background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" };
+  const bannerStyle = { background: "var(--gradient-primary)" };
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">

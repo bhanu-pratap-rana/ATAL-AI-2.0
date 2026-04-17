@@ -146,7 +146,7 @@ export default async function TeacherDashboardPage() {
     getRecentStudents(user.id),
   ]);
 
-  const bannerStyle = { background: "linear-gradient(135deg,#3B82F6,#6366F1)" };
+  const bannerStyle = { background: "var(--gradient-teacher)" };
 
   if (metrics.totalClasses === 0) {
     return (

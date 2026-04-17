@@ -274,7 +274,7 @@ export function DashboardClient() {
 
   const welcomeMessages = getWelcomeMessages(isTeacherOrAdmin, userName, t);
   const bannerStyle = isTeacherOrAdmin
-    ? { background: "linear-gradient(135deg,#3B82F6,#6366F1)" }
+    ? { background: "var(--gradient-teacher)" }
     : { background: "var(--gradient-primary)" };
 
   return (
