@@ -196,7 +196,8 @@ export function SyncStatusIndicator({
           <Button
             variant="ghost"
             size="sm"
-            className={cn("relative", className)}
+            aria-label={label}
+            className={cn("relative min-h-[44px] min-w-[44px]", className)}
             onClick={canSync ? handleManualSync : undefined}
             disabled={!canSync && status.pendingCount > 0}
           >
