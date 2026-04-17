@@ -75,6 +75,8 @@ export interface TranslationFile {
   auth: AuthTranslations;
   offline: OfflineTranslations;
   errors: ErrorTranslations;
+  role: RoleTranslations;
+  skill: SkillTranslations;
 }
 
 // ============================================
@@ -269,4 +271,17 @@ export interface ErrorTranslations {
   moduleNotFound: string;
   lessonNotFound: string;
   loadingFailed: string;
+}
+
+export interface RoleTranslations {
+  student: string;
+  teacher: string;
+  admin: string;
+  super_admin: string;
+}
+
+export interface SkillTranslations {
+  beginner: string;
+  intermediate: string;
+  advanced: string;
 }
