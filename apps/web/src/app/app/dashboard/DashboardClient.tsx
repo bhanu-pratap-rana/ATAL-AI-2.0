@@ -144,7 +144,7 @@ const StatCard = memo(function StatCard({
       variants={itemVariants}
       className="bg-white rounded-2xl p-4 shadow-[0_4px_20px_rgb(0,0,0,0.05)] border border-slate-100 flex flex-col items-center text-center gap-1"
     >
-      <div className="w-10 h-10 bg-primary-lightest rounded-xl flex items-center justify-center text-xl flex-shrink-0">
+      <div className="w-10 h-10 bg-primary-lightest rounded-xl flex items-center justify-center text-xl shrink-0">
         {icon}
       </div>
       <p className="text-xl font-black text-slate-800 leading-none">{value}</p>
@@ -172,7 +172,7 @@ const FeatureCard = memo(function FeatureCard({
         className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 h-full cursor-pointer"
       >
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-11 h-11 bg-orange-50 rounded-2xl flex items-center justify-center text-xl flex-shrink-0">
+          <div className="w-11 h-11 bg-orange-50 rounded-2xl flex items-center justify-center text-xl shrink-0">
             {emoji}
           </div>
           <h3 className="text-base font-black text-slate-800">{title}</h3>
@@ -293,7 +293,7 @@ export function DashboardClient() {
           style={bannerStyle}
         >
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-2xl flex-shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-2xl shrink-0">
               {isTeacherOrAdmin ? "👩‍🏫" : "🧑‍🎓"}
             </div>
             <div className="flex-1 min-w-0">
@@ -359,14 +359,14 @@ export function DashboardClient() {
           <motion.div variants={itemVariants}>
             <Link href="/app/learn" prefetch={true}>
               <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 flex items-center gap-4 cursor-pointer hover:shadow-md transition-shadow">
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: "var(--gradient-primary)" }}>
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0" style={{ background: "var(--gradient-primary)" }}>
                   <BookOpen className="w-7 h-7 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-black text-slate-800 text-base">Continue Learning</h3>
                   <p className="text-xs font-bold text-slate-400 mt-0.5">Pick up where you left off</p>
                 </div>
-                <ChevronRight className="w-5 h-5 text-slate-300 flex-shrink-0" />
+                <ChevronRight className="w-5 h-5 text-slate-300 shrink-0" />
               </div>
             </Link>
           </motion.div>

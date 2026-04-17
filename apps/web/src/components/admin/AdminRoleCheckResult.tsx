@@ -19,7 +19,7 @@ export function AdminRoleCheckResult({
     >
       {isAdmin ? (
         <>
-          <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
+          <CheckCircle className="w-5 h-5 text-success shrink-0 mt-0.5" />
           <div className="text-sm text-success">
             <strong>Ready to Login!</strong>
             <br />
@@ -31,7 +31,7 @@ export function AdminRoleCheckResult({
         </>
       ) : (
         <>
-          <AlertCircle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
+          <AlertCircle className="w-5 h-5 text-warning shrink-0 mt-0.5" />
           <div className="text-sm text-warning-dark">
             <strong>Not Admin Yet</strong>
             <br />

@@ -153,9 +153,9 @@ export default function AdminSetupPage() {
               }`}
             >
               {message.type === "success" ? (
-                <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
+                <CheckCircle className="w-5 h-5 text-success shrink-0 mt-0.5" />
               ) : (
-                <AlertCircle className="w-5 h-5 text-error flex-shrink-0 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-error shrink-0 mt-0.5" />
               )}
               <span
                 className={
@@ -192,7 +192,7 @@ export default function AdminSetupPage() {
             <Button
               onClick={handleSetAdminRole}
               disabled={isLoading || !email.trim()}
-              className="flex-1 bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary"
+              className="flex-1 bg-linear-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary"
             >
               {isLoading ? (
                 <>
