@@ -36,6 +36,13 @@ All twelve commits sit on `fix/v1.0.0.0-audit-remediation`.
 - **H6 — Streak bucketing uses Asia/Kolkata date via `get_student_streak` RPC** (`1197467`).
   Migration 167 adds timezone-aware streak calculation. Replaces the 85-line client-side
   date loop with a single RPC call.
+- **Advisor-diff fix — `auth_rls_initplan` on `assessment_sessions` + four
+  `function_search_path_mutable`.** Migration 168 rewraps two bare `auth.uid()` calls in
+  `assessment_sessions_select` with `(select auth.uid())` (same OI-4 pattern as
+  `assessment_responses`), and pins `search_path = public, extensions` on
+  `get_assessment_comparison`, `has_assessment_type`, `get_connection_stats`, and
+  `check_curriculum_completion`. Both advisor regressions clear; `auth_rls_initplan` count
+  back to 0.
 
 ### Design system
 - **OI-5 — Centralize role gradients on CSS custom properties** (`dc8017f`). Twenty-five
@@ -65,10 +72,8 @@ All twelve commits sit on `fix/v1.0.0.0-audit-remediation`.
 ### Deferred
 - **T14 — FK index `idx_practice_questions_student_id`** is already present since
   migration 067. Dead-RPC cleanup for the thirty-six candidate RPCs requires
-  `pg_stat_user_functions` call-count verification and is deferred until a Supabase MCP
-  session is available; no functions dropped in this release.
-- **Advisor diff** (`get_advisors security/performance`) also deferred to the same MCP
-  session; no regressions expected but the diff is what confirms it.
+  `pg_stat_user_functions` call-count verification and is deferred; no functions dropped
+  in this release.
 
 ## [1.0.0.0] - 2026-04-02 — Production Ready
 
