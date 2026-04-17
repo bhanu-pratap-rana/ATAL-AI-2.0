@@ -109,9 +109,9 @@ export function AIInteractionsLog({
           event: "INSERT",
           schema: "public",
           table: "ai_tutor_interactions",
+          filter: `class_id=eq.${classId}`,
         },
         (payload) => {
-          // Add new interaction if it belongs to an enrolled student
           const newInteraction = payload.new as AIInteraction;
           setInteractions((prev) => [newInteraction, ...prev].slice(0, limit));
         },
