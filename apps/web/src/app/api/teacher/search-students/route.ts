@@ -317,10 +317,11 @@ export async function POST(request: NextRequest) {
           { status: fallbackResult.status },
         );
       }
-      // Cache search results for 10 minutes (private - teacher-specific)
+      // No browser cache: roster membership is teacher-specific and changes
+      // frequently; a shared-device cache hit would leak students across users.
       return NextResponse.json({ students: fallbackResult.students }, {
         headers: {
-          "Cache-Control": "private, max-age=600, stale-while-revalidate=60",
+          "Cache-Control": "private, no-store",
         },
       });
     }
@@ -339,10 +340,11 @@ export async function POST(request: NextRequest) {
       }),
     );
 
-    // Cache search results for 10 minutes (private - teacher-specific)
+    // No browser cache: roster membership is teacher-specific and changes
+    // frequently; a shared-device cache hit would leak students across users.
     return NextResponse.json({ students }, {
       headers: {
-        "Cache-Control": "private, max-age=600, stale-while-revalidate=60",
+        "Cache-Control": "private, no-store",
       },
     });
   } catch (error) {
