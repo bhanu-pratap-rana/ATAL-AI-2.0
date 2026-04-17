@@ -120,7 +120,7 @@ export default async function ProgressPage() {
                   className="flex flex-wrap items-center justify-between gap-2 p-4 bg-slate-50 rounded-2xl"
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0 ${getScoreColor(assessment.score)}`}>
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0 ${getScoreColor(assessment.score)}`}>
                       {assessment.score}%
                     </div>
                     <div>

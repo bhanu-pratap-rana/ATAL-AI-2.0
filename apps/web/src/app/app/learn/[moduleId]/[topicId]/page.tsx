@@ -631,7 +631,7 @@ export default function LessonPage() {
         {showAITutor && (
           <aside className="hidden lg:flex fixed right-0 top-0 bottom-0 w-96 bg-background border-l shadow-xl flex-col z-40">
             {/* Header */}
-            <div className="p-4 border-b bg-gradient-to-r from-primary/10 to-cyan/10">
+            <div className="p-4 border-b bg-linear-to-r from-primary/10 to-cyan/10">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-2xl">🤖</span>
@@ -789,7 +789,7 @@ export default function LessonPage() {
         <Sheet open={showAITutor} onOpenChange={setShowAITutor}>
           <SheetContent side="right" className="w-full sm:w-96 lg:hidden p-0 flex flex-col">
             {/* Header */}
-            <div className="p-4 border-b bg-gradient-to-r from-primary/10 to-cyan/10">
+            <div className="p-4 border-b bg-linear-to-r from-primary/10 to-cyan/10">
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-2xl">🤖</span>
                 <div>
@@ -876,7 +876,7 @@ export default function LessonPage() {
                             : "bg-slate-100"
                         }`}
                       >
-                        <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
+                        <p className="text-sm whitespace-pre-wrap wrap-break-word">{msg.content}</p>
                       </div>
                     </div>
                   ))}

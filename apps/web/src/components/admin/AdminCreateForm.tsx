@@ -162,9 +162,9 @@ export function AdminCreateForm({
           }`}
         >
           {message.type === "success" ? (
-            <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
+            <CheckCircle className="w-5 h-5 text-success shrink-0 mt-0.5" />
           ) : (
-            <AlertCircle className="w-5 h-5 text-error flex-shrink-0 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-error shrink-0 mt-0.5" />
           )}
           <span
             className={
@@ -182,7 +182,7 @@ export function AdminCreateForm({
       <Button
         onClick={handleCreateAdmin}
         disabled={isLoading || !email.trim() || !password || !confirmPassword}
-        className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary"
+        className="w-full bg-linear-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary"
       >
         {isLoading ? (
           <>

@@ -521,7 +521,7 @@ function TeacherConsole({ onSignOut }:Readonly<{ onSignOut:()=>void }>) {
           <div className="flex md:hidden gap-2 overflow-x-auto pb-1">
             {TEACHER_NAV.map(({id,label,icon:Icon})=>(
               <button key={id} onClick={()=>setTab(id)}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-black whitespace-nowrap transition-all flex-shrink-0"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-black whitespace-nowrap transition-all shrink-0"
                 style={tab===id?{ background:`${PRIMARY}15`, color:PRIMARY }:{ background:"#fff", color:"#64748B", border:"1px solid #E2E8F0" }}>
                 <Icon size={14}/>{label}
               </button>
@@ -802,7 +802,7 @@ function AdminPanel({ onSignOut }:Readonly<{ onSignOut:()=>void }>) {
           <div className="flex md:hidden gap-2 overflow-x-auto pb-1">
             {ADMIN_NAV.map(({id,label,icon:Icon})=>(
               <button key={id} onClick={()=>setTab(id)}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-black whitespace-nowrap flex-shrink-0 transition-all"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-black whitespace-nowrap shrink-0 transition-all"
                 style={tab===id?{ background:`${PRIMARY}15`, color:PRIMARY }:{ background:"#fff", color:"#64748B", border:"1px solid #E2E8F0" }}>
                 <Icon size={14}/>{label}
               </button>
@@ -847,7 +847,7 @@ function AdminPanel({ onSignOut }:Readonly<{ onSignOut:()=>void }>) {
                     { icon:"📊",  text:"Monthly report generated for District A", time:"3 hr ago",   color:PRIMARY   },
                   ].map((a)=>(
                     <GCard key={a.text} hover={false} className="flex items-center gap-4 p-4">
-                      <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-lg flex-shrink-0" style={{ background:`${a.color}15` }}>{a.icon}</div>
+                      <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-lg shrink-0" style={{ background:`${a.color}15` }}>{a.icon}</div>
                       <p className="text-sm font-bold text-slate-700 flex-1">{a.text}</p>
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">{a.time}</span>
                     </GCard>
@@ -985,7 +985,7 @@ function AdminPanel({ onSignOut }:Readonly<{ onSignOut:()=>void }>) {
                   const colors:Record<string,string> = { warning:"#F59E0B", info:"#3B82F6", success:"#10B981" };
                   return (
                     <GCard key={a.text} hover={false} className="flex items-center gap-4 p-4">
-                      <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
                         style={{ background:`${colors[a.level]}15`, color:colors[a.level] }}>
                         {getSecurityIcon(a.level)}
                       </div>

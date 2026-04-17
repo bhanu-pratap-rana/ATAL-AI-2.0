@@ -166,7 +166,7 @@ export function SessionCard({ session, isExpanded, onToggle }: SessionCardProps)
                     </div>
                   )}
                   {/* Message content */}
-                  <p className="whitespace-pre-wrap break-words text-sm">
+                  <p className="whitespace-pre-wrap wrap-break-word text-sm">
                     {message.content}
                   </p>
                   {/* Timestamp for assistant messages */}

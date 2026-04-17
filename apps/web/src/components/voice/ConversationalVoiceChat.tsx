@@ -212,7 +212,7 @@ export function ConversationalVoiceChat({
       {interimTranscript && (
         <div className="w-full max-w-full sm:max-w-md px-4 mb-4">
           <div className="bg-slate-100 rounded-2xl px-4 py-3 sm:px-6 sm:py-4 text-center">
-            <p className="text-sm sm:text-base text-slate-800 italic break-words">&quot;{interimTranscript}&quot;</p>
+            <p className="text-sm sm:text-base text-slate-800 italic wrap-break-word">&quot;{interimTranscript}&quot;</p>
           </div>
         </div>
       )}
