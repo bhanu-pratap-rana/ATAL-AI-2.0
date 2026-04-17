@@ -41,7 +41,7 @@ export default function HomePage() {
             onClick={() => router.push("/student/start")}
             className="w-full flex items-center gap-4 p-5 rounded-2xl text-white font-black transition-all active:scale-95 hover:opacity-90"
             style={{
-              background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)",
+              background: "var(--gradient-primary)",
               boxShadow: "0 4px 14px 0 rgba(249,136,25,0.39)",
             }}
           >
@@ -60,7 +60,7 @@ export default function HomePage() {
                 type="button"
               onClick={() => router.push("/teacher/start")}
               className="flex flex-col items-center gap-2 p-5 rounded-2xl text-white font-black transition-all active:scale-95 hover:opacity-90"
-              style={{ background: "linear-gradient(135deg,#3B82F6,#6366F1)" }}
+              style={{ background: "var(--gradient-teacher)" }}
             >
               <span className="text-2xl">👩‍🏫</span>
               <span className="text-sm font-black">Teacher</span>

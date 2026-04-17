@@ -43,7 +43,7 @@ export function AdminDashboardClient() {
     loadStats();
   }, []);
 
-  const bannerStyle = { background: "linear-gradient(135deg,#DC2626 0%,#7C3AED 100%)" };
+  const bannerStyle = { background: "var(--gradient-admin)" };
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">

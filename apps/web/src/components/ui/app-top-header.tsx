@@ -12,7 +12,7 @@ function getPortalConfig(pathname: string) {
     return {
       label: "Teacher Portal",
       Icon: GraduationCap,
-      style: { background: "linear-gradient(135deg,#3B82F6,#6366F1)" },
+      style: { background: "var(--gradient-teacher)" },
       signOutPath: "/teacher/start",
     };
   }
@@ -20,14 +20,14 @@ function getPortalConfig(pathname: string) {
     return {
       label: "Admin Portal",
       Icon: ShieldCheck,
-      style: { background: "linear-gradient(135deg,#DC2626,#7C3AED)" },
+      style: { background: "var(--gradient-admin)" },
       signOutPath: "/admin/login",
     };
   }
   return {
     label: "Student Portal",
     Icon: User,
-    style: { background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" },
+    style: { background: "var(--gradient-primary)" },
     signOutPath: "/student/start",
   };
 }
