@@ -97,12 +97,20 @@ export async function createDefaultProfile(
       .from("learning_style_profile")
       .insert(defaultProfile)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       authLogger.error(
         "[DB] Error creating default learning profile:",
         error,
+      );
+      return null;
+    }
+
+    if (!data) {
+      authLogger.warn(
+        "[DB] createDefaultProfile returned no row (RLS filter?)",
+        { studentId },
       );
       return null;
     }
