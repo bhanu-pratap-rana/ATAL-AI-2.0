@@ -569,7 +569,7 @@ export default function LessonPage() {
             <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-xl sm:text-xl sm:text-2xl font-black text-slate-800 flex items-center gap-2">
+                  <h1 className="text-xl sm:text-2xl font-black text-slate-800 flex items-center gap-2">
                     {activeDynamicLesson ? activeDynamicLesson.title : lesson.title_en}
                     {!isOnline && (
                       <span className="text-sm text-slate-500 flex items-center gap-1">
