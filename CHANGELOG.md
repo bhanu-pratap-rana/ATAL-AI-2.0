@@ -3,6 +3,73 @@
 All notable changes to ATAL AI are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.1.0] - 2026-04-17 — Audit remediation
+
+Closes the critical, high, and medium findings from the v1.0.0.0 production audit.
+All twelve commits sit on `fix/v1.0.0.0-audit-remediation`.
+
+### Security
+- **C1 — Close unprotected render window on role-gated dashboards** (`ecccf36`). Student,
+  teacher, and admin dashboards and admin sub-pages now verify role server-side in the
+  layout/page before any markup renders. Previously a brief client-side check left a render
+  window where a cross-role user could see partial UI.
+- **C2 — Fail-closed rate limiter for auth/PIN/OTP endpoints** (`2bf2248`). Added a `failMode`
+  configuration to `RateLimitConfig`; security-critical endpoints (login, PIN verify, OTP)
+  now reject on Redis outage instead of degrading to local in-memory limits. Prevents brute
+  force attempts from sliding through during an infra incident.
+- **H4 — No-store cache on teacher student-search** (`0d77134`). Removed the 60-second cache
+  on `/api/teacher/students/search`; a teacher's query should never be served from another
+  teacher's cache entry.
+
+### Changed
+- **C3 — Auto-replay queued mutations on online + mount** (`ed3e771`). Offline sync queue now
+  triggers on both `online` events and component mount so a user who returns after a long
+  offline session drains pending writes without manual intervention.
+- **H1 — StudentProgressGrid realtime subscription scoped to class roster** (`239ca2a`). The
+  teacher grid's realtime channel previously subscribed to all progress rows. Now filters
+  server-side by `class_id` so unrelated students' activity no longer rerenders the grid.
+- **H3 — Atomic `upsert_learning_style_profile` RPC** (`908446d`). Migration 166 adds the RPC;
+  client now calls it instead of a multi-step insert/update. Drops dead helper functions
+  from the previous try/catch flow.
+- **H5 — Prefer `.maybeSingle()` for nullable reads per rule.md** (`d1cac5c`). Learning
+  profile and announcement INSERT+SELECT flows no longer throw on zero-row results.
+- **H6 — Streak bucketing uses Asia/Kolkata date via `get_student_streak` RPC** (`1197467`).
+  Migration 167 adds timezone-aware streak calculation. Replaces the 85-line client-side
+  date loop with a single RPC call.
+
+### Design system
+- **OI-5 — Centralize role gradients on CSS custom properties** (`dc8017f`). Twenty-five
+  components migrated from inline gradient literals (`linear-gradient(135deg, ...)`) to
+  `var(--gradient-primary)`, `var(--gradient-teacher)`, and `var(--gradient-admin)`. Byte
+  identical output; future recolors happen in one place (`globals.css`).
+
+### Accessibility
+- **OI-3 — 44×44 tap targets and ARIA labels on icon-only controls** (`36d068c`).
+  `AppTopHeader` sign-out button, `BottomNav` tab links, and the non-compact
+  `SyncStatusIndicator` now meet WCAG 2.5.5 AAA. Added `aria-label` and `aria-current="page"`.
+
+### i18n
+- **Role and skill labels now translate** (`fb65443`). Added `role` and `skill` namespaces to
+  `en.json` / `hi.json` / `as.json`. Server components read the preference from a new
+  `atal-app-language` cookie (mirrored alongside localStorage by `LanguageProvider.setLanguage`)
+  via `getServerLanguage()`, so the settings page role banner and student assessments skill
+  badges localize without a client-boundary hoist.
+
+### Tests
+- **Task 15 — E2E suite scaffold** (`9ebe01c`). New `tests/e2e/` directory with
+  `00-pwa-install.spec.ts` (manifest shape + service-worker registration + head link) and
+  `02-role-gating.spec.ts` (parameterized unauthenticated redirect over eleven protected
+  paths). Remaining eight specs deferred — see `tests/e2e/README.md` for per-spec blockers
+  (Supabase MCP test branch, `@axe-core/playwright` dep, visual baselines).
+
+### Deferred
+- **T14 — FK index `idx_practice_questions_student_id`** is already present since
+  migration 067. Dead-RPC cleanup for the thirty-six candidate RPCs requires
+  `pg_stat_user_functions` call-count verification and is deferred until a Supabase MCP
+  session is available; no functions dropped in this release.
+- **Advisor diff** (`get_advisors security/performance`) also deferred to the same MCP
+  session; no regressions expected but the diff is what confirms it.
+
 ## [1.0.0.0] - 2026-04-02 — Production Ready
 
 This release marks ATAL AI's production readiness milestone. Security, performance, and data
