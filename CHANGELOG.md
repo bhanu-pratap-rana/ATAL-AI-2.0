@@ -3,6 +3,48 @@
 All notable changes to ATAL AI are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.1.1] - 2026-04-18 — Post-audit cleanup
+
+Small-scope follow-up to v1.0.1.0. Stacked on the audit remediation PR.
+
+### Changed
+- **Tailwind v4 canonical class sweep** (`59147ba`). 55 files, 111 occurrences
+  rewritten 1:1. Clears 39 `tailwindcss-intellisense` IDE diagnostics ahead of
+  the v3 compatibility layer being removed in a future Tailwind major:
+  `flex-shrink-0` → `shrink-0`, `bg-gradient-to-r` → `bg-linear-to-r`,
+  `break-words` → `wrap-break-word`, `z-[300]` → `z-300`. Byte-identical output.
+- **Role accent colors on CSS custom properties** (`d4adab0`). Extends OI-5
+  (`dc8017f`) from gradients to per-role accent colors. Adds `--color-role-teacher`
+  (#2563eb) and `--color-role-admin` (#dc2626); `BottomNav` active-tab color
+  migrated from hardcoded `bg-blue-600` / `bg-red-600`. Audit of the other eight
+  candidate files found they were info-tip chrome, link hovers, or multi-color
+  stat grids — intentionally left untouched so future re-brands don't regress.
+- **Parallelize dashboard stats + atomic avg score** (`5e93683`). Student
+  dashboard stats fetch now uses `Promise.all` for five independent queries;
+  average score uses a single atomic `.select("is_correct")` query instead of
+  two separate COUNTs (same OI-4 atomicity pattern as the server component).
+- **Parallelize AI tutor RAG + learning profile** (`bf872db`). The tutor chat
+  route now fetches RAG context and adaptive learning profile concurrently
+  rather than serially.
+- **AIInteractionsLog realtime scoped to class roster** (`410d36b`). Same fix
+  as H1 (`239ca2a`) for a second subscription that was missed in v1.0.1.0.
+- **`/learn` page uses `get_student_streak` RPC** (`c582b3e`). Replaces an
+  85-line client-side UTC date loop with the Asia/Kolkata-bucketed RPC from
+  migration 167 (H6). Deletes orphaned helpers (`addActivityDate`, etc.).
+
+### Tests
+- **CDP escape hatch in background-sync.spec.ts** (`7ad0894`).
+  `ServiceWorker.getRegistrations` and `ServiceWorker.dispatchSyncEvent` are
+  valid Chrome DevTools Protocol methods but are not in `@playwright/test`'s
+  typed command whitelist. Added an `UntypedCdpSend` type alias so the file
+  compiles under strict `tsc`.
+
+### Tooling
+- **Scoped `no-require-imports` exception to jest config files** (`2ddeb04`).
+  `next/jest` ships as CommonJS so `require()` is the only valid call in the
+  three jest config files. The per-file `files: […]` override in
+  `eslint.config.mjs` replaces a file-level `/* eslint-disable */` directive.
+
 ## [1.0.1.0] - 2026-04-17 — Audit remediation
 
 Closes the critical, high, and medium findings from the v1.0.0.0 production audit.
