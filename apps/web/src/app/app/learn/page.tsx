@@ -20,6 +20,7 @@ import { AiTutorCTA } from "@/components/learn/AiTutorCTA";
 import { EmptyModulesMessage } from "@/components/learn/EmptyModulesMessage";
 import { authLogger } from "@/lib/auth-logger";
 import { MASTERY_THRESHOLDS } from "@/lib/constants/thresholds";
+import { calculateStreak } from "@/app/actions/dashboard-stats/progress-analytics";
 
 // Module type from database
 interface ModuleData {
@@ -228,87 +229,6 @@ async function getTotalPoints(userId: string): Promise<number> {
   return typeof data === "number" ? data : 0;
 }
 
-async function getCurrentStreak(userId: string): Promise<number> {
-  const supabase = await createClient();
-
-  // Get last 30 days of activity from MULTIPLE sources
-  // FIXED: Now includes AI tutor interactions and assessments, not just lessons
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-  // Fetch from all activity sources in parallel
-  const [knowledgeResult, interactionsResult, sessionsResult] = await Promise.all([
-    // Lesson progress
-    supabase
-      .from("student_knowledge_state")
-      .select("last_attempt_at")
-      .eq("student_id", userId)
-      .gte("last_attempt_at", thirtyDaysAgo.toISOString()),
-    // AI Tutor interactions
-    supabase
-      .from("ai_tutor_interactions")
-      .select("created_at")
-      .eq("student_id", userId)
-      .gte("created_at", thirtyDaysAgo.toISOString()),
-    // Assessment sessions
-    supabase
-      .from("assessment_sessions")
-      .select("started_at")
-      .eq("user_id", userId)
-      .gte("started_at", thirtyDaysAgo.toISOString()),
-  ]);
-
-  // Combine all activity dates
-  const activityDays = new Set<number>();
-
-  // Helper: Add date to set (normalized to local midnight)
-  const addActivityDate = (dateString: string | null) => {
-    if (!dateString) return;
-    const date = new Date(dateString);
-    date.setHours(0, 0, 0, 0);
-    activityDays.add(date.getTime());
-  };
-
-  // Add lesson dates
-  knowledgeResult.data?.forEach((d) => addActivityDate(d.last_attempt_at));
-
-  // Add AI tutor dates
-  interactionsResult.data?.forEach((d) => addActivityDate(d.created_at));
-
-  // Add assessment dates
-  sessionsResult.data?.forEach((d) => addActivityDate(d.started_at));
-
-  if (activityDays.size === 0) return 0;
-
-  // Calculate streak from today
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  let streak = 0;
-  const checkDate = new Date(today);
-
-  // Check consecutive days starting from today
-  while (activityDays.has(checkDate.getTime())) {
-    streak++;
-    checkDate.setDate(checkDate.getDate() - 1);
-  }
-
-  // If no activity today, check if yesterday had activity (allow grace period)
-  if (streak === 0) {
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    if (activityDays.has(yesterday.getTime())) {
-      // Start counting from yesterday
-      checkDate.setTime(yesterday.getTime());
-      while (activityDays.has(checkDate.getTime())) {
-        streak++;
-        checkDate.setDate(checkDate.getDate() - 1);
-      }
-    }
-  }
-
-  return streak;
-}
 
 export default async function LearnPage() {
   const user = await getCurrentUser();
@@ -321,10 +241,11 @@ export default async function LearnPage() {
   const modulesFromDB = await getModulesFromDB();
   const MODULES = modulesFromDB.map(transformModule);
 
+  const supabase = await createClient();
   const [progressMap, totalPoints, currentStreak] = await Promise.all([
     getModuleProgress(user.id, modulesFromDB),
     getTotalPoints(user.id),
-    getCurrentStreak(user.id),
+    calculateStreak(supabase, user.id),
   ]);
 
   // Calculate overall stats using actual topic counts
