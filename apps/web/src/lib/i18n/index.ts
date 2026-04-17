@@ -52,6 +52,8 @@ export type {
   AuthTranslations,
   OfflineTranslations,
   ErrorTranslations,
+  RoleTranslations,
+  SkillTranslations,
 } from "./types";
 
 // Constants

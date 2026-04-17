@@ -308,5 +308,16 @@
     "msgGood": "Well done! You've passed \"{topic}\". Keep up the great work!",
     "msgOk": "Good effort on \"{topic}\"! Review the content once more to strengthen your understanding.",
     "msgKeepGoing": "Keep going! \"{topic}\" takes practice. Try reviewing the lesson and attempting again."
+  },
+  "role": {
+    "student": "Student",
+    "teacher": "Teacher",
+    "admin": "Teacher, Admin",
+    "super_admin": "Super Admin"
+  },
+  "skill": {
+    "beginner": "Beginner",
+    "intermediate": "Intermediate",
+    "advanced": "Advanced"
   }
 }
