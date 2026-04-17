@@ -126,10 +126,17 @@ export async function createAnnouncement(input: {
         is_pinned: validatedInput.isPinned,
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       authLogger.error("[createAnnouncement] Database error", error);
+      return { success: false, error: "Failed to create announcement" };
+    }
+
+    if (!data) {
+      authLogger.error(
+        "[createAnnouncement] Insert succeeded but returned no row",
+      );
       return { success: false, error: "Failed to create announcement" };
     }
 
