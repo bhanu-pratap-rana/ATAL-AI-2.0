@@ -72,10 +72,11 @@ export function AppTopHeader() {
           <LanguageSelector variant="compact" />
           <SyncStatusIndicator compact />
           <button
-                type="button"
+            type="button"
             onClick={handleSignOut}
-            className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+            aria-label="Sign out"
             title="Sign out"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
           >
             <LogOut size={18} />
           </button>

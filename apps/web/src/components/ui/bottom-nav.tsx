@@ -78,7 +78,9 @@ export function BottomNav() {
             <Link
               key={href}
               href={href}
-              className={`flex flex-col items-center gap-1 transition-all ${
+              aria-label={label}
+              aria-current={active ? "page" : undefined}
+              className={`flex flex-col items-center justify-center gap-1 min-h-[44px] min-w-[44px] py-1 transition-all ${
                 active ? `${colors.text} scale-110` : "text-slate-400 hover:text-slate-600"
               }`}
             >
