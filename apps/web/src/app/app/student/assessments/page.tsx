@@ -1,5 +1,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase-server";
+import { getTranslation } from "@/lib/i18n";
+import { getServerLanguage } from "@/lib/i18n/server";
+import type { SupportedLanguage } from "@/lib/i18n";
 import Link from "next/link";
 
 // Format time in seconds to readable string
@@ -25,11 +28,11 @@ function formatRelativeTime(dateString: string): string {
 }
 
 // Get skill level from score
-function getSkillLevel(score: number): { label: string; color: string } {
-  if (score >= 80) return { label: "Advanced", color: "bg-emerald-500 text-white" };
+function getSkillLevel(score: number, language: SupportedLanguage): { label: string; color: string } {
+  if (score >= 80) return { label: getTranslation("skill.advanced", language), color: "bg-emerald-500 text-white" };
   if (score >= 60)
-    return { label: "Intermediate", color: "bg-amber-400 text-white" };
-  return { label: "Beginner", color: "bg-info text-white" };
+    return { label: getTranslation("skill.intermediate", language), color: "bg-amber-400 text-white" };
+  return { label: getTranslation("skill.beginner", language), color: "bg-info text-white" };
 }
 
 // Get score circle background color
@@ -51,6 +54,7 @@ interface AssessmentSession {
 
 export default async function StudentAssessmentsPage() {
   const supabase = await createClient();
+  const language = await getServerLanguage();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -175,7 +179,7 @@ export default async function StudentAssessmentsPage() {
             {hasHistory ? (
               <div className="space-y-3">
                 {assessmentHistory.map((assessment) => {
-                  const skillLevel = getSkillLevel(assessment.score);
+                  const skillLevel = getSkillLevel(assessment.score, language);
                   return (
                     <div
                       key={assessment.id}
