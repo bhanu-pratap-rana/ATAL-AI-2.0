@@ -18,7 +18,7 @@ import {
 
 // ─── TOKENS ──────────────────────────────────────────────────────────────────
 const PRIMARY  = "#F98819";
-const GRAD     = "linear-gradient(135deg,#F98819 0%,#FFD166 100%)";
+const GRAD     = "var(--gradient-primary)";
 const GLOW     = "0 4px 14px 0 rgba(249,136,25,0.39)";
 const DARK_BG  = "#0F172A";
 
@@ -45,7 +45,7 @@ const SCHOOLS = [
   { id:"sc3", name:"Navodaya Vidyalaya",   teachers:2, students:80,  status:"pending"  },
 ];
 const LESSON_STEPS = [
-  { title:"Meet the Machine", content:"A computer is like a helpful friend that follows your instructions exactly.", img:"🤖", color:"linear-gradient(135deg,#3B82F6,#6366F1)" },
+  { title:"Meet the Machine", content:"A computer is like a helpful friend that follows your instructions exactly.", img:"🤖", color:"var(--gradient-teacher)" },
   { title:"Input: The Ears",  content:"Keyboards and mice are the ears of the computer. They tell the machine what you want.", img:"🎧", color:"linear-gradient(135deg,#F98819,#FFD166)" },
   { title:"The Brain (CPU)", content:"The CPU calculates everything in a blink — it is the smartest part!", img:"🧠", color:"linear-gradient(135deg,#10B981,#34D399)" },
 ];
@@ -132,8 +132,8 @@ function getRoleBadgeColor(role: string): string {
   return PRIMARY;
 }
 function getRoleBg(role: string): string {
-  if (role === "admin") return "linear-gradient(135deg,#DC2626,#7C3AED)";
-  if (role === "teacher") return "linear-gradient(135deg,#3B82F6,#6366F1)";
+  if (role === "admin") return "var(--gradient-admin)";
+  if (role === "teacher") return "var(--gradient-teacher)";
   return GRAD;
 }
 function getRoleInitials(role: string): string {
@@ -540,7 +540,7 @@ function TeacherConsole({ onSignOut }:Readonly<{ onSignOut:()=>void }>) {
               </div>
 
               {/* Welcome */}
-              <div className="rounded-2xl p-6" style={{ background:"linear-gradient(135deg,#3B82F6,#6366F1)", boxShadow:"0 4px 14px rgba(99,102,241,0.35)" }}>
+              <div className="rounded-2xl p-6" style={{ background:"var(--gradient-teacher)", boxShadow:"0 4px 14px rgba(99,102,241,0.35)" }}>
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
                     <h2 className="text-2xl font-black text-white">Welcome, Meera Ma&apos;am!</h2>
@@ -642,7 +642,7 @@ function TeacherConsole({ onSignOut }:Readonly<{ onSignOut:()=>void }>) {
                 {CLASSES.map(cls=>(
                   <GCard key={cls.id}>
                     <div className="flex items-start justify-between mb-5">
-                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-lg" style={{ background:"linear-gradient(135deg,#3B82F6,#6366F1)" }}>
+                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-lg" style={{ background:"var(--gradient-teacher)" }}>
                         🏫
                       </div>
                       <StatusBadge status="active"/>
@@ -773,7 +773,7 @@ function AdminPanel({ onSignOut }:Readonly<{ onSignOut:()=>void }>) {
         style={{ background:"#0F172A" }}>
         <div className="px-4 mb-8">
           <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-black text-sm mb-3"
-            style={{ background:"linear-gradient(135deg,#DC2626,#7C3AED)" }}>AD</div>
+            style={{ background:"var(--gradient-admin)" }}>AD</div>
           <p className="text-white font-black text-sm">ATAL AI Admin</p>
           <p className="text-slate-400 text-xs">Super Administrator</p>
         </div>

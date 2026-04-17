@@ -212,7 +212,7 @@ export default async function ClassDetailPage({
     <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
       <div className="max-w-6xl mx-auto space-y-4">
         {/* Banner */}
-        <div className="rounded-[32px] p-6 text-white" style={{ background: "linear-gradient(135deg,#3B82F6,#6366F1)" }}>
+        <div className="rounded-[32px] p-6 text-white" style={{ background: "var(--gradient-teacher)" }}>
           <Link href="/app/teacher/classes" className="inline-flex items-center gap-2 text-white/80 text-xs font-black uppercase tracking-widest mb-4">
             ← Classes
           </Link>

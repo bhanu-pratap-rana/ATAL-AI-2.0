@@ -141,7 +141,7 @@ export default async function StudentAssessmentsPage() {
     <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
       <div className="max-w-2xl mx-auto space-y-4">
         {/* Banner */}
-        <div className="rounded-[32px] p-6 text-white" style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" }}>
+        <div className="rounded-[32px] p-6 text-white" style={{ background: "var(--gradient-primary)" }}>
           <Link href="/app/student/dashboard" className="inline-flex items-center gap-2 text-white/80 text-xs font-black uppercase tracking-widest mb-4">
             ← Dashboard
           </Link>
@@ -158,7 +158,7 @@ export default async function StudentAssessmentsPage() {
           <Link
             href="/app/assessment/start"
             className="px-5 py-3 rounded-2xl font-black text-sm text-white shrink-0 transition-all active:scale-95"
-            style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)", boxShadow: "0 4px 14px rgba(249,136,25,0.39)" }}
+            style={{ background: "var(--gradient-primary)", boxShadow: "0 4px 14px rgba(249,136,25,0.39)" }}
           >
             Start
           </Link>
@@ -227,7 +227,7 @@ export default async function StudentAssessmentsPage() {
                 <Link
                   href="/app/assessment/start"
                   className="px-6 py-3 rounded-2xl font-black text-sm text-white transition-all active:scale-95 inline-block"
-                  style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)", boxShadow: "0 4px 14px rgba(249,136,25,0.39)" }}
+                  style={{ background: "var(--gradient-primary)", boxShadow: "0 4px 14px rgba(249,136,25,0.39)" }}
                 >
                   Take First Assessment
                 </Link>

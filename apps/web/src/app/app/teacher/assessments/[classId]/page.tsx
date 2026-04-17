@@ -71,7 +71,7 @@ export default async function ClassAssessmentResultsPage({
     <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Banner */}
-        <div className="rounded-[32px] p-6 text-white" style={{ background: "linear-gradient(135deg,#3B82F6,#6366F1)" }}>
+        <div className="rounded-[32px] p-6 text-white" style={{ background: "var(--gradient-teacher)" }}>
           <Link href="/app/teacher/assessments" className="inline-flex items-center gap-2 text-white/80 text-xs font-black uppercase tracking-widest mb-4">
             ← Assessments
           </Link>
@@ -133,7 +133,7 @@ export default async function ClassAssessmentResultsPage({
               <div className="text-4xl mb-3">📭</div>
               <p className="font-black text-slate-800 mb-1">No students enrolled yet</p>
               <p className="text-sm font-bold text-slate-400 mb-4">Share the class code with your students to get started.</p>
-              <Link href={`/app/teacher/classes/${classId}`} className="px-5 py-2.5 rounded-2xl font-black text-sm text-white inline-block" style={{ background: "linear-gradient(135deg,#3B82F6,#6366F1)" }}>
+              <Link href={`/app/teacher/classes/${classId}`} className="px-5 py-2.5 rounded-2xl font-black text-sm text-white inline-block" style={{ background: "var(--gradient-teacher)" }}>
                 View Class Details
               </Link>
             </div>

@@ -548,7 +548,7 @@ export default function AdminSchoolsPage() {
             <Link
               href="/admin/login"
               className="block w-full py-3 rounded-2xl font-black text-sm text-white text-center"
-              style={{ background: "linear-gradient(135deg,#DC2626,#7C3AED)" }}
+              style={{ background: "var(--gradient-admin)" }}
             >
               Admin Login
             </Link>
@@ -570,7 +570,7 @@ export default function AdminSchoolsPage() {
     <div className="min-h-screen bg-slate-50 p-6 pb-28">
       <div className="max-w-3xl mx-auto">
         {/* Red Gradient Banner */}
-        <div className="rounded-[32px] p-6 text-white mb-8" style={{ background: "linear-gradient(135deg, #DC2626 0%, #7C3AED 100%)" }}>
+        <div className="rounded-[32px] p-6 text-white mb-8" style={{ background: "var(--gradient-admin)" }}>
           <h1 className="text-xl sm:text-2xl font-black mb-1">School Management</h1>
           <p className="text-red-100 text-xs font-black uppercase tracking-widest mb-6">Assam Digital Initiative • Admin Portal</p>
           <div className="grid grid-cols-3 gap-3">
@@ -624,7 +624,7 @@ export default function AdminSchoolsPage() {
                   onClick={handleSearch}
                   disabled={loading}
                   className="px-4 py-2 rounded-2xl font-black text-sm text-white flex items-center justify-center disabled:opacity-50 transition-all active:scale-95 flex-shrink-0"
-                  style={{ background: "linear-gradient(135deg,#DC2626,#7C3AED)" }}
+                  style={{ background: "var(--gradient-admin)" }}
                 >
                   <Search className="h-4 w-4" />
                 </button>
@@ -781,7 +781,7 @@ export default function AdminSchoolsPage() {
                 type="submit"
                 disabled={loading || newPin !== confirmPin || newPin.length < 4}
                 className="w-full px-4 py-3 rounded-2xl font-black text-sm text-white flex items-center justify-center gap-2 disabled:opacity-50 transition-all active:scale-95"
-                style={{ background: "linear-gradient(135deg,#DC2626,#7C3AED)" }}
+                style={{ background: "var(--gradient-admin)" }}
               >
                 <RefreshCw className="h-4 w-4" />
                 {loading ? "Processing..." : `${pinActionLabel} PIN`}

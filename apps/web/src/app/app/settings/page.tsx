@@ -105,8 +105,8 @@ export default async function SettingsPage() {
           className="rounded-[32px] p-6 text-white"
           style={{
             background: isTeacherOrAdmin
-              ? "linear-gradient(135deg,#3B82F6,#6366F1)"
-              : "linear-gradient(135deg,#F98819 0%,#FFD166 100%)",
+              ? "var(--gradient-teacher)"
+              : "var(--gradient-primary)",
           }}
         >
           {(() => {

@@ -137,7 +137,7 @@ export default async function AssessmentDetailPage({
     <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Banner */}
-        <div className="rounded-[32px] p-6 text-white" style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" }}>
+        <div className="rounded-[32px] p-6 text-white" style={{ background: "var(--gradient-primary)" }}>
           <Link href="/app/student/assessments" className="inline-flex items-center gap-2 text-white/80 text-xs font-black uppercase tracking-widest mb-4">
             <ArrowLeft className="w-4 h-4" /> Back to Assessments
           </Link>
@@ -215,7 +215,7 @@ export default async function AssessmentDetailPage({
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-3">
-          <Link href="/app/assessment/start" className="flex-1 py-3 rounded-2xl font-black text-sm text-white text-center transition-all active:scale-95" style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" }}>
+          <Link href="/app/assessment/start" className="flex-1 py-3 rounded-2xl font-black text-sm text-white text-center transition-all active:scale-95" style={{ background: "var(--gradient-primary)" }}>
             Retake Assessment
           </Link>
           <Link href="/app/learn" className="flex-1 py-3 rounded-2xl font-black text-sm text-slate-700 text-center bg-white border border-slate-200 transition-all active:scale-95">
