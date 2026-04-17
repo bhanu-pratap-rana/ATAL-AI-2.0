@@ -186,35 +186,60 @@ export function StudentProgressGrid({
     }
   }, [classId]);
 
-  // Set up real-time subscription
+  // Set up real-time subscription scoped to this class's enrolled students.
+  // Uses `student_id=in.(...)` Postgres changes filter so the teacher never
+  // receives (and never refetches on) events for students in other classes.
+  // Trade-off: enrollment additions made while this grid is open won't stream
+  // until the teacher reloads — acceptable since roster changes are rare.
   useEffect(() => {
-    fetchStudentProgress();
+    let cancelled = false;
+    let channel: ReturnType<ReturnType<typeof createClient>["channel"]> | null =
+      null;
 
-    const supabase = createClient();
+    (async () => {
+      const supabase = createClient();
 
-    // Subscribe to knowledge state changes
-    const channel = supabase
-      .channel(`class-progress-${classId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "student_knowledge_state",
-        },
-        () => {
-          // Refetch when any progress changes
-          // In a production app, we'd do smarter updates
-          fetchStudentProgress();
-        },
-      )
-      .subscribe();
+      const { data: enrollments, error: enrollmentsError } = await supabase
+        .from("enrollments")
+        .select("student_id")
+        .eq("class_id", classId);
+
+      if (cancelled) return;
+
+      if (enrollmentsError) {
+        clientLogger.error(
+          "[StudentProgressGrid] Enrollment lookup for realtime filter failed:",
+          enrollmentsError,
+        );
+      }
+
+      fetchStudentProgress();
+
+      const studentIds = (enrollments ?? []).map((e) => e.student_id);
+      if (studentIds.length === 0) return;
+
+      channel = supabase
+        .channel(`class-progress-${classId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "student_knowledge_state",
+            filter: `student_id=in.(${studentIds.join(",")})`,
+          },
+          () => {
+            fetchStudentProgress();
+          },
+        )
+        .subscribe();
+    })();
 
     return () => {
-      channel.unsubscribe();
+      cancelled = true;
+      channel?.unsubscribe();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [classId]); // Only depend on classId to avoid subscription recreation
+  }, [classId, fetchStudentProgress]);
 
   if (loading) {
     return (
