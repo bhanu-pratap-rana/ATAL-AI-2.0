@@ -580,5 +580,5 @@ For issues and questions:
 
 **Built with ❤️ for digital empowerment in India**
 
-Last updated: 2026-04-02
-Version: 1.0.0.0 - Production Ready
+Last updated: 2026-04-17
+Version: 1.0.1.0 - Audit remediation
