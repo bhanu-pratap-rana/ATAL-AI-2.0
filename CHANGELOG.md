@@ -9,10 +9,12 @@ Closes the critical, high, and medium findings from the v1.0.0.0 production audi
 All twelve commits sit on `fix/v1.0.0.0-audit-remediation`.
 
 ### Security
-- **C1 — Close unprotected render window on role-gated dashboards** (`ecccf36`). Student,
-  teacher, and admin dashboards and admin sub-pages now verify role server-side in the
-  layout/page before any markup renders. Previously a brief client-side check left a render
-  window where a cross-role user could see partial UI.
+- **C1 — Close unprotected render window on role-gated dashboards** (`ecccf36`, `96d84ae`).
+  Student, teacher, and admin dashboards and admin sub-pages (`/app/admin/performance`,
+  `/app/admin/schools`) now verify role server-side in the page before any markup renders.
+  Previously a brief client-side check left a render window where a cross-role user could
+  see partial UI. `96d84ae` closed the admin/schools gap missed in the original C1 commit
+  — split the former 820-line `page.tsx` into a server page + `SchoolsClient.tsx`.
 - **C2 — Fail-closed rate limiter for auth/PIN/OTP endpoints** (`2bf2248`). Added a `failMode`
   configuration to `RateLimitConfig`; security-critical endpoints (login, PIN verify, OTP)
   now reject on Redis outage instead of degrading to local in-memory limits. Prevents brute
