@@ -131,107 +131,30 @@ export function calculateRecentAssessments(
   return recentAssessments;
 }
 
-/**
- * Calculate consecutive days with activity (streak)
- *
- * FIXED: Now tracks activity from MULTIPLE sources, not just assessments:
- * - Assessment sessions (assessment_sessions.started_at)
- * - AI Tutor interactions (ai_tutor_interactions.created_at)
- * - Lesson progress (student_knowledge_state.last_attempt_at)
- *
- * PERFORMANCE: Uses Set-based lookup (O(1)) instead of array includes (O(n))
- *
- * TIMEZONE FIX (Migration 147): Use LOCAL date formatting instead of UTC
- * to ensure consistent date comparison across timezones.
- */
+// Delegates to get_student_streak RPC (migration 167) which buckets activity
+// timestamps by Asia/Kolkata date. Server-side calculation avoids the
+// Vercel-runtime-UTC vs student-local-IST divergence that broke streaks
+// around the IST midnight boundary.
 export async function calculateStreak(
   supabase: SupabaseClient,
   userId: string,
 ): Promise<number> {
   try {
-    // Fetch activity dates from multiple sources in parallel
-    const [sessionsResult, interactionsResult, knowledgeStateResult] = await Promise.all([
-      // Assessment sessions
-      supabase
-        .from("assessment_sessions")
-        .select("started_at")
-        .eq("user_id", userId),
-      // AI Tutor interactions
-      supabase
-        .from("ai_tutor_interactions")
-        .select("created_at")
-        .eq("student_id", userId),
-      // Lesson progress (only where student has attempted)
-      supabase
-        .from("student_knowledge_state")
-        .select("last_attempt_at")
-        .eq("student_id", userId)
-        .not("last_attempt_at", "is", null),
-    ]);
-
-    // Combine all activity dates into a single Set
-    const dateSet = new Set<string>();
-
-    // Helper: Format date to LOCAL YYYY-MM-DD (fixes timezone issue)
-    // Previously used toISOString() which converts to UTC, causing date mismatches
-    const formatLocalDate = (date: Date): string => {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
-      return `${year}-${month}-${day}`;
-    };
-
-    // Helper: Add date to set (normalizes to LOCAL YYYY-MM-DD format)
-    const addDate = (dateString: string | null) => {
-      if (!dateString) return;
-      const date = new Date(dateString);
-      // TIMEZONE FIX: Use local date formatting instead of toISOString() (UTC)
-      const dateKey = formatLocalDate(date);
-      dateSet.add(dateKey);
-    };
-
-    // Add assessment session dates
-    sessionsResult.data?.forEach((s: { started_at: string }) => {
-      addDate(s.started_at);
+    const { data, error } = await supabase.rpc("get_student_streak", {
+      p_student_id: userId,
     });
-
-    // Add AI tutor interaction dates
-    interactionsResult.data?.forEach((i: { created_at: string }) => {
-      addDate(i.created_at);
-    });
-
-    // Add lesson attempt dates
-    knowledgeStateResult.data?.forEach((k: { last_attempt_at: string }) => {
-      addDate(k.last_attempt_at);
-    });
-
-    if (dateSet.size === 0) return 0;
-
-    // Calculate streak from today
-    let streak = 0;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    for (let i = 0; i < 365; i++) {
-      const checkDate = new Date(today);
-      checkDate.setDate(checkDate.getDate() - i);
-      // TIMEZONE FIX: Use local date formatting to match addDate() helper
-      const dateKey = formatLocalDate(checkDate);
-
-      if (dateSet.has(dateKey)) {
-        streak++;
-      } else if (i > 0) {
-        // Allow skipping today (user might not have done activity yet today)
-        // But break if any previous day is missing (streak broken)
-        break;
-      }
+    if (error) {
+      authLogger.error(
+        "[getStreak] get_student_streak RPC failed",
+        new Error(error.message),
+      );
+      return 0;
     }
-
-    return streak;
+    return typeof data === "number" ? data : 0;
   } catch (error) {
     authLogger.error(
       "[getStreak] Failed to calculate streak",
-      error instanceof Error ? error : new Error(String(error))
+      error instanceof Error ? error : new Error(String(error)),
     );
     return 0;
   }
