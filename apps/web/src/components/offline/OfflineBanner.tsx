@@ -149,7 +149,7 @@ export function OfflineBanner({
         "fixed left-0 right-0 z-50 transition-all duration-300 ease-in-out",
         position === "top" ? "top-0" : "bottom-0",
         isOnline && !showSyncingMessage
-          ? "opacity-0 translate-y-[-100%]"
+          ? "opacity-0 -translate-y-full"
           : "opacity-100 translate-y-0",
         getBackgroundColor(),
         className,

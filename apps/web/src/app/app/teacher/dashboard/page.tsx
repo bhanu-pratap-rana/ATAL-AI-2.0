@@ -134,16 +134,21 @@ async function getRecentStudents(teacherId: string, limit = 5): Promise<RecentSt
   }
 }
 
-export default async function TeacherDashboardPage() {
+export default async function TeacherDashboardPage({
+  searchParams,
+}: Readonly<{
+  searchParams: Promise<{ classId?: string }>;
+}>) {
   const user = await getCurrentUser();
 
   if (!user) redirect("/teacher/start");
   if (!isTeacherOrHigher(user.app_metadata?.role)) redirect("/app/student/dashboard");
 
-  const [metrics, teacherName, recentStudents] = await Promise.all([
+  const [metrics, teacherName, recentStudents, { classId: selectedClassId }] = await Promise.all([
     getDashboardMetrics(user.id),
     getTeacherName(user.id),
     getRecentStudents(user.id),
+    searchParams,
   ]);
 
   const bannerStyle = { background: "var(--gradient-teacher)" };
@@ -179,7 +184,8 @@ export default async function TeacherDashboardPage() {
     );
   }
 
-  const selectedClass = metrics.classes[0];
+  const selectedClass =
+    metrics.classes.find((c) => c.id === selectedClassId) ?? metrics.classes[0];
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
@@ -252,8 +258,9 @@ export default async function TeacherDashboardPage() {
             <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Select Class</p>
             <div className="flex flex-wrap gap-2">
               {metrics.classes.map((cls) => (
-                <span
+                <Link
                   key={cls.id}
+                  href={`?classId=${cls.id}`}
                   className={`px-4 py-2 rounded-xl text-xs font-black transition-colors ${
                     cls.id === selectedClass.id
                       ? "text-white"
@@ -262,7 +269,7 @@ export default async function TeacherDashboardPage() {
                   style={cls.id === selectedClass.id ? bannerStyle : undefined}
                 >
                   {cls.name}
-                </span>
+                </Link>
               ))}
             </div>
           </div>

@@ -141,7 +141,7 @@ export async function createAnnouncement(input: {
     }
 
     revalidatePath(`/app/teacher/classes/${validatedInput.classId}`);
-    revalidatePath("/app/student/announcements");
+    revalidatePath("/app/student/classes");
     return { success: true, data };
   } catch (error) {
     authLogger.error("[createAnnouncement] Unexpected error", error);
@@ -226,7 +226,7 @@ export async function updateAnnouncement(input: {
     }
 
     revalidatePath(`/app/teacher/classes/${announcement.class_id}`);
-    revalidatePath("/app/student/announcements");
+    revalidatePath("/app/student/classes");
     return { success: true, data };
   } catch (error) {
     authLogger.error("[updateAnnouncement] Unexpected error", error);
@@ -292,7 +292,7 @@ export async function deleteAnnouncement(announcementId: string) {
     }
 
     revalidatePath(`/app/teacher/classes/${announcement.class_id}`);
-    revalidatePath("/app/student/announcements");
+    revalidatePath("/app/student/classes");
     return { success: true };
   } catch (error) {
     authLogger.error("[deleteAnnouncement] Unexpected error", error);
@@ -427,7 +427,7 @@ export async function uploadMaterial(input: {
         module_id: validatedInput.moduleId || null,
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       authLogger.error("[uploadMaterial] Database error", error);
@@ -435,7 +435,7 @@ export async function uploadMaterial(input: {
     }
 
     revalidatePath(`/app/teacher/classes/${validatedInput.classId}`);
-    revalidatePath("/app/student/materials");
+    revalidatePath("/app/student/classes");
     return { success: true, data };
   } catch (error) {
     authLogger.error("[uploadMaterial] Unexpected error", error);
@@ -545,7 +545,7 @@ export async function uploadMaterialFile(formData: FormData) {
         module_id: moduleId || null,
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (dbError) {
       // Clean up uploaded file if DB insert fails
@@ -555,7 +555,7 @@ export async function uploadMaterialFile(formData: FormData) {
     }
 
     revalidatePath(`/app/teacher/classes/${classId}`);
-    revalidatePath("/app/student/materials");
+    revalidatePath("/app/student/classes");
     return { success: true, data };
   } catch (error) {
     authLogger.error("[uploadMaterialFile] Unexpected error", error);
@@ -626,7 +626,7 @@ export async function deleteMaterial(materialId: string) {
     }
 
     revalidatePath(`/app/teacher/classes/${material.class_id}`);
-    revalidatePath("/app/student/materials");
+    revalidatePath("/app/student/classes");
     return { success: true };
   } catch (error) {
     authLogger.error("[deleteMaterial] Unexpected error", error);

@@ -94,7 +94,7 @@ export default function AdminSetupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-surface via-background to-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-surface via-background to-white flex items-center justify-center p-4">
       <div className="absolute top-4 left-4">
         <Button
           onClick={() => (globalThis.location.href = "/admin/login")}

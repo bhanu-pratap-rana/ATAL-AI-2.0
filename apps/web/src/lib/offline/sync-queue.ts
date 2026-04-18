@@ -454,6 +454,19 @@ export class SyncQueue {
           break;
         }
 
+        case "lesson_complete": {
+          const { error } = await this.withTimeout(
+            Promise.resolve(supabase.rpc("update_progress_atomic", {
+              p_student_id: item.payload.student_id,
+              p_topic_id: item.payload.topic_id,
+              p_module_id: item.payload.module_id,
+              p_score: item.payload.mastery_score,
+            })),
+          );
+          if (error) throw new Error(`Sync lesson_complete failed: ${error.message}`);
+          break;
+        }
+
         default:
           clientLogger.warn("[SyncQueue] Unknown mutation type", {
             type: item.type,

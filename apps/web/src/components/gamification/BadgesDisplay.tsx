@@ -59,7 +59,7 @@ const RARITY_STYLES = {
     glow: "shadow-primary/30",
   },
   legendary: {
-    bg: "bg-gradient-to-br from-warning/20 to-warning/10",
+    bg: "bg-linear-to-br from-warning/20 to-warning/10",
     border: "border-warning",
     text: "text-warning",
     glow: "shadow-warning/30 shadow-lg",

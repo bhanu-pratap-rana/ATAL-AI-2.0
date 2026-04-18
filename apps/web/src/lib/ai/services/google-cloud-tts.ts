@@ -82,11 +82,9 @@ const VOICE_MAP: Record<TTSLanguage, VoiceConfig> = {
     ssmlGender: "FEMALE",
   },
   as: {
-    // Assamese is not directly supported, use Bengali as closest alternative
-    // Bengali and Assamese share script similarities
-    // Note: Bengali doesn't have Neural2 voices, using Wavenet (high quality)
+    // Assamese not natively supported — Bengali Neural2 is the closest (same script)
     languageCode: "bn-IN",
-    name: "bn-IN-Wavenet-A", // Bengali, female, wavenet (high quality)
+    name: "bn-IN-Neural2-A", // Bengali Neural2 — significantly more human-like than WaveNet
     ssmlGender: "FEMALE",
   },
 };
@@ -97,17 +95,17 @@ const VOICE_MAP: Record<TTSLanguage, VoiceConfig> = {
 const FALLBACK_VOICES: Record<TTSLanguage, VoiceConfig> = {
   en: {
     languageCode: "en-IN",
-    name: "en-IN-Standard-A",
+    name: "en-IN-Wavenet-A",
     ssmlGender: "FEMALE",
   },
   hi: {
     languageCode: "hi-IN",
-    name: "hi-IN-Standard-A",
+    name: "hi-IN-Wavenet-A",
     ssmlGender: "FEMALE",
   },
   as: {
-    languageCode: "bn-IN", // Fall back to Bengali Standard if Neural2 fails
-    name: "bn-IN-Standard-A",
+    languageCode: "bn-IN",
+    name: "bn-IN-Wavenet-A", // WaveNet fallback if Neural2 unavailable
     ssmlGender: "FEMALE",
   },
 };
@@ -116,9 +114,26 @@ const FALLBACK_VOICES: Record<TTSLanguage, VoiceConfig> = {
 // SERVICE CLASS
 // ============================================================================
 
+/**
+ * Convert plain text to SSML for more natural, human-like prosody.
+ * Adds pauses at sentence/clause boundaries so the voice breathes naturally.
+ */
+function toSSML(text: string): string {
+  const escaped = text
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    // Long pause after sentence-ending punctuation
+    .replace(/([.!?])\s+/g, '$1<break time="450ms"/>')
+    // Medium pause after colons and semicolons
+    .replace(/([;:])\s+/g, '$1<break time="250ms"/>')
+    // Short pause after commas
+    .replace(/,\s+/g, ',<break time="150ms"/>');
+  return `<speak>${escaped}</speak>`;
+}
+
 export class GoogleCloudTTSService {
-  private apiKey: string | undefined;
-  private projectId: string | undefined;
+  private readonly apiKey: string | undefined;
   private accessToken: string | null = null;
   private tokenExpiry: number = 0;
 
@@ -126,7 +141,6 @@ export class GoogleCloudTTSService {
     // Only use API key if it's actually set (not empty string)
     const apiKey = process.env.GOOGLE_CLOUD_TTS_API_KEY;
     this.apiKey = apiKey && apiKey.trim().length > 0 ? apiKey : undefined;
-    this.projectId = process.env.GOOGLE_CLOUD_PROJECT;
 
     // BP-8 FIX: Warn if TTS is not configured (helps diagnose deployment issues)
     if (!this.isConfigured()) {
@@ -171,18 +185,19 @@ export class GoogleCloudTTSService {
     const voice = options.useWaveNet !== false ? VOICE_MAP[language] : FALLBACK_VOICES[language];
 
     const request: SynthesizeRequest = {
-      input: { text },
+      // Use SSML for natural pauses and prosody (human-like rhythm)
+      input: { ssml: toSSML(text) },
       voice: {
         languageCode: voice.languageCode,
         name: voice.name,
         ssmlGender: options.gender || voice.ssmlGender,
       },
       audioConfig: {
-        audioEncoding: "LINEAR16", // WAV format
-        speakingRate: options.speakingRate || 1.0,
-        pitch: options.pitch || 0.0,
-        volumeGainDb: options.volumeGainDb || 0.0,
-        sampleRateHertz: 24000, // Good quality for speech
+        audioEncoding: "LINEAR16",
+        speakingRate: options.speakingRate ?? 1.0,
+        pitch: options.pitch ?? 0.0,
+        volumeGainDb: options.volumeGainDb ?? 0.0,
+        sampleRateHertz: 24000,
       },
     };
 
