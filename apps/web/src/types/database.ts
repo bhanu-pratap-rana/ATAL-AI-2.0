@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "13.0.5"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       ai_tutor_interactions: {
@@ -1310,33 +1285,14 @@ export type Database = {
           points_awarded: number
         }[]
       }
-      check_email_exists: {
-        Args: { p_email: string }
-        Returns: {
-          email_exists: boolean
-          user_id: string
-        }[]
-      }
-      check_username_available: {
-        Args: { p_username: string }
-        Returns: boolean
+      check_curriculum_completion: {
+        Args: { p_student_id: string }
+        Returns: Json
       }
       cleanup_expired_lessons: { Args: never; Returns: undefined }
       cleanup_old_sync_logs: { Args: never; Returns: number }
       generate_class_code: { Args: never; Returns: string }
       generate_join_pin: { Args: never; Returns: string }
-      get_connection_stats: {
-        Args: Record<string, never>
-        Returns: {
-          active_connections: number
-          max_connections: number
-          utilization_percent: number
-        }[]
-      }
-      get_announcement_read_count: {
-        Args: { p_announcement_id: string }
-        Returns: number
-      }
       get_announcements_with_reads: {
         Args: { p_class_id: string }
         Returns: {
@@ -1352,6 +1308,7 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_assessment_comparison: { Args: { p_user_id: string }; Returns: Json }
       get_class_leaderboard: {
         Args: { p_class_id: string; p_limit?: number }
         Returns: {
@@ -1359,24 +1316,6 @@ export type Database = {
           student_id: string
           student_name: string
           total_points: number
-        }[]
-      }
-      get_class_materials: {
-        Args: { p_class_id: string }
-        Returns: {
-          created_at: string
-          description: string
-          download_count: number
-          external_url: string
-          file_name: string
-          file_size: number
-          file_url: string
-          id: string
-          material_type: string
-          mime_type: string
-          storage_path: string
-          title: string
-          view_count: number
         }[]
       }
       get_class_roster: {
@@ -1402,6 +1341,14 @@ export type Database = {
           topics_total: number
         }[]
       }
+      get_connection_stats: {
+        Args: never
+        Returns: {
+          active_connections: number
+          max_connections: number
+          utilization_percent: number
+        }[]
+      }
       get_module_topics: {
         Args: { p_module_id: string }
         Returns: {
@@ -1415,34 +1362,6 @@ export type Database = {
           name_en: string
           name_hi: string
         }[]
-      }
-      get_module_unit_count: { Args: { p_module_id: string }; Returns: number }
-      get_student_total_points: { Args: { p_student_id: string }; Returns: number }
-      upsert_generated_lesson: {
-        Args: {
-          p_module_id: string
-          p_topic_id: string
-          p_language: string
-          p_lesson_json: Json
-          p_cache_version?: string
-          p_expires_at?: string
-        }
-        Returns: undefined
-      }
-      update_progress_atomic: {
-        Args: {
-          p_student_id: string
-          p_module_id: string
-          p_topic_id: string
-          p_score: number
-        }
-        Returns: {
-          success: boolean
-          mastery_score: number
-          status: string
-          confidence_level: string
-          attempts: number
-        }
       }
       get_module_units_with_topics: {
         Args: { p_module_id: string }
@@ -1497,6 +1416,10 @@ export type Database = {
           total_classes: number
         }[]
       }
+      get_student_total_points: {
+        Args: { p_student_id: string }
+        Returns: number
+      }
       get_teacher_class_ids: { Args: { p_user_id: string }; Returns: string[] }
       get_teacher_student_ids: { Args: never; Returns: string[] }
       get_topic: {
@@ -1538,15 +1461,15 @@ export type Database = {
         Returns: string[]
       }
       get_user_id_by_username: { Args: { p_username: string }; Returns: string }
+      has_assessment_type: {
+        Args: { p_type: string; p_user_id: string }
+        Returns: boolean
+      }
       increment_auditory_score: {
         Args: { p_student_id: string }
         Returns: undefined
       }
       increment_material_download: {
-        Args: { p_material_id: string }
-        Returns: undefined
-      }
-      increment_material_view: {
         Args: { p_material_id: string }
         Returns: undefined
       }
@@ -1580,32 +1503,15 @@ export type Database = {
           topic_id: string
         }[]
       }
-      match_curriculum_cosine: {
-        Args: {
-          filter_language?: string
-          filter_module?: string
-          match_count?: number
-          match_threshold?: number
-          query_embedding: string
-        }
-        Returns: {
-          content: string
-          content_type: string
-          id: string
-          language: string
-          module_id: string
-          similarity: number
-          title: string
-          topic_id: string
-        }[]
-      }
       match_curriculum_content_simple: {
         Args: {
-          filter_language?: string | null
+          filter_language?: string
           match_count?: number
           query_text: string
         }
-        Returns: { content: string }[]
+        Returns: {
+          content: string
+        }[]
       }
       match_curriculum_hybrid: {
         Args: {
@@ -1664,17 +1570,37 @@ export type Database = {
         }
         Returns: Json
       }
+      update_progress_atomic: {
+        Args: {
+          p_module_id: string
+          p_score: number
+          p_student_id: string
+          p_topic_id: string
+        }
+        Returns: Json
+      }
+      upsert_generated_lesson: {
+        Args: {
+          p_cache_version?: string
+          p_expires_at?: string
+          p_language: string
+          p_lesson_json: Json
+          p_module_id: string
+          p_topic_id: string
+        }
+        Returns: undefined
+      }
       upsert_student_profile: {
         Args: {
-          p_board: string
-          p_class: string
-          p_date_of_birth: string
-          p_gender: string
-          p_location: string
-          p_medium: string
+          p_class_name?: string
+          p_gender?: string
           p_name: string
-          p_phone: string
+          p_phone?: string
+          p_roll_number?: string
+          p_school_id?: string
+          p_school_name?: string
           p_user_id: string
+          p_village?: string
         }
         Returns: Json
       }
@@ -1814,9 +1740,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },
