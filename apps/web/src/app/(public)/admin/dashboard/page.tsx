@@ -68,7 +68,7 @@ export default function AdminDashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-white flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-surface via-background to-white flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           <p className="mt-4 text-slate-500">Loading dashboard...</p>
@@ -78,13 +78,13 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-surface via-background to-white">
+    <div className="min-h-screen bg-linear-to-br from-surface via-background to-white">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             {/* Logo */}
-            <div className="w-12 h-12 flex-shrink-0">
+            <div className="w-12 h-12 shrink-0">
               <Image
                 src="/assets/logo.png"
                 alt="ATAL AI Logo"
@@ -100,7 +100,7 @@ export default function AdminDashboardPage() {
                   Admin Dashboard
                 </h1>
                 {/* Super Admin Crown - Gold Accent */}
-                <div className="bg-accent-light p-1.5 rounded-lg flex-shrink-0">
+                <div className="bg-accent-light p-1.5 rounded-lg shrink-0">
                   <Crown className="w-4 h-4 text-accent-dark" />
                 </div>
               </div>
@@ -113,7 +113,7 @@ export default function AdminDashboardPage() {
           <Button
             onClick={handleLogout}
             variant="destructive"
-            className="gap-2 flex-shrink-0"
+            className="gap-2 shrink-0"
           >
             <LogOut className="w-4 h-4" />
             <span className="hidden sm:inline">Logout</span>

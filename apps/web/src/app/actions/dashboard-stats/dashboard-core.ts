@@ -90,73 +90,66 @@ export async function getDashboardStats(): Promise<{
 
     const supabase = await createClient();
 
-    // Fetch classes count
-    let classesCount = 0;
-    if (isTeacher) {
-      const { count } = await supabase
-        .from("classes")
-        .select("*", { count: "exact", head: true })
-        .eq("teacher_id", user.id);
-      classesCount = count || 0;
-    } else {
-      const { count } = await supabase
-        .from("enrollments")
-        .select("*", { count: "exact", head: true })
-        .eq("student_id", user.id);
-      classesCount = count || 0;
-    }
+    const classesCountPromise = isTeacher
+      ? supabase
+          .from("classes")
+          .select("*", { count: "exact", head: true })
+          .eq("teacher_id", user.id)
+      : supabase
+          .from("enrollments")
+          .select("*", { count: "exact", head: true })
+          .eq("student_id", user.id);
 
-    // Fetch assessments count (completed sessions)
-    const { count: assessmentsCount } = await supabase
+    const assessmentsCountPromise = supabase
       .from("assessment_sessions")
       .select("*", { count: "exact", head: true })
       .eq("user_id", user.id)
       .not("submitted_at", "is", null);
 
-    // Calculate average score from responses (joined through assessment_sessions)
-    // SECURITY: Only fetch responses from the current user's sessions
-    // PERFORMANCE FIX: Use database aggregation instead of client-side filtering
-    // Old: Fetch all responses, filter in JS (.filter((r: any) => r.is_correct))
-    // New: COUNT with WHERE clause in database
-    // FIX: Use denormalized user_id column (added in Migration 038) instead of invalid join syntax
-    const { count: totalResponses, error: totalError } = await supabase
+    // OI-4 atomic pattern: single query + JS count, no race between total/correct.
+    const responsesPromise = supabase
       .from("assessment_responses")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", user.id); // ✅ Fixed: use denormalized column, not 'assessment_sessions.user_id'
+      .select("is_correct")
+      .eq("user_id", user.id);
 
-    const { count: correctResponses, error: correctError } = await supabase
-      .from("assessment_responses")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", user.id) // ✅ Fixed: use denormalized column, not 'assessment_sessions.user_id'
-      .eq("is_correct", true);
+    const streakPromise = calculateStreak(supabase, user.id);
+    const recentActivityPromise = getRecentActivity(supabase, user.id, isTeacher);
 
-    if (totalError || correctError) {
-      authLogger.error("[getDashboardStats] Error fetching response counts", {
-        totalError,
-        correctError,
+    const [
+      classesResult,
+      assessmentsResult,
+      responsesResult,
+      streakDays,
+      recentActivity,
+    ] = await Promise.all([
+      classesCountPromise,
+      assessmentsCountPromise,
+      responsesPromise,
+      streakPromise,
+      recentActivityPromise,
+    ]);
+
+    const classesCount = classesResult.count ?? 0;
+    const assessmentsCount = assessmentsResult.count ?? 0;
+
+    if (responsesResult.error) {
+      authLogger.error("[getDashboardStats] Error fetching responses", {
+        error: responsesResult.error,
       });
     }
 
+    const rows = responsesResult.data ?? [];
     let averageScore: number | null = null;
-    if (totalResponses && totalResponses > 0 && correctResponses !== null) {
-      averageScore = Math.round((correctResponses / totalResponses) * 100);
+    if (rows.length > 0) {
+      const correct = rows.filter((r) => r.is_correct === true).length;
+      averageScore = Math.round((correct / rows.length) * 100);
     }
-
-    // Calculate streak (consecutive days with activity)
-    const streakDays = await calculateStreak(supabase, user.id);
-
-    // Get recent activity
-    const recentActivity = await getRecentActivity(
-      supabase,
-      user.id,
-      isTeacher,
-    );
 
     return {
       success: true,
       data: {
         classesCount,
-        assessmentsCount: assessmentsCount || 0,
+        assessmentsCount,
         averageScore,
         streakDays,
         recentActivity,

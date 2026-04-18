@@ -1,5 +1,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase-server";
+import { getTranslation } from "@/lib/i18n";
+import { getServerLanguage } from "@/lib/i18n/server";
+import type { SupportedLanguage } from "@/lib/i18n";
 import Link from "next/link";
 
 // Format time in seconds to readable string
@@ -25,11 +28,11 @@ function formatRelativeTime(dateString: string): string {
 }
 
 // Get skill level from score
-function getSkillLevel(score: number): { label: string; color: string } {
-  if (score >= 80) return { label: "Advanced", color: "bg-emerald-500 text-white" };
+function getSkillLevel(score: number, language: SupportedLanguage): { label: string; color: string } {
+  if (score >= 80) return { label: getTranslation("skill.advanced", language), color: "bg-emerald-500 text-white" };
   if (score >= 60)
-    return { label: "Intermediate", color: "bg-amber-400 text-white" };
-  return { label: "Beginner", color: "bg-info text-white" };
+    return { label: getTranslation("skill.intermediate", language), color: "bg-amber-400 text-white" };
+  return { label: getTranslation("skill.beginner", language), color: "bg-info text-white" };
 }
 
 // Get score circle background color
@@ -51,6 +54,7 @@ interface AssessmentSession {
 
 export default async function StudentAssessmentsPage() {
   const supabase = await createClient();
+  const language = await getServerLanguage();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -141,7 +145,7 @@ export default async function StudentAssessmentsPage() {
     <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
       <div className="max-w-2xl mx-auto space-y-4">
         {/* Banner */}
-        <div className="rounded-[32px] p-6 text-white" style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" }}>
+        <div className="rounded-[32px] p-6 text-white" style={{ background: "var(--gradient-primary)" }}>
           <Link href="/app/student/dashboard" className="inline-flex items-center gap-2 text-white/80 text-xs font-black uppercase tracking-widest mb-4">
             ← Dashboard
           </Link>
@@ -158,7 +162,7 @@ export default async function StudentAssessmentsPage() {
           <Link
             href="/app/assessment/start"
             className="px-5 py-3 rounded-2xl font-black text-sm text-white shrink-0 transition-all active:scale-95"
-            style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)", boxShadow: "0 4px 14px rgba(249,136,25,0.39)" }}
+            style={{ background: "var(--gradient-primary)", boxShadow: "0 4px 14px rgba(249,136,25,0.39)" }}
           >
             Start
           </Link>
@@ -175,7 +179,7 @@ export default async function StudentAssessmentsPage() {
             {hasHistory ? (
               <div className="space-y-3">
                 {assessmentHistory.map((assessment) => {
-                  const skillLevel = getSkillLevel(assessment.score);
+                  const skillLevel = getSkillLevel(assessment.score, language);
                   return (
                     <div
                       key={assessment.id}
@@ -183,7 +187,7 @@ export default async function StudentAssessmentsPage() {
                     >
                       <div className="flex items-center gap-4">
                         {/* Score Circle */}
-                        <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white font-black text-lg flex-shrink-0 ${getScoreCircleColor(assessment.score)}`}>
+                        <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white font-black text-lg shrink-0 ${getScoreCircleColor(assessment.score)}`}>
                           {assessment.score}%
                         </div>
                         <div>
@@ -227,7 +231,7 @@ export default async function StudentAssessmentsPage() {
                 <Link
                   href="/app/assessment/start"
                   className="px-6 py-3 rounded-2xl font-black text-sm text-white transition-all active:scale-95 inline-block"
-                  style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)", boxShadow: "0 4px 14px rgba(249,136,25,0.39)" }}
+                  style={{ background: "var(--gradient-primary)", boxShadow: "0 4px 14px rgba(249,136,25,0.39)" }}
                 >
                   Take First Assessment
                 </Link>

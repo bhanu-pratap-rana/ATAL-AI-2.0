@@ -87,6 +87,14 @@ export interface RateLimitConfig {
   refillRate: number; // Tokens per second (e.g., 1 token per 600 seconds = 6 per hour)
   refillInterval: number; // Refill check interval in milliseconds
   ttl?: number; // TTL in seconds for Redis keys (default: 3600)
+  /**
+   * Behaviour when Redis is unavailable.
+   *  - "closed": reject every request until Redis is healthy again. Required
+   *    for auth/PIN/OTP endpoints to preserve the distributed quota.
+   *  - "open-local" (default): fall back to the per-instance in-memory bucket.
+   *    Acceptable for non-security throttles where availability > strictness.
+   */
+  failMode?: "closed" | "open-local";
 }
 
 interface RateLimitResult {
@@ -253,6 +261,16 @@ class RedisRateLimiter implements IRateLimiter {
   private readonly fallbackLimiter: InMemoryRateLimiter;
   private redisAvailable: boolean = true;
 
+  /**
+   * Returns true when the limiter is allowed to degrade to the per-instance
+   * in-memory bucket. When failMode === "closed", the caller MUST refuse the
+   * request instead — in-memory quota is per-pod and bypasses the cluster-wide
+   * rate limit, which is unacceptable for OTP/PIN/auth paths.
+   */
+  private canDegradeToLocal(): boolean {
+    return this.config.failMode !== "closed";
+  }
+
   // Lua script for atomic rate limit check-and-update (prevents TOCTOU race condition)
   // This script is atomic at the Redis level, ensuring no concurrent requests can bypass limits
   private readonly rateLimitScript = `
@@ -402,8 +420,15 @@ class RedisRateLimiter implements IRateLimiter {
       return true;
     }
 
-    // If Redis is already known to be unavailable, use fallback immediately
+    // If Redis is already known to be unavailable, honour failMode policy.
     if (!this.redisAvailable) {
+      if (!this.canDegradeToLocal()) {
+        authLogger.error(
+          "[RedisRateLimiter] fail-closed: Redis unavailable, rejecting request",
+          { key },
+        );
+        return false;
+      }
       return this.fallbackLimiter.isAllowed(key);
     }
 
@@ -422,14 +447,24 @@ class RedisRateLimiter implements IRateLimiter {
       return fallbackResult;
     }
 
-    // If both Redis approaches fail, use in-memory fallback
+    // Both Redis approaches failed — tryFallbackApproach already set
+    // redisAvailable=false. Honour failMode before touching in-memory.
+    if (!this.canDegradeToLocal()) {
+      authLogger.error(
+        "[RedisRateLimiter] fail-closed: Redis unavailable, rejecting request",
+        { key },
+      );
+      return false;
+    }
     return this.fallbackLimiter.isAllowed(key);
   }
 
   async getRemaining(key: string): Promise<number> {
-    // Use fallback if Redis is unavailable
+    // Use fallback if Redis is unavailable, or report 0 when failing closed.
     if (!this.redisAvailable) {
-      return this.fallbackLimiter.getRemaining(key);
+      return this.canDegradeToLocal()
+        ? this.fallbackLimiter.getRemaining(key)
+        : 0;
     }
 
     const redisKey = this.getRedisKey(key);
@@ -447,7 +482,9 @@ class RedisRateLimiter implements IRateLimiter {
         { error: error instanceof Error ? error.message : String(error) }
       );
       this.redisAvailable = false;
-      return this.fallbackLimiter.getRemaining(key);
+      return this.canDegradeToLocal()
+        ? this.fallbackLimiter.getRemaining(key)
+        : 0;
     }
   }
 
@@ -518,9 +555,12 @@ class RedisRateLimiter implements IRateLimiter {
   }
 
   async getStatus(key: string): Promise<RateLimitEntry | null> {
-    // Use fallback if Redis unavailable
+    // Use fallback if Redis unavailable. When fail-closed, we pretend the
+    // bucket is empty so the caller observes a depleted quota.
     if (!this.redisAvailable) {
-      return this.fallbackLimiter.getStatus(key);
+      return this.canDegradeToLocal()
+        ? this.fallbackLimiter.getStatus(key)
+        : { tokens: 0, lastRefill: Date.now() };
     }
 
     const redisKey = this.getRedisKey(key);
@@ -536,7 +576,9 @@ class RedisRateLimiter implements IRateLimiter {
         { error: error instanceof Error ? error.message : String(error) }
       );
       this.redisAvailable = false;
-      return this.fallbackLimiter.getStatus(key);
+      return this.canDegradeToLocal()
+        ? this.fallbackLimiter.getStatus(key)
+        : { tokens: 0, lastRefill: Date.now() };
     }
   }
 }

@@ -71,7 +71,7 @@ export default async function ClassAssessmentResultsPage({
     <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Banner */}
-        <div className="rounded-[32px] p-6 text-white" style={{ background: "linear-gradient(135deg,#3B82F6,#6366F1)" }}>
+        <div className="rounded-[32px] p-6 text-white" style={{ background: "var(--gradient-teacher)" }}>
           <Link href="/app/teacher/assessments" className="inline-flex items-center gap-2 text-white/80 text-xs font-black uppercase tracking-widest mb-4">
             ← Assessments
           </Link>
@@ -106,7 +106,7 @@ export default async function ClassAssessmentResultsPage({
                 return (
                   <div key={student.studentId} className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl gap-3">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-full bg-white border border-slate-100 flex items-center justify-center font-black text-slate-500 text-sm flex-shrink-0">
+                      <div className="w-9 h-9 rounded-full bg-white border border-slate-100 flex items-center justify-center font-black text-slate-500 text-sm shrink-0">
                         {(student.studentName ?? "?").charAt(0).toUpperCase()}
                       </div>
                       <div className="min-w-0">
@@ -118,7 +118,7 @@ export default async function ClassAssessmentResultsPage({
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex items-center gap-2 shrink-0">
                       <span className={`text-[11px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${skillLevel.color}`}>{skillLevel.label}</span>
                       <div className={`w-12 h-9 rounded-xl flex items-center justify-center font-black text-sm ${getScoreColor(student.averageScore)}`}>
                         {student.averageScore === null ? "-" : `${student.averageScore}%`}
@@ -133,7 +133,7 @@ export default async function ClassAssessmentResultsPage({
               <div className="text-4xl mb-3">📭</div>
               <p className="font-black text-slate-800 mb-1">No students enrolled yet</p>
               <p className="text-sm font-bold text-slate-400 mb-4">Share the class code with your students to get started.</p>
-              <Link href={`/app/teacher/classes/${classId}`} className="px-5 py-2.5 rounded-2xl font-black text-sm text-white inline-block" style={{ background: "linear-gradient(135deg,#3B82F6,#6366F1)" }}>
+              <Link href={`/app/teacher/classes/${classId}`} className="px-5 py-2.5 rounded-2xl font-black text-sm text-white inline-block" style={{ background: "var(--gradient-teacher)" }}>
                 View Class Details
               </Link>
             </div>

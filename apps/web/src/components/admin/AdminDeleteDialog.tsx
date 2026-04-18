@@ -142,7 +142,7 @@ export function AdminDeleteDialog({
         {/* Warning */}
         <div className="bg-error-light border border-error/30 rounded-2xl p-4 mb-4">
           <div className="flex gap-3">
-            <AlertCircle className="w-5 h-5 text-error flex-shrink-0 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-error shrink-0 mt-0.5" />
             <p className="text-sm text-error">
               <strong>This action cannot be undone.</strong> All access for this
               admin will be permanently removed.

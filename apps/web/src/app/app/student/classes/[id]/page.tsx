@@ -134,7 +134,7 @@ export default async function StudentClassDetailPage({
     <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Banner */}
-        <div className="rounded-[32px] p-6 text-white" style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" }}>
+        <div className="rounded-[32px] p-6 text-white" style={{ background: "var(--gradient-primary)" }}>
           <Link href="/app/student/classes" className="inline-flex items-center gap-2 text-white/80 text-xs font-black uppercase tracking-widest mb-4">
             ← My Classes
           </Link>
@@ -172,7 +172,7 @@ export default async function StudentClassDetailPage({
             <Link href="/app/learn" className="py-3 rounded-2xl font-black text-sm text-slate-700 text-center bg-slate-50 border border-slate-100 transition-all active:scale-95">
               📖 Continue Learning
             </Link>
-            <Link href="/app/ai-tools/tutor" className="py-3 rounded-2xl font-black text-sm text-white text-center transition-all active:scale-95" style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" }}>
+            <Link href="/app/ai-tools/tutor" className="py-3 rounded-2xl font-black text-sm text-white text-center transition-all active:scale-95" style={{ background: "var(--gradient-primary)" }}>
               🤖 AI Tutor
             </Link>
           </div>

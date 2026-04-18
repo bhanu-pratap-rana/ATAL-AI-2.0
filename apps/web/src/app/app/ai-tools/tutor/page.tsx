@@ -150,7 +150,7 @@ export default function AITutorPage() {
     <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Banner */}
-        <div className="rounded-[32px] p-6 text-white" style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" }}>
+        <div className="rounded-[32px] p-6 text-white" style={{ background: "var(--gradient-primary)" }}>
           <Link href="/app/ai-tools" className="inline-flex items-center gap-2 text-white/80 text-xs font-black uppercase tracking-widest mb-4">
             ← AI Tools
           </Link>
@@ -168,7 +168,7 @@ export default function AITutorPage() {
                 key={lang}
                 onClick={() => setLanguage(lang)}
                 className={`px-3 py-1.5 rounded-xl text-sm font-black transition-colors ${language === lang ? "text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
-                style={language === lang ? { background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" } : {}}
+                style={language === lang ? { background: "var(--gradient-primary)" } : {}}
               >
                 {getLanguageName(lang)}
               </button>
@@ -181,7 +181,7 @@ export default function AITutorPage() {
                 type="button"
               onClick={() => setInputMode("text")}
               className={`px-3 py-1.5 rounded-xl text-sm font-black transition-colors flex items-center gap-1 ${inputMode === "text" ? "text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
-              style={inputMode === "text" ? { background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" } : {}}
+              style={inputMode === "text" ? { background: "var(--gradient-primary)" } : {}}
             >
               📝 Text
             </button>
@@ -189,7 +189,7 @@ export default function AITutorPage() {
                 type="button"
               onClick={() => setInputMode("voice")}
               className={`px-3 py-1.5 rounded-xl text-sm font-black transition-colors flex items-center gap-1 ${inputMode === "voice" ? "text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
-              style={inputMode === "voice" ? { background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" } : {}}
+              style={inputMode === "voice" ? { background: "var(--gradient-primary)" } : {}}
             >
               🎤 Voice
             </button>
@@ -206,7 +206,7 @@ export default function AITutorPage() {
                 type="button"
                 onClick={() => setVoiceMode("one-shot")}
                 className={`px-4 py-2 rounded-xl text-sm font-black transition-colors ${voiceMode === "one-shot" ? "text-white" : "bg-slate-100 text-slate-500"}`}
-                style={voiceMode === "one-shot" ? { background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" } : {}}
+                style={voiceMode === "one-shot" ? { background: "var(--gradient-primary)" } : {}}
               >
                 One-shot
               </button>
@@ -214,7 +214,7 @@ export default function AITutorPage() {
                 type="button"
                 onClick={() => setVoiceMode("conversational")}
                 className={`px-4 py-2 rounded-xl text-sm font-black transition-colors ${voiceMode === "conversational" ? "text-white" : "bg-slate-100 text-slate-500"}`}
-                style={voiceMode === "conversational" ? { background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" } : {}}
+                style={voiceMode === "conversational" ? { background: "var(--gradient-primary)" } : {}}
               >
                 Conversational
               </button>
@@ -291,7 +291,7 @@ export default function AITutorPage() {
                   <div key={message.id} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
                     <div
                       className={`max-w-[90%] sm:max-w-[80%] rounded-2xl p-3 ${message.role === "user" ? "text-white rounded-br-md" : "bg-slate-50 border border-slate-100 rounded-bl-md"}`}
-                      style={message.role === "user" ? { background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" } : {}}
+                      style={message.role === "user" ? { background: "var(--gradient-primary)" } : {}}
                     >
                       <p className="whitespace-pre-wrap text-sm font-medium">{message.content}</p>
                     </div>
@@ -356,7 +356,7 @@ export default function AITutorPage() {
                 type="submit"
                 disabled={isLoading || !input.trim()}
                 className="px-5 py-3 rounded-2xl font-black text-sm text-white transition-all active:scale-95 disabled:opacity-50"
-                style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" }}
+                style={{ background: "var(--gradient-primary)" }}
               >
                 {isLoading ? "..." : "Send"}
               </button>

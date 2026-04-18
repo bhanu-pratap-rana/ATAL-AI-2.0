@@ -38,7 +38,7 @@ export function AssessmentSkeleton() {
                   className="p-4 rounded-2xl border-2 border-slate-200 bg-slate-50"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-slate-200 bg-white"></div>
+                    <div className="shrink-0 w-6 h-6 rounded-full border-2 border-slate-200 bg-white"></div>
                     <div className="h-6 bg-border rounded flex-1"></div>
                   </div>
                 </div>

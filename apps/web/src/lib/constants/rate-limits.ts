@@ -25,6 +25,13 @@ export interface RateLimitConfig {
   refillRate: number;
   /** Refill check interval in milliseconds */
   refillInterval: number;
+  /**
+   * Behaviour when the distributed backend (Redis) is unavailable.
+   *  - "closed": reject the request (secure default for auth/PIN/OTP).
+   *  - "open-local": fall back to the per-instance in-memory bucket.
+   * Default: "open-local" — keeps non-security endpoints serving traffic.
+   */
+  failMode?: "closed" | "open-local";
 }
 
 /**
@@ -56,6 +63,7 @@ export const RATE_LIMITS = {
     maxTokens: 5,
     refillRate: 5 / SECONDS_PER_HOUR,
     refillInterval: 1000,
+    failMode: "closed",
   } as RateLimitConfig,
 
   /** OTP requests - 5 per hour */
@@ -63,6 +71,7 @@ export const RATE_LIMITS = {
     maxTokens: 5,
     refillRate: 5 / SECONDS_PER_HOUR,
     refillInterval: 1000,
+    failMode: "closed",
   } as RateLimitConfig,
 
   /** Password reset - 3 per hour (very strict for security) */
@@ -70,6 +79,7 @@ export const RATE_LIMITS = {
     maxTokens: 3,
     refillRate: 3 / SECONDS_PER_HOUR,
     refillInterval: 1000,
+    failMode: "closed",
   } as RateLimitConfig,
 
   /** IP-based limiting - 10 per minute */
@@ -77,6 +87,7 @@ export const RATE_LIMITS = {
     maxTokens: 10,
     refillRate: 10 / SECONDS_PER_MINUTE,
     refillInterval: 1000,
+    failMode: "closed",
   } as RateLimitConfig,
 
   /** Admin operations - 10 per minute */
@@ -84,6 +95,7 @@ export const RATE_LIMITS = {
     maxTokens: 10,
     refillRate: 10 / SECONDS_PER_MINUTE,
     refillInterval: 1000,
+    failMode: "closed",
   } as RateLimitConfig,
 
   /** Class join PIN attempts - 5 per hour (strict to prevent brute force) */
@@ -91,6 +103,7 @@ export const RATE_LIMITS = {
     maxTokens: 5,
     refillRate: 5 / SECONDS_PER_HOUR,
     refillInterval: 1000,
+    failMode: "closed",
   } as RateLimitConfig,
 
   /** AI tutor chat - 30 requests per hour */
@@ -119,6 +132,7 @@ export const RATE_LIMITS = {
     maxTokens: 10,
     refillRate: 10 / SECONDS_PER_HOUR,
     refillInterval: 1000,
+    failMode: "closed",
   } as RateLimitConfig,
 
   /** Assessment submission - 20 per hour (prevent rapid retakes) */
@@ -154,6 +168,7 @@ export const RATE_LIMITS = {
     maxTokens: 20,
     refillRate: 20 / SECONDS_PER_HOUR,
     refillInterval: 1000,
+    failMode: "closed",
   } as RateLimitConfig,
 
   /** Lesson generation - 20 per 10 minutes (prevent Gemini API cost exploitation) */
@@ -196,5 +211,6 @@ export const RATE_LIMITS = {
     maxTokens: 3,
     refillRate: 3 / SECONDS_PER_HOUR,
     refillInterval: 1000,
+    failMode: "closed",
   } as RateLimitConfig,
 } as const;

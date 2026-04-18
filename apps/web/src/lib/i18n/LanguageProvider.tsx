@@ -171,6 +171,14 @@ export function LanguageProvider({
     } catch {
       // localStorage might not be available
     }
+
+    // Mirror to a cookie so server components can read the preference
+    // (1 year, path=/, SameSite=Lax — no auth implications)
+    try {
+      document.cookie = `${LANGUAGE_STORAGE_KEY}=${lang}; path=/; max-age=31536000; SameSite=Lax`;
+    } catch {
+      // document might not be available
+    }
   }, []);
 
   /**

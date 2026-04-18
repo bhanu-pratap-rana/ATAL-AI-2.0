@@ -158,7 +158,7 @@ export function InvitePanel({
           {/* Class Code */}
           <div className="space-y-2">
             <span className="text-sm font-medium">Class Code</span>
-            <div className="bg-gradient-to-br from-primary/10 to-primary/5 border-2 border-primary/30 rounded-2xl p-3 md:p-4">
+            <div className="bg-linear-to-br from-primary/10 to-primary/5 border-2 border-primary/30 rounded-2xl p-3 md:p-4">
               <p className="text-xl sm:text-2xl md:text-3xl font-mono font-black text-center text-primary tracking-widest break-all">
                 {classCode}
               </p>
@@ -179,7 +179,7 @@ export function InvitePanel({
           {/* Join PIN */}
           <div className="space-y-2">
             <span className="text-sm font-medium">Join PIN</span>
-            <div className="bg-gradient-to-br from-primary-lighter to-primary-light border-2 border-primary/30 rounded-2xl p-3 md:p-4">
+            <div className="bg-linear-to-br from-primary-lighter to-primary-light border-2 border-primary/30 rounded-2xl p-3 md:p-4">
               <p className="text-xl sm:text-2xl md:text-3xl font-mono font-black text-center text-primary tracking-widest">
                 {joinPin}
               </p>
@@ -201,7 +201,7 @@ export function InvitePanel({
 
       {/* Invite Link Section */}
       <div className="mt-4 md:mt-6 space-y-4">
-        <div className="bg-gradient-to-br from-success-light/50 to-success-light/30 border-2 border-success/30 rounded-2xl p-responsive">
+        <div className="bg-linear-to-br from-success-light/50 to-success-light/30 border-2 border-success/30 rounded-2xl p-responsive">
           <span className="text-sm font-medium mb-2 block">
             Direct Invite Link
           </span>
@@ -223,7 +223,7 @@ export function InvitePanel({
               className="w-full touch-target bg-whatsapp hover:bg-whatsapp-dark text-white border-0"
             >
               <svg
-                className="w-5 h-5 mr-2 flex-shrink-0"
+                className="w-5 h-5 mr-2 shrink-0"
                 fill="currentColor"
                 viewBox="0 0 24 24"
               >

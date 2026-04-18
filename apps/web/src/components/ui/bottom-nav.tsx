@@ -44,8 +44,8 @@ function getRole(pathname: string): "student" | "teacher" | "admin" {
 }
 
 function getActiveColor(role: "student" | "teacher" | "admin") {
-  if (role === "teacher") return { bg: "bg-blue-600", text: "text-blue-600", shadow: "0 4px 14px rgba(37,99,235,0.35)" };
-  if (role === "admin") return { bg: "bg-red-600", text: "text-red-600", shadow: "0 4px 14px rgba(220,38,38,0.35)" };
+  if (role === "teacher") return { bg: "bg-role-teacher", text: "text-role-teacher", shadow: "0 4px 14px rgba(37,99,235,0.35)" };
+  if (role === "admin") return { bg: "bg-role-admin", text: "text-role-admin", shadow: "0 4px 14px rgba(220,38,38,0.35)" };
   return { bg: "bg-primary", text: "text-primary", shadow: "0 4px 14px rgba(249,136,25,0.35)" };
 }
 
@@ -67,7 +67,7 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-slate-100 pt-3 px-4 sm:px-6 z-[300]"
+      className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-slate-100 pt-3 px-4 sm:px-6 z-300"
       style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
     >
       <div className="max-w-xl mx-auto flex justify-around items-end">
@@ -78,7 +78,9 @@ export function BottomNav() {
             <Link
               key={href}
               href={href}
-              className={`flex flex-col items-center gap-1 transition-all ${
+              aria-label={label}
+              aria-current={active ? "page" : undefined}
+              className={`flex flex-col items-center justify-center gap-1 min-h-[44px] min-w-[44px] py-1 transition-all ${
                 active ? `${colors.text} scale-110` : "text-slate-400 hover:text-slate-600"
               }`}
             >

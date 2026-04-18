@@ -123,7 +123,7 @@ export function BadgesLeaderboardPanel({
         </div>
 
         {/* RIGHT — Leaderboard */}
-        <div className={`md:w-52 flex-shrink-0 ${tab === "badges" ? "hidden md:block" : ""}`}>
+        <div className={`md:w-52 shrink-0 ${tab === "badges" ? "hidden md:block" : ""}`}>
           <p className="text-sm font-black text-slate-600 mb-2">🏆 Class Rankings</p>
           {!classId ? (
             <div className="text-center py-6">
@@ -161,13 +161,13 @@ export function BadgesLeaderboardPanel({
                         : "bg-slate-50 hover:bg-slate-100"
                     }`}
                   >
-                    <span className="text-base w-6 text-center flex-shrink-0">
+                    <span className="text-base w-6 text-center shrink-0">
                       {RANK_ICONS[entry.rank] ?? `#${entry.rank}`}
                     </span>
                     <span className={`flex-1 text-xs font-black truncate ${getLeaderNameColor(isViewing, isMe)}`}>
                       {entry.name}{isMe ? " (You)" : ""}
                     </span>
-                    <span className={`text-xs font-bold flex-shrink-0 ${isViewing ? "text-white/80" : "text-amber-500"}`}>
+                    <span className={`text-xs font-bold shrink-0 ${isViewing ? "text-white/80" : "text-amber-500"}`}>
                       {entry.points.toLocaleString()}
                     </span>
                   </button>

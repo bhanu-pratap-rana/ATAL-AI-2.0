@@ -4,6 +4,8 @@ import { isTeacherOrHigher } from "@/lib/auth/role-utils";
 import { StudentProfileEditor } from "@/components/settings/StudentProfileEditor";
 import { TeacherProfileEditor } from "@/components/settings/TeacherProfileEditor";
 import { DeleteAccountButton } from "@/components/settings/DeleteAccountButton";
+import { getTranslation } from "@/lib/i18n";
+import { getServerLanguage } from "@/lib/i18n/server";
 import Link from "next/link";
 
 /**
@@ -29,6 +31,7 @@ function getBackNavigation(role: string | undefined): BackNavigation {
 
 export default async function SettingsPage() {
   const supabase = await createClient();
+  const language = await getServerLanguage();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -47,14 +50,13 @@ export default async function SettingsPage() {
   const isUsernameAuth = authType === "username";
   const username = user.user_metadata?.username as string | undefined;
 
-  // Determine display role - teachers promoted to admin show both roles
-  // Super admin is unique (only atal.app.ai@gmail.com)
-  const ROLE_DISPLAY_MAP: Record<string, string> = {
-    super_admin: "Super Admin",
-    admin: "Teacher, Admin",
-    teacher: "Teacher",
+  // Localized role label. Falls back to student if app_metadata.role is unknown.
+  const ROLE_KEY_MAP: Record<string, string> = {
+    super_admin: "role.super_admin",
+    admin: "role.admin",
+    teacher: "role.teacher",
   };
-  const userRole = ROLE_DISPLAY_MAP[appRole] || "Student";
+  const userRole = getTranslation(ROLE_KEY_MAP[appRole] ?? "role.student", language);
 
   // Fetch student profile if user is a student
   let studentProfile = null;
@@ -105,8 +107,8 @@ export default async function SettingsPage() {
           className="rounded-[32px] p-6 text-white"
           style={{
             background: isTeacherOrAdmin
-              ? "linear-gradient(135deg,#3B82F6,#6366F1)"
-              : "linear-gradient(135deg,#F98819 0%,#FFD166 100%)",
+              ? "var(--gradient-teacher)"
+              : "var(--gradient-primary)",
           }}
         >
           {(() => {

@@ -201,7 +201,7 @@ export default function IRTItemBankAdminPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-white flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-surface via-background to-white flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           <p className="mt-4 text-slate-500">Loading item bank...</p>
@@ -211,7 +211,7 @@ export default function IRTItemBankAdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-surface via-background to-white">
+    <div className="min-h-screen bg-linear-to-br from-surface via-background to-white">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -228,7 +228,7 @@ export default function IRTItemBankAdminPage() {
             </Button>
 
             {/* Logo */}
-            <div className="w-10 h-10 flex-shrink-0">
+            <div className="w-10 h-10 shrink-0">
               <Image
                 src="/assets/logo.png"
                 alt="ATAL AI Logo"
@@ -295,7 +295,7 @@ export default function IRTItemBankAdminPage() {
         {/* Error State */}
         {error && (
           <div className="bg-error/10 border border-error/30 rounded-2xl p-4 mb-6 flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 text-error flex-shrink-0" />
+            <AlertCircle className="w-5 h-5 text-error shrink-0" />
             <p className="text-error">{error}</p>
             <Button
               variant="outline"

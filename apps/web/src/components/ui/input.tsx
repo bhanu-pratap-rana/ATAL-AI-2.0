@@ -15,10 +15,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="relative w-full">
         <motion.div
+          suppressHydrationWarning
           className={cn(
             "relative rounded-lg transition-all duration-200",
             isFocused &&
-              "p-[2px] bg-gradient-to-br from-primary to-primary-light",
+              "p-[2px] bg-linear-to-br from-primary to-primary-light",
           )}
           animate={{
             boxShadow: isFocused

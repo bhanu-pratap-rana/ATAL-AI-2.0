@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { createClient, getCurrentUser } from "@/lib/supabase-server";
+import { createAdminClient, createClient, getCurrentUser } from "@/lib/supabase-server";
 import Link from "next/link";
 import { AssessmentBreakdown } from "@/components/assessment/AssessmentBreakdown";
 import { ArrowLeft, Clock, CheckCircle, XCircle, BarChart3 } from "lucide-react";
@@ -76,9 +76,10 @@ export default async function AssessmentDetailPage({
     redirect("/app/student/assessments");
   }
 
-  // Fetch IRT item details (depends on response item_ids)
+  // Fetch IRT item details via admin client — item bank is restricted to service_role
   const itemIds = responses.map((r) => r.item_id);
-  const { data: irtItems } = await supabase
+  const adminSupabase = await createAdminClient();
+  const { data: irtItems } = await adminSupabase
     .from("irt_item_bank")
     .select(
       "id, question_text, options, correct_answer, difficulty, discrimination, category"
@@ -137,7 +138,7 @@ export default async function AssessmentDetailPage({
     <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Banner */}
-        <div className="rounded-[32px] p-6 text-white" style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" }}>
+        <div className="rounded-[32px] p-6 text-white" style={{ background: "var(--gradient-primary)" }}>
           <Link href="/app/student/assessments" className="inline-flex items-center gap-2 text-white/80 text-xs font-black uppercase tracking-widest mb-4">
             <ArrowLeft className="w-4 h-4" /> Back to Assessments
           </Link>
@@ -192,7 +193,7 @@ export default async function AssessmentDetailPage({
               <BarChart3 className="w-4 h-4 text-slate-400" />
               <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Performance by Module</p>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3">
               {Object.entries(moduleStats).map(([module, stats]) => {
                 const moduleScore = Math.round((stats.correct / stats.total) * 100);
                 return (
@@ -215,7 +216,7 @@ export default async function AssessmentDetailPage({
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-3">
-          <Link href="/app/assessment/start" className="flex-1 py-3 rounded-2xl font-black text-sm text-white text-center transition-all active:scale-95" style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" }}>
+          <Link href="/app/assessment/start" className="flex-1 py-3 rounded-2xl font-black text-sm text-white text-center transition-all active:scale-95" style={{ background: "var(--gradient-primary)" }}>
             Retake Assessment
           </Link>
           <Link href="/app/learn" className="flex-1 py-3 rounded-2xl font-black text-sm text-slate-700 text-center bg-white border border-slate-200 transition-all active:scale-95">

@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { createClient, getCurrentUser } from "@/lib/supabase-server";
+import { createAdminClient, createClient, getCurrentUser } from "@/lib/supabase-server";
 import { AssessmentSummary } from "@/components/assessment/AssessmentSummary";
 import { calculateIRTScore } from "@/app/actions/assessment";
 
@@ -50,9 +50,10 @@ export default async function AssessmentSummaryPage({
     redirect("/app/assessment/start");
   }
 
-  // Fetch IRT parameters for answered items
+  // Fetch IRT parameters via admin client — item bank is restricted to service_role
   const itemIds = responses.map((r) => r.item_id);
-  const { data: irtItems } = await supabase
+  const adminSupabase = await createAdminClient();
+  const { data: irtItems } = await adminSupabase
     .from("irt_item_bank")
     .select("id, difficulty, discrimination, guessing, category")
     .in("id", itemIds);

@@ -196,7 +196,7 @@ export default async function PracticeQuestionAnalyticsPage() {
     <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Banner */}
-        <div className="rounded-[32px] p-6 text-white" style={{ background: "linear-gradient(135deg,#3B82F6,#6366F1)" }}>
+        <div className="rounded-[32px] p-6 text-white" style={{ background: "var(--gradient-teacher)" }}>
           <Link href="/app/teacher/dashboard" className="inline-flex items-center gap-2 text-white/80 text-xs font-black uppercase tracking-widest mb-4">
             ← Dashboard
           </Link>
@@ -207,7 +207,7 @@ export default async function PracticeQuestionAnalyticsPage() {
         {/* Growth + At-Risk Tiles */}
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
-            <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center flex-shrink-0">
+            <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center shrink-0">
               <TrendingUp className="w-6 h-6 text-emerald-500" />
             </div>
             <div>
@@ -216,7 +216,7 @@ export default async function PracticeQuestionAnalyticsPage() {
             </div>
           </div>
           <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
-            <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center flex-shrink-0">
+            <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center shrink-0">
               <AlertTriangle className="w-6 h-6 text-red-500" />
             </div>
             <div>

@@ -226,7 +226,28 @@ export class AdaptiveLearningService {
   ): Promise<LearningStyleProfile> {
     const supabase = await createClient();
 
-    const defaultProfile = {
+    // Atomic upsert via RPC (migration 166). Replaces the previous
+    // read-then-insert flow, which races on two concurrent first-access
+    // requests (one hits the unique constraint and its "failed to insert
+    // default" warn is spurious — the row does exist, just not from us).
+    const { error: rpcError } = await supabase.rpc(
+      "upsert_learning_style_profile",
+      {
+        p_student_id: studentId,
+        p_visual_score: 33.33,
+        p_text_score: 33.33,
+        p_auditory_score: 33.33,
+        p_dominant_style: "text",
+      },
+    );
+    if (rpcError) {
+      authLogger.warn("[AdaptiveService] upsert_learning_style_profile failed:", {
+        error: rpcError.message,
+        studentId,
+      });
+    }
+
+    return {
       student_id: studentId,
       visual_score: 33.33,
       text_score: 33.33,
@@ -234,15 +255,6 @@ export class AdaptiveLearningService {
       images_viewed: 0,
       voice_replays: 0,
       text_read_time_seconds: 0,
-    };
-
-    const { error: insertError } = await supabase.from("learning_style_profile").insert(defaultProfile);
-    if (insertError) {
-      authLogger.warn("[AdaptiveService] Failed to insert default profile:", { error: insertError.message, studentId });
-    }
-
-    return {
-      ...defaultProfile,
       preferred_style: "text",
     } as LearningStyleProfile;
   }

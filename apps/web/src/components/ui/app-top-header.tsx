@@ -12,7 +12,7 @@ function getPortalConfig(pathname: string) {
     return {
       label: "Teacher Portal",
       Icon: GraduationCap,
-      style: { background: "linear-gradient(135deg,#3B82F6,#6366F1)" },
+      style: { background: "var(--gradient-teacher)" },
       signOutPath: "/teacher/start",
     };
   }
@@ -20,14 +20,14 @@ function getPortalConfig(pathname: string) {
     return {
       label: "Admin Portal",
       Icon: ShieldCheck,
-      style: { background: "linear-gradient(135deg,#DC2626,#7C3AED)" },
+      style: { background: "var(--gradient-admin)" },
       signOutPath: "/admin/login",
     };
   }
   return {
     label: "Student Portal",
     Icon: User,
-    style: { background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" },
+    style: { background: "var(--gradient-primary)" },
     signOutPath: "/student/start",
   };
 }
@@ -54,7 +54,7 @@ export function AppTopHeader() {
       <div className="max-w-4xl mx-auto flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div
-            className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0"
+            className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0"
             style={config.style}
           >
             <Icon size={20} className="text-white" strokeWidth={2.5} />
@@ -68,14 +68,15 @@ export function AppTopHeader() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           <LanguageSelector variant="compact" />
           <SyncStatusIndicator compact />
           <button
-                type="button"
+            type="button"
             onClick={handleSignOut}
-            className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+            aria-label="Sign out"
             title="Sign out"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
           >
             <LogOut size={18} />
           </button>

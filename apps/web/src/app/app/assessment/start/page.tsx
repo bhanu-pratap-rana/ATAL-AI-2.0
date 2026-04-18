@@ -237,7 +237,7 @@ function AssessmentStartContent() {
                 onClick={handleStartAssessment}
                 disabled={loading}
                 className="w-full py-4 rounded-2xl font-black text-lg text-white disabled:opacity-50 transition-all active:scale-95"
-                style={{ background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" }}
+                style={{ background: "var(--gradient-primary)" }}
               >
                 {loading ? "Starting Assessment..." : "Start Assessment"}
               </button>

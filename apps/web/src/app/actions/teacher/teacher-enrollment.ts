@@ -53,7 +53,7 @@ export async function enrollStudent(classId: string, studentId: string) {
         student_id: validatedInput.studentId,
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       if (error.code === "23505") {

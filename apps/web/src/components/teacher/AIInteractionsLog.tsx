@@ -12,7 +12,7 @@
  * - Identify common questions/struggles
  */
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { createClient } from "@/lib/supabase-browser";
 import type { SupportedLanguage } from "@/types/common";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,8 +51,9 @@ export function AIInteractionsLog({
   const [interactions, setInteractions] = useState<AIInteraction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const enrolledIdsRef = useRef<Set<string>>(new Set());
 
-  const fetchInteractions = useCallback(async () => {
+  const fetchInteractions = useCallback(async (cancelled: { current: boolean }) => {
     try {
       const supabase = createClient();
 
@@ -62,7 +63,10 @@ export function AIInteractionsLog({
         .select("student_id")
         .eq("class_id", classId);
 
+      if (cancelled.current) return;
+
       const studentIds = enrollments?.map((e) => e.student_id) || [];
+      enrolledIdsRef.current = new Set(studentIds);
 
       if (studentIds.length === 0) {
         setInteractions([]);
@@ -81,11 +85,13 @@ export function AIInteractionsLog({
         .order("created_at", { ascending: false })
         .limit(limit);
 
+      if (cancelled.current) return;
       if (fetchError) throw fetchError;
 
       setInteractions((data || []) as AIInteraction[]);
       setLoading(false);
     } catch (error) {
+      if (cancelled.current) return;
       clientLogger.error(
         "[AIInteractionsLog] Error:",
         error instanceof Error ? error : undefined,
@@ -96,7 +102,8 @@ export function AIInteractionsLog({
   }, [classId, limit]);
 
   useEffect(() => {
-    fetchInteractions();
+    const cancelled = { current: false };
+    fetchInteractions(cancelled);
 
     const supabase = createClient();
 
@@ -111,14 +118,15 @@ export function AIInteractionsLog({
           table: "ai_tutor_interactions",
         },
         (payload) => {
-          // Add new interaction if it belongs to an enrolled student
           const newInteraction = payload.new as AIInteraction;
+          if (!enrolledIdsRef.current.has(newInteraction.student_id)) return;
           setInteractions((prev) => [newInteraction, ...prev].slice(0, limit));
         },
       )
       .subscribe();
 
     return () => {
+      cancelled.current = true;
       channel.unsubscribe();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -296,7 +304,7 @@ function SessionCard({ session }: { readonly session: Session }) {
               </p>
             </div>
           </div>
-          <span className="text-slate-500" aria-hidden="true">
+          <span className="text-slate-500 p-2 rounded min-w-[36px] min-h-[36px] flex items-center justify-center" aria-hidden="true">
             {isExpanded ? "▲" : "▼"}
           </span>
         </div>
@@ -324,7 +332,7 @@ function SessionCard({ session }: { readonly session: Session }) {
                       <span className="text-xs text-slate-500">🎤</span>
                     )}
                   </div>
-                  <p className="whitespace-pre-wrap break-words">
+                  <p className="whitespace-pre-wrap wrap-break-word">
                     {truncate(message.message_content, 300)}
                   </p>
                 </div>

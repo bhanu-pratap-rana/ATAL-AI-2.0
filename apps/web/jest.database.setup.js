@@ -6,7 +6,6 @@
  * available to every database test.
  */
 
-/* eslint-disable @typescript-eslint/no-require-imports */
 const { config } = require("dotenv");
 const path = require("path");
 

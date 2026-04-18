@@ -102,7 +102,7 @@ export default async function StudentClassesPage() {
 
   const enrollments = await getStudentClasses(user.id);
 
-  const bannerStyle = { background: "linear-gradient(135deg,#F98819 0%,#FFD166 100%)" };
+  const bannerStyle = { background: "var(--gradient-primary)" };
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
@@ -141,14 +141,14 @@ export default async function StudentClassesPage() {
                 <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-shadow cursor-pointer group">
                   <div className="flex items-center justify-between gap-3 mb-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 bg-orange-50 rounded-2xl flex items-center justify-center text-xl flex-shrink-0">
+                      <div className="w-11 h-11 bg-orange-50 rounded-2xl flex items-center justify-center text-xl shrink-0">
                         📚
                       </div>
                       <h3 className="font-black text-slate-800 text-base truncate">
                         {enrollment.class.name}
                       </h3>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-orange-400 transition-colors flex-shrink-0" />
+                    <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-orange-400 transition-colors shrink-0" />
                   </div>
                   <div className="space-y-1 pl-14">
                     <p className="text-xs font-bold text-slate-400 truncate">

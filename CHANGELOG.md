@@ -3,6 +3,122 @@
 All notable changes to ATAL AI are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.1.1] - 2026-04-18 — Post-audit cleanup
+
+Small-scope follow-up to v1.0.1.0. Stacked on the audit remediation PR.
+
+### Changed
+- **Tailwind v4 canonical class sweep** (`59147ba`). 55 files, 111 occurrences
+  rewritten 1:1. Clears 39 `tailwindcss-intellisense` IDE diagnostics ahead of
+  the v3 compatibility layer being removed in a future Tailwind major:
+  `flex-shrink-0` → `shrink-0`, `bg-gradient-to-r` → `bg-linear-to-r`,
+  `break-words` → `wrap-break-word`, `z-[300]` → `z-300`. Byte-identical output.
+- **Role accent colors on CSS custom properties** (`d4adab0`). Extends OI-5
+  (`dc8017f`) from gradients to per-role accent colors. Adds `--color-role-teacher`
+  (#2563eb) and `--color-role-admin` (#dc2626); `BottomNav` active-tab color
+  migrated from hardcoded `bg-blue-600` / `bg-red-600`. Audit of the other eight
+  candidate files found they were info-tip chrome, link hovers, or multi-color
+  stat grids — intentionally left untouched so future re-brands don't regress.
+- **Parallelize dashboard stats + atomic avg score** (`5e93683`). Student
+  dashboard stats fetch now uses `Promise.all` for five independent queries;
+  average score uses a single atomic `.select("is_correct")` query instead of
+  two separate COUNTs (same OI-4 atomicity pattern as the server component).
+- **Parallelize AI tutor RAG + learning profile** (`bf872db`). The tutor chat
+  route now fetches RAG context and adaptive learning profile concurrently
+  rather than serially.
+- **AIInteractionsLog realtime scoped to class roster** (`410d36b`). Same fix
+  as H1 (`239ca2a`) for a second subscription that was missed in v1.0.1.0.
+- **`/learn` page uses `get_student_streak` RPC** (`c582b3e`). Replaces an
+  85-line client-side UTC date loop with the Asia/Kolkata-bucketed RPC from
+  migration 167 (H6). Deletes orphaned helpers (`addActivityDate`, etc.).
+
+### Tests
+- **CDP escape hatch in background-sync.spec.ts** (`7ad0894`).
+  `ServiceWorker.getRegistrations` and `ServiceWorker.dispatchSyncEvent` are
+  valid Chrome DevTools Protocol methods but are not in `@playwright/test`'s
+  typed command whitelist. Added an `UntypedCdpSend` type alias so the file
+  compiles under strict `tsc`.
+
+### Tooling
+- **Scoped `no-require-imports` exception to jest config files** (`2ddeb04`).
+  `next/jest` ships as CommonJS so `require()` is the only valid call in the
+  three jest config files. The per-file `files: […]` override in
+  `eslint.config.mjs` replaces a file-level `/* eslint-disable */` directive.
+
+## [1.0.1.0] - 2026-04-17 — Audit remediation
+
+Closes the critical, high, and medium findings from the v1.0.0.0 production audit.
+All twelve commits sit on `fix/v1.0.0.0-audit-remediation`.
+
+### Security
+- **C1 — Close unprotected render window on role-gated dashboards** (`ecccf36`, `96d84ae`).
+  Student, teacher, and admin dashboards and admin sub-pages (`/app/admin/performance`,
+  `/app/admin/schools`) now verify role server-side in the page before any markup renders.
+  Previously a brief client-side check left a render window where a cross-role user could
+  see partial UI. `96d84ae` closed the admin/schools gap missed in the original C1 commit
+  — split the former 820-line `page.tsx` into a server page + `SchoolsClient.tsx`.
+- **C2 — Fail-closed rate limiter for auth/PIN/OTP endpoints** (`2bf2248`). Added a `failMode`
+  configuration to `RateLimitConfig`; security-critical endpoints (login, PIN verify, OTP)
+  now reject on Redis outage instead of degrading to local in-memory limits. Prevents brute
+  force attempts from sliding through during an infra incident.
+- **H4 — No-store cache on teacher student-search** (`0d77134`). Removed the 60-second cache
+  on `/api/teacher/students/search`; a teacher's query should never be served from another
+  teacher's cache entry.
+
+### Changed
+- **C3 — Auto-replay queued mutations on online + mount** (`ed3e771`). Offline sync queue now
+  triggers on both `online` events and component mount so a user who returns after a long
+  offline session drains pending writes without manual intervention.
+- **H1 — StudentProgressGrid realtime subscription scoped to class roster** (`239ca2a`). The
+  teacher grid's realtime channel previously subscribed to all progress rows. Now filters
+  server-side by `class_id` so unrelated students' activity no longer rerenders the grid.
+- **H3 — Atomic `upsert_learning_style_profile` RPC** (`908446d`). Migration 166 adds the RPC;
+  client now calls it instead of a multi-step insert/update. Drops dead helper functions
+  from the previous try/catch flow.
+- **H5 — Prefer `.maybeSingle()` for nullable reads per rule.md** (`d1cac5c`). Learning
+  profile and announcement INSERT+SELECT flows no longer throw on zero-row results.
+- **H6 — Streak bucketing uses Asia/Kolkata date via `get_student_streak` RPC** (`1197467`).
+  Migration 167 adds timezone-aware streak calculation. Replaces the 85-line client-side
+  date loop with a single RPC call.
+- **Advisor-diff fix — `auth_rls_initplan` on `assessment_sessions` + four
+  `function_search_path_mutable`.** Migration 168 rewraps two bare `auth.uid()` calls in
+  `assessment_sessions_select` with `(select auth.uid())` (same OI-4 pattern as
+  `assessment_responses`), and pins `search_path = public, extensions` on
+  `get_assessment_comparison`, `has_assessment_type`, `get_connection_stats`, and
+  `check_curriculum_completion`. Both advisor regressions clear; `auth_rls_initplan` count
+  back to 0.
+
+### Design system
+- **OI-5 — Centralize role gradients on CSS custom properties** (`dc8017f`). Twenty-five
+  components migrated from inline gradient literals (`linear-gradient(135deg, ...)`) to
+  `var(--gradient-primary)`, `var(--gradient-teacher)`, and `var(--gradient-admin)`. Byte
+  identical output; future recolors happen in one place (`globals.css`).
+
+### Accessibility
+- **OI-3 — 44×44 tap targets and ARIA labels on icon-only controls** (`36d068c`).
+  `AppTopHeader` sign-out button, `BottomNav` tab links, and the non-compact
+  `SyncStatusIndicator` now meet WCAG 2.5.5 AAA. Added `aria-label` and `aria-current="page"`.
+
+### i18n
+- **Role and skill labels now translate** (`fb65443`). Added `role` and `skill` namespaces to
+  `en.json` / `hi.json` / `as.json`. Server components read the preference from a new
+  `atal-app-language` cookie (mirrored alongside localStorage by `LanguageProvider.setLanguage`)
+  via `getServerLanguage()`, so the settings page role banner and student assessments skill
+  badges localize without a client-boundary hoist.
+
+### Tests
+- **Task 15 — E2E suite scaffold** (`9ebe01c`). New `tests/e2e/` directory with
+  `00-pwa-install.spec.ts` (manifest shape + service-worker registration + head link) and
+  `02-role-gating.spec.ts` (parameterized unauthenticated redirect over eleven protected
+  paths). Remaining eight specs deferred — see `tests/e2e/README.md` for per-spec blockers
+  (Supabase MCP test branch, `@axe-core/playwright` dep, visual baselines).
+
+### Deferred
+- **T14 — FK index `idx_practice_questions_student_id`** is already present since
+  migration 067. Dead-RPC cleanup for the thirty-six candidate RPCs requires
+  `pg_stat_user_functions` call-count verification and is deferred; no functions dropped
+  in this release.
+
 ## [1.0.0.0] - 2026-04-02 — Production Ready
 
 This release marks ATAL AI's production readiness milestone. Security, performance, and data

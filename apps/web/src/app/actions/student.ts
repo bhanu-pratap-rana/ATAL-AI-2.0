@@ -413,7 +413,7 @@ async function createEnrollment(
       student_id: studentId,
     })
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) {
     authLogger.error("[joinClass] Failed to create enrollment", {

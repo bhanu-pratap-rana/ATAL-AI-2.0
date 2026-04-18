@@ -170,7 +170,14 @@ export default async function ClassDetailPage({
     redirect("/teacher/start");
   }
 
-  const data = await getClassWithRoster(id, user.id);
+  // All four fetches are independent of each other — run in parallel
+  const [data, analyticsResult, announcementsResult, materialsResult] =
+    await Promise.all([
+      getClassWithRoster(id, user.id),
+      getClassAnalytics(id),
+      getClassAnnouncements(id),
+      getClassMaterials(id),
+    ]);
 
   if (!data) {
     redirect("/app/teacher/classes");
@@ -178,8 +185,6 @@ export default async function ClassDetailPage({
 
   const { class: classData, enrollments } = data;
 
-  // Fetch analytics
-  const analyticsResult = await getClassAnalytics(id);
   const analytics: {
     activeThisWeek: number;
     avgMinutesPerDay: number;
@@ -195,12 +200,6 @@ export default async function ClassDetailPage({
         avgMinutesPerDay: 0,
         atRiskCount: 0,
       };
-
-  // Fetch announcements and materials for communication section
-  const [announcementsResult, materialsResult] = await Promise.all([
-    getClassAnnouncements(id),
-    getClassMaterials(id),
-  ]);
   const announcements: Announcement[] = announcementsResult.success
     ? (announcementsResult.data as Announcement[])
     : [];
@@ -212,7 +211,7 @@ export default async function ClassDetailPage({
     <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
       <div className="max-w-6xl mx-auto space-y-4">
         {/* Banner */}
-        <div className="rounded-[32px] p-6 text-white" style={{ background: "linear-gradient(135deg,#3B82F6,#6366F1)" }}>
+        <div className="rounded-[32px] p-6 text-white" style={{ background: "var(--gradient-teacher)" }}>
           <Link href="/app/teacher/classes" className="inline-flex items-center gap-2 text-white/80 text-xs font-black uppercase tracking-widest mb-4">
             ← Classes
           </Link>
