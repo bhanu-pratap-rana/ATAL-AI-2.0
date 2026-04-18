@@ -1416,6 +1416,7 @@ export type Database = {
           total_classes: number
         }[]
       }
+      get_student_streak: { Args: { p_student_id: string }; Returns: number }
       get_student_total_points: {
         Args: { p_student_id: string }
         Returns: number
@@ -1589,6 +1590,33 @@ export type Database = {
           p_topic_id: string
         }
         Returns: undefined
+      }
+      upsert_learning_style_profile: {
+        Args: {
+          p_auditory_score: number
+          p_dominant_style?: string
+          p_student_id: string
+          p_text_score: number
+          p_visual_score: number
+        }
+        Returns: {
+          auditory_score: number | null
+          id: string
+          images_viewed: number | null
+          preferred_style: string | null
+          student_id: string | null
+          text_read_time_seconds: number | null
+          text_score: number | null
+          updated_at: string | null
+          visual_score: number | null
+          voice_replays: number | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "learning_style_profile"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       upsert_student_profile: {
         Args: {
