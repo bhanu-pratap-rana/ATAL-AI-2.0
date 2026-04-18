@@ -103,7 +103,7 @@ Student's preferred learning style: ${PLACEHOLDERS.learningStyle}
 
 ## Curriculum Context
 The following curriculum content has been retrieved to help you answer. Use this information to guide your Socratic questions.
-IMPORTANT: Always respond in English, using the curriculum context provided below.
+Use the curriculum context below to guide your Socratic responses.
 
 ${PLACEHOLDERS.context}
 
@@ -166,7 +166,7 @@ export const SOCRATIC_PROMPT_HI = `${SOCRATIC_BASE}
 
 ## पाठ्यक्रम संदर्भ
 निम्नलिखित पाठ्यक्रम सामग्री आपके उत्तर में मदद करने के लिए प्राप्त की गई है। इस जानकारी का उपयोग अपने सुकराती प्रश्नों को मार्गदर्शन करने के लिए करें।
-महत्वपूर्ण: हमेशा हिंदी में उत्तर दें, नीचे दिए गए पाठ्यक्रम संदर्भ का उपयोग करते हुए।
+नीचे दिए गए पाठ्यक्रम संदर्भ का उपयोग अपने सुकराती उत्तरों में करें।
 
 ${PLACEHOLDERS.context}
 
@@ -227,7 +227,7 @@ export const SOCRATIC_PROMPT_AS = `${SOCRATIC_BASE}
 
 ## পাঠ্যক্ৰম প্ৰসংগ
 তলৰ পাঠ্যক্ৰম সামগ্ৰী আপোনাৰ উত্তৰত সহায় কৰিবলৈ সংগ্ৰহ কৰা হৈছে। এই তথ্য ব্যৱহাৰ কৰক আপোনাৰ ছক্ৰেটিক প্ৰশ্নসমূহ পৰিচালনা কৰিবলৈ।
-গুৰুত্বপূৰ্ণ: সদায় অসমীয়াত উত্তৰ দিয়ক, তলত দিয়া পাঠ্যক্ৰম প্ৰসংগ ব্যৱহাৰ কৰি।
+তলত দিয়া পাঠ্যক্ৰম প্ৰসংগ ব্যৱহাৰ কৰি আপোনাৰ ছক্ৰেটিক উত্তৰ পৰিচালনা কৰক।
 
 ${PLACEHOLDERS.context}
 

@@ -32,7 +32,7 @@ export function ClassCreationSuccess({
         {/* Class Code */}
         <div className="space-y-2">
           <span className="text-sm font-medium">Class Code</span>
-          <div className="bg-gradient-to-br from-primary/10 to-primary/5 border-2 border-primary/30 rounded-2xl p-3 md:p-4">
+          <div className="bg-linear-to-br from-primary/10 to-primary/5 border-2 border-primary/30 rounded-2xl p-3 md:p-4">
             <p className="text-2xl md:text-3xl font-mono font-black text-center text-primary tracking-widest break-all">
               {classCode}
             </p>
@@ -45,7 +45,7 @@ export function ClassCreationSuccess({
         {/* Join PIN */}
         <div className="space-y-2">
           <span className="text-sm font-medium">Join PIN</span>
-          <div className="bg-gradient-to-br from-cyan-lightest to-cyan/10 border-2 border-cyan/30 rounded-2xl p-3 md:p-4">
+          <div className="bg-linear-to-br from-cyan-lightest to-cyan/10 border-2 border-cyan/30 rounded-2xl p-3 md:p-4">
             <p className="text-2xl md:text-3xl font-mono font-black text-center text-cyan-dark tracking-widest">
               {joinPin}
             </p>

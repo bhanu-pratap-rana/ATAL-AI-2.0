@@ -48,6 +48,10 @@
   --gradient-teacher: linear-gradient(135deg, #3B82F6 0%, #6366F1 100%);
   --gradient-admin: linear-gradient(135deg, #DC2626 0%, #7C3AED 100%);
 
+  /* Role Accent Colors — single-hex counterparts for role-branded UI (nav active, etc.) */
+  --color-role-teacher: #2563eb; /* blue-600 */
+  --color-role-admin: #dc2626;   /* red-600 */
+
   /* Primary Shadows */
   --shadow-primary: 0 8px 24px rgba(249, 136, 25, 0.3);
   --shadow-primary-sm: 0 4px 12px rgba(249, 136, 25, 0.2);
@@ -424,6 +428,10 @@
   /* Borders */
   --color-border: var(--color-border);
   --color-border-light: var(--color-border-light);
+
+  /* Role Accents */
+  --color-role-teacher: var(--color-role-teacher);
+  --color-role-admin: var(--color-role-admin);
 
   /* Dark Theme Colors */
   --color-dark-bg: var(--color-dark-bg);

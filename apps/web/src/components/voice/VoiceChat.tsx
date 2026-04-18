@@ -127,11 +127,15 @@ export const VoiceChat = memo(function VoiceChat({
 
     const recognition = new SpeechRecognitionConstructor();
 
-    // Configure recognition
-    // IMPORTANT: Always use English recognition for reliability
-    // Browser support for Hindi/Assamese is inconsistent
-    // AI will detect language from transcript and respond appropriately
-    recognition.lang = "en-IN";
+    // Configure recognition language per selection
+    // hi-IN: Chrome/Edge support Hindi recognition natively
+    // as-IN: Not supported by browsers — Bengali (bn-IN) shares the same script
+    const sttLangMap: Record<string, string> = {
+      en: "en-IN",
+      hi: "hi-IN",
+      as: "bn-IN",
+    };
+    recognition.lang = sttLangMap[language] ?? "en-IN";
     recognition.continuous = false;
     recognition.interimResults = showInterimTranscript;
     recognition.maxAlternatives = 1;
@@ -452,12 +456,19 @@ export function useTTS(language: Language) {
           // Use browser Speech Synthesis directly — server already told us to use browser TTS,
           // so skip speakText() which would make another redundant API request.
           clientLogger.debug("[useTTS] Using browser Speech Synthesis directly");
-          if (typeof window !== "undefined" && "speechSynthesis" in window) {
+          if (globalThis.window !== undefined && "speechSynthesis" in globalThis) {
             const langMap: Record<string, string> = { en: "en-IN", hi: "hi-IN", as: "bn-IN" };
+            const targetLang = langMap[language] ?? "en-IN";
             const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = langMap[language] || "en-IN";
-            utterance.rate = 0.95;
-            utterance.pitch = 1.0;
+            utterance.lang = targetLang;
+            // Pick the best available voice for the language (prefer cloud/network voices)
+            const voices = globalThis.speechSynthesis.getVoices();
+            const match = voices.find(
+              (v) => v.lang === targetLang && v.localService === false
+            ) ?? voices.find((v) => v.lang.startsWith(targetLang.split("-")[0]));
+            if (match) utterance.voice = match;
+            utterance.rate = 0.9;   // Slightly slower = more natural
+            utterance.pitch = 1.05; // Slight warmth
             utterance.onend = () => {
               isSpeakingRef.current = false;
               setIsSpeaking(false);
@@ -466,7 +477,7 @@ export function useTTS(language: Language) {
               isSpeakingRef.current = false;
               setIsSpeaking(false);
             };
-            window.speechSynthesis.speak(utterance);
+            globalThis.speechSynthesis.speak(utterance);
             return;
           }
           throw new Error("TTS failed and no browser fallback available");

@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { createClient, getCurrentUser } from "@/lib/supabase-server";
+import { createAdminClient, createClient, getCurrentUser } from "@/lib/supabase-server";
 import Link from "next/link";
 import { AssessmentBreakdown } from "@/components/assessment/AssessmentBreakdown";
 import { ArrowLeft, Clock, CheckCircle, XCircle, BarChart3 } from "lucide-react";
@@ -76,9 +76,10 @@ export default async function AssessmentDetailPage({
     redirect("/app/student/assessments");
   }
 
-  // Fetch IRT item details (depends on response item_ids)
+  // Fetch IRT item details via admin client — item bank is restricted to service_role
   const itemIds = responses.map((r) => r.item_id);
-  const { data: irtItems } = await supabase
+  const adminSupabase = await createAdminClient();
+  const { data: irtItems } = await adminSupabase
     .from("irt_item_bank")
     .select(
       "id, question_text, options, correct_answer, difficulty, discrimination, category"
@@ -192,7 +193,7 @@ export default async function AssessmentDetailPage({
               <BarChart3 className="w-4 h-4 text-slate-400" />
               <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Performance by Module</p>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3">
               {Object.entries(moduleStats).map(([module, stats]) => {
                 const moduleScore = Math.round((stats.correct / stats.total) * 100);
                 return (

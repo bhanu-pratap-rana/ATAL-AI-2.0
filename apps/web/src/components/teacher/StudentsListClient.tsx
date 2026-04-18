@@ -39,7 +39,7 @@ export function StudentsListClient({ students }: Readonly<{ students: StudentRow
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Search bar */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3 px-4 py-3">
-          <Search size={18} className="text-slate-400 flex-shrink-0" />
+          <Search size={18} className="text-slate-400 shrink-0" />
           <input
             type="text"
             placeholder="Search students…"
@@ -73,7 +73,7 @@ export function StudentsListClient({ students }: Readonly<{ students: StudentRow
                 >
                   {/* Avatar + info */}
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-black text-slate-500 text-sm flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-black text-slate-500 text-sm shrink-0">
                       {getInitial(student.name)}
                     </div>
                     <div className="min-w-0">
@@ -87,7 +87,7 @@ export function StudentsListClient({ students }: Readonly<{ students: StudentRow
                   </div>
 
                   {/* Score + badge */}
-                  <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                  <div className="flex flex-col items-end gap-1 shrink-0">
                     {student.avgMastery !== null && (
                       <p className="text-lg font-black text-blue-600">{student.avgMastery}%</p>
                     )}

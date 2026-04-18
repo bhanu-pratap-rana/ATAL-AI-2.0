@@ -49,7 +49,7 @@ export function LearnHeader({
       <div className="flex items-center gap-3">
         <Link
           href={resolvedBackLink.href}
-          className="w-9 h-9 bg-white rounded-2xl border border-slate-100 shadow-sm flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors flex-shrink-0"
+          className="w-9 h-9 bg-white rounded-2xl border border-slate-100 shadow-sm flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors shrink-0"
         >
           ←
         </Link>

@@ -187,7 +187,7 @@ export default async function StudentAssessmentsPage() {
                     >
                       <div className="flex items-center gap-4">
                         {/* Score Circle */}
-                        <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white font-black text-lg flex-shrink-0 ${getScoreCircleColor(assessment.score)}`}>
+                        <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white font-black text-lg shrink-0 ${getScoreCircleColor(assessment.score)}`}>
                           {assessment.score}%
                         </div>
                         <div>

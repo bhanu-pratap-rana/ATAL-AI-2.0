@@ -59,7 +59,7 @@ export async function createClass(name: string, subject?: string) {
         teacher_id: auth.user.id,
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       authLogger.error("[createClass] Database error", { error: error.message });
@@ -67,6 +67,7 @@ export async function createClass(name: string, subject?: string) {
     }
 
     revalidatePath("/app/teacher/classes");
+    revalidatePath("/app/teacher/dashboard");
     return { success: true, data };
   } catch (error) {
     authLogger.error("[createClass] Unexpected error", error);
@@ -131,6 +132,7 @@ export async function updateClass(
     }
 
     revalidatePath("/app/teacher/classes");
+    revalidatePath("/app/teacher/dashboard");
     return { success: true, data };
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -185,6 +187,7 @@ export async function deleteClass(classId: string) {
     }
 
     revalidatePath("/app/teacher/classes");
+    revalidatePath("/app/teacher/dashboard");
     return { success: true };
   } catch (error) {
     authLogger.error("[deleteClass] Unexpected error", error);

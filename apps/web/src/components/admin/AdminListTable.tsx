@@ -186,7 +186,7 @@ export function AdminListTable({
   if (error) {
     return (
       <div className="bg-error-light border border-error/30 rounded-2xl p-4 flex gap-3">
-        <AlertCircle className="w-5 h-5 text-error flex-shrink-0 mt-0.5" />
+        <AlertCircle className="w-5 h-5 text-error shrink-0 mt-0.5" />
         <p className="text-sm text-error">{error}</p>
       </div>
     );

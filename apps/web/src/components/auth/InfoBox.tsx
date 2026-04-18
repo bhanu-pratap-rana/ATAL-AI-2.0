@@ -44,7 +44,7 @@ export function InfoBox({
       role="alert"
     >
       <div className="flex gap-3">
-        {icon && <div className="flex-shrink-0 text-lg">{icon}</div>}
+        {icon && <div className="shrink-0 text-lg">{icon}</div>}
         <div className="flex-1">
           {title && <p className="font-semibold mb-1">{title}</p>}
           <p className="text-sm">{children}</p>

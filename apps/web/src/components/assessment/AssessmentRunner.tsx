@@ -727,7 +727,7 @@ export function AssessmentRunner({
               <h2
                 ref={questionRef}
                 id="question-text"
-                className={`text-xl md:text-2xl font-black text-slate-800 break-words ${fontClass}`}
+                className={`text-xl md:text-2xl font-black text-slate-800 wrap-break-word ${fontClass}`}
                 tabIndex={-1}
               >
                 {currentQuestion.questionText}
@@ -761,14 +761,14 @@ export function AssessmentRunner({
                       <div className="flex items-start gap-3">
                         <div
                           aria-hidden="true"
-                          className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${getRadioButtonClasses(selectedOption === index ? "selected" : "unselected")}`}
+                          className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${getRadioButtonClasses(selectedOption === index ? "selected" : "unselected")}`}
                         >
                           {selectedOption === index && (
                             <div className="w-3 h-3 bg-white rounded-full" />
                           )}
                         </div>
                         <span
-                          className={`text-base text-slate-800 break-words ${fontClass}`}
+                          className={`text-base text-slate-800 wrap-break-word ${fontClass}`}
                         >
                           <span className="font-semibold mr-2">{label}.</span>
                           {option.text}

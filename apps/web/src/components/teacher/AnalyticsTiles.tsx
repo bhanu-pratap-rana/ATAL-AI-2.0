@@ -34,7 +34,7 @@ function getAtRiskStyles(atRiskCount: number): AtRiskStyles {
   const hasAtRiskStudents = atRiskCount > 0;
 
   return {
-    cardClass: `border-2 ${hasAtRiskStudents ? "border-warning/40 bg-gradient-to-br from-warning/10 to-warning/5" : "border-slate-200 bg-gradient-to-br from-surface to-white-dark"}`,
+    cardClass: `border-2 ${hasAtRiskStudents ? "border-warning/40 bg-linear-to-br from-warning/10 to-warning/5" : "border-slate-200 bg-linear-to-br from-surface to-white-dark"}`,
     descriptionClass: hasAtRiskStudents
       ? "text-warning-dark font-medium"
       : "text-slate-800 font-medium",
@@ -58,7 +58,7 @@ export function AnalyticsTiles({
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
       {/* Active This Week */}
-      <Card className="border-2 border-success/30 bg-gradient-to-br from-success-light to-success/10">
+      <Card className="border-2 border-success/30 bg-linear-to-br from-success-light to-success/10">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardDescription className="text-success font-medium">
@@ -71,7 +71,7 @@ export function AnalyticsTiles({
         </CardHeader>
         <CardContent>
           <div className="space-y-1">
-            <div className="text-2xl sm:text-4xl font-black text-success">
+            <div className="text-xl sm:text-2xl lg:text-4xl font-black text-success">
               {activeThisWeek}
             </div>
             <p className="text-sm text-success/80">
@@ -83,7 +83,7 @@ export function AnalyticsTiles({
       </Card>
 
       {/* Avg Minutes Per Day */}
-      <Card className="border-2 border-cyan/30 bg-gradient-to-br from-cyan-lightest to-cyan/10">
+      <Card className="border-2 border-cyan/30 bg-linear-to-br from-cyan-lightest to-cyan/10">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardDescription className="text-cyan-dark font-medium">
@@ -96,7 +96,7 @@ export function AnalyticsTiles({
         </CardHeader>
         <CardContent>
           <div className="space-y-1">
-            <div className="text-2xl sm:text-4xl font-black text-cyan-dark">
+            <div className="text-xl sm:text-2xl lg:text-4xl font-black text-cyan-dark">
               {avgMinutesPerDay.toFixed(1)}
             </div>
             <p className="text-sm text-cyan">minutes per student per day</p>
@@ -123,7 +123,7 @@ export function AnalyticsTiles({
             </CardHeader>
             <CardContent>
               <div className="space-y-1">
-                <div className={`text-2xl sm:text-4xl font-black ${styles.numberClass}`}>
+                <div className={`text-xl sm:text-2xl lg:text-4xl font-black ${styles.numberClass}`}>
                   {atRiskCount}
                 </div>
                 <p className={`text-sm ${styles.textClass}`}>

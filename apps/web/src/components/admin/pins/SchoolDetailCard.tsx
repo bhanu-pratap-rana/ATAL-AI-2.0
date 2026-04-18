@@ -65,7 +65,7 @@ export function SchoolDetailCard({
           onClick={onCopyCode}
           variant="ghost"
           size="sm"
-          className="flex-shrink-0"
+          className="shrink-0"
         >
           {copied ? (
             <Check size={18} className="text-success" />
