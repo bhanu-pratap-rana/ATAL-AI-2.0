@@ -53,7 +53,7 @@ export function AIInteractionsLog({
   const [error, setError] = useState<string | null>(null);
   const enrolledIdsRef = useRef<Set<string>>(new Set());
 
-  const fetchInteractions = useCallback(async () => {
+  const fetchInteractions = useCallback(async (cancelled: { current: boolean }) => {
     try {
       const supabase = createClient();
 
@@ -62,6 +62,8 @@ export function AIInteractionsLog({
         .from("enrollments")
         .select("student_id")
         .eq("class_id", classId);
+
+      if (cancelled.current) return;
 
       const studentIds = enrollments?.map((e) => e.student_id) || [];
       enrolledIdsRef.current = new Set(studentIds);
@@ -83,11 +85,13 @@ export function AIInteractionsLog({
         .order("created_at", { ascending: false })
         .limit(limit);
 
+      if (cancelled.current) return;
       if (fetchError) throw fetchError;
 
       setInteractions((data || []) as AIInteraction[]);
       setLoading(false);
     } catch (error) {
+      if (cancelled.current) return;
       clientLogger.error(
         "[AIInteractionsLog] Error:",
         error instanceof Error ? error : undefined,
@@ -98,7 +102,8 @@ export function AIInteractionsLog({
   }, [classId, limit]);
 
   useEffect(() => {
-    fetchInteractions();
+    const cancelled = { current: false };
+    fetchInteractions(cancelled);
 
     const supabase = createClient();
 
@@ -121,6 +126,7 @@ export function AIInteractionsLog({
       .subscribe();
 
     return () => {
+      cancelled.current = true;
       channel.unsubscribe();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -298,7 +304,7 @@ function SessionCard({ session }: { readonly session: Session }) {
               </p>
             </div>
           </div>
-          <span className="text-slate-500" aria-hidden="true">
+          <span className="text-slate-500 p-2 rounded min-w-[36px] min-h-[36px] flex items-center justify-center" aria-hidden="true">
             {isExpanded ? "▲" : "▼"}
           </span>
         </div>

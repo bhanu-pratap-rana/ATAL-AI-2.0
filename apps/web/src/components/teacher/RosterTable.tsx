@@ -103,6 +103,7 @@ export function RosterTable({ enrollments, classId }: RosterTableProps) {
 
   return (
     <div className="overflow-hidden rounded-2xl border">
+      <div className="overflow-x-auto">
       <Table
         role="table"
         aria-label="Class roster with student enrollment information"
@@ -138,7 +139,7 @@ export function RosterTable({ enrollments, classId }: RosterTableProps) {
                 <TableCell>
                   <div className="flex flex-col gap-1 md:flex-row md:items-center md:gap-2">
                     <div className="flex items-center gap-2">
-                      <div className="size-8 shrink-0 bg-gradient-to-br from-primary to-primary-light rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                      <div className="size-8 shrink-0 bg-linear-to-br from-primary to-primary-light rounded-full flex items-center justify-center text-white font-semibold text-sm">
                         {initial}
                       </div>
                       <div className="flex flex-col">
@@ -192,6 +193,7 @@ export function RosterTable({ enrollments, classId }: RosterTableProps) {
           })}
         </TableBody>
       </Table>
+      </div>
     </div>
   );
 }

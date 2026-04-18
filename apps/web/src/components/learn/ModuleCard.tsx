@@ -77,7 +77,7 @@ export function ModuleCard({
         <div className="flex items-center gap-3">
           {/* A11Y-002 FIX: Added role="img" and aria-label for screen reader accessibility */}
           <div
-            className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${module.color} flex items-center justify-center text-2xl shadow-md shrink-0`}
+            className={`w-12 h-12 rounded-2xl bg-linear-to-br ${module.color} flex items-center justify-center text-2xl shadow-md shrink-0`}
             role="img"
             aria-label={`${moduleName} module icon`}
           >

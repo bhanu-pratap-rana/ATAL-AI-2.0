@@ -181,10 +181,10 @@ export function ConversationalVoiceChat({
             text-4xl shadow-lg transition-all duration-300 ease-out
             focus:outline-none focus:ring-4 focus:ring-offset-2
             ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:scale-105 active:scale-95"}
-            ${state === "idle" ? "bg-gradient-to-br from-primary to-primary-dark text-white focus:ring-primary/50 hover:shadow-primary/30 hover:shadow-xl" : ""}
-            ${state === "listening" ? "bg-gradient-to-br from-green-500 to-green-600 text-white focus:ring-green-500/50 shadow-green-500/30 shadow-xl" : ""}
-            ${state === "processing" ? "bg-gradient-to-br from-orange-400 to-orange-500 text-white focus:ring-orange-400/50" : ""}
-            ${state === "speaking" ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white focus:ring-blue-500/50 shadow-blue-500/30 shadow-xl" : ""}
+            ${state === "idle" ? "bg-linear-to-br from-primary to-primary-dark text-white focus:ring-primary/50 hover:shadow-primary/30 hover:shadow-xl" : ""}
+            ${state === "listening" ? "bg-linear-to-br from-green-500 to-green-600 text-white focus:ring-green-500/50 shadow-green-500/30 shadow-xl" : ""}
+            ${state === "processing" ? "bg-linear-to-br from-orange-400 to-orange-500 text-white focus:ring-orange-400/50" : ""}
+            ${state === "speaking" ? "bg-linear-to-br from-blue-500 to-blue-600 text-white focus:ring-blue-500/50 shadow-blue-500/30 shadow-xl" : ""}
           `}
           aria-label={getButtonLabel(state)}
         >

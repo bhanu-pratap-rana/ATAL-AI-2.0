@@ -206,7 +206,9 @@ export async function POST(request: Request): Promise<Response> {
     });
 
     // Return streaming response compatible with useChat
-    return result.toDataStreamResponse();
+    return result.toDataStreamResponse({
+      headers: { "Cache-Control": "private, no-store" },
+    });
   } catch (error) {
     // Log detailed error for debugging (server-side only)
     const errorMessage = error instanceof Error ? error.message : String(error);
