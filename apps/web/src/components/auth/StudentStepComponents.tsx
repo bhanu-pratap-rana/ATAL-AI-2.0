@@ -30,7 +30,7 @@ export function ChoiceStep({ actions, loading: _loading, state: _state }: StepCo
           />
         </div>
         <h1 className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight mb-3 text-center">ATAL AI</h1>
-        <p className="text-slate-400 font-bold mb-10 text-center">Assam&apos;s Premier Digital Learning Platform</p>
+        <p className="text-slate-500 font-bold mb-10 text-center">Assam&apos;s Premier Digital Learning Platform</p>
 
         <div className="space-y-4">
           {/* Sign In — primary orange */}
