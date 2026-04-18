@@ -193,7 +193,7 @@ export default async function AssessmentDetailPage({
               <BarChart3 className="w-4 h-4 text-slate-400" />
               <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Performance by Module</p>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3">
               {Object.entries(moduleStats).map(([module, stats]) => {
                 const moduleScore = Math.round((stats.correct / stats.total) * 100);
                 return (

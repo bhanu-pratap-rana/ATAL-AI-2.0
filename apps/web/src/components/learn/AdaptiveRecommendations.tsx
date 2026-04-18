@@ -277,7 +277,7 @@ export function AdaptiveRecommendations({
   }
 
   return (
-    <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-cyan/5">
+    <Card className="border-2 border-primary/20 bg-linear-to-br from-primary/5 to-cyan/5">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <span>🤖</span>
