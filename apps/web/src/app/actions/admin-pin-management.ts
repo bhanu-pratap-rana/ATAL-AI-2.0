@@ -221,13 +221,10 @@ export async function rotateSchoolPIN(
     let newPIN: string;
 
     if (customPIN && typeof customPIN === 'string' && customPIN.trim()) {
-      // Use the PIN provided from the UI
       newPIN = customPIN.trim();
-      authLogger.debug("[rotateSchoolPIN] Using custom PIN from UI", {
-        schoolId,
-        pinLength: newPIN.length,
-        pinFormat: /^\d{4,6}$/.test(newPIN),
-      });
+      if (!/^\d{4,6}$/.test(newPIN)) {
+        return { success: false, error: "PIN must be 4–6 digits (numbers only)" };
+      }
     } else {
       // Generate new PIN using centralized constants
       const range = PIN_LIMITS.max - PIN_LIMITS.min + 1;

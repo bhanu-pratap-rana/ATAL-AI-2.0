@@ -170,7 +170,14 @@ export default async function ClassDetailPage({
     redirect("/teacher/start");
   }
 
-  const data = await getClassWithRoster(id, user.id);
+  // All four fetches are independent of each other — run in parallel
+  const [data, analyticsResult, announcementsResult, materialsResult] =
+    await Promise.all([
+      getClassWithRoster(id, user.id),
+      getClassAnalytics(id),
+      getClassAnnouncements(id),
+      getClassMaterials(id),
+    ]);
 
   if (!data) {
     redirect("/app/teacher/classes");
@@ -178,8 +185,6 @@ export default async function ClassDetailPage({
 
   const { class: classData, enrollments } = data;
 
-  // Fetch analytics
-  const analyticsResult = await getClassAnalytics(id);
   const analytics: {
     activeThisWeek: number;
     avgMinutesPerDay: number;
@@ -195,12 +200,6 @@ export default async function ClassDetailPage({
         avgMinutesPerDay: 0,
         atRiskCount: 0,
       };
-
-  // Fetch announcements and materials for communication section
-  const [announcementsResult, materialsResult] = await Promise.all([
-    getClassAnnouncements(id),
-    getClassMaterials(id),
-  ]);
   const announcements: Announcement[] = announcementsResult.success
     ? (announcementsResult.data as Announcement[])
     : [];
