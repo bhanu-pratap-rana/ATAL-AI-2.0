@@ -338,7 +338,9 @@ export async function POST(request: NextRequest) {
       badgesEarned,
     };
 
-    return NextResponse.json(response);
+    return NextResponse.json(response, {
+      headers: { "Cache-Control": "private, no-store" },
+    });
   } catch (error) {
     authLogger.error("[/api/progress/sync] Error:", {
       error: error instanceof Error ? error.message : String(error),

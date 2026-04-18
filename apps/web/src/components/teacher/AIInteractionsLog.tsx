@@ -12,7 +12,7 @@
  * - Identify common questions/struggles
  */
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { createClient } from "@/lib/supabase-browser";
 import type { SupportedLanguage } from "@/types/common";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,6 +51,7 @@ export function AIInteractionsLog({
   const [interactions, setInteractions] = useState<AIInteraction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const enrolledIdsRef = useRef<Set<string>>(new Set());
 
   const fetchInteractions = useCallback(async () => {
     try {
@@ -63,6 +64,7 @@ export function AIInteractionsLog({
         .eq("class_id", classId);
 
       const studentIds = enrollments?.map((e) => e.student_id) || [];
+      enrolledIdsRef.current = new Set(studentIds);
 
       if (studentIds.length === 0) {
         setInteractions([]);
@@ -109,10 +111,10 @@ export function AIInteractionsLog({
           event: "INSERT",
           schema: "public",
           table: "ai_tutor_interactions",
-          filter: `class_id=eq.${classId}`,
         },
         (payload) => {
           const newInteraction = payload.new as AIInteraction;
+          if (!enrolledIdsRef.current.has(newInteraction.student_id)) return;
           setInteractions((prev) => [newInteraction, ...prev].slice(0, limit));
         },
       )
