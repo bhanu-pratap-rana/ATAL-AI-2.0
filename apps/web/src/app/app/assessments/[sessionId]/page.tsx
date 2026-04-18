@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { createClient, getCurrentUser } from "@/lib/supabase-server";
+import { createAdminClient, createClient, getCurrentUser } from "@/lib/supabase-server";
 import Link from "next/link";
 import { AssessmentBreakdown } from "@/components/assessment/AssessmentBreakdown";
 import { ArrowLeft, Clock, CheckCircle, XCircle, BarChart3 } from "lucide-react";
@@ -76,9 +76,10 @@ export default async function AssessmentDetailPage({
     redirect("/app/student/assessments");
   }
 
-  // Fetch IRT item details (depends on response item_ids)
+  // Fetch IRT item details via admin client — item bank is restricted to service_role
   const itemIds = responses.map((r) => r.item_id);
-  const { data: irtItems } = await supabase
+  const adminSupabase = await createAdminClient();
+  const { data: irtItems } = await adminSupabase
     .from("irt_item_bank")
     .select(
       "id, question_text, options, correct_answer, difficulty, discrimination, category"

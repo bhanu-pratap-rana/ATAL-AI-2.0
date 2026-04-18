@@ -1,6 +1,6 @@
 "use server";
 
-import { verifyStudentAuth, createClient } from "@/lib/supabase-server";
+import { verifyStudentAuth, createAdminClient } from "@/lib/supabase-server";
 import { authLogger } from "@/lib/auth-logger";
 import { CATEGORIES, CAT_CONFIG, IRTItem, selectNextItem } from "./irt-models";
 
@@ -223,7 +223,7 @@ export async function getAdaptiveQuestions(
       return { ...auth.error, questions: [] };
     }
 
-    const supabase = await createClient();
+    const supabase = await createAdminClient();
 
     const { data: allItems, error } = await supabase
       .from("irt_item_bank")
