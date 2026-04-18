@@ -282,7 +282,7 @@ export default async function StudentDashboardPage() {
         {/* ── Orange Banner ── */}
         <div className="rounded-[32px] p-6 text-white" style={bannerStyle}>
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-2xl flex-shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-2xl shrink-0">
               🧑‍🎓
             </div>
             <div className="flex-1 min-w-0">
@@ -322,7 +322,7 @@ export default async function StudentDashboardPage() {
               href={stat.href}
               className="bg-white rounded-2xl p-4 shadow-[0_4px_20px_rgb(0,0,0,0.05)] border border-slate-100 flex flex-col items-center text-center gap-1 hover:shadow-md transition-shadow active:scale-95"
             >
-              <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center text-xl flex-shrink-0">
+              <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center text-xl shrink-0">
                 {stat.icon}
               </div>
               <p className="text-xl font-black text-slate-800 leading-none">{stat.value}</p>
@@ -394,7 +394,7 @@ export default async function StudentDashboardPage() {
                   <Link key={mod.id} href={`/app/learn/${mod.id}`}>
                     <div className="flex items-center gap-3 p-3 rounded-2xl hover:bg-slate-50 transition-colors -mx-1 px-2">
                       <div
-                        className="w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+                        className="w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0"
                         style={{ background: mod.color_gradient || "var(--gradient-primary)" }}
                       >
                         {mod.icon || "📚"}
@@ -415,7 +415,7 @@ export default async function StudentDashboardPage() {
                         </div>
                         <p className="text-[11px] font-bold text-slate-400 mt-0.5">{progress}% complete</p>
                       </div>
-                      <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
+                      <ChevronRight size={16} className="text-slate-300 shrink-0" />
                     </div>
                   </Link>
                 );
@@ -423,14 +423,14 @@ export default async function StudentDashboardPage() {
             </div>
           ) : (
             <Link href="/app/learn" className="flex items-center gap-4 p-3 rounded-2xl hover:bg-slate-50 transition-colors">
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0" style={bannerStyle}>
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0" style={bannerStyle}>
                 <BookOpen className="w-7 h-7 text-white" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-black text-slate-800 text-sm">Start Learning</p>
                 <p className="text-xs font-bold text-slate-400 mt-0.5">Explore all modules</p>
               </div>
-              <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
+              <ChevronRight size={16} className="text-slate-300 shrink-0" />
             </Link>
           )}
         </div>

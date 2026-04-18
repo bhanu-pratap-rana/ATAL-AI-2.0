@@ -123,12 +123,12 @@ export function OfflineBanner({
 
   const getIcon = () => {
     if (!isOnline) {
-      return <WifiOff className="h-4 w-4 flex-shrink-0" />;
+      return <WifiOff className="h-4 w-4 shrink-0" />;
     }
     if (showSyncingMessage) {
-      return <RefreshCw className="h-4 w-4 flex-shrink-0 animate-spin" />;
+      return <RefreshCw className="h-4 w-4 shrink-0 animate-spin" />;
     }
-    return <Cloud className="h-4 w-4 flex-shrink-0" />;
+    return <Cloud className="h-4 w-4 shrink-0" />;
   };
 
   const getBackgroundColor = () => {
@@ -149,7 +149,7 @@ export function OfflineBanner({
         "fixed left-0 right-0 z-50 transition-all duration-300 ease-in-out",
         position === "top" ? "top-0" : "bottom-0",
         isOnline && !showSyncingMessage
-          ? "opacity-0 translate-y-[-100%]"
+          ? "opacity-0 -translate-y-full"
           : "opacity-100 translate-y-0",
         getBackgroundColor(),
         className,

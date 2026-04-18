@@ -67,7 +67,7 @@ export function FormMessage({
         ${className}
       `}
     >
-      <span className="flex-shrink-0 text-lg font-black">{styles.icon}</span>
+      <span className="shrink-0 text-lg font-black">{styles.icon}</span>
       <div className="flex-1">
         <p className="text-sm font-medium">{text}</p>
       </div>
@@ -75,7 +75,7 @@ export function FormMessage({
         <button
                 type="button"
           onClick={onClose}
-          className="flex-shrink-0 text-lg opacity-70 hover:opacity-100 transition-opacity"
+          className="shrink-0 text-lg opacity-70 hover:opacity-100 transition-opacity"
           aria-label="Close message"
         >
           ×

@@ -54,7 +54,7 @@ export function AppTopHeader() {
       <div className="max-w-4xl mx-auto flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div
-            className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0"
+            className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0"
             style={config.style}
           >
             <Icon size={20} className="text-white" strokeWidth={2.5} />
@@ -68,7 +68,7 @@ export function AppTopHeader() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           <LanguageSelector variant="compact" />
           <SyncStatusIndicator compact />
           <button

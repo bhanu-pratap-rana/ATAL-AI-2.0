@@ -26,7 +26,7 @@ export function UnauthorizedMessage({
     <div className="w-full max-w-md mx-auto p-6">
       <div className="bg-error-light border border-error/30 rounded-2xl p-6">
         <div className="flex gap-4">
-          <AlertCircle className="w-6 h-6 text-error flex-shrink-0 mt-0.5" />
+          <AlertCircle className="w-6 h-6 text-error shrink-0 mt-0.5" />
           <div className="flex-1">
             <h3 className="font-black text-error mb-2">{title}</h3>
             <p className="text-sm text-error/80 mb-4">{message}</p>

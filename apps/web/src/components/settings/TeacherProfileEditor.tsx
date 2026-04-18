@@ -161,7 +161,7 @@ export function TeacherProfileEditor({
         {/* Warning for incomplete profile */}
         {isProfileIncomplete && !isEditing && (
           <div className="mb-4 p-3 bg-warning-light border border-warning rounded-xl flex items-start gap-2">
-            <AlertTriangle className="w-5 h-5 text-warning-dark flex-shrink-0 mt-0.5" />
+            <AlertTriangle className="w-5 h-5 text-warning-dark shrink-0 mt-0.5" />
             <div>
               <p className="text-warning-dark font-medium text-sm">
                 Profile Incomplete

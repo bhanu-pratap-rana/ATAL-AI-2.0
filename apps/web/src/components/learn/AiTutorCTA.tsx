@@ -15,7 +15,7 @@ export function AiTutorCTA() {
   const { t } = useLanguage();
 
   return (
-    <Card className="bg-gradient-to-r from-primary/10 to-cyan/10 border-primary/20">
+    <Card className="bg-linear-to-r from-primary/10 to-cyan/10 border-primary/20">
       <CardContent className="p-6 text-center">
         <div className="text-4xl mb-2">🤖</div>
         <h3 className="text-lg font-black mb-1">{t("learn.needHelp")}</h3>
@@ -23,7 +23,7 @@ export function AiTutorCTA() {
           {t("learn.askAiTutor")}
         </p>
         <Link href="/app/ai-tools/tutor">
-          <Button className="bg-gradient-to-r from-primary to-cyan">
+          <Button className="bg-linear-to-r from-primary to-cyan">
             {t("learn.chatWithTutor")}
           </Button>
         </Link>

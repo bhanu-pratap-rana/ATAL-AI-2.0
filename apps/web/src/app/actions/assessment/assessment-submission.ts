@@ -9,6 +9,7 @@ import { RATE_LIMITS } from "@/lib/constants/rate-limits";
 import { validateSubmitAssessmentResponse } from "@/lib/rpc-validators";
 import { handleZodError } from "@/lib/action-error-handler";
 import { updateTheta, CATEGORIES } from "./irt-models";
+import { gamificationService } from "@/lib/services/gamification-service";
 
 /**
  * Assessment submission and scoring logic
@@ -209,7 +210,7 @@ export async function startAssessment(classId?: string, sessionType: "pre" | "ad
         started_at: new Date().toISOString(),
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       authLogger.error("[startAssessment] DB error", { error: error.message });
@@ -393,6 +394,9 @@ export async function submitAssessment(
 
     revalidatePath("/app/student/dashboard");
     revalidatePath("/app/progress");
+
+    // Award gamification points for completing an assessment (non-blocking)
+    gamificationService.triggerActivityCheck(auth.user.id, "assessment").catch(() => {});
 
     return {
       success: true,

@@ -113,7 +113,7 @@ export default function CreateAdminPage() {
   // Show loading while checking admin status
   if (checkingAdmin) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-surface via-background to-white flex items-center justify-center p-4">
+      <div className="min-h-screen bg-linear-to-br from-surface via-background to-white flex items-center justify-center p-4">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
           <p className="text-slate-500">Checking system status...</p>
@@ -134,7 +134,7 @@ export default function CreateAdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-surface via-background to-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-surface via-background to-white flex items-center justify-center p-4">
       <div className="absolute top-4 left-4">
         <Button
           onClick={() => (globalThis.location.href = "/admin/login")}
@@ -240,9 +240,9 @@ export default function CreateAdminPage() {
               }`}
             >
               {message.type === "success" ? (
-                <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
+                <CheckCircle className="w-5 h-5 text-success shrink-0 mt-0.5" />
               ) : (
-                <AlertCircle className="w-5 h-5 text-error flex-shrink-0 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-error shrink-0 mt-0.5" />
               )}
               <span
                 className={`text-sm ${
@@ -260,7 +260,7 @@ export default function CreateAdminPage() {
             disabled={
               isLoading || !email.trim() || !password || !confirmPassword
             }
-            className="w-full bg-gradient-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary"
+            className="w-full bg-linear-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary"
           >
             {isLoading ? (
               <>

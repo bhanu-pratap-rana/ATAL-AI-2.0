@@ -30,7 +30,7 @@ export default function HomePage() {
         <h1 className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight mb-3 text-center">
           ATAL AI
         </h1>
-        <p className="text-slate-400 font-bold mb-10 text-center">
+        <p className="text-slate-500 font-bold mb-10 text-center">
           Assam&apos;s Premier Digital Learning Platform
         </p>
 

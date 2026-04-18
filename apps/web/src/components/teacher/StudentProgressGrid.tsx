@@ -243,7 +243,7 @@ export function StudentProgressGrid({
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <Card key={`progress-skeleton-${i}`} className="animate-pulse">
             <CardContent className="p-4">
@@ -273,7 +273,7 @@ export function StudentProgressGrid({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
       {students.map((student) => (
         <StudentProgressCard key={student.id} student={student} />
       ))}

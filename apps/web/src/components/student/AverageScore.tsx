@@ -37,7 +37,7 @@ export async function AverageScore({ userId }: Props) {
       href="/app/progress"
       className="bg-white rounded-2xl p-4 shadow-[0_4px_20px_rgb(0,0,0,0.05)] border border-slate-100 flex flex-col items-center text-center gap-1 hover:shadow-md transition-shadow active:scale-95"
     >
-      <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center text-xl flex-shrink-0">
+      <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center text-xl shrink-0">
         🎯
       </div>
       <p className="text-xl font-black text-slate-800 leading-none">{value}</p>

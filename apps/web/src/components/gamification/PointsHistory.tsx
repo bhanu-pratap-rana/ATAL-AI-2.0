@@ -11,7 +11,7 @@
  * - Real-time updates via Supabase subscription
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase-browser";
@@ -205,6 +205,12 @@ export function PointsHistory({
     }
   }, [studentId, selectedSource, limit, fetchTotal]);
 
+  // Keep a ref to the latest fetchHistory so the realtime callback is never stale
+  const fetchHistoryRef = useRef(fetchHistory);
+  useEffect(() => {
+    fetchHistoryRef.current = fetchHistory;
+  }, [fetchHistory]);
+
   // PERF-005 FIX: Fetch total only on mount and realtime updates (not on filter changes)
   useEffect(() => {
     fetchHistory(true); // Initial load - fetch both history and total
@@ -223,7 +229,7 @@ export function PointsHistory({
         },
         () => {
           clientLogger.debug("[PointsHistory] Real-time update received");
-          fetchHistory(true); // Realtime update - fetch both history and total
+          fetchHistoryRef.current(true); // Always uses latest fetchHistory (current filter)
         }
       )
       .subscribe();
