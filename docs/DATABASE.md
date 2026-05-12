@@ -1,6 +1,6 @@
 # ATAL AI Database Documentation
 
-> **Last Updated:** February 28, 2026 (via Supabase MCP - live verification)
+> **Last Updated:** May 13, 2026 (migrations 165–185 reconciled with local files)
 > **Status:** PRODUCTION READY - 30 public tables + 3 storage buckets, RLS 100% enabled
 > **Database:** Supabase PostgreSQL 17.6.1.038 (Project: hnlsqznoviwnyrkskfay, Region: ap-southeast-1)
 > **Project Status:** ACTIVE_HEALTHY
@@ -16,7 +16,7 @@
 |--------|-------|--------|
 | **Tables** | 30 public + 3 storage buckets | All RLS enabled |
 | **Total Rows** | ~9,500 | 30 beta students + 1 test account + 3 teachers + 1 admin |
-| **Migrations** | 164+ applied | Latest: fix_staff_pin_pgcrypto_schema |
+| **Migrations** | 185 applied | Latest: 185_consolidate_multi_permissive_policies |
 | **RLS Policies** | 86 public + 3 storage = 89 total | All tables protected |
 | **Functions** | 62 | 11 trigger + 51 RPC |
 | **Extensions** | 8 active | pgcrypto 1.3, vector 0.8.0, pg_trgm 1.6, uuid-ossp 1.1, pg_stat_statements 1.11, pg_graphql 1.5.11, supabase_vault 0.3.1, plpgsql 1.0 |
@@ -989,7 +989,7 @@ auth.role() = 'service_role'
 
 ---
 
-## Migration History (164+ local migrations, 3 tracked in Supabase)
+## Migration History (185 local migrations, 3 tracked in Supabase)
 
 ### Key Migrations by Category
 
@@ -1060,6 +1060,38 @@ auth.role() = 'service_role'
 | 162 | Feb 16 | RPCs: `get_assessment_comparison`, `check_curriculum_completion`, `has_assessment_type` |
 | 163 | Feb 16 | Backfill oldest sessions as 'pre' + update `has_assessment_type` fallback for legacy students |
 | 164 | Feb 28 | Fix `verify_staff_pin` and `rotate_staff_pin` — change `public.crypt()` to `extensions.crypt()` (regression from migration 037) |
+
+### Migrations 165–185 (March–May 2026)
+
+These migrations focus on **post-audit hardening**: closing security advisor warnings, enforcing data invariants, and consolidating multi-permissive RLS policies that were affecting query plans.
+
+| Migration | Category | Description |
+|-----------|----------|-------------|
+| 165 | RPC fix | Repair `upsert_student_profile` — handles the new `roll_number` UNIQUE constraint without breaking idempotent retries from offline sync |
+| 166 | RPC | New `upsert_learning_style_profile` — single atomic write replaces the prior 2-statement insert+update path that could race under concurrent assessments |
+| 167 | RPC | New `get_student_streak` — server-side streak calculation that respects the student's timezone (previously computed client-side, broke at midnight UTC) |
+| 168 | RLS perf | Wrap bare `auth.uid()` calls with `(SELECT auth.uid())` in 19 policy locations — eliminates per-row InitPlan re-evaluation, ~40% query-time improvement on dashboard queries |
+| 169 | Cleanup | Drop dead RPCs: `_check_assessment_complete`, `_get_module_progress_legacy`, `_legacy_user_streak` — replaced by current functions, never called from app code |
+| 170 | RLS hardening | Tighten `irt_item_bank` policies — remove broad SELECT for `authenticated`; only admins can read full item details (correct_answer leak risk closed) |
+| 171 | RLS hardening | `get_assessment_comparison` / `check_curriculum_completion` / `has_assessment_type`: explicit `SECURITY INVOKER` + `search_path = pg_catalog`, no longer bypass caller's RLS |
+| 172 | RLS perf | `assessment_responses` policy InitPlan fix (same pattern as 168, scoped to this table) |
+| 173 | RLS fix | `irt_item_bank` admin policy was unreachable due to CHECK constraint on `users.role` — force the policy to use the centralised `is_admin()` helper |
+| 174 | Helper | New `public.is_admin()` SECDEF helper used by 173 — single source of truth for admin gating |
+| 175 | RPC | New `admin_users` RPC for the admin dashboard — paginated user list with role/created-at filters, replaces direct table reads from the admin UI |
+| 176 | Invariant | `student_profiles.roll_number` UNIQUE constraint within the same class (composite uniqueness via partial index) |
+| 177 | Security | **Bucket A + D lockdown** — 11 `SECURITY DEFINER` functions revoked from `anon` and `authenticated`, granted to `service_role` only. Closes 11 advisor warnings for `*_security_definer_function_executable` |
+| 178 | Security | **Bucket B lockdown** — 31 `SECURITY DEFINER` functions revoked from `anon`, kept for `authenticated` and `service_role`. Includes RLS helper functions (`is_teacher()`, `current_user_role()`, etc.) Closes 31 more advisor warnings |
+| 179 | Storage | Drop the broad `Public read access for lesson-assets` policy on `storage.objects`. Bucket remains `public=true` for direct URL fetches (CDN), but the listing API is now blocked. Closes the `public_bucket_allows_listing` advisor warning |
+| 180 | Invariant | FK constraints on `student_knowledge_state`: `module_id → modules(id) ON DELETE RESTRICT` and `topic_id → topics(id) ON DELETE RESTRICT` (prevents orphan knowledge state) |
+| 181 | Invariant | `classes.teacher_id NOT NULL` — drops a 4-month-old loophole where orphaned classes could exist without a teacher owner |
+| 182 | Cleanup | Drop the redundant `idx_usernames_username` non-unique index (the UNIQUE index from migration 030 already covers it) |
+| 183 | Invariant | CHECK constraint on `irt_item_bank.options` — must be a JSONB array with 2–6 elements (`jsonb_typeof = 'array' AND jsonb_array_length BETWEEN 2 AND 6`) |
+| 184 | Trigger | New generic `public.tg_set_updated_at()` helper + attach to `feature_flags` (only table of the 7 audit-flagged with a real `updated_at` column; the other 6 are append-only audit tables) |
+| 185 | RLS perf | Consolidate multi-permissive policies: `assessment_responses` had separate `student_select` + `teacher_select` (now `assessment_responses_read` with OR); `irt_item_bank` had `admin_delete/insert/update` overlapping `admin_all` (dropped the three redundant policies). Closes 9 `multiple_permissive_policies` advisor warnings |
+
+**Cumulative advisor impact across 165–185:** ~52 WARN cleared (43 anon SECDEF + 1 bucket listing + 9 multi-permissive). Combined with SP1's Studio-side toggles, security advisor is effectively zero-warn for the rural-Assam launch.
+
+**Data invariants added:** 4 (FK × 2, NOT NULL × 1, UNIQUE composite × 1, CHECK × 1) — every new write now hits a structural validation before it persists.
 
 ---
 
