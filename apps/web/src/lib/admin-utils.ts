@@ -43,10 +43,11 @@ export async function fetchAllAuthUsers(
       });
 
       if (error) {
-        authLogger.error("[fetchAllAuthUsers] Error fetching auth users page", {
-          page,
-          error: error.message,
-        });
+        authLogger.error(
+          "[fetchAllAuthUsers] Error fetching auth users page",
+          error instanceof Error ? error : new Error(String(error)),
+          { page },
+        );
         break;
       }
 

@@ -99,19 +99,23 @@ async function fetchDashboardMetricsFromDB(): Promise<DashboardMetrics> {
       .from("student_profiles")
       .select("*", { count: "exact", head: true }),
 
-    // Query 6: Get admin count from auth users (async operation)
+    // Query 6: Get admin count via list_admin_users RPC (Supabase auth
+    // admin REST endpoint is unreliable on this project — see migration 175).
+    // Falls back to fetchAllAuthUsers if the RPC isn't available.
     (async () => {
       try {
+        const { data, error } = await supabase.rpc("list_admin_users");
+        if (!error && Array.isArray(data)) {
+          return {
+            adminCount: data.length,
+            authUsers: null,
+            error: null,
+          };
+        }
         const authUsers = await fetchAllAuthUsers(supabase);
-        return {
-          authUsers,
-          error: null,
-        };
+        return { adminCount: null, authUsers, error: null };
       } catch (error) {
-        return {
-          authUsers: null,
-          error: error,
-        };
+        return { adminCount: null, authUsers: null, error };
       }
     })(),
   ]);
@@ -186,19 +190,18 @@ async function fetchDashboardMetricsFromDB(): Promise<DashboardMetrics> {
     );
   }
 
-  // Count admins from auth users
-  let adminCount = 0;
+  // Count admins: prefer RPC result; fall back to authUsers if available.
+  let adminCount = authUsersResult.adminCount ?? 0;
   let authTeacherCount = 0;
   const authUsers = authUsersResult.authUsers;
-  // TypeScript fix: Use explicit null check instead of non-null assertion
   if (authUsers && authUsers.length > 0) {
-    // Count admins (admin or super_admin role)
-    adminCount = authUsers.filter(
-      (u: SupabaseAuthUser) =>
-        u.app_metadata?.role === "admin" ||
-        u.app_metadata?.role === "super_admin",
-    ).length;
-    // Count teachers from auth users
+    if (authUsersResult.adminCount === null) {
+      adminCount = authUsers.filter(
+        (u: SupabaseAuthUser) =>
+          u.app_metadata?.role === "admin" ||
+          u.app_metadata?.role === "super_admin",
+      ).length;
+    }
     authTeacherCount = authUsers.filter(
       (u: SupabaseAuthUser) => u.app_metadata?.role === "teacher",
     ).length;

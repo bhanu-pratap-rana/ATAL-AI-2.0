@@ -409,17 +409,48 @@ export async function listAdminAccounts(): Promise<AdminActionResult> {
     }
 
     const adminClient = await createAdminClient();
-    // List all users with full pagination support
+
+    // Prefer the list_admin_users RPC (direct SQL via service_role).
+    // This bypasses Supabase's Auth admin REST endpoint, which currently
+    // returns "Database error finding users" on this project.
+    const { data: rpcRows, error: rpcError } = await adminClient.rpc(
+      "list_admin_users",
+    );
+
+    if (!rpcError && Array.isArray(rpcRows)) {
+      const admins: AdminUser[] = rpcRows
+        .filter((row: { email: string | null }) => row.email)
+        .map(
+          (row: {
+            id: string;
+            email: string;
+            role: string | null;
+            created_at: string | null;
+            last_sign_in_at: string | null;
+          }) => ({
+            id: row.id,
+            email: row.email,
+            role: row.role === "super_admin" ? "super_admin" : "admin",
+            created_at: row.created_at ?? undefined,
+            last_sign_in_at: row.last_sign_in_at ?? undefined,
+          }),
+        );
+      return { success: true, data: admins };
+    }
+
+    // Fallback: paginate via auth.admin.listUsers (works only if the
+    // Auth admin endpoint is healthy on the project).
+    authLogger.warn(
+      "[listAdminAccounts] RPC unavailable, falling back to auth.admin.listUsers",
+      rpcError ? { code: rpcError.code, message: rpcError.message } : undefined,
+    );
+
     const allUsers = await fetchAllAuthUsers(adminClient);
 
     if (!allUsers || allUsers.length === 0) {
-      return {
-        success: true,
-        data: [],
-      };
+      return { success: true, data: [] };
     }
 
-    // Filter for admins only (skip anonymous users — only email-based accounts can be admins)
     const admins: AdminUser[] = allUsers
       .filter((user) => {
         if (!user.email) return false;
@@ -436,10 +467,7 @@ export async function listAdminAccounts(): Promise<AdminActionResult> {
         last_sign_in_at: user.last_sign_in_at,
       }));
 
-    return {
-      success: true,
-      data: admins,
-    };
+    return { success: true, data: admins };
   } catch (error) {
     authLogger.error("[listAdminAccounts] Unexpected error", error);
     return {
