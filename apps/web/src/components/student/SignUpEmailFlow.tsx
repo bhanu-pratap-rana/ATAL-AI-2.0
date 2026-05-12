@@ -353,28 +353,30 @@ export function SignUpEmailFlow({
 
       {/* Resend OTP Button with Timer */}
       <div className="flex items-center justify-center">
-        <button
+        <Button
           type="button"
+          variant="link"
           onClick={handleResendOtp}
           disabled={isLoading || isResending || resendCooldown > 0}
-          className={`flex items-center gap-2 text-sm transition-colors ${resendCooldown > 0 || isResending ? RESEND_BUTTON.class.disabled : RESEND_BUTTON.class.enabled}`}
+          className={`gap-2 text-sm ${resendCooldown > 0 || isResending ? RESEND_BUTTON.class.disabled : RESEND_BUTTON.class.enabled}`}
         >
           <RefreshCw className={isResending ? RESEND_BUTTON.icon.active : RESEND_BUTTON.icon.idle} />
           {isResending ? RESEND_BUTTON.text.sending : formatResendText(resendCooldown)}
-        </button>
+        </Button>
       </div>
 
-      <button
+      <Button
         type="button"
+        variant="link"
         onClick={() => {
           actions.setSignupEmailOtpSent(false);
           otpInput.reset();
         }}
-        className="text-sm text-slate-500 hover:text-primary hover:underline block w-full text-center transition-colors"
+        className="w-full text-sm text-slate-500 hover:text-primary"
         disabled={isLoading}
       >
         Change email
-      </button>
+      </Button>
     </form>
   );
 }

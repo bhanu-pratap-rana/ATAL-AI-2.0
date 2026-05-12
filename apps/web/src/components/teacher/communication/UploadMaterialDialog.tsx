@@ -277,31 +277,31 @@ export function UploadMaterialDialog({
             {/* Source Mode Toggle */}
             <div className="space-y-2">
               <Label>Source</Label>
-              <div className="flex gap-2">
-                <button
+              <div role="tablist" className="flex gap-2">
+                <Button
                   type="button"
+                  role="tab"
+                  aria-selected={sourceMode === "file"}
+                  variant={sourceMode === "file" ? "default" : "outline"}
+                  size="sm"
                   onClick={() => setSourceMode("file")}
                   disabled={loading}
-                  className={`flex-1 px-3 py-2 text-sm rounded-md border transition-colors ${
-                    sourceMode === "file"
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-background border-input hover:bg-slate-100"
-                  }`}
+                  className="flex-1 text-sm"
                 >
                   📎 Upload File
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  role="tab"
+                  aria-selected={sourceMode === "url"}
+                  variant={sourceMode === "url" ? "default" : "outline"}
+                  size="sm"
                   onClick={() => setSourceMode("url")}
                   disabled={loading}
-                  className={`flex-1 px-3 py-2 text-sm rounded-md border transition-colors ${
-                    sourceMode === "url"
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-background border-input hover:bg-slate-100"
-                  }`}
+                  className="flex-1 text-sm"
                 >
                   🔗 Paste URL
-                </button>
+                </Button>
               </div>
             </div>
 

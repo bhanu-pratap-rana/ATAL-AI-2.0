@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import { ASSESSMENT_TIMING } from "@/lib/constants/ui-timings";
 import { QuestionNavigation } from "./QuestionNavigation";
 import {
@@ -833,16 +834,17 @@ export function AssessmentRunner({
 
             {/* UX-A8: "I don't understand" — flags confusion for teacher analytics */}
             {!isReviewingHistory && (
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 onClick={handleConfused}
                 disabled={isSubmitting}
-                className="mt-3 w-full min-h-11 px-4 py-2 rounded-2xl border border-slate-200 bg-slate-50 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="mt-3 w-full bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-800 font-normal"
                 aria-label="I don't understand this question — flag it and move on"
               >
                 <span className="mr-2" aria-hidden="true">🤔</span>
                 <span>I don&apos;t understand this question</span>
-              </button>
+              </Button>
             )}
         </div>
 

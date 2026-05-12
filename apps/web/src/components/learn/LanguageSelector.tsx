@@ -13,6 +13,7 @@
  */
 
 import { useLanguage, SUPPORTED_LANGUAGES, type SupportedLanguage } from "@/lib/i18n";
+import { Button } from "@/components/ui/button";
 
 // Re-export useLanguage for components that import from this file
 export { useLanguage };
@@ -81,21 +82,19 @@ export function LanguageSelector({
   return (
     <div className={`flex gap-2 ${className}`} role="group" aria-label="Language selection">
       {SUPPORTED_LANGUAGES.map((lang) => (
-        <button
-                type="button"
+        <Button
+          type="button"
           key={lang.code}
+          size="sm"
+          variant={language === lang.code ? "default" : "outline"}
           onClick={() => handleChange(lang.code)}
-          className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors flex items-center gap-1.5 ${
-            language === lang.code
-              ? "bg-primary text-white"
-              : "bg-white text-slate-500 hover:bg-primary-light border border-slate-200"
-          }`}
+          className="rounded-full text-sm font-medium gap-1.5"
           aria-label={`Switch to ${lang.label}`}
           aria-pressed={language === lang.code}
         >
           <span aria-hidden="true">{lang.flag}</span>
           <span>{lang.nativeLabel}</span>
-        </button>
+        </Button>
       ))}
     </div>
   );

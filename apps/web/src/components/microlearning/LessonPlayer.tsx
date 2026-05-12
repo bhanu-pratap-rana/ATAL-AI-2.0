@@ -309,17 +309,18 @@ function CheckpointQuiz({
           }
 
           return (
-            <button
-                type="button"
+            <Button
+              type="button"
+              variant="ghost"
               key={option}
               onClick={() => !submitted && setSelected(index)}
               disabled={submitted}
-              className={buttonClass}
+              className={`${buttonClass} h-auto whitespace-normal justify-start text-left`}
             >
               <span className="font-medium mr-2 text-sm sm:text-base">{String.fromCodePoint(65 + index)}.</span>
               <span className="text-sm sm:text-base">{option}</span>
               {showResult && isCorrect && <CheckCircle className="inline ml-2 h-4 w-4" />}
-            </button>
+            </Button>
           );
         })}
       </div>
@@ -473,12 +474,14 @@ export function LessonPlayer({
               if (index === safeChunk) indicatorColor = "bg-primary";
               else if (completedChunks.has(index)) indicatorColor = "bg-success";
               return (
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
                   key={chunk.heading}
                   onClick={() => setCurrentChunk(index)}
-                  className={`flex-1 h-2 rounded-full transition-all ${indicatorColor}`}
+                  className={`flex-1 h-2 min-h-2 p-0 rounded-full hover:bg-current ${indicatorColor}`}
                   title={chunk.heading}
+                  aria-label={`Go to chunk ${index + 1}: ${chunk.heading}`}
                 />
               );
             })}

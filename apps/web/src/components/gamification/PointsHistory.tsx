@@ -335,34 +335,38 @@ export function PointsHistory({
       {showFilter && uniqueSources.length > 1 && (
         <div className="flex flex-wrap items-center gap-2">
           <Filter className="w-4 h-4 text-slate-400" />
-          <button
-                type="button"
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
             onClick={() => setSelectedSource(null)}
             className={cn(
-              "text-xs px-2 py-1 rounded-full transition-colors",
+              "text-xs rounded-full",
               selectedSource === null
-                ? "bg-primary text-white"
-                : "bg-slate-50 hover:bg-slate-50"
+                ? "bg-primary text-white hover:bg-primary"
+                : "bg-slate-50 hover:bg-slate-100"
             )}
           >
             {t("gamification.all")}
-          </button>
+          </Button>
           {uniqueSources.map((source) => {
             const config = getSourceConfig(source);
             return (
-              <button
+              <Button
                 type="button"
                 key={source}
+                size="sm"
+                variant="ghost"
                 onClick={() => setSelectedSource(source)}
                 className={cn(
-                  "text-xs px-2 py-1 rounded-full transition-colors",
+                  "text-xs rounded-full",
                   selectedSource === source
-                    ? "bg-primary text-white"
-                    : "bg-slate-50 hover:bg-slate-50"
+                    ? "bg-primary text-white hover:bg-primary"
+                    : "bg-slate-50 hover:bg-slate-100"
                 )}
               >
                 {t(config.labelKey)}
-              </button>
+              </Button>
             );
           })}
         </div>

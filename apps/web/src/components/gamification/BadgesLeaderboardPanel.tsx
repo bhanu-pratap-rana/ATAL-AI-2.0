@@ -13,6 +13,7 @@ import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase-browser";
 import { clientLogger } from "@/lib/client-logger";
 import { BadgesDisplay } from "./BadgesDisplay";
+import { Button } from "@/components/ui/button";
 
 /** Returns the text color class for a leaderboard entry name. Extracted to avoid S3358. */
 function getLeaderNameColor(isViewing: boolean, isMe: boolean): string {
@@ -85,20 +86,20 @@ export function BadgesLeaderboardPanel({
   return (
     <div>
       {/* ── Mobile Tab Bar ── */}
-      <div className="flex md:hidden gap-2 mb-4">
+      <div role="tablist" className="flex md:hidden gap-2 mb-4">
         {(["badges", "leaderboard"] as const).map((t) => (
-          <button
+          <Button
             key={t}
             type="button"
+            role="tab"
+            aria-selected={tab === t}
+            size="sm"
+            variant={tab === t ? "default" : "secondary"}
             onClick={() => setTab(t)}
-            className={`flex-1 py-2 rounded-2xl text-xs font-black uppercase tracking-wider transition-all ${
-              tab === t
-                ? "bg-orange-500 text-white shadow"
-                : "bg-slate-100 text-slate-500"
-            }`}
+            className="flex-1 text-xs font-black uppercase tracking-wider"
           >
             {t === "badges" ? "🏅 Badges" : "🏆 Leaderboard"}
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -110,13 +111,14 @@ export function BadgesLeaderboardPanel({
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm font-black text-slate-600">{viewingName} Badges</p>
             {viewingId !== currentUserId && (
-              <button
+              <Button
                 type="button"
+                variant="link"
                 onClick={resetToSelf}
-                className="text-xs font-black text-orange-500 hover:text-orange-600 uppercase tracking-widest"
+                className="h-auto p-0 text-xs font-black text-orange-500 hover:text-orange-600 uppercase tracking-widest"
               >
                 ← Mine
-              </button>
+              </Button>
             )}
           </div>
           <BadgesDisplay studentId={viewingId} showAll={false} />
@@ -149,28 +151,29 @@ export function BadgesLeaderboardPanel({
                 const isViewing = entry.studentId === viewingId;
                 const isMe = entry.studentId === currentUserId;
                 return (
-                  <button
+                  <Button
                     key={entry.studentId}
                     type="button"
+                    variant="ghost"
                     onClick={() => selectStudent(entry.studentId, entry.name)}
-                    className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left transition-all active:scale-95 ${
+                    className={`w-full h-auto justify-start gap-2 px-3 py-2 rounded-xl ${
                       isViewing
-                        ? "bg-orange-500 text-white shadow"
+                        ? "bg-orange-500 text-white shadow hover:bg-orange-500"
                         : isMe
-                        ? "bg-orange-50 border border-orange-200"
+                        ? "bg-orange-50 border border-orange-200 hover:bg-orange-100"
                         : "bg-slate-50 hover:bg-slate-100"
                     }`}
                   >
                     <span className="text-base w-6 text-center shrink-0">
                       {RANK_ICONS[entry.rank] ?? `#${entry.rank}`}
                     </span>
-                    <span className={`flex-1 text-xs font-black truncate ${getLeaderNameColor(isViewing, isMe)}`}>
+                    <span className={`flex-1 text-xs font-black truncate text-left ${getLeaderNameColor(isViewing, isMe)}`}>
                       {entry.name}{isMe ? " (You)" : ""}
                     </span>
                     <span className={`text-xs font-bold shrink-0 ${isViewing ? "text-white/80" : "text-amber-500"}`}>
                       {entry.points.toLocaleString()}
                     </span>
-                  </button>
+                  </Button>
                 );
               })}
             </div>

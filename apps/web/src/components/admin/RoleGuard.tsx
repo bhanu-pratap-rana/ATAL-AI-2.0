@@ -9,6 +9,7 @@ import {
   isTeacherOrHigher,
 } from "@/lib/auth/role-utils";
 import type { AdminRole } from "@/types/auth";
+import { Button } from "@/components/ui/button";
 import { clientLogger } from "@/lib/client-logger";
 
 interface RoleGuardProps {
@@ -119,13 +120,12 @@ function UnauthorizedFallback({ requiredRole }: Readonly<{ requiredRole: string 
           You do not have permission to access this page. This area is
           restricted to {requiredRole} users only.
         </p>
-        <button
-                type="button"
+        <Button
+          type="button"
           onClick={() => router.push("/admin/login")}
-          className="inline-block px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition"
         >
           Back to Login
-        </button>
+        </Button>
       </div>
     </div>
   );

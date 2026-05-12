@@ -128,10 +128,12 @@ export function QuestionEditor({ question, onUpdate }: QuestionEditorProps) {
       )}
     >
       {/* Header Row */}
-      <button
-                type="button"
+      <Button
+        type="button"
+        variant="ghost"
+        aria-expanded={isExpanded}
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full p-4 flex items-center gap-4 text-left hover:bg-slate-50/50 transition-colors"
+        className="w-full h-auto p-4 justify-start gap-4 text-left hover:bg-slate-50/50 whitespace-normal rounded-none"
       >
         {/* Status Indicator */}
         <div
@@ -184,7 +186,7 @@ export function QuestionEditor({ question, onUpdate }: QuestionEditorProps) {
         ) : (
           <ChevronDown className="w-5 h-5 text-slate-400 shrink-0" />
         )}
-      </button>
+      </Button>
 
       {/* Expanded Content */}
       {isExpanded && (
@@ -353,12 +355,16 @@ export function QuestionEditor({ question, onUpdate }: QuestionEditorProps) {
                 <Label className="text-xs text-slate-500">Status</Label>
                 {isEditing ? (
                   <div className="mt-1">
-                    <button
+                    <Button
                       type="button"
+                      role="switch"
+                      aria-checked={isActive}
+                      aria-label={isActive ? "Deactivate question" : "Activate question"}
+                      variant="ghost"
                       onClick={() => setIsActive(!isActive)}
                       className={cn(
-                        "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors",
-                        isActive ? "bg-success" : "bg-slate-100"
+                        "relative inline-flex h-6 w-11 p-0 shrink-0 rounded-full border-2 border-transparent hover:bg-current",
+                        isActive ? "bg-success hover:bg-success" : "bg-slate-100 hover:bg-slate-100"
                       )}
                     >
                       <span
@@ -367,7 +373,7 @@ export function QuestionEditor({ question, onUpdate }: QuestionEditorProps) {
                           isActive ? "translate-x-5" : "translate-x-0"
                         )}
                       />
-                    </button>
+                    </Button>
                     <span className="ml-2 text-sm">
                       {isActive ? "Active" : "Inactive"}
                     </span>

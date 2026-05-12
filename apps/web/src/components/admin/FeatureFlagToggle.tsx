@@ -21,15 +21,16 @@ function ToggleSwitch({
   "aria-label"?: string;
 }) {
   return (
-    <button
+    <Button
       type="button"
       role="switch"
       aria-checked={checked}
       aria-label={ariaLabel}
+      variant="ghost"
       onClick={() => onCheckedChange(!checked)}
       className={cn(
-        "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-        checked ? "bg-primary" : "bg-slate-100"
+        "relative inline-flex h-6 w-11 p-0 shrink-0 rounded-full border-2 border-transparent hover:bg-current",
+        checked ? "bg-primary hover:bg-primary" : "bg-slate-100 hover:bg-slate-100"
       )}
     >
       <span
@@ -38,7 +39,7 @@ function ToggleSwitch({
           checked ? "translate-x-5" : "translate-x-0"
         )}
       />
-    </button>
+    </Button>
   );
 }
 

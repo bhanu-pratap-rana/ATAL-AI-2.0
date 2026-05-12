@@ -15,6 +15,7 @@ import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase-browser";
 import { clientLogger } from "@/lib/client-logger";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 interface LeaderEntry {
   readonly studentId: string;
@@ -145,13 +146,14 @@ export function Leaderboard({
     return (
       <div className="text-center py-8 text-error">
         <p>{error}</p>
-        <button
-                type="button"
+        <Button
+          type="button"
+          variant="link"
           onClick={fetchLeaderboard}
-          className="mt-2 text-sm text-primary hover:underline"
+          className="mt-2 text-sm"
         >
           Retry
-        </button>
+        </Button>
       </div>
     );
   }

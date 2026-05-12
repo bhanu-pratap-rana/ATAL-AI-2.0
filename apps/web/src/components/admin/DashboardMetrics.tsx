@@ -14,6 +14,7 @@ import { School, Users, Lock, GraduationCap } from "lucide-react";
 import { clientLogger } from "@/lib/client-logger";
 import { DataModal } from "@/components/admin/modals/DataModal";
 import { ListItemCard } from "@/components/admin/modals/ListItemCard";
+import { Button } from "@/components/ui/button";
 
 /**
  * ATAL AI Dashboard Metrics - Jyoti Theme
@@ -368,11 +369,12 @@ export function DashboardMetrics() {
         {metricCards.map((card) => {
           const Icon = card.icon;
           return (
-            <button
-                type="button"
+            <Button
+              type="button"
+              variant="ghost"
               key={card.title}
               onClick={() => openModal(card.modalType)}
-              className={`${card.color} rounded-2xl p-6 border border-slate-200 text-left ${card.hoverColor} hover:shadow-md transition cursor-pointer`}
+              className={`${card.color} h-auto rounded-2xl p-6 border border-slate-200 flex-col items-start whitespace-normal ${card.hoverColor} hover:shadow-md`}
             >
               <div className="flex items-center gap-3 mb-3">
                 <Icon className={`w-5 h-5 ${card.iconColor}`} />
@@ -386,7 +388,7 @@ export function DashboardMetrics() {
               <p className={`text-xs ${card.iconColor} mt-2 underline`}>
                 Click to view
               </p>
-            </button>
+            </Button>
           );
         })}
       </div>

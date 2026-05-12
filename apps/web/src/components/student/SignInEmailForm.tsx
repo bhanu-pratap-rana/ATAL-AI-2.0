@@ -146,22 +146,24 @@ export function SignInEmailForm({
       </Button>
 
       <div className="text-center space-y-2 text-sm">
-        <button
+        <Button
           type="button"
+          variant="link"
           onClick={() => actions.setMainStep("forgot-password")}
-          className="text-primary hover:underline block w-full"
+          className="w-full text-sm"
           disabled={isLoading}
         >
           Forgot password?
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="link"
           onClick={() => actions.setMainStep("signup")}
-          className="text-slate-500 hover:text-primary hover:underline block w-full transition-colors"
+          className="w-full text-sm text-slate-500 hover:text-primary"
           disabled={isLoading}
         >
           Don&apos;t have an account? Sign up
-        </button>
+        </Button>
       </div>
     </form>
   );

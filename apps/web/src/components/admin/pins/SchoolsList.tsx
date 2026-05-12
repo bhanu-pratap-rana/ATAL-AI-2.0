@@ -4,6 +4,7 @@
  */
 
 import type { SchoolListItem, SchoolPINInfo } from "@/app/actions/admin-pin-management";
+import { Button } from "@/components/ui/button";
 
 interface SchoolsListProps {
   readonly schools: SchoolListItem[];
@@ -43,34 +44,37 @@ export function SchoolsList({
           </div>
         ) : (
           schools.map((school) => (
-            <button
-                type="button"
+            <Button
+              type="button"
+              variant="ghost"
               key={school.schoolId}
               onClick={() => onSelectSchool(school)}
-              className={`w-full text-left px-4 py-3 border-b border-slate-200 transition-colors hover:bg-slate-100 ${
+              className={`w-full h-auto justify-start text-left px-4 py-3 border-b border-slate-200 hover:bg-slate-100 whitespace-normal rounded-none ${
                 selectedSchool?.schoolId === school.schoolId
                   ? "bg-primary/10 border-l-4 border-l-primary"
                   : ""
               }`}
             >
-              <p className="text-sm font-medium text-text truncate">
-                {school.schoolName}
-              </p>
-              <div className="flex items-center justify-between mt-1">
-                <p className="text-xs font-mono text-slate-500">
-                  {school.schoolCode}
+              <div className="w-full">
+                <p className="text-sm font-medium text-text truncate">
+                  {school.schoolName}
                 </p>
-                <span
-                  className={`text-xs px-2 py-1 rounded font-medium ${
-                    school.hasPIN
-                      ? "bg-success/20 text-success"
-                      : "bg-warning/20 text-warning"
-                  }`}
-                >
-                  {school.hasPIN ? "PIN" : "No PIN"}
-                </span>
+                <div className="flex items-center justify-between mt-1">
+                  <p className="text-xs font-mono text-slate-500">
+                    {school.schoolCode}
+                  </p>
+                  <span
+                    className={`text-xs px-2 py-1 rounded font-medium ${
+                      school.hasPIN
+                        ? "bg-success/20 text-success"
+                        : "bg-warning/20 text-warning"
+                    }`}
+                  >
+                    {school.hasPIN ? "PIN" : "No PIN"}
+                  </span>
+                </div>
               </div>
-            </button>
+            </Button>
           ))
         )}
       </div>

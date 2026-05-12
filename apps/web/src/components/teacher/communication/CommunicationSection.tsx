@@ -11,6 +11,7 @@ import {
 import { CreateAnnouncementDialog } from "./CreateAnnouncementDialog";
 import { AnnouncementList } from "./AnnouncementList";
 import { UploadMaterialDialog } from "./UploadMaterialDialog";
+import { Button } from "@/components/ui/button";
 import { MaterialsList } from "./MaterialsList";
 import type { Announcement, Material } from "@/app/actions/teacher";
 
@@ -49,13 +50,16 @@ export function CommunicationSection({
       </CardHeader>
       <CardContent>
         {/* Custom Tab Navigation */}
-        <div className="flex border-b border-slate-200 mb-4">
-          <button
+        <div role="tablist" className="flex border-b border-slate-200 mb-4">
+          <Button
             type="button"
+            role="tab"
+            aria-selected={activeTab === "announcements"}
+            variant="ghost"
             onClick={() => setActiveTab("announcements")}
-            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            className={`gap-2 rounded-none border-b-2 text-sm font-medium ${
               activeTab === "announcements"
-                ? "border-primary text-primary"
+                ? "border-primary text-primary hover:bg-transparent"
                 : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-200"
             }`}
           >
@@ -66,13 +70,16 @@ export function CommunicationSection({
                 {announcements.length}
               </span>
             )}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            role="tab"
+            aria-selected={activeTab === "materials"}
+            variant="ghost"
             onClick={() => setActiveTab("materials")}
-            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            className={`gap-2 rounded-none border-b-2 text-sm font-medium ${
               activeTab === "materials"
-                ? "border-primary text-primary"
+                ? "border-primary text-primary hover:bg-transparent"
                 : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-200"
             }`}
           >
@@ -83,7 +90,7 @@ export function CommunicationSection({
                 {materials.length}
               </span>
             )}
-          </button>
+          </Button>
         </div>
 
         {/* Tab Content */}

@@ -120,14 +120,17 @@ export function AdminResetPasswordDialog({
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-black text-text">Reset Password</h2>
-          <button
-                type="button"
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label="Close dialog"
             onClick={handleClose}
             disabled={isLoading}
-            className="text-slate-500 hover:text-text disabled:opacity-50"
+            className="text-slate-500 hover:text-text"
           >
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
         {/* Info */}

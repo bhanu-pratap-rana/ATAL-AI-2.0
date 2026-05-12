@@ -97,17 +97,20 @@ export function CreateAdminForm({
             disabled={isLoading || completed}
             className="focus:ring-primary focus:border-primary pr-10"
           />
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={showPassword ? "Hide password" : "Show password"}
             onClick={() => onShowPasswordChange(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-text"
+            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-slate-500 hover:text-text"
           >
             {showPassword ? (
               <EyeOff className="w-4 h-4" />
             ) : (
               <Eye className="w-4 h-4" />
             )}
-          </button>
+          </Button>
         </div>
       </div>
 

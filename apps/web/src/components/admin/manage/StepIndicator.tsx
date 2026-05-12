@@ -3,6 +3,8 @@
  * Shows step buttons for delete/create workflow
  */
 
+import { Button } from "@/components/ui/button";
+
 type Step = "delete" | "create";
 
 interface StepIndicatorProps {
@@ -52,34 +54,30 @@ export function StepIndicator({
       role="navigation"
       aria-label={`Admin account management steps, currently on step ${currentStepNumber} of ${totalSteps}`}
     >
-      <button
+      <Button
         type="button"
-        className={`flex-1 p-3 rounded-lg text-center cursor-pointer transition ${
-          currentStep === "delete"
-            ? "bg-primary text-white"
-            : "bg-slate-50 text-slate-500 hover:bg-slate-100"
-        }`}
+        variant={currentStep === "delete" ? "default" : "secondary"}
+        size="sm"
+        className="flex-1"
         onClick={handleDeleteClick}
         onKeyDown={handleDeleteKeyDown}
         aria-label="Step 1: Delete admin account"
         aria-current={currentStep === "delete" ? "step" : undefined}
       >
         <p className="text-sm font-semibold">Step 1: Delete</p>
-      </button>
-      <button
+      </Button>
+      <Button
         type="button"
-        className={`flex-1 p-3 rounded-lg text-center cursor-pointer transition ${
-          currentStep === "create"
-            ? "bg-primary text-white"
-            : "bg-slate-50 text-slate-500 hover:bg-slate-100"
-        }`}
+        variant={currentStep === "create" ? "default" : "secondary"}
+        size="sm"
+        className="flex-1"
         onClick={handleCreateClick}
         onKeyDown={handleCreateKeyDown}
         aria-label="Step 2: Create admin account"
         aria-current={currentStep === "create" ? "step" : undefined}
       >
         <p className="text-sm font-semibold">Step 2: Create</p>
-      </button>
+      </Button>
     </nav>
   );
 }

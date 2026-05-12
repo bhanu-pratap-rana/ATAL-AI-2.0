@@ -306,14 +306,16 @@ export function AdminListTable({
           <div className="bg-white rounded-3xl shadow-xl max-w-md w-full">
             <div className="flex items-center justify-between p-6 border-b border-slate-200">
               <h2 className="text-xl font-black text-text">Reset Password</h2>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon"
                 onClick={closeResetModal}
                 aria-label="Close password reset dialog"
                 className="text-slate-400 hover:text-slate-800"
               >
                 <X className="w-6 h-6" />
-              </button>
+              </Button>
             </div>
 
             <div className="p-6 space-y-4">
@@ -330,17 +332,20 @@ export function AdminListTable({
                   onKeyDown={(e) => e.key === "Enter" && handleResetPassword()}
                   className="pr-10"
                 />
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-800"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-slate-400 hover:text-slate-800"
                 >
                   {showPassword ? (
                     <EyeOff className="w-4 h-4" />
                   ) : (
                     <Eye className="w-4 h-4" />
                   )}
-                </button>
+                </Button>
               </div>
 
               {resetError && <p className="text-sm text-error">{resetError}</p>}

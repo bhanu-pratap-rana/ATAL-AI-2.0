@@ -68,12 +68,13 @@ export function DeleteAccountButton({ userEmail }: DeleteAccountButtonProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <button
+        <Button
           type="button"
-          className="px-4 py-2 bg-error text-white rounded-xl hover:bg-error-dark transition-colors touch-target w-full sm:w-auto"
+          variant="destructive"
+          className="w-full sm:w-auto"
         >
           Delete Account
-        </button>
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>

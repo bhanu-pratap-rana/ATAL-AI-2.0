@@ -49,14 +49,16 @@ export function DataModal({
         {/* Modal Header */}
         <div className="sticky top-0 bg-background border-b border-slate-200 px-6 py-4 flex items-center justify-between">
           <h2 className="text-xl font-black text-slate-800">{title}</h2>
-          <button
-                type="button"
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
             onClick={onClose}
             className="text-slate-400 hover:text-slate-800"
             aria-label="Close modal"
           >
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
         {/* Search Bar */}

@@ -162,14 +162,15 @@ export function ForgotPasswordFlow({
           <span className="ml-2">→</span>
         </Button>
 
-        <button
+        <Button
           type="button"
+          variant="link"
           onClick={() => actions.setMainStep("signin")}
-          className="text-sm text-slate-500 hover:text-primary hover:underline block w-full text-center transition-colors"
+          className="w-full text-sm text-slate-500 hover:text-primary"
           disabled={isLoading}
         >
           Back to sign in
-        </button>
+        </Button>
       </form>
     );
   }
@@ -247,14 +248,15 @@ export function ForgotPasswordFlow({
         <span className="ml-2">→</span>
       </Button>
 
-      <button
+      <Button
         type="button"
+        variant="link"
         onClick={() => actions.setForgotPasswordStep("email")}
-        className="text-sm text-slate-500 hover:text-primary hover:underline block w-full text-center transition-colors"
+        className="w-full text-sm text-slate-500 hover:text-primary"
         disabled={isLoading}
       >
         Change email
-      </button>
+      </Button>
     </form>
   );
 }

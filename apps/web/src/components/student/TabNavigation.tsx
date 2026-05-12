@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 /**
  * ATAL AI TabNavigation Component - Jyoti Theme
@@ -45,20 +46,20 @@ export function TabNavigation({
       aria-label="Navigation tabs"
     >
       {tabs.map((tab) => (
-        <button
-                type="button"
+        <Button
+          type="button"
           key={tab.id}
           role="tab"
           aria-selected={activeTab === tab.id}
           aria-disabled={disabled || tab.disabled}
+          variant="ghost"
           onClick={() => !tab.disabled && onTabChange(tab.id)}
           className={cn(
-            "flex-1 rounded-lg font-medium transition-all duration-200",
+            "flex-1 h-auto rounded-lg font-medium",
             sizeClasses[size],
             activeTab === tab.id
-              ? "bg-gradient-primary text-white shadow-sm"
+              ? "bg-gradient-primary text-white shadow-sm hover:bg-gradient-primary hover:text-white"
               : "bg-transparent text-slate-500 hover:bg-white hover:text-slate-800",
-            (disabled || tab.disabled) && "opacity-50 cursor-not-allowed",
           )}
           disabled={disabled || tab.disabled}
         >
@@ -68,7 +69,7 @@ export function TabNavigation({
             </span>
           )}
           {tab.label}
-        </button>
+        </Button>
       ))}
     </div>
   );

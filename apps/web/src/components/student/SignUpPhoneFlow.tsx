@@ -279,22 +279,24 @@ export function SignUpPhoneFlow({
       </Button>
 
       <div className="flex flex-col items-center gap-2">
-        <button
+        <Button
           type="button"
+          variant="link"
           onClick={handleSignUpPhoneSendOtp}
-          className="text-sm text-primary hover:text-primary-dark hover:underline"
+          className="text-sm hover:text-primary-dark"
           disabled={isLoading}
         >
           Resend OTP
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="link"
           onClick={() => actions.setSignupPhoneOtpStep("phone")}
-          className="text-sm text-slate-500 hover:text-primary hover:underline transition-colors"
+          className="text-sm text-slate-500 hover:text-primary"
           disabled={isLoading}
         >
           Change phone number
-        </button>
+        </Button>
       </div>
     </form>
   );

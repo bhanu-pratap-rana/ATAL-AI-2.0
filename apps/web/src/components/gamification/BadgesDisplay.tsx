@@ -14,6 +14,7 @@
 import { useState, useEffect, useCallback, useRef, memo } from "react";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase-browser";
 import { clientLogger } from "@/lib/client-logger";
 import type { Badge as BaseBadge } from "@/lib/services/gamification-service";
@@ -341,11 +342,12 @@ export const BadgesDisplay = memo(function BadgesDisplay({
           const isEarned = earnedIds.has(badge.id);
 
           return (
-            <button
-                type="button"
+            <Button
+              type="button"
+              variant="ghost"
               key={badge.id}
               onClick={() => setSelectedBadge(badge)}
-              className={`group relative p-3 rounded-xl border-2 transition-all duration-300 overflow-hidden text-center ${getBadgeCardClass(isEarned ? "earned" : "locked", badge.rarity)}`}
+              className={`group relative h-auto p-3 rounded-xl border-2 overflow-hidden flex-col text-center whitespace-normal ${getBadgeCardClass(isEarned ? "earned" : "locked", badge.rarity)}`}
             >
               {/* Lock Icon for Locked Badges */}
               {!isEarned && (
@@ -375,7 +377,7 @@ export const BadgesDisplay = memo(function BadgesDisplay({
               <div className="text-xs text-slate-500">
                 +{badge.points_value}
               </div>
-            </button>
+            </Button>
           );
         })}
       </div>
@@ -425,14 +427,15 @@ export const BadgesDisplay = memo(function BadgesDisplay({
               </div>
 
               {/* Close Button */}
-              <button
+              <Button
                 type="button"
+                variant="link"
                 onClick={() => setSelectedBadge(null)}
                 className="mt-4 text-sm text-slate-500 hover:text-primary"
                 aria-label="Close badge details"
               >
                 {t("common.close")}
-              </button>
+              </Button>
             </CardContent>
           </Card>
         )}
