@@ -244,13 +244,14 @@ function ResetPasswordContent() {
           <div className="text-center">
             <p className="text-sm text-slate-500">
               Remember your password?{" "}
-              <button
+              <Button
                 type="button"
+                variant="link"
                 onClick={() => router.push("/student/start")}
-                className="text-primary hover:underline font-medium"
+                className="inline h-auto p-0 align-baseline font-medium"
               >
                 Sign in here
-              </button>
+              </Button>
             </p>
           </div>
         </form>

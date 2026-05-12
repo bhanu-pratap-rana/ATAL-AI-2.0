@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
 
 export default function HomePage() {
   const router = useRouter();
@@ -36,14 +37,11 @@ export default function HomePage() {
 
         <div className="space-y-4">
           {/* Student — primary orange */}
-          <button
-                type="button"
+          <Button
+            type="button"
             onClick={() => router.push("/student/start")}
-            className="w-full flex items-center gap-4 p-5 rounded-2xl text-white font-black transition-all active:scale-95 hover:opacity-90"
-            style={{
-              background: "var(--gradient-primary)",
-              boxShadow: "0 4px 14px 0 rgba(249,136,25,0.39)",
-            }}
+            className="w-full h-auto p-5 justify-start gap-4 font-black whitespace-normal"
+            style={{ boxShadow: "var(--shadow-primary)" }}
           >
             <span className="text-3xl">🎓</span>
             <div className="text-left">
@@ -52,28 +50,28 @@ export default function HomePage() {
                 Sign in or create account
               </p>
             </div>
-          </button>
+          </Button>
 
           {/* Teacher + Admin row */}
           <div className="grid grid-cols-2 gap-4">
-            <button
-                type="button"
+            <Button
+              type="button"
               onClick={() => router.push("/teacher/start")}
-              className="flex flex-col items-center gap-2 p-5 rounded-2xl text-white font-black transition-all active:scale-95 hover:opacity-90"
+              className="h-auto p-5 flex-col gap-2 text-white font-black"
               style={{ background: "var(--gradient-teacher)" }}
             >
               <span className="text-2xl">👩‍🏫</span>
               <span className="text-sm font-black">Teacher</span>
-            </button>
+            </Button>
 
-            <button
+            <Button
               type="button"
               onClick={() => router.push("/admin/login")}
-              className="flex flex-col items-center gap-2 p-5 rounded-2xl text-white font-black transition-all active:scale-95 hover:opacity-90 bg-slate-900"
+              className="h-auto p-5 flex-col gap-2 text-white font-black bg-slate-900 hover:bg-slate-800"
             >
               <span className="text-2xl">🔐</span>
               <span className="text-sm font-black">Admin</span>
-            </button>
+            </Button>
           </div>
         </div>
       </motion.div>

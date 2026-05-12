@@ -192,30 +192,33 @@ function PhoneOTPStep({
           </Button>
 
           <div className="text-center space-y-2">
-            <button
+            <Button
               type="button"
+              variant="link"
               onClick={handleSendOTPClick}
-              className="text-sm text-primary hover:text-primary-dark hover:underline block w-full"
+              className="w-full text-sm hover:text-primary-dark"
               disabled={stepLoading || loading}
             >
               Resend OTP
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="link"
               onClick={() => setStep("phone")}
-              className="text-sm text-primary hover:underline block w-full"
+              className="w-full text-sm"
               disabled={stepLoading || loading}
             >
               Change phone number
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="link"
               onClick={onBack}
-              className="text-sm text-slate-500 hover:underline block w-full"
+              className="w-full text-sm text-slate-500"
               disabled={stepLoading || loading}
             >
               Back to options
-            </button>
+            </Button>
           </div>
         </form>
       </AuthCard>
@@ -273,14 +276,15 @@ function PhoneOTPStep({
         </Button>
 
         <div className="text-center">
-          <button
+          <Button
             type="button"
+            variant="link"
             onClick={onBack}
-            className="text-sm text-slate-500 hover:underline block w-full"
+            className="w-full text-sm text-slate-500"
             disabled={stepLoading || loading}
           >
             Back to options
-          </button>
+          </Button>
         </div>
       </form>
     </AuthCard>

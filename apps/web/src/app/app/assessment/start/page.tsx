@@ -4,6 +4,7 @@ import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { AssessmentRunner } from "@/components/assessment/AssessmentRunner";
 import { AssessmentSkeleton } from "@/components/assessment/AssessmentSkeleton";
 import {
@@ -117,13 +118,15 @@ function AssessmentStartContent() {
             {error && (
               <div className="mb-6 p-4 bg-red-50 border border-red-200/30 rounded-2xl">
                 <p className="text-red-600 font-black">{error}</p>
-                <button
-                type="button"
+                <Button
+                  type="button"
+                  variant="link"
+                  size="sm"
                   onClick={() => setError(null)}
-                  className="text-sm text-red-600/70 hover:text-red-600 mt-2"
+                  className="h-auto p-0 mt-2 text-sm text-red-600/70 hover:text-red-600"
                 >
                   Dismiss
-                </button>
+                </Button>
               </div>
             )}
 
@@ -173,83 +176,55 @@ function AssessmentStartContent() {
               <Label className="text-base font-black mb-4 block text-slate-800">
                 Choose your preferred language:
               </Label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {/* English */}
-                <button
-                type="button"
-                  onClick={() => setSelectedLanguage("en")}
-                  className={`p-4 rounded-2xl border-2 transition-all duration-200 active:scale-95 ${
-                    selectedLanguage === "en"
-                      ? "border-primary bg-primary-light shadow-primary-sm"
-                      : "border-slate-200 bg-white hover:border-primary/30 hover:bg-primary-lighter"
-                  }`}
-                >
-                  <div className="text-center">
-                    <span className="text-3xl mb-2 block">🇬🇧</span>
-                    <span className="font-black text-slate-800">
-                      English
-                    </span>
-                  </div>
-                </button>
-
-                {/* Hindi */}
-                <button
-                type="button"
-                  onClick={() => setSelectedLanguage("hi")}
-                  className={`p-4 rounded-2xl border-2 transition-all duration-200 active:scale-95 ${
-                    selectedLanguage === "hi"
-                      ? "border-primary bg-primary-light shadow-primary-sm"
-                      : "border-slate-200 bg-white hover:border-primary/30 hover:bg-primary-lighter"
-                  }`}
-                >
-                  <div className="text-center">
-                    <span className="text-3xl mb-2 block">🇮🇳</span>
-                    <span className="font-black text-slate-800">
-                      हिंदी
-                    </span>
-                  </div>
-                </button>
-
-                {/* Assamese */}
-                <button
-                type="button"
-                  onClick={() => setSelectedLanguage("as")}
-                  className={`p-4 rounded-2xl border-2 transition-all duration-200 active:scale-95 ${
-                    selectedLanguage === "as"
-                      ? "border-primary bg-primary-light shadow-primary-sm"
-                      : "border-slate-200 bg-white hover:border-primary/30 hover:bg-primary-lighter"
-                  }`}
-                >
-                  <div className="text-center">
-                    <span className="text-3xl mb-2 block">🇮🇳</span>
-                    <span className="font-black text-slate-800">
-                      অসমীয়া
-                    </span>
-                  </div>
-                </button>
+              <div role="radiogroup" aria-label="Preferred language" className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {[
+                  { code: "en" as const, flag: "🇬🇧", label: "English" },
+                  { code: "hi" as const, flag: "🇮🇳", label: "हिंदी" },
+                  { code: "as" as const, flag: "🇮🇳", label: "অসমীয়া" },
+                ].map(({ code, flag, label }) => (
+                  <Button
+                    key={code}
+                    type="button"
+                    role="radio"
+                    aria-checked={selectedLanguage === code}
+                    variant="ghost"
+                    onClick={() => setSelectedLanguage(code)}
+                    className={`h-auto p-4 rounded-2xl border-2 whitespace-normal ${
+                      selectedLanguage === code
+                        ? "border-primary bg-primary-light shadow-primary-sm hover:bg-primary-light"
+                        : "border-slate-200 bg-white hover:border-primary/30 hover:bg-primary-lighter"
+                    }`}
+                  >
+                    <div className="text-center">
+                      <span className="text-3xl mb-2 block">{flag}</span>
+                      <span className="font-black text-slate-800">{label}</span>
+                    </div>
+                  </Button>
+                ))}
               </div>
             </div>
 
             {/* Action Buttons */}
             <div className="flex flex-col gap-4">
-              <button
+              <Button
                 type="button"
+                size="lg"
                 onClick={handleStartAssessment}
                 disabled={loading}
-                className="w-full py-4 rounded-2xl font-black text-lg text-white disabled:opacity-50 transition-all active:scale-95"
-                style={{ background: "var(--gradient-primary)" }}
+                className="w-full font-black"
               >
                 {loading ? "Starting Assessment..." : "Start Assessment"}
-              </button>
+              </Button>
 
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 onClick={() => router.back()}
                 disabled={loading}
-                className="w-full py-3 rounded-2xl font-black text-sm text-slate-700 border border-slate-200 bg-white hover:bg-slate-50 transition-colors disabled:opacity-50"
+                className="w-full text-slate-700 font-black"
               >
                 Back
-              </button>
+              </Button>
             </div>
         </div>
       </div>

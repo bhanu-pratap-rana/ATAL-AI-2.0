@@ -9,6 +9,7 @@ import { isTeacherOrHigher } from "@/lib/auth/role-utils";
 import type { User } from "@supabase/supabase-js";
 import { Flame, ChevronRight, BookOpen } from "lucide-react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { Button } from "@/components/ui/button";
 import {
   getDashboardStats,
   type DashboardStats,
@@ -343,14 +344,14 @@ export function DashboardClient() {
             <p className="font-bold text-slate-400 text-sm mb-4">
               {isTeacherOrAdmin ? t("dashboard.getStartedTeacher") : t("dashboard.getStartedStudent")}
             </p>
-            <button
-                type="button"
+            <Button
+              type="button"
               onClick={() => router.push(isTeacherOrAdmin ? "/app/teacher/classes" : "/app/assessment/start?type=pre")}
-              className="px-6 py-3 rounded-2xl font-black text-sm text-white transition-all active:scale-95 inline-block"
+              className="font-black"
               style={bannerStyle}
             >
               {isTeacherOrAdmin ? t("dashboard.createFirstClass") : t("dashboard.startAssessment")}
-            </button>
+            </Button>
           </motion.div>
         )}
 
