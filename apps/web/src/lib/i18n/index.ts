@@ -32,8 +32,12 @@
  * ```
  */
 
-// Context and hooks
-export { LanguageProvider, useLanguage, useLanguageOptional, getTranslation } from "./LanguageProvider";
+// Context and hooks (client-only)
+export { LanguageProvider, useLanguage, useLanguageOptional } from "./LanguageProvider";
+
+// Server-safe translation function — kept in its own module so server
+// components can import it without crossing a "use client" boundary.
+export { getTranslation } from "./translation-core";
 
 // Types
 export type {

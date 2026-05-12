@@ -25,25 +25,17 @@ import type {
   SupportedLanguage,
   LanguageContextValue,
   InterpolationValues,
-  TranslationFile,
 } from "./types";
 import {
   DEFAULT_LANGUAGE,
   LANGUAGE_STORAGE_KEY,
   SUPPORTED_LANGUAGES,
 } from "./types";
-
-// Import translation files statically for better performance
-import enTranslations from "./locales/en.json";
-import hiTranslations from "./locales/hi.json";
-import asTranslations from "./locales/as.json";
-
-/** Map of language codes to their translation objects */
-const TRANSLATIONS: Record<SupportedLanguage, TranslationFile> = {
-  en: enTranslations as TranslationFile,
-  hi: hiTranslations as TranslationFile,
-  as: asTranslations as TranslationFile,
-};
+import {
+  TRANSLATIONS,
+  getNestedValue,
+  interpolate,
+} from "./translation-core";
 
 /** Context for language state */
 const LanguageContext = createContext<LanguageContextValue | null>(null);
@@ -76,45 +68,6 @@ function getInitialLanguage(): SupportedLanguage {
   }
 
   return DEFAULT_LANGUAGE;
-}
-
-/**
- * Gets a nested value from an object using dot notation
- * Example: getNestedValue(obj, "common.loading") → obj.common.loading
- */
-function getNestedValue(obj: unknown, path: string): string | undefined {
-  const keys = path.split(".");
-  let current: unknown = obj;
-
-  for (const key of keys) {
-    if (current === null || current === undefined) {
-      return undefined;
-    }
-    if (typeof current !== "object") {
-      return undefined;
-    }
-    current = (current as Record<string, unknown>)[key];
-  }
-
-  return typeof current === "string" ? current : undefined;
-}
-
-/**
- * Interpolates values into a translation string
- * Example: interpolate("Hello, {name}!", { name: "John" }) → "Hello, John!"
- */
-function interpolate(
-  template: string,
-  values?: InterpolationValues
-): string {
-  if (!values) {
-    return template;
-  }
-
-  return template.replaceAll(/\{(\w+)\}/g, (match, key) => {
-    const value = values[key];
-    return value !== undefined ? String(value) : match;
-  });
 }
 
 interface LanguageProviderProps {
@@ -277,25 +230,4 @@ export function useLanguageOptional(): LanguageContextValue | null {
   return useContext(LanguageContext);
 }
 
-/**
- * Standalone translation function — no React context needed.
- *
- * Use this in components that receive an explicit `language` prop instead of
- * reading from context (e.g. LessonPlayer, LessonCompletionModal).
- *
- * @example
- * getTranslation("lessonPlayer.typeConcept", language) // → "अवधारणा"
- * getTranslation("lessonCompletion.msgGood", language, { topic: "Internet Safety" })
- */
-export function getTranslation(
-  key: string,
-  language: SupportedLanguage,
-  values?: InterpolationValues,
-): string {
-  let value = getNestedValue(TRANSLATIONS[language], key);
-  if (value === undefined && language !== "en") {
-    value = getNestedValue(TRANSLATIONS.en, key);
-  }
-  if (value === undefined) return key;
-  return interpolate(value, values);
-}
+// getTranslation is re-exported at the top of this module from translation-core.
