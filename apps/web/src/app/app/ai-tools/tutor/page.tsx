@@ -8,6 +8,7 @@ import { useChat } from "ai/react"; // NOSONAR
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { VoiceChat } from "@/components/voice/VoiceChat";
 import { ConversationalVoiceChat } from "@/components/voice/ConversationalVoiceChat";
+import { RateLimitCountdown } from "@/components/ui/RateLimitCountdown";
 
 type TutorLanguage = "en" | "hi" | "as";
 
@@ -243,13 +244,26 @@ export default function AITutorPage() {
         )}
 
         {/* Error Display */}
-        {error && (
-          <div className="bg-red-50 border border-red-100 rounded-3xl p-4">
-            <p className="text-sm font-bold text-red-500">
-              ⚠️ {error.message || "An error occurred. Please try again."}
-            </p>
-          </div>
-        )}
+        {error && (() => {
+          // Parse retryAfter from the AI SDK error message JSON, if present
+          const match = (error.message ?? "").match(/"retryAfter"\s*:\s*(\d+)/);
+          const retryAfter = match ? Number(match[1]) : null;
+          if (retryAfter && retryAfter > 0) {
+            return (
+              <RateLimitCountdown
+                seconds={retryAfter}
+                message="You're sending messages too quickly."
+              />
+            );
+          }
+          return (
+            <div className="bg-red-50 border border-red-100 rounded-3xl p-4">
+              <p className="text-sm font-bold text-red-500">
+                ⚠️ {error.message || "An error occurred. Please try again."}
+              </p>
+            </div>
+          );
+        })()}
 
         {/* Chat Area */}
         <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4">

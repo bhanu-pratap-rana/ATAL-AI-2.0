@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json(
-        { error: "Unauthorized" },
+        { error: "Please sign in to continue.", errorKey: "errors.signInRequired" },
         { status: 401 }
       );
     }
@@ -42,8 +42,12 @@ export async function POST(request: NextRequest) {
     const isAllowed = await checkRateLimit(`imagen:${user.id}`, RATE_LIMITS.imageGeneration);
     if (!isAllowed) {
       return NextResponse.json(
-        { error: "Rate limit exceeded. Please wait before generating another image." },
-        { status: 429 }
+        {
+          error: "You're generating images too quickly. Please wait a moment and try again.",
+          errorKey: "errors.rateLimitWait",
+          retryAfter: 360,
+        },
+        { status: 429, headers: { "Retry-After": "360" } }
       );
     }
 

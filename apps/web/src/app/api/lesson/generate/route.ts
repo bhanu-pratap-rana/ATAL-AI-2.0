@@ -281,7 +281,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json(
-        { error: "Unauthorized" },
+        { error: "Please sign in to continue.", errorKey: "errors.signInRequired" },
         { status: 401 },
       );
     }
@@ -294,8 +294,12 @@ export async function POST(request: NextRequest): Promise<Response> {
     );
     if (!isAllowed) {
       return NextResponse.json(
-        { error: "Rate limit exceeded. Please wait before generating another lesson." },
-        { status: 429 },
+        {
+          error: "You're generating lessons too quickly. Please wait a moment and try again.",
+          errorKey: "errors.rateLimitWait",
+          retryAfter: 30,
+        },
+        { status: 429, headers: { "Retry-After": "30" } },
       );
     }
 

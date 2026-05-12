@@ -62,7 +62,10 @@ export async function POST(request: Request): Promise<Response> {
     // Authenticate user
     user = await getCurrentUser();
     if (!user) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
+      return Response.json(
+        { error: "Please sign in to continue.", errorKey: "errors.signInRequired" },
+        { status: 401 },
+      );
     }
 
     // At this point, user is guaranteed to be non-null due to the guard above
@@ -75,8 +78,12 @@ export async function POST(request: Request): Promise<Response> {
     );
     if (!isAllowed) {
       return Response.json(
-        { error: "Rate limit exceeded. Please wait before sending another message." },
-        { status: 429 },
+        {
+          error: "You're sending messages too quickly. Please wait a moment and try again.",
+          errorKey: "errors.rateLimitWait",
+          retryAfter: 60,
+        },
+        { status: 429, headers: { "Retry-After": "60" } },
       );
     }
 

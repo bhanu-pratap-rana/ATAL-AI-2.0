@@ -89,6 +89,8 @@ interface QuestionHistoryItem {
   isCorrect: boolean | null;
   hasBeenAnswered: boolean;
   skipped: boolean;
+  /** UX-A8: Student explicitly flagged the question as confusing (vs intentional skip) */
+  confused?: boolean;
   rtMs: number;
   thetaBefore?: number;
   thetaAfter?: number;
@@ -443,6 +445,41 @@ export function AssessmentRunner({
     questions.length,
   ]);
 
+  // UX-A8: Handle "I don't understand" — same flow as Skip, but tagged for analytics
+  const handleConfused = useCallback(() => {
+    if (isReviewingHistory) return;
+
+    const rtMs = Date.now() - questionStartTimeRef.current;
+
+    const historyItem: QuestionHistoryItem = {
+      question: currentQuestion,
+      shuffledOptions,
+      shuffleMap,
+      selectedAnswer: null,
+      isCorrect: null,
+      hasBeenAnswered: false,
+      skipped: true,
+      confused: true,
+      rtMs,
+    };
+
+    setQuestionHistory([...questionHistory, historyItem]);
+    setSelectedOption(null);
+    setFocusBlurCount(0);
+
+    if (currentIndex < questions.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    }
+  }, [
+    isReviewingHistory,
+    currentQuestion,
+    shuffledOptions,
+    shuffleMap,
+    questionHistory,
+    currentIndex,
+    questions.length,
+  ]);
+
   // Handle history navigation - S3776: Extracted to reduce cognitive complexity
   const handleHistoryNavigation = useCallback(() => {
     // Update the history item if answer changed
@@ -747,7 +784,7 @@ export function AssessmentRunner({
                   return (
                     <label
                       key={option.id}
-                      className={`w-full text-left p-4 rounded-2xl border-2 transition-all duration-200 cursor-pointer focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 ${getOptionButtonClasses(selectedOption === index ? "selected" : "unselected")} ${isSubmitting ? "pointer-events-none opacity-50" : ""}`}
+                      className={`w-full text-left p-4 min-h-11 rounded-2xl border-2 transition-all duration-200 cursor-pointer focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 ${getOptionButtonClasses(selectedOption === index ? "selected" : "unselected")} ${isSubmitting ? "pointer-events-none opacity-50" : ""}`}
                     >
                       <input
                         type="radio"
@@ -761,10 +798,10 @@ export function AssessmentRunner({
                       <div className="flex items-start gap-3">
                         <div
                           aria-hidden="true"
-                          className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${getRadioButtonClasses(selectedOption === index ? "selected" : "unselected")}`}
+                          className={`shrink-0 w-9 h-9 rounded-full border-2 flex items-center justify-center transition-colors ${getRadioButtonClasses(selectedOption === index ? "selected" : "unselected")}`}
                         >
                           {selectedOption === index && (
-                            <div className="w-3 h-3 bg-white rounded-full" />
+                            <div className="w-4 h-4 bg-white rounded-full" />
                           )}
                         </div>
                         <span
@@ -793,6 +830,20 @@ export function AssessmentRunner({
               onClear={handleClear}
               onNext={handleNext}
             />
+
+            {/* UX-A8: "I don't understand" — flags confusion for teacher analytics */}
+            {!isReviewingHistory && (
+              <button
+                type="button"
+                onClick={handleConfused}
+                disabled={isSubmitting}
+                className="mt-3 w-full min-h-11 px-4 py-2 rounded-2xl border border-slate-200 bg-slate-50 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="I don't understand this question — flag it and move on"
+              >
+                <span className="mr-2" aria-hidden="true">🤔</span>
+                <span>I don&apos;t understand this question</span>
+              </button>
+            )}
         </div>
 
         {/* Helper Text */}
