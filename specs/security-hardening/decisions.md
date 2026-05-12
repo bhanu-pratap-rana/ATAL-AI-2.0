@@ -1,8 +1,10 @@
 # Security Hardening — Decisions Log
 
-## 2026-05-12 · Disable anonymous sign-in
+## 2026-05-12 · Anonymous sign-in — **kept enabled (intentional)**
 
-**Status:** Pending Studio toggle (config-only, no migration).
+**Status:** ✅ Intentional product decision. Toggle stays ON. The
+`auth_allow_anonymous_sign_ins` advisor finding is accepted as a
+justified exception.
 
 **Decision:** Disable `auth.allow_anonymous_sign_ins` for the project.
 
@@ -32,9 +34,13 @@ configured lifetime (default 1 hour) regardless of this setting.
 
 ---
 
-## 2026-05-12 · Enable HaveIBeenPwned check
+## 2026-05-12 · HaveIBeenPwned check — **kept disabled (intentional)**
 
-**Status:** Pending Studio toggle (config-only, no migration).
+**Status:** ✅ Intentional product decision. Toggle stays OFF. The
+`auth_leaked_password_protection` advisor finding is accepted as a
+justified exception. The i18n key `errors.weakPasswordBreached` and
+the `weak_password` error handler in `auth-otp.ts` / `teacher-onboard.ts`
+remain wired so the toggle can be flipped on later without code change.
 
 **Decision:** Enable Supabase Auth's HaveIBeenPwned (HIBP) compromised-
 password check.

@@ -1291,6 +1291,7 @@ export type Database = {
       }
       cleanup_expired_lessons: { Args: never; Returns: undefined }
       cleanup_old_sync_logs: { Args: never; Returns: number }
+      current_user_role: { Args: never; Returns: string }
       generate_class_code: { Args: never; Returns: string }
       generate_join_pin: { Args: never; Returns: string }
       get_announcements_with_reads: {
@@ -1485,6 +1486,16 @@ export type Database = {
       is_class_teacher: { Args: { p_class_id: string }; Returns: boolean }
       is_enrolled_in_class: { Args: { p_class_id: string }; Returns: boolean }
       is_teacher: { Args: never; Returns: boolean }
+      list_admin_users: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          id: string
+          last_sign_in_at: string
+          role: string
+        }[]
+      }
       match_curriculum: {
         Args: {
           filter_language?: string
