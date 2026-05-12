@@ -91,27 +91,33 @@ export async function createAdminUser(
 
     const adminClient = await createAdminClient();
 
-    // SECURITY: Check if any admin already exists
-    const { data: users, error: listError } =
-      await adminClient.auth.admin.listUsers();
+    // Fast path: if the caller is already an authenticated super_admin
+    // (e.g. they're using /admin/manage), skip the expensive listUsers()
+    // bootstrap probe and just create the admin directly. The Supabase Auth
+    // admin API natively enforces email uniqueness, so we don't need a
+    // pre-check.
+    const auth = await verifySuperAdminAuth("createAdminUser");
+    const isSuperAdminCaller = auth.authorized;
 
-    if (listError) {
-      authLogger.error("[createAdminUser] Failed to list users", listError);
-      return {
-        success: false,
-        error: "Failed to access user database",
-      };
-    }
+    let hasExistingAdmin = isSuperAdminCaller;
+    if (!isSuperAdminCaller) {
+      // Bootstrap path: no super_admin session. Verify no admin exists yet
+      // (first-time setup) before allowing unauthenticated creation.
+      const { data: users, error: listError } =
+        await adminClient.auth.admin.listUsers();
 
-    const hasExistingAdmin = users?.users.some((u) => {
-      const role = u.app_metadata?.role;
-      return isAdmin(role);
-    });
+      if (listError) {
+        authLogger.error("[createAdminUser] Failed to list users", listError);
+        return {
+          success: false,
+          error: "Failed to access user database",
+        };
+      }
 
-    // SECURITY: If admin exists, require super_admin authentication
-    if (hasExistingAdmin) {
-      const auth = await verifySuperAdminAuth("createAdminUser");
-      if (!auth.authorized) {
+      hasExistingAdmin =
+        users?.users.some((u) => isAdmin(u.app_metadata?.role)) ?? false;
+
+      if (hasExistingAdmin) {
         authLogger.warn(
           "[createAdminUser] Unauthorized: Admin exists but caller is not super_admin",
         );
@@ -123,72 +129,29 @@ export async function createAdminUser(
       }
     }
 
-    // Check if user already exists
-    const existingUser = users?.users.find(
-      (u) => u.email?.toLowerCase() === normalizedEmail,
-    );
-
-    if (existingUser) {
-      authLogger.warn("[createAdminUser] User already exists", {
-        email: normalizedEmail,
-      });
-      return {
-        success: false,
-        error: `User with email ${email} already exists. Use the admin panel to manage roles.`,
-      };
-    }
-
-    // TOCTOU protection: re-check admin existence right before creation
-    // Narrows the race window between initial check and user creation
-    if (!hasExistingAdmin) {
-      const { data: recheck } = await adminClient.auth.admin.listUsers();
-      const nowHasAdmin = recheck?.users.some((u) => isAdmin(u.app_metadata?.role));
-      if (nowHasAdmin) {
-        authLogger.warn("[createAdminUser] Race condition detected: admin created between checks");
-        return {
-          success: false,
-          error: "An admin was just created by another request. Please refresh and use the admin panel.",
-        };
-      }
-    }
-
-    // Create new user with password
+    // Create new user with password AND role in a single call. Supabase Auth
+    // rejects duplicate emails, so we don't pre-check.
+    const roleToSet = hasExistingAdmin ? "admin" : "super_admin";
     const { data, error: createError } =
       await adminClient.auth.admin.createUser({
         email: normalizedEmail,
         password,
-        email_confirm: true, // Auto-confirm email
+        email_confirm: true,
+        app_metadata: { role: roleToSet },
       });
 
     if (createError || !data.user) {
+      const msg = createError?.message ?? "";
+      if (/already.*registered|already.*exists|duplicate/i.test(msg)) {
+        return {
+          success: false,
+          error: `User with email ${email} already exists. Use the admin panel to manage roles.`,
+        };
+      }
       authLogger.error("[createAdminUser] Failed to create user", createError);
       return {
         success: false,
         error: "Failed to create user account",
-      };
-    }
-
-    const userId = data.user.id;
-
-    // Set admin role (first admin becomes super_admin, subsequent become admin)
-    const roleToSet = hasExistingAdmin ? "admin" : "super_admin";
-    const { error: updateError } = await adminClient.auth.admin.updateUserById(
-      userId,
-      {
-        app_metadata: {
-          role: roleToSet,
-        },
-      },
-    );
-
-    if (updateError) {
-      authLogger.error(
-        "[createAdminUser] Failed to set admin role",
-        updateError,
-      );
-      return {
-        success: false,
-        error: "Failed to set admin role",
       };
     }
 
@@ -201,7 +164,7 @@ export async function createAdminUser(
     return {
       success: true,
       message: `${roleToSet === "super_admin" ? "Super Admin" : "Admin"} user ${email} created successfully!`,
-      userId,
+      userId: data.user.id,
     };
   } catch (error) {
     return handleActionError("createAdminUser", error);
