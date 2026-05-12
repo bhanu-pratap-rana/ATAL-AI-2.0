@@ -69,7 +69,9 @@ const pwa = await page.evaluate(async () => {
     try {
       const regs = await navigator.serviceWorker.getRegistrations();
       swRegistered = regs.length > 0;
-    } catch(e) {}
+    } catch (e) {
+      console.log('  sw.getRegistrations failed:', e.message);
+    }
   }
   return {
     hasManifest: !!manifestLink,
@@ -102,8 +104,8 @@ try {
   console.log('  → start_url:', mData.start_url);
   console.log('  → icons:', mData.icons?.length, 'icons');
   console.log('  → screenshots:', mData.screenshots?.length ?? 0, 'screenshots');
-} catch(e) {
-  console.log('  manifest.json: ❌ invalid JSON');
+} catch (e) {
+  console.log('  manifest.json: ❌ invalid JSON', e.message);
 }
 
 await ctx.close();
@@ -114,7 +116,7 @@ const hPage = await hCtx.newPage();
 const hResp = await hPage.goto(BASE_URL + '/api/health', { waitUntil: 'load' });
 const hStatus = hResp?.status();
 const hBody = await hPage.evaluate(() => {
-  try { return JSON.parse(document.body.innerText); } catch(e) { return null; }
+  try { return JSON.parse(document.body.innerText); } catch { return null; }
 });
 console.log('\n=== HEALTH ENDPOINT ===');
 console.log(`  /api/health: ${hStatus === 200 ? '✅' : '❌'} (${hStatus})`, hBody ? JSON.stringify(hBody) : '');

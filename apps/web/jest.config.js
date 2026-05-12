@@ -23,7 +23,7 @@ const customConfig = {
   // jsdom for React component tests; pure-Node tests override inline
   testEnvironment: "jest-environment-jsdom",
 
-  setupFilesAfterFramework: ["<rootDir>/jest.setup.ts"],
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
 
   // Only pick up files in __tests__/ — keeps test:database separate
   testMatch: [
