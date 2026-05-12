@@ -213,14 +213,15 @@ export function ForgotPasswordStep({
 
           <p className="text-center text-sm text-slate-500">
             Remember your password?{" "}
-            <button
+            <Button
               type="button"
+              variant="link"
               onClick={() => actions.setMainStep("signin")}
-              className="text-primary hover:underline font-medium"
+              className="inline h-auto p-0 align-baseline font-medium"
               disabled={isLoading}
             >
               Sign in
-            </button>
+            </Button>
           </p>
         </form>
       </AuthCard>
@@ -314,17 +315,18 @@ export function ForgotPasswordStep({
           {isLoading ? "Resetting..." : "Reset Password"}
         </Button>
 
-        <button
+        <Button
           type="button"
+          variant="link"
           onClick={() => {
             actions.resetForgotPassword();
             actions.setMainStep("signin");
           }}
-          className="text-sm text-slate-500 hover:underline block w-full text-center"
+          className="w-full text-sm text-slate-500"
           disabled={isLoading}
         >
           Back to sign in
-        </button>
+        </Button>
       </form>
     </AuthCard>
   );

@@ -32,31 +32,32 @@ export function TeacherChoiceStep({ actions }: TeacherChoiceStepProps) {
 
         <div className="space-y-3">
           {/* Create Account Button */}
-          <button
-                type="button"
+          <Button
+            type="button"
             onClick={() => actions.setStep("auth")}
-            className="w-full flex items-center gap-4 p-5 rounded-2xl text-white font-black transition-all active:scale-95 hover:opacity-90"
-            style={{ background: "var(--gradient-primary)", boxShadow: "var(--shadow-primary)" }}
+            className="w-full h-auto p-5 justify-start gap-4 font-black whitespace-normal"
+            style={{ boxShadow: "var(--shadow-primary)" }}
           >
             <GraduationCap className="w-6 h-6 shrink-0" />
             <div className="text-left">
               <p className="text-base font-black leading-none">Create New Account</p>
               <p className="text-xs font-bold text-white/80 mt-1">New teacher registration</p>
             </div>
-          </button>
+          </Button>
 
           {/* Login Button */}
-          <button
-                type="button"
+          <Button
+            type="button"
+            variant="outline"
             onClick={() => actions.setStep("login")}
-            className="w-full flex items-center gap-4 p-5 rounded-2xl font-black transition-all active:scale-95 border-2 border-slate-200 hover:border-primary/40 hover:text-primary text-slate-700"
+            className="w-full h-auto p-5 justify-start gap-4 border-2 border-slate-200 hover:border-primary/40 hover:text-primary text-slate-700 font-black whitespace-normal"
           >
             <GraduationCap className="w-6 h-6 shrink-0 text-slate-400" />
             <div className="text-left">
               <p className="text-base font-black leading-none">Login to Account</p>
               <p className="text-xs font-bold text-slate-400 mt-1">Existing teacher login</p>
             </div>
-          </button>
+          </Button>
 
           {/* Info Box */}
           <div className="bg-info-light border-l-4 border-info p-4 rounded-xl">

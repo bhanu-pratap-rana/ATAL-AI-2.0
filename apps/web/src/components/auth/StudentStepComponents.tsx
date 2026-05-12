@@ -6,6 +6,7 @@
 "use client";
 
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
 import type { UseAuthStateReturn } from "@/hooks/useAuthState";
 
 interface StepComponentProps {
@@ -34,31 +35,32 @@ export function ChoiceStep({ actions, loading: _loading, state: _state }: StepCo
 
         <div className="space-y-4">
           {/* Sign In — primary orange */}
-          <button
+          <Button
             type="button"
             onClick={() => actions.setMainStep("signin")}
-            className="w-full flex items-center gap-4 p-5 rounded-2xl text-white font-black transition-all active:scale-95 hover:opacity-90"
-            style={{ background: "var(--gradient-primary)", boxShadow: "var(--shadow-primary)" }}
+            className="w-full h-auto p-5 justify-start gap-4 font-black whitespace-normal"
+            style={{ boxShadow: "var(--shadow-primary)" }}
           >
             <span className="text-3xl">🎓</span>
             <div className="text-left">
               <p className="text-base font-black leading-none">Sign In</p>
               <p className="text-xs font-bold text-white/80 mt-1">Login to your account</p>
             </div>
-          </button>
+          </Button>
 
           {/* Create Account */}
-          <button
+          <Button
             type="button"
+            variant="outline"
             onClick={() => actions.setMainStep("signup")}
-            className="w-full flex items-center gap-4 p-5 rounded-2xl font-black transition-all active:scale-95 hover:opacity-90 border-2 border-primary text-primary"
+            className="w-full h-auto p-5 justify-start gap-4 border-2 font-black whitespace-normal"
           >
             <span className="text-3xl">✏️</span>
             <div className="text-left">
               <p className="text-base font-black leading-none">Create Account</p>
               <p className="text-xs font-bold text-slate-400 mt-1">New student? Sign up here</p>
             </div>
-          </button>
+          </Button>
 
           {/* Teacher + Admin row */}
           <div className="grid grid-cols-2 gap-4">

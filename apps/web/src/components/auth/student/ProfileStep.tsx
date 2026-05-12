@@ -150,12 +150,13 @@ export function ProfileStep({
 
         {/* ── Optional fields toggle ───────────────────────── */}
         <div className="pt-1">
-          <button
+          <Button
             type="button"
+            variant="link"
             onClick={() => setShowOptional((v) => !v)}
             aria-expanded={showOptional}
             aria-controls="profile-optional-fields"
-            className="flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+            className="h-auto p-0 text-sm font-medium gap-1.5"
           >
             <span
               aria-hidden="true"
@@ -164,7 +165,7 @@ export function ProfileStep({
               ▶
             </span>
             {showOptional ? "Hide optional details" : "Add optional details"}
-          </button>
+          </Button>
         </div>
 
         {/* ── Optional fields ──────────────────────────────── */}

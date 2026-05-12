@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase-browser";
 import { authLogger } from "@/lib/auth-logger";
 import { LanguageSelector } from "@/components/learn/LanguageSelector";
 import { SyncStatusIndicator } from "@/components/offline/SyncStatusIndicator";
+import { Button } from "@/components/ui/button";
 
 type Portal = "teacher" | "admin" | "student";
 
@@ -107,15 +108,17 @@ export function AppTopHeader() {
         <div className="flex items-center gap-2 shrink-0">
           <LanguageSelector variant="compact" />
           <SyncStatusIndicator compact />
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             onClick={handleSignOut}
             aria-label="Sign out"
             title="Sign out"
-            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+            className="rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-100"
           >
             <LogOut size={18} />
-          </button>
+          </Button>
         </div>
       </div>
     </header>

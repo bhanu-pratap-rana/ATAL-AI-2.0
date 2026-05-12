@@ -187,14 +187,15 @@ export function JoinClassStep({
           <span className="ml-2">→</span>
         </Button>
 
-        <button
+        <Button
           type="button"
+          variant="link"
           onClick={() => router.push("/app/student/dashboard")}
-          className="text-sm text-slate-500 hover:underline block w-full text-center"
+          className="w-full text-sm text-slate-500"
           disabled={isLoading}
         >
           Skip for now →
-        </button>
+        </Button>
       </form>
     </AuthCard>
   );

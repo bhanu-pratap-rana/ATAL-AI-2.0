@@ -17,6 +17,7 @@
  */
 
 import { ReactNode, useEffect, useRef, useCallback } from "react";
+import { Button } from "@/components/ui/button";
 
 interface DialogContainerProps {
   readonly open: boolean;
@@ -142,14 +143,16 @@ export function DialogContainer({
         >
           {title}
         </h2>
-        <button
-                type="button"
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
           onClick={onClose}
-          className="text-slate-400 hover:text-slate-800 transition-colors"
+          className="text-slate-400 hover:text-slate-800"
           aria-label="Close dialog"
         >
           <span className="text-2xl">×</span>
-        </button>
+        </Button>
       </div>
 
       {/* Content */}

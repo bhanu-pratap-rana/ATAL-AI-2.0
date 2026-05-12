@@ -95,14 +95,16 @@ export function PasswordValidationForm({
             required
             aria-describedby={error ? "password-error" : "password-helper"}
           />
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             onClick={togglePasswordVisibility}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-800"
+            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-slate-400 hover:text-slate-800"
             aria-label={showPassword ? "Hide password" : "Show password"}
           >
             {getPasswordVisibilityIcon(showPassword)}
-          </button>
+          </Button>
         </div>
         {showValidation && (
           <p className="text-xs text-slate-500">
@@ -124,14 +126,16 @@ export function PasswordValidationForm({
             disabled={isLoading}
             required
           />
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             onClick={toggleConfirmVisibility}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-800"
+            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-slate-400 hover:text-slate-800"
             aria-label={showConfirm ? "Hide password" : "Show password"}
           >
             {getPasswordVisibilityIcon(showConfirm)}
-          </button>
+          </Button>
         </div>
       </div>
 

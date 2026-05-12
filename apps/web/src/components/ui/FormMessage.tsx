@@ -12,6 +12,7 @@
  */
 
 import { MessageType } from "@/hooks/useFormHandler";
+import { Button } from "@/components/ui/button";
 
 interface FormMessageProps {
   readonly type: MessageType;
@@ -72,14 +73,16 @@ export function FormMessage({
         <p className="text-sm font-medium">{text}</p>
       </div>
       {onClose && (
-        <button
-                type="button"
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
           onClick={onClose}
-          className="shrink-0 text-lg opacity-70 hover:opacity-100 transition-opacity"
+          className="shrink-0 h-7 w-7 text-lg opacity-70 hover:opacity-100"
           aria-label="Close message"
         >
           ×
-        </button>
+        </Button>
       )}
     </div>
   );
