@@ -9,6 +9,7 @@ import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { VoiceChat } from "@/components/voice/VoiceChat";
 import { ConversationalVoiceChat } from "@/components/voice/ConversationalVoiceChat";
 import { RateLimitCountdown } from "@/components/ui/RateLimitCountdown";
+import { Button } from "@/components/ui/button";
 
 type TutorLanguage = "en" | "hi" | "as";
 
@@ -162,38 +163,47 @@ export default function AITutorPage() {
         {/* Language & Input Mode Selectors */}
         <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 flex flex-wrap gap-3 items-center">
           {/* Language Selector */}
-          <div className="flex gap-2">
+          <div role="tablist" className="flex gap-2">
             {(["en", "hi", "as"] as const).map((lang) => (
-              <button
+              <Button
                 type="button"
+                role="tab"
+                aria-selected={language === lang}
                 key={lang}
+                size="sm"
+                variant={language === lang ? "default" : "secondary"}
                 onClick={() => setLanguage(lang)}
-                className={`px-3 py-1.5 rounded-xl text-sm font-black transition-colors ${language === lang ? "text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
-                style={language === lang ? { background: "var(--gradient-primary)" } : {}}
+                className="font-black text-sm"
               >
                 {getLanguageName(lang)}
-              </button>
+              </Button>
             ))}
           </div>
 
           {/* Input Mode Toggle */}
-          <div className="flex gap-2 ml-auto">
-            <button
-                type="button"
+          <div role="tablist" className="flex gap-2 ml-auto">
+            <Button
+              type="button"
+              role="tab"
+              aria-selected={inputMode === "text"}
+              size="sm"
+              variant={inputMode === "text" ? "default" : "secondary"}
               onClick={() => setInputMode("text")}
-              className={`px-3 py-1.5 rounded-xl text-sm font-black transition-colors flex items-center gap-1 ${inputMode === "text" ? "text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
-              style={inputMode === "text" ? { background: "var(--gradient-primary)" } : {}}
+              className="font-black text-sm"
             >
               📝 Text
-            </button>
-            <button
-                type="button"
+            </Button>
+            <Button
+              type="button"
+              role="tab"
+              aria-selected={inputMode === "voice"}
+              size="sm"
+              variant={inputMode === "voice" ? "default" : "secondary"}
               onClick={() => setInputMode("voice")}
-              className={`px-3 py-1.5 rounded-xl text-sm font-black transition-colors flex items-center gap-1 ${inputMode === "voice" ? "text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
-              style={inputMode === "voice" ? { background: "var(--gradient-primary)" } : {}}
+              className="font-black text-sm"
             >
               🎤 Voice
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -201,24 +211,30 @@ export default function AITutorPage() {
         {inputMode === "voice" && (
           <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 flex flex-wrap items-center gap-4">
             {/* Voice Mode Selector */}
-            <div className="flex items-center gap-2">
+            <div role="tablist" className="flex items-center gap-2">
               <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Mode:</span>
-              <button
+              <Button
                 type="button"
+                role="tab"
+                aria-selected={voiceMode === "one-shot"}
+                size="sm"
+                variant={voiceMode === "one-shot" ? "default" : "secondary"}
                 onClick={() => setVoiceMode("one-shot")}
-                className={`px-4 py-2 rounded-xl text-sm font-black transition-colors ${voiceMode === "one-shot" ? "text-white" : "bg-slate-100 text-slate-500"}`}
-                style={voiceMode === "one-shot" ? { background: "var(--gradient-primary)" } : {}}
+                className="font-black text-sm"
               >
                 One-shot
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                role="tab"
+                aria-selected={voiceMode === "conversational"}
+                size="sm"
+                variant={voiceMode === "conversational" ? "default" : "secondary"}
                 onClick={() => setVoiceMode("conversational")}
-                className={`px-4 py-2 rounded-xl text-sm font-black transition-colors ${voiceMode === "conversational" ? "text-white" : "bg-slate-100 text-slate-500"}`}
-                style={voiceMode === "conversational" ? { background: "var(--gradient-primary)" } : {}}
+                className="font-black text-sm"
               >
                 Conversational
-              </button>
+              </Button>
             </div>
 
             <div className="flex items-center gap-2">
@@ -231,14 +247,17 @@ export default function AITutorPage() {
             {/* Auto-TTS Toggle */}
             <div className="flex items-center gap-2 ml-auto">
               <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Auto-speak:</span>
-              <button
+              <Button
                 type="button"
-                onClick={() => setAutoTTS(!autoTTS)}
-                className={`relative w-10 h-5 rounded-full transition-colors ${autoTTS ? "bg-orange-400" : "bg-slate-200"}`}
+                role="switch"
+                aria-checked={autoTTS}
                 aria-label={autoTTS ? "Disable auto-TTS" : "Enable auto-TTS"}
+                variant="ghost"
+                onClick={() => setAutoTTS(!autoTTS)}
+                className={`relative w-10 h-5 p-0 rounded-full border-0 hover:bg-current ${autoTTS ? "bg-orange-400 hover:bg-orange-400" : "bg-slate-200 hover:bg-slate-200"}`}
               >
                 <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${autoTTS ? "translate-x-5" : "translate-x-0"}`} />
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -276,14 +295,16 @@ export default function AITutorPage() {
                 </p>
                 <div className="flex flex-wrap justify-center gap-2">
                   {suggestedQuestions.map((q) => (
-                    <button
-                type="button"
+                    <Button
+                      type="button"
                       key={q}
+                      variant="ghost"
+                      size="sm"
                       onClick={() => handleSuggestedQuestion(q)}
-                      className="px-3 py-2 bg-orange-50 text-orange-600 rounded-xl text-sm font-bold hover:bg-orange-100 transition-colors"
+                      className="bg-orange-50 text-orange-600 hover:bg-orange-100 rounded-xl text-sm font-bold"
                     >
                       {q}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -292,13 +313,15 @@ export default function AITutorPage() {
                 {/* PERF-007 FIX: Show "Load more" button when there are hidden messages */}
                 {hasHiddenMessages && (
                   <div className="text-center mb-4">
-                    <button
-                type="button"
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
                       onClick={() => setShowAllMessages(true)}
-                      className="px-3 py-1 text-xs font-black bg-slate-100 text-slate-500 rounded-full hover:bg-slate-200 transition-colors"
+                      className="text-xs font-black bg-slate-100 text-slate-500 hover:bg-slate-200 rounded-full"
                     >
                       ↑ Show {hiddenMessageCount} earlier message{hiddenMessageCount === 1 ? "" : "s"}
-                    </button>
+                    </Button>
                   </div>
                 )}
                 {visibleMessages.map((message) => (
@@ -366,14 +389,13 @@ export default function AITutorPage() {
                 className="flex-1 px-4 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-transparent font-medium text-sm"
                 disabled={isLoading}
               />
-              <button
+              <Button
                 type="submit"
                 disabled={isLoading || !input.trim()}
-                className="px-5 py-3 rounded-2xl font-black text-sm text-white transition-all active:scale-95 disabled:opacity-50"
-                style={{ background: "var(--gradient-primary)" }}
+                className="font-black"
               >
                 {isLoading ? "..." : "Send"}
-              </button>
+              </Button>
             </form>
           )}
         </div>

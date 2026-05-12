@@ -27,6 +27,7 @@ import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import type { SupportedLanguage } from "@/types/common";
 import { WifiOff, X } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 import { awardLessonCompletionPoints } from "@/app/actions/gamification";
 import { completeLessonAndUpdateProgress } from "@/app/actions/lesson-completion";
 import { stopTTS } from "@/lib/utils/client-tts";
@@ -584,13 +585,15 @@ export default function LessonPage() {
                 </div>
                 <div className="flex gap-2">
                   {/* AI Tutor Toggle */}
-                  <button
-                type="button"
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={() => setShowAITutor(!showAITutor)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-2xl font-black text-sm text-slate-700 border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
+                    className="text-slate-700 font-black"
                   >
                     🤖 {showAITutor ? "Hide" : "Show"} AI Tutor
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -642,33 +645,43 @@ export default function LessonPage() {
                     </p>
                   </div>
                 </div>
-                <button
-                type="button"
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setShowAITutor(false)}
-                  className="text-slate-500 hover:text-primary p-2 hover:bg-slate-200 rounded-lg transition-colors"
+                  className="text-slate-500 hover:text-primary"
                   aria-label="Close AI Tutor"
                 >
                   <X className="w-5 h-5" />
-                </button>
+                </Button>
               </div>
 
               {/* Input Mode Selection */}
-              <div className="flex gap-2 mt-3">
+              <div role="tablist" className="flex gap-2 mt-3">
                 <LanguageSelector compact />
-                <button
-                type="button"
+                <Button
+                  type="button"
+                  role="tab"
+                  aria-selected={inputMode === "text"}
+                  size="sm"
+                  variant={inputMode === "text" ? "secondary" : "ghost"}
                   onClick={() => setInputMode("text")}
-                  className={`px-3 py-1.5 rounded-xl font-black text-xs transition-colors ${inputMode === "text" ? "bg-white text-slate-800 shadow-sm" : "text-white/70 hover:text-white"}`}
+                  className="font-black text-xs"
                 >
                   Text
-                </button>
-                <button
-                type="button"
+                </Button>
+                <Button
+                  type="button"
+                  role="tab"
+                  aria-selected={inputMode === "voice"}
+                  size="sm"
+                  variant={inputMode === "voice" ? "secondary" : "ghost"}
                   onClick={() => setInputMode("voice")}
-                  className={`px-3 py-1.5 rounded-xl font-black text-xs transition-colors ${inputMode === "voice" ? "bg-white text-slate-800 shadow-sm" : "text-white/70 hover:text-white"}`}
+                  className="font-black text-xs"
                 >
                   Voice
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -692,14 +705,16 @@ export default function LessonPage() {
                   </p>
                   <div className="flex flex-wrap justify-center gap-2">
                     {suggestedQuestions.map((q) => (
-                      <button
-                type="button"
+                      <Button
+                        type="button"
                         key={q}
+                        variant="ghost"
+                        size="sm"
                         onClick={() => append({ role: "user", content: q })}
-                        className="px-3 py-2 bg-primary/10 text-primary rounded-2xl text-xs hover:bg-primary/20 transition-colors"
+                        className="bg-primary/10 text-primary hover:bg-primary/20 rounded-2xl text-xs"
                       >
                         {q}
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 </div>
@@ -707,13 +722,15 @@ export default function LessonPage() {
                 <>
                   {hasHiddenMessages && (
                     <div className="text-center mb-2">
-                      <button
-                type="button"
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
                         onClick={() => setShowAllMessages(true)}
-                        className="px-3 py-1 text-xs bg-slate-100 text-slate-500 rounded-full hover:bg-slate-200/80 transition-colors"
+                        className="text-xs bg-slate-100 text-slate-500 hover:bg-slate-200/80 rounded-full"
                       >
                         ↑ Show {hiddenMessageCount} earlier messages
-                      </button>
+                      </Button>
                     </div>
                   )}
                   {visibleMessages.map((msg) => (
@@ -762,9 +779,14 @@ export default function LessonPage() {
                     placeholder={getInputPlaceholder(language)}
                     className="flex-1 rounded-md border bg-background px-3 py-2 text-sm min-h-[44px]"
                   />
-                  <button type="submit" disabled={!input.trim() || isLoading} className="px-4 py-2 rounded-xl font-black text-sm text-white disabled:opacity-50 transition-all" style={{ background: "var(--gradient-primary)" }}>
+                  <Button
+                    type="submit"
+                    size="sm"
+                    disabled={!input.trim() || isLoading}
+                    className="font-black"
+                  >
                     Send
-                  </button>
+                  </Button>
                 </form>
               ) : (
                 <div className="space-y-2">
@@ -801,22 +823,30 @@ export default function LessonPage() {
               </div>
 
               {/* Input Mode Selection */}
-              <div className="flex gap-2">
+              <div role="tablist" className="flex gap-2">
                 <LanguageSelector compact />
-                <button
-                type="button"
+                <Button
+                  type="button"
+                  role="tab"
+                  aria-selected={inputMode === "text"}
+                  size="sm"
+                  variant={inputMode === "text" ? "secondary" : "ghost"}
                   onClick={() => setInputMode("text")}
-                  className={`px-3 py-1.5 rounded-xl font-black text-xs transition-colors ${inputMode === "text" ? "bg-slate-100 text-slate-800" : "text-slate-500 hover:bg-slate-50"}`}
+                  className="font-black text-xs"
                 >
                   Text
-                </button>
-                <button
-                type="button"
+                </Button>
+                <Button
+                  type="button"
+                  role="tab"
+                  aria-selected={inputMode === "voice"}
+                  size="sm"
+                  variant={inputMode === "voice" ? "secondary" : "ghost"}
                   onClick={() => setInputMode("voice")}
-                  className={`px-3 py-1.5 rounded-xl font-black text-xs transition-colors ${inputMode === "voice" ? "bg-slate-100 text-slate-800" : "text-slate-500 hover:bg-slate-50"}`}
+                  className="font-black text-xs"
                 >
                   Voice
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -840,14 +870,16 @@ export default function LessonPage() {
                   </p>
                   <div className="flex flex-wrap justify-center gap-2">
                     {suggestedQuestions.map((q) => (
-                      <button
-                type="button"
+                      <Button
+                        type="button"
                         key={q}
+                        variant="ghost"
+                        size="sm"
                         onClick={() => append({ role: "user", content: q })}
-                        className="px-3 py-2 bg-primary/10 text-primary rounded-2xl text-xs hover:bg-primary/20 transition-colors"
+                        className="bg-primary/10 text-primary hover:bg-primary/20 rounded-2xl text-xs"
                       >
                         {q}
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 </div>
@@ -855,13 +887,15 @@ export default function LessonPage() {
                 <>
                   {hasHiddenMessages && (
                     <div className="text-center mb-2">
-                      <button
-                type="button"
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
                         onClick={() => setShowAllMessages(true)}
-                        className="px-3 py-1 text-xs bg-slate-100 text-slate-500 rounded-full hover:bg-slate-200/80 transition-colors"
+                        className="text-xs bg-slate-100 text-slate-500 hover:bg-slate-200/80 rounded-full"
                       >
                         ↑ Show {hiddenMessageCount} earlier messages
-                      </button>
+                      </Button>
                     </div>
                   )}
                   {visibleMessages.map((msg) => (
@@ -910,9 +944,14 @@ export default function LessonPage() {
                     placeholder={getInputPlaceholder(language)}
                     className="flex-1 rounded-md border bg-background px-3 py-2 text-sm min-h-[44px]"
                   />
-                  <button type="submit" disabled={!input.trim() || isLoading} className="px-4 py-2 rounded-xl font-black text-sm text-white disabled:opacity-50 transition-all" style={{ background: "var(--gradient-primary)" }}>
+                  <Button
+                    type="submit"
+                    size="sm"
+                    disabled={!input.trim() || isLoading}
+                    className="font-black"
+                  >
                     Send
-                  </button>
+                  </Button>
                 </form>
               ) : (
                 <div className="space-y-2">
