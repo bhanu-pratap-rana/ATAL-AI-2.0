@@ -19,7 +19,7 @@ export function ChoiceStep({ actions, loading: _loading, state: _state }: StepCo
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
       <div className="w-full max-w-md bg-white p-6 sm:p-10 rounded-[48px] shadow-2xl shadow-slate-200">
         {/* Logo */}
-        <div className="w-24 h-24 mx-auto mb-6 rounded-full overflow-hidden shadow-[0_0_0_3px_white,0_0_0_5px_#F98819,0_8px_24px_rgba(249,136,25,0.3)]">
+        <div className="w-24 h-24 mx-auto mb-6 rounded-full overflow-hidden" style={{ boxShadow: "var(--shadow-logo-halo)" }}>
           <Image
             src="/assets/logo.png"
             alt="ATAL AI"
@@ -38,7 +38,7 @@ export function ChoiceStep({ actions, loading: _loading, state: _state }: StepCo
             type="button"
             onClick={() => actions.setMainStep("signin")}
             className="w-full flex items-center gap-4 p-5 rounded-2xl text-white font-black transition-all active:scale-95 hover:opacity-90"
-            style={{ background: "var(--gradient-primary)", boxShadow: "0 4px 14px 0 rgba(249,136,25,0.39)" }}
+            style={{ background: "var(--gradient-primary)", boxShadow: "var(--shadow-primary)" }}
           >
             <span className="text-3xl">🎓</span>
             <div className="text-left">
@@ -51,8 +51,7 @@ export function ChoiceStep({ actions, loading: _loading, state: _state }: StepCo
           <button
             type="button"
             onClick={() => actions.setMainStep("signup")}
-            className="w-full flex items-center gap-4 p-5 rounded-2xl font-black transition-all active:scale-95 hover:opacity-90 border-2"
-            style={{ borderColor: "#F98819", color: "#F98819" }}
+            className="w-full flex items-center gap-4 p-5 rounded-2xl font-black transition-all active:scale-95 hover:opacity-90 border-2 border-primary text-primary"
           >
             <span className="text-3xl">✏️</span>
             <div className="text-left">
@@ -74,8 +73,7 @@ export function ChoiceStep({ actions, loading: _loading, state: _state }: StepCo
 
             <a
               href="/admin/login"
-              className="flex flex-col items-center gap-2 p-5 rounded-2xl text-white font-black transition-all active:scale-95 hover:opacity-90"
-              style={{ background: "#0F172A" }}
+              className="flex flex-col items-center gap-2 p-5 rounded-2xl text-white font-black transition-all active:scale-95 hover:opacity-90 bg-slate-900"
             >
               <span className="text-2xl">🔒</span>
               <span className="text-sm font-black">Admin</span>

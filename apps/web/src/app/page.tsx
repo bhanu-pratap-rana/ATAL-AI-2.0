@@ -16,7 +16,7 @@ export default function HomePage() {
         className="w-full max-w-md bg-white p-6 sm:p-10 rounded-[48px] shadow-2xl shadow-slate-200"
       >
         {/* Logo */}
-        <div className="w-24 h-24 mx-auto mb-6 rounded-full overflow-hidden shadow-[0_0_0_3px_white,0_0_0_5px_#F98819,0_8px_24px_rgba(249,136,25,0.3)]">
+        <div className="w-24 h-24 mx-auto mb-6 rounded-full overflow-hidden" style={{ boxShadow: "var(--shadow-logo-halo)" }}>
           <Image
             src="/assets/logo.png"
             alt="ATAL AI"
@@ -67,10 +67,9 @@ export default function HomePage() {
             </button>
 
             <button
-                type="button"
+              type="button"
               onClick={() => router.push("/admin/login")}
-              className="flex flex-col items-center gap-2 p-5 rounded-2xl text-white font-black transition-all active:scale-95 hover:opacity-90"
-              style={{ background: "#0F172A" }}
+              className="flex flex-col items-center gap-2 p-5 rounded-2xl text-white font-black transition-all active:scale-95 hover:opacity-90 bg-slate-900"
             >
               <span className="text-2xl">🔐</span>
               <span className="text-sm font-black">Admin</span>

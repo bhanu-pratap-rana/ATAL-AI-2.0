@@ -56,6 +56,8 @@
   --shadow-primary: 0 8px 24px rgba(249, 136, 25, 0.3);
   --shadow-primary-sm: 0 4px 12px rgba(249, 136, 25, 0.2);
   --shadow-primary-hover: 0 6px 20px rgba(249, 136, 25, 0.35);
+  /* Logo halo — white inner ring + primary outer ring + soft drop shadow */
+  --shadow-logo-halo: 0 0 0 3px white, 0 0 0 5px var(--color-primary), 0 8px 24px rgba(249, 136, 25, 0.3);
 
   /* ==========================================
      SECONDARY COLOR - Cyan (#24B0D7)

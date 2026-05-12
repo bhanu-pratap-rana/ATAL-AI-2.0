@@ -11,7 +11,7 @@ export function AuthCard({ children, title, description }: AuthCardProps) {
     <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 px-4 py-8">
       {/* Logo */}
       <div className="text-center mb-8 w-full">
-        <div className="mx-auto w-28 h-28 mb-5 flex items-center justify-center rounded-full overflow-hidden shadow-[0_0_0_3px_white,0_0_0_5px_#F98819,0_8px_24px_rgba(249,136,25,0.3)]">
+        <div className="mx-auto w-28 h-28 mb-5 flex items-center justify-center rounded-full overflow-hidden" style={{ boxShadow: "var(--shadow-logo-halo)" }}>
           <Image
             src="/assets/logo.png"
             alt="ATAL AI Logo"
