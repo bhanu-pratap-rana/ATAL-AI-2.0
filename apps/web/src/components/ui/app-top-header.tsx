@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { GraduationCap, ShieldCheck, User, LogOut } from "lucide-react";
 import { createClient } from "@/lib/supabase-browser";
@@ -7,36 +8,71 @@ import { authLogger } from "@/lib/auth-logger";
 import { LanguageSelector } from "@/components/learn/LanguageSelector";
 import { SyncStatusIndicator } from "@/components/offline/SyncStatusIndicator";
 
-function getPortalConfig(pathname: string) {
-  if (pathname.startsWith("/app/teacher")) {
-    return {
-      label: "Teacher Portal",
-      Icon: GraduationCap,
-      style: { background: "var(--gradient-teacher)" },
-      signOutPath: "/teacher/start",
-    };
-  }
-  if (pathname.startsWith("/app/admin")) {
-    return {
-      label: "Admin Portal",
-      Icon: ShieldCheck,
-      style: { background: "var(--gradient-admin)" },
-      signOutPath: "/admin/login",
-    };
-  }
-  return {
+type Portal = "teacher" | "admin" | "student";
+
+const PORTAL_CONFIG: Record<Portal, {
+  label: string;
+  Icon: typeof GraduationCap;
+  style: { background: string };
+  signOutPath: string;
+}> = {
+  teacher: {
+    label: "Teacher Portal",
+    Icon: GraduationCap,
+    style: { background: "var(--gradient-teacher)" },
+    signOutPath: "/teacher/start",
+  },
+  admin: {
+    label: "Admin Portal",
+    Icon: ShieldCheck,
+    style: { background: "var(--gradient-admin)" },
+    signOutPath: "/admin/login",
+  },
+  student: {
     label: "Student Portal",
     Icon: User,
     style: { background: "var(--gradient-primary)" },
     signOutPath: "/student/start",
-  };
+  },
+};
+
+function portalFromPath(pathname: string): Portal | null {
+  if (pathname.startsWith("/app/teacher")) return "teacher";
+  if (pathname.startsWith("/app/admin")) return "admin";
+  if (pathname.startsWith("/app/student")) return "student";
+  return null;
+}
+
+function portalFromRole(role: string | undefined): Portal | null {
+  if (role === "teacher") return "teacher";
+  if (role === "admin" || role === "super_admin") return "admin";
+  if (role === "student") return "student";
+  return null;
 }
 
 export function AppTopHeader() {
   const router = useRouter();
   const pathname = usePathname();
   const supabase = createClient();
-  const config = getPortalConfig(pathname);
+
+  // Prefer the user's actual role; fall back to the path for routes that
+  // are not role-scoped (e.g. /app/settings) or during hydration.
+  const [role, setRole] = useState<string | undefined>(undefined);
+  useEffect(() => {
+    let cancelled = false;
+    supabase.auth.getUser().then(({ data }) => {
+      if (cancelled) return;
+      const value = data.user?.app_metadata?.role;
+      if (typeof value === "string") setRole(value);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase]);
+
+  const portal: Portal =
+    portalFromRole(role) ?? portalFromPath(pathname) ?? "student";
+  const config = PORTAL_CONFIG[portal];
   const { Icon } = config;
 
   async function handleSignOut() {

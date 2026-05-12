@@ -69,6 +69,25 @@ export function SignInPhoneForm({
           "Login failed: " + (error.message || "Invalid credentials"),
         );
       } else if (data.user) {
+        const role = data.user.app_metadata?.role;
+        if (role === "teacher") {
+          authLogger.warn("[SignIn Phone] Teacher account on student login");
+          await supabase.auth.signOut();
+          const msg =
+            "This number is registered as a teacher account. Please use the teacher login page.";
+          actions.setSigninPhoneError(msg);
+          toast.error(msg);
+          return;
+        }
+        if (role === "admin" || role === "super_admin") {
+          authLogger.warn("[SignIn Phone] Admin account on student login");
+          await supabase.auth.signOut();
+          const msg =
+            "This number is registered as an admin account. Please use the admin login page.";
+          actions.setSigninPhoneError(msg);
+          toast.error(msg);
+          return;
+        }
         authLogger.success("[SignIn Phone] Authentication successful");
         toast.success("Login successful!");
         onSuccess();

@@ -62,6 +62,28 @@ export function SignInEmailForm({
           "Login failed: " + (error.message || "Invalid credentials"),
         );
       } else if (data.user) {
+        // Reject non-student accounts: teachers / admins should not be
+        // routed to the student portal. Mirrors the role-gate already in
+        // useTeacherOnboarding.handleProfileVerification.
+        const role = data.user.app_metadata?.role;
+        if (role === "teacher") {
+          authLogger.warn("[SignIn Email] Teacher account on student login");
+          await supabase.auth.signOut();
+          const msg =
+            "This email is registered as a teacher account. Please use the teacher login page.";
+          actions.setSigninEmailError(msg);
+          toast.error(msg);
+          return;
+        }
+        if (role === "admin" || role === "super_admin") {
+          authLogger.warn("[SignIn Email] Admin account on student login");
+          await supabase.auth.signOut();
+          const msg =
+            "This email is registered as an admin account. Please use the admin login page.";
+          actions.setSigninEmailError(msg);
+          toast.error(msg);
+          return;
+        }
         authLogger.success("[SignIn Email] Authentication successful");
         toast.success("Login successful!");
         onSuccess();
