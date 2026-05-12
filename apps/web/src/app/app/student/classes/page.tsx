@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { createClient, getCurrentUser } from "@/lib/supabase-server";
+import { createAdminClient, createClient, getCurrentUser } from "@/lib/supabase-server";
 import { authLogger } from "@/lib/auth-logger";
 import { ChevronRight } from "lucide-react";
 
@@ -70,12 +70,21 @@ async function getStudentClasses(userId: string): Promise<Enrollment[]> {
     let teacherMap = new Map<string, TeacherInfo>();
 
     if (teacherIds.length > 0) {
-      const { data: teachers } = await supabase
+      // teacher_profiles has a teacher_self_read RLS policy — students
+      // cannot see their teacher's row through the normal client. Use the
+      // admin client (service_role) to fetch only the public-facing name.
+      const adminClient = await createAdminClient();
+      const { data: teachers, error: teacherError } = await adminClient
         .from("teacher_profiles")
         .select("user_id, name")
         .in("user_id", teacherIds);
 
-      if (teachers) {
+      if (teacherError) {
+        authLogger.error(
+          "[getStudentClasses] Failed to fetch teacher names",
+          teacherError,
+        );
+      } else if (teachers) {
         teacherMap = new Map(teachers.map((t) => [t.user_id, t]));
       }
     }
