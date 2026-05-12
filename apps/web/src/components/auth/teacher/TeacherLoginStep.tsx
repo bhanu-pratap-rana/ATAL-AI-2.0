@@ -78,35 +78,38 @@ export function TeacherLoginStep({
           </Button>
 
           <div className="space-y-2 pt-4">
-            <button
+            <Button
               type="button"
+              variant="link"
               onClick={() => {
                 actions.setForgotEmail(state.loginEmail);
                 actions.setStep("forgot-password");
               }}
-              className="text-sm text-primary hover:text-primary-dark hover:underline w-full text-center"
+              className="w-full text-sm hover:text-primary-dark"
               disabled={state.loading}
             >
               Forgot your password?
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="link"
               onClick={() => actions.setStep("choice")}
-              className="text-sm text-primary hover:underline w-full text-center"
+              className="w-full text-sm"
               disabled={state.loading}
             >
               Back to options
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="link"
               onClick={() => {
                 globalThis.location.href = "/";
               }}
-              className="text-sm text-slate-500 hover:text-primary hover:underline w-full text-center"
+              className="w-full text-sm text-slate-500 hover:text-primary"
               disabled={state.loading}
             >
               Back to home
-            </button>
+            </Button>
           </div>
         </form>
       </AuthCard>

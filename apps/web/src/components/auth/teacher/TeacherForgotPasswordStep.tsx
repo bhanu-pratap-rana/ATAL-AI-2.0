@@ -63,18 +63,19 @@ export function TeacherForgotPasswordStep({
             </Button>
 
             <div className="space-y-2 pt-2">
-              <button
+              <Button
                 type="button"
+                variant="link"
                 onClick={() => {
                   actions.setStep("login");
                   actions.setForgotEmail("");
                   actions.setForgotOtpSent(false);
                 }}
-                className="text-sm text-primary hover:underline w-full text-center"
+                className="w-full text-sm"
                 disabled={state.loading}
               >
                 Back to login
-              </button>
+              </Button>
             </div>
           </form>
         </AuthCard>
@@ -170,27 +171,30 @@ export function TeacherForgotPasswordStep({
           </Button>
 
           <div className="space-y-2 pt-2">
-            <button
+            <Button
               type="button"
+              variant="link"
               onClick={actions.handleForgotPasswordOtp}
-              className="text-sm text-primary hover:text-primary-dark hover:underline w-full text-center"
+              className="w-full text-sm hover:text-primary-dark"
               disabled={state.loading}
             >
               Resend Recovery Code
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="link"
               onClick={() => {
                 actions.setForgotOtp("");
                 actions.setForgotOtpSent(false);
               }}
-              className="text-sm text-primary hover:underline w-full text-center"
+              className="w-full text-sm"
               disabled={state.loading}
             >
               Back to email entry
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="link"
               onClick={() => {
                 actions.setStep("login");
                 actions.setForgotEmail("");
@@ -199,11 +203,11 @@ export function TeacherForgotPasswordStep({
                 actions.setForgotConfirmPassword("");
                 actions.setForgotOtpSent(false);
               }}
-              className="text-sm text-slate-500 hover:underline w-full text-center"
+              className="w-full text-sm text-slate-500"
               disabled={state.loading}
             >
               Back to login
-            </button>
+            </Button>
           </div>
         </form>
       </AuthCard>

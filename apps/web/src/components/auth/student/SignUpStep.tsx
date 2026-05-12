@@ -410,43 +410,43 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
     <AuthCard title="Create Account" description="Choose your sign-up method">
       <div className="space-y-4">
         {/* Tab Navigation */}
-        <div className="flex gap-2">
-          <button
-                type="button"
+        <div role="tablist" className="flex gap-2">
+          <Button
+            type="button"
+            role="tab"
+            aria-selected={state.signupTab === "email"}
+            variant={state.signupTab === "email" ? "default" : "secondary"}
+            size="sm"
             onClick={() => actions.setSignupTab("email")}
-            className={`flex-1 py-2 px-3 rounded-lg font-medium transition-colors text-sm ${
-              state.signupTab === "email"
-                ? "bg-primary text-white"
-                : "bg-slate-50 text-slate-500 hover:bg-slate-100"
-            }`}
+            className="flex-1"
             disabled={isLoading}
           >
             📧 Email
-          </button>
-          <button
-                type="button"
+          </Button>
+          <Button
+            type="button"
+            role="tab"
+            aria-selected={state.signupTab === "phone"}
+            variant={state.signupTab === "phone" ? "default" : "secondary"}
+            size="sm"
             onClick={() => actions.setSignupTab("phone")}
-            className={`flex-1 py-2 px-3 rounded-lg font-medium transition-colors text-sm ${
-              state.signupTab === "phone"
-                ? "bg-primary text-white"
-                : "bg-slate-50 text-slate-500 hover:bg-slate-100"
-            }`}
+            className="flex-1"
             disabled={isLoading}
           >
             📱 Phone
-          </button>
-          <button
-                type="button"
+          </Button>
+          <Button
+            type="button"
+            role="tab"
+            aria-selected={state.signupTab === "guest"}
+            variant={state.signupTab === "guest" ? "default" : "secondary"}
+            size="sm"
             onClick={() => actions.setSignupTab("guest")}
-            className={`flex-1 py-2 px-3 rounded-lg font-medium transition-colors text-sm ${
-              state.signupTab === "guest"
-                ? "bg-primary text-white"
-                : "bg-slate-50 text-slate-500 hover:bg-slate-100"
-            }`}
+            className="flex-1"
             disabled={isLoading}
           >
             ⚡ Quick Start
-          </button>
+          </Button>
         </div>
 
         {/* Email Sign Up Form */}
@@ -573,14 +573,15 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
 
                 <p className="text-center text-sm text-slate-500">
                   Already have an account?{" "}
-                  <button
+                  <Button
                     type="button"
+                    variant="link"
                     onClick={() => actions.setMainStep("signin")}
-                    className="text-primary hover:underline font-medium"
+                    className="inline h-auto p-0 align-baseline font-medium"
                     disabled={isLoading}
                   >
                     Sign in
-                  </button>
+                  </Button>
                 </p>
               </form>
             )}
@@ -656,14 +657,15 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
 
                 <p className="text-center text-sm text-slate-500">
                   Already have an account?{" "}
-                  <button
+                  <Button
                     type="button"
+                    variant="link"
                     onClick={() => actions.setMainStep("signin")}
-                    className="text-primary hover:underline font-medium"
+                    className="inline h-auto p-0 align-baseline font-medium"
                     disabled={isLoading}
                   >
                     Sign in
-                  </button>
+                  </Button>
                 </p>
               </form>
             )}
@@ -748,14 +750,15 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
 
             <p className="text-center text-sm text-slate-500">
               Already have an account?{" "}
-              <button
+              <Button
                 type="button"
+                variant="link"
                 onClick={() => actions.setMainStep("signin")}
-                className="text-primary hover:underline font-medium"
+                className="inline h-auto p-0 align-baseline font-medium"
                 disabled={isLoading}
               >
                 Sign in
-              </button>
+              </Button>
             </p>
           </form>
         )}

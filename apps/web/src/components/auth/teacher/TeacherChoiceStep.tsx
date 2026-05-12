@@ -8,6 +8,7 @@
 
 import { useRouter } from "next/navigation";
 import { GraduationCap } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { TeacherOnboardingActions } from "@/hooks/useTeacherOnboarding";
 
 interface TeacherChoiceStepProps {
@@ -70,13 +71,14 @@ export function TeacherChoiceStep({ actions }: TeacherChoiceStepProps) {
 
           {/* Back Button */}
           <div className="text-center pt-2">
-            <button
-                type="button"
+            <Button
+              type="button"
+              variant="link"
               onClick={() => router.push("/")}
-              className="text-sm font-bold text-slate-400 hover:text-primary transition-colors"
+              className="text-sm font-bold text-slate-400 hover:text-primary"
             >
               ← Back to home
-            </button>
+            </Button>
           </div>
         </div>
       </div>
