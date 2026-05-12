@@ -1,0 +1,50 @@
+function_name,args,current_anon,current_auth,target_bucket,callers,notes
+batch_check_and_award_badges,p_student_id uuid,true,true,B,src/lib/services/gamification-service.ts,Browser/server user-session caller; gamification flow after lesson/assessment complete
+check_curriculum_completion,p_student_id uuid,false,true,B,src/app/actions/assessment/assessment-status.ts,Already anon-locked; keep B
+cleanup_expired_lessons,(),true,true,A,(none),Maintenance only; no app callers — bucket A
+cleanup_old_sync_logs,(),true,true,A,(none),Maintenance only; no app callers — bucket A
+create_user_on_student_profile,(),true,true,D,trigger on student_profiles (migration ~005),Trigger-fired only; never called via REST
+create_user_on_teacher_profile,(),true,true,D,trigger on teacher_profiles,Trigger-fired only
+current_user_role,(),true,true,B,RLS policy irt_item_bank_admin_all (m174),Used inside RLS expressions; must be exec-able by 'authenticated' so the policy evaluates
+ensure_user_exists_for_enrollment,(),true,true,D,trigger on enrollments,Trigger-fired only
+get_announcements_with_reads,p_class_id uuid,true,true,B,src/app/actions/teacher.ts,Server action — user-session caller (teacher only)
+get_assessment_comparison,p_user_id uuid,false,true,B,src/app/actions/assessment.ts,Already anon-locked; keep B
+get_class_leaderboard,p_class_id text/p_limit integer,true,true,B,src/components/gamification/BadgesLeaderboardPanel.tsx,Client-side leaderboard fetch
+get_class_roster,p_class_id uuid,true,true,B,src/app/app/teacher/classes/[id]/page.tsx,Teacher server component
+get_class_student_progress,p_student_ids uuid[],true,true,B,src/components/teacher/StudentProgressGrid.tsx,Realtime teacher progress grid
+get_connection_stats,(),true,true,A,(none),Ops/diagnostic — no app callers
+get_module_topics,p_module_id text,true,true,B,src/app/actions/curriculum.ts,Authenticated curriculum reads
+get_module_units_with_topics,p_module_id text,true,true,B,src/app/actions/curriculum.ts,Authenticated curriculum reads
+get_modules_with_counts,(),true,true,B,src/app/actions/curriculum.ts,Authenticated dashboard reads (verify: is this used on landing too?)
+get_school_metrics,(),true,true,A,(none),Likely admin-side metrics; verify in code review before locking
+get_student_streak,p_student_id uuid,false,true,B,src/lib/services/gamification-service.ts,Already anon-locked
+get_teacher_class_ids,p_user_id uuid,true,true,B,RLS helper + src/app/actions/teacher.ts,Used by RLS — must keep authenticated
+get_teacher_student_ids,(),true,true,B,RLS helper + src/app/actions/teacher.ts,Used by RLS
+get_topic,p_topic_id text,true,true,B,src/app/actions/curriculum.ts,Authenticated lesson loader
+get_topic_context,p_topic_id text/p_language text/p_limit integer,true,true,B,src/lib/ai/services/rag-service.ts,AI tutor RAG context fetch
+get_unread_announcements,p_student_id uuid,true,true,B,src/app/actions/announcements.ts,Student dashboard
+get_user_enrolled_class_ids,p_user_id uuid,true,true,B,RLS helper,Used by RLS — keep authenticated
+get_user_id_by_username,p_username text,true,true,C,src/app/actions/auth/auth-username.ts (pre-login),Username → user_id lookup happens BEFORE auth — must stay callable by anon
+has_assessment_type,p_user_id uuid/p_type text,false,true,B,src/app/actions/assessment/assessment-status.ts,Already anon-locked
+increment_auditory_score,p_student_id uuid,true,true,B,src/lib/ai/services/adaptive-service.ts,Authenticated learning-style telemetry
+increment_material_download,p_material_id uuid,true,true,B,src/lib/services/material-service.ts (verify),Authenticated download counter
+increment_text_score,p_student_id uuid/p_time_seconds integer,true,true,B,src/lib/ai/services/adaptive-service.ts,Authenticated learning-style telemetry
+increment_visual_score,p_student_id uuid/p_time_seconds integer,true,true,B,src/lib/ai/services/adaptive-service.ts,Authenticated learning-style telemetry
+is_class_teacher,p_class_id uuid,true,true,B,RLS helper,Must keep authenticated EXECUTE
+is_enrolled_in_class,p_class_id uuid,true,true,B,RLS helper,Must keep authenticated EXECUTE
+is_teacher,(),true,true,B,RLS helper,Must keep authenticated EXECUTE
+list_admin_users,(),false,false,A,src/app/actions/admin-management.ts,Already locked (m175). Reference impl.
+match_curriculum,query_embedding vector/...,true,true,B,src/lib/ai/services/rag-service.ts,Authenticated RAG search
+match_curriculum_hybrid,query_embedding vector/...,true,true,B,src/lib/ai/services/rag-service.ts,Authenticated RAG search
+rotate_staff_pin,p_school_id uuid/p_new_pin text,true,true,A,src/app/actions/admin-pin-management.ts,Admin server action via createAdminClient
+search_students_for_teacher,p_search_query text/p_limit integer,true,true,B,src/app/api/teacher/search-students/route.ts,Teacher API route — authenticated only
+set_assessment_response_user_id,(),true,true,D,trigger on assessment_responses,Trigger-fired only
+submit_assessment,p_session_id uuid/p_user_id uuid/p_responses jsonb,true,true,B,src/app/actions/assessment/assessment-submission.ts,Authenticated submit. Also verifies p_user_id matches auth.uid() inside
+teacher_has_student_access,p_teacher_id uuid/p_student_id uuid,true,true,B,RLS helper,Must keep authenticated EXECUTE
+update_irt_item_bank_updated_at,(),true,true,D,trigger on irt_item_bank,Trigger-fired only
+update_knowledge_state,p_student_id uuid/...,true,true,B,src/lib/ai/services/adaptive-service.ts,Authenticated knowledge-state update
+update_progress_atomic,p_student_id uuid/p_module_id text/p_topic_id text/p_score integer,true,true,B,src/app/api/student/progress/route.ts,Authenticated progress sync
+upsert_generated_lesson,p_module_id text/p_topic_id text/...,true,true,B,src/lib/ai/services/lesson-cache.ts (verify),Authenticated lesson cache write
+upsert_learning_style_profile,p_student_id uuid/...,false,true,B,src/app/actions/student.ts,Already anon-locked
+upsert_student_profile,p_user_id uuid/...,true,true,B,src/app/actions/student.ts,Authenticated profile upsert (verify: does this run during signup BEFORE first auth?)
+verify_staff_pin,p_school_id uuid/p_pin text,true,true,C,src/app/(public)/join/page.tsx + PIN-based teacher onboarding,Pre-auth PIN check — must stay callable by anon
