@@ -18,6 +18,10 @@ import {
 import { createBrowserClient } from "@supabase/ssr";
 import { clientLogger } from "@/lib/client-logger";
 import { cn } from "@/lib/utils";
+import {
+  getIRTQuestions,
+  updateIRTQuestion,
+} from "@/app/actions/admin-irt";
 
 interface IRTQuestion {
   id: string;
@@ -69,37 +73,24 @@ export default function IRTItemBankAdminPage() {
 
   const fetchQuestions = useCallback(async () => {
     try {
-      let query = supabase
-        .from("irt_item_bank")
-        .select(
-          "id, item_code, question_text, options, correct_answer, category, level, language, difficulty, discrimination, guessing, is_active, times_administered, times_correct, created_at, updated_at"
-        )
-        .order("item_code");
+      const result = await getIRTQuestions({
+        category: selectedCategory,
+        level: selectedLevel,
+        language: selectedLanguage,
+        limit: 100,
+      });
 
-      // Apply filters
-      if (selectedCategory) {
-        query = query.eq("category", selectedCategory);
-      }
-      if (selectedLevel) {
-        query = query.eq("level", selectedLevel);
-      }
-      if (selectedLanguage) {
-        query = query.eq("language", selectedLanguage);
+      if (!result.success) {
+        throw new Error(result.error);
       }
 
-      const { data, error: fetchError } = await query.limit(100);
-
-      if (fetchError) {
-        throw fetchError;
-      }
-
-      setQuestions(data || []);
+      setQuestions(result.data);
       setError(null);
     } catch (err) {
       clientLogger.error("[IRTAdmin] Error fetching questions", err instanceof Error ? err : { err });
       setError("Failed to load questions. Please try again.");
     }
-  }, [supabase, selectedCategory, selectedLevel, selectedLanguage]);
+  }, [selectedCategory, selectedLevel, selectedLanguage]);
 
   useEffect(() => {
     const checkAuthAndLoad = async () => {
@@ -150,19 +141,18 @@ export default function IRTItemBankAdminPage() {
     >
   ) => {
     try {
-      const { error: updateError } = await supabase
-        .from("irt_item_bank")
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", questionId);
-
-      if (updateError) {
-        throw updateError;
+      const sanitized = {
+        ...(updates.difficulty !== undefined && { difficulty: updates.difficulty }),
+        ...(updates.discrimination !== undefined && { discrimination: updates.discrimination }),
+        ...(updates.guessing !== undefined && { guessing: updates.guessing }),
+        ...(updates.is_active !== undefined &&
+          updates.is_active !== null && { is_active: updates.is_active }),
+      };
+      const result = await updateIRTQuestion(questionId, sanitized);
+      if (!result.success) {
+        throw new Error(result.error);
       }
 
-      // Update local state
       setQuestions((prev) =>
         prev.map((q) =>
           q.id === questionId
