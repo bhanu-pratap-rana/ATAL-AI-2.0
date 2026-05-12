@@ -6,6 +6,15 @@
 **Account:** `atal.app.ai@gmail.com` (super_admin)
 **Estimated total time:** ~25 minutes
 
+## Results so far (live verification on 2026-05-12)
+
+| Test | Result | Note |
+|------|--------|------|
+| M1 — Create new admin | ✅ PASS | `tabst9917592685@gmail.com` created successfully |
+| M2 — Duplicate email | ✅ PASS | "A user with this email address has already been registered" error shown |
+| M5 — PIN Generate | ✅ PASS | Generation flow worked |
+| Bonus: B6 — Admin list empty | ✅ FIXED | Was a separate bug discovered during M1 — Supabase Auth admin API returns "Database error finding users". Worked around via `list_admin_users` RPC. List now correctly shows both admin accounts. |
+
 ---
 
 ## Priority 1 — Verifies the fixes shipped on this branch
