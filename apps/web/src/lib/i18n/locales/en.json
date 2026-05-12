@@ -256,7 +256,8 @@
     "moduleNotFound": "Module not found",
     "lessonNotFound": "Lesson not found",
     "loadingFailed": "Failed to load. Please try again.",
-    "unexpectedError": "An unexpected error occurred"
+    "unexpectedError": "An unexpected error occurred",
+    "weakPasswordBreached": "This password has appeared in a data breach. Please choose a different one for your safety."
   },
   "class": {
     "classCreated": "Class Created!",

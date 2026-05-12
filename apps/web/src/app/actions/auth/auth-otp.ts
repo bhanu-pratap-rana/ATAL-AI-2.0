@@ -545,6 +545,19 @@ export async function resetPasswordWithOtp(
         "[resetPasswordWithOtp] Password update failed",
         updateError,
       );
+      // Supabase Auth returns `weak_password` when the HaveIBeenPwned
+      // check (enabled in Studio per SP1 T1.3) rejects a breached pw.
+      // Surface a friendly i18n key so the client can localize.
+      const msg = updateError.message ?? "";
+      if (
+        (updateError as { code?: string }).code === "weak_password" ||
+        /weak.?password|pwned|leaked/i.test(msg)
+      ) {
+        return {
+          success: false,
+          error: "i18n:errors.weakPasswordBreached",
+        };
+      }
       return {
         success: false,
         error: "Failed to update password. Please try again.",
