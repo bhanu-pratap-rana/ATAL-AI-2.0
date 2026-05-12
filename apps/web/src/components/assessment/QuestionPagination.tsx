@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
+import { Button } from "@/components/ui/button";
 
 /**
  * ATAL AI Assessment Question Pagination - Jyoti Theme
@@ -117,19 +118,17 @@ export function QuestionPagination({
       aria-label="Question navigation"
     >
       {/* Left Arrow */}
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="icon"
         onClick={() => onJumpTo(Math.max(0, currentIndex - 1))}
         disabled={!canShiftLeft && currentIndex === 0}
-        className={`
-          w-8 h-8 flex items-center justify-center rounded-full
-          transition-colors duration-200
-          ${getArrowButtonClass(canShiftLeft || currentIndex > 0 ? "enabled" : "disabled")}
-        `}
+        className={`rounded-full ${getArrowButtonClass(canShiftLeft || currentIndex > 0 ? "enabled" : "disabled")}`}
         aria-label="Previous questions"
       >
         <span className="text-lg">←</span>
-      </button>
+      </Button>
 
       {/* Pagination Dots */}
       <div className="flex items-center gap-2">
@@ -143,21 +142,21 @@ export function QuestionPagination({
         {visibleDots.map(({ index, status, isCurrent, canJump }) => {
           const selection: SelectionState = isCurrent ? "selected" : "unselected";
           return (
-            <button
+            <Button
               key={index}
               type="button"
+              variant="ghost"
+              size="icon"
               onClick={() => canJump && onJumpTo(index)}
               disabled={!canJump}
               className={`
                 min-w-11 min-h-11 w-8 h-8 sm:w-10 sm:h-10
-                rounded-full flex items-center justify-center
-                text-xs sm:text-sm font-semibold
-                transition-all duration-200
+                rounded-full text-xs sm:text-sm font-semibold
                 ${getStatusColor(status, selection)}
                 ${isCurrent ? "text-white scale-110" : "text-white"}
                 ${
                   canJump && !isCurrent
-                    ? "hover:scale-105 hover:ring-2 hover:ring-primary hover:ring-offset-1 cursor-pointer"
+                    ? "hover:scale-105 hover:ring-2 hover:ring-primary hover:ring-offset-1"
                     : ""
                 }
                 ${canJump || isCurrent ? "" : "opacity-60 cursor-default"}
@@ -166,7 +165,7 @@ export function QuestionPagination({
               aria-current={isCurrent ? "step" : undefined}
             >
               {index + 1}
-            </button>
+            </Button>
           );
         })}
 
@@ -179,19 +178,17 @@ export function QuestionPagination({
       </div>
 
       {/* Right Arrow */}
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="icon"
         onClick={() => onJumpTo(Math.min(historyLength, currentIndex + 1))}
         disabled={currentIndex >= historyLength && !canShiftRight}
-        className={`
-          w-8 h-8 flex items-center justify-center rounded-full
-          transition-colors duration-200
-          ${getArrowButtonClass(canShiftRight || currentIndex < historyLength ? "enabled" : "disabled")}
-        `}
+        className={`rounded-full ${getArrowButtonClass(canShiftRight || currentIndex < historyLength ? "enabled" : "disabled")}`}
         aria-label="Next questions"
       >
         <span className="text-lg">→</span>
-      </button>
+      </Button>
     </nav>
   );
 }

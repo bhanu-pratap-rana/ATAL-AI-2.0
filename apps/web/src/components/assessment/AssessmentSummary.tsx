@@ -399,13 +399,14 @@ export function AssessmentSummary({
                           {cat.score}%
                         </span>
                         {cat.score < MASTERY_THRESHOLDS.PASSING && (
-                          <button
-                type="button"
+                          <Button
+                            type="button"
+                            variant="link"
                             onClick={() => router.push(`/app/learn/${cat.moduleId}`)}
-                            className="text-xs text-primary hover:underline font-medium"
+                            className="h-auto p-0 text-xs font-medium"
                           >
                             Start here
-                          </button>
+                          </Button>
                         )}
                       </div>
                     </div>
@@ -467,13 +468,14 @@ export function AssessmentSummary({
                             {cat.score}%
                           </span>
                           {cat.score < MASTERY_THRESHOLDS.PASSING && (
-                            <button
-                type="button"
+                            <Button
+                              type="button"
+                              variant="link"
                               onClick={() => router.push(`/app/learn/${cat.moduleId}`)}
-                              className="text-xs text-primary hover:underline font-medium"
+                              className="h-auto p-0 text-xs font-medium"
                             >
                               Revisit
-                            </button>
+                            </Button>
                           )}
                         </div>
                       </div>

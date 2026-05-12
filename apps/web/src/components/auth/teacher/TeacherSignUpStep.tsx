@@ -47,31 +47,31 @@ export function TeacherSignUpStep({
       >
         <div className="space-y-3 sm:space-y-4">
           {/* Tab Navigation - Responsive sizing */}
-          <div className="flex gap-2 sm:gap-3">
-            <button
-                type="button"
+          <div role="tablist" className="flex gap-2 sm:gap-3">
+            <Button
+              type="button"
+              role="tab"
+              aria-selected={state.signupMethod === "email"}
+              size="sm"
+              variant={state.signupMethod === "email" ? "default" : "secondary"}
               onClick={handleEmailMethodSelect}
-              className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-colors text-xs sm:text-sm ${
-                state.signupMethod === "email"
-                  ? "bg-primary text-white shadow-md"
-                  : "bg-slate-50 text-slate-500 hover:bg-slate-100"
-              }`}
+              className="flex-1 text-xs sm:text-sm"
               disabled={state.loading}
             >
               <span className="hidden sm:inline">📧 </span>Email
-            </button>
-            <button
-                type="button"
+            </Button>
+            <Button
+              type="button"
+              role="tab"
+              aria-selected={state.signupMethod === "phone"}
+              size="sm"
+              variant={state.signupMethod === "phone" ? "default" : "secondary"}
               onClick={handlePhoneMethodSelect}
-              className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-colors text-xs sm:text-sm ${
-                state.signupMethod === "phone"
-                  ? "bg-primary text-white shadow-md"
-                  : "bg-slate-50 text-slate-500 hover:bg-slate-100"
-              }`}
+              className="flex-1 text-xs sm:text-sm"
               disabled={state.loading}
             >
               <span className="hidden sm:inline">📱 </span>Phone
-            </button>
+            </Button>
           </div>
 
           {/* Email Method */}
@@ -114,25 +114,27 @@ export function TeacherSignUpStep({
                   </Button>
 
                   <div className="flex flex-col items-center gap-2">
-                    <button
+                    <Button
                       type="button"
+                      variant="link"
                       onClick={actions.handleSendOTP}
-                      className="text-sm text-primary hover:text-primary-dark hover:underline"
+                      className="text-sm hover:text-primary-dark"
                       disabled={state.loading}
                     >
                       Resend OTP
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
+                      variant="link"
                       onClick={() => {
                         actions.setOtpSent(false);
                         actions.setOtp("");
                       }}
-                      className="text-sm text-primary hover:underline"
+                      className="text-sm"
                       disabled={state.loading}
                     >
                       Use different email
-                    </button>
+                    </Button>
                   </div>
                 </form>
               ) : (
@@ -154,16 +156,17 @@ export function TeacherSignUpStep({
                           {state.emailError}
                         </p>
                         {state.emailSuggestion && (
-                          <button
+                          <Button
                             type="button"
+                            variant="link"
                             onClick={() =>
                               actions.setEmail(state.emailSuggestion)
                             }
-                            className="text-sm text-cyan hover:text-cyan-dark hover:underline"
+                            className="h-auto p-0 text-sm text-cyan hover:text-cyan-dark"
                             disabled={state.loading}
                           >
                             ✓ Use suggested: {state.emailSuggestion}
-                          </button>
+                          </Button>
                         )}
                       </div>
                     )}
@@ -287,31 +290,33 @@ export function TeacherSignUpStep({
                     Verify & Continue
                   </Button>
 
-                  <button
+                  <Button
                     type="button"
+                    variant="link"
                     onClick={() => {
                       actions.setPhoneOtpSent(false);
                       actions.setPhoneOtp("");
                     }}
-                    className="text-sm text-primary hover:underline block w-full text-center"
+                    className="w-full text-sm"
                     disabled={state.loading}
                   >
                     Change phone number
-                  </button>
+                  </Button>
                 </form>
               )}
             </div>
           )}
 
           <div className="text-center pt-2">
-            <button
+            <Button
               type="button"
+              variant="link"
               onClick={() => actions.setStep("choice")}
-              className="text-sm text-primary hover:underline"
+              className="text-sm"
               disabled={state.loading}
             >
               ← Back to options
-            </button>
+            </Button>
           </div>
         </div>
       </AuthCard>
