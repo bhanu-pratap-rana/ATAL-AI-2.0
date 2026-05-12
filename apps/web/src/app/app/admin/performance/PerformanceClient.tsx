@@ -5,6 +5,7 @@ import { queryMonitor } from "@/lib/supabase-query-wrapper";
 import { connectionPoolMonitor } from "@/lib/monitoring/connection-pool-monitor";
 import type { ConnectionPoolMetrics, PoolAlert } from "@/types/monitoring";
 import { AlertCircle, TrendingDown, Zap } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 function getAlertClassName(level: string): string {
   switch (level) {
@@ -208,18 +209,20 @@ export function PerformanceClient() {
                 <option value={60000}>1 minute</option>
               </select>
             </div>
-            <button
-                type="button"
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
               onClick={() => {
                 queryMonitor.reset();
                 connectionPoolMonitor.clearAlerts();
                 setSlowQueries([]);
                 setFailedQueries([]);
               }}
-              className="px-5 py-2 bg-slate-100 text-slate-600 rounded-2xl text-sm font-black hover:bg-slate-200 transition-colors mt-6"
+              className="text-slate-600 font-black mt-6"
             >
               Clear Metrics
-            </button>
+            </Button>
           </div>
         </div>
       </div>

@@ -19,6 +19,7 @@ import {
 } from "@/app/actions/school-finder";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import {
   Calendar,
   Shield,
@@ -196,8 +197,9 @@ function SchoolFinderModal({
         {schools.length > 0 && (
           <div className="border border-slate-200 rounded-lg divide-y max-h-64 overflow-y-auto">
             {schools.map((school) => (
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 key={school.id}
                 onClick={async () => {
                   try {
@@ -206,22 +208,22 @@ function SchoolFinderModal({
                     onClose();
                   }
                 }}
-                className="w-full text-left p-3 hover:bg-slate-50 transition-colors"
+                className="w-full justify-start h-auto p-3 hover:bg-slate-50 text-left whitespace-normal block rounded-none"
                 disabled={loading}
               >
                 <div className="font-semibold text-sm text-slate-800">
                   {school.school_name}
                 </div>
-                <div className="text-xs text-slate-500 mt-1">
+                <div className="text-xs text-slate-500 mt-1 font-normal">
                   <strong>Code:</strong> {school.school_code} •{" "}
                   <strong>Block:</strong> {school.block || "N/A"}
                 </div>
                 {school.address && (
-                  <div className="text-xs text-slate-400 mt-1">
+                  <div className="text-xs text-slate-400 mt-1 font-normal">
                     {school.address}
                   </div>
                 )}
-              </button>
+              </Button>
             ))}
           </div>
         )}
@@ -234,13 +236,14 @@ function SchoolFinderModal({
         )}
 
         {/* Close Button */}
-        <button
-                type="button"
+        <Button
+          type="button"
+          variant="outline"
           onClick={onClose}
-          className="mt-4 w-full px-4 py-2 rounded-2xl font-black text-sm text-slate-700 border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
+          className="mt-4 w-full text-slate-700 font-black"
         >
           Close
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -263,18 +266,16 @@ function CopyButton({ text }: Readonly<{ text: string }>) {
   }
 
   return (
-    <button
-                type="button"
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
       onClick={handleCopy}
-      className={`p-2 rounded transition-all ${
-        copied
-          ? "bg-emerald-50 text-emerald-600"
-          : "bg-slate-50 hover:bg-slate-100 text-slate-500"
-      }`}
+      className={`h-9 w-9 rounded ${copied ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-50" : "bg-slate-50 hover:bg-slate-100 text-slate-500"}`}
       title="Copy to clipboard"
     >
       {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-    </button>
+    </Button>
   );
 }
 
@@ -296,14 +297,16 @@ function PinStatusDisplay({
 }>) {
   if (!pinStatus) {
     return (
-      <button
-                type="button"
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
         onClick={() => onCheckStatus(schoolCode)}
         disabled={loading}
-        className="px-4 py-2 rounded-2xl font-black text-sm text-slate-700 border border-slate-200 bg-white hover:bg-slate-50 transition-colors disabled:opacity-50"
+        className="text-slate-700 font-black"
       >
         {loading ? "Checking..." : "Check PIN Status"}
-      </button>
+      </Button>
     );
   }
 
@@ -548,15 +551,17 @@ export function SchoolsClient() {
                   disabled={loading}
                   className="flex-1"
                 />
-                <button
-                type="button"
+                <Button
+                  type="button"
+                  size="icon"
                   onClick={handleSearch}
                   disabled={loading}
-                  className="px-4 py-2 rounded-2xl font-black text-sm text-white flex items-center justify-center disabled:opacity-50 transition-all active:scale-95 shrink-0"
+                  className="shrink-0"
                   style={{ background: "var(--gradient-admin)" }}
+                  aria-label="Search schools"
                 >
                   <Search className="h-4 w-4" />
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -564,35 +569,37 @@ export function SchoolsClient() {
             {searchResults.length > 0 && (
               <div className="border border-slate-200 rounded-lg divide-y max-h-48 overflow-y-auto">
                 {searchResults.map((school) => (
-                  <button
-                type="button"
+                  <Button
+                    type="button"
+                    variant="ghost"
                     key={school.id}
                     onClick={() => handleSelectSchool(school)}
-                    className="w-full text-left p-3 hover:bg-slate-50 transition-colors flex justify-between items-center"
+                    className="w-full justify-between h-auto p-3 hover:bg-slate-50 text-left whitespace-normal rounded-none"
                   >
                     <div>
                       <div className="font-semibold text-sm text-slate-800">
                         {school.school_name}
                       </div>
-                      <div className="text-xs text-slate-500 mt-1">
+                      <div className="text-xs text-slate-500 mt-1 font-normal">
                         {school.school_code} • {school.district}
                       </div>
                     </div>
                     <Copy className="h-4 w-4 text-slate-400" />
-                  </button>
+                  </Button>
                 ))}
               </div>
             )}
 
             {/* Hierarchical Finder Button */}
-            <button
-                type="button"
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => setFinderModalOpen(true)}
-              className="w-full px-4 py-2 rounded-2xl font-black text-sm text-slate-700 border border-slate-200 bg-white hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
+              className="w-full text-slate-700 font-black"
             >
               <MapPin className="h-4 w-4" />
               Or Browse by District &amp; Block
-            </button>
+            </Button>
           </div>
 
           {/* Selected School Display */}
@@ -706,15 +713,15 @@ export function SchoolsClient() {
                 </p>
               </div>
 
-              <button
+              <Button
                 type="submit"
                 disabled={loading || newPin !== confirmPin || newPin.length < 4}
-                className="w-full px-4 py-3 rounded-2xl font-black text-sm text-white flex items-center justify-center gap-2 disabled:opacity-50 transition-all active:scale-95"
+                className="w-full font-black"
                 style={{ background: "var(--gradient-admin)" }}
               >
                 <RefreshCw className="h-4 w-4" />
                 {loading ? "Processing..." : `${pinActionLabel} PIN`}
-              </button>
+              </Button>
             </form>
 
             {/* Help */}

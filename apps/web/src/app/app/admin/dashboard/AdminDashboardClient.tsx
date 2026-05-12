@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase-browser";
 import { clientLogger } from "@/lib/client-logger";
 
@@ -94,15 +95,16 @@ export function AdminDashboardClient() {
             { href: "/app/settings", emoji: "⚙️", label: "System Settings" },
             { href: "/app/admin/schools", emoji: "🔐", label: "PIN Management" },
           ].map((action) => (
-            <button
-                type="button"
+            <Button
+              type="button"
+              variant="ghost"
               key={action.label}
               onClick={() => router.push(action.href)}
-              className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 text-left hover:shadow-md transition-shadow active:scale-95"
+              className="bg-white border border-slate-100 shadow-sm rounded-3xl h-auto p-5 text-left items-start flex-col hover:shadow-md hover:bg-white whitespace-normal"
             >
               <div className="text-2xl mb-2">{action.emoji}</div>
               <p className="font-black text-slate-800 text-sm">{action.label}</p>
-            </button>
+            </Button>
           ))}
         </div>
       </div>
