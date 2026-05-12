@@ -5,6 +5,7 @@ import {
   Noto_Sans_Bengali,
 } from "next/font/google";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { MotionConfigProvider } from "@/components/providers/motion-config-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { PageTransition } from "@/components/ui/page-transition";
 import { OfflineBanner } from "@/components/offline/OfflineBanner";
@@ -134,15 +135,17 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <LanguageProvider>
-            <GlobalErrorBoundary>
-              <BackgroundSyncInitializer />
-              <SyncCompletionToast />
-              <OfflineBanner position="top" />
-              <main id="main-content">
-                <PageTransition>{children}</PageTransition>
-              </main>
-              <Toaster />
-            </GlobalErrorBoundary>
+            <MotionConfigProvider>
+              <GlobalErrorBoundary>
+                <BackgroundSyncInitializer />
+                <SyncCompletionToast />
+                <OfflineBanner position="top" />
+                <main id="main-content">
+                  <PageTransition>{children}</PageTransition>
+                </main>
+                <Toaster />
+              </GlobalErrorBoundary>
+            </MotionConfigProvider>
           </LanguageProvider>
         </ThemeProvider>
       </body>
