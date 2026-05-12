@@ -162,7 +162,9 @@ export async function registerPeriodicSync(
     });
 
     if (status.state !== "granted") {
-      clientLogger.warn("[PeriodicSync] Permission not granted", {
+      // Expected on most browsers/sessions — permission is rarely auto-granted.
+      // Log at debug level so it doesn't pollute production/dev consoles.
+      clientLogger.debug("[PeriodicSync] Permission not granted", {
         state: status.state,
       });
       return false;
