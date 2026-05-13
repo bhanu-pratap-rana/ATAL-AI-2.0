@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Teacher Dashboard — ATAL AI</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --p-orange:#FF8A3D; --p-orange-d:#E66A1A;
+    --p-yellow:#FFD66B; --p-purple:#A78BFA; --p-sky:#6DC5E8;
+    --p-pink:#FF8FB8; --p-mint:#7EE0C2; --p-bg:#FFFBF5;
+    --p-green:#22C55E; --p-red:#EF4444;
+  }
+  body{font-family:'Nunito',system-ui,sans-serif;background:var(--p-bg);color:#231C2E;}
+  .chunk{ box-shadow: 0 6px 0 rgba(0,0,0,.06), 0 14px 28px -10px rgba(0,0,0,.12); }
+  .btn-bounce{ box-shadow: 0 5px 0 var(--p-orange-d); transition:.15s; }
+  .btn-bounce:active{ transform: translateY(3px); box-shadow:0 2px 0 var(--p-orange-d);}
+  .btn-sky{ background:var(--p-sky); box-shadow:0 5px 0 #3FA0C6;}
+  .btn-purple{ background:var(--p-purple); box-shadow:0 5px 0 #7858E0;}
+  .ring-rainbow{ background:conic-gradient(from 0deg,#FF8A3D,#FFD66B,#7EE0C2,#6DC5E8,#A78BFA,#FF8FB8,#FF8A3D); padding:3px; border-radius:9999px;}
+  .blob{filter:blur(50px);opacity:.3;}
+  /* heatmap */
+  .h-cell{ aspect-ratio:1/1; border-radius:8px; }
+  .h-0{background:#F1F5F9;}
+  .h-1{background:#FEE2E2;}
+  .h-2{background:#FED7AA;}
+  .h-3{background:#FDE68A;}
+  .h-4{background:#A7F3D0;}
+  .h-5{background:#86EFAC;}
+</style>
+</head>
+<body class="min-h-screen pb-12 overflow-x-hidden">
+
+<div class="fixed -top-20 -left-20 w-96 h-96 rounded-full blob" style="background:var(--p-sky)"></div>
+<div class="fixed bottom-0 right-0 w-96 h-96 rounded-full blob" style="background:var(--p-purple)"></div>
+
+<div class="relative">
+
+<!-- Top bar -->
+<header class="pt-4 px-4 sm:px-6 mb-6">
+  <div class="max-w-6xl mx-auto">
+    <div class="bg-white rounded-full chunk px-3 py-2 border-4 border-white flex items-center justify-between">
+      <a href="landing.html" class="flex items-center gap-2.5">
+        <div class="ring-rainbow"><img src="../shared/logo.png" class="h-10 w-10 rounded-full bg-white"/></div>
+        <div>
+          <div class="font-black text-sm leading-tight">Ms. Priya Sarma</div>
+          <div class="text-[10px] font-black uppercase tracking-wider" style="color:var(--p-orange-d)">Teacher · Sualkuchi GHS</div>
+        </div>
+      </a>
+      <div class="hidden md:flex items-center gap-1 font-black text-sm">
+        <a class="px-3 py-2 rounded-full text-white" style="background:var(--p-sky);box-shadow:0 5px 0 #3FA0C6" href="#">Classes</a>
+        <a class="px-3 py-2 rounded-full hover:bg-sky-50" href="#">Assignments</a>
+        <a class="px-3 py-2 rounded-full hover:bg-sky-50" href="#">Reports</a>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="w-10 h-10 rounded-full hover:bg-sky-50 flex items-center justify-center text-xl">🔔</button>
+        <button class="btn-bounce btn-sky text-white font-black px-4 py-2 rounded-full text-sm">+ Assign</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 sm:px-6 space-y-6">
+
+  <!-- Class header -->
+  <section class="bg-white rounded-[32px] chunk p-6 sm:p-7 border-4 border-white relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-48 h-48 rounded-full opacity-20" style="background:var(--p-sky);transform:translate(20%,-30%);"></div>
+    <div class="relative flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div>
+        <div class="text-xs font-black uppercase tracking-wider mb-2" style="color:var(--p-orange-d)">Class</div>
+        <h1 class="text-3xl sm:text-4xl font-black mb-2">Class 10-A · <span style="color:var(--p-sky)">Mathematics</span></h1>
+        <div class="flex flex-wrap items-center gap-2 text-sm font-bold text-slate-600">
+          <span>38 students</span>
+          <span class="text-slate-300">·</span>
+          <span>SEBA syllabus</span>
+          <span class="text-slate-300">·</span>
+          <span class="text-emerald-700">▲ +12% mastery this week</span>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <button class="px-4 py-2.5 rounded-2xl bg-white border-4 border-slate-200 font-black text-sm hover:border-sky-300">Switch class ▾</button>
+        <button class="px-4 py-2.5 rounded-2xl bg-white border-4 border-slate-200 font-black text-sm hover:border-sky-300">📅 This week ▾</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- KPI bento -->
+  <section class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="rounded-[28px] chunk p-5 border-4 border-white" style="background:#E5F4FB">
+      <div class="text-[10px] font-black uppercase tracking-wider mb-2" style="color:#1E76A8">Active students</div>
+      <div class="text-4xl font-black">33<span class="text-lg text-slate-500">/38</span></div>
+      <div class="text-xs font-bold text-slate-600 mt-1">86% engaged this wk</div>
+    </div>
+    <div class="rounded-[28px] chunk p-5 border-4 border-white" style="background:#FFEFE2">
+      <div class="text-[10px] font-black uppercase tracking-wider mb-2" style="color:var(--p-orange-d)">Avg score</div>
+      <div class="text-4xl font-black">74<span class="text-lg text-slate-500">%</span></div>
+      <div class="text-xs font-bold text-emerald-700 mt-1">▲ +6 vs last wk</div>
+    </div>
+    <div class="rounded-[28px] chunk p-5 border-4 border-white" style="background:#EFEAFF">
+      <div class="text-[10px] font-black uppercase tracking-wider mb-2" style="color:#5B3FD9">Total time</div>
+      <div class="text-4xl font-black">198<span class="text-lg text-slate-500">h</span></div>
+      <div class="text-xs font-bold text-slate-600 mt-1">5.2h per student</div>
+    </div>
+    <div class="rounded-[28px] chunk p-5 border-4 border-white" style="background:#FEE2E2">
+      <div class="text-[10px] font-black uppercase tracking-wider mb-2" style="color:#B91C1C">Needs help</div>
+      <div class="text-4xl font-black">3</div>
+      <div class="text-xs font-bold text-slate-600 mt-1">Tap to review →</div>
+    </div>
+  </section>
+
+  <!-- Mastery heatmap + Assignment CTA -->
+  <section class="grid lg:grid-cols-3 gap-4">
+
+    <div class="lg:col-span-2 bg-white rounded-[32px] chunk p-6 border-4 border-white">
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h3 class="text-xl sm:text-2xl font-black">Mastery heatmap</h3>
+          <p class="text-xs font-bold text-slate-500">Students × Topics · darker = stronger</p>
+        </div>
+        <div class="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider">
+          <span class="dot h-3 w-3 rounded-sm h-1"></span>
+          <span class="dot h-3 w-3 rounded-sm h-2"></span>
+          <span class="dot h-3 w-3 rounded-sm h-3"></span>
+          <span class="dot h-3 w-3 rounded-sm h-4"></span>
+          <span class="dot h-3 w-3 rounded-sm h-5"></span>
+          <span class="text-slate-500 ml-1">low → high</span>
+        </div>
+      </div>
+
+      <!-- Column headers -->
+      <div class="grid gap-1.5 mb-2 text-[10px] font-black uppercase tracking-wider text-slate-500" style="grid-template-columns: 90px repeat(8, 1fr)">
+        <div></div>
+        <div>Polynom</div>
+        <div>Quadrat</div>
+        <div>Trigono</div>
+        <div>Geometr</div>
+        <div>Circles</div>
+        <div>Stats</div>
+        <div>Probab</div>
+        <div>Coord</div>
+      </div>
+
+      <!-- Rows: students × topics -->
+      <div class="space-y-1.5">
+        <div class="grid gap-1.5 items-center" style="grid-template-columns: 90px repeat(8, 1fr)">
+          <div class="text-xs font-black truncate">Aarav D.</div>
+          <div class="h-cell h-5"></div><div class="h-cell h-3"></div><div class="h-cell h-2"></div>
+          <div class="h-cell h-4"></div><div class="h-cell h-3"></div><div class="h-cell h-4"></div>
+          <div class="h-cell h-5"></div><div class="h-cell h-4"></div>
+        </div>
+        <div class="grid gap-1.5 items-center" style="grid-template-columns: 90px repeat(8, 1fr)">
+          <div class="text-xs font-black truncate">Priyanka G.</div>
+          <div class="h-cell h-4"></div><div class="h-cell h-5"></div><div class="h-cell h-4"></div>
+          <div class="h-cell h-5"></div><div class="h-cell h-4"></div><div class="h-cell h-5"></div>
+          <div class="h-cell h-5"></div><div class="h-cell h-3"></div>
+        </div>
+        <div class="grid gap-1.5 items-center" style="grid-template-columns: 90px repeat(8, 1fr)">
+          <div class="text-xs font-black truncate">Rahul S.</div>
+          <div class="h-cell h-3"></div><div class="h-cell h-2"></div><div class="h-cell h-1"></div>
+          <div class="h-cell h-3"></div><div class="h-cell h-2"></div><div class="h-cell h-2"></div>
+          <div class="h-cell h-3"></div><div class="h-cell h-2"></div>
+        </div>
+        <div class="grid gap-1.5 items-center" style="grid-template-columns: 90px repeat(8, 1fr)">
+          <div class="text-xs font-black truncate">Manisha K.</div>
+          <div class="h-cell h-5"></div><div class="h-cell h-5"></div><div class="h-cell h-5"></div>
+          <div class="h-cell h-4"></div><div class="h-cell h-4"></div><div class="h-cell h-5"></div>
+          <div class="h-cell h-5"></div><div class="h-cell h-5"></div>
+        </div>
+        <div class="grid gap-1.5 items-center" style="grid-template-columns: 90px repeat(8, 1fr)">
+          <div class="text-xs font-black truncate" style="color:#B91C1C">Bikash P. ⚠️</div>
+          <div class="h-cell h-1"></div><div class="h-cell h-1"></div><div class="h-cell h-0"></div>
+          <div class="h-cell h-2"></div><div class="h-cell h-1"></div><div class="h-cell h-1"></div>
+          <div class="h-cell h-2"></div><div class="h-cell h-1"></div>
+        </div>
+        <div class="grid gap-1.5 items-center" style="grid-template-columns: 90px repeat(8, 1fr)">
+          <div class="text-xs font-black truncate">Pooja D.</div>
+          <div class="h-cell h-4"></div><div class="h-cell h-3"></div><div class="h-cell h-3"></div>
+          <div class="h-cell h-4"></div><div class="h-cell h-5"></div><div class="h-cell h-4"></div>
+          <div class="h-cell h-3"></div><div class="h-cell h-4"></div>
+        </div>
+        <div class="grid gap-1.5 items-center" style="grid-template-columns: 90px repeat(8, 1fr)">
+          <div class="text-xs font-black truncate">Subham B.</div>
+          <div class="h-cell h-3"></div><div class="h-cell h-4"></div><div class="h-cell h-2"></div>
+          <div class="h-cell h-4"></div><div class="h-cell h-3"></div><div class="h-cell h-3"></div>
+          <div class="h-cell h-4"></div><div class="h-cell h-3"></div>
+        </div>
+        <div class="grid gap-1.5 items-center opacity-60" style="grid-template-columns: 90px repeat(8, 1fr)">
+          <div class="text-xs font-black truncate text-slate-500">+ 31 more</div>
+          <div class="col-span-8 text-center text-[11px] font-bold text-slate-400 py-1">scroll to view all</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right column: assign + at-risk -->
+    <div class="space-y-4">
+      <div class="rounded-[28px] chunk p-5 border-4 border-white relative overflow-hidden text-white" style="background:linear-gradient(135deg,var(--p-purple),#FF5C8A)">
+        <div class="absolute -bottom-4 -right-4 text-7xl opacity-25 select-none">📚</div>
+        <div class="relative">
+          <div class="text-[10px] font-black uppercase tracking-wider opacity-90 mb-2">Quick action</div>
+          <h3 class="text-2xl font-black mb-2 leading-tight">Send today's<br/>practice set</h3>
+          <p class="text-sm font-bold opacity-95 mb-4">10 questions on Quadratics · est. 12 min</p>
+          <button class="bg-white text-purple-700 px-5 py-3 rounded-2xl font-black btn-bounce" style="box-shadow:0 5px 0 #7858E0">Assign to class →</button>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-[28px] chunk p-5 border-4 border-white">
+        <h3 class="text-lg font-black mb-3 flex items-center gap-2">⚠️ <span>Needs your eyes</span></h3>
+        <ul class="space-y-2.5">
+          <li class="flex items-center gap-3 p-2 rounded-xl hover:bg-red-50 cursor-pointer">
+            <div class="w-9 h-9 rounded-full bg-red-100 text-red-800 font-black flex items-center justify-center text-sm">BP</div>
+            <div class="flex-1 min-w-0">
+              <div class="font-black text-sm truncate">Bikash P.</div>
+              <div class="text-[11px] font-bold text-red-700">5 days inactive · stuck on Trig</div>
+            </div>
+            <span class="text-slate-400">→</span>
+          </li>
+          <li class="flex items-center gap-3 p-2 rounded-xl hover:bg-orange-50 cursor-pointer">
+            <div class="w-9 h-9 rounded-full bg-orange-100 text-orange-800 font-black flex items-center justify-center text-sm">RS</div>
+            <div class="flex-1 min-w-0">
+              <div class="font-black text-sm truncate">Rahul S.</div>
+              <div class="text-[11px] font-bold text-orange-700">Score dropped 18 pts</div>
+            </div>
+            <span class="text-slate-400">→</span>
+          </li>
+          <li class="flex items-center gap-3 p-2 rounded-xl hover:bg-yellow-50 cursor-pointer">
+            <div class="w-9 h-9 rounded-full bg-yellow-100 text-yellow-800 font-black flex items-center justify-center text-sm">DK</div>
+            <div class="flex-1 min-w-0">
+              <div class="font-black text-sm truncate">Deepa K.</div>
+              <div class="text-[11px] font-bold text-yellow-800">Not signed in for 3d</div>
+            </div>
+            <span class="text-slate-400">→</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Leaderboard + Recent activity -->
+  <section class="grid lg:grid-cols-3 gap-4">
+
+    <!-- Top students -->
+    <div class="bg-white rounded-[28px] chunk p-5 border-4 border-white">
+      <h3 class="text-lg font-black mb-4 flex items-center gap-2">🏆 <span>Top this week</span></h3>
+      <ul class="space-y-3">
+        <li class="flex items-center gap-3">
+          <div class="text-2xl">🥇</div>
+          <div class="w-10 h-10 rounded-full bg-yellow-100 text-yellow-800 font-black flex items-center justify-center">MK</div>
+          <div class="flex-1"><div class="font-black text-sm">Manisha K.</div><div class="text-[11px] font-bold text-slate-500">98% accuracy</div></div>
+          <span class="font-black text-sm" style="color:var(--p-orange-d)">410 XP</span>
+        </li>
+        <li class="flex items-center gap-3">
+          <div class="text-2xl">🥈</div>
+          <div class="w-10 h-10 rounded-full bg-orange-100 text-orange-800 font-black flex items-center justify-center">AD</div>
+          <div class="flex-1"><div class="font-black text-sm">Aarav D.</div><div class="text-[11px] font-bold text-slate-500">92% accuracy</div></div>
+          <span class="font-black text-sm" style="color:var(--p-orange-d)">320 XP</span>
+        </li>
+        <li class="flex items-center gap-3">
+          <div class="text-2xl">🥉</div>
+          <div class="w-10 h-10 rounded-full bg-purple-100 text-purple-800 font-black flex items-center justify-center">PG</div>
+          <div class="flex-1"><div class="font-black text-sm">Priyanka G.</div><div class="text-[11px] font-bold text-slate-500">88% accuracy</div></div>
+          <span class="font-black text-sm" style="color:var(--p-orange-d)">295 XP</span>
+        </li>
+        <li class="flex items-center gap-3">
+          <div class="text-lg w-7 text-center font-black text-slate-400">4</div>
+          <div class="w-10 h-10 rounded-full bg-sky-100 text-sky-800 font-black flex items-center justify-center">PD</div>
+          <div class="flex-1"><div class="font-black text-sm">Pooja D.</div><div class="text-[11px] font-bold text-slate-500">84% accuracy</div></div>
+          <span class="font-black text-sm text-slate-600">270 XP</span>
+        </li>
+        <li class="flex items-center gap-3">
+          <div class="text-lg w-7 text-center font-black text-slate-400">5</div>
+          <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 font-black flex items-center justify-center">SB</div>
+          <div class="flex-1"><div class="font-black text-sm">Subham B.</div><div class="text-[11px] font-bold text-slate-500">80% accuracy</div></div>
+          <span class="font-black text-sm text-slate-600">245 XP</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Recent activity -->
+    <div class="lg:col-span-2 bg-white rounded-[28px] chunk p-5 border-4 border-white">
+      <h3 class="text-lg font-black mb-4 flex items-center gap-2">📋 <span>Recent activity</span></h3>
+      <ul class="space-y-3">
+        <li class="flex items-center gap-3 p-3 rounded-2xl bg-emerald-50">
+          <div class="w-10 h-10 rounded-full bg-emerald-200 font-black flex items-center justify-center text-emerald-800">MK</div>
+          <div class="flex-1">
+            <div class="font-black text-sm">Manisha K. · completed Quadratics chapter</div>
+            <div class="text-[11px] font-bold text-emerald-700">Score 96% · 12 min ago</div>
+          </div>
+          <span class="text-2xl">🎉</span>
+        </li>
+        <li class="flex items-center gap-3 p-3 rounded-2xl bg-orange-50">
+          <div class="w-10 h-10 rounded-full bg-orange-200 font-black flex items-center justify-center text-orange-800">AD</div>
+          <div class="flex-1">
+            <div class="font-black text-sm">Aarav D. · earned "Quick Learner" badge</div>
+            <div class="text-[11px] font-bold text-orange-700">+50 XP · 28 min ago</div>
+          </div>
+          <span class="text-2xl">🏅</span>
+        </li>
+        <li class="flex items-center gap-3 p-3 rounded-2xl bg-yellow-50">
+          <div class="w-10 h-10 rounded-full bg-yellow-200 font-black flex items-center justify-center text-yellow-800">RS</div>
+          <div class="flex-1">
+            <div class="font-black text-sm">Rahul S. · struggled on Polynomial factorisation</div>
+            <div class="text-[11px] font-bold text-yellow-800">3 retries · 1 hour ago</div>
+          </div>
+          <button class="text-[11px] font-black px-3 py-1.5 rounded-full text-white" style="background:var(--p-orange)">Send help</button>
+        </li>
+        <li class="flex items-center gap-3 p-3 rounded-2xl bg-purple-50">
+          <div class="w-10 h-10 rounded-full bg-purple-200 font-black flex items-center justify-center text-purple-800">PG</div>
+          <div class="flex-1">
+            <div class="font-black text-sm">Priyanka G. · finished week's plan early</div>
+            <div class="text-[11px] font-bold text-purple-700">5/5 lessons · 2 hours ago</div>
+          </div>
+          <span class="text-2xl">⭐</span>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+</main>
+
+<footer class="text-center pt-10 pb-4">
+  <a href="../index.html" class="text-xs font-black text-slate-500 hover:text-orange-600">← Back to gallery</a>
+  <span class="mx-3 text-slate-300">·</span>
+  <a href="dashboard.html" class="text-xs font-black text-slate-500 hover:text-orange-600">Student view</a>
+  <span class="mx-3 text-slate-300">·</span>
+  <a href="lesson.html" class="text-xs font-black text-slate-500 hover:text-orange-600">Lesson view</a>
+</footer>
+
+</div>
+</body>
+</html>

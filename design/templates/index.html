@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ATAL AI — Template Gallery</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  body { font-family: 'Sora', system-ui, sans-serif; }
+  .card { transition: transform .25s ease, box-shadow .25s ease; }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 18px 40px -12px rgba(0,0,0,.18); }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+
+<header class="border-b border-slate-200 bg-white">
+  <div class="max-w-5xl mx-auto px-6 py-5 flex items-center gap-3">
+    <img src="shared/logo.png" alt="ATAL AI" class="h-10 w-10 rounded-full ring-2 ring-orange-200" />
+    <div>
+      <div class="text-lg font-extrabold tracking-tight">ATAL AI — Template Gallery</div>
+      <div class="text-xs text-slate-500 font-semibold">Pick the direction that feels right. Each link opens a live preview.</div>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-6 py-10">
+
+  <section class="mb-10">
+    <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight mb-2">Three visual directions</h1>
+    <p class="text-slate-600 max-w-2xl">Each direction includes <strong>Landing</strong> and <strong>Student Dashboard</strong> so you can judge the vibe quickly. Tell me which one wins and I'll build out Lesson + Teacher for it.</p>
+  </section>
+
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+    <!-- Direction 1 -->
+    <article class="card bg-white rounded-3xl overflow-hidden border border-slate-200">
+      <div class="h-40 relative" style="background: linear-gradient(135deg, #F98819 0%, #C9A227 55%, #2E5A8C 100%);">
+        <div class="absolute inset-0 opacity-25" style="background-image: repeating-linear-gradient(90deg, #fff 0 6px, transparent 6px 14px, #D93B3B 14px 20px, transparent 20px 28px);"></div>
+        <div class="absolute bottom-3 left-4 text-white font-extrabold text-lg drop-shadow">01 · Assam-Festive</div>
+      </div>
+      <div class="p-5">
+        <p class="text-sm text-slate-600 mb-4">Warm orange + muga gold + Brahmaputra indigo. Gamosa borders, Bihu motifs, serif headlines. Rooted in Assam culture — feels like home.</p>
+        <div class="flex flex-wrap gap-2 mb-4 text-xs">
+          <span class="px-2 py-1 rounded-full bg-orange-100 text-orange-800 font-semibold">Bihu</span>
+          <span class="px-2 py-1 rounded-full bg-yellow-100 text-yellow-800 font-semibold">Muga silk</span>
+          <span class="px-2 py-1 rounded-full bg-blue-100 text-blue-900 font-semibold">Brahmaputra</span>
+        </div>
+        <div class="flex flex-col gap-2">
+          <a href="01-assam-festive/landing.html" class="px-4 py-2.5 rounded-xl bg-orange-600 text-white font-bold text-sm text-center hover:bg-orange-700">Open Landing →</a>
+          <a href="01-assam-festive/dashboard.html" class="px-4 py-2.5 rounded-xl bg-slate-900 text-white font-bold text-sm text-center hover:bg-slate-800">Open Student Dashboard →</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- Direction 2 — CHOSEN -->
+    <article class="card bg-white rounded-3xl overflow-hidden border-4 border-orange-400 relative ring-4 ring-orange-100">
+      <div class="absolute top-3 right-3 z-10 px-3 py-1 rounded-full bg-orange-500 text-white text-[11px] font-extrabold uppercase tracking-wider shadow-lg">✓ Chosen</div>
+      <div class="h-40 relative" style="background: linear-gradient(135deg, #FF8A3D 0%, #FFD66B 40%, #A78BFA 80%, #6DC5E8 100%);">
+        <div class="absolute inset-0 flex items-center justify-center text-6xl">🟠</div>
+        <div class="absolute bottom-3 left-4 text-white font-extrabold text-lg drop-shadow">02 · Playful-Bento</div>
+      </div>
+      <div class="p-5">
+        <p class="text-sm text-slate-600 mb-4">Chunky rounded bento cards, soft pastels, Jyoti pops everywhere with reactions. Maximizes joy + micro-rewards. Best for ages 8–14.</p>
+        <div class="flex flex-wrap gap-2 mb-4 text-xs">
+          <span class="px-2 py-1 rounded-full bg-pink-100 text-pink-800 font-semibold">Duolingo-style</span>
+          <span class="px-2 py-1 rounded-full bg-purple-100 text-purple-800 font-semibold">Gamified</span>
+          <span class="px-2 py-1 rounded-full bg-sky-100 text-sky-800 font-semibold">Mobile-first</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <a href="02-playful-bento/landing.html" class="px-3 py-2.5 rounded-xl bg-orange-500 text-white font-bold text-xs text-center hover:bg-orange-600">Landing →</a>
+          <a href="02-playful-bento/dashboard.html" class="px-3 py-2.5 rounded-xl bg-orange-500 text-white font-bold text-xs text-center hover:bg-orange-600">Student →</a>
+          <a href="02-playful-bento/lesson.html" class="px-3 py-2.5 rounded-xl bg-purple-500 text-white font-bold text-xs text-center hover:bg-purple-600">Lesson →</a>
+          <a href="02-playful-bento/teacher.html" class="px-3 py-2.5 rounded-xl bg-sky-500 text-white font-bold text-xs text-center hover:bg-sky-600">Teacher →</a>
+        </div>
+      </div>
+    </article>
+
+    <!-- Direction 3 -->
+    <article class="card bg-white rounded-3xl overflow-hidden border border-slate-200">
+      <div class="h-40 relative bg-stone-100 border-b border-stone-200">
+        <div class="absolute top-6 left-6 right-6">
+          <div class="h-1.5 w-12 bg-orange-500 rounded-full mb-3"></div>
+          <div class="h-3 bg-stone-300 rounded w-3/4 mb-2"></div>
+          <div class="h-3 bg-stone-300 rounded w-1/2 mb-2"></div>
+          <div class="h-3 bg-stone-200 rounded w-2/3"></div>
+        </div>
+        <div class="absolute bottom-3 left-4 text-stone-900 font-extrabold text-lg" style="font-family:'Fraunces',serif;">03 · Calm-Premium</div>
+      </div>
+      <div class="p-5">
+        <p class="text-sm text-slate-600 mb-4">Editorial whitespace, restrained orange, serif headlines + clean sans body. Mascot used sparingly. Reads as serious — appeals to parents.</p>
+        <div class="flex flex-wrap gap-2 mb-4 text-xs">
+          <span class="px-2 py-1 rounded-full bg-stone-200 text-stone-800 font-semibold">Khan Academy</span>
+          <span class="px-2 py-1 rounded-full bg-stone-200 text-stone-800 font-semibold">Quizlet</span>
+          <span class="px-2 py-1 rounded-full bg-stone-200 text-stone-800 font-semibold">Editorial</span>
+        </div>
+        <div class="flex flex-col gap-2">
+          <a href="03-calm-premium/landing.html" class="px-4 py-2.5 rounded-xl bg-stone-900 text-white font-bold text-sm text-center hover:bg-stone-800">Open Landing →</a>
+          <a href="03-calm-premium/dashboard.html" class="px-4 py-2.5 rounded-xl bg-orange-600 text-white font-bold text-sm text-center hover:bg-orange-700">Open Student Dashboard →</a>
+        </div>
+      </div>
+    </article>
+
+  </div>
+
+  <section class="mt-12 p-6 rounded-3xl bg-white border border-slate-200">
+    <h2 class="text-lg font-extrabold mb-3">How to evaluate</h2>
+    <ul class="space-y-2 text-sm text-slate-700">
+      <li>📱 <strong>Open each on your phone too</strong> — rural Assam audience is mobile-first.</li>
+      <li>🎨 <strong>Does it match the Jyoti logo's personality?</strong> — warm, friendly, smart, rooted.</li>
+      <li>👨‍👩‍👦 <strong>Would a parent in a village trust this?</strong> — credibility matters as much as fun.</li>
+      <li>⚡ <strong>Pick a winner, tell me</strong> — I'll finish Lesson Player + Teacher Dashboard for it.</li>
+    </ul>
+  </section>
+
+</main>
+
+<footer class="text-center text-xs text-slate-400 py-8">ATAL AI · Template Gallery · v0.1 · Built with Tailwind CDN for fast preview</footer>
+
+</body>
+</html>
