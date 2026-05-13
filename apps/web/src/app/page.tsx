@@ -1,9 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Mascot } from "@/components/system";
 
 export default function HomePage() {
   const router = useRouter();
@@ -16,16 +16,10 @@ export default function HomePage() {
         transition={{ duration: 0.4 }}
         className="w-full max-w-md bg-white p-6 sm:p-10 rounded-[48px] shadow-2xl shadow-slate-200"
       >
-        {/* Logo */}
-        <div className="w-24 h-24 mx-auto mb-6 rounded-full overflow-hidden" style={{ boxShadow: "var(--shadow-logo-halo)" }}>
-          <Image
-            src="/assets/logo.png"
-            alt="ATAL AI"
-            width={96}
-            height={96}
-            className="w-full h-full object-cover"
-            priority
-          />
+        {/* Logo — Jyoti mascot, bobs gently on idle (respects
+            prefers-reduced-motion via MotionConfigProvider) */}
+        <div className="mb-6 flex justify-center">
+          <Mascot size="md" animate="bob" priority alt="ATAL AI — Jyoti" />
         </div>
 
         <h1 className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight mb-3 text-center">

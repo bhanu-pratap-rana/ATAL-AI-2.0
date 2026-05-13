@@ -5,8 +5,8 @@
 
 "use client";
 
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { Mascot } from "@/components/system";
 import type { UseAuthStateReturn } from "@/hooks/useAuthState";
 
 interface StepComponentProps {
@@ -19,16 +19,9 @@ export function ChoiceStep({ actions, loading: _loading, state: _state }: StepCo
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
       <div className="w-full max-w-md bg-white p-6 sm:p-10 rounded-[48px] shadow-2xl shadow-slate-200">
-        {/* Logo */}
-        <div className="w-24 h-24 mx-auto mb-6 rounded-full overflow-hidden" style={{ boxShadow: "var(--shadow-logo-halo)" }}>
-          <Image
-            src="/assets/logo.png"
-            alt="ATAL AI"
-            width={96}
-            height={96}
-            className="w-full h-full object-cover"
-            priority
-          />
+        {/* Logo — Jyoti mascot with gentle bob */}
+        <div className="mb-6 flex justify-center">
+          <Mascot size="md" animate="bob" priority alt="ATAL AI — Jyoti" />
         </div>
         <h1 className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight mb-3 text-center">ATAL AI</h1>
         <p className="text-slate-500 font-bold mb-10 text-center">Assam&apos;s Premier Digital Learning Platform</p>

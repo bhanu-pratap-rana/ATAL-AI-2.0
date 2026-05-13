@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { Mascot } from "@/components/system";
 
 interface AuthCardProps {
   readonly children: React.ReactNode;
@@ -9,17 +9,11 @@ interface AuthCardProps {
 export function AuthCard({ children, title, description }: AuthCardProps) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 px-4 py-8">
-      {/* Logo */}
+      {/* Logo — Jyoti mascot with gentle bob (prefers-reduced-motion
+          users see static via the global MotionConfigProvider) */}
       <div className="text-center mb-8 w-full">
-        <div className="mx-auto w-28 h-28 mb-5 flex items-center justify-center rounded-full overflow-hidden" style={{ boxShadow: "var(--shadow-logo-halo)" }}>
-          <Image
-            src="/assets/logo.png"
-            alt="ATAL AI Logo"
-            width={112}
-            height={112}
-            className="w-full h-full object-cover"
-            priority
-          />
+        <div className="mb-5 flex justify-center">
+          <Mascot size="lg" animate="bob" priority alt="ATAL AI Logo — Jyoti" />
         </div>
         <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight mb-1">
           ATAL AI
