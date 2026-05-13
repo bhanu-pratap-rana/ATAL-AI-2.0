@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { FolderClosed, Megaphone, MessageSquare } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -36,7 +37,8 @@ export function CommunicationSection({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <CardTitle className="text-lg md:text-xl flex items-center gap-2">
-              <span>💬</span> Communication
+              <MessageSquare className="w-5 h-5 text-(--bento-sky-d)" strokeWidth={2.25} aria-hidden="true" />
+              Communication
             </CardTitle>
             <CardDescription>
               Share announcements and learning materials with your students
@@ -63,7 +65,7 @@ export function CommunicationSection({
                 : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-200"
             }`}
           >
-            <span>📢</span>
+            <Megaphone size={16} strokeWidth={2.25} aria-hidden="true" />
             <span>Announcements</span>
             {announcements.length > 0 && (
               <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary/20 rounded-full">
@@ -83,7 +85,7 @@ export function CommunicationSection({
                 : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-200"
             }`}
           >
-            <span>📁</span>
+            <FolderClosed size={16} strokeWidth={2.25} aria-hidden="true" />
             <span>Materials</span>
             {materials.length > 0 && (
               <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary/20 rounded-full">

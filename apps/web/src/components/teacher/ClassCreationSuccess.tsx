@@ -1,5 +1,6 @@
 "use client";
 
+import { ClipboardList, PartyPopper } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DialogDescription,
@@ -22,7 +23,10 @@ export function ClassCreationSuccess({
   return (
     <div>
       <DialogHeader>
-        <DialogTitle>Class Created! 🎉</DialogTitle>
+        <DialogTitle className="flex items-center gap-2">
+          Class Created!
+          <PartyPopper size={20} strokeWidth={2.5} className="text-(--bento-orange)" aria-hidden="true" />
+        </DialogTitle>
         <DialogDescription>
           Share these codes with your students to join the class
         </DialogDescription>
@@ -57,7 +61,7 @@ export function ClassCreationSuccess({
 
         <div className="bg-warning-light border-l-4 border-warning p-3 rounded">
           <p className="text-sm text-warning-dark">
-            <strong>📋 Keep these codes safe!</strong> Students need both
+            <strong className="inline-flex items-center gap-1.5"><ClipboardList size={14} strokeWidth={2.5} aria-hidden="true" />Keep these codes safe!</strong> Students need both
             the class code and PIN to join. You can view these codes
             anytime in the class details.
           </p>

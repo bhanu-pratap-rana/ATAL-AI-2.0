@@ -1,11 +1,11 @@
 "use client";
 
+import { AlertTriangle, CheckCircle2, Clock, Users } from "lucide-react";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  
 } from "@/components/ui/card";
 
 interface AnalyticsTilesProps {
@@ -21,7 +21,7 @@ interface AtRiskStyles {
   readonly cardClass: string;
   readonly descriptionClass: string;
   readonly iconBackgroundClass: string;
-  readonly iconEmoji: string;
+  readonly hasAtRisk: boolean;
   readonly numberClass: string;
   readonly textClass: string;
   readonly statusMessage: string;
@@ -39,7 +39,7 @@ function getAtRiskStyles(atRiskCount: number): AtRiskStyles {
       ? "text-warning-dark font-medium"
       : "text-slate-800 font-medium",
     iconBackgroundClass: hasAtRiskStudents ? "bg-warning" : "bg-text-tertiary",
-    iconEmoji: hasAtRiskStudents ? "⚠️" : "✅",
+    hasAtRisk: hasAtRiskStudents,
     numberClass: hasAtRiskStudents
       ? "text-warning-dark"
       : "text-slate-800",
@@ -64,8 +64,8 @@ export function AnalyticsTiles({
             <CardDescription className="text-success font-medium">
               Active This Week
             </CardDescription>
-            <div className="w-10 h-10 bg-success rounded-full flex items-center justify-center">
-              <span className="text-2xl">👥</span>
+            <div className="w-10 h-10 bg-success rounded-full flex items-center justify-center text-white">
+              <Users className="w-5 h-5" strokeWidth={2.25} aria-hidden="true" />
             </div>
           </div>
         </CardHeader>
@@ -89,8 +89,8 @@ export function AnalyticsTiles({
             <CardDescription className="text-cyan-dark font-medium">
               Avg Minutes/Day
             </CardDescription>
-            <div className="w-10 h-10 bg-cyan rounded-full flex items-center justify-center">
-              <span className="text-2xl">⏱️</span>
+            <div className="w-10 h-10 bg-cyan rounded-full flex items-center justify-center text-white">
+              <Clock className="w-5 h-5" strokeWidth={2.25} aria-hidden="true" />
             </div>
           </div>
         </CardHeader>
@@ -115,9 +115,13 @@ export function AnalyticsTiles({
                   At-Risk Students
                 </CardDescription>
                 <div
-                  className={`w-10 h-10 ${styles.iconBackgroundClass} rounded-full flex items-center justify-center`}
+                  className={`w-10 h-10 ${styles.iconBackgroundClass} rounded-full flex items-center justify-center text-white`}
                 >
-                  <span className="text-2xl">{styles.iconEmoji}</span>
+                  {styles.hasAtRisk ? (
+                    <AlertTriangle className="w-5 h-5" strokeWidth={2.25} aria-hidden="true" />
+                  ) : (
+                    <CheckCircle2 className="w-5 h-5" strokeWidth={2.25} aria-hidden="true" />
+                  )}
                 </div>
               </div>
             </CardHeader>

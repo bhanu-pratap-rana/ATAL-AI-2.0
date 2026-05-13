@@ -3,6 +3,17 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import {
+  ExternalLink,
+  File,
+  FileText,
+  FolderClosed,
+  ImageIcon,
+  Link2,
+  Trash2,
+  Video,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { formatRelativeTime } from "@/lib/utils/format-date";
 import {
   Card,
@@ -29,12 +40,12 @@ interface MaterialsListProps {
   readonly classId: string;
 }
 
-const typeConfig = {
-  document: { emoji: "📄", label: "Document" },
-  video: { emoji: "🎬", label: "Video" },
-  link: { emoji: "🔗", label: "Link" },
-  image: { emoji: "🖼️", label: "Image" },
-  other: { emoji: "📎", label: "Other" },
+const typeConfig: Record<string, { Icon: LucideIcon; label: string }> = {
+  document: { Icon: FileText, label: "Document" },
+  video: { Icon: Video, label: "Video" },
+  link: { Icon: Link2, label: "Link" },
+  image: { Icon: ImageIcon, label: "Image" },
+  other: { Icon: File, label: "Other" },
 };
 
 export function MaterialsList({ materials, classId: _classId }: MaterialsListProps) {
@@ -71,8 +82,8 @@ export function MaterialsList({ materials, classId: _classId }: MaterialsListPro
   if (materials.length === 0) {
     return (
       <div className="text-center py-8">
-        <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-          <span className="text-3xl">📁</span>
+        <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4 text-(--bento-orange-d)">
+          <FolderClosed className="w-8 h-8" strokeWidth={2.25} aria-hidden="true" />
         </div>
         <h3 className="text-lg font-black text-slate-800 mb-2">
           No materials shared yet
@@ -103,7 +114,7 @@ export function MaterialsList({ materials, classId: _classId }: MaterialsListPro
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xl">{typeInfo.emoji}</span>
+                    <typeInfo.Icon className="w-5 h-5 text-slate-600 shrink-0" strokeWidth={2.25} aria-hidden="true" />
                     <CardTitle className="text-lg truncate">
                       {material.title}
                     </CardTitle>
@@ -127,8 +138,9 @@ export function MaterialsList({ materials, classId: _classId }: MaterialsListPro
                     onClick={() => handleOpenLink(material)}
                     disabled={!url}
                     title="Open material"
+                    aria-label="Open material"
                   >
-                    ↗️
+                    <ExternalLink size={16} strokeWidth={2.25} aria-hidden="true" />
                   </Button>
                   <Button
                     variant="ghost"
@@ -136,8 +148,13 @@ export function MaterialsList({ materials, classId: _classId }: MaterialsListPro
                     onClick={() => setConfirmDeleteId(material.id)}
                     disabled={deletingId === material.id}
                     className="text-slate-400 hover:text-error"
+                    aria-label="Delete material"
                   >
-                    {deletingId === material.id ? "..." : "🗑️"}
+                    {deletingId === material.id ? (
+                      "..."
+                    ) : (
+                      <Trash2 size={16} strokeWidth={2.25} aria-hidden="true" />
+                    )}
                   </Button>
                 </div>
               </div>

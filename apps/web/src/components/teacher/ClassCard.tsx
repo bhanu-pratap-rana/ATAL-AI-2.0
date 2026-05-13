@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { BookOpen } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -59,12 +60,15 @@ export function ClassCard({ classData }: ClassCardProps) {
         <CardHeader>
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-start gap-2 flex-1">
-              <span className="text-2xl">📚</span>
+              <div className="w-10 h-10 rounded-2xl bg-(--bento-tint-orange) border-2 border-white shadow-sm flex items-center justify-center text-(--bento-orange-d) shrink-0">
+                <BookOpen className="w-5 h-5" strokeWidth={2.25} aria-hidden="true" />
+              </div>
               <div className="flex-1">
                 <CardTitle className="text-primary truncate">{classData.name}</CardTitle>
                 {classData.subject && (
-                  <p className="text-sm text-slate-500 mt-1 truncate">
-                    📖 {classData.subject}
+                  <p className="text-sm text-slate-500 mt-1 truncate flex items-center gap-1.5">
+                    <BookOpen size={12} strokeWidth={2.5} aria-hidden="true" />
+                    {classData.subject}
                   </p>
                 )}
               </div>
