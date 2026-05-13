@@ -7,7 +7,20 @@ import { motion } from "framer-motion";
 import { createClient } from "@/lib/supabase-browser";
 import { isTeacherOrHigher } from "@/lib/auth/role-utils";
 import type { User } from "@supabase/supabase-js";
-import { Flame, ChevronRight, BookOpen } from "lucide-react";
+import {
+  BarChart3,
+  BookOpen,
+  Bot,
+  ChevronRight,
+  ClipboardCheck,
+  Flame,
+  GraduationCap,
+  Library,
+  Target,
+  UserRound,
+  Users,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Button } from "@/components/ui/button";
 import {
@@ -73,83 +86,88 @@ function getWelcomeMessages(
 const getFeatureCards = (
   isTeacher: boolean,
   t: (key: string) => string
-) => isTeacher ? [
+): ReadonlyArray<{
+  readonly title: string;
+  readonly description: string;
+  readonly Icon: LucideIcon;
+  readonly href: string;
+}> => isTeacher ? [
   {
     title: t("nav.learn"),
     description: t("dashboard.featureLearnDesc"),
-    emoji: "📖",
+    Icon: BookOpen,
     href: "/app/learn",
   },
   {
     title: t("nav.classes"),
     description: t("dashboard.featureClassesDesc"),
-    emoji: "👥",
+    Icon: Users,
     href: "/app/teacher/classes",
   },
   {
     title: t("dashboard.featureProgress"),
     description: t("dashboard.featureProgressDesc"),
-    emoji: "📊",
+    Icon: BarChart3,
     href: "/app/progress",
   },
   {
     title: t("dashboard.featureAiTools"),
     description: t("dashboard.featureAiToolsDesc"),
-    emoji: "🤖",
+    Icon: Bot,
     href: "/app/ai-tools",
   },
   {
     title: t("nav.assessments"),
     description: t("dashboard.featureAssessmentsDesc"),
-    emoji: "📝",
+    Icon: ClipboardCheck,
     href: "/app/teacher/assessments",
   },
   {
     title: t("nav.profile"),
     description: t("dashboard.featureProfileDesc"),
-    emoji: "👤",
+    Icon: UserRound,
     href: "/app/settings",
   },
 ] : [
   {
     title: t("nav.classes"),
     description: t("dashboard.featureClassesDesc"),
-    emoji: "👥",
+    Icon: Users,
     href: "/app/student/classes",
   },
   {
     title: t("dashboard.featureProgress"),
     description: t("dashboard.featureProgressDesc"),
-    emoji: "📊",
+    Icon: BarChart3,
     href: "/app/progress",
   },
   {
     title: t("nav.profile"),
     description: t("dashboard.featureProfileDesc"),
-    emoji: "👤",
+    Icon: UserRound,
     href: "/app/settings",
   },
 ];
 
 const StatCard = memo(function StatCard({
-  icon,
+  Icon,
   value,
   label,
 }: Readonly<{
-  icon: string;
+  Icon: LucideIcon;
   value: string | number;
   label: string;
 }>) {
   return (
     <motion.div
       variants={itemVariants}
-      className="bg-white rounded-2xl p-4 shadow-[0_4px_20px_rgb(0,0,0,0.05)] border border-slate-100 flex flex-col items-center text-center gap-1"
+      className="bg-white rounded-2xl p-4 border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] flex flex-col items-center text-center gap-1"
     >
-      <div className="w-10 h-10 bg-primary-lightest rounded-xl flex items-center justify-center text-xl shrink-0">
-        {icon}
+      <div className="w-10 h-10 bg-primary-lightest rounded-xl flex items-center justify-center shrink-0 text-(--bento-orange-d)">
+        <Icon className="w-5 h-5" strokeWidth={2.25} aria-hidden="true" />
       </div>
-      <p className="text-xl font-black text-slate-800 leading-none">{value}</p>
-      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider leading-tight">{label}</p>
+      <p className="text-xl font-black text-slate-900 leading-none">{value}</p>
+      <p className="text-[11px] font-black text-slate-500 uppercase tracking-wider leading-tight">{label}</p>
     </motion.div>
   );
 });
@@ -157,12 +175,12 @@ const StatCard = memo(function StatCard({
 const FeatureCard = memo(function FeatureCard({
   title,
   description,
-  emoji,
+  Icon,
   href,
 }: Readonly<{
   title: string;
   description: string;
-  emoji: string;
+  Icon: LucideIcon;
   href: string;
 }>) {
   return (
@@ -173,10 +191,10 @@ const FeatureCard = memo(function FeatureCard({
         className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-5 h-full cursor-pointer"
       >
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-11 h-11 bg-orange-50 rounded-2xl flex items-center justify-center text-xl shrink-0">
-            {emoji}
+          <div className="w-11 h-11 bg-orange-50 rounded-2xl flex items-center justify-center shrink-0 border-2 border-white shadow-sm text-(--bento-orange-d)">
+            <Icon className="w-5 h-5" strokeWidth={2.25} aria-hidden="true" />
           </div>
-          <h3 className="text-base font-black text-slate-800">{title}</h3>
+          <h3 className="text-base font-black text-slate-900">{title}</h3>
         </div>
         <p className="text-xs font-bold text-slate-400 leading-relaxed">
           {description}
@@ -294,8 +312,12 @@ export function DashboardClient() {
           style={bannerStyle}
         >
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-2xl shrink-0">
-              {isTeacherOrAdmin ? "👩‍🏫" : "🧑‍🎓"}
+            <div className="w-12 h-12 rounded-2xl bg-white/25 border-2 border-white/40 flex items-center justify-center shrink-0 text-white">
+              {isTeacherOrAdmin ? (
+                <GraduationCap className="w-7 h-7" strokeWidth={2.25} aria-hidden="true" />
+              ) : (
+                <UserRound className="w-7 h-7" strokeWidth={2.25} aria-hidden="true" />
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <h2 className="text-xl sm:text-2xl font-black mb-1 truncate">{welcomeMessages.greeting}</h2>
@@ -320,15 +342,15 @@ export function DashboardClient() {
         {/* Stats Grid — 2-col for students, 4-col for teachers */}
         {isTeacherOrAdmin ? (
           <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard icon="📚" value={stats?.classesCount ?? 0} label={t("dashboard.classesCreated")} />
-            <StatCard icon="📝" value={stats?.assessmentsCount ?? 0} label={t("dashboard.assessments")} />
-            <StatCard icon="🎯" value={stats?.averageScore == null ? "--" : `${stats.averageScore}%`} label={t("dashboard.avgScore")} />
-            <StatCard icon="🔥" value={stats?.streakDays ?? 0} label={t("dashboard.dayStreak")} />
+            <StatCard Icon={Library} value={stats?.classesCount ?? 0} label={t("dashboard.classesCreated")} />
+            <StatCard Icon={ClipboardCheck} value={stats?.assessmentsCount ?? 0} label={t("dashboard.assessments")} />
+            <StatCard Icon={Target} value={stats?.averageScore == null ? "--" : `${stats.averageScore}%`} label={t("dashboard.avgScore")} />
+            <StatCard Icon={Flame} value={stats?.streakDays ?? 0} label={t("dashboard.dayStreak")} />
           </motion.div>
         ) : (
           <motion.div variants={itemVariants} className="grid grid-cols-2 gap-4">
-            <StatCard icon="🎯" value={stats?.averageScore == null ? "--" : `${stats.averageScore}%`} label={t("dashboard.avgScore")} />
-            <StatCard icon="🔥" value={stats?.streakDays ?? 0} label={t("dashboard.dayStreak")} />
+            <StatCard Icon={Target} value={stats?.averageScore == null ? "--" : `${stats.averageScore}%`} label={t("dashboard.avgScore")} />
+            <StatCard Icon={Flame} value={stats?.streakDays ?? 0} label={t("dashboard.dayStreak")} />
           </motion.div>
         )}
 
@@ -385,7 +407,7 @@ export function DashboardClient() {
                   key={card.title}
                   title={card.title}
                   description={card.description}
-                  emoji={card.emoji}
+                  Icon={card.Icon}
                   href={card.href}
                 />
               ))}

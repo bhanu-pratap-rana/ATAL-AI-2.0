@@ -9,6 +9,16 @@
 
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import {
+  ArrowLeft,
+  BarChart3,
+  BookOpen,
+  Brain,
+  Eye,
+  Headphones,
+  Lightbulb,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase-server";
 import {
   fetchLearningStyleProfile,
@@ -17,9 +27,14 @@ import {
 import { LearningStyleCard } from "@/components/learning/LearningStyleCard";
 
 // Learning style tips and descriptions
-const STYLE_INFO = {
+const STYLE_INFO: Record<"visual" | "text" | "auditory", {
+  Icon: LucideIcon;
+  title: string;
+  description: string;
+  tips: ReadonlyArray<string>;
+}> = {
   visual: {
-    icon: "👁️",
+    Icon: Eye,
     title: "Visual Learner",
     description: "You learn best through images, diagrams, and visual representations.",
     tips: [
@@ -30,7 +45,7 @@ const STYLE_INFO = {
     ],
   },
   text: {
-    icon: "📖",
+    Icon: BookOpen,
     title: "Text Learner",
     description: "You learn best through reading and written explanations.",
     tips: [
@@ -41,7 +56,7 @@ const STYLE_INFO = {
     ],
   },
   auditory: {
-    icon: "🎧",
+    Icon: Headphones,
     title: "Auditory Learner",
     description: "You learn best through listening and verbal explanations.",
     tips: [
@@ -108,24 +123,40 @@ export default async function LearningStylePage() {
     <div className="min-h-screen [background:var(--bento-bg)] p-4 md:p-6">
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Banner */}
-        <div className="rounded-[32px] p-6 text-white" style={{ background: "var(--gradient-primary)" }}>
-          <Link href="/app/student/dashboard" className="inline-flex items-center gap-2 text-white/80 text-xs font-black uppercase tracking-widest mb-4">
-            ← Dashboard
+        <div
+          className="rounded-[32px] border-4 border-white p-6 text-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)]"
+          style={{ background: "var(--gradient-primary)" }}
+        >
+          <Link
+            href="/app/student/dashboard"
+            className="inline-flex items-center gap-1.5 text-white/85 text-xs font-black uppercase tracking-widest mb-4 hover:text-white"
+          >
+            <ArrowLeft size={14} strokeWidth={2.5} aria-hidden="true" />
+            Dashboard
           </Link>
-          <h1 className="text-xl sm:text-2xl font-black mb-1">🧠 Your Learning Style</h1>
-          <p className="text-white/80 text-sm font-bold">Discover how you learn best based on your interactions</p>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-white/25 border-2 border-white/40 flex items-center justify-center shrink-0 text-white">
+              <Brain className="w-7 h-7" strokeWidth={2.25} aria-hidden="true" />
+            </div>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-black mb-0.5 leading-tight">Your Learning Style</h1>
+              <p className="text-white/85 text-sm font-bold">Discover how you learn best based on your interactions</p>
+            </div>
+          </div>
         </div>
 
         {/* Dominant Style Card */}
         <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
           <div className="flex items-center gap-3 mb-3">
-            <span className="text-3xl">{dominantInfo.icon}</span>
-            <h2 className="text-xl font-black text-slate-800">{dominantInfo.title}</h2>
+            <div className="w-12 h-12 rounded-2xl bg-(--bento-tint-orange) border-2 border-white shadow-sm flex items-center justify-center shrink-0 text-(--bento-orange-d)">
+              <dominantInfo.Icon className="w-6 h-6" strokeWidth={2.25} aria-hidden="true" />
+            </div>
+            <h2 className="text-xl font-black text-slate-900">{dominantInfo.title}</h2>
           </div>
-          <p className="text-slate-500 font-bold text-sm mb-3">{dominantInfo.description}</p>
+          <p className="text-slate-600 font-bold text-sm mb-3">{dominantInfo.description}</p>
           {!hasActivity && (
             <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-              <p className="text-sm font-bold text-amber-700">
+              <p className="text-sm font-bold text-amber-800">
                 <strong>Note:</strong> Your learning style profile is still being calculated.
                 Continue using the AI Tutor and learning materials to get more accurate results.
               </p>
@@ -135,14 +166,17 @@ export default async function LearningStylePage() {
 
         {/* Style Breakdown */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <LearningStyleCard style="visual" score={visualPercent} isActive={dominantStyle === "visual"} icon={STYLE_INFO.visual.icon} title="Visual" activityCount={imagesViewed} activityLabel="images viewed" />
-          <LearningStyleCard style="text" score={textPercent} isActive={dominantStyle === "text"} icon={STYLE_INFO.text.icon} title="Text" activityCount={Math.round(textReadTime / 60)} activityLabel="minutes reading" />
-          <LearningStyleCard style="auditory" score={auditoryPercent} isActive={dominantStyle === "auditory"} icon={STYLE_INFO.auditory.icon} title="Auditory" activityCount={voiceReplays} activityLabel="voice replays" />
+          <LearningStyleCard style="visual" score={visualPercent} isActive={dominantStyle === "visual"} Icon={STYLE_INFO.visual.Icon} title="Visual" activityCount={imagesViewed} activityLabel="images viewed" />
+          <LearningStyleCard style="text" score={textPercent} isActive={dominantStyle === "text"} Icon={STYLE_INFO.text.Icon} title="Text" activityCount={Math.round(textReadTime / 60)} activityLabel="minutes reading" />
+          <LearningStyleCard style="auditory" score={auditoryPercent} isActive={dominantStyle === "auditory"} Icon={STYLE_INFO.auditory.Icon} title="Auditory" activityCount={voiceReplays} activityLabel="voice replays" />
         </div>
 
         {/* Tips Section */}
         <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
-          <h2 className="font-black text-slate-800 text-lg mb-4">💡 Tips for {dominantInfo.title}s</h2>
+          <h2 className="font-black text-slate-900 text-lg mb-4 flex items-center gap-2">
+            <Lightbulb className="w-5 h-5 text-(--bento-orange-d)" strokeWidth={2.25} aria-hidden="true" />
+            <span>Tips for {dominantInfo.title}s</span>
+          </h2>
           <ul className="space-y-3">
             {dominantInfo.tips.map((tip, index) => (
               <li key={index} className="flex items-start gap-3 p-3 bg-slate-50 rounded-2xl">
@@ -155,7 +189,10 @@ export default async function LearningStylePage() {
 
         {/* How It Works */}
         <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
-          <h2 className="font-black text-slate-800 text-lg mb-3">📊 How Your Style Is Calculated</h2>
+          <h2 className="font-black text-slate-900 text-lg mb-3 flex items-center gap-2">
+            <BarChart3 className="w-5 h-5 text-(--bento-purple-d)" strokeWidth={2.25} aria-hidden="true" />
+            <span>How Your Style Is Calculated</span>
+          </h2>
           <p className="text-slate-500 font-bold text-sm mb-4">Your learning style is determined by tracking how you interact with content:</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
             {[
