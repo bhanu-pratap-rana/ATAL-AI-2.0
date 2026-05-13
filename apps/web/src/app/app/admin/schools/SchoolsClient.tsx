@@ -21,13 +21,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import {
+  AlertTriangle,
   Calendar,
-  Shield,
+  Check,
+  ClipboardList,
+  Copy,
+  MapPin,
   RefreshCw,
   Search,
-  Copy,
-  Check,
-  MapPin,
+  Shield,
+  ShieldAlert,
 } from "lucide-react";
 
 // School Finder Modal Component
@@ -335,7 +338,9 @@ function PinStatusDisplay({
 
   return (
     <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded">
-      <p className="text-xs text-amber-800 font-semibold">⚠ No PIN Found</p>
+      <p className="text-xs text-amber-800 font-semibold flex items-center gap-1.5">
+        <AlertTriangle size={12} strokeWidth={2.5} aria-hidden="true" /> No PIN Found
+      </p>
       <p className="text-sm text-amber-800 mt-2">
         This school doesn&apos;t have a PIN yet. Create one in Step 3.
       </p>
@@ -702,8 +707,9 @@ export function SchoolsClient() {
               </div>
 
               <div className="bg-amber-50 border-l-4 border-amber-400 p-3 rounded text-xs text-amber-800">
-                <p>
-                  <strong>⚠️ Security Notice</strong>
+                <p className="flex items-center gap-1.5 font-semibold">
+                  <ShieldAlert size={14} strokeWidth={2.5} aria-hidden="true" />
+                  <strong>Security Notice</strong>
                 </p>
                 <p className="mt-1">
                   PIN will be bcrypt hashed.{" "}
@@ -726,8 +732,9 @@ export function SchoolsClient() {
 
             {/* Help */}
             <div className="mt-6 bg-blue-50 border border-slate-100 p-4 rounded-2xl">
-              <h3 className="font-black text-slate-800 text-sm mb-2">
-                📋 Quick Guide
+              <h3 className="font-black text-slate-800 text-sm mb-2 flex items-center gap-2">
+                <ClipboardList className="w-4 h-4 text-blue-600" strokeWidth={2.25} aria-hidden="true" />
+                Quick Guide
               </h3>
               <ul className="text-sm text-slate-500 space-y-2">
                 <li>

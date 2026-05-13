@@ -2,7 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronRight } from "lucide-react";
+import {
+  AlertTriangle,
+  BarChart3,
+  ChevronRight,
+  School,
+  Settings,
+  ShieldCheck,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase-browser";
 import { clientLogger } from "@/lib/client-logger";
@@ -73,8 +81,8 @@ export function AdminDashboardClient() {
         <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 bg-orange-50 rounded-2xl flex items-center justify-center text-xl shrink-0">
-                ⚠️
+              <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 bg-(--bento-tint-orange) border-2 border-white shadow-sm text-(--bento-orange-d)">
+                <AlertTriangle className="w-5 h-5" strokeWidth={2.25} aria-hidden="true" />
               </div>
               <div>
                 <p className="font-black text-slate-800 text-sm">Pending Approvals</p>
@@ -89,21 +97,26 @@ export function AdminDashboardClient() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-2 gap-4">
-          {[
-            { href: "/app/admin/schools", emoji: "🏫", label: "Manage Schools" },
-            { href: "/app/admin/performance", emoji: "📊", label: "Analytics" },
-            { href: "/app/settings", emoji: "⚙️", label: "System Settings" },
-            { href: "/app/admin/schools", emoji: "🔐", label: "PIN Management" },
-          ].map((action) => (
+          {([
+            { href: "/app/admin/schools", Icon: School, label: "Manage Schools", tint: "sky" },
+            { href: "/app/admin/performance", Icon: BarChart3, label: "Analytics", tint: "purple" },
+            { href: "/app/settings", Icon: Settings, label: "System Settings", tint: "yellow" },
+            { href: "/app/admin/schools", Icon: ShieldCheck, label: "PIN Management", tint: "red" },
+          ] as ReadonlyArray<{ href: string; Icon: LucideIcon; label: string; tint: string }>).map((action) => (
             <Button
               type="button"
               variant="ghost"
               key={action.label}
               onClick={() => router.push(action.href)}
-              className="bg-white border border-slate-100 shadow-sm rounded-3xl h-auto p-5 text-left items-start flex-col hover:shadow-md hover:bg-white whitespace-normal"
+              className="bg-white border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] rounded-3xl h-auto p-5 text-left items-start flex-col hover:shadow-md hover:bg-white whitespace-normal"
             >
-              <div className="text-2xl mb-2">{action.emoji}</div>
-              <p className="font-black text-slate-800 text-sm">{action.label}</p>
+              <div
+                className="w-12 h-12 rounded-2xl mb-2 flex items-center justify-center border-2 border-white shadow-sm"
+                style={{ background: `var(--bento-tint-${action.tint})`, color: `var(--bento-${action.tint}-d)` }}
+              >
+                <action.Icon className="w-6 h-6" strokeWidth={2.25} aria-hidden="true" />
+              </div>
+              <p className="font-black text-slate-900 text-sm">{action.label}</p>
             </Button>
           ))}
         </div>

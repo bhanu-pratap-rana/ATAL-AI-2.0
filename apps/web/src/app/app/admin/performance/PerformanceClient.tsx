@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { queryMonitor } from "@/lib/supabase-query-wrapper";
 import { connectionPoolMonitor } from "@/lib/monitoring/connection-pool-monitor";
 import type { ConnectionPoolMetrics, PoolAlert } from "@/types/monitoring";
-import { AlertCircle, TrendingDown, Zap } from "lucide-react";
+import { AlertCircle, CheckCircle2, TrendingDown, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 function getAlertClassName(level: string): string {
@@ -145,7 +145,10 @@ export function PerformanceClient() {
             <TrendingDown className="w-5 h-5 text-amber-500" /> Slowest Queries (&gt; 1 second)
           </h2>
           {slowQueries.length === 0 ? (
-            <p className="text-emerald-600 font-black">✅ No slow queries detected</p>
+            <p className="text-emerald-700 font-black flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5" strokeWidth={2.25} aria-hidden="true" />
+              No slow queries detected
+            </p>
           ) : (
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {slowQueries.map((query, idx) => (
