@@ -10,3 +10,9 @@
 export { Mascot } from "./Mascot";
 export { StreakFlame } from "./StreakFlame";
 export { MugaCard } from "./MugaCard";
+
+// Playful-Bento primitives (SP13 PR-1)
+export { ChunkCard } from "./ChunkCard";
+export { BentoButton } from "./BentoButton";
+export { RainbowRing } from "./RainbowRing";
+export { StatChip } from "./StatChip";

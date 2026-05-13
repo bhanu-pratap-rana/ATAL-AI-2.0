@@ -49,6 +49,62 @@
   --neutral-900: #1F1A12;
 
   /* ==========================================
+     PLAYFUL-BENTO PALETTE (SP13 redesign)
+
+     Used alongside the existing brand-primary orange — these are
+     ACCENT colors for the chunky bento cards, streak chips, gems,
+     hearts, and joyful micro-rewards. Per `design/templates/02-
+     playful-bento/` and SP13 PR-1.
+
+     The bento style stacks two shadows (one tight at the bottom for
+     "chunky-button" feel, one soft for depth) and uses thick white
+     borders inside cards to separate the chunk from its colored
+     background. Buttons press DOWN on :active for tactile feedback.
+     ========================================== */
+  --bento-orange: #FF8A3D;       /* Slightly punchier than brand-primary for hero CTAs */
+  --bento-orange-d: #E66A1A;     /* The bottom-shadow color for orange chunk buttons */
+  --bento-yellow: #FFD66B;       /* Streaks, XP, sun */
+  --bento-yellow-d: #BFA02A;
+  --bento-purple: #A78BFA;       /* Gems, premium */
+  --bento-purple-d: #7858E0;
+  --bento-sky: #6DC5E8;          /* Teacher accent, friends */
+  --bento-sky-d: #3FA0C6;
+  --bento-pink: #FF8FB8;         /* Achievements, hearts secondary */
+  --bento-pink-d: #DB5E94;
+  --bento-mint: #7EE0C2;         /* Success, completion */
+  --bento-mint-d: #3FB594;
+  --bento-green: #22C55E;        /* Correct answers, primary success */
+  --bento-green-d: #15803D;
+  --bento-red: #EF4444;          /* Hearts lost, incorrect */
+  --bento-red-d: #B91C1C;
+  --bento-bg: #FFFBF5;           /* Page background — warm cream */
+
+  /* Pastel TINT backgrounds for bento cards (paired with their accent color) */
+  --bento-tint-orange: #FFEFE2;
+  --bento-tint-yellow: #FFF6D6;
+  --bento-tint-purple: #EFEAFF;
+  --bento-tint-sky: #E5F4FB;
+  --bento-tint-pink: #FFEAF2;
+  --bento-tint-mint: #E3F8EF;
+  --bento-tint-green: #DCFCE7;
+  --bento-tint-red: #FEE2E2;
+
+  /* Bento shadow stack — chunky bottom shadow + soft drop */
+  --shadow-chunk-sm: 0 4px 0 rgba(0, 0, 0, 0.05), 0 8px 16px -6px rgba(0, 0, 0, 0.08);
+  --shadow-chunk: 0 6px 0 rgba(0, 0, 0, 0.06), 0 14px 28px -10px rgba(0, 0, 0, 0.12);
+  --shadow-chunk-lg: 0 8px 0 rgba(0, 0, 0, 0.08), 0 20px 40px -12px rgba(0, 0, 0, 0.18);
+
+  /* Bento radii — chunkier than the existing scale */
+  --radius-bento-sm: 1.25rem;    /* 20px */
+  --radius-bento: 1.75rem;       /* 28px */
+  --radius-bento-lg: 2.25rem;    /* 36px */
+  --radius-bento-xl: 2.5rem;     /* 40px */
+
+  /* Rainbow ring (mascot frame) — exposed as a custom property so
+     consumers can override or layer it. */
+  --ring-rainbow: conic-gradient(from 0deg, #FF8A3D, #FFD66B, #7EE0C2, #6DC5E8, #A78BFA, #FF8FB8, #FF8A3D);
+
+  /* ==========================================
      PRIMARY COLOR SYSTEM - Orange (#F98819)
      Use for: ALL primary buttons, progress, active states,
      icon backgrounds, focus states, badges, links
@@ -1062,6 +1118,136 @@ body {
   font-size: var(--text-sm);
   color: var(--color-text-secondary);
   margin-top: var(--space-1);
+}
+
+/* ==========================================
+   PLAYFUL-BENTO UTILITIES (SP13 redesign)
+
+   These are opt-in classes. Existing screens keep their look until
+   they're refactored to use these primitives. Use via either:
+     - direct class:   <div class="chunk-card"> ... </div>
+     - React component: <ChunkCard>...</ChunkCard>
+   ========================================== */
+
+/* Chunky card — double shadow, thick white border, big radius */
+.chunk-card {
+  background: #ffffff;
+  border: 4px solid #ffffff;
+  border-radius: var(--radius-bento);
+  box-shadow: var(--shadow-chunk);
+}
+.chunk-card-lg {
+  border-radius: var(--radius-bento-lg);
+  box-shadow: var(--shadow-chunk-lg);
+}
+.chunk-card-sm {
+  border-radius: var(--radius-bento-sm);
+  box-shadow: var(--shadow-chunk-sm);
+}
+
+/* Bento button — pressable, bottom-shadow-only chunky feel.
+   The bottom shadow color defaults to brand orange; override with
+   `--bento-btn-shadow: <hex>` inline or via a modifier class. */
+.btn-bento {
+  --bento-btn-shadow: var(--bento-orange-d);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: var(--bento-orange);
+  color: #ffffff;
+  font-weight: 900;
+  padding: 0.875rem 1.25rem;
+  border-radius: 1rem;
+  border: none;
+  box-shadow: 0 5px 0 var(--bento-btn-shadow);
+  transition: transform 150ms cubic-bezier(.34, 1.56, .64, 1),
+              box-shadow 150ms ease;
+  cursor: pointer;
+  min-height: var(--touch-target-min);
+}
+.btn-bento:hover { filter: brightness(1.04); }
+.btn-bento:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 var(--bento-btn-shadow);
+}
+.btn-bento:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 5px 0 var(--bento-btn-shadow);
+}
+
+.btn-bento-purple { background: var(--bento-purple); --bento-btn-shadow: var(--bento-purple-d); }
+.btn-bento-sky    { background: var(--bento-sky);    --bento-btn-shadow: var(--bento-sky-d); }
+.btn-bento-pink   { background: var(--bento-pink);   --bento-btn-shadow: var(--bento-pink-d); }
+.btn-bento-mint   { background: var(--bento-mint);   --bento-btn-shadow: var(--bento-mint-d); color: #0F4F32; }
+.btn-bento-green  { background: var(--bento-green);  --bento-btn-shadow: var(--bento-green-d); }
+.btn-bento-yellow { background: var(--bento-yellow); --bento-btn-shadow: var(--bento-yellow-d); color: #5A4400; }
+.btn-bento-grey {
+  background: #ffffff;
+  color: #231C2E;
+  --bento-btn-shadow: #CFCAC0;
+  border: 3px solid #EDEAE2;
+}
+
+/* Rainbow ring — conic-gradient frame for the Jyoti mascot. Wraps a
+   round child (typically the logo) with a 3px multi-color ring. */
+.ring-rainbow-frame {
+  background: var(--ring-rainbow);
+  padding: 3px;
+  border-radius: 9999px;
+  display: inline-block;
+  line-height: 0;
+}
+.ring-rainbow-frame > * {
+  background: #ffffff;
+  border-radius: 9999px;
+}
+
+/* Stat chip — small pill used for streak/xp/gems on dashboards */
+.stat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.875rem;
+  border-radius: 9999px;
+  font-weight: 900;
+  font-size: 0.875rem;
+  background: var(--bento-tint-yellow);
+  color: #5A4400;
+  border: 2px solid #ffffff;
+  box-shadow: var(--shadow-chunk-sm);
+}
+
+/* Bento animations */
+@keyframes bento-wiggle {
+  0%, 100% { transform: rotate(-3deg); }
+  50%      { transform: rotate(3deg); }
+}
+@keyframes bento-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-5px); }
+}
+@keyframes bento-pop {
+  0%   { transform: scale(0); }
+  60%  { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+.animate-bento-wiggle { animation: bento-wiggle 2s ease-in-out infinite; }
+.animate-bento-bob    { animation: bento-bob 2.6s ease-in-out infinite; }
+.animate-bento-pop    { animation: bento-pop 0.35s cubic-bezier(.34, 1.56, .64, 1); }
+
+/* Decorative blob backgrounds — for the floating pastel circles
+   behind landing/dashboard hero areas. */
+.bento-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(50px);
+  opacity: 0.30;
+  pointer-events: none;
+  z-index: 0;
 }
 
 /* ==========================================

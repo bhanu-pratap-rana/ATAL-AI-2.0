@@ -42,10 +42,12 @@ const sora = Sora({
 });
 
 // Primary body font - Nunito (friendly, readable)
+// SP13 Playful-Bento PR-1: weight 900 added for `font-black` chunky headlines
+// (used by ChunkCard / BentoButton primitives across the redesigned screens).
 const nunito = Nunito({
   variable: "--font-nunito",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700", "800", "900"],
   display: "swap",
 });
 
