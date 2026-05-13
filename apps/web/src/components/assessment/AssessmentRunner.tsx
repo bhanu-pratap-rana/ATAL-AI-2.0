@@ -24,12 +24,11 @@ import type {
 import {
   shuffleArray,
   getLanguageFontClass,
-  getOptionButtonClasses,
-  getRadioButtonClasses,
   checkAnswerCorrectness,
   buildIrtResponse,
   handleRapidTapWarning,
 } from "./runner-utils";
+import { AssessmentOption } from "./AssessmentOption";
 
 /**
  * ATAL AI Assessment Runner - IRT-Enhanced Adaptive Testing
@@ -609,45 +608,17 @@ export function AssessmentRunner({
               aria-labelledby="question-text"
               className="space-y-3 border-0 p-0 m-0"
             >
-              {shuffledOptions.map(
-                (option: { id: string; text: string }, index: number) => {
-                  // Fixed positional labels: A, B, C, D always in order
-                  // Option content shuffles but labels stay sequential
-                  const label = String.fromCodePoint(65 + index); // A=65
-                  return (
-                    <label
-                      key={option.id}
-                      className={`w-full text-left p-4 min-h-11 rounded-2xl border-2 transition-all duration-200 cursor-pointer focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 ${getOptionButtonClasses(selectedOption === index ? "selected" : "unselected")} ${isSubmitting ? "pointer-events-none opacity-50" : ""}`}
-                    >
-                      <input
-                        type="radio"
-                        name="assessment-option"
-                        checked={selectedOption === index}
-                        onChange={() => handleOptionSelect(index)}
-                        disabled={isSubmitting}
-                        className="sr-only"
-                        aria-label={`Option ${label}: ${option.text}`}
-                      />
-                      <div className="flex items-start gap-3">
-                        <div
-                          aria-hidden="true"
-                          className={`shrink-0 w-9 h-9 rounded-full border-2 flex items-center justify-center transition-colors ${getRadioButtonClasses(selectedOption === index ? "selected" : "unselected")}`}
-                        >
-                          {selectedOption === index && (
-                            <div className="w-4 h-4 bg-white rounded-full" />
-                          )}
-                        </div>
-                        <span
-                          className={`text-base text-slate-800 wrap-break-word ${fontClass}`}
-                        >
-                          <span className="font-semibold mr-2">{label}.</span>
-                          {option.text}
-                        </span>
-                      </div>
-                    </label>
-                  );
-                },
-              )}
+              {shuffledOptions.map((option, index) => (
+                <AssessmentOption
+                  key={option.id}
+                  option={option}
+                  index={index}
+                  selected={selectedOption === index}
+                  disabled={isSubmitting}
+                  fontClass={fontClass}
+                  onSelect={handleOptionSelect}
+                />
+              ))}
             </fieldset>
 
             {/* Navigation */}
