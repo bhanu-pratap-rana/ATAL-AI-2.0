@@ -14,20 +14,18 @@ import {
 import { CompactTimer } from "./AssessmentTimer";
 import { clientLogger } from "@/lib/client-logger";
 import { submitAssessment } from "@/app/actions/assessment/assessment-submission";
-import { updateTheta } from "@/app/actions/assessment/irt-models";
 import type {
   Question,
   ResponseData,
   QuestionHistoryItem,
-  IRTState,
 } from "./runner-types";
 import {
   shuffleArray,
   getLanguageFontClass,
   checkAnswerCorrectness,
-  buildIrtResponse,
   handleRapidTapWarning,
 } from "./runner-utils";
+import { useIrtState } from "./use-irt-state";
 import { AssessmentOption } from "./AssessmentOption";
 
 /**
@@ -81,18 +79,17 @@ export function AssessmentRunner({
   // NOSONAR S6754: Only setter needed - value tracked internally but not used in render
   const [, setTotalElapsedSeconds] = useState(0); // NOSONAR
 
-  // IRT State for real-time adaptive tracking
-  const [irtState, setIrtState] = useState<IRTState>({
-    theta: 0, // Initial ability at average
-    se: 1, // High initial uncertainty
-    answeredCount: 0,
-    correctCount: 0,
-  });
+  // IRT state for real-time adaptive tracking (encapsulated)
+  // state is consumed by the hook itself; the runner only needs the action
+  const { recordResponse: recordIrtResponse } = useIrtState();
 
   // Refs
   const questionRef = useRef<HTMLHeadingElement>(null);
-  // Store question start time for duration tracking
-  const questionStartTimeRef = useRef<number>(Date.now());
+  // Store question start time for duration tracking.
+  // Initialized to 0; the question-change effect below resets it to
+  // Date.now() on mount and on every question transition, keeping
+  // useRef's initializer pure (react-hooks/purity).
+  const questionStartTimeRef = useRef<number>(0);
   // BP-2 FIX: Store rapid warning timer for cleanup
   const warningTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -158,9 +155,15 @@ export function AssessmentRunner({
     }
   }, [currentIndex, currentHistoryIndex]);
 
-  // Load selected answer when reviewing history
+  // Load selected answer when reviewing history.
+  // This intentionally syncs local state from props-shaped data (history
+  // changes from outside this effect's control flow) — the React 19
+  // "set-state-in-effect" rule's standard alternative (derive during
+  // render) would force a deeper refactor of every selectedOption
+  // mutation site, which is out of scope for SP8 T8.3.
   useEffect(() => {
     if (isReviewingHistory && questionHistory?.[currentHistoryIndex]) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedOption(questionHistory[currentHistoryIndex].selectedAnswer);
     }
   }, [isReviewingHistory, currentHistoryIndex, questionHistory]);
@@ -414,22 +417,7 @@ export function AssessmentRunner({
 
     // Update IRT ability estimate (theta) after each answer
     const updatedResponses = [...responses, response];
-    // Use extracted helper for IRT response building
-    const irtResponses = updatedResponses.map((r) =>
-      buildIrtResponse(r, questions),
-    );
-
-    // Update theta estimate
-    const { theta: newTheta, se: newSe } = updateTheta(
-      irtState.theta,
-      irtResponses,
-    );
-    setIrtState({
-      theta: newTheta,
-      se: newSe,
-      answeredCount: updatedResponses.length,
-      correctCount: updatedResponses.filter((r) => r.isCorrect).length,
-    });
+    recordIrtResponse(updatedResponses, questions);
 
     setSelectedOption(null);
     setResponses(updatedResponses);
@@ -444,9 +432,6 @@ export function AssessmentRunner({
       submitAssessmentData(allResponses);
     }
   },
-  // irtState.theta omitted intentionally - including it would cause frequent callback recreation
-  // This is safe because the callback always uses the latest irtState via closure
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   [
     isReviewingHistory,
     handleHistoryNavigation,
@@ -460,6 +445,7 @@ export function AssessmentRunner({
     currentIndex,
     questions,
     submitAssessmentData,
+    recordIrtResponse,
   ],
 );
 
