@@ -8,30 +8,40 @@
  * the rest of the app — chunky double-shadow card with a 4px white
  * border, btn-bento style CTAs that press down on :active.
  *
- * IMPORTANT: this page uses INLINE STYLES ONLY. The PWA service
- * worker serves it from cache even when globals.css can't be fetched
- * (the whole point — you're offline). Using Tailwind classes or
- * importing ChunkCard/BentoButton would break the fallback contract.
- * That's why every bento token below has a hex fallback.
+ * SP13 PR-9: professional icons (lucide-react SVGs) replace the
+ * cartoon emojis. Lottie isn't an option here because it would need
+ * to fetch animation JSON — defeats the purpose of an offline page.
+ * Lucide icons inline as static SVG at build time → zero runtime
+ * network deps, render even when the bundle is the only thing the
+ * service worker delivers.
  *
- * Responsive: clamp() scales padding/typography from 375px mobile to
- * desktop. Safe-area insets handled for notched iPhones.
+ * IMPORTANT: this page still uses INLINE STYLES ONLY for the layout
+ * + colors. The PWA service worker serves it from cache even when
+ * globals.css can't be fetched (the whole point — you're offline).
+ * That's why every bento token has a hex fallback below.
  */
+
+import {
+  Home,
+  RefreshCw,
+  Satellite,
+  WifiOff,
+  Sparkles,
+} from "lucide-react";
 
 // Bento token fallbacks for when globals.css is not loaded. Keep in
 // sync with apps/web/src/app/globals.css (`:root` block).
 const BENTO = {
   bg: "#FFFBF5", // --bento-bg
   orange: "#FF8A3D", // --bento-orange
-  orangeDark: "#E66A1A", // --bento-orange-d (bottom-shadow color)
+  orangeDark: "#E66A1A", // --bento-orange-d
   surface: "#FFFFFF",
-  ink: "#231C2E", // body text
-  inkSoft: "#4B5563", // secondary body
+  ink: "#231C2E",
+  inkSoft: "#4B5563",
   inkMuted: "#94A3B8",
-  greyShadow: "#CFCAC0", // grey-button bottom-shadow
-  greyBorder: "#EDEAE2", // grey-button border
+  greyShadow: "#CFCAC0",
+  greyBorder: "#EDEAE2",
   error: "#EF4444",
-  // Bento shadow stack: chunky bottom + soft drop (see --shadow-chunk)
   shadowChunk:
     "0 6px 0 rgba(0, 0, 0, 0.06), 0 14px 28px -10px rgba(0, 0, 0, 0.12)",
 } as const;
@@ -48,7 +58,6 @@ export default function OfflinePage() {
         padding: "clamp(1rem, 5vw, 2rem)",
         fontFamily: 'var(--font-body, "Nunito", system-ui, sans-serif)',
         backgroundColor: `var(--bento-bg, ${BENTO.bg})`,
-        // Safe area for notched devices
         paddingTop:
           "max(env(safe-area-inset-top, 0px), clamp(1rem, 5vw, 2rem))",
         paddingBottom:
@@ -59,7 +68,7 @@ export default function OfflinePage() {
           "max(env(safe-area-inset-right, 0px), clamp(1rem, 5vw, 2rem))",
       }}
     >
-      {/* Chunky bento card — 4px white border + double shadow */}
+      {/* Chunky bento card */}
       <div
         style={{
           width: "100%",
@@ -68,29 +77,83 @@ export default function OfflinePage() {
           padding: "clamp(1.75rem, 5vw, 2.5rem)",
           backgroundColor: BENTO.surface,
           border: "4px solid #ffffff",
-          borderRadius: "1.75rem", // --radius-bento (28px)
+          borderRadius: "1.75rem",
           boxShadow: `var(--shadow-chunk, ${BENTO.shadowChunk})`,
+          position: "relative",
         }}
       >
-        {/* Offline Icon — satellite dish keeps the "no signal" semantic.
-            Wrapped in a soft pastel chip for the bento aesthetic. */}
+        {/* Satellite icon — rotating "signal" waves drawn as concentric
+            arcs that fade out, telling the user "we're trying to reach
+            you". Pure CSS, no animation library needed. */}
         <div
+          aria-hidden="true"
           style={{
-            width: "clamp(4rem, 14vw, 5rem)",
-            height: "clamp(4rem, 14vw, 5rem)",
-            margin: "0 auto clamp(0.75rem, 2vw, 1rem)",
+            position: "relative",
+            width: "clamp(5rem, 16vw, 6rem)",
+            height: "clamp(5rem, 16vw, 6rem)",
+            margin: "0 auto clamp(1rem, 2.5vw, 1.25rem)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: "clamp(2rem, 7vw, 2.5rem)",
-            backgroundColor: "#FFE2A0",
-            borderRadius: "9999px",
-            border: "3px solid #ffffff",
-            boxShadow: "0 4px 0 rgba(0,0,0,0.05)",
           }}
-          aria-label="Offline indicator"
         >
-          📡
+          {/* Animated signal rings (3 ripples) */}
+          <span
+            style={{
+              position: "absolute",
+              inset: 0,
+              borderRadius: "9999px",
+              border: `2px solid ${BENTO.orange}`,
+              opacity: 0,
+              animation: "offlinePulseRing 2.4s ease-out infinite",
+              animationDelay: "0s",
+            }}
+          />
+          <span
+            style={{
+              position: "absolute",
+              inset: 0,
+              borderRadius: "9999px",
+              border: `2px solid ${BENTO.orange}`,
+              opacity: 0,
+              animation: "offlinePulseRing 2.4s ease-out infinite",
+              animationDelay: "0.8s",
+            }}
+          />
+          <span
+            style={{
+              position: "absolute",
+              inset: 0,
+              borderRadius: "9999px",
+              border: `2px solid ${BENTO.orange}`,
+              opacity: 0,
+              animation: "offlinePulseRing 2.4s ease-out infinite",
+              animationDelay: "1.6s",
+            }}
+          />
+
+          {/* Center disc holding the icon */}
+          <div
+            style={{
+              position: "relative",
+              width: "100%",
+              height: "100%",
+              borderRadius: "9999px",
+              backgroundColor: "#FFE2A0",
+              border: "3px solid #ffffff",
+              boxShadow: "0 4px 0 rgba(0,0,0,0.05)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: BENTO.orangeDark,
+            }}
+          >
+            <Satellite
+              size={36}
+              strokeWidth={2.25}
+              aria-hidden="true"
+            />
+          </div>
         </div>
 
         <h1
@@ -125,7 +188,7 @@ export default function OfflinePage() {
           your cached lessons still work.
         </p>
 
-        {/* Action Buttons — bento style with bottom-shadow press-down */}
+        {/* Action Buttons */}
         <div
           style={{
             display: "flex",
@@ -151,6 +214,10 @@ export default function OfflinePage() {
               boxShadow: `0 5px 0 ${BENTO.orangeDark}`,
               transition:
                 "transform 150ms cubic-bezier(.34, 1.56, .64, 1), box-shadow 150ms ease",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "0.625rem",
             }}
             onMouseDown={(e) => {
               e.currentTarget.style.transform = "translateY(3px)";
@@ -173,10 +240,11 @@ export default function OfflinePage() {
               e.currentTarget.style.boxShadow = `0 5px 0 ${BENTO.orangeDark}`;
             }}
           >
-            🔄 Try Again
+            <RefreshCw size={18} strokeWidth={2.5} aria-hidden="true" />
+            Try Again
           </button>
 
-          {/* Secondary: grey bento "Go Home" */}
+          {/* Secondary: chunky white "Go Home" */}
           <button
             type="button"
             onClick={() => {
@@ -196,6 +264,10 @@ export default function OfflinePage() {
               boxShadow: `0 5px 0 ${BENTO.greyShadow}`,
               transition:
                 "transform 150ms cubic-bezier(.34, 1.56, .64, 1), box-shadow 150ms ease",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "0.625rem",
             }}
             onMouseDown={(e) => {
               e.currentTarget.style.transform = "translateY(3px)";
@@ -218,7 +290,8 @@ export default function OfflinePage() {
               e.currentTarget.style.boxShadow = `0 5px 0 ${BENTO.greyShadow}`;
             }}
           >
-            🏠 Go to Home
+            <Home size={18} strokeWidth={2.5} aria-hidden="true" />
+            Go to Home
           </button>
         </div>
 
@@ -230,25 +303,38 @@ export default function OfflinePage() {
             color: BENTO.inkMuted,
             lineHeight: 1.5,
             fontWeight: 700,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexWrap: "wrap",
+            gap: "0.375rem",
           }}
         >
-          Cached lessons may still be available.
-          <br />
-          <strong style={{ color: BENTO.orange, fontWeight: 900 }}>
-            ATAL AI
-          </strong>{" "}
-          — Learning continues offline 📚
+          <Sparkles
+            size={14}
+            strokeWidth={2.5}
+            aria-hidden="true"
+            style={{ color: BENTO.orange }}
+          />
+          <span>
+            Cached lessons may still be available.
+            <br />
+            <strong style={{ color: BENTO.orange, fontWeight: 900 }}>
+              ATAL AI
+            </strong>{" "}
+            — Learning continues offline
+          </span>
         </p>
       </div>
 
-      {/* Network status pill — fixed at bottom */}
+      {/* Network status pill */}
       <output
         style={{
           position: "fixed",
           bottom: "max(env(safe-area-inset-bottom, 16px), 16px)",
           left: "50%",
           transform: "translateX(-50%)",
-          display: "flex",
+          display: "inline-flex",
           alignItems: "center",
           gap: "0.5rem",
           padding: "0.5rem 1rem",
@@ -262,23 +348,24 @@ export default function OfflinePage() {
         }}
         aria-live="polite"
       >
-        <span
-          style={{
-            width: "8px",
-            height: "8px",
-            borderRadius: "50%",
-            backgroundColor: BENTO.error,
-            animation: "pulse 2s infinite",
-          }}
+        <WifiOff
+          size={14}
+          strokeWidth={2.5}
+          aria-hidden="true"
+          style={{ color: BENTO.error }}
         />
         <span>No Internet Connection</span>
       </output>
 
-      {/* Pulse animation for the status indicator */}
+      {/* Inline keyframes — survive without globals.css */}
       <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
+        @keyframes offlinePulseRing {
+          0%   { opacity: 0.6; transform: scale(1); }
+          80%  { opacity: 0;   transform: scale(1.6); }
+          100% { opacity: 0;   transform: scale(1.6); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          [style*="offlinePulseRing"] { animation: none !important; }
         }
       `}</style>
     </div>
