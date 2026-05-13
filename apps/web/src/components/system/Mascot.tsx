@@ -70,7 +70,17 @@ export function Mascot({
 
   if (animate === "bob") {
     return (
-      <motion.div variants={bob} animate="idle" style={{ display: "inline-block" }}>
+      <motion.div
+        variants={bob}
+        animate="idle"
+        // Avoid hydration mismatch: the bob variant animates `y`,
+        // and motion's CSS at SSR time differs from the first
+        // client frame. `initial={false}` skips the SSR-vs-client
+        // diff and starts from the current DOM state.
+        initial={false}
+        style={{ display: "inline-block" }}
+        suppressHydrationWarning
+      >
         {inner}
       </motion.div>
     );
@@ -82,6 +92,7 @@ export function Mascot({
         initial="hidden"
         animate="visible"
         style={{ display: "inline-block" }}
+        suppressHydrationWarning
       >
         {inner}
       </motion.div>

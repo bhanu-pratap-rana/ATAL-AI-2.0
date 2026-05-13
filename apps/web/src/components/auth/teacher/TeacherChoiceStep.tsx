@@ -27,7 +27,7 @@ export function TeacherChoiceStep({ actions }: TeacherChoiceStepProps) {
             <GraduationCap className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mb-1">Teacher Portal</h1>
-          <p className="text-slate-400 font-bold text-sm">Are you a new or existing teacher?</p>
+          <p className="text-slate-500 font-bold text-sm">Are you a new or existing teacher?</p>
         </div>
 
         <div className="space-y-3">
@@ -55,7 +55,7 @@ export function TeacherChoiceStep({ actions }: TeacherChoiceStepProps) {
             <GraduationCap className="w-6 h-6 shrink-0 text-slate-400" />
             <div className="text-left">
               <p className="text-base font-black leading-none">Login to Account</p>
-              <p className="text-xs font-bold text-slate-400 mt-1">Existing teacher login</p>
+              <p className="text-xs font-bold text-slate-500 mt-1">Existing teacher login</p>
             </div>
           </Button>
 
@@ -76,7 +76,7 @@ export function TeacherChoiceStep({ actions }: TeacherChoiceStepProps) {
               type="button"
               variant="link"
               onClick={() => router.push("/")}
-              className="text-sm font-bold text-slate-400 hover:text-primary"
+              className="text-sm font-bold text-slate-500 hover:text-primary"
             >
               ← Back to home
             </Button>

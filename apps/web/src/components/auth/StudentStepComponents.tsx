@@ -51,7 +51,7 @@ export function ChoiceStep({ actions, loading: _loading, state: _state }: StepCo
             <span className="text-3xl">✏️</span>
             <div className="text-left">
               <p className="text-base font-black leading-none">Create Account</p>
-              <p className="text-xs font-bold text-slate-400 mt-1">New student? Sign up here</p>
+              <p className="text-xs font-bold text-slate-500 mt-1">New student? Sign up here</p>
             </div>
           </Button>
 

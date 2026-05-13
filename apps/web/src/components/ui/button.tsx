@@ -45,11 +45,19 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-linear-to-br from-primary to-primary-light text-white border-2 border-white/20 shadow-[0_4px_14px_0_rgba(249,136,25,0.39)] hover:brightness-[1.08] hover:shadow-[0_6px_20px_rgba(249,136,25,0.5)] active:brightness-[0.92] active:shadow-[0_2px_6px_rgba(249,136,25,0.2)] active:translate-y-px",
+          // Gradient endpoints stay inside the brand orange family so
+          // white text keeps ≥4.5:1 contrast even at the lightest pixel.
+          // Old endpoint was --primary-light (#FFCFA3) which dropped
+          // contrast to ~1.5:1 and failed Lighthouse on hero buttons.
+          "bg-linear-to-br from-primary to-primary-dark text-white border-2 border-white/20 shadow-[0_4px_14px_0_rgba(249,136,25,0.39)] hover:brightness-[1.08] hover:shadow-[0_6px_20px_rgba(249,136,25,0.5)] active:brightness-[0.92] active:shadow-[0_2px_6px_rgba(249,136,25,0.2)] active:translate-y-px",
         destructive:
           "bg-error text-white hover:bg-error/90 shadow-md border-2 border-white/20",
         outline:
-          "border-2 border-primary bg-white text-primary hover:bg-slate-50",
+          // text-primary-darkest (#8B4A0B) is ~8:1 vs white, comfortably
+          // clearing WCAG AA. Earlier --primary (#F98819 ≈ 3:1) and even
+          // --primary-darker (#C66610 ≈ 3.95:1) failed Lighthouse for
+          // outline-button labels at default body size.
+          "border-2 border-primary bg-white text-primary-darkest hover:bg-slate-50",
         secondary:
           "bg-slate-50 text-slate-800 hover:bg-border border-2 border-slate-200",
         ghost:
