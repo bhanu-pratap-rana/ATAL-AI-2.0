@@ -1,4 +1,6 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft, UserRound } from "lucide-react";
 import { createClient } from "@/lib/supabase-server";
 import { isTeacherOrHigher } from "@/lib/auth/role-utils";
 import { StudentProfileEditor } from "@/components/settings/StudentProfileEditor";
@@ -6,7 +8,6 @@ import { TeacherProfileEditor } from "@/components/settings/TeacherProfileEditor
 import { DeleteAccountButton } from "@/components/settings/DeleteAccountButton";
 import { getTranslation } from "@/lib/i18n";
 import { getServerLanguage } from "@/lib/i18n/server";
-import Link from "next/link";
 
 /**
  * Navigation details based on user role
@@ -114,13 +115,24 @@ export default async function SettingsPage() {
           {(() => {
             const nav = getBackNavigation(appRole);
             return (
-              <Link href={nav.href} className="inline-flex items-center gap-2 text-white/80 text-xs font-black uppercase tracking-widest mb-4">
-                ← {nav.label}
+              <Link
+                href={nav.href}
+                className="inline-flex items-center gap-1.5 text-white/85 text-xs font-black uppercase tracking-widest mb-4 hover:text-white"
+              >
+                <ArrowLeft size={14} strokeWidth={2.5} aria-hidden="true" />
+                {nav.label}
               </Link>
             );
           })()}
-          <h1 className="text-xl sm:text-2xl font-black mb-1">My Profile 👤</h1>
-          <p className="text-white/80 text-sm font-bold capitalize">{userRole} Account</p>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-white/25 border-2 border-white/40 flex items-center justify-center shrink-0 text-white">
+              <UserRound className="w-7 h-7" strokeWidth={2.25} aria-hidden="true" />
+            </div>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-black mb-0.5 leading-tight">My Profile</h1>
+              <p className="text-white/85 text-sm font-bold capitalize">{userRole} Account</p>
+            </div>
+          </div>
         </div>
 
         {/* Account Info */}

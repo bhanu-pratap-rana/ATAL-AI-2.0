@@ -6,7 +6,7 @@ import { AuthCard } from "@/components/auth/AuthCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AlertCircle, CheckCircle, Loader2 } from "lucide-react";
+import { AlertCircle, CheckCircle, ClipboardList, Info, Loader2 } from "lucide-react";
 import { AdminRoleCheckResult } from "@/components/admin/AdminRoleCheckResult";
 import { toast } from "sonner";
 
@@ -114,7 +114,7 @@ export default function AdminSetupPage() {
           {/* Info Box */}
           <div className="bg-info-light border border-info/30 rounded-2xl p-4">
             <p className="text-sm text-info-dark">
-              <strong>ℹ️ What this does:</strong>
+              <strong className="inline-flex items-center gap-1.5"><Info size={14} strokeWidth={2.5} aria-hidden="true" />What this does:</strong>
               <br />
               <span className="text-xs">
                 This tool sets the admin role metadata on a user account. After
@@ -208,7 +208,7 @@ export default function AdminSetupPage() {
           {/* Instructions Box */}
           <div className="bg-cyan-lightest border border-cyan/30 rounded-2xl p-4">
             <p className="text-sm text-cyan-darkest font-semibold mb-2">
-              📋 How to use:
+              <span className="inline-flex items-center gap-1.5"><ClipboardList size={16} strokeWidth={2.5} aria-hidden="true" />How to use:</span>
             </p>
             <ol className="text-xs text-cyan-dark space-y-1 list-decimal list-inside">
               <li>

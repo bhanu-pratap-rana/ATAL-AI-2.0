@@ -7,7 +7,7 @@ import { AuthCard } from "@/components/auth/AuthCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ShieldAlert, ArrowRight, LogOut } from "lucide-react";
+import { ArrowRight, Lock, LogOut, ShieldAlert, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { clientLogger } from "@/lib/client-logger";
 
@@ -238,7 +238,7 @@ export default function AdminLoginPage() {
           {/* Security Notice - Warning Style with Primary */}
           <div className="bg-primary-light border-l-4 border-primary p-4 rounded-xl">
             <p className="text-sm text-primary-dark">
-              <strong>🔒 Security Notice</strong>
+              <strong className="inline-flex items-center gap-1.5"><Lock size={14} strokeWidth={2.5} aria-hidden="true" />Security Notice</strong>
               <br />
               <span className="text-xs">
                 Admin access is restricted. Only accounts with admin role can
@@ -250,7 +250,7 @@ export default function AdminLoginPage() {
           {/* Info Box - Info Semantic Color */}
           <div className="bg-info-light border border-info rounded-xl p-4">
             <p className="text-sm text-info-dark">
-              <strong>👤 Default Admin:</strong>
+              <strong className="inline-flex items-center gap-1.5"><UserRound size={14} strokeWidth={2.5} aria-hidden="true" />Default Admin:</strong>
               <br />
               <span className="text-xs font-mono">atal.app.ai@gmail.com</span>
               <br />

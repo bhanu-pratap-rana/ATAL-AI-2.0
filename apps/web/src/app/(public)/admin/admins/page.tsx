@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { AdminCreateForm } from "@/components/admin/AdminCreateForm";
 import { AdminListTable } from "@/components/admin/AdminListTable";
-import { ArrowLeft, Plus, Users } from "lucide-react";
+import { ArrowLeft, Plus, UserRound, Users } from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
 import { clientLogger } from "@/lib/client-logger";
 
@@ -161,8 +161,9 @@ export default function AdminsPage() {
 
             {/* Regular Admin Info */}
             <div className="bg-primary-lighter border border-primary/30 rounded-2xl p-6">
-              <h3 className="font-black text-primary-dark mb-2">
-                👤 Regular Admin Role
+              <h3 className="font-black text-primary-dark mb-2 flex items-center gap-2">
+                <UserRound size={18} strokeWidth={2.25} aria-hidden="true" />
+                Regular Admin Role
               </h3>
               <ul className="text-sm text-slate-500 space-y-2 list-disc list-inside">
                 <li>Limited to PIN management only</li>

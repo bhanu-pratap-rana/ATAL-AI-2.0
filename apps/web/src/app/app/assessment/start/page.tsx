@@ -3,6 +3,7 @@
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import { ClipboardCheck, GraduationCap, Info } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { AssessmentRunner } from "@/components/assessment/AssessmentRunner";
@@ -133,8 +134,12 @@ function AssessmentStartContent() {
             {/* Header */}
             <div className="text-center mb-8">
               {/* Icon Box - Primary Light */}
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-light rounded-2xl mb-4">
-                <span className="text-2xl sm:text-3xl">{sessionType === "post" ? "🎓" : "📝"}</span>
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-light rounded-2xl mb-4 border-2 border-white shadow-sm text-(--bento-orange-d)">
+                {sessionType === "post" ? (
+                  <GraduationCap className="w-8 h-8" strokeWidth={2.25} aria-hidden="true" />
+                ) : (
+                  <ClipboardCheck className="w-8 h-8" strokeWidth={2.25} aria-hidden="true" />
+                )}
               </div>
               <h1 className="text-xl sm:text-3xl font-black text-slate-800 mb-2">
                 {getSessionTypeLabel(sessionType)}
@@ -149,7 +154,7 @@ function AssessmentStartContent() {
             {/* Assessment Info - Info Alert */}
             <div className="bg-info-light border-l-4 border-info p-4 rounded-2xl mb-6">
               <div className="flex items-start gap-3">
-                <span className="text-2xl">ℹ️</span>
+                <Info className="w-6 h-6 text-info-dark shrink-0 mt-0.5" strokeWidth={2.25} aria-hidden="true" />
                 <div>
                   <h3 className="font-black text-info-dark mb-2">
                     What to expect:

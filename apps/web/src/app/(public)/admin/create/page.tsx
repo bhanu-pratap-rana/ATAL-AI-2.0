@@ -9,7 +9,10 @@ import { Label } from "@/components/ui/label";
 import {
   AlertCircle,
   CheckCircle,
+  ClipboardList,
+  Info,
   Loader2,
+  Lock,
   Eye,
   EyeOff,
 } from "lucide-react";
@@ -154,7 +157,7 @@ export default function CreateAdminPage() {
           {/* Info Box */}
           <div className="bg-cyan-lightest border border-cyan/30 rounded-2xl p-4">
             <p className="text-sm text-cyan-darkest">
-              <strong>ℹ️ First Time Setup:</strong>
+              <strong className="inline-flex items-center gap-1.5"><Info size={14} strokeWidth={2.5} aria-hidden="true" />First Time Setup:</strong>
               <br />
               <span className="text-xs">
                 Create the first super admin account. This account will have
@@ -278,7 +281,7 @@ export default function CreateAdminPage() {
           {/* Security Notice */}
           <div className="bg-warning-light border border-warning/30 rounded-2xl p-4">
             <p className="text-xs text-warning-dark">
-              <strong>🔒 Security:</strong> Store your admin password securely.
+              <strong className="inline-flex items-center gap-1.5"><Lock size={14} strokeWidth={2.5} aria-hidden="true" />Security:</strong> Store your admin password securely.
               You&apos;ll need it to login to the admin panel.
             </p>
           </div>
@@ -286,7 +289,7 @@ export default function CreateAdminPage() {
           {/* Instructions Box */}
           <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
             <p className="text-sm text-slate-800 font-semibold mb-2">
-              📋 Next Steps:
+              <span className="inline-flex items-center gap-1.5"><ClipboardList size={16} strokeWidth={2.5} aria-hidden="true" />Next Steps:</span>
             </p>
             <ol className="text-xs text-slate-500 space-y-1 list-decimal list-inside">
               <li>Create admin account with email and password</li>

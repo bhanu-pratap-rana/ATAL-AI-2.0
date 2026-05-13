@@ -12,6 +12,7 @@ import {
   handleSendOTP as sendOTPHandler,
   handleVerifyOTP as verifyOTPHandler,
 } from "@/lib/auth-handlers";
+import { Lightbulb, PartyPopper, UserRound } from "lucide-react";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,17 +53,20 @@ function AuthSelectionStep({
 
         <Button
           onClick={onAnonymousAuth}
-          className="w-full h-14 text-base text-[17px] border-2 hover:border-primary hover:shadow-[var(--shadow-primary-sm)] hover:-translate-y-0.5 transition-all"
+          className="w-full h-14 text-base text-[17px] gap-2 border-2 hover:border-primary hover:shadow-[var(--shadow-primary-sm)] hover:-translate-y-0.5 transition-all"
           variant="outline"
         >
-          <span className="text-xl mr-2">👤</span>
+          <UserRound size={20} strokeWidth={2.25} aria-hidden="true" />
           <span>Continue as Guest</span>
         </Button>
 
         <div className="bg-cyan-lightest border-l-4 border-cyan p-3 rounded-xl">
-          <p className="text-xs text-cyan-darkest">
-            <strong>💡 Guest Access:</strong> You can join as a guest and
-            upgrade your account later by adding a phone number or email.
+          <p className="text-xs text-cyan-darkest flex items-start gap-2">
+            <Lightbulb size={14} strokeWidth={2.5} aria-hidden="true" className="shrink-0 mt-0.5" />
+            <span>
+              <strong>Guest Access:</strong> You can join as a guest and
+              upgrade your account later by adding a phone number or email.
+            </span>
           </p>
         </div>
 
@@ -138,7 +142,9 @@ function PhoneOTPStep({
       );
 
       if (result.success) {
-        toast.success("Phone verified! 🎉");
+        toast.success("Phone verified!", {
+          icon: <PartyPopper size={18} strokeWidth={2.5} className="text-(--bento-orange)" aria-hidden="true" />,
+        });
         onComplete();
       } else {
         toast.error(result.error || "Failed to verify OTP");

@@ -1,5 +1,6 @@
 "use client";
 
+import { AlertTriangle, ClipboardList } from "lucide-react";
 import { useAdminManagement } from "@/hooks/useAdminManagement";
 import { AdminLoadingState } from "@/components/admin/manage/AdminLoadingState";
 import { AdminUnauthorizedState } from "@/components/admin/manage/AdminUnauthorizedState";
@@ -98,7 +99,7 @@ export default function AdminManagePage() {
                 {email}
               </p>
               <p className="text-xs text-error">
-                ⚠️ This action cannot be undone. All user data will be permanently removed.
+                <span className="inline-flex items-start gap-1.5"><AlertTriangle size={14} strokeWidth={2.5} aria-hidden="true" className="shrink-0 mt-0.5" />This action cannot be undone. All user data will be permanently removed.</span>
               </p>
               <div className="flex gap-3 pt-2">
                 <Button
@@ -140,7 +141,7 @@ export default function AdminManagePage() {
           {/* Instructions Box */}
           <div className="bg-cyan-lightest border border-cyan/30 rounded-2xl p-4">
             <p className="text-sm text-cyan-darkest font-semibold mb-2">
-              📋 How It Works:
+              <span className="inline-flex items-center gap-1.5"><ClipboardList size={16} strokeWidth={2.5} aria-hidden="true" />How It Works:</span>
             </p>
             <ol className="text-xs text-cyan-dark space-y-1 list-decimal list-inside">
               <li>Delete the old admin user account</li>

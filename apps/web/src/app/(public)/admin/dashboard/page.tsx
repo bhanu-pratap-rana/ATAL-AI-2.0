@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { DashboardMetrics } from "@/components/admin/DashboardMetrics";
-import { LogOut, Users, Lock, Crown } from "lucide-react";
+import { Crown, Info, Lock, LogOut, Users } from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
 import { clientLogger } from "@/lib/client-logger";
 
@@ -180,8 +180,9 @@ export default function AdminDashboardPage() {
         {/* Info Section */}
         <section className="mt-8">
           <div className="bg-cyan-lightest border border-cyan/30 rounded-2xl p-6">
-            <h3 className="font-black text-cyan-darkest mb-2">
-              ℹ️ Admin Dashboard Information
+            <h3 className="font-black text-cyan-darkest mb-2 flex items-center gap-2">
+              <Info size={18} strokeWidth={2.25} aria-hidden="true" />
+              Admin Dashboard Information
             </h3>
             <ul className="text-sm text-cyan-dark space-y-2 list-disc list-inside">
               <li>
