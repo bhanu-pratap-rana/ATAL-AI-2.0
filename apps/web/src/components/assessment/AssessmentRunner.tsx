@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { ASSESSMENT_TIMING } from "@/lib/constants/ui-timings";
 import { QuestionNavigation } from "./QuestionNavigation";
 import {
   QuestionPagination,
@@ -15,7 +14,22 @@ import {
 import { CompactTimer } from "./AssessmentTimer";
 import { clientLogger } from "@/lib/client-logger";
 import { submitAssessment } from "@/app/actions/assessment/assessment-submission";
-import { updateTheta, type IRTItem } from "@/app/actions/assessment/irt-models";
+import { updateTheta } from "@/app/actions/assessment/irt-models";
+import type {
+  Question,
+  ResponseData,
+  QuestionHistoryItem,
+  IRTState,
+} from "./runner-types";
+import {
+  shuffleArray,
+  getLanguageFontClass,
+  getOptionButtonClasses,
+  getRadioButtonClasses,
+  checkAnswerCorrectness,
+  buildIrtResponse,
+  handleRapidTapWarning,
+} from "./runner-utils";
 
 /**
  * ATAL AI Assessment Runner - IRT-Enhanced Adaptive Testing
@@ -37,192 +51,10 @@ import { updateTheta, type IRTItem } from "@/app/actions/assessment/irt-models";
  * - a-Stratified Maximum Fisher Information item selection
  */
 
-interface Question {
-  id: string;
-  itemCode: string;
-  category: string;
-  questionNumber: number;
-  questionText: string;
-  options: { id: string; text: string }[];
-  _correctIndex: number;
-  _difficulty: number;
-  _discrimination: number;
-  _guessing: number;
-}
-
-// Fisher-Yates shuffle for option randomization
-// Uses crypto.getRandomValues() for secure randomness
-function shuffleArray<T>(array: T[]): T[] {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const randomArray = new Uint32Array(1);
-    crypto.getRandomValues(randomArray);
-    const j = randomArray[0] % (i + 1);
-    const temp = shuffled[i];
-    if (shuffled?.[j] !== undefined) {
-      shuffled[i] = shuffled[j];
-      shuffled[j] = temp;
-    }
-  }
-  return shuffled;
-}
-
 interface AssessmentRunnerProps {
   readonly sessionId: string;
   readonly questions: Question[];
   readonly language: "en" | "hi" | "as";
-}
-
-interface ResponseData {
-  itemId: string;
-  module: string;
-  isCorrect: boolean;
-  rtMs: number;
-  focusBlurCount: number;
-  chosenOption: string;
-}
-
-interface QuestionHistoryItem {
-  question: Question;
-  shuffledOptions: { id: string; text: string }[];
-  shuffleMap: number[];
-  selectedAnswer: number | null;
-  isCorrect: boolean | null;
-  hasBeenAnswered: boolean;
-  skipped: boolean;
-  /** UX-A8: Student explicitly flagged the question as confusing (vs intentional skip) */
-  confused?: boolean;
-  rtMs: number;
-  thetaBefore?: number;
-  thetaAfter?: number;
-}
-
-// IRT State for real-time ability tracking
-interface IRTState {
-  theta: number; // Current ability estimate
-  se: number; // Standard error
-  answeredCount: number; // Number of answered questions
-  correctCount: number; // Number of correct answers
-}
-
-/**
- * Helper: Get language-specific font class
- */
-function getLanguageFontClass(language: "en" | "hi" | "as"): string {
-  switch (language) {
-    case "hi":
-      return "font-devanagari";
-    case "as":
-      return "font-bengali";
-    default:
-      return "";
-  }
-}
-
-/** Option label selection states — S2301: use status keys, not boolean params */
-const OPTION_CLASSES = {
-  selected: "border-primary bg-primary-light shadow-primary-sm",
-  unselected: "border-slate-200 bg-white hover:border-primary/30 hover:bg-primary-lighter active:bg-primary-lighter/80 active:border-primary/50 active:scale-[0.99]",
-} as const;
-
-const RADIO_CLASSES = {
-  selected: "border-primary bg-primary",
-  unselected: "border-slate-200 bg-white",
-} as const;
-
-function getOptionButtonClasses(status: "selected" | "unselected"): string {
-  return OPTION_CLASSES[status];
-}
-
-function getRadioButtonClasses(status: "selected" | "unselected"): string {
-  return RADIO_CLASSES[status];
-}
-
-/**
- * Helper: Check if answer is correct based on shuffle map
- * S3776: Extracted to reduce cognitive complexity
- *
- * BUG-012 FIX: Explicit documentation and validation for index handling
- * The database stores _correctIndex as 1-based (1, 2, 3, 4 for options A, B, C, D)
- * The shuffleMap uses 0-based indices (0, 1, 2, 3)
- * We convert correctIndex from 1-based to 0-based before comparison
- *
- * @param selectedOption - 0-based index of user's selected option in shuffled order
- * @param shuffleMap - Maps shuffled position to original position (0-based)
- * @param correctIndex - 1-based index from database (_correctIndex field)
- * @returns true if the selected option maps to the correct answer
- */
-function checkAnswerCorrectness(
-  selectedOption: number,
-  shuffleMap: number[],
-  correctIndex: number,
-): boolean {
-  // BUG-012 FIX: Add validation for invalid correctIndex values
-  if (correctIndex < 1 || correctIndex > shuffleMap.length) {
-    // Log warning but don't crash - treat as incorrect
-    clientLogger.warn(
-      `[AssessmentRunner] Invalid correctIndex: ${correctIndex}, expected 1-${shuffleMap.length}`,
-    );
-    return false;
-  }
-
-  // Validate selectedOption bounds
-  if (selectedOption < 0 || selectedOption >= shuffleMap.length) {
-    clientLogger.warn(
-      `[AssessmentRunner] Invalid selectedOption: ${selectedOption}, expected 0-${shuffleMap.length - 1}`,
-    );
-    return false;
-  }
-
-  const originalOptionIndex = shuffleMap[selectedOption];
-  // Convert 1-based correctIndex to 0-based for comparison
-  const correctIndex0Based = correctIndex - 1;
-  return originalOptionIndex === correctIndex0Based;
-}
-
-/**
- * Helper: Build IRT response object from question data
- * S3776: Extracted to reduce cognitive complexity
- */
-function buildIrtResponse(
-  response: ResponseData,
-  questions: Question[],
-): { item: IRTItem; correct: boolean } {
-  const q = questions.find((question) => question.id === response.itemId);
-  return {
-    item: {
-      id: response.itemId,
-      item_code: q?.itemCode || "",
-      category: q?.category || "",
-      question_text: q?.questionText || "",
-      options: q?.options || [],
-      correct_answer: q?._correctIndex || 0,
-      difficulty: q?._difficulty || 0,
-      discrimination: q?._discrimination || 1,
-      guessing: q?._guessing || 0.2,
-    },
-    correct: response.isCorrect,
-  };
-}
-
-/**
- * Helper: Show rapid tap warning if response is too fast
- * S3776: Extracted to reduce cognitive complexity
- * BP-2 FIX: Returns timeout ID for cleanup to prevent memory leaks
- */
-function handleRapidTapWarning(
-  rtMs: number,
-  hasSelection: boolean,
-  setShowWarning: (show: boolean) => void,
-): ReturnType<typeof setTimeout> | null {
-  if (rtMs < ASSESSMENT_TIMING.rapidResponseThreshold && hasSelection) {
-    setShowWarning(true);
-    return setTimeout(
-      () => setShowWarning(false),
-      ASSESSMENT_TIMING.rapidWarningDuration,
-    );
-  }
-  return null;
 }
 
 export function AssessmentRunner({
