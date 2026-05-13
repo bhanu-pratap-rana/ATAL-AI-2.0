@@ -2,13 +2,15 @@
  * TeacherChoiceStep Component
  * Extracted from teacher/start/page.tsx to reduce cognitive complexity
  * Allows user to choose between creating a new account or logging in
+ *
+ * SP13 PR-5: Refactored to Playful-Bento.
  */
 
 "use client";
 
 import { useRouter } from "next/navigation";
 import { GraduationCap } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { BentoButton, ChunkCard } from "@/components/system";
 import type { TeacherOnboardingActions } from "@/hooks/useTeacherOnboarding";
 
 interface TeacherChoiceStepProps {
@@ -19,69 +21,86 @@ export function TeacherChoiceStep({ actions }: TeacherChoiceStepProps) {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
-      <div className="w-full max-w-md bg-white p-6 sm:p-10 rounded-[48px] shadow-2xl shadow-slate-200">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center" style={{ background: "var(--gradient-primary)", boxShadow: "var(--shadow-primary-sm)" }}>
-            <GraduationCap className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mb-1">Teacher Portal</h1>
-          <p className="text-slate-500 font-bold text-sm">Are you a new or existing teacher?</p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden [background:var(--bento-bg)]">
+      <div
+        className="bento-blob -top-20 -left-20 w-96 h-96"
+        style={{ background: "var(--bento-sky)" }}
+        aria-hidden="true"
+      />
+      <div
+        className="bento-blob bottom-0 -right-20 w-80 h-80"
+        style={{ background: "var(--bento-yellow)" }}
+        aria-hidden="true"
+      />
 
-        <div className="space-y-3">
-          {/* Create Account Button */}
-          <Button
-            type="button"
-            onClick={() => actions.setStep("auth")}
-            className="w-full h-auto p-5 justify-start gap-4 font-black whitespace-normal"
-            style={{ boxShadow: "var(--shadow-primary)" }}
-          >
-            <GraduationCap className="w-6 h-6 shrink-0" />
-            <div className="text-left">
-              <p className="text-base font-black leading-none">Create New Account</p>
-              <p className="text-xs font-bold text-white/80 mt-1">New teacher registration</p>
-            </div>
-          </Button>
-
-          {/* Login Button */}
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => actions.setStep("login")}
-            className="w-full h-auto p-5 justify-start gap-4 border-2 border-slate-200 hover:border-primary/40 hover:text-primary text-slate-700 font-black whitespace-normal"
-          >
-            <GraduationCap className="w-6 h-6 shrink-0 text-slate-400" />
-            <div className="text-left">
-              <p className="text-base font-black leading-none">Login to Account</p>
-              <p className="text-xs font-bold text-slate-500 mt-1">Existing teacher login</p>
-            </div>
-          </Button>
-
-          {/* Info Box */}
-          <div className="bg-info-light border-l-4 border-info p-4 rounded-xl">
-            <p className="text-sm text-info-dark">
-              <strong>New or returning?</strong>
-              <br />
-              <span className="text-xs text-info-dark/80">
-                New teachers need school verification. Existing teachers can login with email &amp; password.
-              </span>
-            </p>
-          </div>
-
-          {/* Back Button */}
-          <div className="text-center pt-2">
-            <Button
-              type="button"
-              variant="link"
-              onClick={() => router.push("/")}
-              className="text-sm font-bold text-slate-500 hover:text-primary"
+      <div className="relative w-full max-w-md">
+        <ChunkCard size="lg">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div
+              className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center border-4 border-white"
+              style={{ background: "var(--gradient-primary)", boxShadow: "var(--shadow-primary-sm)" }}
             >
-              ← Back to home
-            </Button>
+              <GraduationCap className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mb-1">Teacher Portal</h1>
+            <p className="text-slate-500 font-bold text-sm">Are you a new or existing teacher?</p>
           </div>
-        </div>
+
+          <div className="space-y-3">
+            {/* Create Account Button */}
+            <BentoButton
+              color="orange"
+              size="lg"
+              fullWidth
+              onClick={() => actions.setStep("auth")}
+              className="justify-start! gap-4 whitespace-normal h-auto py-4"
+            >
+              <GraduationCap className="w-6 h-6 shrink-0" />
+              <span className="text-left">
+                <span className="block text-base leading-none">Create New Account</span>
+                <span className="block text-xs font-bold text-white/80 mt-1">New teacher registration</span>
+              </span>
+            </BentoButton>
+
+            {/* Login Button */}
+            <BentoButton
+              color="grey"
+              size="lg"
+              fullWidth
+              onClick={() => actions.setStep("login")}
+              className="justify-start! gap-4 whitespace-normal h-auto py-4"
+            >
+              <GraduationCap className="w-6 h-6 shrink-0 text-slate-400" />
+              <span className="text-left">
+                <span className="block text-base leading-none">Login to Account</span>
+                <span className="block text-xs font-bold text-slate-500 mt-1">Existing teacher login</span>
+              </span>
+            </BentoButton>
+
+            {/* Info Box */}
+            <div className="[background:var(--bento-tint-sky)] border-l-4 border-(--bento-sky) p-4 rounded-2xl">
+              <p className="text-sm text-(--bento-sky-d) font-bold">
+                <strong>New or returning?</strong>
+                <br />
+                <span className="text-xs font-bold opacity-90">
+                  New teachers need school verification. Existing teachers can login with email &amp; password.
+                </span>
+              </p>
+            </div>
+
+            {/* Back Button */}
+            <div className="text-center pt-2">
+              <button
+                type="button"
+                onClick={() => router.push("/")}
+                className="text-sm font-bold text-slate-500 hover:text-(--bento-orange) underline-offset-4 hover:underline"
+              >
+                ← Back to home
+              </button>
+            </div>
+          </div>
+        </ChunkCard>
       </div>
     </div>
   );
