@@ -1,12 +1,14 @@
 /**
  * Student Start Page Step Components
  * Extracted to reduce cognitive complexity of StudentStartPage
+ *
+ * SP13 PR-2: Refactored to Playful-Bento — ChunkCard wrapper,
+ * BentoButton CTAs, RainbowRing around the mascot, pastel blobs.
  */
 
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Mascot } from "@/components/system";
+import { BentoButton, ChunkCard, Mascot, RainbowRing } from "@/components/system";
 import type { UseAuthStateReturn } from "@/hooks/useAuthState";
 
 interface StepComponentProps {
@@ -17,64 +19,88 @@ interface StepComponentProps {
 
 export function ChoiceStep({ actions, loading: _loading, state: _state }: StepComponentProps) {
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
-      <div className="w-full max-w-md bg-white p-6 sm:p-10 rounded-[48px] shadow-2xl shadow-slate-200">
-        {/* Logo — Jyoti mascot with gentle bob */}
-        <div className="mb-6 flex justify-center">
-          <Mascot size="md" animate="bob" priority alt="ATAL AI — Jyoti" />
-        </div>
-        <h1 className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight mb-3 text-center">ATAL AI</h1>
-        <p className="text-slate-500 font-bold mb-10 text-center">Assam&apos;s Premier Digital Learning Platform</p>
+    <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden [background:var(--bento-bg)]">
+      {/* Decorative pastel blobs */}
+      <div
+        className="bento-blob -top-24 -left-24 w-96 h-96"
+        style={{ background: "var(--bento-yellow)" }}
+        aria-hidden="true"
+      />
+      <div
+        className="bento-blob bottom-0 -right-24 w-80 h-80"
+        style={{ background: "var(--bento-pink)" }}
+        aria-hidden="true"
+      />
 
-        <div className="space-y-4">
-          {/* Sign In — primary orange */}
-          <Button
-            type="button"
-            onClick={() => actions.setMainStep("signin")}
-            className="w-full h-auto p-5 justify-start gap-4 font-black whitespace-normal"
-            style={{ boxShadow: "var(--shadow-primary)" }}
-          >
-            <span className="text-3xl">🎓</span>
-            <div className="text-left">
-              <p className="text-base font-black leading-none">Sign In</p>
-              <p className="text-xs font-bold text-white/80 mt-1">Login to your account</p>
-            </div>
-          </Button>
-
-          {/* Create Account */}
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => actions.setMainStep("signup")}
-            className="w-full h-auto p-5 justify-start gap-4 border-2 font-black whitespace-normal"
-          >
-            <span className="text-3xl">✏️</span>
-            <div className="text-left">
-              <p className="text-base font-black leading-none">Create Account</p>
-              <p className="text-xs font-bold text-slate-500 mt-1">New student? Sign up here</p>
-            </div>
-          </Button>
-
-          {/* Teacher + Admin row */}
-          <div className="grid grid-cols-2 gap-4">
-            <a
-              href="/teacher/start"
-              className="flex flex-col items-center gap-2 p-5 rounded-2xl text-white font-black transition-all active:scale-95 hover:opacity-90"
-              style={{ background: "var(--gradient-teacher)" }}
-            >
-              <span className="text-2xl">👩‍🏫</span>
-              <span className="text-sm font-black">Teacher</span>
-            </a>
-
-            <a
-              href="/admin/login"
-              className="flex flex-col items-center gap-2 p-5 rounded-2xl text-white font-black transition-all active:scale-95 hover:opacity-90 bg-slate-900"
-            >
-              <span className="text-2xl">🔒</span>
-              <span className="text-sm font-black">Admin</span>
-            </a>
+      <div className="relative w-full max-w-md">
+        <ChunkCard size="lg" className="text-center">
+          {/* Logo — Jyoti mascot framed by rainbow ring, gentle bob */}
+          <div className="mb-5 flex justify-center">
+            <RainbowRing>
+              <Mascot size="md" animate="bob" priority alt="ATAL AI — Jyoti" />
+            </RainbowRing>
           </div>
-        </div>
+          <h1 className="text-4xl sm:text-5xl font-black tracking-tight mb-2 text-slate-900">
+            ATAL <span className="text-(--bento-orange)">AI</span>
+          </h1>
+          <p className="text-slate-600 font-bold mb-8 text-sm sm:text-base">
+            Assam&apos;s Premier Digital Learning Platform
+          </p>
+
+          <div className="space-y-3 text-left">
+            {/* Sign In — primary orange */}
+            <BentoButton
+              color="orange"
+              size="lg"
+              fullWidth
+              onClick={() => actions.setMainStep("signin")}
+              className="justify-start! gap-4 whitespace-normal h-auto py-4"
+            >
+              <span className="text-3xl" aria-hidden="true">🎓</span>
+              <span className="text-left">
+                <span className="block text-base leading-none">Sign In</span>
+                <span className="block text-xs font-bold text-white/80 mt-1">
+                  Login to your account
+                </span>
+              </span>
+            </BentoButton>
+
+            {/* Create Account */}
+            <BentoButton
+              color="grey"
+              size="lg"
+              fullWidth
+              onClick={() => actions.setMainStep("signup")}
+              className="justify-start! gap-4 whitespace-normal h-auto py-4"
+            >
+              <span className="text-3xl" aria-hidden="true">✏️</span>
+              <span className="text-left">
+                <span className="block text-base leading-none">Create Account</span>
+                <span className="block text-xs font-bold text-slate-500 mt-1">
+                  New student? Sign up here
+                </span>
+              </span>
+            </BentoButton>
+
+            {/* Teacher + Admin row */}
+            <div className="grid grid-cols-2 gap-3 pt-1">
+              <a
+                href="/teacher/start"
+                className="btn-bento btn-bento-sky flex-col gap-2 py-4 px-2 rounded-2xl text-sm"
+              >
+                <span className="text-2xl" aria-hidden="true">👩‍🏫</span>
+                <span>Teacher</span>
+              </a>
+              <a
+                href="/admin/login"
+                className="btn-bento btn-bento-purple flex-col gap-2 py-4 px-2 rounded-2xl text-sm"
+              >
+                <span className="text-2xl" aria-hidden="true">🔒</span>
+                <span>Admin</span>
+              </a>
+            </div>
+          </div>
+        </ChunkCard>
       </div>
     </div>
   );
