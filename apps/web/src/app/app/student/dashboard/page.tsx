@@ -9,10 +9,11 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Flame, Users, PlusCircle, Trophy, ClipboardList } from "lucide-react";
+import { Users, PlusCircle, Trophy, ClipboardList } from "lucide-react";
 import { getCurrentUser, createClient } from "@/lib/supabase-server";
 import { BadgesLeaderboardPanel } from "@/components/gamification/BadgesLeaderboardPanel";
 import { AverageScore, AverageScoreSkeleton } from "@/components/student/AverageScore";
+import { Mascot, StreakFlame } from "@/components/system";
 import { isTeacherOrHigher } from "@/lib/auth/role-utils";
 import { authLogger } from "@/lib/auth-logger";
 import {
@@ -236,9 +237,10 @@ export default async function StudentDashboardPage() {
         {/* ── Orange Banner ── */}
         <div className="rounded-[32px] p-6 text-white" style={bannerStyle}>
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-2xl shrink-0">
-              🧑‍🎓
-            </div>
+            {/* Jyoti mascot replaces the static student emoji.
+                Bobs gently on idle; users with prefers-reduced-motion
+                see the mascot static (handled by MotionConfigProvider). */}
+            <Mascot size="sm" animate="bob" priority />
             <div className="flex-1 min-w-0">
               <h1 className="text-xl sm:text-2xl font-black mb-1 truncate">
                 Welcome, {displayName}!
@@ -256,10 +258,7 @@ export default async function StudentDashboardPage() {
             </div>
           </div>
           <div className="mt-4 flex items-center gap-2 flex-wrap">
-            <div className="bg-white/20 px-4 py-2 rounded-2xl flex items-center gap-2 backdrop-blur-md w-fit">
-              <Flame size={14} className="text-yellow-200 fill-yellow-200" />
-              <span className="text-xs font-black">{streakDays} Day Streak</span>
-            </div>
+            <StreakFlame days={streakDays} onDark />
             {assessmentCount > 0 && (
               <div className="bg-white/20 px-4 py-2 rounded-2xl flex items-center gap-2 backdrop-blur-md w-fit">
                 <span className="text-xs font-black">⭐ {assessmentCount} Assessments Done</span>
