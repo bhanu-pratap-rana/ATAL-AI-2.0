@@ -1,48 +1,54 @@
 "use client";
 
 /**
- * Offline Fallback Page - PWA Optimized
+ * Offline Fallback Page — PWA + Playful-Bento
  *
- * Displayed when the user is offline and the requested page is not cached.
+ * Displayed when the user is offline and the requested page is not
+ * cached. SP13 PR-8: refactored to match the Playful-Bento look from
+ * the rest of the app — chunky double-shadow card with a 4px white
+ * border, btn-bento style CTAs that press down on :active.
  *
- * Responsive Design:
- * - Mobile (< 640px): Full-width card, compact padding
- * - Tablet (640px - 1024px): Centered card with more padding
- * - Desktop (> 1024px): Larger card with maximum content width
+ * IMPORTANT: this page uses INLINE STYLES ONLY. The PWA service
+ * worker serves it from cache even when globals.css can't be fetched
+ * (the whole point — you're offline). Using Tailwind classes or
+ * importing ChunkCard/BentoButton would break the fallback contract.
+ * That's why every bento token below has a hex fallback.
  *
- * Uses CSS variables with fallbacks for when globals.css isn't loaded.
- * Touch-friendly with minimum 44px tap targets (PWA best practice).
+ * Responsive: clamp() scales padding/typography from 375px mobile to
+ * desktop. Safe-area insets handled for notched iPhones.
  */
 
-// Theme fallbacks for service worker context (when globals.css may not be loaded)
-// CSS variables are preferred, these are fallbacks only
-const THEME = {
-  surface: "#FFFBF7",
-  white: "#FFFFFF",
-  textPrimary: "#2D2A26",
-  textSecondary: "#57534E",
-  textMuted: "#A8A29E",
-  primary: "#F98819",
-  primaryDark: "#E07510",
-  primaryLight: "#FFCFA3",
-  error: "#DC2626",
-  gradientPrimary: "linear-gradient(135deg, #F98819 0%, #FFAB4A 100%)",
+// Bento token fallbacks for when globals.css is not loaded. Keep in
+// sync with apps/web/src/app/globals.css (`:root` block).
+const BENTO = {
+  bg: "#FFFBF5", // --bento-bg
+  orange: "#FF8A3D", // --bento-orange
+  orangeDark: "#E66A1A", // --bento-orange-d (bottom-shadow color)
+  surface: "#FFFFFF",
+  ink: "#231C2E", // body text
+  inkSoft: "#4B5563", // secondary body
+  inkMuted: "#94A3B8",
+  greyShadow: "#CFCAC0", // grey-button bottom-shadow
+  greyBorder: "#EDEAE2", // grey-button border
+  error: "#EF4444",
+  // Bento shadow stack: chunky bottom + soft drop (see --shadow-chunk)
+  shadowChunk:
+    "0 6px 0 rgba(0, 0, 0, 0.06), 0 14px 28px -10px rgba(0, 0, 0, 0.12)",
 } as const;
-
 
 export default function OfflinePage() {
   return (
     <div
       style={{
-        minHeight: "100dvh", // Dynamic viewport height for mobile browsers (fallback to 100vh)
+        minHeight: "100dvh",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        padding: "clamp(1rem, 5vw, 2rem)", // Responsive padding
+        padding: "clamp(1rem, 5vw, 2rem)",
         fontFamily: 'var(--font-body, "Nunito", system-ui, sans-serif)',
-        backgroundColor: `var(--color-surface, ${THEME.surface})`,
-        // Safe area support for notched devices
+        backgroundColor: `var(--bento-bg, ${BENTO.bg})`,
+        // Safe area for notched devices
         paddingTop:
           "max(env(safe-area-inset-top, 0px), clamp(1rem, 5vw, 2rem))",
         paddingBottom:
@@ -53,178 +59,189 @@ export default function OfflinePage() {
           "max(env(safe-area-inset-right, 0px), clamp(1rem, 5vw, 2rem))",
       }}
     >
+      {/* Chunky bento card — 4px white border + double shadow */}
       <div
         style={{
           width: "100%",
-          maxWidth: "min(400px, 90vw)", // Responsive max-width
+          maxWidth: "min(420px, 92vw)",
           textAlign: "center",
-          padding: "clamp(1.5rem, 4vw, 2.5rem)", // Responsive card padding
-          backgroundColor: `var(--color-white, ${THEME.white})`,
-          borderRadius: "var(--radius-xl, 1.25rem)",
-          boxShadow: "var(--shadow-lg, 0 8px 24px rgba(0, 0, 0, 0.12))",
+          padding: "clamp(1.75rem, 5vw, 2.5rem)",
+          backgroundColor: BENTO.surface,
+          border: "4px solid #ffffff",
+          borderRadius: "1.75rem", // --radius-bento (28px)
+          boxShadow: `var(--shadow-chunk, ${BENTO.shadowChunk})`,
         }}
       >
-        {/* Offline Icon - Responsive size */}
-        <figure
+        {/* Offline Icon — satellite dish keeps the "no signal" semantic.
+            Wrapped in a soft pastel chip for the bento aesthetic. */}
+        <div
           style={{
-            fontSize: "clamp(3rem, 10vw, 4.5rem)", // 48px on mobile, 72px on desktop
-            marginBottom: "clamp(0.75rem, 2vw, 1rem)",
-            lineHeight: 1,
-            margin: 0,
+            width: "clamp(4rem, 14vw, 5rem)",
+            height: "clamp(4rem, 14vw, 5rem)",
+            margin: "0 auto clamp(0.75rem, 2vw, 1rem)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "clamp(2rem, 7vw, 2.5rem)",
+            backgroundColor: "#FFE2A0",
+            borderRadius: "9999px",
+            border: "3px solid #ffffff",
+            boxShadow: "0 4px 0 rgba(0,0,0,0.05)",
           }}
           aria-label="Offline indicator"
         >
           📡
-        </figure>
+        </div>
 
-        {/* Heading - Responsive typography */}
         <h1
           style={{
-            fontSize: "clamp(1.25rem, 4vw, 1.75rem)", // 20px on mobile, 28px on desktop
-            fontWeight: "bold",
-            color: `var(--color-text-primary, ${THEME.textPrimary})`,
+            fontSize: "clamp(1.5rem, 5vw, 2rem)",
+            fontWeight: 900,
+            color: BENTO.ink,
+            margin: 0,
             marginBottom: "0.5rem",
-            fontFamily: 'var(--font-display, "Baloo 2", system-ui, sans-serif)',
-            lineHeight: 1.2,
+            fontFamily: 'var(--font-display, "Nunito", system-ui, sans-serif)',
+            lineHeight: 1.15,
+            letterSpacing: "-0.01em",
           }}
         >
           You&apos;re Offline
         </h1>
 
-        {/* Description - Responsive text */}
         <p
           style={{
-            color: `var(--color-text-secondary, ${THEME.textSecondary})`,
-            marginBottom: "clamp(1rem, 3vw, 1.5rem)",
-            fontSize: "clamp(0.875rem, 2.5vw, 1rem)", // 14px on mobile, 16px on desktop
+            color: BENTO.inkSoft,
+            margin: 0,
+            marginBottom: "clamp(1.25rem, 3.5vw, 1.75rem)",
+            fontSize: "clamp(0.875rem, 2.5vw, 1rem)",
+            fontWeight: 700,
             lineHeight: 1.5,
-            maxWidth: "30ch", // Optimal reading width
+            maxWidth: "32ch",
             marginLeft: "auto",
             marginRight: "auto",
           }}
         >
-          Please check your internet connection and try again.
+          Check your internet connection and try again. Don&apos;t worry —
+          your cached lessons still work.
         </p>
 
-        {/* Action Buttons - Touch-friendly */}
+        {/* Action Buttons — bento style with bottom-shadow press-down */}
         <div
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: "0.75rem",
+            gap: "0.875rem",
           }}
         >
-          {/* Primary Action - Try Again */}
+          {/* Primary: chunky orange "Try Again" */}
           <button
-                type="button"
+            type="button"
             onClick={() => globalThis.location.reload()}
             style={{
               width: "100%",
-              minHeight: "2.75rem", // 44px touch target (PWA requirement)
-              padding: "0.75rem 1.5rem",
-              background: `var(--gradient-primary, ${THEME.gradientPrimary})`,
-              color: "white",
+              minHeight: "3rem",
+              padding: "0.875rem 1.25rem",
+              backgroundColor: BENTO.orange,
+              color: "#ffffff",
               border: "none",
-              borderRadius: "var(--radius-md, 0.75rem)",
-              fontSize: "clamp(0.875rem, 2.5vw, 1rem)",
-              fontWeight: "600",
+              borderRadius: "1rem",
+              fontSize: "clamp(1rem, 2.5vw, 1.0625rem)",
+              fontWeight: 900,
               cursor: "pointer",
-              transition: "transform 0.2s, box-shadow 0.2s",
-              boxShadow: "0 4px 12px rgba(249, 136, 25, 0.25)",
+              boxShadow: `0 5px 0 ${BENTO.orangeDark}`,
+              transition:
+                "transform 150ms cubic-bezier(.34, 1.56, .64, 1), box-shadow 150ms ease",
             }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = "translateY(-2px)";
-              e.currentTarget.style.boxShadow =
-                "0 6px 16px rgba(249, 136, 25, 0.35)";
+            onMouseDown={(e) => {
+              e.currentTarget.style.transform = "translateY(3px)";
+              e.currentTarget.style.boxShadow = `0 2px 0 ${BENTO.orangeDark}`;
             }}
-            onFocus={(e) => {
-              e.currentTarget.style.transform = "translateY(-2px)";
-              e.currentTarget.style.boxShadow =
-                "0 6px 16px rgba(249, 136, 25, 0.35)";
-            }}
-            onMouseOut={(e) => {
+            onMouseUp={(e) => {
               e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow =
-                "0 4px 12px rgba(249, 136, 25, 0.25)";
+              e.currentTarget.style.boxShadow = `0 5px 0 ${BENTO.orangeDark}`;
             }}
-            onBlur={(e) => {
+            onMouseLeave={(e) => {
               e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow =
-                "0 4px 12px rgba(249, 136, 25, 0.25)";
+              e.currentTarget.style.boxShadow = `0 5px 0 ${BENTO.orangeDark}`;
             }}
             onTouchStart={(e) => {
-              e.currentTarget.style.transform = "scale(0.98)";
+              e.currentTarget.style.transform = "translateY(3px)";
+              e.currentTarget.style.boxShadow = `0 2px 0 ${BENTO.orangeDark}`;
             }}
             onTouchEnd={(e) => {
-              e.currentTarget.style.transform = "scale(1)";
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = `0 5px 0 ${BENTO.orangeDark}`;
             }}
           >
-            Try Again
+            🔄 Try Again
           </button>
 
-          {/* Secondary Action - Go Home */}
+          {/* Secondary: grey bento "Go Home" */}
           <button
-                type="button"
+            type="button"
             onClick={() => {
               globalThis.location.href = "/";
             }}
             style={{
               width: "100%",
-              minHeight: "2.75rem", // 44px touch target
-              padding: "0.75rem 1.5rem",
-              background: "transparent",
-              color: `var(--color-primary, ${THEME.primary})`,
-              border: `2px solid var(--color-primary, ${THEME.primary})`,
-              borderRadius: "var(--radius-md, 0.75rem)",
-              fontSize: "clamp(0.875rem, 2.5vw, 1rem)",
-              fontWeight: "600",
+              minHeight: "3rem",
+              padding: "0.875rem 1.25rem",
+              backgroundColor: "#ffffff",
+              color: BENTO.ink,
+              border: `3px solid ${BENTO.greyBorder}`,
+              borderRadius: "1rem",
+              fontSize: "clamp(1rem, 2.5vw, 1.0625rem)",
+              fontWeight: 900,
               cursor: "pointer",
-              transition: "background-color 0.2s, transform 0.2s",
+              boxShadow: `0 5px 0 ${BENTO.greyShadow}`,
+              transition:
+                "transform 150ms cubic-bezier(.34, 1.56, .64, 1), box-shadow 150ms ease",
             }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.backgroundColor = `var(--color-primary-light, ${THEME.primaryLight})`;
+            onMouseDown={(e) => {
+              e.currentTarget.style.transform = "translateY(3px)";
+              e.currentTarget.style.boxShadow = `0 2px 0 ${BENTO.greyShadow}`;
             }}
-            onFocus={(e) => {
-              e.currentTarget.style.backgroundColor = `var(--color-primary-light, ${THEME.primaryLight})`;
+            onMouseUp={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = `0 5px 0 ${BENTO.greyShadow}`;
             }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.backgroundColor = "transparent";
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.backgroundColor = "transparent";
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = `0 5px 0 ${BENTO.greyShadow}`;
             }}
             onTouchStart={(e) => {
-              e.currentTarget.style.transform = "scale(0.98)";
-              e.currentTarget.style.backgroundColor = `var(--color-primary-light, ${THEME.primaryLight})`;
+              e.currentTarget.style.transform = "translateY(3px)";
+              e.currentTarget.style.boxShadow = `0 2px 0 ${BENTO.greyShadow}`;
             }}
             onTouchEnd={(e) => {
-              e.currentTarget.style.transform = "scale(1)";
-              e.currentTarget.style.backgroundColor = "transparent";
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = `0 5px 0 ${BENTO.greyShadow}`;
             }}
           >
-            Go to Home
+            🏠 Go to Home
           </button>
         </div>
 
         {/* Info Text */}
         <p
           style={{
-            marginTop: "clamp(1rem, 3vw, 1.5rem)",
-            fontSize: "clamp(0.7rem, 2vw, 0.75rem)",
-            color: `var(--color-text-muted, ${THEME.textMuted})`,
-            lineHeight: 1.4,
+            margin: "clamp(1.25rem, 3.5vw, 1.75rem) 0 0",
+            fontSize: "clamp(0.75rem, 2vw, 0.8125rem)",
+            color: BENTO.inkMuted,
+            lineHeight: 1.5,
+            fontWeight: 700,
           }}
         >
-          Cached content may still be available.
+          Cached lessons may still be available.
           <br />
-          <strong style={{ color: `var(--color-primary, ${THEME.primary})` }}>
+          <strong style={{ color: BENTO.orange, fontWeight: 900 }}>
             ATAL AI
           </strong>{" "}
-          - Learning continues offline
+          — Learning continues offline 📚
         </p>
       </div>
 
-      {/* Network Status Indicator (optional visual feedback) */}
+      {/* Network status pill — fixed at bottom */}
       <output
         style={{
           position: "fixed",
@@ -235,11 +252,13 @@ export default function OfflinePage() {
           alignItems: "center",
           gap: "0.5rem",
           padding: "0.5rem 1rem",
-          backgroundColor: "rgba(45, 42, 38, 0.9)",
-          color: "white",
+          backgroundColor: "rgba(35, 28, 46, 0.92)",
+          color: "#ffffff",
           borderRadius: "9999px",
           fontSize: "0.75rem",
-          fontWeight: "500",
+          fontWeight: 800,
+          border: "2px solid #ffffff",
+          boxShadow: "0 4px 14px rgba(0,0,0,0.18)",
         }}
         aria-live="polite"
       >
@@ -248,7 +267,7 @@ export default function OfflinePage() {
             width: "8px",
             height: "8px",
             borderRadius: "50%",
-            backgroundColor: `var(--color-error, ${THEME.error})`,
+            backgroundColor: BENTO.error,
             animation: "pulse 2s infinite",
           }}
         />
