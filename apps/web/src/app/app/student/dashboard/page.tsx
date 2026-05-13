@@ -9,13 +9,16 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { unstable_cache } from "next/cache";
-import { ChevronRight, Flame, BookOpen, Users, PlusCircle, Trophy, ClipboardList } from "lucide-react";
-import { getCurrentUser, createClient, createAdminClient } from "@/lib/supabase-server";
+import { Flame, Users, PlusCircle, Trophy, ClipboardList } from "lucide-react";
+import { getCurrentUser, createClient } from "@/lib/supabase-server";
 import { BadgesLeaderboardPanel } from "@/components/gamification/BadgesLeaderboardPanel";
 import { AverageScore, AverageScoreSkeleton } from "@/components/student/AverageScore";
 import { isTeacherOrHigher } from "@/lib/auth/role-utils";
 import { authLogger } from "@/lib/auth-logger";
+import {
+  ContinueLearningSection,
+  ContinueLearningSkeleton,
+} from "./ContinueLearningSection";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -33,48 +36,18 @@ interface EnrolledClass {
   class_code: string;
 }
 
-interface ModuleData {
-  id: string;
-  name_en: string;
-  icon: string;
-  color_gradient: string;
-  display_order: number;
-  topic_count: number;
-}
-
 interface StudentDashboardData {
   profile: StudentProfile;
   classes: EnrolledClass[];
   assessmentCount: number;
   streakDays: number;
-  modules: ModuleData[];
-  moduleProgress: Map<string, number>; // moduleId → % complete (0-100)
 }
-
-// ─── Module fetching (cached, uses admin client) ──────────────────────────────
-
-async function fetchModulesFromDB(): Promise<ModuleData[]> {
-  const supabase = await createAdminClient();
-  const { data: rpcData, error: rpcError } = await supabase.rpc("get_modules_with_counts");
-  if (!rpcError && rpcData && rpcData.length > 0) {
-    return (rpcData as ModuleData[]).slice(0, 3);
-  }
-  const { data, error } = await supabase
-    .from("modules")
-    .select("id, name_en, icon, color_gradient, display_order")
-    .eq("is_active", true)
-    .order("display_order")
-    .limit(3);
-  if (error || !data) return [];
-  return data.map((m) => ({ ...m, topic_count: 0 })) as ModuleData[];
-}
-
-const getModulesFromDB = unstable_cache(fetchModulesFromDB, ["modules-list-dashboard"], {
-  revalidate: 3600,
-  tags: ["modules"],
-});
 
 // ─── Data fetching ────────────────────────────────────────────────────────────
+//
+// SP9 T9.1: above-fold data only. Module list + per-module progress used
+// to fetch in the same Promise.all and held up the banner LCP for ~50ms.
+// They are now in <ContinueLearningSection /> behind a Suspense boundary.
 
 async function getStudentDashboardData(userId: string): Promise<StudentDashboardData> {
   const supabase = await createClient();
@@ -86,7 +59,6 @@ async function getStudentDashboardData(userId: string): Promise<StudentDashboard
     streakResult,
     tutorInteractionsResult,
     assessmentActivityResult,
-    modules,
   ] = await Promise.all([
       supabase
         .from("student_profiles")
@@ -109,7 +81,7 @@ async function getStudentDashboardData(userId: string): Promise<StudentDashboard
 
       supabase
         .from("student_knowledge_state")
-        .select("module, mastery_score, last_attempt_at")
+        .select("last_attempt_at")
         .eq("student_id", userId)
         .order("last_attempt_at", { ascending: false })
         .limit(60),
@@ -129,8 +101,6 @@ async function getStudentDashboardData(userId: string): Promise<StudentDashboard
         .eq("user_id", userId)
         .order("started_at", { ascending: false })
         .limit(60),
-
-      getModulesFromDB(),
     ]);
 
   // Build enrolled classes with teacher names
@@ -193,20 +163,6 @@ async function getStudentDashboardData(userId: string): Promise<StudentDashboard
     }
   }
 
-  // Build per-module progress (average mastery score → %)
-  const moduleScoreMap = new Map<string, number[]>();
-  for (const row of knowledgeRows) {
-    if (!row.module) continue;
-    const arr = moduleScoreMap.get(row.module) ?? [];
-    arr.push(row.mastery_score ?? 0);
-    moduleScoreMap.set(row.module, arr);
-  }
-  const moduleProgress = new Map<string, number>();
-  for (const [moduleId, scores] of moduleScoreMap.entries()) {
-    const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
-    moduleProgress.set(moduleId, Math.round(avg * 100));
-  }
-
   return {
     profile: {
       name: profileResult.data?.name ?? null,
@@ -216,8 +172,6 @@ async function getStudentDashboardData(userId: string): Promise<StudentDashboard
     classes,
     assessmentCount: completedAssessmentsResult.count ?? 0,
     streakDays,
-    modules,
-    moduleProgress,
   };
 }
 
@@ -236,7 +190,7 @@ export default async function StudentDashboardPage() {
   if (isTeacherOrHigher(user.app_metadata?.role)) redirect("/app/teacher/dashboard");
 
   const data = await getStudentDashboardData(user.id);
-  const { profile, classes, assessmentCount, streakDays, modules, moduleProgress } = data;
+  const { profile, classes, assessmentCount, streakDays } = data;
 
   const displayName = profile.name ?? user.email?.split("@")[0] ?? "Student";
   const bannerStyle = { background: "var(--gradient-primary)" };
@@ -320,6 +274,7 @@ export default async function StudentDashboardPage() {
             <Link
               key={stat.label}
               href={stat.href}
+              prefetch={false}
               className="bg-white rounded-2xl p-4 shadow-[0_4px_20px_rgb(0,0,0,0.05)] border border-slate-100 flex flex-col items-center text-center gap-1 hover:shadow-md transition-shadow active:scale-95"
             >
               <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center text-xl shrink-0">
@@ -343,6 +298,7 @@ export default async function StudentDashboardPage() {
             <Link
               key={action.href}
               href={action.href}
+              prefetch={false}
               className="flex flex-col items-center gap-2 p-3 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow active:scale-95"
             >
               <div className={`w-11 h-11 ${action.bg} rounded-xl flex items-center justify-center`}>
@@ -361,6 +317,7 @@ export default async function StudentDashboardPage() {
             <h2 className="font-black text-slate-800 text-base">🏅 Badges & Rankings</h2>
             <Link
               href="/app/progress"
+              prefetch={false}
               className="text-xs font-black text-slate-400 hover:text-orange-500 transition-colors"
             >
               See All
@@ -372,68 +329,10 @@ export default async function StudentDashboardPage() {
           />
         </div>
 
-        {/* ── Continue Learning (Module Cards) ── */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-black text-slate-800 text-base flex items-center gap-2">
-              <BookOpen size={16} className="text-orange-400" /> Continue Learning
-            </h2>
-            <Link
-              href="/app/learn"
-              className="text-xs font-black text-slate-400 hover:text-orange-500 transition-colors"
-            >
-              See All
-            </Link>
-          </div>
-          {modules.length > 0 ? (
-            <div className="space-y-3">
-              {modules.map((mod) => {
-                const progress = moduleProgress.get(mod.id) ?? 0;
-                const topicCount = Number(mod.topic_count) || 10;
-                return (
-                  <Link key={mod.id} href={`/app/learn/${mod.id}`}>
-                    <div className="flex items-center gap-3 p-3 rounded-2xl hover:bg-slate-50 transition-colors -mx-1 px-2">
-                      <div
-                        className="w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0"
-                        style={{ background: mod.color_gradient || "var(--gradient-primary)" }}
-                      >
-                        {mod.icon || "📚"}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-black text-slate-800 text-sm truncate">{mod.name_en}</p>
-                        <p className="text-[11px] font-bold text-slate-400 mb-1">
-                          {topicCount} topics
-                        </p>
-                        <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all"
-                            style={{
-                              width: `${progress}%`,
-                              background: "var(--gradient-primary-vertical)",
-                            }}
-                          />
-                        </div>
-                        <p className="text-[11px] font-bold text-slate-400 mt-0.5">{progress}% complete</p>
-                      </div>
-                      <ChevronRight size={16} className="text-slate-300 shrink-0" />
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          ) : (
-            <Link href="/app/learn" className="flex items-center gap-4 p-3 rounded-2xl hover:bg-slate-50 transition-colors">
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0" style={bannerStyle}>
-                <BookOpen className="w-7 h-7 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-black text-slate-800 text-sm">Start Learning</p>
-                <p className="text-xs font-bold text-slate-400 mt-0.5">Explore all modules</p>
-              </div>
-              <ChevronRight size={16} className="text-slate-300 shrink-0" />
-            </Link>
-          )}
-        </div>
+        {/* ── Continue Learning (streams independently) ── */}
+        <Suspense fallback={<ContinueLearningSkeleton />}>
+          <ContinueLearningSection userId={user.id} />
+        </Suspense>
 
       </div>
     </div>
