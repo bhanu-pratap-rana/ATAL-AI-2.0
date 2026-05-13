@@ -9,6 +9,7 @@ import { LevelBadge, LevelCard } from "./LevelBadge";
 import { AssessmentStats } from "./AssessmentStats";
 import { CelebrationAnimation } from "@/components/animations/LottieAnimation";
 import { MASTERY_THRESHOLDS } from "@/lib/constants/thresholds";
+import { MugaCard } from "@/components/system";
 
 /**
  * ATAL AI Assessment Summary - Enhanced with IRT Scoring
@@ -189,9 +190,23 @@ export function AssessmentSummary({
 
   const scoreMessage = getScoreMessage(score);
 
+  // SP7 Phase B PR-3: muga-gold celebration banner when the student
+  // crosses HIGH_SCORE_BONUS (90+). The shimmer + entrance animation
+  // are owned by MugaCard; everything below stays the same.
+  const isMastery = score >= MASTERY_THRESHOLDS.HIGH_SCORE_BONUS;
+
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8 pb-28">
       <div className="max-w-4xl mx-auto">
+        {/* Mastery banner — only shows on excellent scores */}
+        {isMastery && (
+          <MugaCard tier="mastered" className="mb-6 text-center">
+            <p className="text-base sm:text-lg font-black text-amber-900">
+              🏆 Mastery Achieved — like Muga silk, your effort shines.
+            </p>
+          </MugaCard>
+        )}
+
         {/* Header Card - Celebration */}
         <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 md:p-8 mb-6">
             {/* Celebration Banner */}
