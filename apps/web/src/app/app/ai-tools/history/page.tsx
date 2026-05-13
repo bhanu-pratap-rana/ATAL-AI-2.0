@@ -9,6 +9,7 @@
 
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { ArrowLeft, Bot, History, MessageSquarePlus } from "lucide-react";
 import { createClient } from "@/lib/supabase-server";
 import { ConversationHistory } from "@/components/tutor/ConversationHistory";
 import { authLogger } from "@/lib/auth-logger";
@@ -110,12 +111,26 @@ export default async function ConversationHistoryPage() {
     <div className="min-h-screen [background:var(--bento-bg)] p-4 md:p-6 pb-28">
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Banner */}
-        <div className="rounded-[32px] p-6 text-white" style={{ background: "var(--gradient-primary)" }}>
-          <Link href="/app/ai-tools" className="inline-flex items-center gap-2 text-white/80 text-xs font-black uppercase tracking-widest mb-4">
-            ← AI Tools
+        <div
+          className="rounded-[32px] border-4 border-white p-6 text-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)]"
+          style={{ background: "var(--gradient-primary)" }}
+        >
+          <Link
+            href="/app/ai-tools"
+            className="inline-flex items-center gap-1.5 text-white/85 text-xs font-black uppercase tracking-widest mb-4 hover:text-white"
+          >
+            <ArrowLeft size={14} strokeWidth={2.5} aria-hidden="true" />
+            AI Tools
           </Link>
-          <h1 className="text-xl sm:text-2xl font-black mb-1">Conversation History 💬</h1>
-          <p className="text-white/80 text-sm font-bold">View your past conversations with the AI Tutor</p>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-white/25 border-2 border-white/40 flex items-center justify-center shrink-0 text-white">
+              <History className="w-7 h-7" strokeWidth={2.25} aria-hidden="true" />
+            </div>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-black mb-0.5 leading-tight">Conversation History</h1>
+              <p className="text-white/85 text-sm font-bold">View your past conversations with the AI Tutor</p>
+            </div>
+          </div>
         </div>
 
         {/* Stats */}
@@ -135,16 +150,18 @@ export default async function ConversationHistoryPage() {
           <ConversationHistory sessions={sessions} />
         ) : (
           <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-8 sm:p-12 text-center">
-            <div className="text-4xl sm:text-5xl mb-4">🤖</div>
-            <h3 className="font-black text-slate-800 text-lg mb-2">No conversations yet</h3>
-            <p className="font-bold text-slate-400 text-sm mb-6 max-w-md mx-auto">
+            <div className="mx-auto mb-4 w-20 h-20 rounded-3xl bg-(--bento-tint-orange) border-4 border-white shadow-sm flex items-center justify-center text-(--bento-orange-d)">
+              <Bot className="w-10 h-10" strokeWidth={2.25} aria-hidden="true" />
+            </div>
+            <h3 className="font-black text-slate-900 text-lg mb-2">No conversations yet</h3>
+            <p className="font-bold text-slate-500 text-sm mb-6 max-w-md mx-auto">
               Start a conversation with the AI Tutor to get help with your learning.
             </p>
             <Link
               href="/app/ai-tools/tutor"
-              className="px-6 py-3 rounded-2xl font-black text-sm text-white transition-all active:scale-95 inline-block"
-              style={{ background: "var(--gradient-primary)", boxShadow: "0 4px 14px rgba(249,136,25,0.39)" }}
+              className="btn-bento gap-2 justify-center px-6 py-3 rounded-2xl text-sm inline-flex"
             >
+              <MessageSquarePlus size={18} strokeWidth={2.5} aria-hidden="true" />
               Start a Conversation
             </Link>
           </div>

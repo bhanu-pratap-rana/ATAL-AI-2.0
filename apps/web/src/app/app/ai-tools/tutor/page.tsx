@@ -5,6 +5,14 @@ import Link from "next/link";
 // NOSONAR S1874: useChat is marked deprecated but still functional in AI SDK 4.x
 // Migration to AI SDK 5.0+ would require a major refactor - keeping for now
 import { useChat } from "ai/react"; // NOSONAR
+import {
+  AlertCircle,
+  ArrowLeft,
+  Bot,
+  Lightbulb,
+  Mic,
+  Pencil,
+} from "lucide-react";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { VoiceChat } from "@/components/voice/VoiceChat";
 import { ConversationalVoiceChat } from "@/components/voice/ConversationalVoiceChat";
@@ -152,12 +160,26 @@ export default function AITutorPage() {
     <div className="min-h-screen [background:var(--bento-bg)] p-4 md:p-6 pb-28">
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Banner */}
-        <div className="rounded-[32px] p-6 text-white" style={{ background: "var(--gradient-primary)" }}>
-          <Link href="/app/ai-tools" className="inline-flex items-center gap-2 text-white/80 text-xs font-black uppercase tracking-widest mb-4">
-            ← AI Tools
+        <div
+          className="rounded-[32px] border-4 border-white p-6 text-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)]"
+          style={{ background: "var(--gradient-primary)" }}
+        >
+          <Link
+            href="/app/ai-tools"
+            className="inline-flex items-center gap-1.5 text-white/85 text-xs font-black uppercase tracking-widest mb-4 hover:text-white"
+          >
+            <ArrowLeft size={14} strokeWidth={2.5} aria-hidden="true" />
+            AI Tools
           </Link>
-          <h1 className="text-xl sm:text-2xl font-black mb-1">AI Tutor 💬</h1>
-          <p className="text-white/80 text-sm font-bold">Ask questions about digital literacy and get personalized help</p>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-white/25 border-2 border-white/40 flex items-center justify-center shrink-0 text-white">
+              <Bot className="w-7 h-7" strokeWidth={2.25} aria-hidden="true" />
+            </div>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-black mb-0.5 leading-tight">AI Tutor</h1>
+              <p className="text-white/85 text-sm font-bold">Ask questions about digital literacy and get personalized help</p>
+            </div>
+          </div>
         </div>
 
         {/* Language & Input Mode Selectors */}
@@ -189,9 +211,10 @@ export default function AITutorPage() {
               size="sm"
               variant={inputMode === "text" ? "default" : "secondary"}
               onClick={() => setInputMode("text")}
-              className="font-black text-sm"
+              className="font-black text-sm gap-1.5"
             >
-              📝 Text
+              <Pencil size={14} strokeWidth={2.5} aria-hidden="true" />
+              Text
             </Button>
             <Button
               type="button"
@@ -200,9 +223,10 @@ export default function AITutorPage() {
               size="sm"
               variant={inputMode === "voice" ? "default" : "secondary"}
               onClick={() => setInputMode("voice")}
-              className="font-black text-sm"
+              className="font-black text-sm gap-1.5"
             >
-              🎤 Voice
+              <Mic size={14} strokeWidth={2.5} aria-hidden="true" />
+              Voice
             </Button>
           </div>
         </div>
@@ -241,7 +265,10 @@ export default function AITutorPage() {
               <span className="text-xs font-bold text-slate-400">
                 Response: <strong className="text-orange-500">{getLanguageName(language)}</strong>
               </span>
-              <span className="text-xs font-bold text-emerald-500">🎤 Speak any language</span>
+              <span className="text-xs font-bold text-emerald-600 flex items-center gap-1.5">
+                <Mic size={12} strokeWidth={2.5} aria-hidden="true" />
+                Speak any language
+              </span>
             </div>
 
             {/* Auto-TTS Toggle */}
@@ -276,9 +303,10 @@ export default function AITutorPage() {
             );
           }
           return (
-            <div className="bg-red-50 border border-red-100 rounded-3xl p-4">
-              <p className="text-sm font-bold text-red-500">
-                ⚠️ {error.message || "An error occurred. Please try again."}
+            <div className="bg-red-50 border border-red-200 rounded-3xl p-4">
+              <p className="text-sm font-bold text-red-700 flex items-center gap-2">
+                <AlertCircle size={16} strokeWidth={2.5} aria-hidden="true" className="shrink-0" />
+                {error.message || "An error occurred. Please try again."}
               </p>
             </div>
           );
@@ -402,14 +430,21 @@ export default function AITutorPage() {
 
         {/* Tips - Only show in text mode */}
         {inputMode === "text" && (
-          <div className="bg-orange-50 rounded-3xl border border-orange-100 p-4">
-            <p className="text-sm font-black text-orange-600 mb-2">💡 Tips for better answers</p>
-            <ul className="text-xs font-bold text-orange-500 space-y-1">
-              <li>• Ask specific questions about digital literacy topics</li>
-              <li>• Include context about what you&apos;re trying to learn</li>
-              <li>• Feel free to ask follow-up questions</li>
-              <li>• Watch responses appear in real-time with streaming! ⚡</li>
-            </ul>
+          <div className="bg-(--bento-tint-orange) rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-white border-2 border-white shadow-sm flex items-center justify-center shrink-0 text-(--bento-orange-d)">
+                <Lightbulb className="w-5 h-5" strokeWidth={2.25} aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-sm font-black text-(--bento-orange-d) mb-2">Tips for better answers</p>
+                <ul className="text-xs font-bold text-slate-700 space-y-1">
+                  <li>• Ask specific questions about digital literacy topics</li>
+                  <li>• Include context about what you&apos;re trying to learn</li>
+                  <li>• Feel free to ask follow-up questions</li>
+                  <li>• Watch responses appear in real-time with streaming</li>
+                </ul>
+              </div>
+            </div>
           </div>
         )}
       </div>
