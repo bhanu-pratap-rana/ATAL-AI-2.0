@@ -225,7 +225,11 @@
   /* ==========================================
      TYPOGRAPHY - Font Families
      ========================================== */
-  --font-display: 'Baloo 2', var(--font-nunito), system-ui, sans-serif;
+  /* SP7 Phase A T-A3: Sora is the new display font (loaded via next/font
+     in layout.tsx and exposed as --font-sora). Baloo 2 stays in the fall-
+     back chain so any cached page that still references it visually
+     degrades gracefully instead of jumping to the system font. */
+  --font-display: var(--font-sora), 'Baloo 2', var(--font-nunito), system-ui, sans-serif;
   --font-body: var(--font-nunito), 'Nunito', system-ui, sans-serif;
   --font-hindi: var(--font-devanagari), 'Noto Sans Devanagari', system-ui, sans-serif;
   --font-assamese: var(--font-bengali), 'Noto Sans Bengali', system-ui, sans-serif;

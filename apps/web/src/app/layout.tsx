@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import {
   Nunito,
+  Sora,
   Noto_Sans_Devanagari,
   Noto_Sans_Bengali,
 } from "next/font/google";
@@ -16,14 +17,29 @@ import { LanguageProvider } from "@/lib/i18n";
 import "./globals.css";
 
 /* ============================================
-   ATAL AI - Jyoti Theme Typography
-   
+   ATAL AI - Jyoti Theme Typography (v5)
+
    Font Stack:
-   - Display: Baloo 2 (headings, titles)
-   - Body: Nunito (paragraphs, UI text)
-   - Hindi: Noto Sans Devanagari
+   - Display: Sora (headings, titles — geometric, modern, pairs well
+              with the Indic scripts below)
+   - Body:    Nunito (paragraphs, UI text — friendly, readable)
+   - Hindi:   Noto Sans Devanagari
    - Assamese: Noto Sans Bengali
+
+   All four use display:"swap" so text paints with a fallback font
+   immediately and the brand font swaps in once loaded. next/font
+   self-hosts the woff2 files at build time (no CLS from CSS request).
    ============================================ */
+
+// Display font v5 — Sora (geometric, modern)
+// `--font-display` (in globals.css) layers Sora on top of the old
+// Baloo 2 fallback so old screens keep working during rollout.
+const sora = Sora({
+  variable: "--font-sora",
+  subsets: ["latin"],
+  weight: ["500", "600", "700", "800"],
+  display: "swap",
+});
 
 // Primary body font - Nunito (friendly, readable)
 const nunito = Nunito({
@@ -108,15 +124,14 @@ export default function RootLayout({
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
-        {/* Baloo 2 for display headings - loaded via CSS for flexibility */}
-        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-        <link
-          href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap"
-          rel="stylesheet"
-        />
+        {/* SP7 Phase A T-A3: Sora replaces Baloo 2 as the display font.
+            Sora is loaded via next/font (self-hosted woff2, zero render-
+            blocking external requests) and exposed as --font-sora.
+            --font-display in globals.css uses Sora first with the old
+            Baloo 2 fallback chain kept for backward compatibility. */}
       </head>
       <body
-        className={`${nunito.variable} ${notoSansDevanagari.variable} ${notoSansBengali.variable} font-sans antialiased`}
+        className={`${sora.variable} ${nunito.variable} ${notoSansDevanagari.variable} ${notoSansBengali.variable} font-sans antialiased`}
         style={{
           fontFamily: "var(--font-nunito), 'Nunito', system-ui, sans-serif",
         }}
