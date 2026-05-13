@@ -1,5 +1,6 @@
 "use client";
 
+import { PartyPopper } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -141,7 +142,9 @@ export function SignUpPhoneFlow({
       }
 
       authLogger.success("[SignUp Phone] Account created successfully");
-      toast.success("Account created! 🎉");
+      toast.success("Account created!", {
+        icon: <PartyPopper size={18} strokeWidth={2.5} className="text-(--bento-orange)" aria-hidden="true" />,
+      });
       actions.resetSignupPhone();
       onSuccess();
       router.push("/app/student/dashboard");

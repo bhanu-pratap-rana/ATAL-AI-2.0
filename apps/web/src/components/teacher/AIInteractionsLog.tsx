@@ -13,6 +13,7 @@
  */
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { Bot, GraduationCap, Mic, Settings } from "lucide-react";
 import { createClient } from "@/lib/supabase-browser";
 import type { SupportedLanguage } from "@/types/common";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -235,17 +236,31 @@ function getMessageBoxClass(messageRole: MessageRole): string {
 }
 
 /**
- * Get label and emoji for message role
+ * Render label + Lucide icon for message role
  */
-function getMessageRoleLabel(messageRole: MessageRole): string {
-  switch (messageRole) {
-    case "user":
-      return "🧑‍🎓 Student";
-    case "assistant":
-      return "🤖 ATAL AI";
-    case "system":
-      return "⚙️ System";
+function MessageRoleLabel({ messageRole }: { readonly messageRole: MessageRole }) {
+  if (messageRole === "user") {
+    return (
+      <span className="font-medium text-xs inline-flex items-center gap-1">
+        <GraduationCap size={12} strokeWidth={2.5} aria-hidden="true" />
+        Student
+      </span>
+    );
   }
+  if (messageRole === "assistant") {
+    return (
+      <span className="font-medium text-xs inline-flex items-center gap-1">
+        <Bot size={12} strokeWidth={2.5} aria-hidden="true" />
+        ATAL AI
+      </span>
+    );
+  }
+  return (
+    <span className="font-medium text-xs inline-flex items-center gap-1">
+      <Settings size={12} strokeWidth={2.5} aria-hidden="true" />
+      System
+    </span>
+  );
 }
 
 function SessionCard({ session }: { readonly session: Session }) {
@@ -325,11 +340,9 @@ function SessionCard({ session }: { readonly session: Session }) {
                   className={`p-2 rounded-lg text-sm ${getMessageBoxClass(message.message_role)}`}
                 >
                   <div className="flex items-center gap-1 mb-1">
-                    <span className="font-medium text-xs">
-                      {getMessageRoleLabel(message.message_role)}
-                    </span>
+                    <MessageRoleLabel messageRole={message.message_role} />
                     {message.input_mode === "voice" && (
-                      <span className="text-xs text-slate-500">🎤</span>
+                      <Mic size={12} strokeWidth={2.5} className="text-slate-500" aria-label="Voice message" />
                     )}
                   </div>
                   <p className="whitespace-pre-wrap wrap-break-word">

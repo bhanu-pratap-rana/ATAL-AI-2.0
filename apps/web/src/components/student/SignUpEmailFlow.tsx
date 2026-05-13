@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
+import { PartyPopper, RefreshCw } from "lucide-react";
 import {
   validateEmail,
   validatePassword,
@@ -227,7 +227,9 @@ export function SignUpEmailFlow({
         return;
       }
 
-      toast.success("Account created successfully! 🎉");
+      toast.success("Account created successfully!", {
+        icon: <PartyPopper size={18} strokeWidth={2.5} className="text-(--bento-orange)" aria-hidden="true" />,
+      });
       actions.resetSignupEmail();
       onSuccess();
       router.push("/app/student/dashboard");

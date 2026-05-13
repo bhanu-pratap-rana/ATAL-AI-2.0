@@ -14,6 +14,7 @@ import { joinClass } from "@/app/actions/student";
 import { createClient } from "@/lib/supabase-browser";
 import { authLogger } from "@/lib/auth-logger";
 import { toast } from "sonner";
+import { PartyPopper } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { AuthState, AuthActions } from "@/hooks/useAuthState";
 
@@ -77,7 +78,9 @@ export function GuestJoinForm({
       });
 
       if (result.success) {
-        toast.success("Successfully joined class! 🎉");
+        toast.success("Successfully joined class!", {
+          icon: <PartyPopper size={18} strokeWidth={2.5} className="text-(--bento-orange)" aria-hidden="true" />,
+        });
         actions.resetGuest();
         onSuccess();
         router.push("/app/student/classes");
