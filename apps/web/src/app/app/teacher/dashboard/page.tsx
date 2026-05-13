@@ -13,6 +13,7 @@ import { authLogger } from "@/lib/auth-logger";
 import { StudentProgressGrid } from "@/components/teacher/StudentProgressGrid";
 import { AIInteractionsLog } from "@/components/teacher/AIInteractionsLog";
 import { isTeacherOrHigher } from "@/lib/auth/role-utils";
+import { ChunkCard } from "@/components/system";
 
 async function getTeacherName(teacherId: string): Promise<string> {
   const supabase = await createClient();
@@ -153,186 +154,205 @@ export default async function TeacherDashboardPage({
 
   const bannerStyle = { background: "var(--gradient-teacher)" };
 
+  // Shared page chrome: warm bento bg + decorative pastel blobs (skyblue + purple)
+  const pageChrome = (children: React.ReactNode) => (
+    <div className="min-h-screen p-4 md:p-6 pb-28 relative overflow-hidden [background:var(--bento-bg)]">
+      <div
+        className="bento-blob -top-20 -left-20 w-96 h-96"
+        style={{ background: "var(--bento-sky)" }}
+        aria-hidden="true"
+      />
+      <div
+        className="bento-blob bottom-0 -right-20 w-96 h-96"
+        style={{ background: "var(--bento-purple)" }}
+        aria-hidden="true"
+      />
+      <div className="relative max-w-4xl mx-auto space-y-4">{children}</div>
+    </div>
+  );
+
   if (metrics.totalClasses === 0) {
-    return (
-      <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
-        <div className="max-w-4xl mx-auto space-y-4">
-          <div className="rounded-[32px] p-6 text-white" style={bannerStyle}>
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-2xl shrink-0">👩‍🏫</div>
-              <div className="min-w-0">
-                <h1 className="text-xl sm:text-2xl font-black mb-1 truncate">Welcome, {teacherName}!</h1>
-                <p className="text-blue-100 text-sm font-bold">Create your first class to start tracking student progress.</p>
-              </div>
+    return pageChrome(
+      <>
+        <ChunkCard size="lg" className="text-white border-white! relative overflow-hidden" style={bannerStyle}>
+          <div className="flex items-start gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-white/25 border-2 border-white/40 flex items-center justify-center text-3xl shrink-0">👩‍🏫</div>
+            <div className="min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-black mb-1 truncate leading-tight">Welcome, {teacherName}!</h1>
+              <p className="text-blue-50 text-sm font-bold">Create your first class to start tracking student progress.</p>
             </div>
           </div>
+        </ChunkCard>
 
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8 sm:p-12 text-center">
-            <div className="text-4xl sm:text-6xl mb-4">👥</div>
-            <h2 className="text-xl sm:text-2xl font-black text-slate-800 mb-2">Welcome to ATAL AI!</h2>
-            <p className="font-bold text-slate-400 text-sm mb-6">Create your first class to start tracking student progress.</p>
-            <Link
-              href="/app/teacher/classes"
-              className="px-6 py-3 rounded-2xl font-black text-sm text-white transition-all active:scale-95 inline-block"
-              style={bannerStyle}
-            >
-              Create Your First Class
-            </Link>
-          </div>
-        </div>
-      </div>
+        <ChunkCard size="lg" className="text-center">
+          <div className="text-5xl sm:text-7xl mb-4">👥</div>
+          <h2 className="text-2xl font-black text-slate-900 mb-2">Welcome to ATAL AI!</h2>
+          <p className="font-bold text-slate-500 text-sm mb-6">Create your first class to start tracking student progress.</p>
+          <Link
+            href="/app/teacher/classes"
+            className="btn-bento btn-bento-sky px-6 py-3 rounded-2xl text-base inline-flex"
+          >
+            Create Your First Class →
+          </Link>
+        </ChunkCard>
+      </>,
     );
   }
 
   const selectedClass =
     metrics.classes.find((c) => c.id === selectedClassId) ?? metrics.classes[0];
 
-  return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
-      <div className="max-w-4xl mx-auto space-y-4">
-        {/* Banner */}
-        <div className="rounded-[32px] p-6 text-white" style={bannerStyle}>
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-2xl shrink-0">👩‍🏫</div>
-            <div className="flex-1 min-w-0">
-              <h1 className="text-xl sm:text-2xl font-black mb-1 truncate">{teacherName}</h1>
-              <p className="text-blue-100 text-xs font-black uppercase tracking-widest">Class Instructor • ATAL AI</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3 mt-4">
-            <div className="bg-white/10 p-3 rounded-2xl backdrop-blur-md text-center">
-              <p className="text-xl sm:text-2xl font-black">{metrics.totalStudents}</p>
-              <p className="text-[11px] uppercase font-black text-blue-100">Total Students</p>
-            </div>
-            <div className="bg-white/10 p-3 rounded-2xl backdrop-blur-md text-center">
-              <p className="text-xl sm:text-2xl font-black">{metrics.activeStudents}</p>
-              <p className="text-[11px] uppercase font-black text-blue-100">Active This Week</p>
-            </div>
+  return pageChrome(
+    <>
+      {/* Banner */}
+      <ChunkCard size="lg" className="text-white border-white! relative overflow-hidden" style={bannerStyle}>
+        <div className="flex items-start gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-white/25 border-2 border-white/40 flex items-center justify-center text-3xl shrink-0">👩‍🏫</div>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-black mb-1 truncate leading-tight">{teacherName}</h1>
+            <p className="text-blue-50 text-xs font-black uppercase tracking-widest">Class Instructor • ATAL AI</p>
           </div>
         </div>
+        <div className="grid grid-cols-2 gap-3 mt-5">
+          <div className="bg-white/15 p-3 rounded-2xl backdrop-blur-md text-center border-2 border-white/25">
+            <p className="text-2xl sm:text-3xl font-black">{metrics.totalStudents}</p>
+            <p className="text-[11px] uppercase font-black text-blue-50">Total Students</p>
+          </div>
+          <div className="bg-white/15 p-3 rounded-2xl backdrop-blur-md text-center border-2 border-white/25">
+            <p className="text-2xl sm:text-3xl font-black">{metrics.activeStudents}</p>
+            <p className="text-[11px] uppercase font-black text-blue-50">Active This Week</p>
+          </div>
+        </div>
+      </ChunkCard>
 
-        {/* Recent Activity */}
-        {recentStudents.length > 0 && (
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-black text-slate-800 text-base">Recent Activity</h2>
-              <Link href="/app/teacher/classes" className="text-xs font-black text-slate-400 hover:text-blue-600 transition-colors">
-                See All
-              </Link>
-            </div>
-            <div className="space-y-2">
-              {recentStudents.map((s) => (
-                <div key={s.id} className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center font-black text-slate-500 text-sm shrink-0">
-                      {(s.name ?? "?").charAt(0).toUpperCase()}
-                    </div>
-                    <p className="font-bold text-slate-800 text-sm truncate">{s.name ?? "Unknown"}</p>
+      {/* Recent Activity */}
+      {recentStudents.length > 0 && (
+        <ChunkCard size="md">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-black text-slate-900 text-lg">📋 Recent Activity</h2>
+            <Link href="/app/teacher/classes" className="text-xs font-black text-slate-500 hover:text-(--bento-sky-d) transition-colors">
+              See All →
+            </Link>
+          </div>
+          <div className="space-y-1">
+            {recentStudents.map((s) => (
+              <div key={s.id} className="flex items-center justify-between py-2 rounded-xl px-2 hover:[background:var(--bento-tint-sky)]">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-full [background:var(--bento-tint-sky)] flex items-center justify-center font-black text-[color:var(--bento-sky-d)] text-sm shrink-0 border-2 border-white shadow-sm">
+                    {(s.name ?? "?").charAt(0).toUpperCase()}
                   </div>
-                  <ChevronRight size={16} className="text-slate-300" />
+                  <p className="font-black text-slate-800 text-sm truncate">{s.name ?? "Unknown"}</p>
                 </div>
-              ))}
-            </div>
+                <ChevronRight size={18} className="text-slate-400" />
+              </div>
+            ))}
           </div>
-        )}
+        </ChunkCard>
+      )}
 
-        {/* Stat Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {[
-            { icon: "📚", value: metrics.totalClasses, label: "Classes" },
-            { icon: "👥", value: metrics.totalStudents, label: "Students" },
-            { icon: "✅", value: metrics.activeStudents, label: "Active (7d)" },
-            { icon: "⚠️", value: metrics.atRiskStudents, label: "At Risk" },
-          ].map((stat) => (
-            <div key={stat.label} className="bg-white rounded-2xl p-4 shadow-[0_4px_20px_rgb(0,0,0,0.05)] border border-slate-100 flex flex-col items-center text-center gap-1">
-              <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-xl shrink-0">{stat.icon}</div>
-              <p className="text-xl font-black text-slate-800 leading-none">{stat.value}</p>
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider leading-tight">{stat.label}</p>
-            </div>
-          ))}
-        </div>
+      {/* Stat Cards — chunky bento tiles with rotating tints */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          { icon: "📚", value: metrics.totalClasses, label: "Classes", tint: "sky" },
+          { icon: "👥", value: metrics.totalStudents, label: "Students", tint: "purple" },
+          { icon: "✅", value: metrics.activeStudents, label: "Active (7d)", tint: "mint" },
+          { icon: "⚠️", value: metrics.atRiskStudents, label: "At Risk", tint: "red" },
+        ].map((stat) => (
+          <div
+            key={stat.label}
+            className="chunk-card-sm border-4 border-white p-4 flex flex-col items-center text-center gap-1"
+            style={{ background: `var(--bento-tint-${stat.tint})` }}
+          >
+            <div className="w-11 h-11 bg-white rounded-2xl flex items-center justify-center text-2xl shrink-0 border-2 border-white shadow-sm">{stat.icon}</div>
+            <p className="text-2xl font-black text-slate-900 leading-none mt-1">{stat.value}</p>
+            <p className="text-[11px] font-black text-slate-600 uppercase tracking-wider leading-tight">{stat.label}</p>
+          </div>
+        ))}
+      </div>
 
-        {/* Multiple classes selector */}
-        {metrics.classes.length > 1 && (
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5">
-            <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Select Class</p>
-            <div className="flex flex-wrap gap-2">
-              {metrics.classes.map((cls) => (
+      {/* Multiple classes selector */}
+      {metrics.classes.length > 1 && (
+        <ChunkCard size="md">
+          <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3">Select Class</p>
+          <div className="flex flex-wrap gap-2">
+            {metrics.classes.map((cls) => {
+              const isActive = cls.id === selectedClass.id;
+              return (
                 <Link
                   key={cls.id}
                   href={`?classId=${cls.id}`}
-                  className={`px-4 py-2 rounded-xl text-xs font-black transition-colors ${
-                    cls.id === selectedClass.id
-                      ? "text-white"
-                      : "bg-slate-100 text-slate-600"
+                  className={`px-4 py-2 rounded-xl text-xs font-black transition-colors border-2 ${
+                    isActive
+                      ? "text-white border-white"
+                      : "bg-slate-100 text-slate-700 border-slate-100 hover:bg-slate-200"
                   }`}
-                  style={cls.id === selectedClass.id ? bannerStyle : undefined}
+                  style={isActive ? bannerStyle : undefined}
                 >
                   {cls.name}
                 </Link>
-              ))}
-            </div>
+              );
+            })}
           </div>
-        )}
+        </ChunkCard>
+      )}
 
-        {/* Current Class Header */}
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-base sm:text-lg font-black text-slate-800 min-w-0 truncate">{selectedClass.name} — Student Progress</h2>
-          <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />{"Real-time"}
-          </div>
-        </div>
-
-        {/* Student Progress Grid */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
-          <Suspense
-            fallback={
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <div key={i} className="animate-pulse bg-slate-100 rounded-2xl h-24" />
-                ))}
-              </div>
-            }
-          >
-            <StudentProgressGrid classId={selectedClass.id} />
-          </Suspense>
-        </div>
-
-        {/* AI Interactions Log */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
-          <h2 className="font-black text-slate-800 text-lg mb-1 flex items-center gap-2">
-            <span>🤖</span> Recent AI Tutor Interactions
-          </h2>
-          <p className="text-xs font-bold text-slate-400 mb-4">Monitor student questions and AI responses for quality assurance</p>
-          <Suspense
-            fallback={
-              <div className="space-y-2">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="animate-pulse bg-slate-100 rounded-xl h-12" />
-                ))}
-              </div>
-            }
-          >
-            <AIInteractionsLog classId={selectedClass.id} limit={15} />
-          </Suspense>
-        </div>
-
-        {/* Teaching Tips */}
-        <div className="bg-blue-50 rounded-3xl border border-blue-100 p-5">
-          <div className="flex items-start gap-3">
-            <span className="text-xl">💡</span>
-            <div>
-              <p className="font-black text-blue-800 mb-1">Teaching Tips</p>
-              <div className="text-sm font-bold text-blue-600 space-y-1">
-                <p>• Check the &quot;At Risk&quot; students regularly for early intervention</p>
-                <p>• Review AI interactions to understand common student questions</p>
-                <p>• Students with 🔴 indicator need attention</p>
-                <p>• Progress updates happen in real-time as students work</p>
-              </div>
-            </div>
-          </div>
+      {/* Current Class Header */}
+      <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+        <h2 className="text-lg sm:text-xl font-black text-slate-900 min-w-0 truncate">{selectedClass.name} — Student Progress</h2>
+        <div className="flex items-center gap-1.5 text-xs font-black text-emerald-700">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />{"Real-time"}
         </div>
       </div>
-    </div>
+
+      {/* Student Progress Grid */}
+      <ChunkCard size="md">
+        <Suspense
+          fallback={
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="animate-pulse bg-slate-100 rounded-2xl h-24" />
+              ))}
+            </div>
+          }
+        >
+          <StudentProgressGrid classId={selectedClass.id} />
+        </Suspense>
+      </ChunkCard>
+
+      {/* AI Interactions Log */}
+      <ChunkCard size="md">
+        <h2 className="font-black text-slate-900 text-xl mb-1 flex items-center gap-2">
+          <span>🤖</span> Recent AI Tutor Interactions
+        </h2>
+        <p className="text-xs font-bold text-slate-500 mb-4">Monitor student questions and AI responses for quality assurance</p>
+        <Suspense
+          fallback={
+            <div className="space-y-2">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="animate-pulse bg-slate-100 rounded-xl h-12" />
+              ))}
+            </div>
+          }
+        >
+          <AIInteractionsLog classId={selectedClass.id} limit={15} />
+        </Suspense>
+      </ChunkCard>
+
+      {/* Teaching Tips */}
+      <ChunkCard size="md" tint="sky">
+        <div className="flex items-start gap-3">
+          <span className="text-3xl">💡</span>
+          <div>
+            <p className="font-black text-[color:var(--bento-sky-d)] text-lg mb-1">Teaching Tips</p>
+            <div className="text-sm font-bold text-slate-700 space-y-1">
+              <p>• Check the &quot;At Risk&quot; students regularly for early intervention</p>
+              <p>• Review AI interactions to understand common student questions</p>
+              <p>• Students with 🔴 indicator need attention</p>
+              <p>• Progress updates happen in real-time as students work</p>
+            </div>
+          </div>
+        </div>
+      </ChunkCard>
+    </>,
   );
 }
