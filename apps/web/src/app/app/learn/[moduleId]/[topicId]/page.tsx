@@ -25,7 +25,7 @@ import { useDynamicLesson } from "@/hooks/useDynamicLesson";
 import { useOfflineLesson } from "@/hooks/useOfflineLesson";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import type { SupportedLanguage } from "@/types/common";
-import { WifiOff, X } from "lucide-react";
+import { AlertCircle, Bot, WifiOff, X } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { awardLessonCompletionPoints } from "@/app/actions/gamification";
@@ -590,9 +590,10 @@ export default function LessonPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => setShowAITutor(!showAITutor)}
-                    className="text-slate-700 font-black"
+                    className="text-slate-700 font-black gap-2"
                   >
-                    🤖 {showAITutor ? "Hide" : "Show"} AI Tutor
+                    <Bot size={16} strokeWidth={2.5} aria-hidden="true" />
+                    {showAITutor ? "Hide" : "Show"} AI Tutor
                   </Button>
                 </div>
               </div>
@@ -636,11 +637,13 @@ export default function LessonPage() {
             {/* Header */}
             <div className="p-4 border-b bg-linear-to-r from-primary/10 to-cyan/10">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">🤖</span>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-2xl bg-(--bento-tint-orange) border-2 border-white shadow-sm flex items-center justify-center text-(--bento-orange-d) shrink-0">
+                    <Bot className="w-5 h-5" strokeWidth={2.25} aria-hidden="true" />
+                  </div>
                   <div>
                     <h3 className="font-black">AI Tutor</h3>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-slate-500 font-bold">
                       Ask me anything!
                     </p>
                   </div>
@@ -688,8 +691,9 @@ export default function LessonPage() {
             {/* Error Display */}
             {chatError && (
               <div className="mx-4 mt-3 p-3 bg-red-50 border border-red-200 rounded-2xl">
-                <p className="text-xs text-red-600">
-                  ⚠️ {chatError.message || "An error occurred. Please try again."}
+                <p className="text-xs text-red-700 font-bold flex items-center gap-2">
+                  <AlertCircle size={14} strokeWidth={2.5} aria-hidden="true" className="shrink-0" />
+                  {chatError.message || "An error occurred. Please try again."}
                 </p>
               </div>
             )}
@@ -812,11 +816,13 @@ export default function LessonPage() {
           <SheetContent side="right" className="w-full sm:w-96 lg:hidden p-0 flex flex-col">
             {/* Header */}
             <div className="p-4 border-b bg-linear-to-r from-primary/10 to-cyan/10">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-2xl">🤖</span>
+              <div className="flex items-center gap-2.5 mb-3">
+                <div className="w-10 h-10 rounded-2xl bg-(--bento-tint-orange) border-2 border-white shadow-sm flex items-center justify-center text-(--bento-orange-d) shrink-0">
+                  <Bot className="w-5 h-5" strokeWidth={2.25} aria-hidden="true" />
+                </div>
                 <div>
                   <SheetTitle className="text-base font-black">AI Tutor</SheetTitle>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-500 font-bold">
                     Ask me anything!
                   </p>
                 </div>
@@ -853,8 +859,9 @@ export default function LessonPage() {
             {/* Error Display */}
             {chatError && (
               <div className="mx-4 mt-3 p-3 bg-red-50 border border-red-200 rounded-2xl">
-                <p className="text-xs text-red-600">
-                  ⚠️ {chatError.message || "An error occurred. Please try again."}
+                <p className="text-xs text-red-700 font-bold flex items-center gap-2">
+                  <AlertCircle size={14} strokeWidth={2.5} aria-hidden="true" className="shrink-0" />
+                  {chatError.message || "An error occurred. Please try again."}
                 </p>
               </div>
             )}

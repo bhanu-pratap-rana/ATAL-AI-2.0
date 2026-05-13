@@ -16,7 +16,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Mountain } from "lucide-react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { UnitAccordion, type UnitData } from "@/components/learn/UnitAccordion";
 import { LanguageSelector } from "@/components/learn/LanguageSelector";
@@ -258,8 +258,8 @@ export default function ModuleUnitsPage({
 
             {/* Cultural Note */}
             {data.module.culturalNote && (
-              <p className="mt-3 text-sm text-white/70 flex items-center gap-2">
-                <span>🏔️</span>
+              <p className="mt-3 text-sm text-white/85 font-bold flex items-center gap-2">
+                <Mountain size={16} strokeWidth={2.25} aria-hidden="true" className="shrink-0" />
                 {data.module.culturalNote}
               </p>
             )}
