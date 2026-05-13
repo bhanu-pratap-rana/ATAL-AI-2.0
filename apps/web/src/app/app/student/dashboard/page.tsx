@@ -9,7 +9,16 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Users, PlusCircle, Trophy, ClipboardList } from "lucide-react";
+import {
+  Users,
+  PlusCircle,
+  Trophy,
+  ClipboardList,
+  ClipboardCheck,
+  Flame,
+  Star,
+  Award,
+} from "lucide-react";
 import { getCurrentUser, createClient } from "@/lib/supabase-server";
 import { BadgesLeaderboardPanel } from "@/components/gamification/BadgesLeaderboardPanel";
 import { AverageScore, AverageScoreSkeleton } from "@/components/student/AverageScore";
@@ -201,10 +210,28 @@ export default async function StudentDashboardPage() {
   const displayName = profile.name ?? user.email?.split("@")[0] ?? "Student";
   const bannerStyle = { background: "var(--gradient-primary)" };
 
+  // Lucide icons replace emoji glyphs for a production-grade look.
+  // Per-card color hints map to the rotating bento tint of the tile
+  // background so the icon and tile sing the same note.
   const statCards = [
-    { icon: "👥", value: classes.length, label: "Classes", href: "/app/student/classes" },
-    { icon: "📝", value: assessmentCount, label: "Assessments", href: "/app/student/assessments" },
-    { icon: "🔥", value: streakDays, label: "Day Streak", href: "/app/learn" },
+    {
+      icon: <Users className="w-6 h-6 text-(--bento-orange-d)" strokeWidth={2.25} aria-hidden="true" />,
+      value: classes.length,
+      label: "Classes",
+      href: "/app/student/classes",
+    },
+    {
+      icon: <ClipboardCheck className="w-6 h-6 text-(--bento-purple-d)" strokeWidth={2.25} aria-hidden="true" />,
+      value: assessmentCount,
+      label: "Assessments",
+      href: "/app/student/assessments",
+    },
+    {
+      icon: <Flame className="w-6 h-6 text-orange-600" strokeWidth={2.25} aria-hidden="true" />,
+      value: streakDays,
+      label: "Day Streak",
+      href: "/app/learn",
+    },
   ];
 
   // Quick Actions: must NOT duplicate bottom nav (Home / Learn / AI Tutor / Profile)
@@ -280,7 +307,8 @@ export default async function StudentDashboardPage() {
             <StreakFlame days={streakDays} onDark />
             {assessmentCount > 0 && (
               <div className="bg-white/25 px-4 py-2 rounded-2xl flex items-center gap-2 backdrop-blur-md w-fit border-2 border-white/30">
-                <span className="text-xs font-black">⭐ {assessmentCount} Assessments Done</span>
+                <Star className="w-4 h-4 fill-yellow-300 text-yellow-300" strokeWidth={2.25} aria-hidden="true" />
+                <span className="text-xs font-black">{assessmentCount} Assessments Done</span>
               </div>
             )}
           </div>
@@ -300,7 +328,7 @@ export default async function StudentDashboardPage() {
                 className="chunk-card-sm border-4 border-white p-4 flex flex-col items-center text-center gap-1 active:translate-y-1 transition-transform"
                 style={{ background: `var(--bento-tint-${tint})` }}
               >
-                <div className="w-11 h-11 bg-white rounded-2xl flex items-center justify-center text-2xl shrink-0 border-2 border-white shadow-sm">
+                <div className="w-11 h-11 bg-white rounded-2xl flex items-center justify-center shrink-0 border-2 border-white shadow-sm">
                   {stat.icon}
                 </div>
                 <p className="text-2xl font-black text-slate-900 leading-none mt-1">{stat.value}</p>
@@ -338,7 +366,10 @@ export default async function StudentDashboardPage() {
         {/* ── Badges & Leaderboard ── */}
         <ChunkCard size="md">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-black text-slate-900 text-lg">🏅 Badges & Rankings</h2>
+            <h2 className="font-black text-slate-900 text-lg flex items-center gap-2">
+              <Award className="w-5 h-5 text-[#C9A227]" strokeWidth={2.25} aria-hidden="true" />
+              <span>Badges & Rankings</span>
+            </h2>
             <Link
               href="/app/progress"
               prefetch={false}
