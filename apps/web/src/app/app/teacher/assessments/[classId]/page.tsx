@@ -1,7 +1,8 @@
 import { redirect, notFound } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft, BarChart3 } from "lucide-react";
 import { createClient } from "@/lib/supabase-server";
 import { isTeacherOrHigher } from "@/lib/auth/role-utils";
-import Link from "next/link";
 import { getClassAssessmentResults } from "@/app/actions/teacher";
 
 // Format date to relative time
@@ -71,12 +72,26 @@ export default async function ClassAssessmentResultsPage({
     <div className="min-h-screen [background:var(--bento-bg)] p-4 md:p-6 pb-28">
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Banner */}
-        <div className="rounded-[32px] p-6 text-white" style={{ background: "var(--gradient-teacher)" }}>
-          <Link href="/app/teacher/assessments" className="inline-flex items-center gap-2 text-white/80 text-xs font-black uppercase tracking-widest mb-4">
-            ← Assessments
+        <div
+          className="rounded-[32px] border-4 border-white p-6 text-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)]"
+          style={{ background: "var(--gradient-teacher)" }}
+        >
+          <Link
+            href="/app/teacher/assessments"
+            className="inline-flex items-center gap-1.5 text-white/85 text-xs font-black uppercase tracking-widest mb-4 hover:text-white"
+          >
+            <ArrowLeft size={14} strokeWidth={2.5} aria-hidden="true" />
+            Assessments
           </Link>
-          <h1 className="text-xl sm:text-2xl font-black mb-1">📊 {results.className}</h1>
-          <p className="text-white/80 text-sm font-bold">Student Assessment Results</p>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-white/25 border-2 border-white/40 flex items-center justify-center shrink-0 text-white">
+              <BarChart3 className="w-7 h-7" strokeWidth={2.25} aria-hidden="true" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl font-black mb-0.5 leading-tight truncate">{results.className}</h1>
+              <p className="text-white/85 text-sm font-bold">Student Assessment Results</p>
+            </div>
+          </div>
         </div>
 
         {/* Summary Stats */}

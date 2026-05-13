@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { BarChart3, Bot, BookOpen, Users } from "lucide-react";
 import { createClient, getCurrentUser } from "@/lib/supabase-server";
 import { authLogger } from "@/lib/auth-logger";
 import { InviteStudentDialog } from "@/components/teacher/InviteStudentDialog";
@@ -217,7 +218,10 @@ export default async function ClassDetailPage({
           </Link>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-xl sm:text-2xl font-black mb-1">📚 {classData.name}</h1>
+              <h1 className="text-xl sm:text-2xl font-black mb-1 flex items-center gap-2">
+                <BookOpen className="w-6 h-6 shrink-0" strokeWidth={2.25} aria-hidden="true" />
+                <span className="truncate">{classData.name}</span>
+              </h1>
               <p className="text-white/80 text-sm font-bold">
                 {enrollments.length} {enrollments.length === 1 ? "student" : "students"} enrolled
               </p>
@@ -246,7 +250,7 @@ export default async function ClassDetailPage({
         {enrollments.length > 0 && (
           <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
             <h2 className="font-black text-slate-800 text-lg mb-1 flex items-center gap-2">
-              <span>📊</span> Real-time Student Progress
+              <BarChart3 className="w-5 h-5 text-(--bento-sky-d)" strokeWidth={2.25} aria-hidden="true" /> Real-time Student Progress
             </h2>
             <p className="text-xs font-bold text-slate-400 mb-4">Live view of student learning progress and at-risk indicators</p>
             <StudentProgressGrid classId={id} />
@@ -257,7 +261,7 @@ export default async function ClassDetailPage({
         {enrollments.length > 0 && (
           <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
             <h2 className="font-black text-slate-800 text-lg mb-1 flex items-center gap-2">
-              <span>🤖</span> AI Tutor Activity
+              <Bot className="w-5 h-5 text-(--bento-purple-d)" strokeWidth={2.25} aria-hidden="true" /> AI Tutor Activity
             </h2>
             <p className="text-xs font-bold text-slate-400 mb-4">Recent AI tutor conversations from your students</p>
             <AIInteractionsLog classId={id} limit={15} />
@@ -277,7 +281,9 @@ export default async function ClassDetailPage({
           <p className="text-xs font-bold text-slate-400 mb-4">View and manage students enrolled in this class</p>
           {enrollments.length === 0 ? (
             <div className="text-center py-10">
-              <div className="text-4xl mb-4">👥</div>
+              <div className="mx-auto mb-4 w-16 h-16 rounded-3xl bg-(--bento-tint-sky) border-4 border-white shadow-sm flex items-center justify-center text-(--bento-sky-d)">
+                <Users className="w-8 h-8" strokeWidth={2.25} aria-hidden="true" />
+              </div>
               <h3 className="font-black text-slate-800 text-lg mb-2">No students enrolled yet</h3>
               <p className="font-bold text-slate-400 text-sm">Use the Invite Student button above or share the class details</p>
             </div>
