@@ -10,10 +10,41 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
+import { Award, Crown, Medal, Trophy, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase-browser";
 import { clientLogger } from "@/lib/client-logger";
 import { BadgesDisplay } from "./BadgesDisplay";
 import { Button } from "@/components/ui/button";
+
+/** Top-3 ranks get medal icons; rest fall back to numeric label like #4, #5. */
+function RankBadge({ rank, isViewing }: { readonly rank: number; readonly isViewing: boolean }) {
+  if (rank === 1) {
+    return (
+      <span className="w-6 flex justify-center shrink-0" aria-label="Rank 1">
+        <Crown size={16} strokeWidth={2.5} className={isViewing ? "text-white" : "text-amber-500"} aria-hidden="true" />
+      </span>
+    );
+  }
+  if (rank === 2) {
+    return (
+      <span className="w-6 flex justify-center shrink-0" aria-label="Rank 2">
+        <Medal size={16} strokeWidth={2.5} className={isViewing ? "text-white" : "text-slate-400"} aria-hidden="true" />
+      </span>
+    );
+  }
+  if (rank === 3) {
+    return (
+      <span className="w-6 flex justify-center shrink-0" aria-label="Rank 3">
+        <Medal size={16} strokeWidth={2.5} className={isViewing ? "text-white" : "text-amber-700"} aria-hidden="true" />
+      </span>
+    );
+  }
+  return (
+    <span className={`text-xs font-black w-6 text-center shrink-0 ${isViewing ? "text-white" : "text-slate-500"}`}>
+      #{rank}
+    </span>
+  );
+}
 
 /** Returns the text color class for a leaderboard entry name. Extracted to avoid S3358. */
 function getLeaderNameColor(isViewing: boolean, isMe: boolean): string {
@@ -34,7 +65,6 @@ interface BadgesLeaderboardPanelProps {
   readonly classId: string | null;
 }
 
-const RANK_ICONS: Record<number, string> = { 1: "🥇", 2: "🥈", 3: "🥉" };
 
 export function BadgesLeaderboardPanel({
   currentUserId,
@@ -96,9 +126,19 @@ export function BadgesLeaderboardPanel({
             size="sm"
             variant={tab === t ? "default" : "secondary"}
             onClick={() => setTab(t)}
-            className="flex-1 text-xs font-black uppercase tracking-wider"
+            className="flex-1 text-xs font-black uppercase tracking-wider gap-1.5"
           >
-            {t === "badges" ? "🏅 Badges" : "🏆 Leaderboard"}
+            {t === "badges" ? (
+              <>
+                <Award size={14} strokeWidth={2.5} aria-hidden="true" />
+                Badges
+              </>
+            ) : (
+              <>
+                <Trophy size={14} strokeWidth={2.5} aria-hidden="true" />
+                Leaderboard
+              </>
+            )}
           </Button>
         ))}
       </div>
@@ -126,12 +166,17 @@ export function BadgesLeaderboardPanel({
 
         {/* RIGHT — Leaderboard */}
         <div className={`md:w-52 shrink-0 ${tab === "badges" ? "hidden md:block" : ""}`}>
-          <p className="text-sm font-black text-slate-600 mb-2">🏆 Class Rankings</p>
+          <p className="text-sm font-black text-slate-600 mb-2 flex items-center gap-1.5">
+            <Trophy size={14} strokeWidth={2.5} aria-hidden="true" />
+            Class Rankings
+          </p>
           {!classId ? (
             <div className="text-center py-6">
-              <div className="text-3xl mb-2">👥</div>
-              <p className="text-xs font-black text-slate-600 mb-1">No Class Yet</p>
-              <p className="text-xs font-bold text-slate-400">Join a class to see rankings</p>
+              <div className="mx-auto mb-2 w-12 h-12 rounded-2xl bg-(--bento-tint-sky) border-2 border-white shadow-sm flex items-center justify-center text-(--bento-sky-d)">
+                <Users className="w-6 h-6" strokeWidth={2.25} aria-hidden="true" />
+              </div>
+              <p className="text-xs font-black text-slate-700 mb-1">No Class Yet</p>
+              <p className="text-xs font-bold text-slate-500">Join a class to see rankings</p>
             </div>
           ) : loadingLeaders ? (
             <div className="space-y-2">
@@ -141,9 +186,11 @@ export function BadgesLeaderboardPanel({
             </div>
           ) : leaders.length === 0 ? (
             <div className="text-center py-6">
-              <div className="text-3xl mb-2">🏆</div>
-              <p className="text-xs font-black text-slate-600 mb-1">No Rankings Yet</p>
-              <p className="text-xs font-bold text-slate-400">Be the first to earn points!</p>
+              <div className="mx-auto mb-2 w-12 h-12 rounded-2xl bg-(--bento-tint-yellow) border-2 border-white shadow-sm flex items-center justify-center text-amber-600">
+                <Trophy className="w-6 h-6" strokeWidth={2.25} aria-hidden="true" />
+              </div>
+              <p className="text-xs font-black text-slate-700 mb-1">No Rankings Yet</p>
+              <p className="text-xs font-bold text-slate-500">Be the first to earn points!</p>
             </div>
           ) : (
             <div className="space-y-1.5">
@@ -164,9 +211,7 @@ export function BadgesLeaderboardPanel({
                         : "bg-slate-50 hover:bg-slate-100"
                     }`}
                   >
-                    <span className="text-base w-6 text-center shrink-0">
-                      {RANK_ICONS[entry.rank] ?? `#${entry.rank}`}
-                    </span>
+                    <RankBadge rank={entry.rank} isViewing={isViewing} />
                     <span className={`flex-1 text-xs font-black truncate text-left ${getLeaderNameColor(isViewing, isMe)}`}>
                       {entry.name}{isMe ? " (You)" : ""}
                     </span>

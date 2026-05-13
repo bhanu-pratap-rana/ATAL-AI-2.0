@@ -12,6 +12,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
+import { Crown, Medal, Trophy } from "lucide-react";
 import { createClient } from "@/lib/supabase-browser";
 import { clientLogger } from "@/lib/client-logger";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,21 +31,13 @@ interface LeaderboardProps {
   readonly limit?: number;
 }
 
-const RANK_ICONS = {
-  1: "🥇",
-  2: "🥈",
-  3: "🥉",
-} as const;
-
 /**
- * Get rank display element - either trophy emoji or rank number
+ * Get rank display element - medal icon for top 3, rank number otherwise
  */
 function getRankDisplay(rank: number) {
-  const rankIcon = RANK_ICONS[rank as keyof typeof RANK_ICONS];
-
-  if (rankIcon) {
-    return <span className="text-2xl">{rankIcon}</span>;
-  }
+  if (rank === 1) return <Crown className="w-6 h-6 text-amber-500" strokeWidth={2.25} aria-label="Rank 1" />;
+  if (rank === 2) return <Medal className="w-6 h-6 text-slate-400" strokeWidth={2.25} aria-label="Rank 2" />;
+  if (rank === 3) return <Medal className="w-6 h-6 text-amber-700" strokeWidth={2.25} aria-label="Rank 3" />;
 
   return (
     <span className="text-sm font-bold text-slate-500">
@@ -226,7 +219,8 @@ export function LeaderboardCompact({
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
-          🏆 Top Students
+          <Trophy size={18} strokeWidth={2.25} className="text-amber-500" aria-hidden="true" />
+          Top Students
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-0">
