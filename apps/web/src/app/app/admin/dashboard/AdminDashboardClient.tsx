@@ -70,7 +70,7 @@ export function AdminDashboardClient() {
         </div>
 
         {/* Pending Approvals */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4">
+        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-11 h-11 bg-orange-50 rounded-2xl flex items-center justify-center text-xl shrink-0">

@@ -26,7 +26,7 @@ export default async function AIToolsPage() {
 
         {/* AI Tutor Card */}
         <Link href="/app/ai-tools/tutor" className="block">
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 hover:shadow-md transition-all cursor-pointer active:scale-[0.99]">
+          <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6 hover:shadow-md transition-all cursor-pointer active:scale-[0.99]">
             <div className="flex items-center gap-4 mb-4">
               <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl" style={{ background: "rgba(249,136,25,0.1)" }}>💬</div>
               <div>
@@ -47,7 +47,7 @@ export default async function AIToolsPage() {
 
         {/* History Card */}
         <Link href="/app/ai-tools/history" className="block">
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 hover:shadow-md transition-all cursor-pointer active:scale-[0.99]">
+          <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6 hover:shadow-md transition-all cursor-pointer active:scale-[0.99]">
             <div className="flex items-center gap-4 mb-4">
               <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl bg-slate-50">📜</div>
               <div>

@@ -151,7 +151,7 @@ export default async function AssessmentDetailPage({
         </div>
 
         {/* Score Summary */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-5">
               <div className={`w-20 h-20 rounded-full flex items-center justify-center text-2xl font-black ${getScoreColor(score)} bg-slate-50 shadow-sm border-4 border-white ring-2 ring-slate-100`}>
@@ -209,7 +209,7 @@ export default async function AssessmentDetailPage({
         </div>
 
         {/* Question Breakdown */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
           <h2 className="font-black text-slate-800 text-lg mb-4">Question-by-Question Breakdown</h2>
           <AssessmentBreakdown responses={responses} questionDetails={questionDetailsMap} />
         </div>

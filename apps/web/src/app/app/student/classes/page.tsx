@@ -126,7 +126,7 @@ export default async function StudentClassesPage() {
         </div>
 
         {enrollments.length === 0 ? (
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8 sm:p-12 text-center">
+          <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-8 sm:p-12 text-center">
             <div className="text-4xl sm:text-5xl mb-4">📚</div>
             <h3 className="font-black text-slate-800 text-lg mb-2">No classes yet</h3>
             <p className="font-bold text-slate-400 text-sm mb-6 px-4">
@@ -147,7 +147,7 @@ export default async function StudentClassesPage() {
                 key={enrollment.id}
                 href={`/app/student/classes/${enrollment.class.id}`}
               >
-                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-shadow cursor-pointer group">
+                <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-5 hover:shadow-md transition-shadow cursor-pointer group">
                   <div className="flex items-center justify-between gap-3 mb-3">
                     <div className="flex items-center gap-3">
                       <div className="w-11 h-11 bg-orange-50 rounded-2xl flex items-center justify-center text-xl shrink-0">

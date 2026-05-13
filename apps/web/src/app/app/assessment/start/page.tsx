@@ -113,7 +113,7 @@ function AssessmentStartContent() {
     <div className="min-h-screen [background:var(--bento-bg)] flex items-center justify-center p-4">
       {/* Card with Gradient Border */}
       <div className="max-w-2xl w-full">
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 md:p-8">
+        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6 md:p-8">
             {/* Error Display */}
             {error && (
               <div className="mb-6 p-4 bg-red-50 border border-red-200/30 rounded-2xl">

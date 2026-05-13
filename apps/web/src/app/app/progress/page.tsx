@@ -71,7 +71,7 @@ export default async function ProgressPage() {
             { value: stats?.averageScore == null ? "--" : `${stats.averageScore}%`, label: "Average Score", color: "text-emerald-600" },
             { value: stats?.totalTimeSpent ? formatTime(stats.totalTimeSpent) : "--", label: "Time Spent", color: "text-purple-600" },
           ].map((stat) => (
-            <div key={stat.label} className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-center">
+            <div key={stat.label} className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-4 text-center">
               <p className={`text-xl sm:text-2xl font-black mb-1 ${stat.color}`}>{stat.value}</p>
               <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
             </div>
@@ -80,7 +80,7 @@ export default async function ProgressPage() {
 
         {/* Module Breakdown */}
         {hasData && (stats?.moduleBreakdown?.length ?? 0) > 0 && (
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+          <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
             <h2 className="font-black text-slate-800 text-lg mb-4">Module Performance</h2>
             <div className="space-y-4">
               {stats?.moduleBreakdown?.map((module) => (
@@ -104,13 +104,13 @@ export default async function ProgressPage() {
         )}
 
         {/* Badges */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
           <h2 className="font-black text-slate-800 text-lg mb-4">🏅 My Badges</h2>
           <BadgesDisplay studentId={user.id} showAll={true} />
         </div>
 
         {/* Recent Activity */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
           <h2 className="font-black text-slate-800 text-lg mb-4">Recent Activity</h2>
           {hasData && (stats?.recentAssessments?.length ?? 0) > 0 ? (
             <div className="space-y-3">

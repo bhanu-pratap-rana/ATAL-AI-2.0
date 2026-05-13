@@ -147,12 +147,12 @@ export default async function StudentClassDetailPage({
 
         {/* Quick Stats */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 text-center">
+          <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-5 text-center">
             <div className="text-3xl mb-1">📢</div>
             <p className="text-xl sm:text-2xl font-black text-slate-800">{announcements.length}</p>
             <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Announcements</p>
           </div>
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 text-center">
+          <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-5 text-center">
             <div className="text-3xl mb-1">📁</div>
             <p className="text-xl sm:text-2xl font-black text-slate-800">{materials.length}</p>
             <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Materials</p>
@@ -166,7 +166,7 @@ export default async function StudentClassDetailPage({
         <StudentMaterialsCard materials={materials} />
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5">
+        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-5">
           <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Quick Actions</p>
           <div className="grid grid-cols-2 gap-3">
             <Link href="/app/learn" className="py-3 rounded-2xl font-black text-sm text-slate-700 text-center bg-slate-50 border border-slate-100 transition-all active:scale-95">

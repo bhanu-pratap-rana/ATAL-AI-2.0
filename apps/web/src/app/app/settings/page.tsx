@@ -124,7 +124,7 @@ export default async function SettingsPage() {
         </div>
 
         {/* Account Info */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
           <h2 className="font-black text-slate-800 text-lg mb-4">Account Information</h2>
           <div className="space-y-4">
             {isUsernameAuth ? (
@@ -173,7 +173,7 @@ export default async function SettingsPage() {
 
         {/* Preferences - Only show for students */}
         {!isTeacherOrAdmin && (
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+          <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
             <div className="flex items-center gap-3 mb-4">
               <h2 className="font-black text-slate-800 text-lg">Preferences</h2>
               <span className="px-2 py-0.5 bg-amber-50 text-amber-600 rounded-full text-xs font-black">Coming Soon</span>

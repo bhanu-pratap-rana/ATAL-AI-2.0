@@ -244,7 +244,7 @@ export default async function ClassDetailPage({
 
         {/* Real-time Student Progress Grid */}
         {enrollments.length > 0 && (
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+          <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
             <h2 className="font-black text-slate-800 text-lg mb-1 flex items-center gap-2">
               <span>📊</span> Real-time Student Progress
             </h2>
@@ -255,7 +255,7 @@ export default async function ClassDetailPage({
 
         {/* AI Tutor Interactions Log */}
         {enrollments.length > 0 && (
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+          <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
             <h2 className="font-black text-slate-800 text-lg mb-1 flex items-center gap-2">
               <span>🤖</span> AI Tutor Activity
             </h2>
@@ -272,7 +272,7 @@ export default async function ClassDetailPage({
         />
 
         {/* Roster */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
           <h2 className="font-black text-slate-800 text-lg mb-1">Class Roster</h2>
           <p className="text-xs font-bold text-slate-400 mb-4">View and manage students enrolled in this class</p>
           {enrollments.length === 0 ? (

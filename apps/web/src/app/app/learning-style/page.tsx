@@ -117,7 +117,7 @@ export default async function LearningStylePage() {
         </div>
 
         {/* Dominant Style Card */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
           <div className="flex items-center gap-3 mb-3">
             <span className="text-3xl">{dominantInfo.icon}</span>
             <h2 className="text-xl font-black text-slate-800">{dominantInfo.title}</h2>
@@ -141,7 +141,7 @@ export default async function LearningStylePage() {
         </div>
 
         {/* Tips Section */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
           <h2 className="font-black text-slate-800 text-lg mb-4">💡 Tips for {dominantInfo.title}s</h2>
           <ul className="space-y-3">
             {dominantInfo.tips.map((tip, index) => (
@@ -154,7 +154,7 @@ export default async function LearningStylePage() {
         </div>
 
         {/* How It Works */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
           <h2 className="font-black text-slate-800 text-lg mb-3">📊 How Your Style Is Calculated</h2>
           <p className="text-slate-500 font-bold text-sm mb-4">Your learning style is determined by tracking how you interact with content:</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">

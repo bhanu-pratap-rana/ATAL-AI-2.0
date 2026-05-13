@@ -13,7 +13,7 @@ export default function TeacherDashboardLoading() {
         </div>
 
         {/* Student grid skeleton */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
           <div className="animate-pulse h-5 bg-slate-100 rounded w-48 mb-4" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -23,7 +23,7 @@ export default function TeacherDashboardLoading() {
         </div>
 
         {/* AI log skeleton */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
           <div className="animate-pulse h-5 bg-slate-100 rounded w-56 mb-4" />
           <div className="space-y-2">
             {[1, 2, 3].map((i) => (

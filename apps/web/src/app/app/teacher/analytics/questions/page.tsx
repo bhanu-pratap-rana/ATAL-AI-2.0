@@ -206,7 +206,7 @@ export default async function PracticeQuestionAnalyticsPage() {
 
         {/* Growth + At-Risk Tiles */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+          <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-5 flex items-center gap-4">
             <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center shrink-0">
               <TrendingUp className="w-6 h-6 text-emerald-500" />
             </div>
@@ -215,7 +215,7 @@ export default async function PracticeQuestionAnalyticsPage() {
               <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Success Rate</p>
             </div>
           </div>
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+          <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-5 flex items-center gap-4">
             <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center shrink-0">
               <AlertTriangle className="w-6 h-6 text-red-500" />
             </div>
@@ -227,7 +227,7 @@ export default async function PracticeQuestionAnalyticsPage() {
         </div>
 
         {/* Syllabus Completion */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
           <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4">Syllabus Completion</p>
           {Object.keys(moduleStats).length === 0 ? (
             <p className="text-slate-400 font-bold text-center py-4">No module data available yet</p>
@@ -256,7 +256,7 @@ export default async function PracticeQuestionAnalyticsPage() {
         {/* Two Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Hardest Questions */}
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+          <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
             <h2 className="font-black text-slate-800 text-lg mb-4 flex items-center gap-2">
               <TrendingDown className="w-5 h-5 text-red-500" /> Most Challenging
             </h2>
@@ -289,7 +289,7 @@ export default async function PracticeQuestionAnalyticsPage() {
           </div>
 
           {/* Easiest Questions */}
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+          <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
             <h2 className="font-black text-slate-800 text-lg mb-4 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-emerald-500" /> Well-Mastered
             </h2>
@@ -321,7 +321,7 @@ export default async function PracticeQuestionAnalyticsPage() {
         </div>
 
         {/* All Questions Table */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
           <h2 className="font-black text-slate-800 text-lg mb-4">All Question Performance</h2>
           {sortedStats.length === 0 ? (
             <p className="text-slate-400 font-bold text-center py-8">No practice question responses recorded yet.</p>

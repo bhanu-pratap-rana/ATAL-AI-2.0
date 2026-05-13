@@ -150,7 +150,7 @@ export async function ContinueLearningSection({ userId }: { readonly userId: str
 
 export function ContinueLearningSkeleton() {
   return (
-    <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5">
+    <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-5">
       <div className="flex items-center justify-between mb-4">
         <div className="h-5 w-40 rounded bg-slate-100 animate-pulse" />
         <div className="h-4 w-12 rounded bg-slate-100 animate-pulse" />

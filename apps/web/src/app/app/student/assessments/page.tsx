@@ -154,7 +154,7 @@ export default async function StudentAssessmentsPage() {
         </div>
 
         {/* Start New */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 flex items-center justify-between gap-4">
+        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6 flex items-center justify-between gap-4">
           <div>
             <h2 className="font-black text-slate-800 mb-1">Start a New Assessment</h2>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Comprehensive Digital Literacy Test</p>
@@ -169,7 +169,7 @@ export default async function StudentAssessmentsPage() {
         </div>
 
         {/* Assessment History */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-black text-slate-800 text-lg">📊 History</h2>
             {hasHistory && (
@@ -248,7 +248,7 @@ export default async function StudentAssessmentsPage() {
               { value: `${Math.max(...assessmentHistory.map((a) => a.score))}%`, label: "Best Score", color: "bg-primary-lightest text-primary" },
               { value: assessmentHistory.filter((a) => a.score >= 60).length, label: "Passed (60%+)", color: "bg-success/10 text-success" },
             ].map((stat) => (
-              <div key={stat.label} className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-center">
+              <div key={stat.label} className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-4 text-center">
                 <p className={`text-xl sm:text-2xl font-black mb-1 ${stat.color.split(" ")[1]}`}>{stat.value}</p>
                 <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
               </div>

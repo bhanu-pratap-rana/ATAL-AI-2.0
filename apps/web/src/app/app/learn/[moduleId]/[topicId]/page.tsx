@@ -525,11 +525,11 @@ export default function LessonPage() {
         <div className="max-w-3xl mx-auto space-y-6">
           <div className="animate-pulse space-y-4">
             <div className="h-4 w-32 bg-slate-100 rounded" />
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+            <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
               <div className="h-8 w-64 bg-slate-100 rounded" />
               <div className="h-4 w-48 bg-slate-100 rounded mt-2" />
             </div>
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-4">
+            <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6 space-y-4">
               <div className="h-4 w-full bg-slate-100 rounded" />
               <div className="h-4 w-full bg-slate-100 rounded" />
               <div className="h-4 w-3/4 bg-slate-100 rounded" />
@@ -567,7 +567,7 @@ export default function LessonPage() {
             </div>
 
             {/* Lesson Header */}
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+            <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <h1 className="text-xl sm:text-2xl font-black text-slate-800 flex items-center gap-2">

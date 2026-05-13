@@ -170,7 +170,7 @@ const FeatureCard = memo(function FeatureCard({
       <motion.div
         variants={itemVariants}
         whileHover={{ y: -2, boxShadow: "0 8px 24px rgba(0,0,0,0.08)" }}
-        className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 h-full cursor-pointer"
+        className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-5 h-full cursor-pointer"
       >
         <div className="flex items-center gap-3 mb-3">
           <div className="w-11 h-11 bg-orange-50 rounded-2xl flex items-center justify-center text-xl shrink-0">
@@ -359,7 +359,7 @@ export function DashboardClient() {
         {!isTeacherOrAdmin && (
           <motion.div variants={itemVariants}>
             <Link href="/app/learn" prefetch={true}>
-              <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 flex items-center gap-4 cursor-pointer hover:shadow-md transition-shadow">
+              <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-5 flex items-center gap-4 cursor-pointer hover:shadow-md transition-shadow">
                 <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0" style={{ background: "var(--gradient-primary)" }}>
                   <BookOpen className="w-7 h-7 text-white" />
                 </div>

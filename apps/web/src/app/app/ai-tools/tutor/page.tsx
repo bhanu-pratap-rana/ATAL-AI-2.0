@@ -161,7 +161,7 @@ export default function AITutorPage() {
         </div>
 
         {/* Language & Input Mode Selectors */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 flex flex-wrap gap-3 items-center">
+        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-4 flex flex-wrap gap-3 items-center">
           {/* Language Selector */}
           <div role="tablist" className="flex gap-2">
             {(["en", "hi", "as"] as const).map((lang) => (
@@ -209,7 +209,7 @@ export default function AITutorPage() {
 
         {/* Voice Mode Options - Only show when voice mode is active */}
         {inputMode === "voice" && (
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 flex flex-wrap items-center gap-4">
+          <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-4 flex flex-wrap items-center gap-4">
             {/* Voice Mode Selector */}
             <div role="tablist" className="flex items-center gap-2">
               <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Mode:</span>
@@ -285,7 +285,7 @@ export default function AITutorPage() {
         })()}
 
         {/* Chat Area */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4">
+        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-4">
           {/* Messages Display */}
           <div className="h-[calc(100vh-360px)] sm:h-[400px] lg:h-[500px] overflow-y-auto space-y-4 mb-4">
             {messages.length === 0 ? (

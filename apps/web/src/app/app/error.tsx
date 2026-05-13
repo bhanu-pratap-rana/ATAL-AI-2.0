@@ -16,7 +16,7 @@ export default function AppError({
 
   return (
     <div className="min-h-screen [background:var(--bento-bg)] flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8 max-w-md w-full text-center">
+      <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-8 max-w-md w-full text-center">
         <div className="text-5xl mb-4">⚠️</div>
         <h1 className="text-xl font-black text-slate-800 mb-2">Something went wrong</h1>
         <p className="text-sm font-bold text-slate-400 mb-6">

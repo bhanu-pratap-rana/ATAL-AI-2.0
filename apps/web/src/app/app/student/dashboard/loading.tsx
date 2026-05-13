@@ -13,7 +13,7 @@ export default function StudentDashboardLoading() {
         </div>
 
         {/* Content skeleton */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-3">
+        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6 space-y-3">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="animate-pulse bg-slate-100 rounded-xl h-14" />
           ))}

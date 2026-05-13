@@ -87,7 +87,7 @@ export default async function ClassAssessmentResultsPage({
             { value: results.totalStudents - results.studentsWithAssessments, label: "Pending", color: "text-amber-600" },
             { value: results.classAverageScore === null ? "-" : `${results.classAverageScore}%`, label: "Class Average", color: "text-purple-600" },
           ].map((s) => (
-            <div key={s.label} className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-center">
+            <div key={s.label} className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-4 text-center">
               <p className={`text-xl sm:text-2xl font-black mb-0.5 ${s.color}`}>{s.value}</p>
               <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{s.label}</p>
             </div>
@@ -95,7 +95,7 @@ export default async function ClassAssessmentResultsPage({
         </div>
 
         {/* Student Results */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
           <h2 className="font-black text-slate-800 text-lg mb-4">
             Student Results <span className="text-sm font-bold text-slate-400">({results.results.length})</span>
           </h2>
@@ -141,7 +141,7 @@ export default async function ClassAssessmentResultsPage({
         </div>
 
         {/* Legend */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5">
+        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-5">
           <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3">Score Levels</p>
           <div className="flex flex-wrap gap-4">
             {[
