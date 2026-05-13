@@ -7,7 +7,17 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import {
+  ChevronRight,
+  GraduationCap,
+  Users,
+  Library,
+  UserCheck,
+  AlertTriangle,
+  ClipboardList,
+  Bot,
+  Lightbulb,
+} from "lucide-react";
 import { getCurrentUser, createClient } from "@/lib/supabase-server";
 import { authLogger } from "@/lib/auth-logger";
 import { StudentProgressGrid } from "@/components/teacher/StudentProgressGrid";
@@ -176,7 +186,9 @@ export default async function TeacherDashboardPage({
       <>
         <ChunkCard size="lg" className="text-white border-white! relative overflow-hidden" style={bannerStyle}>
           <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-white/25 border-2 border-white/40 flex items-center justify-center text-3xl shrink-0">👩‍🏫</div>
+            <div className="w-14 h-14 rounded-2xl bg-white/25 border-2 border-white/40 flex items-center justify-center shrink-0 text-white">
+            <GraduationCap className="w-7 h-7" strokeWidth={2.25} aria-hidden="true" />
+          </div>
             <div className="min-w-0">
               <h1 className="text-2xl sm:text-3xl font-black mb-1 truncate leading-tight">Welcome, {teacherName}!</h1>
               <p className="text-blue-50 text-sm font-bold">Create your first class to start tracking student progress.</p>
@@ -185,7 +197,9 @@ export default async function TeacherDashboardPage({
         </ChunkCard>
 
         <ChunkCard size="lg" className="text-center">
-          <div className="text-5xl sm:text-7xl mb-4">👥</div>
+          <div className="mb-4 w-20 h-20 sm:w-24 sm:h-24 mx-auto rounded-3xl bg-(--bento-tint-sky) border-4 border-white shadow-sm flex items-center justify-center text-(--bento-sky-d)">
+            <Users className="w-10 h-10 sm:w-12 sm:h-12" strokeWidth={2.25} aria-hidden="true" />
+          </div>
           <h2 className="text-2xl font-black text-slate-900 mb-2">Welcome to ATAL AI!</h2>
           <p className="font-bold text-slate-500 text-sm mb-6">Create your first class to start tracking student progress.</p>
           <Link
@@ -207,7 +221,9 @@ export default async function TeacherDashboardPage({
       {/* Banner */}
       <ChunkCard size="lg" className="text-white border-white! relative overflow-hidden" style={bannerStyle}>
         <div className="flex items-start gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-white/25 border-2 border-white/40 flex items-center justify-center text-3xl shrink-0">👩‍🏫</div>
+          <div className="w-14 h-14 rounded-2xl bg-white/25 border-2 border-white/40 flex items-center justify-center shrink-0 text-white">
+            <GraduationCap className="w-7 h-7" strokeWidth={2.25} aria-hidden="true" />
+          </div>
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl sm:text-3xl font-black mb-1 truncate leading-tight">{teacherName}</h1>
             <p className="text-blue-50 text-xs font-black uppercase tracking-widest">Class Instructor • ATAL AI</p>
@@ -229,7 +245,10 @@ export default async function TeacherDashboardPage({
       {recentStudents.length > 0 && (
         <ChunkCard size="md">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-black text-slate-900 text-lg">📋 Recent Activity</h2>
+            <h2 className="font-black text-slate-900 text-lg flex items-center gap-2">
+              <ClipboardList className="w-5 h-5 text-(--bento-sky-d)" strokeWidth={2.25} aria-hidden="true" />
+              <span>Recent Activity</span>
+            </h2>
             <Link href="/app/teacher/classes" className="text-xs font-black text-slate-500 hover:text-(--bento-sky-d) transition-colors">
               See All →
             </Link>
@@ -253,17 +272,37 @@ export default async function TeacherDashboardPage({
       {/* Stat Cards — chunky bento tiles with rotating tints */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { icon: "📚", value: metrics.totalClasses, label: "Classes", tint: "sky" },
-          { icon: "👥", value: metrics.totalStudents, label: "Students", tint: "purple" },
-          { icon: "✅", value: metrics.activeStudents, label: "Active (7d)", tint: "mint" },
-          { icon: "⚠️", value: metrics.atRiskStudents, label: "At Risk", tint: "red" },
+          {
+            icon: <Library className="w-6 h-6 text-(--bento-sky-d)" strokeWidth={2.25} aria-hidden="true" />,
+            value: metrics.totalClasses,
+            label: "Classes",
+            tint: "sky",
+          },
+          {
+            icon: <Users className="w-6 h-6 text-(--bento-purple-d)" strokeWidth={2.25} aria-hidden="true" />,
+            value: metrics.totalStudents,
+            label: "Students",
+            tint: "purple",
+          },
+          {
+            icon: <UserCheck className="w-6 h-6 text-(--bento-mint-d)" strokeWidth={2.25} aria-hidden="true" />,
+            value: metrics.activeStudents,
+            label: "Active (7d)",
+            tint: "mint",
+          },
+          {
+            icon: <AlertTriangle className="w-6 h-6 text-(--bento-red-d)" strokeWidth={2.25} aria-hidden="true" />,
+            value: metrics.atRiskStudents,
+            label: "At Risk",
+            tint: "red",
+          },
         ].map((stat) => (
           <div
             key={stat.label}
             className="chunk-card-sm border-4 border-white p-4 flex flex-col items-center text-center gap-1"
             style={{ background: `var(--bento-tint-${stat.tint})` }}
           >
-            <div className="w-11 h-11 bg-white rounded-2xl flex items-center justify-center text-2xl shrink-0 border-2 border-white shadow-sm">{stat.icon}</div>
+            <div className="w-11 h-11 bg-white rounded-2xl flex items-center justify-center shrink-0 border-2 border-white shadow-sm">{stat.icon}</div>
             <p className="text-2xl font-black text-slate-900 leading-none mt-1">{stat.value}</p>
             <p className="text-[11px] font-black text-slate-600 uppercase tracking-wider leading-tight">{stat.label}</p>
           </div>
@@ -322,7 +361,8 @@ export default async function TeacherDashboardPage({
       {/* AI Interactions Log */}
       <ChunkCard size="md">
         <h2 className="font-black text-slate-900 text-xl mb-1 flex items-center gap-2">
-          <span>🤖</span> Recent AI Tutor Interactions
+          <Bot className="w-6 h-6 text-(--bento-purple-d)" strokeWidth={2.25} aria-hidden="true" />
+          <span>Recent AI Tutor Interactions</span>
         </h2>
         <p className="text-xs font-bold text-slate-500 mb-4">Monitor student questions and AI responses for quality assurance</p>
         <Suspense
@@ -341,13 +381,15 @@ export default async function TeacherDashboardPage({
       {/* Teaching Tips */}
       <ChunkCard size="md" tint="sky">
         <div className="flex items-start gap-3">
-          <span className="text-3xl">💡</span>
+          <div className="w-12 h-12 rounded-2xl bg-white border-2 border-white shadow-sm flex items-center justify-center shrink-0 text-(--bento-sky-d)">
+            <Lightbulb className="w-6 h-6" strokeWidth={2.25} aria-hidden="true" />
+          </div>
           <div>
-            <p className="font-black text-[color:var(--bento-sky-d)] text-lg mb-1">Teaching Tips</p>
+            <p className="font-black text-(--bento-sky-d) text-lg mb-1">Teaching Tips</p>
             <div className="text-sm font-bold text-slate-700 space-y-1">
               <p>• Check the &quot;At Risk&quot; students regularly for early intervention</p>
               <p>• Review AI interactions to understand common student questions</p>
-              <p>• Students with 🔴 indicator need attention</p>
+              <p>• Students flagged as &quot;at risk&quot; (red tile) need attention</p>
               <p>• Progress updates happen in real-time as students work</p>
             </div>
           </div>
