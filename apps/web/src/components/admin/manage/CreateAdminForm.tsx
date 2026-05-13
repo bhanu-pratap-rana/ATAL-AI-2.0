@@ -3,7 +3,7 @@
  * Displays form for creating a new admin account
  */
 
-import { AlertCircle, CheckCircle, Eye, EyeOff, Loader2 } from "lucide-react";
+import { AlertCircle, CheckCircle, Eye, EyeOff, Loader2, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -187,7 +187,7 @@ export function CreateAdminForm({
       {/* Security Notice */}
       <div className="bg-warning-light border border-warning/30 rounded-2xl p-4">
         <p className="text-xs text-warning-dark">
-          <strong>🔒 Security:</strong> Store your admin password
+          <strong className="inline-flex items-center gap-1.5"><Lock size={14} strokeWidth={2.5} aria-hidden="true" />Security:</strong> Store your admin password
           securely. You&apos;ll need it to login to the admin panel.
         </p>
       </div>

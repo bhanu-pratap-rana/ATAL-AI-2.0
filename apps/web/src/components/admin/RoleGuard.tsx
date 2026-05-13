@@ -2,6 +2,7 @@
 
 import { ReactNode, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Lock } from "lucide-react";
 import { createClient } from "@/lib/supabase-browser";
 import {
   isAdmin,
@@ -114,7 +115,9 @@ function UnauthorizedFallback({ requiredRole }: Readonly<{ requiredRole: string 
   return (
     <div className="min-h-screen bg-linear-to-br from-surface via-background to-white flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-lg p-8 max-w-md text-center">
-        <div className="text-4xl mb-4">🔒</div>
+        <div className="mx-auto mb-4 w-16 h-16 rounded-3xl bg-(--bento-tint-red) border-4 border-white shadow-sm flex items-center justify-center text-(--bento-red-d)">
+          <Lock className="w-8 h-8" strokeWidth={2.25} aria-hidden="true" />
+        </div>
         <h1 className="text-xl sm:text-2xl font-black text-text mb-2">Access Denied</h1>
         <p className="text-slate-500 mb-6">
           You do not have permission to access this page. This area is

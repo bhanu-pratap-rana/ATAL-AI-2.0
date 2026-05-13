@@ -3,7 +3,7 @@
  * Handles PIN generation and rotation
  */
 
-import { Eye, EyeOff, Wand2, Copy, Check } from "lucide-react";
+import { Check, Copy, Eye, EyeOff, Lock, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { SchoolPINInfo } from "@/app/actions/admin-pin-management";
@@ -125,7 +125,7 @@ export function PINGenerator({
       {/* Security Notice */}
       <div className="bg-blue-lightest border-l-4 border-blue p-3 rounded-2xl">
         <p className="text-xs text-blue-darkest">
-          <strong>🔒 Security:</strong> Staff PINs are encrypted and never
+          <strong className="inline-flex items-center gap-1.5"><Lock size={14} strokeWidth={2.5} aria-hidden="true" />Security:</strong> Staff PINs are encrypted and never
           exposed to clients. Only school administrators can view and rotate
           their PIN.
         </p>

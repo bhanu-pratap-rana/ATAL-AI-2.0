@@ -3,7 +3,7 @@
  * Displays selected school information and PIN status
  */
 
-import { Copy, Check } from "lucide-react";
+import { AlertTriangle, Check, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { SchoolPINInfo } from "@/app/actions/admin-pin-management";
 
@@ -53,8 +53,9 @@ export function SchoolDetailCard({
                   )}
                 </div>
               ) : (
-                <p className="text-xs text-warning font-medium">
-                  ⚠ No PIN configured
+                <p className="text-xs text-warning font-medium flex items-center gap-1.5">
+                  <AlertTriangle size={12} strokeWidth={2.5} aria-hidden="true" />
+                  No PIN configured
                 </p>
               )}
             </div>

@@ -3,7 +3,7 @@
  * Displays form for deleting a user account
  */
 
-import { AlertCircle, CheckCircle, Loader2, Trash2 } from "lucide-react";
+import { AlertCircle, AlertTriangle, CheckCircle, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,7 +32,7 @@ export function DeleteUserForm({
       {/* Warning Box */}
       <div className="bg-error-light border border-error/30 rounded-2xl p-4">
         <p className="text-sm text-error">
-          <strong>⚠️ Warning:</strong>
+          <strong className="inline-flex items-center gap-1.5"><AlertTriangle size={14} strokeWidth={2.5} aria-hidden="true" />Warning:</strong>
           <br />
           <span className="text-xs">
             Deleting a user is permanent and cannot be undone. Make sure
