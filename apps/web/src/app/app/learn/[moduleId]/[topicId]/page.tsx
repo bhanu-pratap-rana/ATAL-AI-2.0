@@ -521,7 +521,7 @@ export default function LessonPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+      <div className="min-h-screen [background:var(--bento-bg)] p-4 md:p-6">
         <div className="max-w-3xl mx-auto space-y-6">
           <div className="animate-pulse space-y-4">
             <div className="h-4 w-32 bg-slate-100 rounded" />
@@ -541,7 +541,7 @@ export default function LessonPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen [background:var(--bento-bg)]">
       <div className="flex">
         {/* Main Content Area */}
         <main

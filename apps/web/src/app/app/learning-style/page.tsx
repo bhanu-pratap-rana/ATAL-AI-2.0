@@ -105,7 +105,7 @@ export default async function LearningStylePage() {
   const hasActivity = imagesViewed > 0 || voiceReplays > 0 || textReadTime > 0;
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+    <div className="min-h-screen [background:var(--bento-bg)] p-4 md:p-6">
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Banner */}
         <div className="rounded-[32px] p-6 text-white" style={{ background: "var(--gradient-primary)" }}>

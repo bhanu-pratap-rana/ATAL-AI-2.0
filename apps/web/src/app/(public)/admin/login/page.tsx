@@ -131,7 +131,7 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+    <div className="min-h-screen [background:var(--bento-bg)] flex items-center justify-center p-4">
       {/* Back Button */}
       <div className="absolute top-4 left-4">
         <Button onClick={() => router.push("/")} variant="outline" size="sm">

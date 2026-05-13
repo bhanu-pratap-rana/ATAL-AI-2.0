@@ -279,7 +279,7 @@ export function DashboardClient() {
     : { background: "var(--gradient-primary)" };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen [background:var(--bento-bg)]">
       <div className="p-4 md:p-6 pb-28">
       <motion.div
         variants={containerVariants}

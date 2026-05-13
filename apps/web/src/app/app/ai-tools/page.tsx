@@ -13,7 +13,7 @@ export default async function AIToolsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
+    <div className="min-h-screen [background:var(--bento-bg)] p-4 md:p-6 pb-28">
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Banner */}
         <div className="rounded-[32px] p-6 text-white" style={{ background: "var(--gradient-primary)" }}>

@@ -499,7 +499,7 @@ export function SchoolsClient() {
   const pinActionLabel = pinStatus?.exists ? "Rotate" : "Create";
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6 pb-28">
+    <div className="min-h-screen [background:var(--bento-bg)] p-6 pb-28">
       <div className="max-w-3xl mx-auto">
         {/* Red Gradient Banner */}
         <div className="rounded-[32px] p-6 text-white mb-8" style={{ background: "var(--gradient-admin)" }}>

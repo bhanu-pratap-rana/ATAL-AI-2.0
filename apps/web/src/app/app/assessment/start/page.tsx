@@ -110,7 +110,7 @@ function AssessmentStartContent() {
 
   // Show language selection screen
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+    <div className="min-h-screen [background:var(--bento-bg)] flex items-center justify-center p-4">
       {/* Card with Gradient Border */}
       <div className="max-w-2xl w-full">
         <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 md:p-8">
