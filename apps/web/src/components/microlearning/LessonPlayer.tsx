@@ -206,8 +206,9 @@ function ChunkImage({
             {getTranslation("lessonPlayer.visualAid", language)}
           </span>
         </div>
-        <p className="text-sm text-slate-500 italic">
-          📊 {visualDescription}
+        <p className="text-sm text-slate-500 italic flex items-start gap-2">
+          <ImageIcon className="h-4 w-4 shrink-0 mt-0.5" aria-hidden="true" />
+          <span>{visualDescription}</span>
         </p>
       </div>
     );

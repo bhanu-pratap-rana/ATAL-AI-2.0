@@ -6,6 +6,7 @@
  * Displays overall learning progress statistics with translated labels.
  */
 
+import { Flame } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLanguage } from "@/lib/i18n";
 
@@ -50,8 +51,9 @@ export function LearnProgressStats({
             <div className="text-xl sm:text-2xl font-black text-emerald-600">
               {currentStreak}
             </div>
-            <div className="text-sm font-bold text-slate-500">
-              {t("learn.dayStreak")} 🔥
+            <div className="text-sm font-bold text-slate-500 flex items-center gap-1.5">
+              {t("learn.dayStreak")}
+              <Flame size={14} strokeWidth={2.5} className="text-orange-500 fill-orange-200" aria-hidden="true" />
             </div>
           </div>
         </div>

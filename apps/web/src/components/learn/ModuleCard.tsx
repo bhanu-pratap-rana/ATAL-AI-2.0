@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Lock, Mountain } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage, getLocalizedField } from "@/lib/i18n";
 
@@ -89,7 +90,7 @@ export function ModuleCard({
               {progress.is_complete && (
                 <span className="text-success text-sm">✓</span>
               )}
-              {!isUnlocked && <span className="text-sm">🔒</span>}
+              {!isUnlocked && <Lock size={14} strokeWidth={2.5} className="text-slate-400" aria-label="Locked" />}
             </h3>
             {secondaryName && (
               <p className="text-xs text-slate-400">{secondaryName}</p>
@@ -110,8 +111,9 @@ export function ModuleCard({
       </p>
 
       {culturalNote && (
-        <p className="text-xs text-warning-dark mb-3 flex items-center gap-1">
-          <span>🏔️</span> {culturalNote}
+        <p className="text-xs text-warning-dark mb-3 flex items-start gap-1.5">
+          <Mountain size={12} strokeWidth={2.5} aria-hidden="true" className="shrink-0 mt-0.5" />
+          <span>{culturalNote}</span>
         </p>
       )}
 
