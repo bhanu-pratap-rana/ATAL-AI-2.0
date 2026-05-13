@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -29,7 +30,9 @@ export function PostAssessmentPrompt({ open, onDismiss }: PostAssessmentPromptPr
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <div className="text-center mb-2">
-            <span className="text-4xl sm:text-5xl block mb-3">🎓</span>
+            <div className="mx-auto mb-3 w-16 h-16 rounded-3xl bg-(--bento-tint-orange) border-4 border-white shadow-sm flex items-center justify-center text-(--bento-orange-d)">
+              <GraduationCap className="w-8 h-8" strokeWidth={2.25} aria-hidden="true" />
+            </div>
           </div>
           <DialogTitle className="text-center text-xl">
             Congratulations! Curriculum Complete!

@@ -2,6 +2,18 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  BookOpen,
+  ClipboardCheck,
+  Dumbbell,
+  GraduationCap,
+  PartyPopper,
+  Rocket,
+  ThumbsUp,
+  Trophy,
+  TrendingUp,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ResultCircle } from "./ResultCircle";
 import { CategoryBreakdown, CategoryStrengths } from "./CategoryBreakdown";
@@ -128,10 +140,10 @@ export function AssessmentSummary({
   const router = useRouter();
   const [showCelebration, setShowCelebration] = useState(score >= 80);
 
-  const getScoreMessage = (s: number) => {
+  const getScoreMessage = (s: number): { Icon: LucideIcon; title: string; message: string } => {
     if (sessionType === "pre") {
       return {
-        emoji: "📋",
+        Icon: ClipboardCheck,
         title: "Assessment Complete!",
         message: "We now know your starting level. Let's begin your learning journey!",
       };
@@ -141,46 +153,46 @@ export function AssessmentSummary({
       const improvement = s - preScore;
       if (improvement > 20) {
         return {
-          emoji: "🏆",
+          Icon: Trophy,
           title: "Outstanding Improvement!",
           message: `You improved by ${Math.round(improvement)}%! Your hard work has truly paid off.`,
         };
       } else if (improvement > 0) {
         return {
-          emoji: "📈",
+          Icon: TrendingUp,
           title: "Great Progress!",
           message: `You improved by ${Math.round(improvement)}%. Keep pushing forward!`,
         };
       }
       return {
-        emoji: "💪",
+        Icon: Dumbbell,
         title: "Assessment Complete!",
         message: "Review your results below to see where you can improve further.",
       };
     }
     if (s >= 80) {
       return {
-        emoji: "🎉",
+        Icon: PartyPopper,
         title: "Excellent Work!",
         message: "You have a strong foundation in digital literacy. Great job!",
       };
     } else if (s >= 60) {
       return {
-        emoji: "👍",
+        Icon: ThumbsUp,
         title: "Good Job!",
         message:
           "You have a solid understanding. Keep building on this foundation!",
       };
     } else if (s >= 40) {
       return {
-        emoji: "📚",
+        Icon: BookOpen,
         title: "Great Start!",
         message:
           "You are on your way! The lessons will help strengthen your skills.",
       };
     } else {
       return {
-        emoji: "🚀",
+        Icon: Rocket,
         title: "Ready to Learn!",
         message:
           "This is your starting point. Every expert was once a beginner!",
@@ -201,8 +213,9 @@ export function AssessmentSummary({
         {/* Mastery banner — only shows on excellent scores */}
         {isMastery && (
           <MugaCard tier="mastered" className="mb-6 text-center">
-            <p className="text-base sm:text-lg font-black text-amber-900">
-              🏆 Mastery Achieved — like Muga silk, your effort shines.
+            <p className="text-base sm:text-lg font-black text-amber-900 flex items-center justify-center gap-2">
+              <Trophy className="w-5 h-5" strokeWidth={2.25} aria-hidden="true" />
+              <span>Mastery Achieved — like Muga silk, your effort shines.</span>
             </p>
           </MugaCard>
         )}
@@ -220,7 +233,9 @@ export function AssessmentSummary({
                   />
                 </div>
               )}
-              <span className="text-4xl sm:text-5xl mb-4 block">{scoreMessage.emoji}</span>
+              <div className="mx-auto mb-4 w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-(--bento-tint-orange) border-4 border-white shadow-sm flex items-center justify-center text-(--bento-orange-d)">
+                <scoreMessage.Icon className="w-9 h-9 sm:w-10 sm:h-10" strokeWidth={2.25} aria-hidden="true" />
+              </div>
               <h1 className="text-3xl md:text-4xl font-black text-slate-800 mb-2">
                 {scoreMessage.title}
               </h1>
@@ -500,7 +515,9 @@ export function AssessmentSummary({
 
                 {allMastered && (
                   <div className="text-center p-4 bg-success/10 rounded-2xl mb-4">
-                    <span className="text-3xl block mb-1">🎓</span>
+                    <div className="mx-auto mb-1 w-12 h-12 rounded-2xl bg-white border-2 border-white shadow-sm flex items-center justify-center text-success">
+                      <GraduationCap className="w-7 h-7" strokeWidth={2.25} aria-hidden="true" />
+                    </div>
                     <p className="text-sm font-semibold text-success">Curriculum Mastery Achieved!</p>
                   </div>
                 )}

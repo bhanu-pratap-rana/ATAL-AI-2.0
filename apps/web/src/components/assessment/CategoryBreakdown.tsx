@@ -1,5 +1,16 @@
 "use client";
 
+import {
+  Book,
+  CircleHelp,
+  Dumbbell,
+  Globe2,
+  Laptop,
+  Palette,
+  Puzzle,
+  Target,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 /**
  * ATAL AI Assessment Category Breakdown - Jyoti Theme
@@ -26,21 +37,21 @@ interface CategoryBreakdownProps {
 }
 
 // Category display names and icons
-const CATEGORY_CONFIG: Record<string, { label: string; icon: string }> = {
-  "digital-device-familiarity": { label: "Digital Devices", icon: "💻" },
-  "internet-web-awareness": { label: "Internet & Web", icon: "🌐" },
-  "digital-content-creation": { label: "Content Creation", icon: "🎨" },
-  "problem-solving-aptitude": { label: "Problem Solving", icon: "🧩" },
-  "contextual-application": { label: "Application", icon: "🎯" },
+const CATEGORY_CONFIG: Record<string, { label: string; Icon: LucideIcon }> = {
+  "digital-device-familiarity": { label: "Digital Devices", Icon: Laptop },
+  "internet-web-awareness": { label: "Internet & Web", Icon: Globe2 },
+  "digital-content-creation": { label: "Content Creation", Icon: Palette },
+  "problem-solving-aptitude": { label: "Problem Solving", Icon: Puzzle },
+  "contextual-application": { label: "Application", Icon: Target },
   // Fallback for unknown categories
-  default: { label: "General", icon: "📝" },
+  default: { label: "General", Icon: CircleHelp },
 };
 
-const getCategoryConfig = (key: string) => {
+const getCategoryConfig = (key: string): { label: string; Icon: LucideIcon } => {
   return (
     CATEGORY_CONFIG[key] || {
       label: key.replaceAll("-", " ").replaceAll(/\b\w/g, (c) => c.toUpperCase()),
-      icon: "📝",
+      Icon: CircleHelp,
     }
   );
 };
@@ -92,7 +103,7 @@ export function CategoryBreakdown({
 
       <div className="space-y-4">
         {categoryList.map(({ name, correct, total }) => {
-          const config = getCategoryConfig(name);
+          const { label, Icon } = getCategoryConfig(name);
           const percentage =
             total > 0 ? Math.round((correct / total) * 100) : 0;
 
@@ -101,11 +112,9 @@ export function CategoryBreakdown({
               {/* Category header */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg" aria-hidden="true">
-                    {config.icon}
-                  </span>
+                  <Icon className="w-5 h-5 text-slate-600" strokeWidth={2.25} aria-hidden="true" />
                   <span className="text-sm font-medium text-slate-800">
-                    {config.label}
+                    {label}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -125,7 +134,7 @@ export function CategoryBreakdown({
                 className={`w-full h-2 rounded-full overflow-hidden appearance-none [&::-webkit-progress-bar]:bg-border [&::-webkit-progress-bar]:rounded-full [&::-webkit-progress-value]:rounded-full [&::-webkit-progress-value]:transition-all [&::-moz-progress-bar]:rounded-full ${getProgressBarColor(percentage)}`}
                 value={percentage}
                 max={100}
-                aria-label={`${config.label}: ${percentage}%`}
+                aria-label={`${label}: ${percentage}%`}
               />
             </div>
           );
@@ -158,24 +167,24 @@ export function CategoryStrengths({
     .slice(0, 2); // Top 2 categories
 
   const title = type === "strengths" ? "Your Strengths" : "Areas to Improve";
-  const icon = type === "strengths" ? "💪" : "📚";
+  const TitleIcon = type === "strengths" ? Dumbbell : Book;
 
   return (
     <div className="space-y-2">
       <h4 className="text-sm font-black text-slate-800 flex items-center gap-2">
-        <span>{icon}</span>
+        <TitleIcon size={16} strokeWidth={2.25} aria-hidden="true" />
         {title}
       </h4>
       <div className="flex flex-wrap gap-2">
         {categoryList.map(({ name, percentage }) => {
-          const config = getCategoryConfig(name);
+          const { label, Icon } = getCategoryConfig(name);
           return (
             <span
               key={name}
               className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${getCategoryBadgeStyle(type)}`}
             >
-              <span aria-hidden="true">{config.icon}</span>
-              {config.label}
+              <Icon className="w-4 h-4" strokeWidth={2.25} aria-hidden="true" />
+              {label}
               <span className="text-xs opacity-80">
                 ({Math.round(percentage)}%)
               </span>

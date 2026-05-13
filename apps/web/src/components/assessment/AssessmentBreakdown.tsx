@@ -17,13 +17,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Check,
-  X,
-  Clock,
+  CheckCircle2,
   ChevronDown,
   ChevronUp,
+  CircleDot,
+  Clock,
   Brain,
   Filter,
+  X,
+  XCircle,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface QuestionResponse {
@@ -52,7 +56,7 @@ interface AssessmentBreakdownProps {
   readonly showFilters?: boolean;
 }
 
-const FILTER_ICONS: Record<string, string> = { correct: "🎉", incorrect: "✨", all: "📝" };
+const FILTER_ICONS: Record<string, LucideIcon> = { correct: CheckCircle2, incorrect: XCircle, all: CircleDot };
 
 function formatTime(ms: number | null): string {
   if (!ms) return "-";
@@ -361,9 +365,7 @@ export function AssessmentBreakdown({
       {filteredResponses.length === 0 && (
         <Card>
           <CardContent className="p-8 text-center">
-            <div className="text-4xl mb-3">
-              {FILTER_ICONS[filterMode] ?? "📝"}
-            </div>
+            <EmptyStateIcon filterMode={filterMode} />
             <h3 className="font-black text-text mb-1">
               {filterMode === "correct"
                 ? "No correct answers to show"
@@ -377,6 +379,15 @@ export function AssessmentBreakdown({
           </CardContent>
         </Card>
       )}
+    </div>
+  );
+}
+
+function EmptyStateIcon({ filterMode }: { readonly filterMode: string }) {
+  const Icon = FILTER_ICONS[filterMode] ?? CircleDot;
+  return (
+    <div className="mx-auto mb-3 w-14 h-14 rounded-2xl bg-(--bento-tint-orange) border-4 border-white shadow-sm flex items-center justify-center text-(--bento-orange-d)">
+      <Icon className="w-7 h-7" strokeWidth={2.25} aria-hidden="true" />
     </div>
   );
 }
