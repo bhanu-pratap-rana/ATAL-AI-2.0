@@ -15,6 +15,7 @@ import { ChevronRight, BookOpen } from "lucide-react";
 import Link from "next/link";
 import { unstable_cache } from "next/cache";
 import { createClient, createAdminClient } from "@/lib/supabase-server";
+import { ChunkCard } from "@/components/system";
 
 interface ModuleData {
   id: string;
@@ -82,39 +83,39 @@ export async function ContinueLearningSection({ userId }: { readonly userId: str
   ]);
 
   return (
-    <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5">
+    <ChunkCard size="md">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-black text-slate-800 text-base flex items-center gap-2">
-          <BookOpen size={16} className="text-orange-400" /> Continue Learning
+        <h2 className="font-black text-slate-900 text-lg flex items-center gap-2">
+          <BookOpen size={18} className="text-(--bento-orange)" /> Continue Learning
         </h2>
         <Link
           href="/app/learn"
           prefetch={false}
-          className="text-xs font-black text-slate-400 hover:text-orange-500 transition-colors"
+          className="text-xs font-black text-slate-500 hover:text-(--bento-orange) transition-colors"
         >
-          See All
+          See All →
         </Link>
       </div>
       {modules.length > 0 ? (
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {modules.map((mod) => {
             const progress = moduleProgress.get(mod.id) ?? 0;
             const topicCount = Number(mod.topic_count) || 10;
             return (
               <Link key={mod.id} href={`/app/learn/${mod.id}`}>
-                <div className="flex items-center gap-3 p-3 rounded-2xl hover:bg-slate-50 transition-colors -mx-1 px-2">
+                <div className="flex items-center gap-3 p-3 rounded-2xl hover:[background:var(--bento-tint-orange)] transition-colors -mx-1 px-2 active:translate-y-0.5">
                   <div
-                    className="w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0"
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0 border-2 border-white shadow-sm"
                     style={{ background: mod.color_gradient || "var(--gradient-primary)" }}
                   >
                     {mod.icon || "📚"}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-black text-slate-800 text-sm truncate">{mod.name_en}</p>
-                    <p className="text-[11px] font-bold text-slate-400 mb-1">
+                    <p className="font-black text-slate-900 text-sm truncate">{mod.name_en}</p>
+                    <p className="text-[11px] font-bold text-slate-500 mb-1.5">
                       {topicCount} topics
                     </p>
-                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
                       <div
                         className="h-full rounded-full transition-all"
                         style={{
@@ -123,27 +124,27 @@ export async function ContinueLearningSection({ userId }: { readonly userId: str
                         }}
                       />
                     </div>
-                    <p className="text-[11px] font-bold text-slate-400 mt-0.5">{progress}% complete</p>
+                    <p className="text-[11px] font-black text-(--bento-orange) mt-0.5">{progress}% complete</p>
                   </div>
-                  <ChevronRight size={16} className="text-slate-300 shrink-0" />
+                  <ChevronRight size={18} className="text-slate-400 shrink-0" />
                 </div>
               </Link>
             );
           })}
         </div>
       ) : (
-        <Link href="/app/learn" className="flex items-center gap-4 p-3 rounded-2xl hover:bg-slate-50 transition-colors">
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0" style={bannerStyle}>
+        <Link href="/app/learn" className="flex items-center gap-4 p-3 rounded-2xl hover:[background:var(--bento-tint-orange)] transition-colors">
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border-2 border-white shadow-sm" style={bannerStyle}>
             <BookOpen className="w-7 h-7 text-white" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-black text-slate-800 text-sm">Start Learning</p>
-            <p className="text-xs font-bold text-slate-400 mt-0.5">Explore all modules</p>
+            <p className="font-black text-slate-900 text-sm">Start Learning</p>
+            <p className="text-xs font-bold text-slate-500 mt-0.5">Explore all modules</p>
           </div>
-          <ChevronRight size={16} className="text-slate-300 shrink-0" />
+          <ChevronRight size={18} className="text-slate-400 shrink-0" />
         </Link>
       )}
-    </div>
+    </ChunkCard>
   );
 }
 

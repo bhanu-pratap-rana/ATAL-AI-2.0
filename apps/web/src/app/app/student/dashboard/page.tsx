@@ -13,7 +13,12 @@ import { Users, PlusCircle, Trophy, ClipboardList } from "lucide-react";
 import { getCurrentUser, createClient } from "@/lib/supabase-server";
 import { BadgesLeaderboardPanel } from "@/components/gamification/BadgesLeaderboardPanel";
 import { AverageScore, AverageScoreSkeleton } from "@/components/student/AverageScore";
-import { Mascot, StreakFlame } from "@/components/system";
+import {
+  ChunkCard,
+  Mascot,
+  RainbowRing,
+  StreakFlame,
+} from "@/components/system";
 import { isTeacherOrHigher } from "@/lib/auth/role-utils";
 import { authLogger } from "@/lib/auth-logger";
 import {
@@ -231,22 +236,36 @@ export default async function StudentDashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
-      <div className="max-w-4xl mx-auto space-y-4">
+    <div className="min-h-screen p-4 md:p-6 pb-28 relative overflow-hidden [background:var(--bento-bg)]">
+      {/* Decorative pastel blobs — pure decoration, behind content */}
+      <div
+        className="bento-blob -top-20 -left-20 w-96 h-96"
+        style={{ background: "var(--bento-yellow)" }}
+        aria-hidden="true"
+      />
+      <div
+        className="bento-blob top-1/2 -right-20 w-80 h-80"
+        style={{ background: "var(--bento-purple)" }}
+        aria-hidden="true"
+      />
 
-        {/* ── Orange Banner ── */}
-        <div className="rounded-[32px] p-6 text-white" style={bannerStyle}>
+      <div className="relative max-w-4xl mx-auto space-y-4">
+
+        {/* ── Welcome Banner (chunky orange) ── */}
+        <ChunkCard size="lg" className="text-white border-white! relative overflow-hidden" style={bannerStyle}>
           <div className="flex items-start gap-4">
-            {/* Jyoti mascot replaces the static student emoji.
-                Bobs gently on idle; users with prefers-reduced-motion
-                see the mascot static (handled by MotionConfigProvider). */}
-            <Mascot size="sm" animate="bob" priority />
+            {/* Mascot framed by rainbow ring — ties to logo headphones.
+                Bobs gently on idle; respects prefers-reduced-motion via
+                MotionConfigProvider. */}
+            <RainbowRing>
+              <Mascot size="sm" animate="bob" priority />
+            </RainbowRing>
             <div className="flex-1 min-w-0">
-              <h1 className="text-xl sm:text-2xl font-black mb-1 truncate">
-                Welcome, {displayName}!
+              <h1 className="text-2xl sm:text-3xl font-black mb-1 truncate leading-tight">
+                Hi, {displayName}! <span className="inline-block animate-bento-wiggle">👋</span>
               </h1>
               {(profile.class_name ?? profile.roll_number) && (
-                <p className="text-white/80 text-xs font-black uppercase tracking-widest">
+                <p className="text-white/85 text-xs font-black uppercase tracking-widest">
                   {[
                     profile.class_name,
                     profile.roll_number ? `Roll No. ${profile.roll_number}` : null,
@@ -260,50 +279,56 @@ export default async function StudentDashboardPage() {
           <div className="mt-4 flex items-center gap-2 flex-wrap">
             <StreakFlame days={streakDays} onDark />
             {assessmentCount > 0 && (
-              <div className="bg-white/20 px-4 py-2 rounded-2xl flex items-center gap-2 backdrop-blur-md w-fit">
+              <div className="bg-white/25 px-4 py-2 rounded-2xl flex items-center gap-2 backdrop-blur-md w-fit border-2 border-white/30">
                 <span className="text-xs font-black">⭐ {assessmentCount} Assessments Done</span>
               </div>
             )}
           </div>
-        </div>
+        </ChunkCard>
 
-        {/* ── Stat Cards (clickable) ── */}
+        {/* ── Stat Cards (clickable, chunky bento tiles) ── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {statCards.map((stat) => (
-            <Link
-              key={stat.label}
-              href={stat.href}
-              prefetch={false}
-              className="bg-white rounded-2xl p-4 shadow-[0_4px_20px_rgb(0,0,0,0.05)] border border-slate-100 flex flex-col items-center text-center gap-1 hover:shadow-md transition-shadow active:scale-95"
-            >
-              <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center text-xl shrink-0">
-                {stat.icon}
-              </div>
-              <p className="text-xl font-black text-slate-800 leading-none">{stat.value}</p>
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider leading-tight">
-                {stat.label}
-              </p>
-            </Link>
-          ))}
+          {statCards.map((stat, i) => {
+            // Rotate through bento tints so the grid has visual variety.
+            const tints = ["orange", "purple", "yellow"] as const;
+            const tint = tints[i % tints.length];
+            return (
+              <Link
+                key={stat.label}
+                href={stat.href}
+                prefetch={false}
+                className="chunk-card-sm border-4 border-white p-4 flex flex-col items-center text-center gap-1 active:translate-y-1 transition-transform"
+                style={{ background: `var(--bento-tint-${tint})` }}
+              >
+                <div className="w-11 h-11 bg-white rounded-2xl flex items-center justify-center text-2xl shrink-0 border-2 border-white shadow-sm">
+                  {stat.icon}
+                </div>
+                <p className="text-2xl font-black text-slate-900 leading-none mt-1">{stat.value}</p>
+                <p className="text-[11px] font-black text-slate-600 uppercase tracking-wider leading-tight">
+                  {stat.label}
+                </p>
+              </Link>
+            );
+          })}
           {/* Avg Score streams independently — doesn't block the rest of the stat grid */}
           <Suspense fallback={<AverageScoreSkeleton />}>
             <AverageScore userId={user.id} />
           </Suspense>
         </div>
 
-        {/* ── Quick Actions ── */}
+        {/* ── Quick Actions (bento grid) ── */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {quickActions.map((action) => (
             <Link
               key={action.href}
               href={action.href}
               prefetch={false}
-              className="flex flex-col items-center gap-2 p-3 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow active:scale-95"
+              className="chunk-card-sm border-4 border-white flex flex-col items-center gap-2 p-3 active:translate-y-1 transition-transform"
             >
-              <div className={`w-11 h-11 ${action.bg} rounded-xl flex items-center justify-center`}>
+              <div className={`w-12 h-12 ${action.bg} rounded-2xl flex items-center justify-center border-2 border-white shadow-sm`}>
                 {action.icon}
               </div>
-              <span className="text-[11px] font-black text-slate-600 uppercase tracking-wider text-center leading-tight">
+              <span className="text-[11px] font-black text-slate-700 uppercase tracking-wider text-center leading-tight">
                 {action.label}
               </span>
             </Link>
@@ -311,22 +336,22 @@ export default async function StudentDashboardPage() {
         </div>
 
         {/* ── Badges & Leaderboard ── */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5">
+        <ChunkCard size="md">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-black text-slate-800 text-base">🏅 Badges & Rankings</h2>
+            <h2 className="font-black text-slate-900 text-lg">🏅 Badges & Rankings</h2>
             <Link
               href="/app/progress"
               prefetch={false}
-              className="text-xs font-black text-slate-400 hover:text-orange-500 transition-colors"
+              className="text-xs font-black text-slate-500 hover:text-(--bento-orange) transition-colors"
             >
-              See All
+              See All →
             </Link>
           </div>
           <BadgesLeaderboardPanel
             currentUserId={user.id}
             classId={classes[0]?.id ?? null}
           />
-        </div>
+        </ChunkCard>
 
         {/* ── Continue Learning (streams independently) ── */}
         <Suspense fallback={<ContinueLearningSkeleton />}>
