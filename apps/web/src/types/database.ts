@@ -345,7 +345,7 @@ export type Database = {
           join_pin: string | null
           name: string
           subject: string | null
-          teacher_id: string | null
+          teacher_id: string
         }
         Insert: {
           class_code?: string | null
@@ -354,7 +354,7 @@ export type Database = {
           join_pin?: string | null
           name: string
           subject?: string | null
-          teacher_id?: string | null
+          teacher_id: string
         }
         Update: {
           class_code?: string | null
@@ -363,7 +363,7 @@ export type Database = {
           join_pin?: string | null
           name?: string
           subject?: string | null
-          teacher_id?: string | null
+          teacher_id?: string
         }
         Relationships: [
           {
@@ -941,7 +941,22 @@ export type Database = {
           topic_id?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "student_knowledge_state_module_fk"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_knowledge_state_topic_fk"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       student_profiles: {
         Row: {
