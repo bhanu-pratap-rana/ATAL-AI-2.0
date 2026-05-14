@@ -20,7 +20,6 @@ export {
 // Password validation - NIST 2025 Compliant
 import {
   getPasswordValidationError,
-  estimatePasswordStrengthNist2025,
   getPasswordStrengthLabelNist2025,
 } from "./password-utils";
 
@@ -46,23 +45,8 @@ export function validatePassword(password: string): {
   };
 }
 
-export function calculatePasswordStrength(password: string): number {
-  return estimatePasswordStrengthNist2025(password);
-}
-
 export function getPasswordStrengthLabel(score: number): string {
   return getPasswordStrengthLabelNist2025(score);
-}
-
-export function validatePasswordSimple(password: string): {
-  valid: boolean;
-  error?: string;
-} {
-  const error = getPasswordValidationError(password);
-  return {
-    valid: !error,
-    error: error ?? undefined,
-  };
 }
 
 export function validatePasswordMatch(
