@@ -597,9 +597,9 @@ export function SchoolsClient() {
             {/* Hierarchical Finder Button */}
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               onClick={() => setFinderModalOpen(true)}
-              className="w-full text-slate-700 font-black"
+              className="w-full border-2 border-[#1E3A5F]/30 bg-white text-[#1E3A5F] font-black hover:bg-[#1E3A5F]/5"
             >
               <MapPin className="h-4 w-4" />
               Or Browse by District &amp; Block

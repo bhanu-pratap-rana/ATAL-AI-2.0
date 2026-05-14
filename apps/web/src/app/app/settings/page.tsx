@@ -45,6 +45,22 @@ export default async function SettingsPage() {
   // This is reliable as it's set server-side and cannot be modified by client
   const appRole = user.app_metadata?.role;
   const isTeacherOrAdmin = isTeacherOrHigher(appRole);
+  const isAdminLike = appRole === "admin" || appRole === "super_admin";
+  const isTeacher = appRole === "teacher";
+
+  // Role-aware visual identity. Keeps the settings page coherent with the
+  // post-login role theme (student=orange, teacher=blue, admin=navy) instead
+  // of always rendering orange/teacher chrome.
+  const roleBannerGradient = isAdminLike
+    ? "var(--gradient-admin)"
+    : isTeacher
+      ? "var(--gradient-teacher)"
+      : "var(--gradient-primary)";
+  const roleChipClass = isAdminLike
+    ? "bg-[#1E3A5F]/10 text-[#1E3A5F]"
+    : isTeacher
+      ? "bg-[#2563EB]/10 text-[#2563EB]"
+      : "bg-orange-50 text-orange-600";
 
   // Check if user signed up with username (Quick Start)
   const authType = user.user_metadata?.auth_type;
@@ -106,11 +122,7 @@ export default async function SettingsPage() {
         {/* Banner */}
         <div
           className="rounded-[32px] p-6 text-white"
-          style={{
-            background: isTeacherOrAdmin
-              ? "var(--gradient-teacher)"
-              : "var(--gradient-primary)",
-          }}
+          style={{ background: roleBannerGradient }}
         >
           {(() => {
             const nav = getBackNavigation(appRole);
@@ -152,7 +164,7 @@ export default async function SettingsPage() {
             )}
             <div className="flex justify-between items-center py-2 border-b border-slate-50">
               <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Role</span>
-              <span className="px-3 py-1 bg-orange-50 text-orange-600 rounded-full text-xs font-black">{userRole}</span>
+              <span className={`px-3 py-1 ${roleChipClass} rounded-full text-xs font-black`}>{userRole}</span>
             </div>
             <div className="flex justify-between items-center py-2 border-b border-slate-50">
               <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Member Since</span>

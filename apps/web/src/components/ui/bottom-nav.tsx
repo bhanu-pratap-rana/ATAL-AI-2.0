@@ -1,11 +1,13 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, BookOpen, MessageSquare, UserCircle,
   PieChart, Users, School, ClipboardList,
 } from "lucide-react";
+import { createClient } from "@/lib/supabase-browser";
 
 // Student nav tabs (Profile stays here — students self-manage their own
 // learning profile, which differs from system-wide Settings).
@@ -39,10 +41,18 @@ const HIDDEN_PREFIXES = [
   "/app/learning-style",
 ];
 
-function getRole(pathname: string): "student" | "teacher" | "admin" {
+function getRoleFromPath(pathname: string): "student" | "teacher" | "admin" | null {
   if (pathname.startsWith("/app/teacher")) return "teacher";
   if (pathname.startsWith("/app/admin")) return "admin";
-  return "student";
+  if (pathname.startsWith("/app/student")) return "student";
+  return null;
+}
+
+function getRoleFromAppMeta(role: string | undefined): "student" | "teacher" | "admin" | null {
+  if (role === "teacher") return "teacher";
+  if (role === "admin" || role === "super_admin") return "admin";
+  if (role === "student") return "student";
+  return null;
 }
 
 function getActiveColor(role: "student" | "teacher" | "admin") {
@@ -53,10 +63,29 @@ function getActiveColor(role: "student" | "teacher" | "admin") {
 
 export function BottomNav() {
   const pathname = usePathname();
+  const supabase = createClient();
+
+  // Prefer the user's actual role from Supabase (matches AppTopHeader).
+  // Falls back to the URL when on role-scoped paths so the nav is correct
+  // even before the auth call resolves. This is what makes the bottom-nav
+  // role-correct on non-role-scoped paths like /app/settings.
+  const [authRole, setAuthRole] = useState<string | undefined>(undefined);
+  useEffect(() => {
+    let cancelled = false;
+    supabase.auth.getUser().then(({ data }) => {
+      if (cancelled) return;
+      const value = data.user?.app_metadata?.role;
+      if (typeof value === "string") setAuthRole(value);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase]);
 
   if (HIDDEN_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return null;
 
-  const role = getRole(pathname);
+  const role: "student" | "teacher" | "admin" =
+    getRoleFromAppMeta(authRole) ?? getRoleFromPath(pathname) ?? "student";
   let NAV_ITEMS: typeof STUDENT_NAV | typeof TEACHER_NAV | typeof ADMIN_NAV;
   if (role === "teacher") {
     NAV_ITEMS = TEACHER_NAV;

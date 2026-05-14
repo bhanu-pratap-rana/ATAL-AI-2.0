@@ -66,8 +66,8 @@ export default async function TeacherAssessmentsPage() {
         {hasClasses && (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {[
-              { value: overview?.classes.length ?? 0, label: "Classes", color: "text-blue-600" },
-              { value: overview?.totalAssessments ?? 0, label: "Total Assessments", color: "text-purple-600" },
+              { value: overview?.classes.length ?? 0, label: "Classes", color: "text-[#2563EB]" },
+              { value: overview?.totalAssessments ?? 0, label: "Total Assessments", color: "text-[#2563EB]" },
               { value: overview?.overallAverageScore == null ? "-" : `${overview.overallAverageScore}%`, label: "Average Score", color: "text-emerald-600" },
             ].map((stat) => (
               <div key={stat.label} className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-4 text-center">

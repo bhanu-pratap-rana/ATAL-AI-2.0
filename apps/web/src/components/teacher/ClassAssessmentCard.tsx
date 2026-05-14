@@ -47,13 +47,13 @@ export function ClassAssessmentCard({
       <CardContent>
         <div className="grid grid-cols-3 gap-4 mb-4">
           <div className="text-center p-3 bg-slate-50 rounded-2xl">
-            <p className="text-xl font-black text-primary">
+            <p className="text-xl font-black text-[#2563EB]">
               {classData.studentCount}
             </p>
             <p className="text-xs text-slate-500">Students</p>
           </div>
           <div className="text-center p-3 bg-slate-50 rounded-2xl">
-            <p className="text-xl font-black text-info-dark">
+            <p className="text-xl font-black text-[#2563EB]">
               {classData.assessmentsTaken}
             </p>
             <p className="text-xs text-slate-500">
@@ -74,18 +74,18 @@ export function ClassAssessmentCard({
         <div className="flex flex-wrap gap-2">
           <Link href={`/app/teacher/classes/${classData.classId}`}>
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
-              className="touch-target"
+              className="touch-target border-2 border-[#2563EB]/30 bg-white text-[#2563EB] hover:bg-[#2563EB]/5"
             >
               View Class
             </Button>
           </Link>
           <Link href={`/app/teacher/assessments/${classData.classId}`}>
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
-              className="touch-target"
+              className="touch-target border-2 border-[#2563EB]/30 bg-white text-[#2563EB] hover:bg-[#2563EB]/5"
             >
               View Results
             </Button>
