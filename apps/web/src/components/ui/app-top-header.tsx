@@ -52,15 +52,23 @@ function portalFromRole(role: string | undefined): Portal | null {
   return null;
 }
 
-export function AppTopHeader() {
+interface AppTopHeaderProps {
+  readonly initialRole?: string;
+}
+
+export function AppTopHeader({ initialRole }: AppTopHeaderProps = {}) {
   const router = useRouter();
   const pathname = usePathname();
   const supabase = createClient();
 
-  // Prefer the user's actual role; fall back to the path for routes that
-  // are not role-scoped (e.g. /app/settings) or during hydration.
-  const [role, setRole] = useState<string | undefined>(undefined);
+  // The role is resolved server-side in the app layout and passed in as a
+  // prop, so the first paint already has the correct portal identity —
+  // no "student-flash" on /app/settings or other non-role-scoped paths.
+  // The client-side getUser() below is a safety net in case the prop is
+  // missing (e.g. legacy callers).
+  const [role, setRole] = useState<string | undefined>(initialRole);
   useEffect(() => {
+    if (initialRole) return;
     let cancelled = false;
     supabase.auth.getUser().then(({ data }) => {
       if (cancelled) return;
@@ -70,7 +78,7 @@ export function AppTopHeader() {
     return () => {
       cancelled = true;
     };
-  }, [supabase]);
+  }, [supabase, initialRole]);
 
   const portal: Portal =
     portalFromRole(role) ?? portalFromPath(pathname) ?? "student";

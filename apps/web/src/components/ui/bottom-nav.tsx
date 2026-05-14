@@ -61,16 +61,21 @@ function getActiveColor(role: "student" | "teacher" | "admin") {
   return { bg: "bg-primary", text: "text-primary", shadow: "0 4px 14px rgba(249,136,25,0.35)" };
 }
 
-export function BottomNav() {
+interface BottomNavProps {
+  readonly initialRole?: string;
+}
+
+export function BottomNav({ initialRole }: BottomNavProps = {}) {
   const pathname = usePathname();
   const supabase = createClient();
 
-  // Prefer the user's actual role from Supabase (matches AppTopHeader).
-  // Falls back to the URL when on role-scoped paths so the nav is correct
-  // even before the auth call resolves. This is what makes the bottom-nav
-  // role-correct on non-role-scoped paths like /app/settings.
-  const [authRole, setAuthRole] = useState<string | undefined>(undefined);
+  // Role is resolved server-side in the app layout and passed in. This is
+  // what makes the nav role-correct on first paint for non-role-scoped
+  // paths like /app/settings. The client-side getUser() below is only a
+  // safety net for legacy callers that don't supply the prop.
+  const [authRole, setAuthRole] = useState<string | undefined>(initialRole);
   useEffect(() => {
+    if (initialRole) return;
     let cancelled = false;
     supabase.auth.getUser().then(({ data }) => {
       if (cancelled) return;
@@ -80,7 +85,7 @@ export function BottomNav() {
     return () => {
       cancelled = true;
     };
-  }, [supabase]);
+  }, [supabase, initialRole]);
 
   if (HIDDEN_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return null;
 
