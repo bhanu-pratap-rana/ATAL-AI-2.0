@@ -19,15 +19,6 @@ const DATE_FMT = new Intl.DateTimeFormat("en-IN", {
   day: "2-digit",
 });
 
-const DATETIME_FMT = new Intl.DateTimeFormat("en-IN", {
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-  hour12: true,
-});
-
 const DATE_LONG_FMT = new Intl.DateTimeFormat("en-IN", {
   weekday: "long",
   year: "numeric",
@@ -39,12 +30,6 @@ export function formatDate(iso: string | undefined | null): string {
   if (!iso) return "";
   const d = new Date(iso);
   return Number.isNaN(d.getTime()) ? "" : DATE_FMT.format(d);
-}
-
-export function formatDateTime(iso: string | undefined | null): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? "" : DATETIME_FMT.format(d);
 }
 
 export function formatDateLong(iso: string | undefined | null): string {

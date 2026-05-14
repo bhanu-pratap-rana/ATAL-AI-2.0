@@ -6,7 +6,7 @@
  * Tests confirm the locale shape AND the empty/invalid-input fallbacks.
  */
 
-import { formatDate, formatDateTime, formatDateLong } from "@/lib/date-format";
+import { formatDate, formatDateLong } from "@/lib/date-format";
 
 describe("formatDate", () => {
   it("renders a valid ISO date in en-IN (DD/MM/YYYY) shape", () => {
@@ -22,20 +22,6 @@ describe("formatDate", () => {
   it("returns empty string for unparseable input", () => {
     expect(formatDate("not a date")).toBe("");
     expect(formatDate("definitely-invalid-2026-99-99")).toBe("");
-  });
-});
-
-describe("formatDateTime", () => {
-  it("includes the year + a time component", () => {
-    const out = formatDateTime("2026-05-14T10:30:00Z");
-    expect(out).toMatch(/2026/);
-    expect(out).toMatch(/\d{1,2}:\d{2}/);
-  });
-
-  it("returns empty string for falsy / invalid input", () => {
-    expect(formatDateTime("")).toBe("");
-    expect(formatDateTime(undefined)).toBe("");
-    expect(formatDateTime("not a date")).toBe("");
   });
 });
 
