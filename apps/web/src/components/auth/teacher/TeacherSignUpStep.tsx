@@ -109,7 +109,7 @@ export function TeacherSignUpStep({
 
                   <Button
                     type="submit"
-                    className="w-full shadow-[var(--shadow-primary)]"
+                    className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white border-2 border-[#2563EB]/40 shadow-md" variant="ghost"
                     disabled={state.loading || state.otp.length !== 6}
                     loading={state.loading}
                   >
@@ -121,7 +121,7 @@ export function TeacherSignUpStep({
                       type="button"
                       variant="link"
                       onClick={actions.handleSendOTP}
-                      className="text-sm hover:text-primary-dark"
+                      className="text-sm hover:text-[#1D4ED8] text-[#2563EB]"
                       disabled={state.loading}
                     >
                       Resend OTP
@@ -180,7 +180,7 @@ export function TeacherSignUpStep({
 
                   <Button
                     type="submit"
-                    className="w-full shadow-[var(--shadow-primary)]"
+                    className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white border-2 border-[#2563EB]/40 shadow-md" variant="ghost"
                     disabled={state.loading || !state.email}
                     loading={state.loading}
                   >
@@ -247,7 +247,7 @@ export function TeacherSignUpStep({
                       actions.setPhoneError("Phone number must be 10 digits");
                     }
                   }}
-                  className="w-full shadow-[var(--shadow-primary)]"
+                  className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white border-2 border-[#2563EB]/40 shadow-md" variant="ghost"
                   disabled={state.loading || state.phoneNumber.length !== 10}
                   loading={state.loading}
                 >
@@ -287,7 +287,7 @@ export function TeacherSignUpStep({
                         actions.setStep("set-password");
                       }
                     }}
-                    className="w-full shadow-[var(--shadow-primary)]"
+                    className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white border-2 border-[#2563EB]/40 shadow-md" variant="ghost"
                     disabled={state.loading || state.phoneOtp.length !== 6}
                     loading={state.loading}
                   >

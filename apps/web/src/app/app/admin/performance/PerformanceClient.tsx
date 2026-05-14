@@ -84,15 +84,15 @@ export function PerformanceClient() {
     <div className="min-h-screen [background:var(--bento-bg)] p-4 md:p-6 pb-28">
       <div className="max-w-6xl mx-auto space-y-4">
         {/* Banner */}
-        <div className="rounded-[32px] p-6 text-white" style={{ background: "var(--gradient-admin)" }}>
-          <h1 className="text-xl sm:text-2xl font-black mb-1 inline-flex items-center gap-2">
+        <div className="flex items-center justify-between gap-4 flex-wrap pt-2 pb-1">
+          <h1 className="text-xl sm:text-2xl font-black text-[#1E3A5F] inline-flex items-center gap-2">
+            <Microscope className="w-6 h-6 shrink-0" strokeWidth={2.25} aria-hidden="true" />
             Performance Monitoring
-            <Microscope className="w-6 h-6" strokeWidth={2.25} aria-hidden="true" />
           </h1>
           {/* `suppressHydrationWarning` is defence-in-depth; the value is now
               set on the client via useEffect so SSR always renders empty. */}
-          <p className="text-white/80 text-sm font-bold" suppressHydrationWarning>
-            {lastUpdated ? `Last updated: ${lastUpdated}` : " "}
+          <p className="text-xs font-black text-slate-400 uppercase tracking-widest" suppressHydrationWarning>
+            {lastUpdated ? `Updated ${lastUpdated}` : " "}
           </p>
         </div>
 

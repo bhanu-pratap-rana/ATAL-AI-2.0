@@ -507,23 +507,21 @@ export function SchoolsClient() {
   return (
     <div className="min-h-screen [background:var(--bento-bg)] p-6 pb-28">
       <div className="max-w-3xl mx-auto">
-        {/* Red Gradient Banner */}
-        <div className="rounded-[32px] p-6 text-white mb-8" style={{ background: "var(--gradient-admin)" }}>
-          <h1 className="text-xl sm:text-2xl font-black mb-1">School Management</h1>
-          <p className="text-red-100 text-xs font-black uppercase tracking-widest mb-6">Assam Digital Initiative • Admin Portal</p>
-          <div className="grid grid-cols-3 gap-3">
-            <div className="bg-white/10 p-3 rounded-2xl text-center backdrop-blur-md">
-              <p className="text-xl font-black">124</p>
-              <p className="text-[11px] uppercase font-black text-red-100">Schools</p>
-            </div>
-            <div className="bg-white/10 p-3 rounded-2xl text-center backdrop-blur-md">
-              <Shield className="h-5 w-5 mx-auto mb-1" />
-              <p className="text-[11px] uppercase font-black text-red-100">PIN Mgmt</p>
-            </div>
-            <div className="bg-white/10 p-3 rounded-2xl text-center backdrop-blur-md">
-              <Lock className="h-5 w-5 mx-auto mb-1" />
-              <p className="text-[11px] uppercase font-black text-red-100">Secure</p>
-            </div>
+        {/* One-line role-tinted heading (utility-page pattern — banners are
+            reserved for top-level dashboards). */}
+        <div className="flex items-center justify-between gap-4 flex-wrap pt-2 pb-4 mb-4 border-b border-slate-200">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-black text-[#1E3A5F] inline-flex items-center gap-2">
+              <Shield className="w-6 h-6 shrink-0" strokeWidth={2.25} aria-hidden="true" />
+              School Management
+            </h1>
+            <p className="text-[11px] font-black uppercase tracking-widest text-slate-400 mt-1">
+              Assam Digital Initiative • Admin Portal
+            </p>
+          </div>
+          <div className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-slate-500">
+            <Lock className="w-3.5 h-3.5" strokeWidth={2.5} aria-hidden="true" />
+            Secure
           </div>
         </div>
 

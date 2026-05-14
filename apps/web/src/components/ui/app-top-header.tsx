@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { GraduationCap, ShieldCheck, User, LogOut } from "lucide-react";
+import { GraduationCap, ShieldCheck, User, LogOut, Settings } from "lucide-react";
 import { createClient } from "@/lib/supabase-browser";
 import { authLogger } from "@/lib/auth-logger";
 import { LanguageSelector } from "@/components/learn/LanguageSelector";
@@ -108,6 +109,16 @@ export function AppTopHeader() {
         <div className="flex items-center gap-2 shrink-0">
           <LanguageSelector variant="compact" />
           <SyncStatusIndicator compact />
+          {pathname !== "/app/settings" && (
+            <Link
+              href="/app/settings"
+              aria-label="Settings"
+              title="Settings"
+              className="inline-flex items-center justify-center w-9 h-9 rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-100"
+            >
+              <Settings size={18} strokeWidth={2.25} aria-hidden="true" />
+            </Link>
+          )}
           <Button
             type="button"
             variant="ghost"
@@ -117,7 +128,7 @@ export function AppTopHeader() {
             title="Sign out"
             className="rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-100"
           >
-            <LogOut size={18} />
+            <LogOut size={18} aria-hidden="true" />
           </Button>
         </div>
       </div>

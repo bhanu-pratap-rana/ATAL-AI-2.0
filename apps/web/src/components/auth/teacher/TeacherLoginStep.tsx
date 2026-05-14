@@ -68,7 +68,8 @@ export function TeacherLoginStep({
 
           <Button
             type="submit"
-            className="w-full shadow-[var(--shadow-primary)]"
+            variant="ghost"
+            className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white border-2 border-[#2563EB]/40 shadow-md"
             disabled={
               state.loading || !state.loginEmail || !state.loginPassword
             }
@@ -85,7 +86,7 @@ export function TeacherLoginStep({
                 actions.setForgotEmail(state.loginEmail);
                 actions.setStep("forgot-password");
               }}
-              className="w-full text-sm hover:text-primary-dark"
+              className="w-full text-sm text-[#2563EB] hover:text-[#1D4ED8]"
               disabled={state.loading}
             >
               Forgot your password?
@@ -94,7 +95,7 @@ export function TeacherLoginStep({
               type="button"
               variant="link"
               onClick={() => actions.setStep("choice")}
-              className="w-full text-sm"
+              className="w-full text-sm text-[#2563EB] hover:text-[#1D4ED8]"
               disabled={state.loading}
             >
               Back to options
@@ -105,7 +106,7 @@ export function TeacherLoginStep({
               onClick={() => {
                 globalThis.location.href = "/";
               }}
-              className="w-full text-sm text-slate-500 hover:text-primary"
+              className="w-full text-sm text-slate-500 hover:text-[#2563EB]"
               disabled={state.loading}
             >
               Back to home

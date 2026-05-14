@@ -55,7 +55,7 @@ export function TeacherForgotPasswordStep({
 
             <Button
               type="submit"
-              className="w-full shadow-[var(--shadow-primary)]"
+              className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white border-2 border-[#2563EB]/40 shadow-md" variant="ghost"
               disabled={state.loading || !state.forgotEmail}
               loading={state.loading}
             >
@@ -158,7 +158,7 @@ export function TeacherForgotPasswordStep({
 
           <Button
             type="submit"
-            className="w-full shadow-[var(--shadow-primary)]"
+            className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white border-2 border-[#2563EB]/40 shadow-md" variant="ghost"
             disabled={
               state.loading ||
               state.forgotOtp.length !== 6 ||
@@ -175,7 +175,7 @@ export function TeacherForgotPasswordStep({
               type="button"
               variant="link"
               onClick={actions.handleForgotPasswordOtp}
-              className="w-full text-sm hover:text-primary-dark"
+              className="w-full text-sm hover:text-[#1D4ED8] text-[#2563EB]"
               disabled={state.loading}
             >
               Resend Recovery Code

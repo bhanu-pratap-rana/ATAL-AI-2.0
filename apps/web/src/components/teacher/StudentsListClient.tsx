@@ -37,22 +37,16 @@ export function StudentsListClient({ students }: Readonly<{ students: StudentRow
   return (
     <div className="min-h-screen [background:var(--bento-bg)] p-4 md:p-6 pb-28">
       <div className="max-w-4xl mx-auto space-y-4">
-        {/* Blue gradient banner — canonical SP13 teacher theme */}
-        <div
-          className="rounded-[32px] p-6 text-white"
-          style={{ background: "var(--gradient-teacher)" }}
-        >
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div className="min-w-0">
-              <h1 className="text-xl sm:text-2xl font-black mb-1 inline-flex items-center gap-2">
-                <GraduationCap className="w-6 h-6 shrink-0" strokeWidth={2.25} aria-hidden="true" />
-                My Students
-              </h1>
-              <p className="text-white/85 text-xs font-black uppercase tracking-widest">
-                {students.length} student{students.length === 1 ? "" : "s"} across all your classes
-              </p>
-            </div>
-          </div>
+        {/* One-line role-tinted heading (utility-page pattern — banners are
+            reserved for top-level dashboards). */}
+        <div className="flex items-center justify-between gap-4 flex-wrap pt-2 pb-4 mb-2 border-b border-slate-200">
+          <h1 className="text-xl sm:text-2xl font-black text-[#2563EB] inline-flex items-center gap-2">
+            <GraduationCap className="w-6 h-6 shrink-0" strokeWidth={2.25} aria-hidden="true" />
+            My Students
+          </h1>
+          <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">
+            {students.length} student{students.length === 1 ? "" : "s"} across all your classes
+          </p>
         </div>
 
         {/* Search bar */}

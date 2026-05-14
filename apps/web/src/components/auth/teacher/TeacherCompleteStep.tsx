@@ -17,7 +17,7 @@ export function TeacherCompleteStep() {
         description="Welcome to ATAL AI"
       >
         <div className="text-center space-y-4">
-          <div className="mx-auto w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-(--bento-tint-orange) border-4 border-white shadow-sm flex items-center justify-center text-(--bento-orange-d)">
+          <div className="mx-auto w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-[#2563EB]/10 border-4 border-white shadow-sm flex items-center justify-center text-[#2563EB]">
             <PartyPopper className="w-9 h-9 sm:w-11 sm:h-11" strokeWidth={2.25} aria-hidden="true" />
           </div>
           <p className="text-lg font-black">You&apos;re all set!</p>

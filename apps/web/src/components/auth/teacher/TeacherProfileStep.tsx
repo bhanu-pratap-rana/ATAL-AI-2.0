@@ -71,7 +71,7 @@ export function TeacherProfileStep({
                   checked={state.teacherGender === "male"}
                   onChange={() => actions.setTeacherGender("male")}
                   disabled={state.loading}
-                  className="w-4 h-4 text-primary"
+                  className="w-4 h-4 text-[#2563EB]"
                 />
                 <span className="text-sm">Male</span>
               </label>
@@ -83,7 +83,7 @@ export function TeacherProfileStep({
                   checked={state.teacherGender === "female"}
                   onChange={() => actions.setTeacherGender("female")}
                   disabled={state.loading}
-                  className="w-4 h-4 text-primary"
+                  className="w-4 h-4 text-[#2563EB]"
                 />
                 <span className="text-sm">Female</span>
               </label>
@@ -129,7 +129,7 @@ export function TeacherProfileStep({
 
           <Button
             type="submit"
-            className="w-full shadow-[var(--shadow-primary)]"
+            className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white border-2 border-[#2563EB]/40 shadow-md" variant="ghost"
             disabled={
               state.loading || !state.teacherName || !state.teacherGender
             }

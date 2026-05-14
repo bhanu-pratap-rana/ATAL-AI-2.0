@@ -122,7 +122,7 @@ export function TeacherSetPasswordStep({
 
           <Button
             type="submit"
-            className="w-full shadow-[var(--shadow-primary)]"
+            className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white border-2 border-[#2563EB]/40 shadow-md" variant="ghost"
             disabled={
               state.loading ||
               !validatePassword(state.password).valid ||

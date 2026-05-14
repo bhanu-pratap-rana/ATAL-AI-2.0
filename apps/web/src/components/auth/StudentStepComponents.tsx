@@ -94,9 +94,10 @@ export function ChoiceStep({ actions, loading: _loading, state: _state }: StepCo
               </a>
               <a
                 href="/admin/login"
-                className="btn-bento btn-bento-purple flex-col gap-2 py-4 px-2 rounded-2xl text-sm"
+                className="btn-bento flex-col gap-2 py-4 px-2 rounded-2xl text-sm text-white"
+                style={{ background: '#1E3A5F', ['--bento-btn-shadow' as string]: '#152A44' }}
               >
-<Lock className="w-6 h-6" strokeWidth={2.25} aria-hidden="true" />
+                <Lock className="w-6 h-6" strokeWidth={2.25} aria-hidden="true" />
                 <span>Admin</span>
               </a>
             </div>

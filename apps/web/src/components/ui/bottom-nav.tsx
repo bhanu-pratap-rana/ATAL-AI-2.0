@@ -4,10 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, BookOpen, MessageSquare, UserCircle,
-  PieChart, Users, School, Settings
+  PieChart, Users, School, ClipboardList,
 } from "lucide-react";
 
-// Student nav tabs
+// Student nav tabs (Profile stays here — students self-manage their own
+// learning profile, which differs from system-wide Settings).
 const STUDENT_NAV = [
   { href: "/app/student/dashboard", icon: LayoutDashboard, label: "Home" },
   { href: "/app/learn", icon: BookOpen, label: "Learn" },
@@ -15,20 +16,21 @@ const STUDENT_NAV = [
   { href: "/app/settings", icon: UserCircle, label: "Profile" },
 ] as const;
 
-// Teacher nav tabs
+// Teacher nav tabs — System slot reclaimed for Assessments (a real
+// teacher-facing route). Settings is reachable from the top-right header.
 const TEACHER_NAV = [
   { href: "/app/teacher/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/app/teacher/analytics/questions", icon: PieChart, label: "Analytics" },
   { href: "/app/teacher/classes", icon: Users, label: "Students" },
-  { href: "/app/settings", icon: Settings, label: "System" },
+  { href: "/app/teacher/assessments", icon: ClipboardList, label: "Assessments" },
 ] as const;
 
-// Admin nav tabs
+// Admin nav tabs — only three real /app/admin sub-routes exist, so the
+// bottom-nav reflects that. Settings/sign-out live in the top-right header.
 const ADMIN_NAV = [
   { href: "/app/admin/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/app/admin/performance", icon: PieChart, label: "Analytics" },
   { href: "/app/admin/schools", icon: School, label: "Schools" },
-  { href: "/app/settings", icon: Settings, label: "System" },
 ] as const;
 
 // Hide on full-screen experiences only

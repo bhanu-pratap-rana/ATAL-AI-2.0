@@ -38,10 +38,10 @@ export function TeacherChoiceStep({ actions }: TeacherChoiceStepProps) {
           {/* Header */}
           <div className="text-center mb-8">
             <div
-              className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center border-4 border-white"
-              style={{ background: "var(--gradient-primary)", boxShadow: "var(--shadow-primary-sm)" }}
+              className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center border-4 border-white shadow-sm"
+              style={{ background: "var(--gradient-teacher)" }}
             >
-              <GraduationCap className="w-8 h-8 text-white" />
+              <GraduationCap className="w-8 h-8 text-white" strokeWidth={2.25} aria-hidden="true" />
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mb-1">Teacher Portal</h1>
             <p className="text-slate-500 font-bold text-sm">Are you a new or existing teacher?</p>
@@ -50,13 +50,13 @@ export function TeacherChoiceStep({ actions }: TeacherChoiceStepProps) {
           <div className="space-y-3">
             {/* Create Account Button */}
             <BentoButton
-              color="orange"
+              color="sky"
               size="lg"
               fullWidth
               onClick={() => actions.setStep("auth")}
               className="justify-start! gap-4 whitespace-normal h-auto py-4"
             >
-              <GraduationCap className="w-6 h-6 shrink-0" />
+              <GraduationCap className="w-6 h-6 shrink-0" strokeWidth={2.25} aria-hidden="true" />
               <span className="text-left">
                 <span className="block text-base leading-none">Create New Account</span>
                 <span className="block text-xs font-bold text-white/80 mt-1">New teacher registration</span>
@@ -94,7 +94,7 @@ export function TeacherChoiceStep({ actions }: TeacherChoiceStepProps) {
               <button
                 type="button"
                 onClick={() => router.push("/")}
-                className="text-sm font-bold text-slate-500 hover:text-(--bento-orange) underline-offset-4 hover:underline"
+                className="text-sm font-bold text-slate-500 hover:text-(--bento-sky-d) underline-offset-4 hover:underline"
               >
                 ← Back to home
               </button>
