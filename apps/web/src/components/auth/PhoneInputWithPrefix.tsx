@@ -73,6 +73,7 @@ export function PhoneInputWithPrefix({
         <Input
           id={id}
           type="tel"
+          autoComplete="tel"
           inputMode="numeric"
           placeholder={placeholder}
           value={value}

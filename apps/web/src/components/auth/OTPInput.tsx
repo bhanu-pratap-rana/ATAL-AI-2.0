@@ -68,6 +68,7 @@ export function OTPInput({
       <Input
         id={id}
         type="text"
+        autoComplete="one-time-code"
         inputMode="numeric"
         placeholder={placeholder}
         value={value}

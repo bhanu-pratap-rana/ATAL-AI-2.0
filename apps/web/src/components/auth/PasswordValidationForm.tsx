@@ -88,6 +88,7 @@ export function PasswordValidationForm({
           <Input
             id="password-input"
             type={showPassword ? "text" : "password"}
+            autoComplete="new-password"
             placeholder="Enter password (min. 8 characters)"
             value={password}
             onChange={(e) => onPasswordChange(e.target.value)}
@@ -120,6 +121,7 @@ export function PasswordValidationForm({
           <Input
             id="confirm-password-input"
             type={showConfirm ? "text" : "password"}
+            autoComplete="new-password"
             placeholder="Confirm your password"
             value={passwordConfirm}
             onChange={(e) => onPasswordConfirmChange(e.target.value)}

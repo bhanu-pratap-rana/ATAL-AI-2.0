@@ -64,6 +64,7 @@ export function EmailOTPForm({
         <Input
           id="email-input"
           type="email"
+          autoComplete="username"
           placeholder="your@email.com"
           value={email}
           onChange={(e) => onEmailChange(e.target.value)}

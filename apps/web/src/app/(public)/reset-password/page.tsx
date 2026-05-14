@@ -155,6 +155,7 @@ function ResetPasswordContent() {
             <Input
               id="email"
               type="email"
+              autoComplete="username"
               placeholder="your@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -174,6 +175,8 @@ function ResetPasswordContent() {
             <Input
               id="otp"
               type="text"
+              autoComplete="one-time-code"
+              inputMode="numeric"
               placeholder="000000"
               value={otp}
               onChange={(e) => handleOtpChange(e.target.value)}
@@ -194,6 +197,7 @@ function ResetPasswordContent() {
             <Input
               id="newPassword"
               type="password"
+              autoComplete="new-password"
               placeholder="Enter new password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
@@ -211,6 +215,7 @@ function ResetPasswordContent() {
             <Input
               id="confirmPassword"
               type="password"
+              autoComplete="new-password"
               placeholder="Confirm your password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
