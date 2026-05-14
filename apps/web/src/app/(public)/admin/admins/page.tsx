@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { AdminCreateForm } from "@/components/admin/AdminCreateForm";
 import { AdminListTable } from "@/components/admin/AdminListTable";
-import { ArrowLeft, Plus, UserRound, Users } from "lucide-react";
+import { ArrowLeft, Crown, Plus, UserRound, Users } from "lucide-react";
 import { createBrowserClient } from "@supabase/ssr";
 import { clientLogger } from "@/lib/client-logger";
 
@@ -147,8 +147,9 @@ export default function AdminsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Super Admin Info */}
             <div className="bg-accent-light border border-accent/30 rounded-2xl p-6">
-              <h3 className="font-black text-accent-dark mb-2">
-                👑 Super Admin Role
+              <h3 className="font-black text-accent-dark mb-2 inline-flex items-center gap-1.5">
+                <Crown size={16} strokeWidth={2.5} aria-hidden="true" />
+                Super Admin Role
               </h3>
               <ul className="text-sm text-slate-500 space-y-2 list-disc list-inside">
                 <li>Full system access and management</li>

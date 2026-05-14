@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { queryMonitor } from "@/lib/supabase-query-wrapper";
 import { connectionPoolMonitor } from "@/lib/monitoring/connection-pool-monitor";
 import type { ConnectionPoolMetrics, PoolAlert } from "@/types/monitoring";
-import { AlertCircle, CheckCircle2, TrendingDown, Zap } from "lucide-react";
+import { AlertCircle, CheckCircle2, Microscope, TrendingDown, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 function getAlertClassName(level: string): string {
@@ -34,6 +34,13 @@ function getUtilizationColors(percent: number): UtilizationColors {
 }
 
 export function PerformanceClient() {
+  // `lastUpdated` is rendered as a locale time string. Initialising it from
+  // `new Date()` on render would cause a hydration mismatch because the
+  // server and client locale defaults differ (12-hour PM vs 24-hour).
+  // Start as empty on the server / first client render, then seed on mount
+  // — the empty placeholder hydrates cleanly and the visible value is set
+  // by the first effect tick.
+  const [lastUpdated, setLastUpdated] = useState<string>("");
   const [stats, setStats] = useState(queryMonitor.getStats());
   const [slowQueries, setSlowQueries] = useState(
     queryMonitor.getSlowestQueries(10),
@@ -48,10 +55,16 @@ export function PerformanceClient() {
   const [refreshInterval, setRefreshInterval] = useState(5000);
 
   useEffect(() => {
+    // Seed the timestamp asynchronously after mount so initial HTML
+    // hydrates without mismatching the SSR-empty placeholder, and so
+    // the seed doesn't trip react-hooks/set-state-in-effect.
+    queueMicrotask(() => setLastUpdated(new Date().toLocaleTimeString()));
+
     const interval = setInterval(async () => {
       setStats(queryMonitor.getStats());
       setSlowQueries(queryMonitor.getSlowestQueries(10));
       setFailedQueries(queryMonitor.getFailedQueries(10));
+      setLastUpdated(new Date().toLocaleTimeString());
 
       const metrics = await connectionPoolMonitor.getMetrics();
       if (metrics) {
@@ -72,8 +85,15 @@ export function PerformanceClient() {
       <div className="max-w-6xl mx-auto space-y-4">
         {/* Banner */}
         <div className="rounded-[32px] p-6 text-white" style={{ background: "var(--gradient-admin)" }}>
-          <h1 className="text-xl sm:text-2xl font-black mb-1">Performance Monitoring 🔬</h1>
-          <p className="text-white/80 text-sm font-bold">Last updated: {new Date().toLocaleTimeString()}</p>
+          <h1 className="text-xl sm:text-2xl font-black mb-1 inline-flex items-center gap-2">
+            Performance Monitoring
+            <Microscope className="w-6 h-6" strokeWidth={2.25} aria-hidden="true" />
+          </h1>
+          {/* `suppressHydrationWarning` is defence-in-depth; the value is now
+              set on the client via useEffect so SSR always renders empty. */}
+          <p className="text-white/80 text-sm font-bold" suppressHydrationWarning>
+            {lastUpdated ? `Last updated: ${lastUpdated}` : " "}
+          </p>
         </div>
 
         {/* Query Performance Stats */}
