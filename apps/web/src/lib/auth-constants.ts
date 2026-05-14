@@ -32,6 +32,7 @@ export const CLASS_CODE_LENGTH = 6;
 // Import from '@/lib/constants/rate-limits' for rate limiting logic
 
 // Valid email providers (whitelist legitimate domains)
+// Kept for backward compatibility — new code uses VALID_TLDS instead of this list
 export const VALID_EMAIL_PROVIDERS = [
   "gmail.com",
   "yahoo.com",
@@ -61,28 +62,33 @@ export const VALID_EMAIL_PROVIDERS = [
   "vip.qq.com",
 ];
 
-// Common email domain typos for detection
-// Maps common misspellings to correct domains
+// Accepted TLDs — any domain whose effective TLD (or compound TLD) appears here
+// is considered legitimate. Compound entries (gov.in, edu.in …) must sort before
+// their single-segment parent (in) so longest-match-first works correctly.
+export const VALID_TLDS = [
+  // Compound — Indian government, education, and enterprise (checked before "in")
+  "co.in", "edu.in", "gov.in", "nic.in", "ac.in",
+  // Compound — UK (checked before "uk")
+  "co.uk", "ac.uk", "gov.uk",
+  // Single-segment generic
+  "com", "org", "net", "edu", "gov", "mil", "int",
+  "co", "io", "ai", "tv", "cc", "ws", "me", "info", "biz",
+  // Country (two-letter)
+  "in", "uk", "us", "ca", "au", "de", "fr", "jp", "cn",
+  "br", "ru", "it", "es", "nl", "se", "no", "dk", "fi",
+];
+
+// Common email domain typos for detection — top misspellings only.
+// Using a fixed map avoids O(n) Levenshtein over the full provider list.
 export const COMMON_DOMAIN_TYPOS: Record<string, string> = {
-  "gmai.com": "gmail.com",
-  "gmal.com": "gmail.com",
   "gmial.com": "gmail.com",
-  "gmali.com": "gmail.com",
-  "gmil.com": "gmail.com",
-  "gamail.com": "gmail.com",
-  "gmain.com": "gmail.com",
-  "gmaul.com": "gmail.com",
-  "gail.com": "gmail.com",
-  "yahooo.com": "yahoo.com",
+  "gmai.com": "gmail.com",
+  "gnail.com": "gmail.com",
   "yaho.com": "yahoo.com",
-  "ahoo.com": "yahoo.com",
-  "outlook.co": "outlook.com",
-  "outloik.com": "outlook.com",
+  "yahooo.com": "yahoo.com",
+  "outloo.com": "outlook.com",
   "hotmial.com": "hotmail.com",
-  "hotmai.com": "hotmail.com",
-  "hotmal.com": "hotmail.com",
-  "icloud.co": "icloud.com",
-  "icloud.cm": "icloud.com",
+  "iclod.com": "icloud.com",
 };
 
 /**

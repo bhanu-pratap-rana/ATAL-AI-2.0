@@ -3,11 +3,8 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import {
-  validateEmail,
-  validatePassword,
-  validatePasswordMatch,
-} from "@/lib/validation-utils";
+import { validateEmail } from "@/lib/email-validation";
+import { validatePassword, validatePasswordMatch } from "@/lib/validation-utils";
 import { OTP_LENGTH } from "@/lib/auth-constants";
 import {
   sendForgotPasswordOtp,

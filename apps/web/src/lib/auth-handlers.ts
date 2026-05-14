@@ -14,8 +14,8 @@
  */
 
 import { SupabaseClient, User, AuthError } from "@supabase/supabase-js";
+import { validateEmail } from "./email-validation";
 import {
-  validateEmail,
   validatePhone,
   validatePassword,
 } from "./validation-utils";

@@ -5,8 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { PartyPopper, RefreshCw } from "lucide-react";
+import { validateEmail } from "@/lib/email-validation";
 import {
-  validateEmail,
   validatePassword,
   validatePasswordMatch,
 } from "@/lib/validation-utils";

@@ -16,8 +16,8 @@ import {
 } from "@/app/actions/auth";
 import { useOTPInput } from "@/hooks/useOTPInput";
 import { usePhoneInput } from "@/hooks/usePhoneInput";
+import { validateEmail } from "@/lib/email-validation";
 import {
-  validateEmail,
   validatePassword,
   validatePasswordMatch,
   validatePhone,

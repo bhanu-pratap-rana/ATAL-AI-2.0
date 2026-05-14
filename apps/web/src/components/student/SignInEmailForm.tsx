@@ -3,7 +3,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { validateEmail } from "@/lib/validation-utils";
+import { validateEmail } from "@/lib/email-validation";
 import { createClient } from "@/lib/supabase-browser";
 import { authLogger } from "@/lib/auth-logger";
 import { toast } from "sonner";

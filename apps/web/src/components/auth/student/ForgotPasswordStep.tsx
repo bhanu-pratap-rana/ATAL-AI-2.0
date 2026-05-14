@@ -13,8 +13,8 @@ import {
   resetPasswordWithOtp,
 } from "@/app/actions/auth";
 import { useOTPInput } from "@/hooks/useOTPInput";
+import { validateEmail } from "@/lib/email-validation";
 import {
-  validateEmail,
   validatePassword,
   validatePasswordMatch,
 } from "@/lib/validation-utils";

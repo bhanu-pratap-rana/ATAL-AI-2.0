@@ -20,7 +20,6 @@ export {
   VALID_TLDS,
   detectDomainTypo,
   isValidEmailDomain,
-  validateEmail,
   normalizeEmail,
   maskEmail,
 } from "./email-validation";

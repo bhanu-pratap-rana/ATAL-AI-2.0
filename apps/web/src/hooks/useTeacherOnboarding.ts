@@ -17,8 +17,8 @@ import {
   resetPasswordWithOtp,
 } from "@/app/actions/auth";
 import { verifyTeacher } from "@/app/actions/school";
+import { validateEmail } from "@/lib/email-validation";
 import {
-  validateEmail,
   validatePassword,
   validatePasswordMatch,
   validateOptionalPhone,

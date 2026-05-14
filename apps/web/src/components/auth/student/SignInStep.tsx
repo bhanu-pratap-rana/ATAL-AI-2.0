@@ -14,10 +14,8 @@ import {
   signInWithUsername,
 } from "@/app/actions/auth";
 import { usePhoneInput } from "@/hooks/usePhoneInput";
-import {
-  validateEmail,
-  validatePhone,
-} from "@/lib/validation-utils";
+import { validateEmail } from "@/lib/email-validation";
+import { validatePhone } from "@/lib/validation-utils";
 import { authLogger } from "@/lib/auth-logger";
 import { Mail, Smartphone, UserRound } from "lucide-react";
 import { AuthCard } from "@/components/auth/AuthCard";
