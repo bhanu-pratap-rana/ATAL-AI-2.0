@@ -6,18 +6,18 @@
 
 ---
 
-## Current baseline (May 14, 2026)
+## Current baseline (May 14, 2026 — migration 186 applied)
 
 | Category | Level | Count | Status |
 |---|---|---|---|
 | `auth_allow_anonymous_sign_ins` | WARN | 31 | Accepted (intentional, see §1) |
-| `authenticated_security_definer_function_executable` | WARN | 38 | **Open** — see §3 |
-| `anon_security_definer_function_executable` | WARN | 2 | **Open** — see §3 |
-| `function_search_path_mutable` | WARN | 1 | Fixed in migration `186` |
+| `authenticated_security_definer_function_executable` | WARN | 38 | Accepted (intentional, see §3) |
+| `anon_security_definer_function_executable` | WARN | 2 | Accepted (login flow, see §3) |
+| `function_search_path_mutable` | WARN | **0** | **Fixed and applied** (migration 186, see §4) |
 | `auth_leaked_password_protection` | WARN | 1 | Dashboard toggle pending (see §2) |
-| `unused_index` | INFO | 60+ | Deferred — see §4 |
+| `unused_index` | INFO | 60+ | Deferred — see §4 of the perf-actions section |
 
-**Net WARN delta vs Feb 2026 baseline:** +41 (38 authenticated + 2 anon SECURITY DEFINER + 1 search_path). All new entries are function-level, none table/RLS-level.
+**Live total: 72 WARN.** All remaining items are documented as accepted-intentional or pending-dashboard-toggle.
 
 ---
 
@@ -242,10 +242,21 @@ without an internal auth check. No migration warranted at this time.
 
 ---
 
-## §4. `function_search_path_mutable` — Fixed
+## §4. `function_search_path_mutable` — Fixed and applied
 
 `public.tg_set_updated_at()` was created in migration 184 without an
 explicit `SET search_path`. Migration **186** locks it to
 `public, pg_temp`. The function body only references `NEW.updated_at`
-and `now()`, so the change is a no-op for correctness but clears the
-advisor.
+and `now()`, so the change is a no-op for correctness — but it clears
+the only `function_search_path_mutable` advisor.
+
+**Applied 2026-05-14 via Supabase MCP.** Verification query:
+
+```sql
+SELECT proname, proconfig FROM pg_proc p
+JOIN pg_namespace n ON p.pronamespace = n.oid
+WHERE n.nspname = 'public' AND proname = 'tg_set_updated_at';
+-- Returns: proconfig = {search_path=public, pg_temp}
+```
+
+Advisor count after apply: 72 WARN (down from 73).
