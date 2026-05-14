@@ -189,6 +189,7 @@ export function ForgotPasswordStep({
             <Input
               id="forgot-password-email"
               type="email"
+              autoComplete="username"
               placeholder="your.email@example.com"
               value={state.forgotPasswordEmail}
               onChange={(e) =>
@@ -239,6 +240,8 @@ export function ForgotPasswordStep({
           <Input
             id="forgot-password-code"
             type="text"
+            autoComplete="one-time-code"
+            inputMode="numeric"
             placeholder="123456"
             value={forgotPasswordOtpInput.value}
             onChange={(e) => forgotPasswordOtpInput.onChange(e.target.value)}

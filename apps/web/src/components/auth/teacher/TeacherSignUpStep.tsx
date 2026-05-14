@@ -90,6 +90,8 @@ export function TeacherSignUpStep({
                     <Input
                       id="otp"
                       type="text"
+                      autoComplete="one-time-code"
+                      inputMode="numeric"
                       placeholder="123456"
                       value={state.otp}
                       onChange={(e) =>
@@ -147,6 +149,7 @@ export function TeacherSignUpStep({
                     <Input
                       id="email"
                       type="email"
+                      autoComplete="email"
                       placeholder="teacher@school.edu"
                       value={state.email}
                       onChange={(e) => actions.setEmail(e.target.value)}
@@ -215,6 +218,7 @@ export function TeacherSignUpStep({
                     <Input
                       id="phone"
                       type="tel"
+                      autoComplete="tel"
                       placeholder="9876543210"
                       value={state.phoneNumber}
                       onChange={(e) => {
@@ -262,6 +266,8 @@ export function TeacherSignUpStep({
                     <Input
                       id="phone-otp"
                       type="text"
+                      autoComplete="one-time-code"
+                      inputMode="numeric"
                       placeholder="123456"
                       value={state.phoneOtp}
                       onChange={(e) =>

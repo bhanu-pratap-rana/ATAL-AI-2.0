@@ -58,6 +58,7 @@ export function TeacherSetPasswordStep({
             <Input
               id="password"
               type="password"
+              autoComplete="new-password"
               placeholder="Enter password (min 8 characters)"
               value={state.password}
               onChange={(e) => actions.handlePasswordChange(e.target.value)}
@@ -103,6 +104,7 @@ export function TeacherSetPasswordStep({
             <Input
               id="password-confirm"
               type="password"
+              autoComplete="new-password"
               placeholder="Re-enter password"
               value={state.passwordConfirm}
               onChange={(e) => actions.setPasswordConfirm(e.target.value)}

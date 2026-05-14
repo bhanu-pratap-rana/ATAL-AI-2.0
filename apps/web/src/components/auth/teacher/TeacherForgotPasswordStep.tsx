@@ -42,6 +42,7 @@ export function TeacherForgotPasswordStep({
               <Input
                 id="forgot-email"
                 type="email"
+                autoComplete="username"
                 placeholder="teacher@school.edu"
                 value={state.forgotEmail}
                 onChange={(e) => actions.setForgotEmail(e.target.value)}
@@ -96,6 +97,8 @@ export function TeacherForgotPasswordStep({
             <Input
               id="forgot-otp"
               type="text"
+              autoComplete="one-time-code"
+              inputMode="numeric"
               placeholder="123456"
               value={state.forgotOtp}
               onChange={(e) =>
@@ -118,6 +121,7 @@ export function TeacherForgotPasswordStep({
             <Input
               id="forgot-new-password"
               type="password"
+              autoComplete="new-password"
               placeholder="Enter new password (min 8 characters)"
               value={state.forgotNewPassword}
               onChange={(e) => actions.setForgotNewPassword(e.target.value)}
@@ -145,6 +149,7 @@ export function TeacherForgotPasswordStep({
             <Input
               id="forgot-confirm-password"
               type="password"
+              autoComplete="new-password"
               placeholder="Re-enter password"
               value={state.forgotConfirmPassword}
               onChange={(e) =>

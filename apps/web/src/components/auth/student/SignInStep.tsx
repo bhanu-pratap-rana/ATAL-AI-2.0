@@ -321,6 +321,7 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
               <Input
                 id="signin-email"
                 type="email"
+                autoComplete="username"
                 placeholder="your.email@example.com"
                 value={state.signinEmailAddress}
                 onChange={(e) =>
@@ -336,6 +337,7 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
               <Input
                 id="signin-password"
                 type="password"
+                autoComplete="current-password"
                 placeholder="Enter your password"
                 value={state.signinEmailPassword}
                 onChange={(e) =>
@@ -388,6 +390,7 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
               <Input
                 id="signin-phone"
                 type="tel"
+                autoComplete="tel"
                 placeholder="+1 (555) 123-4567"
                 value={signinPhoneInput.displayValue}
                 onChange={(e) => signinPhoneInput.onChange(e.target.value)}
@@ -401,6 +404,7 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
               <Input
                 id="signin-phone-password"
                 type="password"
+                autoComplete="current-password"
                 placeholder="Enter your password"
                 value={state.signinPhonePassword}
                 onChange={(e) =>
@@ -453,6 +457,7 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
               <Input
                 id="signin-username"
                 type="text"
+                autoComplete="username"
                 placeholder="your.username"
                 value={state.signinUsername}
                 onChange={(e) =>
@@ -468,6 +473,7 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
               <Input
                 id="signin-username-password"
                 type="password"
+                autoComplete="current-password"
                 placeholder="Enter your password"
                 value={state.signinUsernamePassword}
                 onChange={(e) =>

@@ -471,6 +471,8 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
                   <Input
                     id="signup-email-otp"
                     type="text"
+                    autoComplete="one-time-code"
+                    inputMode="numeric"
                     placeholder="123456"
                     value={signupEmailOtpInput.value}
                     onChange={(e) =>
@@ -558,6 +560,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
                   <Input
                     id="signup-email"
                     type="email"
+                    autoComplete="email"
                     placeholder="your.email@example.com"
                     value={state.signupEmailAddress}
                     onChange={(e) =>
@@ -610,6 +613,8 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
                   <Input
                     id="signup-phone-otp"
                     type="text"
+                    autoComplete="one-time-code"
+                    inputMode="numeric"
                     placeholder="123456"
                     value={signupPhoneOtpInput.value}
                     onChange={(e) =>
@@ -644,6 +649,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
                   <Input
                     id="signup-phone"
                     type="tel"
+                    autoComplete="tel"
                     placeholder="+1 (555) 123-4567"
                     value={signupPhoneInput.displayValue}
                     onChange={(e) => signupPhoneInput.onChange(e.target.value)}
@@ -695,6 +701,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
               <Input
                 id="signup-username"
                 type="text"
+                autoComplete="username"
                 placeholder="Choose a username"
                 value={state.signupUsername}
                 onChange={(e) => actions.setSignupUsername(e.target.value)}

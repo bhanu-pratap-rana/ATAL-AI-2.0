@@ -191,6 +191,7 @@ export default function AdminLoginPage() {
             <Input
               id="admin-email"
               type="email"
+              autoComplete="username"
               placeholder="admin@school.edu"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -213,6 +214,7 @@ export default function AdminLoginPage() {
             <Input
               id="admin-password"
               type="password"
+              autoComplete="current-password"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

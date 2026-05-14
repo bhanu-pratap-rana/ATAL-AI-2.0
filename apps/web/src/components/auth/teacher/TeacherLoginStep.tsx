@@ -39,6 +39,7 @@ export function TeacherLoginStep({
             <Input
               id="login-email"
               type="email"
+              autoComplete="username"
               placeholder="teacher@school.edu"
               value={state.loginEmail}
               onChange={(e) => actions.setLoginEmail(e.target.value)}
@@ -55,6 +56,7 @@ export function TeacherLoginStep({
             <Input
               id="login-password"
               type="password"
+              autoComplete="current-password"
               placeholder="Enter your password"
               value={state.loginPassword}
               onChange={(e) => actions.setLoginPassword(e.target.value)}
