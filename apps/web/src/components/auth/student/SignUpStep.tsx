@@ -542,7 +542,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
 
                 <Button
                   type="submit"
-                  className="w-full text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5"
+                  className="w-full text-[17px] shadow-primary hover:shadow-(--shadow-primary-hover) hover:-translate-y-0.5"
                   disabled={
                     isLoading ||
                     !signupEmailOtpInput.value ||
@@ -577,7 +577,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
 
                 <Button
                   type="submit"
-                  className="w-full text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5"
+                  className="w-full text-[17px] shadow-primary hover:shadow-(--shadow-primary-hover) hover:-translate-y-0.5"
                   disabled={isLoading || !state.signupEmailAddress}
                 >
                   {isLoading ? "Sending code..." : "Send Verification Code"}
@@ -636,7 +636,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
 
                 <Button
                   type="submit"
-                  className="w-full text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5"
+                  className="w-full text-[17px] shadow-primary hover:shadow-(--shadow-primary-hover) hover:-translate-y-0.5"
                   disabled={isLoading || !signupPhoneOtpInput.value}
                 >
                   {isLoading ? "Verifying..." : "Verify & Continue"}
@@ -664,7 +664,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
 
                 <Button
                   type="submit"
-                  className="w-full text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5"
+                  className="w-full text-[17px] shadow-primary hover:shadow-(--shadow-primary-hover) hover:-translate-y-0.5"
                   disabled={isLoading || !signupPhoneInput.fullValue}
                 >
                   {isLoading ? "Sending code..." : "Send Verification Code"}
@@ -762,7 +762,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
 
             <Button
               type="submit"
-              className="w-full text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5"
+              className="w-full text-[17px] shadow-primary hover:shadow-(--shadow-primary-hover) hover:-translate-y-0.5"
               disabled={
                 isLoading || !state.signupUsername || !state.signupUsernamePassword || !state.signupUsernamePasswordConfirm
               }

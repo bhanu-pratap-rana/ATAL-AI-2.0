@@ -176,7 +176,7 @@ export function JoinClassStep({
 
         <Button
           type="submit"
-          className="w-full text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5"
+          className="w-full text-[17px] shadow-primary hover:shadow-(--shadow-primary-hover) hover:-translate-y-0.5"
           disabled={
             isLoading ||
             !state.joinClassCode ||

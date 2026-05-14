@@ -257,7 +257,7 @@ export default async function TeacherDashboardPage({
             {recentStudents.map((s) => (
               <div key={s.id} className="flex items-center justify-between py-2 rounded-xl px-2 hover:[background:var(--bento-tint-sky)]">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-full [background:var(--bento-tint-sky)] flex items-center justify-center font-black text-[color:var(--bento-sky-d)] text-sm shrink-0 border-2 border-white shadow-sm">
+                  <div className="w-10 h-10 rounded-full [background:var(--bento-tint-sky)] flex items-center justify-center font-black text-(--bento-sky-d) text-sm shrink-0 border-2 border-white shadow-sm">
                     {(s.name ?? "?").charAt(0).toUpperCase()}
                   </div>
                   <p className="font-black text-slate-800 text-sm truncate">{s.name ?? "Unknown"}</p>

@@ -44,7 +44,7 @@ function AuthSelectionStep({
 
         <Button
           onClick={onPhoneAuth}
-          className="w-full h-14 text-base text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5 transition-all"
+          className="w-full h-14 text-base text-[17px] shadow-primary hover:shadow-(--shadow-primary-hover) hover:-translate-y-0.5 transition-all"
           variant="default"
         >
           <Smartphone size={18} strokeWidth={2.5} aria-hidden="true" className="mr-2" />
@@ -53,7 +53,7 @@ function AuthSelectionStep({
 
         <Button
           onClick={onAnonymousAuth}
-          className="w-full h-14 text-base text-[17px] gap-2 border-2 hover:border-primary hover:shadow-[var(--shadow-primary-sm)] hover:-translate-y-0.5 transition-all"
+          className="w-full h-14 text-base text-[17px] gap-2 border-2 hover:border-primary hover:shadow-primary-sm hover:-translate-y-0.5 transition-all"
           variant="outline"
         >
           <UserRound size={20} strokeWidth={2.25} aria-hidden="true" />
@@ -187,7 +187,7 @@ function PhoneOTPStep({
 
           <Button
             type="submit"
-            className="w-full text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5"
+            className="w-full text-[17px] shadow-primary hover:shadow-(--shadow-primary-hover) hover:-translate-y-0.5"
             disabled={
               stepLoading || loading || otpInput.value.length !== OTP_LENGTH
             }
@@ -269,7 +269,7 @@ function PhoneOTPStep({
 
         <Button
           type="submit"
-          className="w-full text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5"
+          className="w-full text-[17px] shadow-primary hover:shadow-(--shadow-primary-hover) hover:-translate-y-0.5"
           disabled={
             stepLoading ||
             loading ||
@@ -523,7 +523,7 @@ function JoinClassForm({
 
         <Button
           type="submit"
-          className="w-full text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5"
+          className="w-full text-[17px] shadow-primary hover:shadow-(--shadow-primary-hover) hover:-translate-y-0.5"
           disabled={
             loading ||
             classCode?.length !== 6 ||
