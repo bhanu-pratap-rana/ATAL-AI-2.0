@@ -125,11 +125,18 @@
 
   /* Role Gradients — match the hex already in use across role-scoped pages */
   --gradient-teacher: linear-gradient(135deg, #3B82F6 0%, #6366F1 100%);
-  --gradient-admin: linear-gradient(135deg, #DC2626 0%, #7C3AED 100%);
+  /* SP13 PR-32: Admin gradient was red→purple (#DC2626 → #7C3AED), which
+     read as a "danger/error" header on state-government surfaces — design
+     critic flagged it as the highest-priority change. Replaced with deep
+     navy → Brahmaputra blue, which projects institutional authority and
+     anchors admin to the existing cultural palette (Brahmaputra blue is
+     already a brand token). Red is now reserved exclusively for
+     error/alert semantic states. */
+  --gradient-admin: linear-gradient(135deg, #1E3A5F 0%, #2563EB 100%);
 
   /* Role Accent Colors — single-hex counterparts for role-branded UI (nav active, etc.) */
   --color-role-teacher: #2563eb; /* blue-600 */
-  --color-role-admin: #dc2626;   /* red-600 */
+  --color-role-admin: #1E3A5F;   /* navy — matches gradient start */
 
   /* Primary Shadows */
   --shadow-primary: 0 8px 24px rgba(249, 136, 25, 0.3);

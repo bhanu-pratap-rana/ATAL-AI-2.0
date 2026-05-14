@@ -93,7 +93,7 @@ export default function AdminsPage() {
                 <Button
                   onClick={() => setShowCreateForm(true)}
                   variant="ghost"
-                  className="gap-2 bg-white hover:bg-white/95 text-(--bento-purple-d) border border-white/40 rounded-2xl shadow-sm"
+                  className="gap-2 bg-white hover:bg-white/95 text-[#1E3A5F] border border-white/40 rounded-2xl shadow-sm"
                 >
                   <Plus className="w-4 h-4" strokeWidth={2.5} aria-hidden="true" />
                   <span>Create Admin</span>
