@@ -13,6 +13,7 @@ import {
   getAdaptiveQuestions,
 } from "@/app/actions/assessment";
 import { clientLogger } from "@/lib/client-logger";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 function getSessionTypeLabel(type: string): string {
   if (type === "pre") return "Pre-Assessment";
@@ -41,6 +42,12 @@ interface Question {
 }
 
 function AssessmentStartContent() {
+  // Client-side auth gate. The downstream server actions
+  // (`startAssessment`, `getAdaptiveQuestions`) already `verifyStudentAuth`
+  // server-side, but redirecting upfront avoids letting an unauthed user
+  // configure language / click Start only to bounce on the toast.
+  const { loading: isAuthChecking } = useRequireAuth("/student/start");
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const classId = searchParams.get("classId");
@@ -107,6 +114,12 @@ function AssessmentStartContent() {
         language={selectedLanguage}
       />
     );
+  }
+
+  // While `useRequireAuth` is still resolving, render the skeleton so
+  // we don't briefly show the configuration form to an unauth visitor.
+  if (isAuthChecking) {
+    return <AssessmentSkeleton />;
   }
 
   // Show language selection screen
