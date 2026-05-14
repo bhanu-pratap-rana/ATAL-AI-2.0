@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { FeatureFlagToggle } from "@/components/admin/FeatureFlagToggle";
 import {
@@ -175,9 +174,9 @@ export default function FeatureFlagsAdminPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-surface via-background to-white flex items-center justify-center">
+      <div className="min-h-screen [background:var(--bento-bg)] flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-(--bento-orange)"></div>
           <p className="mt-4 text-slate-500">Loading feature flags...</p>
         </div>
       </div>
@@ -185,63 +184,47 @@ export default function FeatureFlagsAdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-surface via-background to-white">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            {/* Back Button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.push("/admin/dashboard")}
-              className="gap-2"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back
-            </Button>
-
-            {/* Logo */}
-            <div className="w-10 h-10 shrink-0">
-              <Image
-                src="/assets/logo.png"
-                alt="ATAL AI Logo"
-                width={40}
-                height={40}
-                className="w-full h-full object-contain rounded-full"
-                priority
-              />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-black text-text">Feature Flags</h1>
-                <div className="bg-primary-lighter p-1.5 rounded-xl">
-                  <Flag className="w-4 h-4 text-primary" />
-                </div>
-              </div>
-              <p className="text-sm text-slate-500">
-                Manage gradual rollouts and A/B testing
+    <div className="min-h-screen [background:var(--bento-bg)] p-4 md:p-6 pb-12">
+      <div className="max-w-4xl mx-auto space-y-4">
+        {/* Gradient banner — canonical SP13 admin theme */}
+        <div
+          className="rounded-[32px] p-6 text-white"
+          style={{ background: "var(--gradient-admin)" }}
+        >
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl font-black mb-1 inline-flex items-center gap-2">
+                <Flag className="w-6 h-6 shrink-0" strokeWidth={2.25} aria-hidden="true" />
+                Feature Flags
+              </h1>
+              <p className="text-white/85 text-xs font-black uppercase tracking-widest truncate">
+                {userEmail ? `${userEmail} · ` : ""}Manage gradual rollouts and A/B testing
               </p>
             </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-slate-500">{userEmail}</span>
-            <Button
-              onClick={handleLogout}
-              variant="destructive"
-              size="sm"
-              className="gap-2"
-            >
-              <LogOut className="w-4 h-4" />
-              Logout
-            </Button>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                onClick={() => router.push("/admin/dashboard")}
+                variant="ghost"
+                className="gap-2 bg-white/15 hover:bg-white/25 text-white border border-white/25 backdrop-blur-md rounded-2xl"
+              >
+                <ArrowLeft size={18} strokeWidth={2.25} aria-hidden="true" />
+                <span className="hidden sm:inline">Dashboard</span>
+              </Button>
+              <Button
+                onClick={handleLogout}
+                variant="ghost"
+                className="gap-2 bg-white/15 hover:bg-white/25 text-white border border-white/25 backdrop-blur-md rounded-2xl"
+                aria-label="Sign out"
+              >
+                <LogOut size={18} strokeWidth={2.25} aria-hidden="true" />
+                <span className="hidden sm:inline">Logout</span>
+              </Button>
+            </div>
           </div>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-4 py-8">
+        {/* Main Content */}
+        <main>
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div className="bg-white rounded-3xl border border-slate-100 p-4">
@@ -352,6 +335,7 @@ export default function FeatureFlagsAdminPage() {
           </ul>
         </div>
       </main>
+      </div>
     </div>
   );
 }

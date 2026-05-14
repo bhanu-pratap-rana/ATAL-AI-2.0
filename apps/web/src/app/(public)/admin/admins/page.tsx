@@ -53,9 +53,9 @@ export default function AdminsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-surface via-background to-white flex items-center justify-center">
+      <div className="min-h-screen [background:var(--bento-bg)] flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-(--bento-orange)"></div>
           <p className="mt-4 text-slate-500">Loading...</p>
         </div>
       </div>
@@ -63,37 +63,48 @@ export default function AdminsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-surface via-background to-white">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              onClick={() => router.push("/admin/dashboard")}
-              variant="outline"
-              size="sm"
-              className="text-primary border-primary hover:bg-primary/10"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Button>
-            <h1 className="text-xl sm:text-2xl font-black text-text">Admin Management</h1>
+    <div className="min-h-screen [background:var(--bento-bg)] p-4 md:p-6 pb-12">
+      <div className="max-w-6xl mx-auto space-y-4">
+        {/* Gradient banner — canonical SP13 admin theme */}
+        <div
+          className="rounded-[32px] p-6 text-white"
+          style={{ background: "var(--gradient-admin)" }}
+        >
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl font-black mb-1 inline-flex items-center gap-2">
+                <Users className="w-6 h-6 shrink-0" strokeWidth={2.25} aria-hidden="true" />
+                Admin Management
+              </h1>
+              <p className="text-white/85 text-xs font-black uppercase tracking-widest">
+                Create, reset, and delete admin accounts
+              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                onClick={() => router.push("/admin/dashboard")}
+                variant="ghost"
+                className="gap-2 bg-white/15 hover:bg-white/25 text-white border border-white/25 backdrop-blur-md rounded-2xl"
+              >
+                <ArrowLeft size={18} strokeWidth={2.25} aria-hidden="true" />
+                <span className="hidden sm:inline">Dashboard</span>
+              </Button>
+              {!showCreateForm && (
+                <Button
+                  onClick={() => setShowCreateForm(true)}
+                  variant="ghost"
+                  className="gap-2 bg-white hover:bg-white/95 text-(--bento-purple-d) border border-white/40 rounded-2xl shadow-sm"
+                >
+                  <Plus className="w-4 h-4" strokeWidth={2.5} aria-hidden="true" />
+                  <span>Create Admin</span>
+                </Button>
+              )}
+            </div>
           </div>
-
-          {!showCreateForm && (
-            <Button
-              onClick={() => setShowCreateForm(true)}
-              className="bg-primary hover:bg-primary-dark"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Create Admin
-            </Button>
-          )}
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
+        {/* Main Content */}
+        <main>
         {/* Create Form Section */}
         {showCreateForm && (
           <section className="mb-8 bg-white rounded-3xl shadow p-6 border border-slate-100">
@@ -177,6 +188,7 @@ export default function AdminsPage() {
           </div>
         </section>
       </main>
+      </div>
     </div>
   );
 }
