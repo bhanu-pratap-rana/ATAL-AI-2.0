@@ -8,6 +8,7 @@
 
 "use client";
 
+import { GraduationCap, Lock, Pencil, UserRound } from "lucide-react";
 import { BentoButton, ChunkCard, Mascot, RainbowRing } from "@/components/system";
 import type { UseAuthStateReturn } from "@/hooks/useAuthState";
 
@@ -56,7 +57,7 @@ export function ChoiceStep({ actions, loading: _loading, state: _state }: StepCo
               onClick={() => actions.setMainStep("signin")}
               className="justify-start! gap-4 whitespace-normal h-auto py-4"
             >
-              <span className="text-3xl" aria-hidden="true">🎓</span>
+<GraduationCap className="w-7 h-7 shrink-0" strokeWidth={2.25} aria-hidden="true" />
               <span className="text-left">
                 <span className="block text-base leading-none">Sign In</span>
                 <span className="block text-xs font-bold text-white/80 mt-1">
@@ -73,7 +74,7 @@ export function ChoiceStep({ actions, loading: _loading, state: _state }: StepCo
               onClick={() => actions.setMainStep("signup")}
               className="justify-start! gap-4 whitespace-normal h-auto py-4"
             >
-              <span className="text-3xl" aria-hidden="true">✏️</span>
+<Pencil className="w-7 h-7 shrink-0 text-slate-600" strokeWidth={2.25} aria-hidden="true" />
               <span className="text-left">
                 <span className="block text-base leading-none">Create Account</span>
                 <span className="block text-xs font-bold text-slate-500 mt-1">
@@ -88,14 +89,14 @@ export function ChoiceStep({ actions, loading: _loading, state: _state }: StepCo
                 href="/teacher/start"
                 className="btn-bento btn-bento-sky flex-col gap-2 py-4 px-2 rounded-2xl text-sm"
               >
-                <span className="text-2xl" aria-hidden="true">👩‍🏫</span>
+<UserRound className="w-6 h-6" strokeWidth={2.25} aria-hidden="true" />
                 <span>Teacher</span>
               </a>
               <a
                 href="/admin/login"
                 className="btn-bento btn-bento-purple flex-col gap-2 py-4 px-2 rounded-2xl text-sm"
               >
-                <span className="text-2xl" aria-hidden="true">🔒</span>
+<Lock className="w-6 h-6" strokeWidth={2.25} aria-hidden="true" />
                 <span>Admin</span>
               </a>
             </div>

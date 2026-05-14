@@ -82,10 +82,10 @@ export function CreateAnnouncementDialog({
   );
 
   const priorityOptions = [
-    { value: "low", label: "🔵 Low" },
-    { value: "normal", label: "🟢 Normal" },
-    { value: "high", label: "🟡 High" },
-    { value: "urgent", label: "🔴 Urgent" },
+    { value: "low", label: "Low" },
+    { value: "normal", label: "Normal" },
+    { value: "high", label: "High" },
+    { value: "urgent", label: "Urgent" },
   ];
 
   return (

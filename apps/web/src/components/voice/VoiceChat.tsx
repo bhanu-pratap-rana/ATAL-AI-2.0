@@ -17,6 +17,7 @@
  */
 
 import { useState, useEffect, useCallback, useMemo, useRef, memo } from "react";
+import { Mic, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { clientLogger } from "@/lib/client-logger";
 
@@ -262,12 +263,12 @@ export const VoiceChat = memo(function VoiceChat({
         >
           {isListening ? (
             <>
-              <span className="mr-2">⏹️</span>
+              <Square className="mr-2 w-5 h-5 fill-current" strokeWidth={2.25} aria-hidden="true" />
               <span>Stop Listening</span>
             </>
           ) : (
             <>
-              <span className="mr-2">🎤</span>
+              <Mic className="mr-2 w-5 h-5" strokeWidth={2.25} aria-hidden="true" />
               <span>Speak</span>
             </>
           )}

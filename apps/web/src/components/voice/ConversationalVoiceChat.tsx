@@ -19,6 +19,7 @@
  */
 
 import { useEffect, useRef, useCallback, useState } from "react";
+import { Loader2, Mic, MicVocal, Volume2 } from "lucide-react";
 import {
   useConversationalVoice,
   VoiceState,
@@ -141,7 +142,9 @@ export function ConversationalVoiceChat({
     return (
       <div className={`flex flex-col items-center justify-center p-8 ${className}`}>
         <div className="text-center p-6 bg-amber-50 border border-amber-200 rounded-2xl max-w-sm">
-          <div className="text-4xl mb-3">🎤</div>
+          <div className="mx-auto mb-3 w-14 h-14 rounded-3xl bg-amber-100 border-2 border-white shadow-sm flex items-center justify-center text-amber-700">
+            <Mic className="w-7 h-7" strokeWidth={2.25} aria-hidden="true" />
+          </div>
           <p className="text-amber-800 font-medium mb-2">Voice Not Supported</p>
           <p className="text-amber-600 text-sm">
             Please use Chrome, Edge, or Safari for voice features.
@@ -186,7 +189,7 @@ export function ConversationalVoiceChat({
           `}
           aria-label={getButtonLabel(state)}
         >
-          {getButtonIcon(state)}
+          <VoiceButtonIcon state={state} />
         </Button>
       </div>
 
@@ -200,8 +203,9 @@ export function ConversationalVoiceChat({
         )}
         {/* Show hint that mic will auto-open after AI finishes */}
         {showTapHint && state === "idle" && (
-          <p className="text-sm text-success mt-1 animate-pulse">
-            🎤 Resuming...
+          <p className="text-sm text-success mt-1 animate-pulse inline-flex items-center gap-1.5">
+            <Mic size={14} strokeWidth={2.5} aria-hidden="true" />
+            Resuming...
           </p>
         )}
       </div>
@@ -282,18 +286,13 @@ export function ConversationalVoiceChat({
   );
 }
 
-// Helper functions
-function getButtonIcon(state: VoiceState): string {
-  switch (state) {
-    case "idle":
-      return "🎤";
-    case "listening":
-      return "🎙️";
-    case "processing":
-      return "⏳";
-    case "speaking":
-      return "🔊";
-  }
+// Helper components
+function VoiceButtonIcon({ state }: { readonly state: VoiceState }) {
+  const props = { className: "w-7 h-7", strokeWidth: 2.25, "aria-hidden": true } as const;
+  if (state === "listening") return <MicVocal {...props} />;
+  if (state === "processing") return <Loader2 {...props} className="w-7 h-7 animate-spin" />;
+  if (state === "speaking") return <Volume2 {...props} />;
+  return <Mic {...props} />;
 }
 
 function getButtonLabel(state: VoiceState): string {
