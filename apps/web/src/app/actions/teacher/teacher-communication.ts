@@ -871,8 +871,7 @@ export async function getStudentClassAnnouncements(classId: string) {
     const announcementsWithReadStatus = (announcements || []).map((announcement) => {
       const readRecords = announcement.announcement_reads || [];
       const isRead = readRecords.some((r: { student_id: string }) => r.student_id === user.id);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { announcement_reads, ...announcementData } = announcement;
+      const { announcement_reads: _announcement_reads, ...announcementData } = announcement;
       return {
         ...announcementData,
         is_read: isRead,

@@ -8,7 +8,7 @@ import { authLogger } from "./auth-logger";
 
 export type AuthUser = NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>;
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type -- {} default is identity for intersection; Record<string, never> is too strict
 export type AuthCheckResult<T = {}> =
   | {
       authorized: true;

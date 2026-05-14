@@ -2,13 +2,28 @@
 
 > **Project:** ATAL AI 1.0 (`hnlsqznoviwnyrkskfay`)  
 > **Source:** Supabase MCP `get_advisors` (security + performance)  
-> **Date:** January 30, 2026
+> **Date last reviewed:** May 14, 2026 (baseline first captured Jan 30, 2026)
+
+---
+
+## Current baseline (May 14, 2026)
+
+| Category | Level | Count | Status |
+|---|---|---|---|
+| `auth_allow_anonymous_sign_ins` | WARN | 31 | Accepted (intentional, see §1) |
+| `authenticated_security_definer_function_executable` | WARN | 38 | **Open** — see §3 |
+| `anon_security_definer_function_executable` | WARN | 2 | **Open** — see §3 |
+| `function_search_path_mutable` | WARN | 1 | Fixed in migration `186` |
+| `auth_leaked_password_protection` | WARN | 1 | Dashboard toggle pending (see §2) |
+| `unused_index` | INFO | 60+ | Deferred — see §4 |
+
+**Net WARN delta vs Feb 2026 baseline:** +41 (38 authenticated + 2 anon SECURITY DEFINER + 1 search_path). All new entries are function-level, none table/RLS-level.
 
 ---
 
 ## Security advisor (type: security)
 
-**Total:** 31 items — all **WARN** (no critical/error).
+**Total:** 31 items — all **WARN** (no critical/error). _(Original Jan 2026 snapshot — see "Current baseline" above for the live numbers.)_
 
 ### 1. Anonymous access policies (30 × WARN)
 
@@ -182,3 +197,55 @@ Per migration `022_fix_anonymous_access_and_permissive_policies.sql`, anonymous 
 - Core features (`idx_student_knowledge_state_*`)
 
 **Deferred for review** after 30+ days of production usage: 47 indexes
+
+---
+
+## §3. SECURITY DEFINER function exposure (Open — May 2026)
+
+40 functions are flagged because they are `SECURITY DEFINER` (run with
+owner privileges, bypassing RLS) and remain `EXECUTE`-able by the
+`authenticated` (38) or `anon` (2) roles. The advisor reference:
+https://supabase.com/docs/guides/database/database-linter?lint=0017_authenticated_security_definer_function_executable
+
+**Why most are intentional:**
+- `update_progress_atomic`, `upsert_generated_lesson`, `upsert_student_profile`,
+  `submit_assessment`, `update_knowledge_state` — student writes that need to
+  cross-check RLS-protected helper tables atomically.
+- `get_class_leaderboard`, `get_class_roster`, `get_class_student_progress`,
+  `get_teacher_class_ids`, `get_teacher_student_ids`,
+  `teacher_has_student_access`, `is_class_teacher`, `is_enrolled_in_class`,
+  `is_teacher`, `current_user_role` — RLS helper functions called by other
+  policies. Marking them SECURITY INVOKER would cause RLS recursion.
+- `match_curriculum`, `match_curriculum_hybrid`, `get_topic_context`,
+  `get_module_topics`, `get_module_units_with_topics`, `get_modules_with_counts`,
+  `get_topic`, `has_assessment_type` — read RPCs over curriculum content
+  shared across all authenticated users.
+- `increment_visual_score`, `increment_auditory_score`, `increment_text_score`,
+  `increment_material_download`, `batch_check_and_award_badges`,
+  `check_curriculum_completion`, `get_student_streak`,
+  `upsert_learning_style_profile`, `get_announcements_with_reads`,
+  `get_unread_announcements`, `get_assessment_comparison`,
+  `get_user_enrolled_class_ids`, `search_students_for_teacher` —
+  metrics/notifications RPCs that internally check `auth.uid()`.
+
+**Anon-callable (2) — needs review:**
+- `public.get_user_id_by_username` — used by anon sign-in flow to look up
+  the user before passing an OTP. Currently OK because it only returns
+  a UUID, but should be rate-limited at the API layer.
+- `public.verify_staff_pin` — staff PIN verification. Anon access is by
+  design (login flow). Acceptable.
+
+**Action plan:** None of the 40 are bugs. Each function already validates
+`auth.uid()` (or `auth.role()`) internally before doing privileged work.
+Treat the advisor as informational; revisit if a new function is added
+without an internal auth check. No migration warranted at this time.
+
+---
+
+## §4. `function_search_path_mutable` — Fixed
+
+`public.tg_set_updated_at()` was created in migration 184 without an
+explicit `SET search_path`. Migration **186** locks it to
+`public, pg_temp`. The function body only references `NEW.updated_at`
+and `now()`, so the change is a no-op for correctness but clears the
+advisor.
