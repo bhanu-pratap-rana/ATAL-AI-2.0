@@ -410,12 +410,14 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
   return (
     <AuthCard title="Create Account" description="Choose your sign-up method">
       <div className="space-y-4">
-        {/* Tab Navigation */}
-        <div role="tablist" className="flex gap-2">
+        {/* Tab Navigation — WAI-ARIA tab pattern (see SignInStep for matching panels). */}
+        <div role="tablist" className="flex gap-2" aria-label="Sign up method">
           <Button
             type="button"
             role="tab"
+            id="signup-tab-email"
             aria-selected={state.signupTab === "email"}
+            aria-controls="signup-panel-email"
             variant={state.signupTab === "email" ? "default" : "secondary"}
             size="sm"
             onClick={() => actions.setSignupTab("email")}
@@ -428,7 +430,9 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
           <Button
             type="button"
             role="tab"
+            id="signup-tab-phone"
             aria-selected={state.signupTab === "phone"}
+            aria-controls="signup-panel-phone"
             variant={state.signupTab === "phone" ? "default" : "secondary"}
             size="sm"
             onClick={() => actions.setSignupTab("phone")}
@@ -441,20 +445,22 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
           <Button
             type="button"
             role="tab"
+            id="signup-tab-guest"
             aria-selected={state.signupTab === "guest"}
+            aria-controls="signup-panel-guest"
             variant={state.signupTab === "guest" ? "default" : "secondary"}
             size="sm"
             onClick={() => actions.setSignupTab("guest")}
             className="flex-1"
             disabled={isLoading}
           >
-            ⚡ Quick Start
+            <span aria-hidden="true">⚡</span> Quick Start
           </Button>
         </div>
 
         {/* Email Sign Up Form */}
         {state.signupTab === "email" && (
-          <>
+          <div id="signup-panel-email" role="tabpanel" aria-labelledby="signup-tab-email">
             {state.signupEmailOtpSent ? (
               <form
                 onSubmit={handleSignUpEmailVerifyAndCreate}
@@ -529,7 +535,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
                 </div>
 
                 {state.signupEmailError && (
-                  <p className="text-sm text-error">{state.signupEmailError}</p>
+                  <p role="alert" className="text-sm text-error">{state.signupEmailError}</p>
                 )}
 
                 <Button
@@ -563,7 +569,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
                 </div>
 
                 {state.signupEmailError && (
-                  <p className="text-sm text-error">{state.signupEmailError}</p>
+                  <p role="alert" className="text-sm text-error">{state.signupEmailError}</p>
                 )}
 
                 <Button
@@ -588,12 +594,12 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
                 </p>
               </form>
             )}
-          </>
+          </div>
         )}
 
         {/* Phone Sign Up Form */}
         {state.signupTab === "phone" && (
-          <>
+          <div id="signup-panel-phone" role="tabpanel" aria-labelledby="signup-tab-phone">
             {state.signupPhoneOtpStep === "verify" ? (
               <form
                 onSubmit={handleSignUpPhoneVerifyOtp}
@@ -620,7 +626,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
                 </div>
 
                 {state.signupPhoneError && (
-                  <p className="text-sm text-error">{state.signupPhoneError}</p>
+                  <p role="alert" className="text-sm text-error">{state.signupPhoneError}</p>
                 )}
 
                 <Button
@@ -647,7 +653,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
                 </div>
 
                 {state.signupPhoneError && (
-                  <p className="text-sm text-error">{state.signupPhoneError}</p>
+                  <p role="alert" className="text-sm text-error">{state.signupPhoneError}</p>
                 )}
 
                 <Button
@@ -672,12 +678,18 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
                 </p>
               </form>
             )}
-          </>
+          </div>
         )}
 
         {/* Quick Start (Username) Form */}
         {state.signupTab === "guest" && (
-          <form onSubmit={handleUsernameSignup} className="space-y-4">
+          <form
+            id="signup-panel-guest"
+            role="tabpanel"
+            aria-labelledby="signup-tab-guest"
+            onSubmit={handleUsernameSignup}
+            className="space-y-4"
+          >
             <div className="space-y-2">
               <Label htmlFor="signup-username">Username</Label>
               <Input
@@ -738,7 +750,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
             </div>
 
             {state.signupUsernameError && (
-              <p className="text-sm text-error">{state.signupUsernameError}</p>
+              <p role="alert" className="text-sm text-error">{state.signupUsernameError}</p>
             )}
 
             <Button
