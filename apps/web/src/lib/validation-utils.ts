@@ -22,6 +22,7 @@ export {
   isValidEmailDomain,
   normalizeEmail,
   maskEmail,
+  validateEmail,
 } from "./email-validation";
 
 // Password validation - NIST 2025 Compliant

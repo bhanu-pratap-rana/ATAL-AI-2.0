@@ -106,6 +106,32 @@ describe("validateEmail", () => {
     const result = validateEmail("user@notavaliddomain12345.xyz");
     expect(result.valid).toBe(false);
   });
+
+  // PR-37: institutional email domains must be accepted
+  // (Indian government / school addresses, the actual deployment audience).
+  it("accepts Indian institutional gov.in addresses", () => {
+    expect(validateEmail("principal@kvs.gov.in").valid).toBe(true);
+    expect(validateEmail("admin@assam.gov.in").valid).toBe(true);
+  });
+
+  it("accepts Indian institutional edu.in addresses", () => {
+    expect(validateEmail("teacher@scertassam.edu.in").valid).toBe(true);
+  });
+
+  it("accepts arbitrary org domains with a recognized TLD", () => {
+    expect(validateEmail("foo@example.org").valid).toBe(true);
+    expect(validateEmail("foo@my-school.net").valid).toBe(true);
+  });
+
+  it("rejects disposable email domains (kept for spam defence)", () => {
+    expect(validateEmail("foo@10minutemail.com").valid).toBe(false);
+  });
+
+  it("suggests fix for common typos", () => {
+    const result = validateEmail("foo@gmial.com");
+    expect(result.valid).toBe(false);
+    expect(result.suggestion).toBe("foo@gmail.com");
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
