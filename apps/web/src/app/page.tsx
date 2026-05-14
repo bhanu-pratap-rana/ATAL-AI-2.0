@@ -1,5 +1,6 @@
 "use client";
 
+import { GraduationCap, Lock, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { BentoButton, ChunkCard, Mascot, RainbowRing } from "@/components/system";
@@ -65,7 +66,7 @@ export default function HomePage() {
               onClick={() => router.push("/student/start")}
               className="justify-start! gap-4 whitespace-normal h-auto py-4"
             >
-              <span className="text-3xl" aria-hidden="true">🎓</span>
+              <GraduationCap className="w-7 h-7 shrink-0" strokeWidth={2.25} aria-hidden="true" />
               <span className="text-left">
                 <span className="block text-base leading-none">Student Login</span>
                 <span className="block text-xs font-bold text-white/80 mt-1">
@@ -83,7 +84,7 @@ export default function HomePage() {
                 onClick={() => router.push("/teacher/start")}
                 className="flex-col gap-2 h-auto py-4 px-2"
               >
-                <span className="text-2xl" aria-hidden="true">👩‍🏫</span>
+                <UserRound className="w-6 h-6" strokeWidth={2.25} aria-hidden="true" />
                 <span className="text-sm">Teacher</span>
               </BentoButton>
 
@@ -94,7 +95,7 @@ export default function HomePage() {
                 onClick={() => router.push("/admin/login")}
                 className="flex-col gap-2 h-auto py-4 px-2"
               >
-                <span className="text-2xl" aria-hidden="true">🔐</span>
+                <Lock className="w-6 h-6" strokeWidth={2.25} aria-hidden="true" />
                 <span className="text-sm">Admin</span>
               </BentoButton>
             </div>

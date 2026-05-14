@@ -19,7 +19,7 @@ import {
   validatePhone,
 } from "@/lib/validation-utils";
 import { authLogger } from "@/lib/auth-logger";
-import { UserRound } from "lucide-react";
+import { Mail, Smartphone, UserRound } from "lucide-react";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -267,10 +267,11 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
             variant={state.signinTab === "email" ? "default" : "secondary"}
             size="sm"
             onClick={() => actions.setSigninTab("email")}
-            className="flex-1"
+            className="flex-1 gap-1.5"
             disabled={isLoading}
           >
-            📧 Email
+            <Mail size={14} strokeWidth={2.5} aria-hidden="true" />
+            Email
           </Button>
           <Button
             type="button"
@@ -279,10 +280,11 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
             variant={state.signinTab === "phone" ? "default" : "secondary"}
             size="sm"
             onClick={() => actions.setSigninTab("phone")}
-            className="flex-1"
+            className="flex-1 gap-1.5"
             disabled={isLoading}
           >
-            📱 Phone
+            <Smartphone size={14} strokeWidth={2.5} aria-hidden="true" />
+            Phone
           </Button>
           <Button
             type="button"

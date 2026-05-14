@@ -7,6 +7,7 @@
 "use client";
 
 import { useCallback } from "react";
+import { Mail, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase-browser";
 import {
@@ -418,10 +419,11 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
             variant={state.signupTab === "email" ? "default" : "secondary"}
             size="sm"
             onClick={() => actions.setSignupTab("email")}
-            className="flex-1"
+            className="flex-1 gap-1.5"
             disabled={isLoading}
           >
-            📧 Email
+            <Mail size={14} strokeWidth={2.5} aria-hidden="true" />
+            Email
           </Button>
           <Button
             type="button"
@@ -430,10 +432,11 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
             variant={state.signupTab === "phone" ? "default" : "secondary"}
             size="sm"
             onClick={() => actions.setSignupTab("phone")}
-            className="flex-1"
+            className="flex-1 gap-1.5"
             disabled={isLoading}
           >
-            📱 Phone
+            <Smartphone size={14} strokeWidth={2.5} aria-hidden="true" />
+            Phone
           </Button>
           <Button
             type="button"

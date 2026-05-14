@@ -1,6 +1,6 @@
 "use client";
 
-import { PartyPopper } from "lucide-react";
+import { PartyPopper, Smartphone } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -187,9 +187,9 @@ export function SignUpPhoneFlow({
 
         {/* Info Box - Primary Light */}
         <div className="bg-primary-light border-l-4 border-primary p-3 rounded-md">
-          <p className="text-xs text-primary-dark">
-            <strong>📱 SMS Verification:</strong> You&apos;ll receive a 6-digit
-            code via SMS. Standard rates may apply.
+          <p className="text-xs text-primary-dark inline-flex items-start gap-1.5 flex-wrap">
+            <Smartphone size={14} strokeWidth={2.5} aria-hidden="true" className="shrink-0 mt-0.5" />
+            <span><strong>SMS Verification:</strong> You&apos;ll receive a 6-digit code via SMS. Standard rates may apply.</span>
           </p>
         </div>
 

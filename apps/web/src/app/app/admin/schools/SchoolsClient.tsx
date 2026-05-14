@@ -26,6 +26,7 @@ import {
   Check,
   ClipboardList,
   Copy,
+  Lock,
   MapPin,
   RefreshCw,
   Search,
@@ -520,7 +521,7 @@ export function SchoolsClient() {
               <p className="text-[11px] uppercase font-black text-red-100">PIN Mgmt</p>
             </div>
             <div className="bg-white/10 p-3 rounded-2xl text-center backdrop-blur-md">
-              <p className="text-xl font-black">🔐</p>
+              <Lock className="h-5 w-5 mx-auto mb-1" />
               <p className="text-[11px] uppercase font-black text-red-100">Secure</p>
             </div>
           </div>

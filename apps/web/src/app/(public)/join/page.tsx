@@ -12,7 +12,7 @@ import {
   handleSendOTP as sendOTPHandler,
   handleVerifyOTP as verifyOTPHandler,
 } from "@/lib/auth-handlers";
-import { Lightbulb, PartyPopper, UserRound } from "lucide-react";
+import { Lightbulb, PartyPopper, Smartphone, UserRound } from "lucide-react";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,7 +47,7 @@ function AuthSelectionStep({
           className="w-full h-14 text-base text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5 transition-all"
           variant="default"
         >
-          <span className="text-xl mr-2">📱</span>
+          <Smartphone size={18} strokeWidth={2.5} aria-hidden="true" className="mr-2" />
           <span>Continue with Phone (OTP)</span>
         </Button>
 
@@ -261,9 +261,9 @@ function PhoneOTPStep({
         </div>
 
         <div className="bg-cyan-lightest border-l-4 border-cyan p-3 rounded-xl">
-          <p className="text-xs text-cyan-darkest">
-            <strong>📱 SMS Verification:</strong> You&apos;ll receive a 6-digit
-            code via SMS. Standard rates may apply.
+          <p className="text-xs text-cyan-darkest inline-flex items-start gap-1.5 flex-wrap">
+            <Smartphone size={14} strokeWidth={2.5} aria-hidden="true" className="shrink-0 mt-0.5" />
+            <span><strong>SMS Verification:</strong> You&apos;ll receive a 6-digit code via SMS. Standard rates may apply.</span>
           </p>
         </div>
 

@@ -7,6 +7,7 @@
 "use client";
 
 import { useCallback } from "react";
+import { Mail, Smartphone } from "lucide-react";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,10 +56,11 @@ export function TeacherSignUpStep({
               size="sm"
               variant={state.signupMethod === "email" ? "default" : "secondary"}
               onClick={handleEmailMethodSelect}
-              className="flex-1 text-xs sm:text-sm"
+              className="flex-1 gap-1.5 text-xs sm:text-sm"
               disabled={state.loading}
             >
-              <span className="hidden sm:inline">📧 </span>Email
+              <Mail size={14} strokeWidth={2.5} aria-hidden="true" className="hidden sm:block" />
+              Email
             </Button>
             <Button
               type="button"
@@ -67,10 +69,11 @@ export function TeacherSignUpStep({
               size="sm"
               variant={state.signupMethod === "phone" ? "default" : "secondary"}
               onClick={handlePhoneMethodSelect}
-              className="flex-1 text-xs sm:text-sm"
+              className="flex-1 gap-1.5 text-xs sm:text-sm"
               disabled={state.loading}
             >
-              <span className="hidden sm:inline">📱 </span>Phone
+              <Smartphone size={14} strokeWidth={2.5} aria-hidden="true" className="hidden sm:block" />
+              Phone
             </Button>
           </div>
 
@@ -192,8 +195,9 @@ export function TeacherSignUpStep({
           {state.signupMethod === "phone" && (
             <div className="space-y-4">
               <div className="bg-cyan-lightest border-l-4 border-cyan p-3 rounded-xl">
-                <p className="text-xs text-cyan-darkest">
-                  <strong>📱 Phone Verification</strong>
+                <p className="text-xs text-cyan-darkest inline-flex items-start gap-1.5 flex-wrap">
+                  <Smartphone size={14} strokeWidth={2.5} aria-hidden="true" className="shrink-0 mt-0.5" />
+                  <strong>Phone Verification</strong>
                   <br />
                   Enter your 10-digit phone number. We&apos;ll send a
                   verification code via OTP.
