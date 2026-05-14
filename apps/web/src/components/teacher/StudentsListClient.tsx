@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Users } from "lucide-react";
+import { Search, Users, GraduationCap } from "lucide-react";
 import type { StudentRow } from "@/app/app/teacher/classes/page";
 
 function getInitial(name: string | null): string {
@@ -35,8 +35,26 @@ export function StudentsListClient({ students }: Readonly<{ students: StudentRow
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
+    <div className="min-h-screen [background:var(--bento-bg)] p-4 md:p-6 pb-28">
       <div className="max-w-4xl mx-auto space-y-4">
+        {/* Blue gradient banner — canonical SP13 teacher theme */}
+        <div
+          className="rounded-[32px] p-6 text-white"
+          style={{ background: "var(--gradient-teacher)" }}
+        >
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl font-black mb-1 inline-flex items-center gap-2">
+                <GraduationCap className="w-6 h-6 shrink-0" strokeWidth={2.25} aria-hidden="true" />
+                My Students
+              </h1>
+              <p className="text-white/85 text-xs font-black uppercase tracking-widest">
+                {students.length} student{students.length === 1 ? "" : "s"} across all your classes
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Search bar */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3 px-4 py-3">
           <Search size={18} className="text-slate-400 shrink-0" />

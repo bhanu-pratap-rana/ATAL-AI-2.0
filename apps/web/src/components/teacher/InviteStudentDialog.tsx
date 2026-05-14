@@ -112,8 +112,11 @@ export function InviteStudentDialog({ classId }: InviteStudentDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <span className="mr-2">+</span>
+        <Button
+          variant="ghost"
+          className="gap-2 bg-white hover:bg-white/95 text-indigo-700 border border-white/40 rounded-2xl shadow-sm"
+        >
+          <span aria-hidden="true">+</span>
           <span>Invite Student</span>
         </Button>
       </DialogTrigger>
