@@ -3,6 +3,7 @@ import { createAdminClient, createClient, getCurrentUser } from "@/lib/supabase-
 import Link from "next/link";
 import { AssessmentBreakdown } from "@/components/assessment/AssessmentBreakdown";
 import { ArrowLeft, Clock, CheckCircle, XCircle, BarChart3 } from "lucide-react";
+import { formatDateLong } from "@/lib/date-format";
 
 /**
  * Assessment Detail Page
@@ -156,9 +157,7 @@ export default async function AssessmentDetailPage({
             <div>
               <h1 className="text-xl sm:text-2xl font-black mb-0.5 leading-tight">Assessment Details</h1>
               <p className="text-white/85 text-sm font-bold">
-                {session.submitted_at
-                  ? new Date(session.submitted_at).toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" })
-                  : "In progress"}
+                {session.submitted_at ? formatDateLong(session.submitted_at) : "In progress"}
               </p>
             </div>
           </div>

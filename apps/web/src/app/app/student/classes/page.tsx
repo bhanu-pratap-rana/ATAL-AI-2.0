@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createAdminClient, createClient, getCurrentUser } from "@/lib/supabase-server";
 import { authLogger } from "@/lib/auth-logger";
+import { formatDate } from "@/lib/date-format";
 import {
   ArrowLeft,
   BookOpen,
@@ -192,7 +193,7 @@ export default async function StudentClassesPage() {
                       </p>
                     )}
                     <p className="text-xs font-bold text-slate-400">
-                      Joined: {new Date(enrollment.created_at).toLocaleDateString()}
+                      Joined: {formatDate(enrollment.created_at)}
                     </p>
                   </div>
                 </div>

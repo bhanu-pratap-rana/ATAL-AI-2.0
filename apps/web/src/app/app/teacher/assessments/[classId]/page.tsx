@@ -4,8 +4,8 @@ import { ArrowLeft, BarChart3 } from "lucide-react";
 import { createClient } from "@/lib/supabase-server";
 import { isTeacherOrHigher } from "@/lib/auth/role-utils";
 import { getClassAssessmentResults } from "@/app/actions/teacher";
+import { formatDate } from "@/lib/date-format";
 
-// Format date to relative time
 function formatRelativeTime(dateString: string | null): string {
   if (!dateString) return "Never";
   const date = new Date(dateString);
@@ -17,7 +17,7 @@ function formatRelativeTime(dateString: string | null): string {
   if (diffDays === 1) return "Yesterday";
   if (diffDays < 7) return `${diffDays} days ago`;
   if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-  return date.toLocaleDateString();
+  return formatDate(dateString);
 }
 
 function getScoreColor(score: number | null): string {

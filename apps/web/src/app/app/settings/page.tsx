@@ -8,6 +8,7 @@ import { TeacherProfileEditor } from "@/components/settings/TeacherProfileEditor
 import { DeleteAccountButton } from "@/components/settings/DeleteAccountButton";
 import { getTranslation } from "@/lib/i18n";
 import { getServerLanguage } from "@/lib/i18n/server";
+import { formatDate } from "@/lib/date-format";
 
 /**
  * Navigation details based on user role
@@ -168,7 +169,7 @@ export default async function SettingsPage() {
             </div>
             <div className="flex justify-between items-center py-2 border-b border-slate-50">
               <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Member Since</span>
-              <p className="font-bold text-slate-800 text-sm">{new Date(user.created_at || "").toLocaleDateString()}</p>
+              <p className="font-bold text-slate-800 text-sm">{formatDate(user.created_at)}</p>
             </div>
             <div className="py-2">
               <span className="text-xs font-black text-slate-400 uppercase tracking-widest">User ID</span>
