@@ -31,37 +31,6 @@ export const CLASS_CODE_LENGTH = 6;
 // OTP_LIMITS.maxAttempts = 5
 // Import from '@/lib/constants/rate-limits' for rate limiting logic
 
-// Valid email providers (whitelist legitimate domains)
-// Kept for backward compatibility — new code uses VALID_TLDS instead of this list
-export const VALID_EMAIL_PROVIDERS = [
-  "gmail.com",
-  "yahoo.com",
-  "outlook.com",
-  "hotmail.com",
-  "icloud.com",
-  "protonmail.com",
-  "mail.com",
-  "yandex.com",
-  "aol.com",
-  "gmx.com",
-  "fastmail.com",
-  "tutanota.com",
-  "zoho.com",
-  "mailgun.org",
-  "example.com", // For testing
-  "googlemail.com",
-  "rediffmail.com", // Popular in India
-  "live.com",
-  "msn.com",
-  "inbox.com",
-  "mail.ru",
-  "163.com",
-  "qq.com",
-  "sina.com",
-  "sohu.com",
-  "vip.qq.com",
-];
-
 // Accepted TLDs — any domain whose effective TLD (or compound TLD) appears here
 // is considered legitimate. Compound entries (gov.in, edu.in …) must sort before
 // their single-segment parent (in) so longest-match-first works correctly.

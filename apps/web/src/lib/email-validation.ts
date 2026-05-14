@@ -17,9 +17,9 @@ import {
 export { VALID_TLDS } from "./auth-constants";
 
 /**
- * Detects if an email domain matches a known typo and returns the correct domain.
- * Only checks the fixed COMMON_DOMAIN_TYPOS map — no Levenshtein over the full
- * provider list, which produced false positives on legitimate institutional domains.
+ * Why fixed map (not Levenshtein): a distance-based check against a closed
+ * provider whitelist produced false positives on legitimate institutional
+ * domains like `assam.gov.in` (distance 2 from `gmail.com`).
  */
 export function detectDomainTypo(domain: string): {
   hasTypo: boolean;
@@ -90,13 +90,7 @@ export function validateEmail(email: string): {
     };
   }
 
-  // Accept any domain whose effective TLD (or compound TLD like gov.in, edu.in)
-  // appears in VALID_TLDS. Compound entries are listed before their single-segment
-  // parent so kvs.gov.in matches "gov.in" rather than the bare "in" fallback.
-  const isValidTld = VALID_TLDS.some((tld) => {
-    return domain === tld || domain.endsWith(`.${tld}`);
-  });
-  if (isValidTld) {
+  if (isValidEmailDomain(domain)) {
     return { valid: true };
   }
 
