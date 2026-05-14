@@ -363,10 +363,34 @@ After PR-46 returns APPROVE:
 
 ## Out-of-scope (file as separate plans)
 
+- **HIGH PRIORITY — Anonymous sign-in with username + class details (PR-47).**
+  User directive 2026-05-14: rural-Kamrup students don't have email or
+  phone; their only credential is a username plus the class code their
+  teacher gives them. The state machine already has the slots
+  (`guestClassCode`, `guestRollNumber`, `guestPin` in useAuthState.ts)
+  and the backend handler is in place (`handleAnonymousSignIn` in
+  auth-handlers.ts, surfaced and documented in PR-43), but no UI panel
+  reads/writes those fields. The Quick Start tab currently runs the
+  legacy username + password path instead. Needs:
+    1. A new "Class Sign-in" panel in SignInStep that consumes
+       `guestClassCode`, `guestRollNumber`, `guestPin` and submits via
+       `handleAnonymousSignIn` + class enrolment RPC.
+    2. The matching submit handler in useAuthState (writes the new
+       anonymous-user's student_profiles row with username + class).
+    3. A `setSignupTab("anonymous")` action and a new tab in SignUpStep
+       so first-time guest students can register without an email.
+    4. Server-side: ensure the anonymous user's class enrolment respects
+       RLS (existing classes table policies must accept a
+       freshly-created anon UID).
+  Estimated 2-3 PRs of work; out of scope for this Tier-1 cleanup pass.
 - Bundle-size optimization (Tier 2 in the original audit)
 - 165-migration squash baseline (Tier 3)
 - Test infrastructure for the 8 deferred E2E specs (Tier 3)
 - Capacitor mobile wrapper (Tier 5)
+- Rate-limiter and rpc-validators dead-export pruning (PR-43 deferred;
+  needs per-export verification of dynamic call patterns)
+- Verify `/admin/start` and `/admin/setup` route safety before deletion
+  (state-government documentation may link these URLs externally)
 
 ---
 
