@@ -182,11 +182,12 @@ export function AdminCreateForm({
       <Button
         onClick={handleCreateAdmin}
         disabled={isLoading || !email.trim() || !password || !confirmPassword}
-        className="w-full bg-linear-to-r from-primary to-primary-light hover:from-primary-dark hover:to-primary"
+        variant="ghost"
+        className="w-full bg-[#1E3A5F] hover:bg-[#152a44] text-white border-2 border-[#1E3A5F]/40 shadow-md"
       >
         {isLoading ? (
           <>
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" strokeWidth={2.5} aria-hidden="true" />
             Creating...
           </>
         ) : (

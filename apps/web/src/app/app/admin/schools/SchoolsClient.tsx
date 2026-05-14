@@ -537,7 +537,7 @@ export function SchoolsClient() {
         {/* Step 1: Find School */}
         <div className="mb-6 p-6 bg-white border border-slate-100 rounded-3xl">
           <h2 className="text-lg font-black mb-4 flex items-center gap-2">
-            <Search className="h-5 w-5 text-primary" />
+            <Search className="h-5 w-5 text-[#1E3A5F]" strokeWidth={2.25} aria-hidden="true" />
             Step 1: Find School
           </h2>
 
@@ -633,7 +633,7 @@ export function SchoolsClient() {
         {selectedSchool && (
           <div className="mb-6 p-6 bg-white border border-slate-100 rounded-3xl">
             <h2 className="text-lg font-black mb-4 flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-primary" />
+              <Calendar className="h-5 w-5 text-[#1E3A5F]" strokeWidth={2.25} aria-hidden="true" />
               Step 2: PIN Status
             </h2>
 
@@ -652,7 +652,7 @@ export function SchoolsClient() {
         {selectedSchool && (
           <div className="p-6 bg-white border border-slate-100 rounded-3xl">
             <h2 className="text-lg font-black mb-4 flex items-center gap-2">
-              <RefreshCw className="h-5 w-5 text-primary" />
+              <RefreshCw className="h-5 w-5 text-[#1E3A5F]" strokeWidth={2.25} aria-hidden="true" />
               Step 3: {pinActionLabel} PIN
             </h2>
 

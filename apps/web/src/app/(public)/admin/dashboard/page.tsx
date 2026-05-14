@@ -117,7 +117,7 @@ export default function AdminDashboardPage() {
           {/* Admin Management Card */}
           <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-5">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 bg-(--bento-tint-orange) border-2 border-white shadow-sm text-(--bento-orange-d)">
+              <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 bg-[#1E3A5F]/10 border-2 border-white shadow-sm text-[#1E3A5F]">
                 <Users className="w-5 h-5" strokeWidth={2.25} aria-hidden="true" />
               </div>
               <h3 className="text-base font-black text-slate-900">Admin Management</h3>
@@ -128,7 +128,8 @@ export default function AdminDashboardPage() {
             </p>
             <Button
               onClick={() => router.push("/admin/admins")}
-              className="w-full"
+              variant="ghost"
+              className="w-full bg-[#1E3A5F] hover:bg-[#152a44] text-white"
             >
               Manage Admins
             </Button>
@@ -137,7 +138,7 @@ export default function AdminDashboardPage() {
           {/* PIN Management Card */}
           <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-5">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 bg-(--bento-tint-purple) border-2 border-white shadow-sm text-(--bento-purple-d)">
+              <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 bg-indigo-50 border-2 border-white shadow-sm text-indigo-700">
                 <Lock className="w-5 h-5" strokeWidth={2.25} aria-hidden="true" />
               </div>
               <h3 className="text-base font-black text-slate-900">

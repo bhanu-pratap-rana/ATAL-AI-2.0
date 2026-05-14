@@ -81,7 +81,7 @@ export function AdminDashboardClient() {
         <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 bg-(--bento-tint-orange) border-2 border-white shadow-sm text-(--bento-orange-d)">
+              <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 bg-amber-100 border-2 border-white shadow-sm text-amber-700">
                 <AlertTriangle className="w-5 h-5" strokeWidth={2.25} aria-hidden="true" />
               </div>
               <div>

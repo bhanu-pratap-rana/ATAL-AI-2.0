@@ -30,7 +30,7 @@ function ToggleSwitch({
       onClick={() => onCheckedChange(!checked)}
       className={cn(
         "relative inline-flex h-6 w-11 p-0 shrink-0 rounded-full border-2 border-transparent hover:bg-current",
-        checked ? "bg-primary hover:bg-primary" : "bg-slate-100 hover:bg-slate-100"
+        checked ? "bg-[#1E3A5F] hover:bg-[#1E3A5F]" : "bg-slate-200 hover:bg-slate-200"
       )}
     >
       <span

@@ -51,7 +51,7 @@ export function SchoolsList({
               onClick={() => onSelectSchool(school)}
               className={`w-full h-auto justify-start text-left px-4 py-3 border-b border-slate-200 hover:bg-slate-100 whitespace-normal rounded-none ${
                 selectedSchool?.schoolId === school.schoolId
-                  ? "bg-primary/10 border-l-4 border-l-primary"
+                  ? "bg-[#1E3A5F]/10 border-l-4 border-l-[#1E3A5F]"
                   : ""
               }`}
             >

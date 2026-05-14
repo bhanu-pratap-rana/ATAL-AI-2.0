@@ -43,7 +43,7 @@ export function SchoolSearchBar({
           disabled={loadingSchoolDetails}
         />
         {loadingSchoolDetails && (
-          <Loader className="absolute right-3 top-1/2 -translate-y-1/2 text-primary animate-spin" />
+          <Loader className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1E3A5F] animate-spin" />
         )}
       </div>
 

@@ -19,7 +19,7 @@ export function StatisticsDashboard({ stats }: StatisticsDashboardProps) {
       {/* Total Schools */}
       <div className="bg-white border border-slate-100 rounded-3xl p-4">
         <p className="text-sm text-slate-500 mb-2">Total Schools</p>
-        <p className="text-xl sm:text-3xl font-black text-primary">{stats.totalSchools}</p>
+        <p className="text-xl sm:text-3xl font-black text-[#1E3A5F]">{stats.totalSchools}</p>
       </div>
 
       {/* Schools with PIN */}

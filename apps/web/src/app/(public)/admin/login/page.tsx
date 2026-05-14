@@ -144,10 +144,10 @@ export default function AdminLoginPage() {
         description="Enter your admin credentials to access the administrative panel"
       >
         <form onSubmit={handleAdminLogin} className="space-y-6">
-          {/* Admin Icon - Primary Light Background */}
+          {/* Admin Icon — navy chip aligning with the post-login admin theme */}
           <div className="flex justify-center">
-            <div className="bg-primary-light p-4 rounded-xl border-2 border-primary/20">
-              <ShieldAlert className="w-8 h-8 text-primary" />
+            <div className="bg-[#1E3A5F]/10 p-4 rounded-xl border-2 border-[#1E3A5F]/20">
+              <ShieldAlert className="w-8 h-8 text-[#1E3A5F]" strokeWidth={2.25} aria-hidden="true" />
             </div>
           </div>
 
@@ -224,23 +224,24 @@ export default function AdminLoginPage() {
             </p>
           </div>
 
-          {/* Login Button - Primary Gradient */}
+          {/* Login Button — navy CTA matching the post-login admin theme */}
           <Button
             type="submit"
             disabled={isLoading || !email || !password}
             loading={isLoading}
-            className="w-full"
+            variant="ghost"
+            className="w-full bg-[#1E3A5F] hover:bg-[#152a44] text-white border-2 border-[#1E3A5F]/40 shadow-md"
           >
             {isLoading ? "Logging in..." : "Login as Admin"}
-            <ArrowRight className="w-4 h-4 ml-2" />
+            <ArrowRight className="w-4 h-4 ml-2" strokeWidth={2.5} aria-hidden="true" />
           </Button>
 
-          {/* Security Notice - Warning Style with Primary */}
-          <div className="bg-primary-light border-l-4 border-primary p-4 rounded-xl">
-            <p className="text-sm text-primary-dark">
+          {/* Security Notice — navy informational card matching admin theme */}
+          <div className="bg-[#1E3A5F]/5 border-l-4 border-[#1E3A5F] p-4 rounded-xl">
+            <p className="text-sm text-[#1E3A5F]">
               <strong className="inline-flex items-center gap-1.5"><Lock size={14} strokeWidth={2.5} aria-hidden="true" />Security Notice</strong>
               <br />
-              <span className="text-xs">
+              <span className="text-xs text-slate-600">
                 Admin access is restricted. Only accounts with admin role can
                 login here.
               </span>

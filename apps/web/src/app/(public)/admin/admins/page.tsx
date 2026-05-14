@@ -114,8 +114,9 @@ export default function AdminsPage() {
               </h2>
               <Button
                 onClick={() => setShowCreateForm(false)}
-                variant="outline"
+                variant="ghost"
                 size="sm"
+                className="border-2 border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
               >
                 Cancel
               </Button>
@@ -134,7 +135,7 @@ export default function AdminsPage() {
         <section className="bg-white rounded-3xl shadow border border-slate-100">
           <div className="border-b border-slate-200 p-6">
             <div className="flex items-center gap-3 mb-2">
-              <Users className="w-6 h-6 text-primary" />
+              <Users className="w-6 h-6 text-[#1E3A5F]" strokeWidth={2.25} aria-hidden="true" />
               <h2 className="text-xl font-black text-text">
                 All Admin Accounts
               </h2>
@@ -156,13 +157,13 @@ export default function AdminsPage() {
         {/* Help Section */}
         <section className="mt-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Super Admin Info */}
-            <div className="bg-accent-light border border-accent/30 rounded-2xl p-6">
-              <h3 className="font-black text-accent-dark mb-2 inline-flex items-center gap-1.5">
+            {/* Super Admin Info — deep navy card matching the new admin theme */}
+            <div className="bg-[#1E3A5F]/5 border border-[#1E3A5F]/20 rounded-2xl p-6">
+              <h3 className="font-black text-[#1E3A5F] mb-2 inline-flex items-center gap-1.5">
                 <Crown size={16} strokeWidth={2.5} aria-hidden="true" />
                 Super Admin Role
               </h3>
-              <ul className="text-sm text-slate-500 space-y-2 list-disc list-inside">
+              <ul className="text-sm text-slate-600 space-y-2 list-disc list-inside">
                 <li>Full system access and management</li>
                 <li>Can create and delete admin accounts</li>
                 <li>Can reset admin passwords</li>
@@ -171,13 +172,13 @@ export default function AdminsPage() {
               </ul>
             </div>
 
-            {/* Regular Admin Info */}
-            <div className="bg-primary-lighter border border-primary/30 rounded-2xl p-6">
-              <h3 className="font-black text-primary-dark mb-2 flex items-center gap-2">
+            {/* Regular Admin Info — softer indigo card to differentiate from super-admin */}
+            <div className="bg-indigo-50 border border-indigo-200 rounded-2xl p-6">
+              <h3 className="font-black text-indigo-700 mb-2 flex items-center gap-2">
                 <UserRound size={18} strokeWidth={2.25} aria-hidden="true" />
                 Regular Admin Role
               </h3>
-              <ul className="text-sm text-slate-500 space-y-2 list-disc list-inside">
+              <ul className="text-sm text-slate-600 space-y-2 list-disc list-inside">
                 <li>Limited to PIN management only</li>
                 <li>Can create and rotate school PINs</li>
                 <li>Can reset own password only</li>

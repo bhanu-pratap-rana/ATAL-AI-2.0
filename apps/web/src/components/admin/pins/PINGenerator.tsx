@@ -59,7 +59,7 @@ export function PINGenerator({
               type={showNewPin ? "text" : "password"}
               value={newPin}
               disabled
-              className="font-mono font-black text-lg text-center bg-primary/5 border-primary"
+              className="font-mono font-black text-lg text-center bg-[#1E3A5F]/5 border-[#1E3A5F]"
             />
             <Button
               onClick={() => onShowNewPinChange(!showNewPin)}

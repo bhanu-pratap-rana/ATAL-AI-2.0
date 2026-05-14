@@ -22,10 +22,14 @@ interface AdminListTableProps {
  * Get role badge styling based on admin role
  */
 function getRoleBadgeClass(role: string): string {
+  // Navy palette for the admin role. Super-admin gets the deeper navy
+  // chip (Brahmaputra blue family); regular admin gets a softer indigo
+  // chip. Both pair cleanly with the navy gradient banner introduced in
+  // SP13 PR-32.
   if (role === "super_admin") {
-    return "bg-accent-light text-accent-dark";
+    return "bg-[#1E3A5F]/10 text-[#1E3A5F]";
   }
-  return "bg-primary-light text-primary-dark";
+  return "bg-indigo-50 text-indigo-700";
 }
 
 /**
@@ -253,18 +257,18 @@ export function AdminListTable({
                       onClick={() => openResetModal(admin.id, admin.email)}
                       disabled={resetingId === admin.id}
                       size="sm"
-                      variant="outline"
-                      className="text-xs"
+                      variant="ghost"
+                      className="text-xs border-2 border-[#1E3A5F]/30 bg-white text-[#1E3A5F] hover:bg-[#1E3A5F]/5"
                       title="Reset Password"
                     >
                       {resetingId === admin.id ? (
                         <>
-                          <RotateCcw className="w-3 h-3 mr-1 animate-spin" />
+                          <RotateCcw className="w-3 h-3 mr-1 animate-spin" strokeWidth={2.5} aria-hidden="true" />
                           Resetting...
                         </>
                       ) : (
                         <>
-                          <RotateCcw className="w-3 h-3 mr-1" />
+                          <RotateCcw className="w-3 h-3 mr-1" strokeWidth={2.5} aria-hidden="true" />
                           Reset
                         </>
                       )}
@@ -362,7 +366,8 @@ export function AdminListTable({
               <Button
                 onClick={handleResetPassword}
                 disabled={resetingId === resetAdmin.id}
-                className="flex-1 bg-primary hover:bg-primary-dark"
+                variant="ghost"
+                className="flex-1 bg-[#1E3A5F] hover:bg-[#152a44] text-white"
               >
                 {resetingId === resetAdmin.id ? MODAL_BUTTON_TEXT.active : MODAL_BUTTON_TEXT.idle}
               </Button>
