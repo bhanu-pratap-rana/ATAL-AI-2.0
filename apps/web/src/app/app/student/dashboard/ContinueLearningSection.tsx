@@ -105,10 +105,14 @@ export async function ContinueLearningSection({ userId }: { readonly userId: str
               <Link key={mod.id} href={`/app/learn/${mod.id}`}>
                 <div className="flex items-center gap-3 p-3 rounded-2xl hover:[background:var(--bento-tint-orange)] transition-colors -mx-1 px-2 active:translate-y-0.5">
                   <div
-                    className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0 border-2 border-white shadow-sm"
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0 border-2 border-white shadow-sm text-white"
                     style={{ background: mod.color_gradient || "var(--gradient-primary)" }}
                   >
-                    {mod.icon || "📚"}
+                    {mod.icon ? (
+                      <span aria-hidden="true">{mod.icon}</span>
+                    ) : (
+                      <BookOpen className="w-6 h-6" strokeWidth={2.25} aria-hidden="true" />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-black text-slate-900 text-sm truncate">{mod.name_en}</p>

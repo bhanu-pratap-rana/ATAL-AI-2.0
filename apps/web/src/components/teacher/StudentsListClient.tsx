@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search } from "lucide-react";
+import { Search, Users } from "lucide-react";
 import type { StudentRow } from "@/app/app/teacher/classes/page";
 
 function getInitial(name: string | null): string {
@@ -52,7 +52,9 @@ export function StudentsListClient({ students }: Readonly<{ students: StudentRow
         {/* Students list */}
         {filtered.length === 0 ? (
           <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8 sm:p-12 text-center">
-            <div className="text-4xl mb-3">👥</div>
+            <div className="mx-auto mb-3 w-16 h-16 rounded-3xl bg-(--bento-tint-sky) border-4 border-white shadow-sm flex items-center justify-center text-(--bento-sky-d)">
+              <Users className="w-8 h-8" strokeWidth={2.25} aria-hidden="true" />
+            </div>
             <p className="font-black text-slate-800 mb-1">
               {students.length === 0 ? "No students enrolled" : "No results"}
             </p>

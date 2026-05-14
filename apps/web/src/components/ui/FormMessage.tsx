@@ -11,6 +11,8 @@
  * - Type-safe message types
  */
 
+import { AlertTriangle, CheckCircle2, Info, XCircle, X } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { MessageType } from "@/hooks/useFormHandler";
 import { Button } from "@/components/ui/button";
 
@@ -23,31 +25,31 @@ interface FormMessageProps {
 
 const messageStyles: Record<
   MessageType,
-  { bg: string; text: string; border: string; icon: string }
+  { bg: string; text: string; border: string; Icon: LucideIcon }
 > = {
   success: {
     bg: "bg-success/10",
     text: "text-success-dark",
     border: "border-success/30",
-    icon: "✓",
+    Icon: CheckCircle2,
   },
   error: {
     bg: "bg-error/10",
     text: "text-error",
     border: "border-error/30",
-    icon: "✕",
+    Icon: XCircle,
   },
   info: {
     bg: "bg-info/10",
     text: "text-info-dark",
     border: "border-info/30",
-    icon: "ℹ",
+    Icon: Info,
   },
   warning: {
     bg: "bg-warning/10",
     text: "text-warning-dark",
     border: "border-warning/30",
-    icon: "⚠",
+    Icon: AlertTriangle,
   },
 };
 
@@ -58,6 +60,7 @@ export function FormMessage({
   className = "",
 }: FormMessageProps) {
   const styles = messageStyles[type];
+  const Icon = styles.Icon;
 
   return (
     <div
@@ -68,7 +71,7 @@ export function FormMessage({
         ${className}
       `}
     >
-      <span className="shrink-0 text-lg font-black">{styles.icon}</span>
+      <Icon className="shrink-0 w-5 h-5 mt-0.5" strokeWidth={2.25} aria-hidden="true" />
       <div className="flex-1">
         <p className="text-sm font-medium">{text}</p>
       </div>
@@ -78,10 +81,10 @@ export function FormMessage({
           variant="ghost"
           size="icon"
           onClick={onClose}
-          className="shrink-0 h-7 w-7 text-lg opacity-70 hover:opacity-100"
+          className="shrink-0 h-7 w-7 opacity-70 hover:opacity-100"
           aria-label="Close message"
         >
-          ×
+          <X size={16} strokeWidth={2.25} aria-hidden="true" />
         </Button>
       )}
     </div>

@@ -3,6 +3,7 @@
 import { useCallback, useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { FolderClosed, Link2, Paperclip } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -27,11 +28,11 @@ interface UploadMaterialDialogProps {
 }
 
 const materialTypeOptions = [
-  { value: "document", label: "📄 Document" },
-  { value: "video", label: "🎬 Video" },
-  { value: "link", label: "🔗 Link" },
-  { value: "image", label: "🖼️ Image" },
-  { value: "other", label: "📎 Other" },
+  { value: "document", label: "Document" },
+  { value: "video", label: "Video" },
+  { value: "link", label: "Link" },
+  { value: "image", label: "Image" },
+  { value: "other", label: "Other" },
 ];
 
 const MAX_FILE_SIZE_MB = 50;
@@ -193,8 +194,8 @@ export function UploadMaterialDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className={className}>
-          <span className="mr-2">📁</span>
+        <Button variant="outline" className={`${className} gap-2`}>
+          <FolderClosed size={16} strokeWidth={2.25} aria-hidden="true" />
           <span>Add Material</span>
         </Button>
       </DialogTrigger>
@@ -286,9 +287,10 @@ export function UploadMaterialDialog({
                   size="sm"
                   onClick={() => setSourceMode("file")}
                   disabled={loading}
-                  className="flex-1 text-sm"
+                  className="flex-1 text-sm gap-1.5"
                 >
-                  📎 Upload File
+                  <Paperclip size={14} strokeWidth={2.5} aria-hidden="true" />
+                  Upload File
                 </Button>
                 <Button
                   type="button"
@@ -298,9 +300,10 @@ export function UploadMaterialDialog({
                   size="sm"
                   onClick={() => setSourceMode("url")}
                   disabled={loading}
-                  className="flex-1 text-sm"
+                  className="flex-1 text-sm gap-1.5"
                 >
-                  🔗 Paste URL
+                  <Link2 size={14} strokeWidth={2.5} aria-hidden="true" />
+                  Paste URL
                 </Button>
               </div>
             </div>

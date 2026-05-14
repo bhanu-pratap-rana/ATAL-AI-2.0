@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { FolderClosed } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -130,7 +131,8 @@ export function StudentMaterialsCard({
     <Card className={className}>
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
-          <span>📁</span> Learning Materials
+          <FolderClosed size={18} strokeWidth={2.25} className="text-(--bento-purple-d)" aria-hidden="true" />
+          Learning Materials
         </CardTitle>
       </CardHeader>
       <CardContent>

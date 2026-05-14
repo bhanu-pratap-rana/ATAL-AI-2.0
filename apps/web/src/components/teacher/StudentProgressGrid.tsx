@@ -14,6 +14,7 @@
  */
 
 import { useEffect, useState, useCallback, useMemo } from "react";
+import { AlertTriangle } from "lucide-react";
 import { createClient } from "@/lib/supabase-browser";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { clientLogger } from "@/lib/client-logger";
@@ -366,7 +367,7 @@ function StudentProgressCard({
         {/* At-Risk Badge */}
         {student.is_at_risk && (
           <div className="mt-2 text-xs text-destructive font-medium flex items-center gap-1">
-            <span>⚠️</span> Needs attention
+<AlertTriangle size={12} strokeWidth={2.5} aria-hidden="true" /> Needs attention
           </div>
         )}
 

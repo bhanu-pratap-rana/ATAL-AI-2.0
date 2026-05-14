@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Megaphone } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -90,8 +91,8 @@ export function CreateAnnouncementDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className={className}>
-          <span className="mr-2">📢</span>
+        <Button className={`${className} gap-2`}>
+          <Megaphone size={16} strokeWidth={2.25} aria-hidden="true" />
           <span>New Announcement</span>
         </Button>
       </DialogTrigger>
