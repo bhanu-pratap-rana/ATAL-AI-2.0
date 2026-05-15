@@ -25,7 +25,7 @@ export function ClassCreationSuccess({
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2">
           Class Created!
-          <PartyPopper size={20} strokeWidth={2.5} className="text-(--bento-orange)" aria-hidden="true" />
+          <PartyPopper size={20} strokeWidth={2.5} className="text-(--bento-sky-d)" aria-hidden="true" />
         </DialogTitle>
         <DialogDescription>
           Share these codes with your students to join the class
@@ -33,11 +33,11 @@ export function ClassCreationSuccess({
       </DialogHeader>
 
       <div className="py-4 md:py-6 space-y-4 md:space-y-6">
-        {/* Class Code */}
+        {/* Class Code — teacher-blue (this dialog is teacher-only context) */}
         <div className="space-y-2">
           <span className="text-sm font-medium">Class Code</span>
-          <div className="bg-linear-to-br from-primary/10 to-primary/5 border-2 border-primary/30 rounded-2xl p-3 md:p-4">
-            <p className="text-2xl md:text-3xl font-mono font-black text-center text-primary tracking-widest break-all">
+          <div className="[background:var(--bento-tint-sky)] border-2 border-(--bento-sky-d)/30 rounded-2xl p-3 md:p-4">
+            <p className="text-2xl md:text-3xl font-mono font-black text-center text-(--bento-sky-d) tracking-widest break-all">
               {classCode}
             </p>
           </div>
@@ -69,7 +69,11 @@ export function ClassCreationSuccess({
       </div>
 
       <DialogFooter>
-        <Button onClick={onDone} className="w-full">
+        <Button
+          onClick={onDone}
+          variant="ghost"
+          className="w-full btn-bento btn-bento-sky text-white! hover:text-white!"
+        >
           Done
         </Button>
       </DialogFooter>
