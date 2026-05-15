@@ -8,17 +8,23 @@
  *
  * Failover chain (in order):
  *
- *   1. Bhashini ASR (Govt of India)  — FREE for educational use,
- *      NATIVE Hindi + native Assamese, government-aligned with the
- *      Assam Digital Initiative. Activated when BHASHINI_USER_ID +
- *      BHASHINI_ULCA_API_KEY + BHASHINI_INFERENCE_API_KEY are set.
+ *   1. Sarvam AI (Saarika v2.5)      — Indian-language-first, NATIVE
+ *      Hindi + native Assamese, single API key, ₹1,000 free credits.
+ *      Activated when SARVAM_API_KEY is set. Top of the chain because
+ *      it's purpose-built for the Indic languages this app targets.
  *
- *   2. OpenAI Whisper API (whisper-1) — paid (~$0.006/min), excellent
- *      quality, multilingual. Activated when OPENAI_API_KEY is set.
+ *   2. Bhashini ASR (Govt of India)  — FREE for educational use,
+ *      same native language coverage. Activated when BHASHINI_USER_ID
+ *      + BHASHINI_ULCA_API_KEY + BHASHINI_INFERENCE_API_KEY are set.
+ *      Setup is painful; the Sarvam slot above is the recommended
+ *      primary unless you specifically need the government route.
  *
- *   3. HuggingFace Inference Whisper-large-v3 — FREE rate-limited,
- *      multilingual. Activated when HUGGINGFACE_API_KEY is set. This
- *      is the cheapest always-available layer.
+ *   3. OpenAI Whisper API (whisper-1) — paid (~$0.006/min), excellent
+ *      multilingual quality. Activated when OPENAI_API_KEY is set.
+ *
+ *   4. HuggingFace Inference Whisper-large-v3 — FREE rate-limited,
+ *      multilingual. Activated when HUGGINGFACE_API_KEY is set. The
+ *      always-on free safety net.
  *
  * If none of the providers are configured, the route returns 503 with
  * a clear "speech-to-text unavailable" message.
@@ -34,6 +40,7 @@ const OPENAI_TRANSCRIPTIONS_ENDPOINT =
   "https://api.openai.com/v1/audio/transcriptions";
 const BHASHINI_PIPELINE_ENDPOINT =
   "https://meity-auth.ulcacontrib.org/ulca/apis/v0/model/getModelsPipeline";
+const SARVAM_STT_ENDPOINT = "https://api.sarvam.ai/speech-to-text";
 
 const LANGUAGE_HINT: Record<STTLanguage, string> = {
   en: "english",
@@ -47,10 +54,63 @@ const ISO_FOR_LANGUAGE: Record<STTLanguage, string> = {
   as: "as",
 };
 
+// Sarvam expects language codes in `xx-IN` form (BCP-47-ish).
+const SARVAM_LANGUAGE: Record<STTLanguage, string> = {
+  en: "en-IN",
+  hi: "hi-IN",
+  as: "as-IN",
+};
+
 export interface STTResult {
   text: string;
-  provider: "bhashini" | "openai" | "huggingface";
+  provider: "sarvam" | "bhashini" | "openai" | "huggingface";
   language: STTLanguage;
+}
+
+/**
+ * Sarvam AI — Indian-language-first ASR. Single API key, simple
+ * multipart endpoint, native Hindi + Assamese coverage. This is the
+ * recommended primary for any deployment targeting Indic users.
+ *
+ * Returns null when SARVAM_API_KEY is not set so the failover loop
+ * can move on to the next provider.
+ */
+async function transcribeWithSarvam(
+  audioBytes: Buffer,
+  language: STTLanguage,
+): Promise<STTResult | null> {
+  const apiKey = process.env.SARVAM_API_KEY;
+  if (!apiKey) return null;
+
+  const form = new FormData();
+  form.append(
+    "file",
+    new Blob([new Uint8Array(audioBytes)], { type: "audio/webm" }),
+    "audio.webm",
+  );
+  form.append("language_code", SARVAM_LANGUAGE[language]);
+  // saarika v2.5 is the GA model; saaras v3 supports translate / codemix
+  // but defaults to translation-into-English which we do not want here.
+  form.append("model", "saarika:v2.5");
+
+  const response = await fetch(SARVAM_STT_ENDPOINT, {
+    method: "POST",
+    headers: { "api-subscription-key": apiKey },
+    body: form,
+  });
+
+  if (!response.ok) {
+    const text = await response.text().catch(() => "");
+    throw new Error(`Sarvam STT ${response.status}: ${text.slice(0, 200)}`);
+  }
+
+  // Sarvam returns { request_id, transcript, language_code, diarized_transcript? }
+  const data = (await response.json()) as { transcript?: string };
+  return {
+    text: data.transcript ?? "",
+    provider: "sarvam",
+    language,
+  };
 }
 
 /**
@@ -220,6 +280,7 @@ export async function transcribeAudio(
       lang: STTLanguage,
     ) => Promise<STTResult | null>;
   }> = [
+    { name: "sarvam", run: transcribeWithSarvam },
     { name: "bhashini", run: transcribeWithBhashini },
     { name: "openai", run: transcribeWithOpenAI },
     { name: "huggingface", run: transcribeWithHuggingFace },
@@ -251,7 +312,7 @@ export async function transcribeAudio(
   if (!triedAny) {
     throw new Error(
       "speech-to-text unavailable — no STT provider configured " +
-        "(set BHASHINI_* keys, OPENAI_API_KEY, or HUGGINGFACE_API_KEY)",
+        "(set SARVAM_API_KEY, BHASHINI_* keys, OPENAI_API_KEY, or HUGGINGFACE_API_KEY)",
     );
   }
   throw lastError instanceof Error
