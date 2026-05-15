@@ -51,7 +51,7 @@ export function TeacherProfileStep({
             <Input
               id="name"
               type="text"
-              placeholder="John Doe"
+              placeholder="Enter your full name"
               value={state.teacherName}
               onChange={(e) => actions.setTeacherName(e.target.value)}
               required

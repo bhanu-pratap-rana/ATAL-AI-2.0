@@ -1,44 +1,10 @@
 /**
  * Gamification Service
  *
- * Manages cultural badges, points, and achievements.
- * Features 10 cultural badges representing Assamese heritage:
- * - Muga Silk Master, Gamosa Graduate, Bihu Dancer
- * - Brahmaputra Scholar, Perfect Score, Voice Learner
- * - First Steps, Curious Mind, Night Owl, Early Bird
- *
- * Research basis: Meta-analysis of 41 studies shows
- * gamification increases engagement by 40% (0.82 effect size)
- *
- * OFFLINE SYNC INTEGRATION:
- *
- * Points and badges are awarded via awardPoints() and synced offline
- * using the 'points_award' mutation type. Client integration pattern:
- *
- * ```tsx
- * // In components calling GamificationService:
- * import { useOfflineSync } from '@/hooks';
- *
- * const { awardPointsWithSync } = useOfflineSync();
- *
- * const handlePointsAward = async (studentId, points, source) => {
- *   if (!navigator.onLine) {
- *     // Queue points for later sync
- *     await awardPointsWithSync({
- *       student_id: studentId,
- *       points,
- *       source,
- *       description: `Points from ${source}`,
- *     });
- *     return;
- *   }
- *
- *   // Online - call GamificationService.awardPoints() normally
- *   await gamificationService.awardPoints(studentId, points, source);
- * };
- * ```
- *
- * See: /src/lib/offline/mutation-queue.ts for sync implementation.
+ * Cultural badges, points, achievements. Ten Assamese-heritage badges
+ * (Muga Silk Master, Gamosa Graduate, Bihu Dancer, Brahmaputra Scholar,
+ * Perfect Score, Voice Learner, First Steps, Curious Mind, Night Owl,
+ * Early Bird). Offline awards queue via src/lib/offline/mutation-queue.ts.
  */
 
 import { createClient } from "@/lib/supabase-server";

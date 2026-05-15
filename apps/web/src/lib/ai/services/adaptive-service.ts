@@ -1,50 +1,9 @@
 /**
  * Adaptive Learning Service
  *
- * Implements personalized learning through:
- * 1. Knowledge State Tracking - per-topic mastery scores
- * 2. Learning Style Detection - visual/text/auditory preferences
- * 3. Spaced Repetition - optimal review scheduling
- * 4. Content Personalization - adapt based on student profile
- *
- * Research basis:
- * - Bayesian Knowledge Tracing (BKT)
- * - VARK Learning Styles Model
- * - Ebbinghaus Forgetting Curve
- *
- * OFFLINE SYNC INTEGRATION:
- *
- * Knowledge state updates are synced offline using the 'progress_update'
- * mutation type. Client integration pattern:
- *
- * ```tsx
- * // In components tracking learning progress:
- * import { useOfflineSync } from '@/hooks';
- *
- * const { updateProgressWithSync } = useOfflineSync();
- *
- * const handleProgressUpdate = async (studentId, topicId, moduleId, state) => {
- *   if (!navigator.onLine) {
- *     // Queue state update for later sync
- *     await updateProgressWithSync({
- *       student_id: studentId,
- *       topic_id: topicId,
- *       module_id: moduleId,
- *       mastery_score: state.masteryScore,
- *       confidence_level: state.confidenceLevel,
- *       attempts: state.attempts,
- *       time_spent_seconds: state.timeSpent,
- *       status: state.status,
- *     });
- *     return;
- *   }
- *
- *   // Online - call AdaptiveService.updateKnowledgeState() normally
- *   await adaptiveService.updateKnowledgeState(studentId, topicId, state);
- * };
- * ```
- *
- * See: /src/lib/offline/mutation-queue.ts for sync implementation.
+ * Personalized learning via Bayesian Knowledge Tracing, VARK learning-style
+ * detection, spaced repetition (Ebbinghaus), and profile-aware content.
+ * Offline writes are queued through src/lib/offline/mutation-queue.ts.
  */
 
 import { createClient } from "@/lib/supabase-server";

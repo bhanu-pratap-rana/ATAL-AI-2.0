@@ -186,7 +186,7 @@ export default async function StudentClassDetailPage({
 
         {/* Quick Actions */}
         <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-5">
-          <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Quick Actions</p>
+          <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3">Quick Actions</p>
           <div className="grid grid-cols-2 gap-3">
             <Link
               href="/app/learn"

@@ -22,6 +22,26 @@ export const maxDuration = 30;
 const MAX_AUDIO_BYTES = 8 * 1024 * 1024; // 8 MB hard cap on a clip
 const ALLOWED_LANGUAGES = new Set<STTLanguage>(["en", "hi", "as"]);
 
+// MediaRecorder on Chrome/Edge/Firefox produces webm/ogg/mp4/wav; iOS Safari
+// uses mp4/m4a. Restrict to this audio-only allow-list so the route can't be
+// abused as a generic upload sink. Container-level check only — providers do
+// their own decoding, so a malformed body still fails downstream.
+const ALLOWED_AUDIO_MIME_PREFIXES = ["audio/"];
+const ALLOWED_AUDIO_MIME_TYPES = new Set([
+  "audio/webm",
+  "audio/webm;codecs=opus",
+  "audio/ogg",
+  "audio/ogg;codecs=opus",
+  "audio/mp4",
+  "audio/mpeg",
+  "audio/mp3",
+  "audio/wav",
+  "audio/wave",
+  "audio/x-wav",
+  "audio/x-m4a",
+  "audio/aac",
+]);
+
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
@@ -54,6 +74,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "audio clip too large (max 8 MB)" },
         { status: 413 },
+      );
+    }
+
+    // Browser-reported MIME — trivially spoofable but still rejects the
+    // accidental/lazy case (image, archive, executable). Bytes are also
+    // bounded by MAX_AUDIO_BYTES and the downstream STT provider will
+    // refuse anything it can't decode.
+    const mime = audio.type.toLowerCase();
+    const mimeAllowed =
+      ALLOWED_AUDIO_MIME_TYPES.has(mime) ||
+      ALLOWED_AUDIO_MIME_PREFIXES.some((p) => mime.startsWith(p));
+    if (!mimeAllowed) {
+      authLogger.warn("[/api/voice/stt] rejected non-audio upload", {
+        userId: user.id,
+        mime: mime || "(empty)",
+        size: audio.size,
+      });
+      return NextResponse.json(
+        { error: "audio file required (got non-audio content type)" },
+        { status: 415 },
       );
     }
 

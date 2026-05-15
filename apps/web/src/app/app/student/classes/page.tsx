@@ -184,15 +184,15 @@ export default async function StudentClassesPage() {
                     <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-orange-400 transition-colors shrink-0" />
                   </div>
                   <div className="space-y-1 pl-14">
-                    <p className="text-xs font-bold text-slate-400 truncate">
+                    <p className="text-xs font-bold text-slate-500 truncate">
                       Teacher: {enrollment.teacher?.name || "Not available"}
                     </p>
                     {enrollment.class.subject && (
-                      <p className="text-xs font-bold text-slate-400 truncate">
+                      <p className="text-xs font-bold text-slate-500 truncate">
                         Subject: {enrollment.class.subject}
                       </p>
                     )}
-                    <p className="text-xs font-bold text-slate-400">
+                    <p className="text-xs font-bold text-slate-500">
                       Joined: {formatDate(enrollment.created_at)}
                     </p>
                   </div>

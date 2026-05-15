@@ -451,7 +451,34 @@ export async function uploadMaterial(input: {
  * Accepts FormData with: file, classId, title, description, materialType, moduleId
  */
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
-const ALLOWED_MIME_PREFIXES = ["image/", "video/", "audio/", "application/pdf", "application/msword", "application/vnd.", "text/"];
+// Browser-reported MIME is trivially spoofable, so the allow-list is paired
+// with a filename-extension check below. `application/vnd.*` (which used to
+// be allowed wholesale) was way too broad — narrowed to the specific Office,
+// OpenDocument, and Apple iWork types we actually accept.
+const ALLOWED_MIME_PREFIXES = ["image/", "video/", "audio/", "text/"];
+const ALLOWED_MIME_TYPES = new Set([
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.ms-excel",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.oasis.opendocument.text",
+  "application/vnd.oasis.opendocument.spreadsheet",
+  "application/vnd.oasis.opendocument.presentation",
+  "application/vnd.apple.pages",
+  "application/vnd.apple.numbers",
+  "application/vnd.apple.keynote",
+]);
+const ALLOWED_EXTENSIONS = new Set([
+  ".pdf", ".doc", ".docx", ".ppt", ".pptx", ".xls", ".xlsx",
+  ".odt", ".ods", ".odp", ".pages", ".numbers", ".key",
+  ".txt", ".md", ".csv", ".rtf",
+  ".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg",
+  ".mp4", ".webm", ".mov", ".m4v",
+  ".mp3", ".wav", ".m4a", ".ogg", ".aac",
+]);
 
 export async function uploadMaterialFile(formData: FormData) {
   try {
@@ -475,12 +502,23 @@ export async function uploadMaterialFile(formData: FormData) {
       return { success: false, error: "File size exceeds 50MB limit" };
     }
 
-    // Validate MIME type
-    const isAllowedType = ALLOWED_MIME_PREFIXES.some((prefix) =>
-      file.type.startsWith(prefix),
-    );
-    if (!isAllowedType) {
-      return { success: false, error: `File type "${file.type}" is not allowed` };
+    // Two-gate validation: browser-reported MIME (cheap, defeats lazy
+    // attackers) + filename extension (defeats fake `Content-Type`).
+    // Magic-byte sniffing would be stronger but isn't feasible inside
+    // a server action without buffering the whole upload.
+    const mime = (file.type || "").toLowerCase();
+    const mimeAllowed =
+      ALLOWED_MIME_TYPES.has(mime) ||
+      ALLOWED_MIME_PREFIXES.some((prefix) => mime.startsWith(prefix));
+    if (!mimeAllowed) {
+      return { success: false, error: `File type "${file.type || "unknown"}" is not allowed` };
+    }
+
+    const lowerName = (file.name || "").toLowerCase();
+    const dot = lowerName.lastIndexOf(".");
+    const ext = dot >= 0 ? lowerName.slice(dot) : "";
+    if (!ALLOWED_EXTENSIONS.has(ext)) {
+      return { success: false, error: `File extension "${ext || "(none)"}" is not allowed` };
     }
 
     // Validate classId is a UUID

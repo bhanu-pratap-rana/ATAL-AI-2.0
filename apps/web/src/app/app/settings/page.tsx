@@ -154,25 +154,25 @@ export default async function SettingsPage() {
           <div className="space-y-4">
             {isUsernameAuth ? (
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-slate-50">
-                <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Username</span>
+                <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Username</span>
                 <p className="font-black text-slate-800 font-mono text-sm">{username || "Not set"}</p>
               </div>
             ) : (
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-slate-50">
-                <span className="text-xs font-black text-slate-400 uppercase tracking-widest shrink-0">Email</span>
+                <span className="text-xs font-black text-slate-500 uppercase tracking-widest shrink-0">Email</span>
                 <p className="font-bold text-slate-800 break-all text-sm">{user.email || "Not set"}</p>
               </div>
             )}
             <div className="flex justify-between items-center py-2 border-b border-slate-50">
-              <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Role</span>
+              <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Role</span>
               <span className={`px-3 py-1 ${roleChipClass} rounded-full text-xs font-black`}>{userRole}</span>
             </div>
             <div className="flex justify-between items-center py-2 border-b border-slate-50">
-              <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Member Since</span>
+              <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Member Since</span>
               <p className="font-bold text-slate-800 text-sm">{formatDate(user.created_at)}</p>
             </div>
             <div className="py-2">
-              <span className="text-xs font-black text-slate-400 uppercase tracking-widest">User ID</span>
+              <span className="text-xs font-black text-slate-500 uppercase tracking-widest">User ID</span>
               <p className="font-mono text-xs text-slate-500 break-all mt-1">{user.id}</p>
             </div>
           </div>
@@ -207,14 +207,14 @@ export default async function SettingsPage() {
               <div className="flex items-center justify-between py-2 border-b border-slate-50">
                 <div>
                   <p className="font-black text-slate-800 text-sm">Language Preference</p>
-                  <p className="text-xs font-bold text-slate-400">Choose your preferred language</p>
+                  <p className="text-xs font-bold text-slate-500">Choose your preferred language</p>
                 </div>
                 <span className="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-xs font-black">English</span>
               </div>
               <div className="flex items-center justify-between py-2">
                 <div>
                   <p className="font-black text-slate-800 text-sm">Assessment Reminders</p>
-                  <p className="text-xs font-bold text-slate-400">Get reminders for upcoming assessments</p>
+                  <p className="text-xs font-bold text-slate-500">Get reminders for upcoming assessments</p>
                 </div>
                 <span className="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-xs font-black">Not Set</span>
               </div>
@@ -225,7 +225,7 @@ export default async function SettingsPage() {
         {/* Danger Zone */}
         <div className="bg-white rounded-3xl border border-red-100 shadow-sm p-6">
           <h2 className="font-black text-red-600 text-lg mb-2">Danger Zone</h2>
-          <p className="text-sm font-bold text-slate-400 mb-4">
+          <p className="text-sm font-bold text-slate-500 mb-4">
             Once you delete your account, there is no going back. Please be certain.
           </p>
           <DeleteAccountButton userEmail={user.email || "your account"} />

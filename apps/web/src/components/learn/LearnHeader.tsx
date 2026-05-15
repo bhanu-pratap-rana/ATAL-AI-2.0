@@ -49,7 +49,8 @@ export function LearnHeader({
       <div className="flex items-center gap-3">
         <Link
           href={resolvedBackLink.href}
-          className="w-9 h-9 bg-white rounded-2xl border border-slate-100 shadow-sm flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors shrink-0"
+          aria-label={`Back to ${resolvedBackLink.label || "previous page"}`}
+          className="w-11 h-11 bg-white rounded-2xl border border-slate-100 shadow-sm flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors shrink-0"
         >
           ←
         </Link>

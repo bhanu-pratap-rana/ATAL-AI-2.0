@@ -274,26 +274,27 @@ export async function previewClass(classCode: string): Promise<{
       };
     }
 
-    // Get teacher name
-    const { data: teacherProfile } = await supabase
-      .from("teacher_profiles")
-      .select("name")
-      .eq("user_id", classData.teacher_id)
-      .maybeSingle();
-
-    // Get student count
-    const { count: studentCount } = await supabase
-      .from("enrollments")
-      .select("*", { count: "exact", head: true })
-      .eq("class_id", classData.id);
+    // Teacher name and student count are independent of each other; fetch
+    // in parallel so the preview drops from 3 round trips to 2.
+    const [teacherRes, countRes] = await Promise.all([
+      supabase
+        .from("teacher_profiles")
+        .select("name")
+        .eq("user_id", classData.teacher_id)
+        .maybeSingle(),
+      supabase
+        .from("enrollments")
+        .select("*", { count: "exact", head: true })
+        .eq("class_id", classData.id),
+    ]);
 
     return {
       success: true,
       data: {
         className: classData.name,
-        teacherName: teacherProfile?.name || "Unknown Teacher",
+        teacherName: teacherRes.data?.name || "Unknown Teacher",
         subject: classData.subject,
-        studentCount: studentCount || 0,
+        studentCount: countRes.count || 0,
       },
     };
   } catch (error) {

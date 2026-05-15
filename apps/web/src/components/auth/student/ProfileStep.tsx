@@ -119,7 +119,7 @@ export function ProfileStep({
           <Input
             id="profile-name"
             type="text"
-            placeholder="John Doe"
+            placeholder="Enter your full name"
             value={state.profileName}
             onChange={(e) => actions.setProfileName(e.target.value)}
             required

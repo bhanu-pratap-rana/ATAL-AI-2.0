@@ -197,7 +197,7 @@ export default async function StudentAssessmentsPage() {
               <span>History</span>
             </h2>
             {hasHistory && (
-              <span className="text-xs font-black text-slate-400 uppercase tracking-widest">{assessmentHistory.length} completed</span>
+              <span className="text-xs font-black text-slate-500 uppercase tracking-widest">{assessmentHistory.length} completed</span>
             )}
           </div>
             {hasHistory ? (
@@ -233,7 +233,7 @@ export default async function StudentAssessmentsPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-3 sm:flex-col sm:items-end shrink-0">
-                        <span className="text-xs font-black text-slate-400">
+                        <span className="text-xs font-black text-slate-500">
                           {formatRelativeTime(assessment.submitted_at || assessment.started_at)}
                         </span>
                         <Link
@@ -276,7 +276,7 @@ export default async function StudentAssessmentsPage() {
             ].map((stat) => (
               <div key={stat.label} className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-4 text-center">
                 <p className={`text-xl sm:text-2xl font-black mb-1 ${stat.color.split(" ")[1]}`}>{stat.value}</p>
-                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
+                <p className="text-xs font-black text-slate-500 uppercase tracking-widest">{stat.label}</p>
               </div>
             ))}
           </div>

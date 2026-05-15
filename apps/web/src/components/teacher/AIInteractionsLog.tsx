@@ -52,6 +52,7 @@ export function AIInteractionsLog({
   const [interactions, setInteractions] = useState<AIInteraction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [studentIds, setStudentIds] = useState<string[] | null>(null);
   const enrolledIdsRef = useRef<Set<string>>(new Set());
 
   const fetchInteractions = useCallback(async (cancelled: { current: boolean }) => {
@@ -66,10 +67,11 @@ export function AIInteractionsLog({
 
       if (cancelled.current) return;
 
-      const studentIds = enrollments?.map((e) => e.student_id) || [];
-      enrolledIdsRef.current = new Set(studentIds);
+      const ids = enrollments?.map((e) => e.student_id) || [];
+      enrolledIdsRef.current = new Set(ids);
+      setStudentIds(ids);
 
-      if (studentIds.length === 0) {
+      if (ids.length === 0) {
         setInteractions([]);
         setLoading(false);
         return;
@@ -82,7 +84,7 @@ export function AIInteractionsLog({
         .select(
           "id, student_id, session_id, topic_id, message_role, message_content, input_mode, language, tokens_used, created_at",
         )
-        .in("student_id", studentIds)
+        .in("student_id", ids)
         .order("created_at", { ascending: false })
         .limit(limit);
 
@@ -105,10 +107,24 @@ export function AIInteractionsLog({
   useEffect(() => {
     const cancelled = { current: false };
     fetchInteractions(cancelled);
+    return () => {
+      cancelled.current = true;
+    };
+  }, [fetchInteractions]);
+
+  // Realtime channel keyed by the enrolled student list. We push a
+  // server-side `filter: student_id=in.(...)` so every teacher only
+  // receives their own class's events instead of the global firehose
+  // (previously every connected teacher got every student's INSERTs
+  // and filtered client-side via enrolledIdsRef — wasted bandwidth
+  // and a soft privacy issue). Channel resubscribes when the roster
+  // changes (student added/removed). Skip subscription entirely when
+  // the class has no enrolled students.
+  useEffect(() => {
+    if (!studentIds || studentIds.length === 0) return;
 
     const supabase = createClient();
-
-    // Subscribe to new interactions
+    const filter = `student_id=in.(${studentIds.join(",")})`;
     const channel = supabase
       .channel(`ai-interactions-${classId}`)
       .on(
@@ -117,9 +133,12 @@ export function AIInteractionsLog({
           event: "INSERT",
           schema: "public",
           table: "ai_tutor_interactions",
+          filter,
         },
         (payload) => {
           const newInteraction = payload.new as AIInteraction;
+          // Defensive: server filter is authoritative, but ref is
+          // also kept in sync so we still gate client-side.
           if (!enrolledIdsRef.current.has(newInteraction.student_id)) return;
           setInteractions((prev) => [newInteraction, ...prev].slice(0, limit));
         },
@@ -127,11 +146,9 @@ export function AIInteractionsLog({
       .subscribe();
 
     return () => {
-      cancelled.current = true;
       channel.unsubscribe();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [classId, limit]); // Only depend on classId and limit to avoid subscription recreation
+  }, [classId, limit, studentIds]);
 
   if (loading) {
     return (

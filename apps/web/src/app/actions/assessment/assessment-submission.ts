@@ -395,8 +395,13 @@ export async function submitAssessment(
     revalidatePath("/app/student/dashboard");
     revalidatePath("/app/progress");
 
-    // Award gamification points for completing an assessment (non-blocking)
-    gamificationService.triggerActivityCheck(auth.user.id, "assessment").catch(() => {});
+    // Award gamification points for completing an assessment (non-blocking).
+    // Failure here must not abort the submission — log and move on.
+    gamificationService.triggerActivityCheck(auth.user.id, "assessment").catch((err) => {
+      authLogger.warn("[submitAssessment] gamification triggerActivityCheck failed", {
+        error: err instanceof Error ? err.message : String(err),
+      });
+    });
 
     return {
       success: true,

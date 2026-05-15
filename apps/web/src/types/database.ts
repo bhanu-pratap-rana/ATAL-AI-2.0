@@ -1573,9 +1573,15 @@ export type Database = {
         Returns: {
           class_name: string
           name: string
-          phone: string
           roll_number: string
           user_id: string
+        }[]
+      }
+      get_recent_students_for_teacher: {
+        Args: { p_limit?: number }
+        Returns: {
+          user_id: string
+          name: string | null
         }[]
       }
       submit_assessment: {

@@ -114,32 +114,20 @@ interface RecentStudent {
   name: string | null;
 }
 
-async function getRecentStudents(teacherId: string, limit = 5): Promise<RecentStudent[]> {
+async function getRecentStudents(_teacherId: string, limit = 5): Promise<RecentStudent[]> {
+  // Previously a 3-step waterfall (classes → enrollments → student_profiles).
+  // Replaced by SECURITY DEFINER RPC get_recent_students_for_teacher which
+  // runs the JOIN server-side under the caller's auth.uid(). One RTT.
   try {
     const supabase = await createClient();
-    const { data: classes } = await supabase
-      .from("classes")
-      .select("id")
-      .eq("teacher_id", teacherId);
-    if (!classes?.length) return [];
-
-    const classIds = classes.map((c) => c.id);
-    const { data: enrollments } = await supabase
-      .from("enrollments")
-      .select("student_id")
-      .in("class_id", classIds)
-      .order("created_at", { ascending: false })
-      .limit(limit);
-    if (!enrollments?.length) return [];
-
-    const ids = [...new Set(enrollments.map((e) => e.student_id))].slice(0, limit);
-    const { data: profiles } = await supabase
-      .from("student_profiles")
-      .select("user_id, name")
-      .in("user_id", ids);
-
-    const profileMap = new Map((profiles ?? []).map((p) => [p.user_id, p.name]));
-    return ids.map((id) => ({ id, name: profileMap.get(id) ?? null }));
+    const { data, error } = await supabase.rpc("get_recent_students_for_teacher", {
+      p_limit: limit,
+    });
+    if (error || !data) return [];
+    return (data as Array<{ user_id: string; name: string | null }>).map((row) => ({
+      id: row.user_id,
+      name: row.name,
+    }));
   } catch {
     return [];
   }

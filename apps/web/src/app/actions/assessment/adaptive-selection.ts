@@ -2,6 +2,8 @@
 
 import { verifyStudentAuth, createAdminClient } from "@/lib/supabase-server";
 import { authLogger } from "@/lib/auth-logger";
+import { checkRateLimit } from "@/lib/rate-limiter-distributed";
+import { RATE_LIMITS } from "@/lib/constants/rate-limits";
 import { CATEGORIES, CAT_CONFIG, IRTItem, selectNextItem } from "./irt-models";
 
 /**
@@ -221,6 +223,21 @@ export async function getAdaptiveQuestions(
     const auth = await verifyStudentAuth("getAdaptiveQuestions");
     if (!auth.authorized) {
       return { ...auth.error, questions: [] };
+    }
+
+    // Cap item-bank exposure. The action pulls up to 500 IRT items with
+    // correct_answer via the service-role client; without rate limiting a
+    // logged-in student could mass-extract the entire bank.
+    const rateOk = await checkRateLimit(
+      `adaptive-fetch:${auth.user.id}`,
+      RATE_LIMITS.adaptiveAssessmentFetch,
+    );
+    if (!rateOk) {
+      return {
+        success: false,
+        error: "Too many assessment requests. Wait a moment and try again.",
+        questions: [],
+      };
     }
 
     const supabase = await createAdminClient();

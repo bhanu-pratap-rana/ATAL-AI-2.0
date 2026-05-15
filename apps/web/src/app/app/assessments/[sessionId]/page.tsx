@@ -181,21 +181,21 @@ export default async function AssessmentDetailPage({
                   <CheckCircle className="w-5 h-5" />
                   <span className="text-xl sm:text-2xl font-black">{correctAnswers}</span>
                 </div>
-                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Correct</p>
+                <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Correct</p>
               </div>
               <div>
                 <div className="flex items-center gap-1 justify-center text-red-500">
                   <XCircle className="w-5 h-5" />
                   <span className="text-xl sm:text-2xl font-black">{incorrectAnswers}</span>
                 </div>
-                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Incorrect</p>
+                <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Incorrect</p>
               </div>
               <div>
                 <div className="flex items-center gap-1 justify-center text-primary">
                   <Clock className="w-5 h-5" />
                   <span className="text-xl sm:text-2xl font-black">{Math.round(avgTimeMs / 1000)}s</span>
                 </div>
-                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Avg Time</p>
+                <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Avg Time</p>
               </div>
             </div>
           </div>
@@ -203,8 +203,8 @@ export default async function AssessmentDetailPage({
           {/* Module Breakdown */}
           <div className="mt-5 pt-5 border-t border-slate-50">
             <div className="flex items-center gap-2 mb-3">
-              <BarChart3 className="w-4 h-4 text-slate-400" />
-              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Performance by Module</p>
+              <BarChart3 className="w-4 h-4 text-slate-500" />
+              <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Performance by Module</p>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3">
               {Object.entries(moduleStats).map(([module, stats]) => {
@@ -213,7 +213,7 @@ export default async function AssessmentDetailPage({
                   <div key={module} className="p-3 bg-slate-50 rounded-2xl text-center">
                     <div className={`text-lg font-black ${getScoreColor(moduleScore)}`}>{moduleScore}%</div>
                     <div className="text-xs font-bold text-slate-600 capitalize truncate mt-0.5">{module.replaceAll("_", " ")}</div>
-                    <div className="text-xs font-bold text-slate-400">{stats.correct}/{stats.total}</div>
+                    <div className="text-xs font-bold text-slate-500">{stats.correct}/{stats.total}</div>
                   </div>
                 );
               })}
@@ -235,7 +235,7 @@ export default async function AssessmentDetailPage({
           <Link href="/app/learn" className="flex-1 py-3 rounded-2xl font-black text-sm text-slate-700 text-center bg-white border border-slate-200 transition-all active:scale-95">
             Continue Learning
           </Link>
-          <Link href="/app/student/dashboard" className="flex-1 py-3 rounded-2xl font-black text-sm text-slate-400 text-center transition-all active:scale-95">
+          <Link href="/app/student/dashboard" className="flex-1 py-3 rounded-2xl font-black text-sm text-slate-500 text-center transition-all active:scale-95">
             Go to Dashboard
           </Link>
         </div>

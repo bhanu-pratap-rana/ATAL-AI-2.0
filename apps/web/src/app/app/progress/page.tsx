@@ -94,7 +94,7 @@ export default async function ProgressPage() {
           ].map((stat) => (
             <div key={stat.label} className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-4 text-center">
               <p className={`text-xl sm:text-2xl font-black mb-1 ${stat.color}`}>{stat.value}</p>
-              <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
+              <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest">{stat.label}</p>
             </div>
           ))}
         </div>
@@ -108,7 +108,7 @@ export default async function ProgressPage() {
                 <div key={module.module}>
                   <div className="flex justify-between items-center gap-2 mb-1">
                     <span className="text-sm font-black text-slate-700 truncate min-w-0">{module.module}</span>
-                    <span className="text-xs font-bold text-slate-400 shrink-0">
+                    <span className="text-xs font-bold text-slate-500 shrink-0">
                       {module.correctAnswers}/{module.questionsAttempted} ({module.averageScore}%)
                     </span>
                   </div>
@@ -149,12 +149,12 @@ export default async function ProgressPage() {
                     </div>
                     <div>
                       <p className="font-black text-slate-800 text-sm">Assessment Completed</p>
-                      <p className="text-xs font-bold text-slate-400">
+                      <p className="text-xs font-bold text-slate-500">
                         {assessment.totalQuestions} questions • {Math.round(assessment.timeSpent / 60)}m
                       </p>
                     </div>
                   </div>
-                  <span className="text-xs font-black text-slate-400">{formatRelativeTime(assessment.completedAt)}</span>
+                  <span className="text-xs font-black text-slate-500">{formatRelativeTime(assessment.completedAt)}</span>
                 </div>
               ))}
             </div>

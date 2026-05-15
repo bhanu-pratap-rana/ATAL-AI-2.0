@@ -275,8 +275,9 @@ function CopyButton({ text }: Readonly<{ text: string }>) {
       variant="ghost"
       size="icon"
       onClick={handleCopy}
-      className={`h-9 w-9 rounded ${copied ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-50" : "bg-slate-50 hover:bg-slate-100 text-slate-500"}`}
+      className={`h-11 w-11 rounded ${copied ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-50" : "bg-slate-50 hover:bg-slate-100 text-slate-500"}`}
       title="Copy to clipboard"
+      aria-label={copied ? "Copied" : "Copy to clipboard"}
     >
       {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
     </Button>
