@@ -37,12 +37,14 @@ import {
 } from "./providers/gemini";
 import { authLogger } from "@/lib/auth-logger";
 
-const DEFAULT_CHAIN: AIProviderType[] = [
-  "gemini",
-  "huggingface",
-  "groq",
-  "cerebras",
-];
+// HuggingFace skipped here because the @ai-sdk/openai-compatible adapter
+// against HF's Inference router currently reports as a non-v1 spec model,
+// which the installed AI SDK 4 rejects with "Unsupported model version".
+// Once the project upgrades to AI SDK 5 it can be re-added to the chain.
+// Note: HF Inference IS used directly (without the AI SDK adapter) by
+// services like Whisper STT and FLUX image generation — those paths
+// are unaffected.
+const DEFAULT_CHAIN: AIProviderType[] = ["gemini", "groq", "cerebras"];
 
 function activeChain(preferred?: AIProviderType): AIProviderType[] {
   const available = getProviderStatus();
@@ -101,11 +103,23 @@ type StreamTextOptions = Omit<Parameters<typeof sdkStreamText>[0], "model"> & {
 };
 
 /**
- * Starts a streaming completion against the first provider in the
- * chain. If that provider errors before any tokens are produced
- * (auth, rate limit, 4xx), the next provider in the chain is tried.
- * Mid-stream errors are surfaced to the caller as normal — we cannot
- * recover from a partial response.
+ * Starts a streaming completion against the first available provider.
+ *
+ * Failover semantics: `sdkStreamText` returns a result object
+ * synchronously. Construction-time errors (model incompatible with the
+ * installed AI SDK, invalid API key shape, unsupported options) throw
+ * inside the call and we catch them to try the next provider.
+ * Network / auth / rate-limit errors emerge later when the stream is
+ * consumed by the caller (Next.js `toDataStreamResponse()`), and we
+ * cannot retry there without dropping a partial response in front of
+ * the student. So mid-stream errors fall through to the route handler's
+ * try/catch and the user sees an error toast — same UX as before
+ * fallback was introduced.
+ *
+ * Previous probe pattern (awaiting `result.warnings` with a timeout)
+ * was wrong: that promise only settles after the full response
+ * completes, so an 8s timeout false-positived on every provider and
+ * killed tutor chat (caught by PR-59 live-test). Removed.
  */
 export async function streamTextWithFallback(
   opts: StreamTextOptions,
@@ -115,7 +129,7 @@ export async function streamTextWithFallback(
 
   if (chain.length === 0) {
     throw new Error(
-      "No AI provider configured. Set GEMINI_API_KEY, HUGGINGFACE_API_KEY, GROQ_API_KEY, or CEREBRAS_API_KEY.",
+      "No AI provider configured. Set GEMINI_API_KEY, GROQ_API_KEY, or CEREBRAS_API_KEY.",
     );
   }
 
@@ -127,18 +141,8 @@ export async function streamTextWithFallback(
         Record<string, never>,
         unknown
       >;
-      // Probe the stream by awaiting the first usage event. If the
-      // provider rejects (auth/rate-limit), this throws synchronously
-      // inside the await and we move to the next provider. Once the
-      // first chunk arrives, we hand the StreamTextResult to the caller.
-      await Promise.race([
-        result.warnings,
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("stream probe timeout")), 8_000),
-        ),
-      ]);
       if (provider !== chain[0]) {
-        authLogger.info("[ai/fallback] streamText recovered on fallback", {
+        authLogger.info("[ai/fallback] streamText switched to fallback provider", {
           provider,
         });
       }
