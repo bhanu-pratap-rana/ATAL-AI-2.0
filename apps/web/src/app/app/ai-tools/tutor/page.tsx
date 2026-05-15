@@ -18,6 +18,7 @@ import { VoiceChat } from "@/components/voice/VoiceChat";
 import { ConversationalVoiceChat } from "@/components/voice/ConversationalVoiceChat";
 import { RateLimitCountdown } from "@/components/ui/RateLimitCountdown";
 import { Button } from "@/components/ui/button";
+import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
 
 type TutorLanguage = "en" | "hi" | "as";
 
@@ -358,7 +359,13 @@ export default function AITutorPage() {
                       className={`max-w-[90%] sm:max-w-[80%] rounded-2xl p-3 ${message.role === "user" ? "text-white rounded-br-md" : "bg-slate-50 border border-slate-100 rounded-bl-md"}`}
                       style={message.role === "user" ? { background: "var(--gradient-primary)" } : {}}
                     >
-                      <p className="whitespace-pre-wrap text-sm font-medium">{message.content}</p>
+                      {message.role === "user" ? (
+                        <p className="whitespace-pre-wrap text-sm font-medium">{message.content}</p>
+                      ) : (
+                        <div className="text-sm font-medium prose prose-sm max-w-none prose-p:my-1 prose-strong:font-black prose-em:italic prose-ul:my-1 prose-ol:my-1 prose-li:my-0">
+                          <MarkdownRenderer content={message.content} />
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}

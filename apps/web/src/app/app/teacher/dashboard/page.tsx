@@ -338,8 +338,16 @@ export default async function TeacherDashboardPage({
       {/* Current Class Header */}
       <div className="flex flex-wrap items-center justify-between gap-2 px-1">
         <h2 className="text-lg sm:text-xl font-black text-slate-900 min-w-0 truncate">{selectedClass.name} — Student Progress</h2>
-        <div className="flex items-center gap-1.5 text-xs font-black text-emerald-700">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />{"Real-time"}
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/app/teacher/classes/${selectedClass.id}`}
+            className="text-xs font-black text-(--bento-sky-d) hover:underline"
+          >
+            Open class →
+          </Link>
+          <div className="flex items-center gap-1.5 text-xs font-black text-emerald-700">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />{"Real-time"}
+          </div>
         </div>
       </div>
 
