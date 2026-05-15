@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { timingSafeEqual } from "node:crypto";
 import {
+  createAdminClient,
   createClient,
   getCurrentUser,
   verifyStudentAuth,
@@ -666,8 +667,17 @@ export async function joinClassAsAnonymous(
       return { success: false, error: "Failed to create profile. Please try again." };
     }
 
+    // SECURITY: use the admin client for the enrollment insert ONLY.
+    // The enrollments SELECT RLS policy calls get_teacher_class_ids(),
+    // which recurses on enrollments when the caller is anonymous — the
+    // post-insert .select() roundtrip then throws
+    // "infinite recursion detected in policy for relation enrollments".
+    // All the gating checks (auth, profile-doesn't-exist, rate limit,
+    // class+PIN match) ran above with the user's regular RLS-bound
+    // client, so writing the enrollment row server-side here is safe.
+    const adminSupabase = await createAdminClient();
     const enrollmentResult = await createEnrollment(
-      supabase,
+      adminSupabase,
       classLookup.classData.id,
       user.id,
       classLookup.classData.name,
