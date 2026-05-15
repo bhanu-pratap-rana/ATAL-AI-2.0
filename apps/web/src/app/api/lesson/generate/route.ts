@@ -16,8 +16,7 @@ export const maxDuration = 60;
 
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { generateText } from "ai";
-import { getAIModel } from "@/lib/ai/providers/gemini";
+import { generateTextWithFallback } from "@/lib/ai/with-fallback";
 import { createClient, getCurrentUser } from "@/lib/supabase-server";
 import { retrieveTopicContent, getTopicTitle, getTopicDescriptionSync } from "@/lib/rag/content-retrieval";
 import { authLogger } from "@/lib/auth-logger";
@@ -377,8 +376,7 @@ Generate 5-6 chunks covering:
 Use culturally relevant examples (village life, agriculture, local festivals, tea gardens).`;
 
       try {
-        const { text } = await generateText({
-          model: getAIModel(),
+        const { text } = await generateTextWithFallback({
           system: systemPrompt,
           prompt: userPrompt,
           maxTokens: getMaxTokens(language),
@@ -421,8 +419,7 @@ ${ragContent.definitions.length > 0 ? `KEY DEFINITIONS:\n${ragContent.definition
 Transform this into 5-6 microlearning chunks with checkpoints. Make it engaging for rural Indian students.`;
 
       try {
-        const { text } = await generateText({
-          model: getAIModel(),
+        const { text } = await generateTextWithFallback({
           system: systemPrompt,
           prompt: userPrompt,
           maxTokens: getMaxTokens(language),

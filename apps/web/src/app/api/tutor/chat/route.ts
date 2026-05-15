@@ -14,10 +14,10 @@
 
 export const maxDuration = 60;
 
-import { streamText } from "ai";
 import { z } from "zod";
 import { getCurrentUser, createClient } from "@/lib/supabase-server";
-import { getAIModel, MODEL_CONFIGS } from "@/lib/ai/providers";
+import { MODEL_CONFIGS } from "@/lib/ai/providers";
+import { streamTextWithFallback } from "@/lib/ai/with-fallback";
 import { ragService } from "@/lib/ai/services/rag-service";
 import { adaptiveService } from "@/lib/ai/services/adaptive-service";
 import { buildSystemPrompt } from "@/lib/ai/prompts/socratic-tutor";
@@ -144,9 +144,6 @@ export async function POST(request: Request): Promise<Response> {
       module: moduleId,
     });
 
-    // Get AI model (Groq primary - FREE tier, Gemini fallback)
-    const model = getAIModel();
-
     // Track start time for logging
     const startTime = Date.now();
 
@@ -164,9 +161,11 @@ export async function POST(request: Request): Promise<Response> {
       responseTimeMs: 0,
     });
 
-    // Stream response using Vercel AI SDK
-    const result = streamText({
-      model,
+    // Stream response with runtime auto-failover across configured
+    // providers (Gemini → HuggingFace → Groq). If the primary provider
+    // errors before the first token (auth / rate-limit / 5xx), the
+    // wrapper transparently retries on the next provider.
+    const result = await streamTextWithFallback({
       system: systemPrompt,
       messages,
       ...MODEL_CONFIGS.tutor,
