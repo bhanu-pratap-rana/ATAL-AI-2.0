@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { createClient } from "@/lib/supabase-browser";
+import { getDashboardMetrics } from "@/app/actions/admin-metrics";
 import { clientLogger } from "@/lib/client-logger";
 
 function fmt(n: number): string {
@@ -33,20 +33,30 @@ export function AdminDashboardClient() {
   useEffect(() => {
     async function loadStats() {
       try {
-        const supabase = createClient();
-        const [schoolsRes, teachersRes, studentsRes] = await Promise.all([
-          supabase.from("schools").select("id", { count: "exact", head: true }),
-          supabase.from("teacher_profiles").select("user_id", { count: "exact", head: true }),
-          supabase.from("student_profiles").select("user_id", { count: "exact", head: true }),
-        ]);
-
-        setStats({
-          schools: schoolsRes.count ?? 0,
-          teachers: teachersRes.count ?? 0,
-          students: studentsRes.count ?? 0,
-        });
+        // Use the server action — it runs the count queries via the
+        // service-role admin client, which bypasses RLS. The previous
+        // implementation used the browser Supabase client which is
+        // RLS-bound to the admin's own auth.uid(), and admins have no
+        // RLS policy permitting them to SELECT from teacher_profiles
+        // or student_profiles. That returned 0 rows for both tables
+        // and produced the long-running 0/0 dashboard bug (PR-56).
+        const result = await getDashboardMetrics();
+        if (result.success && result.data) {
+          setStats({
+            schools: result.data.totalSchools,
+            teachers: result.data.totalTeachers,
+            students: result.data.totalStudents,
+          });
+        } else {
+          clientLogger.warn("[AdminDashboard] metrics action returned no data", {
+            error: result.error || "unknown",
+          });
+        }
       } catch (error) {
-        clientLogger.error("[AdminDashboard] stats error", error instanceof Error ? error : new Error(String(error)));
+        clientLogger.error(
+          "[AdminDashboard] stats error",
+          error instanceof Error ? error : new Error(String(error)),
+        );
       }
     }
     loadStats();

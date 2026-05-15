@@ -210,7 +210,7 @@ async function fetchDashboardMetricsFromDB(): Promise<DashboardMetrics> {
   // Use the higher count between profiles and auth users
   const finalTeacherCount = Math.max(teacherCount, authTeacherCount);
 
-  return {
+  const result: DashboardMetrics = {
     totalSchools: schoolCount || 0,
     totalTeachers: finalTeacherCount,
     totalStudents: studentCount,
@@ -218,6 +218,25 @@ async function fetchDashboardMetricsFromDB(): Promise<DashboardMetrics> {
     inactivePins: inactivePins,
     totalAdmins: adminCount,
   };
+
+  // CACHE GUARD (PR-61): in the dev session leading up to MVP launch a
+  // race between hot-reload restarts and the in-process queryCache wrote
+  // a `{ teachers: 0, students: 0, schools: 394 }` snapshot to the
+  // 5-minute cache, then served it for 5 minutes to every admin even
+  // though the underlying queries returned correct numbers seconds
+  // later. The cause was a transient null from PostgREST count headers
+  // during the restart window — Supabase JS treats that as `count: null`
+  // which JS-coerces to 0 via the `|| 0` fallback below, hiding the
+  // failure. Detection here: if school count is non-zero (table has
+  // rows) and BOTH teacher + student counts are zero, the row reads
+  // are obviously inconsistent — surface as a thrown error so the
+  // caller falls into the cache miss path next time instead of pinning
+  // bad data for 5 minutes.
+  if ((result.totalSchools ?? 0) > 0 && result.totalTeachers === 0 && result.totalStudents === 0) {
+    throw new Error("DASHBOARD_METRICS_INCONSISTENT_ZEROS");
+  }
+
+  return result;
 }
 
 /**
