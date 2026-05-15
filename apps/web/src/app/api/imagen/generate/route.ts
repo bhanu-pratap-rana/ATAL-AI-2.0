@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { generateImage, getImageFromCache, TOPIC_IMAGE_PROMPTS, type ImagenParams } from "@/lib/ai/services/imagen-service";
+import { generateImageWithFallback, getImageFromCache, TOPIC_IMAGE_PROMPTS, type ImagenParams } from "@/lib/ai/services/imagen-service";
 import { getCurrentUser } from "@/lib/supabase-server";
 import { authLogger } from "@/lib/auth-logger";
 import { checkRateLimit } from "@/lib/rate-limiter-distributed";
@@ -98,8 +98,10 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Generate new image
-    const result = await generateImage(params);
+    // Generate new image — uses Vertex AI Imagen 3 primary and falls
+    // back to FLUX.1-schnell (free HuggingFace) and finally Pollinations
+    // (free, no-key) if the primary errors out.
+    const result = await generateImageWithFallback(params);
 
     // Newly generated images can also be cached
     return NextResponse.json({

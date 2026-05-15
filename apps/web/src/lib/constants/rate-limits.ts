@@ -120,6 +120,13 @@ export const RATE_LIMITS = {
     refillInterval: 1000,
   } as RateLimitConfig,
 
+  /** Speech-to-Text - 60 requests per hour (a 30s clip per request is plenty for tutor dialogue) */
+  stt: {
+    maxTokens: 60,
+    refillRate: 60 / SECONDS_PER_HOUR,
+    refillInterval: 1000,
+  } as RateLimitConfig,
+
   /** TTS Health Check - 30 per minute (less strict than synthesis) */
   ttsHealth: {
     maxTokens: 30,

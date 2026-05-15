@@ -17,7 +17,7 @@
  */
 
 import { useState, useEffect, useCallback, useMemo, useRef, memo } from "react";
-import { Mic, Square } from "lucide-react";
+import { Mic, MicOff, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { clientLogger } from "@/lib/client-logger";
 
@@ -76,6 +76,164 @@ interface VoiceChatProps {
   readonly disabled?: boolean;
   /** Show interim (real-time) transcript while speaking */
   readonly showInterimTranscript?: boolean;
+}
+
+interface ServerSpeechFallbackProps {
+  readonly language: Language;
+  readonly onTranscript: (transcript: string) => void;
+  readonly disabled?: boolean;
+}
+
+/**
+ * Used when the browser doesn't support the Web Speech API (Firefox,
+ * older Safari, in-app WebViews). Records audio via MediaRecorder,
+ * POSTs it to /api/voice/stt, hands the returned text up via
+ * onTranscript with the same contract as the native path.
+ *
+ * Renders a single tap-to-record button that mirrors the native UI
+ * shape so the rest of the tutor surface doesn't need to branch.
+ */
+function ServerSpeechFallback({
+  language,
+  onTranscript,
+  disabled = false,
+}: ServerSpeechFallbackProps) {
+  const [isRecording, setIsRecording] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<BlobPart[]>([]);
+
+  // MediaRecorder isn't supported either? Then we're truly stuck.
+  const recorderSupported =
+    typeof globalThis !== "undefined" &&
+    globalThis.MediaRecorder !== undefined &&
+    globalThis.navigator?.mediaDevices?.getUserMedia !== undefined;
+
+  useEffect(() => {
+    return () => {
+      if (recorderRef.current && recorderRef.current.state !== "inactive") {
+        recorderRef.current.stop();
+      }
+    };
+  }, []);
+
+  const start = useCallback(async () => {
+    if (!recorderSupported || disabled) return;
+    setError(null);
+    chunksRef.current = [];
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+      recorder.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        if (chunksRef.current.length === 0) return;
+        setIsUploading(true);
+        try {
+          const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+          const form = new FormData();
+          form.append("audio", blob, "audio.webm");
+          form.append("language", language);
+          const res = await fetch("/api/voice/stt", { method: "POST", body: form });
+          if (!res.ok) {
+            const data = (await res.json().catch(() => ({}))) as { error?: string };
+            throw new Error(data.error || `STT request failed (${res.status})`);
+          }
+          const data = (await res.json()) as { text?: string };
+          if (data.text && data.text.trim().length > 0) {
+            clientLogger.debug("[VoiceChat/server] Transcript", {
+              language,
+              len: data.text.length,
+            });
+            onTranscript(data.text.trim());
+          } else {
+            setError("Could not transcribe — try speaking again.");
+          }
+        } catch (err) {
+          clientLogger.error(
+            "[VoiceChat/server] STT upload failed",
+            err instanceof Error ? err : { error: String(err) },
+          );
+          setError(err instanceof Error ? err.message : "Voice transcription failed");
+        } finally {
+          setIsUploading(false);
+        }
+      };
+      recorder.start();
+      recorderRef.current = recorder;
+      setIsRecording(true);
+    } catch (err) {
+      clientLogger.error(
+        "[VoiceChat/server] Microphone permission denied or unavailable",
+        err instanceof Error ? err : { error: String(err) },
+      );
+      setError("Microphone permission denied. Please allow access in browser settings.");
+    }
+  }, [language, onTranscript, disabled, recorderSupported]);
+
+  const stop = useCallback(() => {
+    const recorder = recorderRef.current;
+    if (recorder && recorder.state !== "inactive") {
+      recorder.stop();
+    }
+    setIsRecording(false);
+  }, []);
+
+  // Compute the hint label flat (avoids a nested ternary inside JSX).
+  const tapLabel = `Tap to speak (${LANGUAGE_DISPLAY_NAMES[language] ?? "auto"})`;
+  let hintLabel = tapLabel;
+  if (isUploading) {
+    hintLabel = "Transcribing…";
+  } else if (isRecording) {
+    hintLabel = "Listening — tap to stop";
+  }
+
+  if (!recorderSupported) {
+    return (
+      <div className="text-center p-4 bg-warning/10 border border-warning/30 rounded-2xl">
+        <p className="text-sm text-warning-dark">
+          Voice input is not supported in this browser.
+        </p>
+        <p className="text-xs text-slate-500 mt-1">
+          Please use Chrome, Edge, or a recent Safari.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-center">
+        <Button
+          type="button"
+          onClick={isRecording ? stop : start}
+          disabled={disabled || isUploading}
+          variant={isRecording ? "destructive" : "default"}
+          size="lg"
+          className="rounded-full w-16 h-16 p-0"
+          aria-label={isRecording ? "Stop recording" : "Start recording"}
+        >
+          {isRecording ? (
+            <MicOff className="w-7 h-7" strokeWidth={2.25} aria-hidden="true" />
+          ) : (
+            <Mic className="w-7 h-7" strokeWidth={2.25} aria-hidden="true" />
+          )}
+        </Button>
+      </div>
+      <p className="text-center text-xs font-medium text-slate-600">
+        {hintLabel}
+      </p>
+      {error && (
+        <p role="alert" className="text-center text-xs text-error">
+          {error}
+        </p>
+      )}
+    </div>
+  );
 }
 
 export const VoiceChat = memo(function VoiceChat({
@@ -232,20 +390,19 @@ export const VoiceChat = memo(function VoiceChat({
     setIsListening(false);
   }, []);
 
-  // Browser not supported
+  // Browser not supported — fall back to MediaRecorder + server STT route.
+  // Keeps Firefox / older Safari / in-app WebView users (WhatsApp, Instagram)
+  // able to use voice input. Uses the same onTranscript contract so the
+  // parent component doesn't need to know which path produced the text.
   if (!isSupported) {
     return (
-      <div className="text-center p-4 bg-warning/10 border border-warning/30 rounded-2xl">
-        <p className="text-sm text-warning-dark">
-          Voice input is not supported in this browser.
-        </p>
-        <p className="text-xs text-slate-500 mt-1">
-          Please use Chrome, Edge, or Safari for voice features.
-        </p>
-      </div>
+      <ServerSpeechFallback
+        language={language}
+        onTranscript={onTranscript}
+        disabled={disabled}
+      />
     );
   }
-
   return (
     <div className="space-y-3">
       {/* Voice Button */}

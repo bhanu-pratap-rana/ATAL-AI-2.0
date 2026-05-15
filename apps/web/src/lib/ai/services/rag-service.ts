@@ -92,38 +92,88 @@ export class CurriculumRAGService {
 
       if (error) {
         authLogger.error("[RAG] Search error:", error);
-        // Fallback to general topic search if available
-        if (filterTopic) {
-          return await this.getDirectTopicContent(
-            filterTopic,
-            (filterLanguage as SupportedLanguage) || "en",
-          );
-        }
-        return "";
+        // Cascading fallback: direct topic content → keyword search
+        return await this.fallbackToKeywordOrTopic(query, filterTopic, filterLanguage, matchCount);
       }
 
       if (!docs || docs.length === 0) {
-        // Try fallback if vector search returns nothing
-        if (filterTopic) {
-          return await this.getDirectTopicContent(
-            filterTopic,
-            (filterLanguage as SupportedLanguage) || "en",
-          );
-        }
-        return "";
+        // No vector matches — try the same cascade so the tutor isn't
+        // left with empty context just because embeddings underperformed.
+        return await this.fallbackToKeywordOrTopic(query, filterTopic, filterLanguage, matchCount);
       }
 
       // Format matches into context string
       return this.formatContext(docs as CurriculumMatch[]);
     } catch (error) {
       authLogger.error("[RAG] Error getting context:", error);
-      // Fallback on any error
-      if (filterTopic) {
-        return await this.getDirectTopicContent(
-          filterTopic,
-          (filterLanguage as SupportedLanguage) || "en",
-        );
+      // Embedding API itself failed — fall back to keyword / topic content.
+      return await this.fallbackToKeywordOrTopic(query, filterTopic, filterLanguage, matchCount);
+    }
+  }
+
+  /**
+   * Final graceful-degradation step. When pgvector search fails (or
+   * returns nothing), we still want the tutor to have *some* curriculum
+   * grounding rather than answering from the language model alone.
+   *
+   * Order:
+   *   1. If we know the topic, return its full content from the topic-id
+   *      direct path. Most tutor questions arrive scoped to a topic.
+   *   2. Otherwise, ILIKE keyword search against curriculum_content.
+   *      Crude but always available — runs even with the embedding
+   *      service down.
+   *   3. Empty string if even that misses.
+   */
+  private async fallbackToKeywordOrTopic(
+    query: string,
+    filterTopic: string | null,
+    filterLanguage: string | null,
+    matchCount: number,
+  ): Promise<string> {
+    if (filterTopic) {
+      const topicContext = await this.getDirectTopicContent(
+        filterTopic,
+        (filterLanguage as SupportedLanguage) || "en",
+      );
+      if (topicContext) return topicContext;
+    }
+
+    // Plain keyword search — strip very common short tokens so we don't
+    // match every paragraph on "the / a / is".
+    const tokens = query
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((t) => t.length >= 3)
+      .slice(0, 3);
+    if (tokens.length === 0) return "";
+
+    try {
+      const supabase = await createClient();
+      let q = supabase
+        .from("curriculum_content")
+        .select("title, content, content_type, topic_id")
+        .limit(matchCount);
+      if (filterLanguage) q = q.eq("language", filterLanguage);
+      // Combine tokens with OR so we don't require all of them to match.
+      const ors = tokens.map((t) => `content.ilike.%${t}%`).join(",");
+      q = q.or(ors);
+      const { data, error } = await q;
+      if (error || !data || data.length === 0) {
+        return "";
       }
+      authLogger.info("[RAG] Keyword fallback returned matches", {
+        count: data.length,
+      });
+      return this.formatContext(
+        data.map((d) => ({
+          ...d,
+          similarity: 0,
+        })) as CurriculumMatch[],
+      );
+    } catch (err) {
+      authLogger.warn("[RAG] Keyword fallback failed", {
+        error: err instanceof Error ? err.message : String(err),
+      });
       return "";
     }
   }
