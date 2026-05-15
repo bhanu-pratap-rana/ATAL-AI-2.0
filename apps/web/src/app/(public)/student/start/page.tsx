@@ -10,6 +10,7 @@ import { SignUpStep } from "@/components/auth/student/SignUpStep";
 import { ForgotPasswordStep } from "@/components/auth/student/ForgotPasswordStep";
 import { ProfileStep } from "@/components/auth/student/ProfileStep";
 import { JoinClassStep } from "@/components/auth/student/JoinClassStep";
+import { AnonymousJoinStep } from "@/components/auth/student/AnonymousJoinStep";
 
 export default function StudentStartPage() {
   const router = useRouter();
@@ -92,7 +93,7 @@ export default function StudentStartPage() {
     );
   }
 
-  // JOIN CLASS STEP: Enroll in a class
+  // JOIN CLASS STEP: Enroll in a class (post-signup flow)
   if (state.mainStep === "join-class") {
     return (
       <JoinClassStep
@@ -101,6 +102,12 @@ export default function StudentStartPage() {
         isLoading={state.isLoading}
       />
     );
+  }
+
+  // ANONYMOUS JOIN STEP: cold-start join for rural students who have no
+  // email or phone — anonymous Supabase sign-in + class enrolment in one go.
+  if (state.mainStep === "anonymous-join") {
+    return <AnonymousJoinStep actions={actions} />;
   }
 
   // Fallback (should not reach here)

@@ -14,7 +14,8 @@ export type AuthStep =
   | "signup"
   | "forgot-password"
   | "profile"
-  | "join-class";
+  | "join-class"
+  | "anonymous-join";
 export type SignInTab = "email" | "phone" | "username";
 export type SignUpTab = "email" | "phone" | "guest" | "username";
 export type PhoneOtpStep = "phone" | "verify";

@@ -527,6 +527,164 @@ export async function joinClass({ classCode, pin }: JoinClassParams) {
   }
 }
 
+interface JoinClassAsAnonymousParams {
+  name: string;
+  gender: "male" | "female";
+  classCode: string;
+  pin: string;
+  rollNumber?: string;
+}
+
+/**
+ * First-contact join for rural students who have no email or phone.
+ *
+ * Flow: client calls supabase.auth.signInAnonymously() first (gets an
+ * anon UID + session), then calls this action with a username + class
+ * details. We:
+ *   1. Validate input
+ *   2. Confirm caller is authenticated (anonymous is fine)
+ *   3. Refuse if a student_profiles row already exists for this user —
+ *      this action is strictly first-contact, not a renaming tool
+ *   4. Verify class code + PIN
+ *   5. Upsert the student_profiles row via the existing RPC
+ *   6. Insert the enrollment
+ *
+ * RLS: the existing student_profiles INSERT policy permits an
+ * authenticated user to insert a row with `user_id = auth.uid()`. The
+ * enrollments INSERT policy permits an authenticated user to insert
+ * with `student_id = auth.uid()`. Anonymous users have a real
+ * `auth.uid()` so both checks pass.
+ */
+export async function joinClassAsAnonymous(
+  params: JoinClassAsAnonymousParams,
+) {
+  try {
+    let validatedInput;
+    try {
+      validatedInput = StudentProfileSchema.partial({
+        phone: true,
+        schoolName: true,
+        className: true,
+        village: true,
+      }).parse({
+        name: params.name,
+        gender: params.gender,
+        rollNumber: params.rollNumber,
+      });
+      JoinClassSchema.parse({ classCode: params.classCode, pin: params.pin });
+    } catch (error) {
+      return handleZodError(error);
+    }
+
+    const user = await getCurrentUser();
+    if (!user) {
+      return { success: false, error: "Not authenticated" };
+    }
+
+    authLogger.debug("[joinClassAsAnonymous] Caller authenticated", {
+      userId: user.id,
+      isAnonymous: user.is_anonymous,
+    });
+
+    const supabase = await createClient();
+
+    const { data: existingProfile } = await supabase
+      .from("student_profiles")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (existingProfile) {
+      authLogger.warn(
+        "[joinClassAsAnonymous] Profile already exists; this entry point is first-contact only",
+        { userId: user.id },
+      );
+      return {
+        success: false,
+        error: "You already have a profile. Use the regular join flow.",
+      };
+    }
+
+    const rateAllowed = await checkRateLimit(
+      `join-class-anon:${user.id}:${params.classCode}`,
+      RATE_LIMITS.classJoinAttempts,
+    );
+    if (!rateAllowed) {
+      return {
+        success: false,
+        error: "Too many join attempts. Please wait before trying again.",
+      };
+    }
+
+    const upperClassCode = params.classCode.toUpperCase().trim();
+    const classLookup = await lookupClassByCode(supabase, upperClassCode);
+    if (!classLookup.success) {
+      return { success: false, error: classLookup.error };
+    }
+
+    const pinValid = verifyPin(params.pin.trim(), classLookup.classData.join_pin);
+    if (!pinValid) {
+      authLogger.warn("[joinClassAsAnonymous] Invalid PIN attempt", {
+        classCode: upperClassCode,
+        userId: user.id,
+      });
+      return { success: false, error: "Invalid class code or PIN" };
+    }
+
+    const { data: rpcResult, error: rpcError } = await supabase.rpc(
+      "upsert_student_profile",
+      {
+        p_user_id: user.id,
+        p_name: validatedInput.name,
+        p_gender: validatedInput.gender,
+        p_phone: null,
+        p_roll_number: validatedInput.rollNumber || null,
+        p_school_name: null,
+        p_village: null,
+        p_class_name: classLookup.classData.name,
+      },
+    );
+
+    if (rpcError) {
+      authLogger.error(
+        "[joinClassAsAnonymous] RPC upsert_student_profile failed",
+        {
+          code: rpcError.code,
+          message: rpcError.message,
+          userId: user.id,
+        },
+      );
+      return { success: false, error: "Failed to create profile. Please try again." };
+    }
+
+    const rpcResponse = rpcResult as UpsertStudentProfileRPCResponse;
+    if (rpcResponse && typeof rpcResponse === "object" && !rpcResponse.success) {
+      authLogger.error("[joinClassAsAnonymous] RPC returned error", {
+        error: rpcResponse.error,
+        userId: user.id,
+      });
+      return { success: false, error: "Failed to create profile. Please try again." };
+    }
+
+    const enrollmentResult = await createEnrollment(
+      supabase,
+      classLookup.classData.id,
+      user.id,
+      classLookup.classData.name,
+    );
+
+    if (enrollmentResult.success) {
+      revalidatePath("/app/student/classes");
+      revalidatePath("/app/student/dashboard");
+    }
+
+    return enrollmentResult;
+  } catch (error) {
+    authLogger.error("[joinClassAsAnonymous] Unexpected error", error);
+    return { success: false, error: "An unexpected error occurred" };
+  }
+}
+
 export async function leaveClass(classId: string) {
   try {
     // Validate class ID

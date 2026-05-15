@@ -83,6 +83,23 @@ export function ChoiceStep({ actions, loading: _loading, state: _state }: StepCo
               </span>
             </BentoButton>
 
+            {/* Join with class code — for rural students with no email/phone */}
+            <BentoButton
+              color="yellow"
+              size="lg"
+              fullWidth
+              onClick={() => actions.setMainStep("anonymous-join")}
+              className="justify-start! gap-4 whitespace-normal h-auto py-4"
+            >
+              <GraduationCap className="w-7 h-7 shrink-0" strokeWidth={2.25} aria-hidden="true" />
+              <span className="text-left">
+                <span className="block text-base leading-none">Join with class code</span>
+                <span className="block text-xs font-bold text-slate-700/80 mt-1">
+                  No email or phone needed
+                </span>
+              </span>
+            </BentoButton>
+
             {/* Teacher + Admin row */}
             <div className="grid grid-cols-2 gap-3 pt-1">
               <a
