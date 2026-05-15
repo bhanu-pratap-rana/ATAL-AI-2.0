@@ -9,25 +9,25 @@
  * Failover chain (in order):
  *
  *   1. Sarvam AI (Saarika v2.5)      — Indian-language-first, NATIVE
- *      Hindi + native Assamese, single API key, ₹1,000 free credits.
+ *      Hindi + Assamese, single API key, ₹1,000 free credits.
  *      Activated when SARVAM_API_KEY is set. Top of the chain because
  *      it's purpose-built for the Indic languages this app targets.
  *
- *   2. Bhashini ASR (Govt of India)  — FREE for educational use,
- *      same native language coverage. Activated when BHASHINI_USER_ID
- *      + BHASHINI_ULCA_API_KEY + BHASHINI_INFERENCE_API_KEY are set.
- *      Setup is painful; the Sarvam slot above is the recommended
- *      primary unless you specifically need the government route.
- *
- *   3. OpenAI Whisper API (whisper-1) — paid (~$0.006/min), excellent
+ *   2. OpenAI Whisper API (whisper-1) — paid (~$0.006/min), excellent
  *      multilingual quality. Activated when OPENAI_API_KEY is set.
  *
- *   4. HuggingFace Inference Whisper-large-v3 — FREE rate-limited,
+ *   3. HuggingFace Inference Whisper-large-v3 — FREE rate-limited,
  *      multilingual. Activated when HUGGINGFACE_API_KEY is set. The
  *      always-on free safety net.
  *
  * If none of the providers are configured, the route returns 503 with
  * a clear "speech-to-text unavailable" message.
+ *
+ * Note: Bhashini (Govt of India ULCA) was previously the slot 2
+ * provider. Removed in PR-57 because the two-step pipeline-config
+ * protocol + manual integrator approval flow was hostile to set up;
+ * Sarvam covers the same native Indic languages with a single key
+ * and ₹1,000 free credits on signup.
  */
 
 import { authLogger } from "@/lib/auth-logger";
@@ -38,8 +38,6 @@ const HF_WHISPER_ENDPOINT =
   "https://api-inference.huggingface.co/models/openai/whisper-large-v3";
 const OPENAI_TRANSCRIPTIONS_ENDPOINT =
   "https://api.openai.com/v1/audio/transcriptions";
-const BHASHINI_PIPELINE_ENDPOINT =
-  "https://meity-auth.ulcacontrib.org/ulca/apis/v0/model/getModelsPipeline";
 const SARVAM_STT_ENDPOINT = "https://api.sarvam.ai/speech-to-text";
 
 const LANGUAGE_HINT: Record<STTLanguage, string> = {
@@ -63,7 +61,7 @@ const SARVAM_LANGUAGE: Record<STTLanguage, string> = {
 
 export interface STTResult {
   text: string;
-  provider: "sarvam" | "bhashini" | "openai" | "huggingface";
+  provider: "sarvam" | "openai" | "huggingface";
   language: STTLanguage;
 }
 
@@ -111,97 +109,6 @@ async function transcribeWithSarvam(
     provider: "sarvam",
     language,
   };
-}
-
-/**
- * Bhashini ASR uses a two-step protocol: first ask which inference
- * endpoint serves the requested language, then post the audio there.
- * Skipped entirely if credentials are not configured.
- */
-async function transcribeWithBhashini(
-  audioBytes: Buffer,
-  language: STTLanguage,
-): Promise<STTResult | null> {
-  const userId = process.env.BHASHINI_USER_ID;
-  const ulcaKey = process.env.BHASHINI_ULCA_API_KEY;
-  const inferenceKey = process.env.BHASHINI_INFERENCE_API_KEY;
-
-  if (!userId || !ulcaKey || !inferenceKey) {
-    return null;
-  }
-
-  const pipelineRes = await fetch(BHASHINI_PIPELINE_ENDPOINT, {
-    method: "POST",
-    headers: {
-      userID: userId,
-      ulcaApiKey: ulcaKey,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      pipelineTasks: [
-        { taskType: "asr", config: { language: { sourceLanguage: ISO_FOR_LANGUAGE[language] } } },
-      ],
-      pipelineRequestConfig: { pipelineId: "64392f96daac500b55c543cd" },
-    }),
-  });
-
-  if (!pipelineRes.ok) {
-    throw new Error(`Bhashini pipeline-config ${pipelineRes.status}`);
-  }
-
-  const config = (await pipelineRes.json()) as {
-    pipelineInferenceAPIEndPoint?: {
-      callbackUrl?: string;
-      inferenceApiKey?: { name?: string; value?: string };
-    };
-    pipelineResponseConfig?: Array<{ config?: Array<{ serviceId?: string }> }>;
-  };
-
-  const callbackUrl = config.pipelineInferenceAPIEndPoint?.callbackUrl;
-  const headerName =
-    config.pipelineInferenceAPIEndPoint?.inferenceApiKey?.name ?? "Authorization";
-  const headerValue =
-    config.pipelineInferenceAPIEndPoint?.inferenceApiKey?.value ?? inferenceKey;
-  const serviceId =
-    config.pipelineResponseConfig?.[0]?.config?.[0]?.serviceId ?? undefined;
-
-  if (!callbackUrl) {
-    throw new Error("Bhashini pipeline returned no callback URL");
-  }
-
-  const inferenceRes = await fetch(callbackUrl, {
-    method: "POST",
-    headers: {
-      [headerName]: headerValue,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      pipelineTasks: [
-        {
-          taskType: "asr",
-          config: {
-            language: { sourceLanguage: ISO_FOR_LANGUAGE[language] },
-            ...(serviceId ? { serviceId } : {}),
-            audioFormat: "webm",
-            samplingRate: 16000,
-          },
-        },
-      ],
-      inputData: {
-        audio: [{ audioContent: audioBytes.toString("base64") }],
-      },
-    }),
-  });
-
-  if (!inferenceRes.ok) {
-    throw new Error(`Bhashini inference ${inferenceRes.status}`);
-  }
-
-  const data = (await inferenceRes.json()) as {
-    pipelineResponse?: Array<{ output?: Array<{ source?: string }> }>;
-  };
-  const text = data.pipelineResponse?.[0]?.output?.[0]?.source ?? "";
-  return { text, provider: "bhashini", language };
 }
 
 async function transcribeWithOpenAI(
@@ -281,7 +188,6 @@ export async function transcribeAudio(
     ) => Promise<STTResult | null>;
   }> = [
     { name: "sarvam", run: transcribeWithSarvam },
-    { name: "bhashini", run: transcribeWithBhashini },
     { name: "openai", run: transcribeWithOpenAI },
     { name: "huggingface", run: transcribeWithHuggingFace },
   ];
@@ -312,7 +218,7 @@ export async function transcribeAudio(
   if (!triedAny) {
     throw new Error(
       "speech-to-text unavailable — no STT provider configured " +
-        "(set SARVAM_API_KEY, BHASHINI_* keys, OPENAI_API_KEY, or HUGGINGFACE_API_KEY)",
+        "(set SARVAM_API_KEY, OPENAI_API_KEY, or HUGGINGFACE_API_KEY)",
     );
   }
   throw lastError instanceof Error

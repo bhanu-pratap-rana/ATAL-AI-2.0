@@ -37,7 +37,12 @@ import {
 } from "./providers/gemini";
 import { authLogger } from "@/lib/auth-logger";
 
-const DEFAULT_CHAIN: AIProviderType[] = ["gemini", "huggingface", "groq"];
+const DEFAULT_CHAIN: AIProviderType[] = [
+  "gemini",
+  "huggingface",
+  "groq",
+  "cerebras",
+];
 
 function activeChain(preferred?: AIProviderType): AIProviderType[] {
   const available = getProviderStatus();
@@ -63,7 +68,7 @@ export async function generateTextWithFallback(
 
   if (chain.length === 0) {
     throw new Error(
-      "No AI provider configured. Set GEMINI_API_KEY, HUGGINGFACE_API_KEY, or GROQ_API_KEY.",
+      "No AI provider configured. Set GEMINI_API_KEY, HUGGINGFACE_API_KEY, GROQ_API_KEY, or CEREBRAS_API_KEY.",
     );
   }
 
@@ -110,7 +115,7 @@ export async function streamTextWithFallback(
 
   if (chain.length === 0) {
     throw new Error(
-      "No AI provider configured. Set GEMINI_API_KEY, HUGGINGFACE_API_KEY, or GROQ_API_KEY.",
+      "No AI provider configured. Set GEMINI_API_KEY, HUGGINGFACE_API_KEY, GROQ_API_KEY, or CEREBRAS_API_KEY.",
     );
   }
 

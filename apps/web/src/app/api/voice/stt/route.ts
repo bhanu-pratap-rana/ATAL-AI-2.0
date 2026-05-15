@@ -6,7 +6,7 @@
  * audio via MediaRecorder, POSTs the blob here, and we return text.
  *
  * Auth + rate-limit gated like every other AI surface. The actual
- * provider failover (Bhashini → OpenAI → HuggingFace) lives in the
+ * provider failover (Sarvam → OpenAI → HuggingFace) lives in the
  * stt-service module so it's testable independently.
  */
 
@@ -20,7 +20,7 @@ import { transcribeAudio, type STTLanguage } from "@/lib/ai/services/stt-service
 export const maxDuration = 30;
 
 const MAX_AUDIO_BYTES = 8 * 1024 * 1024; // 8 MB hard cap on a clip
-const ALLOWED_LANGUAGES: STTLanguage[] = ["en", "hi", "as"];
+const ALLOWED_LANGUAGES = new Set<STTLanguage>(["en", "hi", "as"]);
 
 export async function POST(request: NextRequest) {
   try {
@@ -57,8 +57,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const language =
-      typeof languageRaw === "string" && ALLOWED_LANGUAGES.includes(languageRaw as STTLanguage)
+    const language: STTLanguage =
+      typeof languageRaw === "string" && ALLOWED_LANGUAGES.has(languageRaw as STTLanguage)
         ? (languageRaw as STTLanguage)
         : "en";
 
