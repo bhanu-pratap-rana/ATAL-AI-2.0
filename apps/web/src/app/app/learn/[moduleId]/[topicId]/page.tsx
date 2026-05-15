@@ -22,6 +22,7 @@ import { clientLogger } from "@/lib/client-logger";
 import { useLanguage, LanguageSelector } from "@/components/learn/LanguageSelector";
 import { LessonPlayer, LessonPlayerSkeleton, LessonCompletionModal } from "@/components/microlearning";
 import { useDynamicLesson } from "@/hooks/useDynamicLesson";
+import { useAdaptiveContext } from "@/hooks/useAdaptiveContext";
 import { useOfflineLesson } from "@/hooks/useOfflineLesson";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import type { SupportedLanguage } from "@/types/common";
@@ -233,6 +234,11 @@ export default function LessonPage() {
   const [offlineLesson, setOfflineLesson] = useState<ReturnType<typeof useDynamicLesson>["lesson"]>(null);
   const [offlineError, setOfflineError] = useState<string | null>(null);
   const [offlineLoading, setOfflineLoading] = useState(false);
+
+  // Pull the student's preferred learning style + current topic mastery
+  // so the lesson generator can adapt presentation and difficulty.
+  const adaptive = useAdaptiveContext(topicId);
+
   const {
     lesson: dynamicLesson,
     loading: dynamicLoading,
@@ -241,7 +247,9 @@ export default function LessonPage() {
     moduleId,
     topicId,
     language,
-    enabled: useDynamicMode && isOnline, // Only fetch when online
+    learningStyle: adaptive.learningStyle,
+    masteryLevel: adaptive.masteryLevel,
+    enabled: useDynamicMode && isOnline && !adaptive.loading,
   });
 
   // Offline content loading effect
