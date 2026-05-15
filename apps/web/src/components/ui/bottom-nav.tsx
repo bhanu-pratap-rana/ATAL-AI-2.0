@@ -8,31 +8,29 @@ import {
   PieChart, Users, School, ClipboardList,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase-browser";
+import { useLanguageOptional } from "@/lib/i18n";
 
-// Student nav tabs (Profile stays here — students self-manage their own
-// learning profile, which differs from system-wide Settings).
+// Translation keys are looked up per-render via useLanguage().t() so
+// switching the language selector immediately re-labels the nav. The
+// label keys map 1:1 to the `nav.*` namespace in src/lib/i18n/locales/*.json.
 const STUDENT_NAV = [
-  { href: "/app/student/dashboard", icon: LayoutDashboard, label: "Home" },
-  { href: "/app/learn", icon: BookOpen, label: "Learn" },
-  { href: "/app/ai-tools", icon: MessageSquare, label: "AI Tools" },
-  { href: "/app/settings", icon: UserCircle, label: "Profile" },
+  { href: "/app/student/dashboard", icon: LayoutDashboard, key: "nav.home", fallback: "Home" },
+  { href: "/app/learn", icon: BookOpen, key: "nav.learn", fallback: "Learn" },
+  { href: "/app/ai-tools", icon: MessageSquare, key: "nav.aiTools", fallback: "AI Tools" },
+  { href: "/app/settings", icon: UserCircle, key: "nav.profile", fallback: "Profile" },
 ] as const;
 
-// Teacher nav tabs — System slot reclaimed for Assessments (a real
-// teacher-facing route). Settings is reachable from the top-right header.
 const TEACHER_NAV = [
-  { href: "/app/teacher/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/app/teacher/analytics/questions", icon: PieChart, label: "Analytics" },
-  { href: "/app/teacher/classes", icon: Users, label: "Students" },
-  { href: "/app/teacher/assessments", icon: ClipboardList, label: "Assessments" },
+  { href: "/app/teacher/dashboard", icon: LayoutDashboard, key: "nav.dashboard", fallback: "Dashboard" },
+  { href: "/app/teacher/analytics/questions", icon: PieChart, key: "nav.analytics", fallback: "Analytics" },
+  { href: "/app/teacher/classes", icon: Users, key: "nav.students", fallback: "Students" },
+  { href: "/app/teacher/assessments", icon: ClipboardList, key: "nav.assessments", fallback: "Assessments" },
 ] as const;
 
-// Admin nav tabs — only three real /app/admin sub-routes exist, so the
-// bottom-nav reflects that. Settings/sign-out live in the top-right header.
 const ADMIN_NAV = [
-  { href: "/app/admin/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/app/admin/performance", icon: PieChart, label: "Analytics" },
-  { href: "/app/admin/schools", icon: School, label: "Schools" },
+  { href: "/app/admin/dashboard", icon: LayoutDashboard, key: "nav.dashboard", fallback: "Dashboard" },
+  { href: "/app/admin/performance", icon: PieChart, key: "nav.analytics", fallback: "Analytics" },
+  { href: "/app/admin/schools", icon: School, key: "nav.schools", fallback: "Schools" },
 ] as const;
 
 // Hide on full-screen experiences only
@@ -68,6 +66,12 @@ interface BottomNavProps {
 export function BottomNav({ initialRole }: BottomNavProps = {}) {
   const pathname = usePathname();
   const supabase = createClient();
+  // Optional context — returns null when the nav is rendered outside a
+  // LanguageProvider (e.g. some legacy routes). We pass the result's
+  // `t` down to the label renderer below; missing context falls back
+  // to the hardcoded English fallbacks per nav item.
+  const langCtx = useLanguageOptional();
+  const t = langCtx?.t;
 
   // Role is resolved server-side in the app layout and passed in. This is
   // what makes the nav role-correct on first paint for non-role-scoped
@@ -107,9 +111,18 @@ export function BottomNav({ initialRole }: BottomNavProps = {}) {
       style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
     >
       <div className="max-w-xl mx-auto flex justify-around items-end">
-        {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
+        {NAV_ITEMS.map(({ href, icon: Icon, key, fallback }) => {
           const isExact = ["/app/student/dashboard", "/app/teacher/dashboard", "/app/admin/dashboard", "/app/settings"].includes(href);
           const active = pathname === href || (!isExact && pathname.startsWith(href));
+          // useLanguage returns null outside a LanguageProvider, so we
+          // fall back to the English label rather than crashing.
+          // t() returns the key string itself when the key is missing
+          // in every locale, so we treat that as a miss too.
+          let label = fallback as string;
+          if (t) {
+            const translated = t(key);
+            if (translated && translated !== key) label = translated;
+          }
           return (
             <Link
               key={href}
@@ -129,9 +142,10 @@ export function BottomNav({ initialRole }: BottomNavProps = {}) {
                 <Icon size={20} strokeWidth={active ? 2.5 : 2} />
               </div>
               <span
-                className={`text-[10px] sm:text-[11px] font-black uppercase tracking-wider sm:tracking-widest transition-opacity ${
+                className={`text-[10px] sm:text-[11px] font-black uppercase tracking-wider sm:tracking-widest transition-opacity max-w-[72px] sm:max-w-none truncate ${
                   active ? "opacity-100" : "opacity-40"
                 }`}
+                title={label}
               >
                 {label}
               </span>

@@ -31,10 +31,15 @@
     "info": "তথ্য"
   },
   "nav": {
+    "home": "ঘৰ",
     "dashboard": "ডেশ্ববোৰ্ড",
     "learn": "শিকক",
+    "aiTools": "AI সঁজুলি",
     "classes": "শ্ৰেণীসমূহ",
+    "students": "ছাত্ৰ-ছাত্ৰী",
+    "analytics": "বিশ্লেষণ",
     "assessments": "মূল্যায়ন",
+    "schools": "বিদ্যালয়সমূহ",
     "profile": "প্ৰ'ফাইল",
     "backToDashboard": "ডেশ্ববোৰ্ডলৈ উভতি যাওক",
     "backToLearningPath": "শিক্ষণ পথলৈ উভতি যাওক"

@@ -31,10 +31,15 @@
     "info": "जानकारी"
   },
   "nav": {
+    "home": "होम",
     "dashboard": "डैशबोर्ड",
     "learn": "सीखें",
+    "aiTools": "AI टूल",
     "classes": "कक्षाएं",
+    "students": "छात्र",
+    "analytics": "विश्लेषण",
     "assessments": "मूल्यांकन",
+    "schools": "स्कूल",
     "profile": "प्रोफाइल",
     "backToDashboard": "डैशबोर्ड पर वापस",
     "backToLearningPath": "लर्निंग पाथ पर वापस"

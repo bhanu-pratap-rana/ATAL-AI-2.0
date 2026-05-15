@@ -31,10 +31,15 @@
     "info": "Info"
   },
   "nav": {
+    "home": "Home",
     "dashboard": "Dashboard",
     "learn": "Learn",
+    "aiTools": "AI Tools",
     "classes": "Classes",
+    "students": "Students",
+    "analytics": "Analytics",
     "assessments": "Assessments",
+    "schools": "Schools",
     "profile": "Profile",
     "backToDashboard": "Back to Dashboard",
     "backToLearningPath": "Back to Learning Path"

@@ -9,6 +9,7 @@ import {
   AlertCircle,
   ArrowLeft,
   Bot,
+  ImageIcon,
   Lightbulb,
   Mic,
   Pencil,
@@ -88,6 +89,11 @@ export default function AITutorPage() {
   const [textToSpeak, setTextToSpeak] = useState<string | null>(null);
   // PERF-007 FIX: Limit rendered messages for performance
   const [showAllMessages, setShowAllMessages] = useState(false);
+  // Map of message id → image URL (or 'loading' sentinel). Populated by
+  // clicking the "See diagram" button on an assistant bubble; that fires
+  // off /api/tutor/visualize using the previous user message as the
+  // concept and the current language as the label-script hint.
+  const [messageImages, setMessageImages] = useState<Record<string, string | "loading">>({});
   const VISIBLE_MESSAGE_LIMIT = 20;
 
   // Use Vercel AI SDK's useChat hook for streaming (NOSONAR S1874 - deprecated but functional)
@@ -353,22 +359,86 @@ export default function AITutorPage() {
                     </Button>
                   </div>
                 )}
-                {visibleMessages.map((message) => (
-                  <div key={message.id} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
-                    <div
-                      className={`max-w-[90%] sm:max-w-[80%] rounded-2xl p-3 ${message.role === "user" ? "text-white rounded-br-md" : "bg-slate-50 border border-slate-100 rounded-bl-md"}`}
-                      style={message.role === "user" ? { background: "var(--gradient-primary)" } : {}}
-                    >
-                      {message.role === "user" ? (
-                        <p className="whitespace-pre-wrap text-sm font-medium">{message.content}</p>
-                      ) : (
-                        <div className="text-sm font-medium prose prose-sm max-w-none prose-p:my-1 prose-strong:font-black prose-em:italic prose-ul:my-1 prose-ol:my-1 prose-li:my-0">
-                          <MarkdownRenderer content={message.content} />
-                        </div>
-                      )}
+                {visibleMessages.map((message, idx) => {
+                  // For an assistant bubble, pull the preceding user
+                  // message as the "concept" sent to the visualize
+                  // endpoint. Falls back to the assistant message content
+                  // if no user message is before it (shouldn't happen).
+                  const priorUser = [...visibleMessages.slice(0, idx)].reverse().find((m) => m.role === "user");
+                  const conceptForImage = (priorUser?.content || message.content || "").slice(0, 200);
+                  const imageState = messageImages[message.id];
+
+                  return (
+                    <div key={message.id} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
+                      <div
+                        className={`max-w-[90%] sm:max-w-[80%] rounded-2xl p-3 ${message.role === "user" ? "text-white rounded-br-md" : "bg-slate-50 border border-slate-100 rounded-bl-md"}`}
+                        style={message.role === "user" ? { background: "var(--gradient-primary)" } : {}}
+                      >
+                        {message.role === "user" ? (
+                          <p className="whitespace-pre-wrap text-sm font-medium">{message.content}</p>
+                        ) : (
+                          <div className="text-sm font-medium prose prose-sm max-w-none prose-p:my-1 prose-strong:font-black prose-em:italic prose-ul:my-1 prose-ol:my-1 prose-li:my-0">
+                            <MarkdownRenderer content={message.content} />
+                            {/* Diagram-on-demand. Student taps once,
+                                we call the visualize endpoint, image
+                                appears below the text. Language flows
+                                through so HI/AS get script-aware labels. */}
+                            {imageState ? (
+                              imageState === "loading" ? (
+                                <p className="text-xs text-slate-500 mt-3 animate-pulse">
+                                  Generating diagram…
+                                </p>
+                              ) : (
+                                <img
+                                  src={imageState}
+                                  alt={`Diagram for ${conceptForImage}`}
+                                  className="mt-3 rounded-xl border border-slate-200 max-w-full"
+                                  loading="lazy"
+                                />
+                              )
+                            ) : (
+                              <Button
+                                type="button"
+                                variant="link"
+                                size="sm"
+                                className="mt-2 h-auto p-0 text-xs text-(--bento-orange-d) hover:underline gap-1"
+                                onClick={async () => {
+                                  setMessageImages((prev) => ({ ...prev, [message.id]: "loading" }));
+                                  try {
+                                    const res = await fetch("/api/tutor/visualize", {
+                                      method: "POST",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({ concept: conceptForImage, language }),
+                                    });
+                                    const data = (await res.json()) as { imageUrl?: string; error?: string };
+                                    if (res.ok && data.imageUrl) {
+                                      setMessageImages((prev) => ({ ...prev, [message.id]: data.imageUrl! }));
+                                    } else {
+                                      setMessageImages((prev) => {
+                                        const next = { ...prev };
+                                        delete next[message.id];
+                                        return next;
+                                      });
+                                    }
+                                  } catch {
+                                    setMessageImages((prev) => {
+                                      const next = { ...prev };
+                                      delete next[message.id];
+                                      return next;
+                                    });
+                                  }
+                                }}
+                              >
+                                <ImageIcon className="w-3.5 h-3.5" strokeWidth={2.25} aria-hidden="true" />
+                                See diagram
+                              </Button>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </>
             )}
             {isLoading && (
