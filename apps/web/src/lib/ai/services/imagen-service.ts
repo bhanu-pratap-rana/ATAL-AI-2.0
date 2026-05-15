@@ -543,8 +543,11 @@ export async function getTopicImage(
 // the cache regardless of which provider originally rendered it.
 // ===========================================================================
 
+// HuggingFace migrated from `api-inference.huggingface.co/models/...` to
+// the Inference Providers router pattern in 2025. The legacy path now
+// 404s; the router URL is the supported entry point.
 const HF_FLUX_ENDPOINT =
-  "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell";
+  "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell";
 const POLLINATIONS_ENDPOINT = "https://image.pollinations.ai/prompt";
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB upload guard (matches Vertex path)
 

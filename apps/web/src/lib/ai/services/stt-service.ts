@@ -34,8 +34,11 @@ import { authLogger } from "@/lib/auth-logger";
 
 export type STTLanguage = "en" | "hi" | "as";
 
+// HuggingFace migrated from `api-inference.huggingface.co/models/...` to
+// the Inference Providers router pattern in 2025. The legacy path now
+// 404s; the router URL is the supported entry point.
 const HF_WHISPER_ENDPOINT =
-  "https://api-inference.huggingface.co/models/openai/whisper-large-v3";
+  "https://router.huggingface.co/hf-inference/models/openai/whisper-large-v3";
 const OPENAI_TRANSCRIPTIONS_ENDPOINT =
   "https://api.openai.com/v1/audio/transcriptions";
 const SARVAM_STT_ENDPOINT = "https://api.sarvam.ai/speech-to-text";

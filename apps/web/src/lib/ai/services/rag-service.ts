@@ -446,6 +446,10 @@ export class CurriculumRAGService {
           model: `models/${embeddingModel}`,
           content: { parts: [{ text }] },
           taskType: "RETRIEVAL_QUERY",
+          // Matryoshka truncation to match the 768-dim pgvector column.
+          // Without this the model returns 3072-dim vectors which the
+          // similarity-search RPC cannot index against.
+          outputDimensionality: embeddingDimensions,
         }),
       },
     );
