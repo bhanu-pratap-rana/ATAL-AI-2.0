@@ -14,6 +14,7 @@ import {
 } from "@/app/actions/assessment";
 import { clientLogger } from "@/lib/client-logger";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { useLanguage } from "@/lib/i18n";
 
 import { BentoCard } from "@/components/ui/bento-card";
 function getSessionTypeLabel(type: string): string {
@@ -56,8 +57,12 @@ function AssessmentStartContent() {
   const sessionType: "pre" | "adaptive" | "post" =
     typeParam === "pre" || typeParam === "post" ? typeParam : "adaptive";
 
+  // F36: default to the user's stored language preference instead of
+  // hard-coding "en". A Hindi-only student would otherwise see English
+  // questions until they re-pick the language every time.
+  const { language: userLanguage } = useLanguage();
   const [selectedLanguage, setSelectedLanguage] = useState<"en" | "hi" | "as">(
-    "en",
+    userLanguage,
   );
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -199,7 +204,10 @@ function AssessmentStartContent() {
                 {[
                   { code: "en" as const, flag: "🇬🇧", label: "English" },
                   { code: "hi" as const, flag: "🇮🇳", label: "हिंदी" },
-                  { code: "as" as const, flag: "🇮🇳", label: "অসমীয়া" },
+                  // F36b: mountain emoji used elsewhere (dashboard /
+                  // lesson page) to mark the Assamese option; the old
+                  // 🇮🇳 here matched Hindi and broke that consistency.
+                  { code: "as" as const, flag: "🏔️", label: "অসমীয়া" },
                 ].map(({ code, flag, label }) => (
                   <Button
                     key={code}
