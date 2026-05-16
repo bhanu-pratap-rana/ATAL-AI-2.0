@@ -17,7 +17,12 @@ import { AuthCard } from "@/components/auth/AuthCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { joinClass, previewClass } from "@/app/actions/student";
+import {
+  getStudentProfile,
+  joinClass,
+  joinClassAsAnonymous,
+  previewClass,
+} from "@/app/actions/student";
 
 // ========================================
 // STEP 1: AUTH SELECTION
@@ -325,6 +330,41 @@ function JoinClassForm({
   const [preview, setPreview] = useState<ClassPreviewData | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
+  // F32: callers reaching JoinClassForm via /join `Continue as Guest`
+  // and the `Phone OTP` step are authenticated but do not yet have a
+  // `student_profiles` row. The plain `joinClass` server action's
+  // `verifyStudentAuth` requires that row, so the submission used to
+  // 403 with "User is not a student". We now detect that case and
+  // collect name+gender to take the joinClassAsAnonymous path which
+  // creates the profile in the same call. Returning students who
+  // already have a profile keep the original joinClass path.
+  const [profileChecked, setProfileChecked] = useState(false);
+  const [needsProfile, setNeedsProfile] = useState(false);
+  const [name, setName] = useState("");
+  const [gender, setGender] = useState<"male" | "female" | "">("");
+
+  useEffect(() => {
+    let cancelled = false;
+    async function checkProfile() {
+      try {
+        const result = await getStudentProfile();
+        if (cancelled) return;
+        setNeedsProfile(!(result.success && result.profile));
+      } catch (error) {
+        clientLogger.error(
+          "[JoinClass] Failed to check student profile",
+          error instanceof Error ? error : { error },
+        );
+        if (!cancelled) setNeedsProfile(true);
+      } finally {
+        if (!cancelled) setProfileChecked(true);
+      }
+    }
+    checkProfile();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Preview class when code is complete (6 characters)
   async function handlePreviewClass() {
@@ -374,17 +414,37 @@ function JoinClassForm({
       return;
     }
 
+    // F32: enforce name + gender when the user has no profile yet
+    // (anonymous Continue-as-Guest or first-time Phone OTP visitors).
+    if (needsProfile) {
+      if (!name.trim() || name.trim().length < 2) {
+        toast.error("Please enter your name (at least 2 characters)");
+        return;
+      }
+      if (!gender) {
+        toast.error("Please select your gender");
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
-      const result = await joinClass({
-        classCode: classCode.toUpperCase().trim(),
-        pin: pin.trim(),
-      });
+      const result = needsProfile
+        ? await joinClassAsAnonymous({
+            name: name.trim(),
+            gender: gender as "male" | "female",
+            classCode: classCode.toUpperCase().trim(),
+            pin: pin.trim(),
+          })
+        : await joinClass({
+            classCode: classCode.toUpperCase().trim(),
+            pin: pin.trim(),
+          });
 
       if (result.success) {
         toast.success("Successfully joined class!");
-        router.push("/app/student/classes");
+        router.push("/app/student/dashboard");
       } else {
         toast.error(result.error || "Failed to join class");
       }
@@ -508,6 +568,65 @@ function JoinClassForm({
           </p>
         </div>
 
+        {/* F32: profile fields shown only when the signed-in user has no
+            student_profiles row yet (anonymous Continue-as-Guest, fresh
+            Phone OTP). Returning students skip this section. */}
+        {profileChecked && needsProfile && (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="student-name">Your Name</Label>
+              <Input
+                id="student-name"
+                type="text"
+                placeholder="e.g., Priya Sharma"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                disabled={loading}
+                maxLength={80}
+                autoComplete="name"
+              />
+              <p className="text-xs text-slate-500">
+                This is how your teacher will see you in the class roster.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Gender</Label>
+              <div
+                role="radiogroup"
+                aria-label="Gender"
+                className="grid grid-cols-2 gap-2"
+              >
+                <Button
+                  type="button"
+                  role="radio"
+                  aria-checked={gender === "male"}
+                  variant={gender === "male" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setGender("male")}
+                  disabled={loading}
+                  className="h-11 text-sm"
+                >
+                  Male
+                </Button>
+                <Button
+                  type="button"
+                  role="radio"
+                  aria-checked={gender === "female"}
+                  variant={gender === "female" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setGender("female")}
+                  disabled={loading}
+                  className="h-11 text-sm"
+                >
+                  Female
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
+
         {/* Confirmation Message */}
         {showConfirm && preview && (
           <div className="bg-primary/10 border border-primary/30 rounded-2xl p-3">
@@ -532,7 +651,9 @@ function JoinClassForm({
             loading ||
             classCode?.length !== 6 ||
             pin.length !== 4 ||
-            !preview
+            !preview ||
+            (needsProfile &&
+              (!profileChecked || name.trim().length < 2 || !gender))
           }
           loading={loading}
         >
