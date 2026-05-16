@@ -200,7 +200,7 @@ export function UploadMaterialDialog({
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg">
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           <DialogHeader>
             <DialogTitle>Add Learning Material</DialogTitle>
             <DialogDescription>
@@ -366,7 +366,11 @@ export function UploadMaterialDialog({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitDisabled}>
+            <Button
+              type="submit"
+              disabled={isSubmitDisabled}
+              onClick={handleSubmit}
+            >
               {loading ? "Uploading..." : "Add Material"}
             </Button>
           </DialogFooter>
