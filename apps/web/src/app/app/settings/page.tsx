@@ -6,7 +6,7 @@ import { isTeacherOrHigher } from "@/lib/auth/role-utils";
 import { StudentProfileEditor } from "@/components/settings/StudentProfileEditor";
 import { TeacherProfileEditor } from "@/components/settings/TeacherProfileEditor";
 import { DeleteAccountButton } from "@/components/settings/DeleteAccountButton";
-import { getTranslation } from "@/lib/i18n";
+import { getTranslation, SUPPORTED_LANGUAGES } from "@/lib/i18n";
 import { getServerLanguage } from "@/lib/i18n/server";
 import { formatDate } from "@/lib/date-format";
 
@@ -210,7 +210,9 @@ export default async function SettingsPage() {
                   <p className="font-black text-slate-800 text-sm">Language Preference</p>
                   <p className="text-xs font-bold text-slate-500">Choose your preferred language</p>
                 </div>
-                <span className="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-xs font-black">English</span>
+                <span className="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-xs font-black">
+                  {SUPPORTED_LANGUAGES.find((l) => l.code === language)?.nativeLabel ?? "English"}
+                </span>
               </div>
               <div className="flex items-center justify-between py-2">
                 <div>
