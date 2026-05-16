@@ -80,19 +80,37 @@ const DEFAULT_LESSON: LessonContent = {
 };
 
 /**
+ * F33: Defensive sanitizer for any title that flows into a plain-text
+ * UI string (tutor greeting, breadcrumbs, share text). The greeting is
+ * rendered as plain text so raw markdown emphasis would surface as
+ * literal asterisks. Also applied at the title-extraction site in
+ * buildLessonFromData, but kept here as a render-time guard for any
+ * other code path that produces a title containing markdown.
+ */
+function sanitizeTitleForPlainText(title: string): string {
+  return title
+    .replaceAll("**", "")
+    .replaceAll(/(^\*|\*$)/g, "")
+    .replace(/\s*:\s*$/, "")
+    .trim();
+}
+
+/**
  * Helper: Generate AI welcome message based on language and lesson
  */
 function getAIWelcomeMessage(
   language: SupportedLanguage,
   lesson: LessonContent,
 ): string {
+  const titleAs = sanitizeTitleForPlainText(lesson.title_as);
+  const titleEn = sanitizeTitleForPlainText(lesson.title_en);
   if (language === "as") {
-    return `নমস্কাৰ! মই আপোনাৰ AI শিক্ষক। "${lesson.title_as}" বিষয়ে কিবা প্ৰশ্ন আছে নেকি?`;
+    return `নমস্কাৰ! মই আপোনাৰ AI শিক্ষক। "${titleAs}" বিষয়ে কিবা প্ৰশ্ন আছে নেকি?`;
   }
   if (language === "hi") {
-    return `नमस्ते! मैं आपका AI शिक्षक हूँ। "${lesson.title_en}" के बारे में कोई सवाल है?`;
+    return `नमस्ते! मैं आपका AI शिक्षक हूँ। "${titleEn}" के बारे में कोई सवाल है?`;
   }
-  return `Hello! I'm your AI Tutor. Do you have any questions about "${lesson.title_en}"?`;
+  return `Hello! I'm your AI Tutor. Do you have any questions about "${titleEn}"?`;
 }
 
 /**
@@ -164,7 +182,18 @@ function buildLessonFromData(
 
   const firstContent = contentData[0].content || "";
   const firstLine = firstContent.split("\n")[0].trim();
-  const extractedTitle = firstLine.replace(/^#*\s*/, "");
+  // F33: AI-generated content often begins with markdown like
+  // `**Learning Outcome:** ...`. When that line becomes a title (no
+  // metadata.title_en) the asterisks leak into UI strings such as the
+  // tutor greeting (`"${lesson.title_en}"`). Strip markdown emphasis
+  // markers, leading hashes, and any trailing colon so the title is
+  // safe to render as plain text.
+  const extractedTitle = firstLine
+    .replace(/^#+\s*/, "")
+    .replaceAll("**", "")
+    .replaceAll(/(^\*|\*$)/g, "")
+    .replace(/\s*:\s*$/, "")
+    .trim();
 
   return {
     title_en:
