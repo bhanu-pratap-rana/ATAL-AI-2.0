@@ -6,7 +6,7 @@
  * message queueing routes through src/lib/offline/mutation-queue.ts.
  */
 
-import { streamText, generateText, CoreMessage } from "ai";
+import { streamText, generateText, ModelMessage } from "ai";
 import { getAIModel, MODEL_CONFIGS } from "../providers";
 import { CurriculumRAGService, ragService } from "./rag-service";
 import { AdaptiveLearningService, adaptiveService } from "./adaptive-service";
@@ -133,8 +133,8 @@ export class TutorService {
     // Get AI model
     const model = getAIModel("gemini");
 
-    // Convert conversation history to CoreMessage format
-    const messages: CoreMessage[] = [
+    // Convert conversation history to ModelMessage format
+    const messages: ModelMessage[] = [
       ...(params.conversationHistory || []).map((msg) => ({
         role: msg.role as "user" | "assistant",
         content: msg.content,
@@ -219,7 +219,7 @@ export class TutorService {
     const model = getAIModel("gemini");
 
     // Convert conversation history
-    const messages: CoreMessage[] = [
+    const messages: ModelMessage[] = [
       ...(params.conversationHistory || []).map((msg) => ({
         role: msg.role as "user" | "assistant",
         content: msg.content,

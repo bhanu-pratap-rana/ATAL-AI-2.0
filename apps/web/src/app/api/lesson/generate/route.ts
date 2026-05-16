@@ -379,7 +379,7 @@ Use culturally relevant examples (village life, agriculture, local festivals, te
         const { text } = await generateTextWithFallback({
           system: systemPrompt,
           prompt: userPrompt,
-          maxTokens: getMaxTokens(language),
+          maxOutputTokens: getMaxTokens(language),
           temperature: 0.7,
         });
 
@@ -422,7 +422,7 @@ Transform this into 5-6 microlearning chunks with checkpoints. Make it engaging 
         const { text } = await generateTextWithFallback({
           system: systemPrompt,
           prompt: userPrompt,
-          maxTokens: getMaxTokens(language),
+          maxOutputTokens: getMaxTokens(language),
           temperature: 0.7,
         });
 

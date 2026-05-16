@@ -13,7 +13,7 @@
 import { google } from "@ai-sdk/google";
 import { createGroq } from "@ai-sdk/groq";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import type { LanguageModelV1 } from "ai";
+import type { LanguageModel } from "ai";
 
 // ===== PRIMARY: Google Gemini =====
 // Using Gemini 2.5 Flash (stable) - best balance of speed, quality, and cost
@@ -86,28 +86,28 @@ export const cerebrasModels = {
 export type AIProviderType = "gemini" | "huggingface" | "groq" | "cerebras";
 
 /**
- * TYPE SAFETY: Helper to cast provider to LanguageModelV1 with validation
- * The AI SDK providers implement LanguageModelV1 but have varying type definitions.
+ * TYPE SAFETY: Helper to cast provider to LanguageModel with validation
+ * The AI SDK providers implement LanguageModel but have varying type definitions.
  * This helper provides a single point for the cast with runtime validation.
  *
- * @param provider - Any AI provider that implements LanguageModelV1 interface
- * @returns Properly typed LanguageModelV1
+ * @param provider - Any AI provider that implements LanguageModel interface
+ * @returns Properly typed LanguageModel
  */
 function asLanguageModel(provider: {
   doGenerate?: unknown;
   doStream?: unknown;
   specificationVersion?: unknown;
-}): LanguageModelV1 {
-  // Runtime check: LanguageModelV1 must have these methods
+}): LanguageModel {
+  // Runtime check: LanguageModel must have these methods
   if (
     typeof provider !== "object" ||
     provider === null ||
     !("specificationVersion" in provider)
   ) {
-    throw new Error("Invalid AI provider: does not implement LanguageModelV1");
+    throw new Error("Invalid AI provider: does not implement LanguageModel");
   }
   // The provider implements the interface - safe to cast
-  return provider as LanguageModelV1;
+  return provider as LanguageModel;
 }
 
 /**
@@ -130,9 +130,9 @@ function getAvailableProviders() {
  * Priority: Gemini (paid) → HuggingFace (PRO) → Groq (free) → Cerebras (free)
  *
  * @param preferredProvider - Override the default priority
- * @returns The AI model to use (typed as LanguageModelV1 for AI SDK compatibility)
+ * @returns The AI model to use (typed as LanguageModel for AI SDK compatibility)
  */
-export function getAIModel(preferredProvider?: AIProviderType): LanguageModelV1 {
+export function getAIModel(preferredProvider?: AIProviderType): LanguageModel {
   const available = getAvailableProviders();
 
   // If specific provider requested and available, use it
@@ -176,7 +176,7 @@ export function getAIModel(preferredProvider?: AIProviderType): LanguageModelV1 
  * @returns Model and provider info
  */
 export async function getModelWithFallback(): Promise<{
-  model: LanguageModelV1;
+  model: LanguageModel;
   provider: AIProviderType;
 }> {
   const available = getAvailableProviders();
@@ -220,31 +220,31 @@ export const MODEL_CONFIGS = {
   // Socratic tutoring - needs good reasoning (uses thinking mode)
   tutor: {
     temperature: 0.7,
-    maxTokens: 1024,
+    maxOutputTokens: 1024,
     topP: 0.95,
   },
   // Study/Learning with RAG - faster, cheaper (context already retrieved)
   study: {
     temperature: 0.5,
-    maxTokens: 768,
+    maxOutputTokens: 768,
     topP: 0.9,
   },
   // RAG retrieval - more deterministic
   retrieval: {
     temperature: 0.3,
-    maxTokens: 512,
+    maxOutputTokens: 512,
     topP: 0.9,
   },
   // Assessment feedback - balanced
   assessment: {
     temperature: 0.5,
-    maxTokens: 1024,
+    maxOutputTokens: 1024,
     topP: 0.9,
   },
   // Creative content (examples, stories)
   creative: {
     temperature: 0.9,
-    maxTokens: 2048,
+    maxOutputTokens: 2048,
     topP: 0.95,
   },
 } as const;

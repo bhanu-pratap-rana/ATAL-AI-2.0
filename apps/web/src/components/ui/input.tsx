@@ -1,7 +1,14 @@
 "use client";
 
+/**
+ * Input primitive — CSS-only focus/error states.
+ *
+ * Previously wrapped in `motion.div` from framer-motion just for a
+ * focus glow + error fade-in. The runtime cost wasn't worth it for
+ * the entire form layer; both are now plain Tailwind transitions.
+ */
+
 import * as React from "react";
-import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -14,18 +21,14 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
     return (
       <div className="relative w-full">
-        <motion.div
+        <div
           suppressHydrationWarning
           className={cn(
             "relative rounded-lg transition-all duration-200",
-            isFocused &&
-              "p-[2px] bg-linear-to-br from-primary to-primary-light",
+            isFocused
+              ? "p-[2px] bg-linear-to-br from-primary to-primary-light shadow-primary-sm"
+              : "p-0 shadow-none",
           )}
-          animate={{
-            boxShadow: isFocused
-              ? "var(--shadow-primary-sm)"
-              : "0 0 0 transparent",
-          }}
         >
           <input
             type={type}
@@ -47,19 +50,17 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               setIsFocused(false);
               props.onBlur?.(e);
             }}
+            aria-invalid={error ? true : undefined}
             {...props}
           />
-        </motion.div>
+        </div>
         {error && (
-          <motion.p
+          <p
             role="alert"
-            className="mt-1.5 text-xs text-error"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
+            className="mt-1.5 text-xs text-error motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-1"
           >
             {error}
-          </motion.p>
+          </p>
         )}
       </div>
     );

@@ -15,6 +15,19 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useParams, useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport, type UIMessage } from "ai";
+
+/**
+ * v6 UIMessage helper — see comment in ai-tools/tutor/page.tsx for the
+ * full rationale. Pulls the plain-text body out of a parts-shaped message.
+ */
+function messageText(m: UIMessage): string {
+  let out = "";
+  for (const p of m.parts) {
+    if (p.type === "text") out += p.text;
+  }
+  return out;
+}
 import { ConversationalVoiceChat } from "@/components/voice/ConversationalVoiceChat";
 import type { Language } from "@/hooks/useConversationalVoice";
 import { createClient } from "@/lib/supabase-browser";
@@ -355,24 +368,47 @@ export default function LessonPage() {
     fetchLessonContent();
   }, [moduleId, topicId, language, languageKey]); // Force refetch when language changes
 
-  // AI Chat integration
-  const { messages, input, handleInputChange, handleSubmit, append, status: chatStatus, error: chatError } =
-    useChat({
-      api: "/api/tutor/chat",
-      body: {
-        language,
-        topicId,
-        moduleId,
-        inputMode,
+  // AI Chat integration — SDK 6 removed input/handleInputChange/handleSubmit/append
+  // from useChat. We track the input box locally and use sendMessage()
+  // for both form-submit and voice transcripts. The wire-level config
+  // moves to DefaultChatTransport; `body` is re-evaluated per send so
+  // language / inputMode changes propagate without rebuilding the hook.
+  // `initialMessages` was renamed to `messages` (a seed) and the message
+  // shape moved from `content` to `parts: [{type: 'text', text}]`.
+  const [input, setInput] = useState("");
+  const initialMessages = useMemo<UIMessage[]>(
+    () => [
+      {
+        id: "welcome",
+        role: "assistant",
+        parts: [{ type: "text", text: getAIWelcomeMessage(language, lesson) }],
       },
-      initialMessages: [
-        {
-          id: "welcome",
-          role: "assistant",
-          content: getAIWelcomeMessage(language, lesson),
-        },
-      ],
+    ],
+    [language, lesson],
+  );
+  const chatTransport = useMemo(
+    () =>
+      new DefaultChatTransport({
+        api: "/api/tutor/chat",
+        body: () => ({ language, topicId, moduleId, inputMode }),
+      }),
+    [language, topicId, moduleId, inputMode],
+  );
+  const { messages, sendMessage, status: chatStatus, error: chatError } =
+    useChat({
+      transport: chatTransport,
+      messages: initialMessages,
     });
+  const handleSubmit = useCallback(
+    (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      const trimmed = input.trim();
+      if (!trimmed) return;
+      sendMessage({ text: trimmed });
+      setInput("");
+    },
+    [input, sendMessage],
+  );
 
   // Derive loading state from status (replaces deprecated isLoading)
   const isLoading = chatStatus === "submitted" || chatStatus === "streaming";
@@ -422,29 +458,29 @@ export default function LessonPage() {
 
     const lastMessage = messages.at(-1);
     // Set pending AI response for ConversationalVoiceChat to speak
+    if (!lastMessage) return;
+    const lastText = messageText(lastMessage);
     if (
-      lastMessage?.role === "assistant" &&
+      lastMessage.role === "assistant" &&
       lastMessage.id !== "welcome" &&
       lastMessage.id !== lastSpokenIdRef.current &&
-      lastMessage.content
+      lastText
     ) {
       lastSpokenIdRef.current = lastMessage.id;
-      queueMicrotask(() => setPendingAIResponse(lastMessage.content));
+      queueMicrotask(() => setPendingAIResponse(lastText));
     }
   }, [messages, inputMode, chatStatus]);
 
-  // Handle voice transcript - use append() to directly send message
-  // FIX: Previously tried to submit a form element that doesn't exist in voice mode,
-  // causing silent failure. Using append() bypasses the need for a form element entirely.
+  // Handle voice transcript - use sendMessage() to directly send.
+  // Original v4 path used append() to skip the form element that
+  // doesn't exist in voice mode; v6 sendMessage covers the same case.
   const handleVoiceTranscript = useCallback(
     (text: string) => {
-      if (!text.trim()) return;
-      append({
-        role: "user",
-        content: text,
-      });
+      const trimmed = text.trim();
+      if (!trimmed) return;
+      sendMessage({ text: trimmed });
     },
-    [append],
+    [sendMessage],
   );
 
   // Calculate practice score
@@ -722,7 +758,7 @@ export default function LessonPage() {
                         key={q}
                         variant="ghost"
                         size="sm"
-                        onClick={() => append({ role: "user", content: q })}
+                        onClick={() => sendMessage({ text: q })}
                         className="bg-primary/10 text-primary hover:bg-primary/20 rounded-2xl text-xs"
                       >
                         {q}
@@ -757,7 +793,7 @@ export default function LessonPage() {
                             : "bg-slate-100"
                         }`}
                       >
-                        <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                        <p className="text-sm whitespace-pre-wrap">{messageText(msg)}</p>
                       </div>
                     </div>
                   ))}
@@ -787,7 +823,7 @@ export default function LessonPage() {
                   <input
                     type="text"
                     value={input}
-                    onChange={handleInputChange}
+                    onChange={(e) => setInput(e.target.value)}
                     placeholder={getInputPlaceholder(language)}
                     className="flex-1 rounded-md border bg-background px-3 py-2 text-sm min-h-[44px]"
                   />
@@ -890,7 +926,7 @@ export default function LessonPage() {
                         key={q}
                         variant="ghost"
                         size="sm"
-                        onClick={() => append({ role: "user", content: q })}
+                        onClick={() => sendMessage({ text: q })}
                         className="bg-primary/10 text-primary hover:bg-primary/20 rounded-2xl text-xs"
                       >
                         {q}
@@ -925,7 +961,7 @@ export default function LessonPage() {
                             : "bg-slate-100"
                         }`}
                       >
-                        <p className="text-sm whitespace-pre-wrap wrap-break-word">{msg.content}</p>
+                        <p className="text-sm whitespace-pre-wrap wrap-break-word">{messageText(msg)}</p>
                       </div>
                     </div>
                   ))}
@@ -955,7 +991,7 @@ export default function LessonPage() {
                   <input
                     type="text"
                     value={input}
-                    onChange={handleInputChange}
+                    onChange={(e) => setInput(e.target.value)}
                     placeholder={getInputPlaceholder(language)}
                     className="flex-1 rounded-md border bg-background px-3 py-2 text-sm min-h-[44px]"
                   />

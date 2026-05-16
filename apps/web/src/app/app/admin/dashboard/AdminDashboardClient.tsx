@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BentoCard } from "@/components/ui/bento-card";
 import { getDashboardMetrics } from "@/app/actions/admin-metrics";
 import { clientLogger } from "@/lib/client-logger";
 
@@ -88,22 +89,22 @@ export function AdminDashboardClient() {
         </div>
 
         {/* Pending Approvals */}
-        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-4">
+        <BentoCard padding="md">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 bg-amber-100 border-2 border-white shadow-sm text-amber-700">
+              <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 bg-(--bento-tint-yellow) border-2 border-white shadow-sm text-(--bento-yellow-d)">
                 <AlertTriangle className="w-5 h-5" strokeWidth={2.25} aria-hidden="true" />
               </div>
               <div>
                 <p className="font-black text-slate-800 text-sm">Pending Approvals</p>
-                <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">
+                <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
                   Schools requesting access
                 </p>
               </div>
             </div>
             <ChevronRight className="w-5 h-5 text-slate-300 shrink-0" />
           </div>
-        </div>
+        </BentoCard>
 
         {/* Quick Actions */}
         <div className="grid grid-cols-2 gap-4">

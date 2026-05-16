@@ -2,9 +2,8 @@
 
 import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
-// NOSONAR S1874: useChat is marked deprecated but still functional in AI SDK 4.x
-// Migration to AI SDK 5.0+ would require a major refactor - keeping for now
-import { useChat } from "ai/react"; // NOSONAR
+import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport, type UIMessage } from "ai";
 import {
   AlertCircle,
   ArrowLeft,
@@ -14,6 +13,20 @@ import {
   Mic,
   Pencil,
 } from "lucide-react";
+
+/**
+ * Pull the plain-text body out of a v6 UIMessage. The new message
+ * shape is `{ parts: [{type, text}, ...] }`. We concatenate every
+ * text part — assistant streams arrive as a single text part most
+ * of the time, but multi-part is allowed.
+ */
+function messageText(m: UIMessage): string {
+  let out = "";
+  for (const p of m.parts) {
+    if (p.type === "text") out += p.text;
+  }
+  return out;
+}
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { VoiceChat } from "@/components/voice/VoiceChat";
 import { ConversationalVoiceChat } from "@/components/voice/ConversationalVoiceChat";
@@ -54,23 +67,18 @@ function getTextInputPlaceholder(language: TutorLanguage): string {
   return "Ask a question...";
 }
 
-type Message = { role: string; id: string; content: string };
-
 function shouldSpeakMessage(
-  last: Message | undefined,
+  last: UIMessage | undefined,
   lastSpokenId: string | null,
   autoTTS: boolean,
   inputMode: string,
   voiceMode: string,
 ): boolean {
-  return !!(
-    last?.role === "assistant" &&
-    last.id !== lastSpokenId &&
-    autoTTS &&
-    inputMode === "voice" &&
-    voiceMode === "conversational" &&
-    last.content
-  );
+  if (!last || last.role !== "assistant") return false;
+  if (last.id === lastSpokenId) return false;
+  if (!autoTTS) return false;
+  if (inputMode !== "voice" || voiceMode !== "conversational") return false;
+  return messageText(last).length > 0;
 }
 
 export default function AITutorPage() {
@@ -96,16 +104,34 @@ export default function AITutorPage() {
   const [messageImages, setMessageImages] = useState<Record<string, string | "loading">>({});
   const VISIBLE_MESSAGE_LIMIT = 20;
 
-  // Use Vercel AI SDK's useChat hook for streaming (NOSONAR S1874 - deprecated but functional)
-  const { messages, input, handleInputChange, handleSubmit, status, error, append } =
-    useChat({ // NOSONAR
-      api: "/api/tutor/chat",
-      body: {
-        language,
-        sessionId,
-        inputMode,
-      },
-    });
+  // SDK 6 removed `input` / `handleInputChange` / `handleSubmit` / `append`
+  // from useChat — we manage the input box state locally and call
+  // `sendMessage()` from the hook. The wire-level config (URL + body) moves
+  // to `DefaultChatTransport`. `body` is re-evaluated per send because
+  // language / inputMode change at runtime, so the transport is rebuilt
+  // inside a memo. SessionId is stable for the page lifetime.
+  const [input, setInput] = useState("");
+  const chatTransport = useMemo(
+    () =>
+      new DefaultChatTransport({
+        api: "/api/tutor/chat",
+        body: () => ({ language, sessionId, inputMode }),
+      }),
+    [language, sessionId, inputMode],
+  );
+  const { messages, sendMessage, status, error } = useChat({
+    transport: chatTransport,
+  });
+  const handleSubmit = useCallback(
+    (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      const trimmed = input.trim();
+      if (!trimmed) return;
+      sendMessage({ text: trimmed });
+      setInput("");
+    },
+    [input, sendMessage],
+  );
 
   // Derive loading state from status
   const isLoading = status === "submitted" || status === "streaming";
@@ -119,10 +145,10 @@ export default function AITutorPage() {
   // Checks for new AI messages and triggers speech when streaming completes
   useEffect(() => {
     if (messages.length === 0 || status === "streaming") return;
-    const last = messages.at(-1) as Message | undefined;
+    const last = messages.at(-1);
     if (shouldSpeakMessage(last, lastSpokenIdRef.current, autoTTS, inputMode, voiceMode)) {
       lastSpokenIdRef.current = last!.id;
-      const content = last!.content;
+      const content = messageText(last!);
       queueMicrotask(() => setTextToSpeak(content));
     }
   }, [messages, status, autoTTS, inputMode, voiceMode]);
@@ -147,12 +173,15 @@ export default function AITutorPage() {
   const suggestedQuestions = useMemo(() => getSuggestedQuestions(language), [language]);
 
   const handleSuggestedQuestion = useCallback((q: string) => {
+    // In voice mode the question is sent immediately (matches the v4
+    // `append` behaviour). In text mode we populate the input box so
+    // the user can edit before sending.
     if (inputMode === "voice") {
-      append({ role: "user", content: q });
+      sendMessage({ text: q });
     } else {
-      handleInputChange({ target: { value: q } } as React.ChangeEvent<HTMLInputElement>);
+      setInput(q);
     }
-  }, [inputMode, append, handleInputChange]);
+  }, [inputMode, sendMessage]);
 
   // Show loading while checking auth
   if (isAuthChecking) {
@@ -362,10 +391,12 @@ export default function AITutorPage() {
                 {visibleMessages.map((message, idx) => {
                   // For an assistant bubble, pull the preceding user
                   // message as the "concept" sent to the visualize
-                  // endpoint. Falls back to the assistant message content
+                  // endpoint. Falls back to the assistant message body
                   // if no user message is before it (shouldn't happen).
                   const priorUser = [...visibleMessages.slice(0, idx)].reverse().find((m) => m.role === "user");
-                  const conceptForImage = (priorUser?.content || message.content || "").slice(0, 200);
+                  const messageBody = messageText(message);
+                  const priorUserText = priorUser ? messageText(priorUser) : "";
+                  const conceptForImage = (priorUserText || messageBody).slice(0, 200);
                   const imageState = messageImages[message.id];
 
                   return (
@@ -375,10 +406,10 @@ export default function AITutorPage() {
                         style={message.role === "user" ? { background: "var(--gradient-primary)" } : {}}
                       >
                         {message.role === "user" ? (
-                          <p className="whitespace-pre-wrap text-sm font-medium">{message.content}</p>
+                          <p className="whitespace-pre-wrap text-sm font-medium">{messageBody}</p>
                         ) : (
                           <div className="text-sm font-medium prose prose-sm max-w-none prose-p:my-1 prose-strong:font-black prose-em:italic prose-ul:my-1 prose-ol:my-1 prose-li:my-0">
-                            <MarkdownRenderer content={message.content} />
+                            <MarkdownRenderer content={messageBody} />
                             {/* Diagram-on-demand. Student taps once,
                                 we call the visualize endpoint, image
                                 appears below the text. Language flows
@@ -462,9 +493,8 @@ export default function AITutorPage() {
               onTranscript={(transcript) => {
                 // Send transcript to AI - response language is controlled by UI selector
                 // Voice auto-detect is disabled because Romanized text detection is unreliable
-                if (transcript.trim()) {
-                  append({ role: "user", content: transcript });
-                }
+                const t = transcript.trim();
+                if (t) sendMessage({ text: t });
               }}
               disabled={isLoading}
               speakText={autoTTS ? textToSpeak : null}
@@ -477,9 +507,8 @@ export default function AITutorPage() {
             <VoiceChat
               language={language}
               onTranscript={(transcript) => {
-                if (transcript.trim()) {
-                  append({ role: "user", content: transcript });
-                }
+                const t = transcript.trim();
+                if (t) sendMessage({ text: t });
               }}
               disabled={isLoading}
             />
@@ -489,7 +518,7 @@ export default function AITutorPage() {
               <input
                 type="text"
                 value={input}
-                onChange={handleInputChange}
+                onChange={(e) => setInput(e.target.value)}
                 placeholder={getTextInputPlaceholder(language)}
                 className="flex-1 px-4 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-transparent font-medium text-sm"
                 disabled={isLoading}

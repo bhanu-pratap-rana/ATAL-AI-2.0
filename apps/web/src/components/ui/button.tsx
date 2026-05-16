@@ -1,62 +1,38 @@
 "use client";
 
+/**
+ * Button primitive — CSS-only animations.
+ *
+ * Earlier this was a `motion.button` from framer-motion, which pulled
+ * the entire framer-motion runtime into the critical-path bundle for
+ * every page (Button is imported by 87 files). On low-end Android the
+ * cost was real; switching to Tailwind transforms removes ~50KB gzipped
+ * from the shared chunk with no perceptible difference for a press.
+ *
+ * Hover/active scale is handled by `hover:scale-[1.02] active:scale-[0.98]`.
+ * The spring feel is approximated with `transition-transform duration-150`.
+ * The loading spinner uses Tailwind `animate-spin` instead of motion props.
+ */
+
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
-import { motion, HTMLMotionProps } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-// Extend Window interface for test environment detection
-declare global {
-  interface Window {
-    __PLAYWRIGHT_TEST__?: boolean;
-  }
-  interface Global {
-    __PLAYWRIGHT__?: boolean;
-  }
-}
-
-// Detect test environment for Playwright test stability
-// Uses runtime detection to check if we're in a test/Playwright browser
-const isTestEnvironment = () => {
-  if (typeof globalThis === "undefined") return false;
-
-  // Check multiple ways to detect test environment
-  const testGlobal = globalThis as Record<string, unknown>;
-  return (
-    // Standard test env variables
-    process.env.NODE_ENV === "test" ||
-    process.env.PLAYWRIGHT_TEST === "true" ||
-    // Playwright detection - check if running in test mode
-    (typeof navigator !== "undefined" &&
-      (Boolean(navigator.webdriver) ||
-        navigator.userAgent.includes("HeadlessChrome") ||
-        // Check for test globals
-        Boolean(testGlobal.__PLAYWRIGHT_TEST__))) ||
-    // Check for test globals that might be set
-    (typeof globalThis !== "undefined" &&
-      Boolean(testGlobal.__PLAYWRIGHT__))
-  );
-};
-
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl text-sm font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 relative overflow-hidden",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl text-sm font-bold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 relative overflow-hidden motion-safe:hover:scale-[1.02] motion-safe:active:scale-[0.98] will-change-transform",
   {
     variants: {
       variant: {
         default:
           // Gradient endpoints stay inside the brand orange family so
           // white text keeps ≥4.5:1 contrast even at the lightest pixel.
-          // Old endpoint was --primary-light (#FFCFA3) which dropped
-          // contrast to ~1.5:1 and failed Lighthouse on hero buttons.
           "bg-linear-to-br from-primary to-primary-dark text-white border-2 border-white/20 shadow-[0_4px_14px_0_rgba(249,136,25,0.39)] hover:brightness-[1.08] hover:shadow-[0_6px_20px_rgba(249,136,25,0.5)] active:brightness-[0.92] active:shadow-[0_2px_6px_rgba(249,136,25,0.2)] active:translate-y-px",
         destructive:
           "bg-error text-white hover:bg-error/90 shadow-md border-2 border-white/20",
         outline:
           // text-primary-darkest (#8B4A0B) is ~8:1 vs white, comfortably
-          // clearing WCAG AA. Earlier --primary (#F98819 ≈ 3:1) and even
-          // --primary-darker (#C66610 ≈ 3.95:1) failed Lighthouse for
-          // outline-button labels at default body size.
+          // clearing WCAG AA. --primary alone failed Lighthouse here.
           "border-2 border-primary bg-white text-primary-darkest hover:bg-slate-50",
         secondary:
           "bg-slate-50 text-slate-800 hover:bg-border border-2 border-slate-200",
@@ -82,11 +58,10 @@ const buttonVariants = cva(
 
 export interface ButtonProps
   extends
-    Omit<HTMLMotionProps<"button">, "ref" | "children">,
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   readonly asChild?: boolean;
   readonly loading?: boolean;
-  readonly children?: React.ReactNode;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -103,36 +78,23 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref,
   ) => {
-    const Comp = asChild ? Slot : motion.button;
-    const inTestMode = isTestEnvironment();
+    const Comp = asChild ? Slot : "button";
 
     return (
       <Comp
         ref={ref}
         className={cn(buttonVariants({ variant, size, className }))}
-        whileHover={inTestMode ? undefined : { scale: 1.02 }}
-        whileTap={inTestMode ? undefined : { scale: 0.98 }}
-        transition={
-          inTestMode
-            ? undefined
-            : { type: "spring", stiffness: 400, damping: 17 }
-        }
         disabled={disabled || loading}
-        {...(props as Record<string, unknown>)}
+        aria-busy={loading || undefined}
+        {...props}
       >
-        {loading && !inTestMode && (
-          <motion.div
+        {loading && (
+          <span
+            aria-hidden="true"
             className="absolute inset-0 flex items-center justify-center bg-linear-to-br from-primary/90 to-primary-light/90"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
           >
-            <motion.div
-              className="h-5 w-5 rounded-full border-2 border-white border-t-transparent"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
-            />
-          </motion.div>
+            <span className="h-5 w-5 rounded-full border-2 border-white border-t-transparent animate-spin motion-reduce:animate-none" />
+          </span>
         )}
         {children}
       </Comp>

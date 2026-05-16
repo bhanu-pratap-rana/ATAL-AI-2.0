@@ -169,9 +169,11 @@ export async function POST(request: Request): Promise<Response> {
       system: systemPrompt,
       messages,
       ...MODEL_CONFIGS.tutor,
-      onFinish: async ({ text, usage }) => {
+      onFinish: async ({ text, totalUsage }) => {
         // Log assistant response - with proper error handling for async operation
         // SECURITY: Errors in logging should not break the response
+        // SDK 6 renamed `usage` (per-step) to `totalUsage` (rolled up) on
+        // streamText's onFinish payload — same numeric shape.
         try {
           await logInteraction({
             studentId: authenticatedUser.id,
@@ -181,7 +183,7 @@ export async function POST(request: Request): Promise<Response> {
             messageContent: text,
             inputMode,
             language,
-            tokensUsed: usage?.totalTokens || 0,
+            tokensUsed: totalUsage?.totalTokens || 0,
             responseTimeMs: Date.now() - startTime,
           });
 
@@ -211,8 +213,12 @@ export async function POST(request: Request): Promise<Response> {
       },
     });
 
-    // Return streaming response compatible with useChat
-    return result.toDataStreamResponse({
+    // Return streaming response compatible with useChat. SDK 6 renamed
+    // toDataStreamResponse → toUIMessageStreamResponse and changed the
+    // wire format to the new UIMessage protocol. The client transport
+    // (DefaultChatTransport in @ai-sdk/react v3) speaks the new format
+    // out of the box, so the only code change needed is here.
+    return result.toUIMessageStreamResponse({
       headers: { "Cache-Control": "private, no-store" },
     });
   } catch (error) {
