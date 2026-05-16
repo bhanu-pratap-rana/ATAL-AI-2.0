@@ -167,7 +167,7 @@ export function TeacherSignUpStep({
                       disabled={state.loading}
                     />
                     {state.emailError && (
-                      <div className="space-y-2">
+                      <div role="alert" aria-live="polite" className="space-y-2">
                         <p className="text-sm text-error">
                           {state.emailError}
                         </p>
@@ -244,7 +244,9 @@ export function TeacherSignUpStep({
                     />
                   </div>
                   {state.phoneError && (
-                    <p className="text-sm text-error">{state.phoneError}</p>
+                    <p role="alert" aria-live="polite" className="text-sm text-error">
+                      {state.phoneError}
+                    </p>
                   )}
                   <p className="text-xs text-slate-500">
                     10-digit Indian phone number

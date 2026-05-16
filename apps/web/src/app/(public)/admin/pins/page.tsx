@@ -131,10 +131,14 @@ export default function AdminSchoolPINsPage() {
             )}
           </div>
 
-          {/* Right Column: Schools List */}
+          {/* Right Column: Schools List — uses filteredSchools so the
+             list itself shrinks while the admin types in the search.
+             When the query is empty, filteredSchools === allSchools.
+             A render cap keeps the DOM size bounded on low-end devices. */}
           <div className="bg-white border border-slate-100 rounded-3xl overflow-hidden flex flex-col">
             <SchoolsList
-              schools={allSchools}
+              schools={filteredSchools}
+              totalCount={allSchools.length}
               selectedSchool={selectedSchool}
               onSelectSchool={handleSelectSchool}
               isLoading={loadingSchoolDetails}

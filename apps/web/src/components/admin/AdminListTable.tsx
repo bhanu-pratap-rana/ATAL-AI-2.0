@@ -260,16 +260,17 @@ export function AdminListTable({
                       variant="ghost"
                       className="text-xs border-2 border-[#1E3A5F]/30 bg-white text-[#1E3A5F] hover:bg-[#1E3A5F]/5"
                       title="Reset Password"
+                      aria-label="Reset Password"
                     >
                       {resetingId === admin.id ? (
                         <>
-                          <RotateCcw className="w-3 h-3 mr-1 animate-spin" strokeWidth={2.5} aria-hidden="true" />
-                          Resetting...
+                          <RotateCcw className="w-3 h-3 sm:mr-1 animate-spin" strokeWidth={2.5} aria-hidden="true" />
+                          <span className="hidden sm:inline">Resetting...</span>
                         </>
                       ) : (
                         <>
-                          <RotateCcw className="w-3 h-3 mr-1" strokeWidth={2.5} aria-hidden="true" />
-                          Reset
+                          <RotateCcw className="w-3 h-3 sm:mr-1" strokeWidth={2.5} aria-hidden="true" />
+                          <span className="hidden sm:inline">Reset</span>
                         </>
                       )}
                     </Button>
@@ -282,16 +283,17 @@ export function AdminListTable({
                         variant="outline"
                         className="text-xs text-error border-error/30 hover:bg-error-light"
                         title="Delete Admin"
+                        aria-label="Delete Admin"
                       >
                         {deletingId === admin.id ? (
                           <>
-                            <Trash2 className="w-3 h-3 mr-1 animate-spin" />
-                            Deleting...
+                            <Trash2 className="w-3 h-3 sm:mr-1 animate-spin" />
+                            <span className="hidden sm:inline">Deleting...</span>
                           </>
                         ) : (
                           <>
-                            <Trash2 className="w-3 h-3 mr-1" />
-                            Delete
+                            <Trash2 className="w-3 h-3 sm:mr-1" />
+                            <span className="hidden sm:inline">Delete</span>
                           </>
                         )}
                       </Button>

@@ -82,7 +82,7 @@ export default function AdminsPage() {
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <Button
-                onClick={() => router.push("/admin/dashboard")}
+                onClick={() => router.push("/app/admin/dashboard")}
                 variant="ghost"
                 className="gap-2 bg-white/15 hover:bg-white/25 text-white border border-white/25 backdrop-blur-md rounded-2xl"
               >

@@ -55,7 +55,7 @@ export function PINManagementHeader({
             aria-label="Sign out"
           >
             <LogOut size={18} strokeWidth={2.25} aria-hidden="true" />
-            <span className="hidden sm:inline">Sign Out</span>
+            <span className="hidden sm:inline">Sign out</span>
           </Button>
         </div>
       </div>

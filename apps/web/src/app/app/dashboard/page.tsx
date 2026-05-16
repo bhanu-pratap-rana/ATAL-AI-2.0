@@ -20,7 +20,7 @@ import { isAdmin, isTeacherOrHigher } from "@/lib/auth/role-utils";
 export default async function DashboardPage() {
   const user = await getCurrentUser();
   if (!user) {
-    redirect("/login");
+    redirect("/");
   }
 
   const role = user.app_metadata?.role;

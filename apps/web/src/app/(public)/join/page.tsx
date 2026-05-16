@@ -439,7 +439,11 @@ function JoinClassForm({
         )}
 
         {previewError && (
-          <div className="bg-error-light border-l-4 border-error p-3 rounded">
+          <div
+            role="alert"
+            aria-live="polite"
+            className="bg-error-light border-l-4 border-error p-3 rounded"
+          >
             <p className="text-sm text-error-dark">{previewError}</p>
           </div>
         )}

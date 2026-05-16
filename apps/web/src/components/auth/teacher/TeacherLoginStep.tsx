@@ -64,7 +64,9 @@ export function TeacherLoginStep({
               disabled={state.loading}
             />
             {state.loginError && (
-              <p className="text-sm text-error">{state.loginError}</p>
+              <p role="alert" aria-live="polite" className="text-sm text-error">
+                {state.loginError}
+              </p>
             )}
           </div>
 

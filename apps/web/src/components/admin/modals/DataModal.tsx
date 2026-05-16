@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
@@ -32,6 +32,10 @@ export function DataModal({
   children,
   searchPlaceholder = "Search...",
 }: DataModalProps) {
+  const titleId = useId();
+  const panelRef = useRef<HTMLDivElement>(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
+
   useEffect(() => {
     if (!isOpen) return;
     const onKey = (e: KeyboardEvent) => {
@@ -41,14 +45,39 @@ export function DataModal({
     return () => globalThis.removeEventListener("keydown", onKey);
   }, [isOpen, onClose]);
 
+  // Focus management: when the modal opens, move focus into the panel
+  // (preferring the search input); when it closes, restore focus to the
+  // element that opened it. This satisfies the WAI-ARIA modal pattern
+  // alongside the role/aria-modal/aria-labelledby attributes below.
+  useEffect(() => {
+    if (!isOpen) return;
+    previouslyFocusedRef.current = document.activeElement as HTMLElement;
+    // Defer so the modal DOM is mounted before we query for the input.
+    queueMicrotask(() => {
+      const input = panelRef.current?.querySelector<HTMLElement>(
+        "input, [tabindex]:not([tabindex='-1']), button",
+      );
+      input?.focus();
+    });
+    return () => {
+      previouslyFocusedRef.current?.focus?.();
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="relative w-full max-w-2xl mx-4 max-h-[80vh] overflow-y-auto rounded-3xl bg-background shadow-lg">
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className="relative w-full max-w-2xl mx-4 max-h-[80vh] overflow-y-auto rounded-3xl bg-background shadow-lg"
+      >
         {/* Modal Header */}
         <div className="sticky top-0 bg-background border-b border-slate-200 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-xl font-black text-slate-800">{title}</h2>
+          <h2 id={titleId} className="text-xl font-black text-slate-800">{title}</h2>
           <Button
             type="button"
             variant="ghost"

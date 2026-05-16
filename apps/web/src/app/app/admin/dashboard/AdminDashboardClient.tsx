@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
   BarChart3,
-  ChevronRight,
   School,
-  Settings,
   ShieldCheck,
+  UserCog,
+  UserRound,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,11 @@ interface AdminStats {
   students: number;
 }
 
-export function AdminDashboardClient() {
+interface AdminDashboardClientProps {
+  readonly isSuperAdmin?: boolean;
+}
+
+export function AdminDashboardClient({ isSuperAdmin = false }: AdminDashboardClientProps = {}) {
   const router = useRouter();
   const [stats, setStats] = useState<AdminStats>({ schools: 0, teachers: 0, students: 0 });
 
@@ -66,7 +70,7 @@ export function AdminDashboardClient() {
   const bannerStyle = { background: "var(--gradient-admin)" };
 
   return (
-    <div className="min-h-screen [background:var(--bento-bg)] p-4 md:p-6 pb-28">
+    <div className="min-h-screen [background:var(--bento-bg)] p-4 md:p-6 pb-40">
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Banner */}
         <div className="rounded-[32px] p-6 text-white" style={bannerStyle}>
@@ -88,9 +92,12 @@ export function AdminDashboardClient() {
           </div>
         </div>
 
-        {/* Pending Approvals */}
+        {/* Pending Approvals — informational card. The "Schools requesting
+           access" approval workflow is not yet implemented; the chevron
+           was removed to stop the card from looking clickable while the
+           feature ships. */}
         <BentoCard padding="md">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 bg-(--bento-tint-yellow) border-2 border-white shadow-sm text-(--bento-yellow-d)">
                 <AlertTriangle className="w-5 h-5" strokeWidth={2.25} aria-hidden="true" />
@@ -102,17 +109,28 @@ export function AdminDashboardClient() {
                 </p>
               </div>
             </div>
-            <ChevronRight className="w-5 h-5 text-slate-300 shrink-0" />
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0">
+              Coming soon
+            </span>
           </div>
         </BentoCard>
 
-        {/* Quick Actions */}
+        {/* Quick Actions
+            - PIN Management correctly links to /admin/pins (was a duplicate
+              /app/admin/schools link).
+            - "System Settings" is the user profile page, so the label
+              matches the destination.
+            - Manage Admins tile only renders for super admins; the
+              /admin/admins route is super-admin-gated. */}
         <div className="grid grid-cols-2 gap-4">
           {([
             { href: "/app/admin/schools", Icon: School, label: "Manage Schools", tint: "sky" },
             { href: "/app/admin/performance", Icon: BarChart3, label: "Analytics", tint: "purple" },
-            { href: "/app/settings", Icon: Settings, label: "System Settings", tint: "yellow" },
-            { href: "/app/admin/schools", Icon: ShieldCheck, label: "PIN Management", tint: "red" },
+            { href: "/app/settings", Icon: UserRound, label: "My Profile", tint: "yellow" },
+            { href: "/admin/pins", Icon: ShieldCheck, label: "PIN Management", tint: "red" },
+            ...(isSuperAdmin
+              ? [{ href: "/admin/admins", Icon: UserCog, label: "Manage Admins", tint: "green" }]
+              : []),
           ] as ReadonlyArray<{ href: string; Icon: LucideIcon; label: string; tint: string }>).map((action) => (
             <Button
               type="button"

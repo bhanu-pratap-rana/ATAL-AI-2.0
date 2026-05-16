@@ -223,14 +223,27 @@ export default async function SettingsPage() {
           </BentoCard>
         )}
 
-        {/* Danger Zone */}
-        <div className="bg-white rounded-3xl border border-red-100 shadow-sm p-6">
-          <h2 className="font-black text-red-600 text-lg mb-2">Danger Zone</h2>
-          <p className="text-sm font-bold text-slate-500 mb-4">
-            Once you delete your account, there is no going back. Please be certain.
-          </p>
-          <DeleteAccountButton userEmail={user.email || "your account"} />
-        </div>
+        {/* Danger Zone — self-deletion is blocked server-side for super
+           admins (see admin-delete.ts), so we hide the destructive UI for
+           that role and show a clear "contact another super admin" hint
+           instead of a button that would always reject. */}
+        {appRole === "super_admin" ? (
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+            <h2 className="font-black text-slate-800 text-lg mb-2">Account Deletion</h2>
+            <p className="text-sm font-bold text-slate-500">
+              Super admin accounts cannot delete themselves. Contact another
+              super admin to remove this account.
+            </p>
+          </div>
+        ) : (
+          <div className="bg-white rounded-3xl border border-red-100 shadow-sm p-6">
+            <h2 className="font-black text-red-600 text-lg mb-2">Danger Zone</h2>
+            <p className="text-sm font-bold text-slate-500 mb-4">
+              Once you delete your account, there is no going back. Please be certain.
+            </p>
+            <DeleteAccountButton userEmail={user.email || "your account"} />
+          </div>
+        )}
       </div>
     </div>
   );

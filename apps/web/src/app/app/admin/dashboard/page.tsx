@@ -14,5 +14,7 @@ export default async function AdminDashboardPage() {
     redirect("/admin/login");
   }
 
-  return <AdminDashboardClient />;
+  // Pass role down so the dashboard can render super-admin-only tiles
+  // (e.g. Manage Admins) without exposing them to regular admins.
+  return <AdminDashboardClient isSuperAdmin={role === "super_admin"} />;
 }

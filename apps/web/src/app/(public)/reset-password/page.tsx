@@ -226,7 +226,11 @@ function ResetPasswordContent() {
 
           {/* Error Message */}
           {error && (
-            <div className="p-3 bg-error/10 border border-error/30 rounded-2xl">
+            <div
+              role="alert"
+              aria-live="polite"
+              className="p-3 bg-error/10 border border-error/30 rounded-2xl"
+            >
               <p className="text-sm text-error">{error}</p>
             </div>
           )}

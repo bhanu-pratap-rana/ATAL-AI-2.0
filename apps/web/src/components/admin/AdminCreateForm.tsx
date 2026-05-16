@@ -33,6 +33,17 @@ export function AdminCreateForm({
     text: string;
   } | null>(null);
 
+  // Live validation surface — shows inline errors as the user types
+  // (rather than only on submit) and feeds the disabled state of the
+  // submit button so the action can never fire with bad input.
+  const passwordTooShort = password.length > 0 && password.length < 8;
+  const passwordsMismatch =
+    confirmPassword.length > 0 && password !== confirmPassword;
+  const isFormValid =
+    email.trim().length > 0 &&
+    password.length >= 8 &&
+    password === confirmPassword;
+
   async function handleCreateAdmin() {
     // Validation
     if (!email.trim()) {
@@ -115,6 +126,8 @@ export function AdminCreateForm({
         <Input
           id="admin-email"
           type="email"
+          name="new-admin-email"
+          autoComplete="off"
           placeholder="admin@example.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -138,6 +151,8 @@ export function AdminCreateForm({
         onShowPasswordChange={setShowPassword}
         helpText="Minimum 8 characters required"
         aria-describedby="password-requirements"
+        autoComplete="new-password"
+        error={passwordTooShort ? "Password must be at least 8 characters" : undefined}
       />
 
       {/* Confirm Password Input */}
@@ -150,6 +165,8 @@ export function AdminCreateForm({
         disabled={isLoading}
         showPassword={showPassword}
         onShowPasswordChange={setShowPassword}
+        autoComplete="new-password"
+        error={passwordsMismatch ? "Passwords do not match" : undefined}
       />
 
       {/* Message Display */}
@@ -181,7 +198,7 @@ export function AdminCreateForm({
       {/* Create Button */}
       <Button
         onClick={handleCreateAdmin}
-        disabled={isLoading || !email.trim() || !password || !confirmPassword}
+        disabled={isLoading || !isFormValid}
         variant="ghost"
         className="w-full bg-[#1E3A5F] hover:bg-[#152a44] text-white border-2 border-[#1E3A5F]/40 shadow-md"
       >

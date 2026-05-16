@@ -171,7 +171,9 @@ export function JoinClassStep({
         </div>
 
         {state.joinClassError && (
-          <p className="text-sm text-error">{state.joinClassError}</p>
+          <p role="alert" aria-live="polite" className="text-sm text-error">
+            {state.joinClassError}
+          </p>
         )}
 
         <Button

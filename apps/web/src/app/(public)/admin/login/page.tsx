@@ -43,7 +43,7 @@ export default function AdminLoginPage() {
         if (role === "admin" || role === "super_admin") {
           setHasSession(true);
           if (role === "super_admin") {
-            router.push("/admin/dashboard");
+            router.push("/app/admin/dashboard");
           } else {
             router.push("/admin/pins");
           }
@@ -112,7 +112,7 @@ export default function AdminLoginPage() {
 
       toast.success("Admin login successful!");
       if (role === "super_admin") {
-        router.push("/admin/dashboard");
+        router.push("/app/admin/dashboard");
       } else {
         router.push("/admin/pins");
       }
@@ -175,7 +175,11 @@ export default function AdminLoginPage() {
 
           {/* Error Message - Error Semantic Color */}
           {error && (
-            <div className="bg-error-light border border-error rounded-xl p-4">
+            <div
+              role="alert"
+              aria-live="polite"
+              className="bg-error-light border border-error rounded-xl p-4"
+            >
               <span className="text-error-dark text-sm">{error}</span>
             </div>
           )}
@@ -199,7 +203,7 @@ export default function AdminLoginPage() {
               required
             />
             <p className="text-xs text-slate-400">
-              Example: atal.app.ai@gmail.com
+              Your registered admin email
             </p>
           </div>
 
@@ -253,13 +257,10 @@ export default function AdminLoginPage() {
           {/* Info Box - Info Semantic Color */}
           <div className="bg-info-light border border-info rounded-xl p-4">
             <p className="text-sm text-info-dark">
-              <strong className="inline-flex items-center gap-1.5"><UserRound size={14} strokeWidth={2.5} aria-hidden="true" />Default Admin:</strong>
-              <br />
-              <span className="text-xs font-mono">atal.app.ai@gmail.com</span>
+              <strong className="inline-flex items-center gap-1.5"><UserRound size={14} strokeWidth={2.5} aria-hidden="true" />Need admin access?</strong>
               <br />
               <span className="text-xs">
-                Contact system administrator if you don&apos;t have admin
-                credentials
+                Contact your system administrator to request admin credentials.
               </span>
             </p>
           </div>

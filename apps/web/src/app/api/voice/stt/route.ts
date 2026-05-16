@@ -60,7 +60,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const form = await request.formData();
+    // STT expects multipart/form-data. If the client sends JSON or any
+    // other Content-Type, `request.formData()` throws a TypeError that
+    // would otherwise bubble up as a 500 leaking framework error text.
+    // Catch it and return a clean 400 instead.
+    let form: FormData;
+    try {
+      form = await request.formData();
+    } catch {
+      return NextResponse.json(
+        { error: "Content-Type must be multipart/form-data" },
+        { status: 400 },
+      );
+    }
     const audio = form.get("audio");
     const languageRaw = form.get("language");
 

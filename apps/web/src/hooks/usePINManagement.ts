@@ -345,7 +345,7 @@ export function usePINManagement(): UsePINManagementReturn {
    * Navigate to admin dashboard
    */
   const navigateToDashboard = useCallback(() => {
-    router.push("/admin/dashboard");
+    router.push("/app/admin/dashboard");
   }, [router]);
 
   return {
