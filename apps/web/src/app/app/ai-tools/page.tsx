@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Bot, History, MessagesSquare, ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase-server";
 
+import { BentoCard } from "@/components/ui/bento-card";
 export default async function AIToolsPage() {
   const supabase = await createClient();
   const {
@@ -41,7 +42,7 @@ export default async function AIToolsPage() {
 
         {/* AI Tutor Card */}
         <Link href="/app/ai-tools/tutor" className="block">
-          <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6 hover:shadow-md transition-all cursor-pointer active:translate-y-0.5">
+          <BentoCard padding="lg" className="hover:shadow-md transition-all cursor-pointer active:translate-y-0.5">
             <div className="flex items-center gap-4 mb-4">
               <div
                 className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border-2 border-white shadow-sm text-(--bento-orange-d)"
@@ -71,12 +72,12 @@ export default async function AIToolsPage() {
                 Multilingual
               </span>
             </div>
-          </div>
+          </BentoCard>
         </Link>
 
         {/* History Card */}
         <Link href="/app/ai-tools/history" className="block">
-          <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6 hover:shadow-md transition-all cursor-pointer active:translate-y-0.5">
+          <BentoCard padding="lg" className="hover:shadow-md transition-all cursor-pointer active:translate-y-0.5">
             <div className="flex items-center gap-4 mb-4">
               <div
                 className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border-2 border-white shadow-sm text-(--bento-purple-d)"
@@ -94,7 +95,7 @@ export default async function AIToolsPage() {
             <p className="text-slate-600 text-sm font-bold leading-relaxed">
               View past conversations, review questions and answers, and continue where you left off.
             </p>
-          </div>
+          </BentoCard>
         </Link>
       </div>
     </div>

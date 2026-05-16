@@ -565,7 +565,10 @@ export async function updateTeacherProfile({
 /**
  * Get current user's teacher profile
  */
-export async function getTeacherProfile() {
+export async function getTeacherProfile(): Promise<
+  | { success: true; profile: unknown }
+  | { success: false; error: string; profile: null }
+> {
   try {
     const user = await getCurrentUser();
 

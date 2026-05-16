@@ -36,6 +36,7 @@ import { completeLessonAndUpdateProgress } from "@/app/actions/lesson-completion
 import { stopTTS } from "@/lib/utils/client-tts";
 import { MAX_SCORE_WITHOUT_QUIZ, getStatusFromScore } from "@/lib/constants/thresholds";
 
+import { BentoCard } from "@/components/ui/bento-card";
 // Lesson content interface
 interface LessonContent {
   title_en: string;
@@ -568,15 +569,15 @@ export default function LessonPage() {
         <div className="max-w-3xl mx-auto space-y-6">
           <div className="animate-pulse space-y-4">
             <div className="h-4 w-32 bg-slate-100 rounded" />
-            <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
+            <BentoCard padding="lg">
               <div className="h-8 w-64 bg-slate-100 rounded" />
               <div className="h-4 w-48 bg-slate-100 rounded mt-2" />
-            </div>
-            <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6 space-y-4">
+            </BentoCard>
+            <BentoCard padding="lg" className="space-y-4">
               <div className="h-4 w-full bg-slate-100 rounded" />
               <div className="h-4 w-full bg-slate-100 rounded" />
               <div className="h-4 w-3/4 bg-slate-100 rounded" />
-            </div>
+            </BentoCard>
           </div>
         </div>
       </div>
@@ -610,7 +611,7 @@ export default function LessonPage() {
             </div>
 
             {/* Lesson Header */}
-            <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
+            <BentoCard padding="lg">
               <div className="flex items-center justify-between">
                 <div>
                   <h1 className="text-xl sm:text-2xl font-black text-slate-800 flex items-center gap-2">
@@ -640,7 +641,7 @@ export default function LessonPage() {
                   </Button>
                 </div>
               </div>
-            </div>
+            </BentoCard>
 
             {/* Dynamic AI Lesson Mode (always active) */}
             <div className="space-y-4">
@@ -703,12 +704,15 @@ export default function LessonPage() {
                 </Button>
               </div>
 
-              {/* Input Mode Selection */}
-              <div role="tablist" className="flex gap-2 mt-3">
+              {/* Input Mode Selection — paired with the desktop chat panel
+                  below via aria-controls. */}
+              <div role="tablist" aria-label="Input mode" className="flex gap-2 mt-3">
                 <LanguageSelector compact />
                 <Button
                   type="button"
                   role="tab"
+                  id="tab-lesson-input-text-desktop"
+                  aria-controls="panel-lesson-chat-desktop"
                   aria-selected={inputMode === "text"}
                   size="sm"
                   variant={inputMode === "text" ? "secondary" : "ghost"}
@@ -720,6 +724,8 @@ export default function LessonPage() {
                 <Button
                   type="button"
                   role="tab"
+                  id="tab-lesson-input-voice-desktop"
+                  aria-controls="panel-lesson-chat-desktop"
                   aria-selected={inputMode === "voice"}
                   size="sm"
                   variant={inputMode === "voice" ? "secondary" : "ghost"}
@@ -814,8 +820,17 @@ export default function LessonPage() {
               )}
             </div>
 
-            {/* Input */}
-            <div className="p-4 border-t">
+            {/* Input — desktop tab panel (PR-67 a11y) */}
+            <div
+              role="tabpanel"
+              id="panel-lesson-chat-desktop"
+              aria-labelledby={
+                inputMode === "voice"
+                  ? "tab-lesson-input-voice-desktop"
+                  : "tab-lesson-input-text-desktop"
+              }
+              className="p-4 border-t"
+            >
               {inputMode === "text" ? (
                 <form
                   id="chat-form"
@@ -827,6 +842,7 @@ export default function LessonPage() {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder={getInputPlaceholder(language)}
+                    aria-label={getInputPlaceholder(language)}
                     className="flex-1 rounded-md border bg-background px-3 py-2 text-sm min-h-[44px]"
                   />
                   <Button
@@ -874,12 +890,14 @@ export default function LessonPage() {
                 </div>
               </div>
 
-              {/* Input Mode Selection */}
-              <div role="tablist" className="flex gap-2">
+              {/* Input Mode Selection — mobile Sheet tab pattern */}
+              <div role="tablist" aria-label="Input mode" className="flex gap-2">
                 <LanguageSelector compact />
                 <Button
                   type="button"
                   role="tab"
+                  id="tab-lesson-input-text-mobile"
+                  aria-controls="panel-lesson-chat-mobile"
                   aria-selected={inputMode === "text"}
                   size="sm"
                   variant={inputMode === "text" ? "secondary" : "ghost"}
@@ -891,6 +909,8 @@ export default function LessonPage() {
                 <Button
                   type="button"
                   role="tab"
+                  id="tab-lesson-input-voice-mobile"
+                  aria-controls="panel-lesson-chat-mobile"
                   aria-selected={inputMode === "voice"}
                   size="sm"
                   variant={inputMode === "voice" ? "secondary" : "ghost"}
@@ -985,8 +1005,17 @@ export default function LessonPage() {
               )}
             </div>
 
-            {/* Input */}
-            <div className="p-4 border-t safe-bottom">
+            {/* Input — mobile tab panel (PR-67 a11y) */}
+            <div
+              role="tabpanel"
+              id="panel-lesson-chat-mobile"
+              aria-labelledby={
+                inputMode === "voice"
+                  ? "tab-lesson-input-voice-mobile"
+                  : "tab-lesson-input-text-mobile"
+              }
+              className="p-4 border-t safe-bottom"
+            >
               {inputMode === "text" ? (
                 <form
                   id="chat-form"
@@ -998,6 +1027,7 @@ export default function LessonPage() {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder={getInputPlaceholder(language)}
+                    aria-label={getInputPlaceholder(language)}
                     className="flex-1 rounded-md border bg-background px-3 py-2 text-sm min-h-[44px]"
                   />
                   <Button

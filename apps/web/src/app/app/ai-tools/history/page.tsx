@@ -14,6 +14,7 @@ import { createClient } from "@/lib/supabase-server";
 import { ConversationHistory } from "@/components/tutor/ConversationHistory";
 import { authLogger } from "@/lib/auth-logger";
 
+import { BentoCard } from "@/components/ui/bento-card";
 export default async function ConversationHistoryPage() {
   const supabase = await createClient();
   const {
@@ -135,21 +136,21 @@ export default async function ConversationHistoryPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-4 text-center">
+          <BentoCard className="text-center">
             <p className="text-xl sm:text-2xl font-black text-orange-600 mb-1">{totalConversations}</p>
             <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Conversations</p>
-          </div>
-          <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-4 text-center">
+          </BentoCard>
+          <BentoCard className="text-center">
             <p className="text-xl sm:text-2xl font-black text-blue-600 mb-1">{totalMessages}</p>
             <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Total Messages</p>
-          </div>
+          </BentoCard>
         </div>
 
         {/* Conversations List */}
         {sessions.length > 0 ? (
           <ConversationHistory sessions={sessions} />
         ) : (
-          <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-8 sm:p-12 text-center">
+          <BentoCard padding="xl" className="sm:p-12 text-center">
             <div className="mx-auto mb-4 w-20 h-20 rounded-3xl bg-(--bento-tint-orange) border-4 border-white shadow-sm flex items-center justify-center text-(--bento-orange-d)">
               <Bot className="w-10 h-10" strokeWidth={2.25} aria-hidden="true" />
             </div>
@@ -164,7 +165,7 @@ export default async function ConversationHistoryPage() {
               <MessageSquarePlus size={18} strokeWidth={2.5} aria-hidden="true" />
               Start a Conversation
             </Link>
-          </div>
+          </BentoCard>
         )}
       </div>
     </div>

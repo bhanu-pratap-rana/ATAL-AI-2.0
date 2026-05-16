@@ -20,6 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { BentoCard } from "@/components/ui/bento-card";
 import {
   AlertTriangle,
   Calendar,
@@ -151,7 +152,7 @@ function SchoolFinderModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6 max-w-2xl w-full mx-4 max-h-96 overflow-auto">
+      <BentoCard padding="lg" className="max-w-2xl w-full mx-4 max-h-96 overflow-auto">
         <h2 className="text-xl font-black mb-4 flex items-center gap-2">
           <MapPin className="h-5 w-5" />
           Find School by Location
@@ -248,7 +249,7 @@ function SchoolFinderModal({
         >
           Close
         </Button>
-      </div>
+      </BentoCard>
     </div>
   );
 }

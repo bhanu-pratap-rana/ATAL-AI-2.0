@@ -26,6 +26,7 @@ import {
 } from "@/lib/database/learning-profile-queries";
 import { LearningStyleCard } from "@/components/learning/LearningStyleCard";
 
+import { BentoCard } from "@/components/ui/bento-card";
 // Learning style tips and descriptions
 const STYLE_INFO: Record<"visual" | "text" | "auditory", {
   Icon: LucideIcon;
@@ -146,7 +147,7 @@ export default async function LearningStylePage() {
         </div>
 
         {/* Dominant Style Card */}
-        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
+        <BentoCard padding="lg">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-12 h-12 rounded-2xl bg-(--bento-tint-orange) border-2 border-white shadow-sm flex items-center justify-center shrink-0 text-(--bento-orange-d)">
               <dominantInfo.Icon className="w-6 h-6" strokeWidth={2.25} aria-hidden="true" />
@@ -162,7 +163,7 @@ export default async function LearningStylePage() {
               </p>
             </div>
           )}
-        </div>
+        </BentoCard>
 
         {/* Style Breakdown */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -172,7 +173,7 @@ export default async function LearningStylePage() {
         </div>
 
         {/* Tips Section */}
-        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
+        <BentoCard padding="lg">
           <h2 className="font-black text-slate-900 text-lg mb-4 flex items-center gap-2">
             <Lightbulb className="w-5 h-5 text-(--bento-orange-d)" strokeWidth={2.25} aria-hidden="true" />
             <span>Tips for {dominantInfo.title}s</span>
@@ -185,10 +186,10 @@ export default async function LearningStylePage() {
               </li>
             ))}
           </ul>
-        </div>
+        </BentoCard>
 
         {/* How It Works */}
-        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
+        <BentoCard padding="lg">
           <h2 className="font-black text-slate-900 text-lg mb-3 flex items-center gap-2">
             <BarChart3 className="w-5 h-5 text-(--bento-purple-d)" strokeWidth={2.25} aria-hidden="true" />
             <span>How Your Style Is Calculated</span>
@@ -206,7 +207,7 @@ export default async function LearningStylePage() {
               </div>
             ))}
           </div>
-        </div>
+        </BentoCard>
       </div>
     </div>
   );

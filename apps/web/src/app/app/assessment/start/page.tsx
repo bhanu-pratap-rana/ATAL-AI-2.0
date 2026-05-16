@@ -15,6 +15,7 @@ import {
 import { clientLogger } from "@/lib/client-logger";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 
+import { BentoCard } from "@/components/ui/bento-card";
 function getSessionTypeLabel(type: string): string {
   if (type === "pre") return "Pre-Assessment";
   if (type === "post") return "Post-Assessment";
@@ -127,7 +128,7 @@ function AssessmentStartContent() {
     <div className="min-h-screen [background:var(--bento-bg)] flex items-center justify-center p-4">
       {/* Card with Gradient Border */}
       <div className="max-w-2xl w-full">
-        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6 md:p-8">
+        <BentoCard padding="lg" className="md:p-8">
             {/* Error Display */}
             {error && (
               <div className="mb-6 p-4 bg-red-50 border border-red-200/30 rounded-2xl">
@@ -244,7 +245,7 @@ function AssessmentStartContent() {
                 Back
               </Button>
             </div>
-        </div>
+        </BentoCard>
       </div>
     </div>
   );

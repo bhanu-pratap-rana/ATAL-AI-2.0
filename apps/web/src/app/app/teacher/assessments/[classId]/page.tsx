@@ -6,6 +6,7 @@ import { isTeacherOrHigher } from "@/lib/auth/role-utils";
 import { getClassAssessmentResults } from "@/app/actions/teacher";
 import { formatRelativeDay as formatRelativeTime } from "@/lib/utils/format-date";
 
+import { BentoCard } from "@/components/ui/bento-card";
 function getScoreColor(score: number | null): string {
   if (score === null) return "bg-slate-100 text-slate-500";
   if (score >= 80) return "bg-emerald-500 text-white";
@@ -96,7 +97,7 @@ export default async function ClassAssessmentResultsPage({
         </div>
 
         {/* Student Results */}
-        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
+        <BentoCard padding="lg">
           <h2 className="font-black text-slate-800 text-lg mb-4">
             Student Results <span className="text-sm font-bold text-slate-400">({results.results.length})</span>
           </h2>
@@ -139,7 +140,7 @@ export default async function ClassAssessmentResultsPage({
               </Link>
             </div>
           )}
-        </div>
+        </BentoCard>
 
         {/* Legend */}
         <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-5">

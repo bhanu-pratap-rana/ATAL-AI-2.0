@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { AlertTriangle, LayoutDashboard, RefreshCw } from "lucide-react";
 
+import { BentoCard } from "@/components/ui/bento-card";
 export default function AppError({
   error,
   reset,
@@ -17,7 +18,7 @@ export default function AppError({
 
   return (
     <div className="min-h-screen [background:var(--bento-bg)] flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-8 max-w-md w-full text-center">
+      <BentoCard padding="xl" className="max-w-md w-full text-center">
         <div className="mx-auto mb-5 w-20 h-20 rounded-3xl bg-(--bento-tint-red) border-4 border-white shadow-sm flex items-center justify-center text-(--bento-red-d)">
           <AlertTriangle className="w-10 h-10" strokeWidth={2.25} aria-hidden="true" />
         </div>
@@ -47,7 +48,7 @@ export default function AppError({
             Error ID: <span className="font-mono">{error.digest}</span>
           </p>
         )}
-      </div>
+      </BentoCard>
     </div>
   );
 }

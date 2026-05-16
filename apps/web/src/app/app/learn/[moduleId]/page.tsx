@@ -26,6 +26,7 @@ import { useToast } from "@/hooks/use-toast";
 import { clientLogger } from "@/lib/client-logger";
 import { useOfflineLesson } from "@/hooks/useOfflineLesson";
 
+import { BentoCard } from "@/components/ui/bento-card";
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -199,12 +200,12 @@ export default function ModuleUnitsPage({
     return (
       <div className="min-h-screen [background:var(--bento-bg)] p-4 md:p-6 pb-28">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6 text-center">
+          <BentoCard padding="lg" className="text-center">
             <p className="text-red-600 mb-4">{error}</p>
             <Link href="/app/learn" className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl font-black text-sm text-slate-700 border border-slate-200 bg-white hover:bg-slate-50 transition-colors">
               {t("nav.backToLearningPath")}
             </Link>
-          </div>
+          </BentoCard>
         </div>
       </div>
     );
@@ -303,11 +304,11 @@ export default function ModuleUnitsPage({
 
         {/* Empty state if no units */}
         {data.units.length === 0 && (
-          <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6 text-center">
+          <BentoCard padding="lg" className="text-center">
             <p className="text-slate-500">
               {t("learn.noUnitsAvailable")}
             </p>
-          </div>
+          </BentoCard>
         )}
       </div>
 

@@ -37,7 +37,9 @@ interface StudentProfileParams {
  * Save student profile after signup
  * Creates a new record in student_profiles table
  */
-export async function saveStudentProfile(params: StudentProfileParams) {
+export async function saveStudentProfile(
+  params: StudentProfileParams,
+): Promise<{ success: true } | { success: false; error: string }> {
   try {
     // Validate inputs
     let validatedInput;
@@ -184,7 +186,10 @@ async function fetchStudentProfileFromDB(userId: string) {
  * Get current user's student profile
  * PERFORMANCE: Results cached for 2 minutes to reduce database load
  */
-export async function getStudentProfile() {
+export async function getStudentProfile(): Promise<
+  | { success: true; profile: unknown }
+  | { success: false; error: string; profile: null }
+> {
   try {
     const user = await getCurrentUser();
 
@@ -451,7 +456,12 @@ async function createEnrollment(
  * Join a class using class code and PIN (refactored to reduce cognitive complexity)
  * CRITICAL FIX: Reduced complexity from 16 to <15 by extracting helper functions
  */
-export async function joinClass({ classCode, pin }: JoinClassParams) {
+export async function joinClass(
+  { classCode, pin }: JoinClassParams,
+): Promise<
+  | { success: true; data: { className: string; [key: string]: unknown } }
+  | { success: false; error: string }
+> {
   try {
     // PR-66: normalize the class code before BOTH the Zod validation
     // and the rate-limit key, matching previewClass(). The previous
@@ -705,7 +715,9 @@ export async function joinClassAsAnonymous(
   }
 }
 
-export async function leaveClass(classId: string) {
+export async function leaveClass(
+  classId: string,
+): Promise<{ success: true } | { success: false; error: string }> {
   try {
     // Validate class ID
     let validatedClassId;

@@ -17,6 +17,7 @@ import {
 } from "@/lib/utils/format-date";
 import { getScoreBgColor as getScoreCircleColor } from "@/lib/utils/score-helpers";
 
+import { BentoCard } from "@/components/ui/bento-card";
 // Get skill level from score
 function getSkillLevel(score: number, language: SupportedLanguage): { label: string; color: string } {
   if (score >= 80) return { label: getTranslation("skill.advanced", language), color: "bg-emerald-500 text-white" };
@@ -151,7 +152,7 @@ export default async function StudentAssessmentsPage() {
         </div>
 
         {/* Start New */}
-        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6 flex items-center justify-between gap-4">
+        <BentoCard padding="lg" className="flex items-center justify-between gap-4">
           <div>
             <h2 className="font-black text-slate-900 mb-1">Start a New Assessment</h2>
             <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Comprehensive Digital Literacy Test</p>
@@ -163,10 +164,10 @@ export default async function StudentAssessmentsPage() {
             <Play size={16} strokeWidth={2.5} aria-hidden="true" />
             Start
           </Link>
-        </div>
+        </BentoCard>
 
         {/* Assessment History */}
-        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
+        <BentoCard padding="lg">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-black text-slate-900 text-lg flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-(--bento-purple-d)" strokeWidth={2.25} aria-hidden="true" />
@@ -239,7 +240,7 @@ export default async function StudentAssessmentsPage() {
                 </Link>
               </div>
             )}
-        </div>
+        </BentoCard>
 
         {/* Stats Summary */}
         {hasHistory && (

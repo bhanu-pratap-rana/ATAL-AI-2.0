@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatDurationMMSS } from "@/lib/utils/format-date";
 
 interface QuestionResponse {
   id: string;
@@ -58,15 +59,8 @@ interface AssessmentBreakdownProps {
 
 const FILTER_ICONS: Record<string, LucideIcon> = { correct: CheckCircle2, incorrect: XCircle, all: CircleDot };
 
-function formatTime(ms: number | null): string {
-  if (!ms) return "-";
-  if (ms < 1000) return "<1s";
-  const seconds = Math.round(ms / 1000);
-  if (seconds < 60) return `${seconds}s`;
-  const minutes = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${minutes}:${secs.toString().padStart(2, "0")}`;
-}
+// PR-67: null-safe wrapper around the canonical mm:ss formatter.
+const formatTime = (ms: number | null) => (ms === null ? "-" : formatDurationMMSS(ms));
 
 function getDifficultyLabel(difficulty: number | null): {
   label: string;

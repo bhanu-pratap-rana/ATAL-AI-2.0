@@ -7,6 +7,7 @@ import type { ConnectionPoolMetrics, PoolAlert } from "@/types/monitoring";
 import { AlertCircle, CheckCircle2, Microscope, TrendingDown, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+import { BentoCard } from "@/components/ui/bento-card";
 function getAlertClassName(level: string): string {
   switch (level) {
     case "critical":
@@ -114,7 +115,7 @@ export function PerformanceClient() {
 
         {/* Connection Pool Stats */}
         {poolMetrics && (
-          <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
+          <BentoCard padding="lg">
             <h2 className="font-black text-slate-800 text-lg mb-4 flex items-center gap-2">
               <Zap className="w-5 h-5 text-blue-500" /> Connection Pool Status
             </h2>
@@ -136,7 +137,7 @@ export function PerformanceClient() {
                 style={{ width: `${poolMetrics.utilizationPercent}%` }}
               />
             </div>
-          </div>
+          </BentoCard>
         )}
 
         {/* Pool Alerts */}
@@ -160,7 +161,7 @@ export function PerformanceClient() {
         )}
 
         {/* Slow Queries Log */}
-        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
+        <BentoCard padding="lg">
           <h2 className="font-black text-slate-800 text-lg mb-4 flex items-center gap-2">
             <TrendingDown className="w-5 h-5 text-amber-500" /> Slowest Queries (&gt; 1 second)
           </h2>
@@ -188,7 +189,7 @@ export function PerformanceClient() {
               ))}
             </div>
           )}
-        </div>
+        </BentoCard>
 
         {/* Failed Queries Log */}
         {failedQueries.length > 0 && (
@@ -214,7 +215,7 @@ export function PerformanceClient() {
         )}
 
         {/* Monitoring Settings */}
-        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
+        <BentoCard padding="lg">
           <h2 className="font-black text-slate-800 text-lg mb-4">Monitoring Settings</h2>
           <div className="flex items-center gap-4 flex-wrap">
             <div>
@@ -247,7 +248,7 @@ export function PerformanceClient() {
               Clear Metrics
             </Button>
           </div>
-        </div>
+        </BentoCard>
       </div>
     </div>
   );

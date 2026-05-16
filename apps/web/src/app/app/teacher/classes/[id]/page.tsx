@@ -10,6 +10,7 @@ import { AnalyticsTiles } from "@/components/teacher/AnalyticsTiles";
 import { StudentProgressGrid } from "@/components/teacher/StudentProgressGrid";
 import { AIInteractionsLog } from "@/components/teacher/AIInteractionsLog";
 import { CommunicationSection } from "@/components/teacher/communication";
+import { BentoCard } from "@/components/ui/bento-card";
 import {
   getClassAnalytics,
   getClassAnnouncements,
@@ -248,24 +249,24 @@ export default async function ClassDetailPage({
 
         {/* Real-time Student Progress Grid */}
         {enrollments.length > 0 && (
-          <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
+          <BentoCard padding="lg">
             <h2 className="font-black text-slate-800 text-lg mb-1 flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-(--bento-sky-d)" strokeWidth={2.25} aria-hidden="true" /> Real-time Student Progress
             </h2>
             <p className="text-xs font-bold text-slate-500 mb-4">Live view of student learning progress and at-risk indicators</p>
             <StudentProgressGrid classId={id} />
-          </div>
+          </BentoCard>
         )}
 
         {/* AI Tutor Interactions Log */}
         {enrollments.length > 0 && (
-          <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
+          <BentoCard padding="lg">
             <h2 className="font-black text-slate-800 text-lg mb-1 flex items-center gap-2">
               <Bot className="w-5 h-5 text-(--bento-purple-d)" strokeWidth={2.25} aria-hidden="true" /> AI Tutor Activity
             </h2>
             <p className="text-xs font-bold text-slate-500 mb-4">Recent AI tutor conversations from your students</p>
             <AIInteractionsLog classId={id} limit={15} />
-          </div>
+          </BentoCard>
         )}
 
         {/* Teacher Communication: Announcements & Materials */}
@@ -276,7 +277,7 @@ export default async function ClassDetailPage({
         />
 
         {/* Roster */}
-        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
+        <BentoCard padding="lg">
           <h2 className="font-black text-slate-800 text-lg mb-1">Class Roster</h2>
           <p className="text-xs font-bold text-slate-500 mb-4">View and manage students enrolled in this class</p>
           {enrollments.length === 0 ? (
@@ -290,7 +291,7 @@ export default async function ClassDetailPage({
           ) : (
             <RosterTable enrollments={enrollments} classId={id} />
           )}
-        </div>
+        </BentoCard>
       </div>
     </div>
   );

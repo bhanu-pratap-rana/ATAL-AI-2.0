@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createAdminClient, createClient, getCurrentUser } from "@/lib/supabase-server";
 import { authLogger } from "@/lib/auth-logger";
 import { formatDate } from "@/lib/date-format";
+import { BentoCard } from "@/components/ui/bento-card";
 import {
   ArrowLeft,
   BookOpen,
@@ -148,7 +149,7 @@ export default async function StudentClassesPage() {
         </div>
 
         {enrollments.length === 0 ? (
-          <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-8 sm:p-12 text-center">
+          <BentoCard padding="xl" className="sm:p-12 text-center">
             <div className="mx-auto mb-4 w-20 h-20 rounded-3xl bg-(--bento-tint-orange) border-4 border-white shadow-sm flex items-center justify-center text-(--bento-orange-d)">
               <Library className="w-10 h-10" strokeWidth={2.25} aria-hidden="true" />
             </div>
@@ -163,7 +164,7 @@ export default async function StudentClassesPage() {
               <UserPlus size={18} strokeWidth={2.5} aria-hidden="true" />
               Join a Class
             </Link>
-          </div>
+          </BentoCard>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {enrollments.map((enrollment: Enrollment) => (

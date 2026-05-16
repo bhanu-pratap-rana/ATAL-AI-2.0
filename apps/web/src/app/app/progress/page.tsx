@@ -16,6 +16,7 @@ import {
 } from "@/lib/utils/format-date";
 import { getScoreBgColor as getScoreColor } from "@/lib/utils/score-helpers";
 
+import { BentoCard } from "@/components/ui/bento-card";
 export default async function ProgressPage() {
   const supabase = await createClient();
   const {
@@ -77,7 +78,7 @@ export default async function ProgressPage() {
 
         {/* Module Breakdown */}
         {hasData && (stats?.moduleBreakdown?.length ?? 0) > 0 && (
-          <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
+          <BentoCard padding="lg">
             <h2 className="font-black text-slate-800 text-lg mb-4">Module Performance</h2>
             <div className="space-y-4">
               {stats?.moduleBreakdown?.map((module) => (
@@ -97,20 +98,20 @@ export default async function ProgressPage() {
                 </div>
               ))}
             </div>
-          </div>
+          </BentoCard>
         )}
 
         {/* Badges */}
-        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
+        <BentoCard padding="lg">
           <h2 className="font-black text-slate-900 text-lg mb-4 flex items-center gap-2">
             <Award className="w-5 h-5 text-[#C9A227]" strokeWidth={2.25} aria-hidden="true" />
             <span>My Badges</span>
           </h2>
           <BadgesDisplay studentId={user.id} showAll={true} />
-        </div>
+        </BentoCard>
 
         {/* Recent Activity */}
-        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
+        <BentoCard padding="lg">
           <h2 className="font-black text-slate-800 text-lg mb-4">Recent Activity</h2>
           {hasData && (stats?.recentAssessments?.length ?? 0) > 0 ? (
             <div className="space-y-3">
@@ -150,7 +151,7 @@ export default async function ProgressPage() {
               </Link>
             </div>
           )}
-        </div>
+        </BentoCard>
       </div>
     </div>
   );

@@ -21,6 +21,7 @@ import { RateLimitCountdown } from "@/components/ui/RateLimitCountdown";
 import { Button } from "@/components/ui/button";
 import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
 
+import { BentoCard } from "@/components/ui/bento-card";
 type TutorLanguage = "en" | "hi" | "as";
 
 /**
@@ -212,14 +213,17 @@ export default function AITutorPage() {
         </div>
 
         {/* Language & Input Mode Selectors */}
-        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-4 flex flex-wrap gap-3 items-center">
-          {/* Language Selector */}
-          <div role="tablist" className="flex gap-2">
+        <BentoCard className="flex flex-wrap gap-3 items-center">
+          {/* Language Selector — PR-67: this is a radiogroup, not a tablist.
+              Tabs require a tabpanel each (WAI-ARIA), but here language just
+              switches the response language — no per-tab panel. radiogroup
+              is the correct semantic. */}
+          <div role="radiogroup" aria-label="Response language" className="flex gap-2">
             {(["en", "hi", "as"] as const).map((lang) => (
               <Button
                 type="button"
-                role="tab"
-                aria-selected={language === lang}
+                role="radio"
+                aria-checked={language === lang}
                 key={lang}
                 size="sm"
                 variant={language === lang ? "default" : "secondary"}
@@ -231,11 +235,15 @@ export default function AITutorPage() {
             ))}
           </div>
 
-          {/* Input Mode Toggle */}
-          <div role="tablist" className="flex gap-2 ml-auto">
+          {/* Input Mode Toggle — tab pattern: each tab swaps the input UI
+              below (text input vs voice chat), and that UI is wrapped in
+              role="tabpanel" further down in the chat area. */}
+          <div role="tablist" aria-label="Input mode" className="flex gap-2 ml-auto">
             <Button
               type="button"
               role="tab"
+              id="tab-input-text"
+              aria-controls="panel-chat-input"
               aria-selected={inputMode === "text"}
               size="sm"
               variant={inputMode === "text" ? "default" : "secondary"}
@@ -248,6 +256,8 @@ export default function AITutorPage() {
             <Button
               type="button"
               role="tab"
+              id="tab-input-voice"
+              aria-controls="panel-chat-input"
               aria-selected={inputMode === "voice"}
               size="sm"
               variant={inputMode === "voice" ? "default" : "secondary"}
@@ -258,11 +268,11 @@ export default function AITutorPage() {
               Voice
             </Button>
           </div>
-        </div>
+        </BentoCard>
 
         {/* Voice Mode Options - Only show when voice mode is active */}
         {inputMode === "voice" && (
-          <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-4 flex flex-wrap items-center gap-4">
+          <BentoCard className="flex flex-wrap items-center gap-4">
             {/* Voice Mode Selector */}
             <div role="tablist" className="flex items-center gap-2">
               <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Mode:</span>
@@ -332,7 +342,7 @@ export default function AITutorPage() {
                 </span>
               </Button>
             </div>
-          </div>
+          </BentoCard>
         )}
 
         {/* Error Display */}
@@ -359,7 +369,7 @@ export default function AITutorPage() {
         })()}
 
         {/* Chat Area */}
-        <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-4">
+        <BentoCard>
           {/* Messages Display */}
           <div className="h-[calc(100vh-360px)] sm:h-[400px] lg:h-[500px] overflow-y-auto space-y-4 mb-4">
             {messages.length === 0 ? (
@@ -496,7 +506,13 @@ export default function AITutorPage() {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Form - Conditional based on mode */}
+          {/* Input Form — paired with the Input Mode tablist via aria-controls.
+              role="tabpanel" + aria-labelledby points back at the active tab. */}
+          <div
+            role="tabpanel"
+            id="panel-chat-input"
+            aria-labelledby={inputMode === "voice" ? "tab-input-voice" : "tab-input-text"}
+          >
           {inputMode === "voice" && voiceMode === "conversational" && (
             <ConversationalVoiceChat
               language={language}
@@ -543,7 +559,8 @@ export default function AITutorPage() {
               </Button>
             </form>
           )}
-        </div>
+          </div>
+        </BentoCard>
 
         {/* Tips - Only show in text mode */}
         {inputMode === "text" && (
