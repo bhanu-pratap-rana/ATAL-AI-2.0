@@ -28,13 +28,28 @@ function ResetPasswordContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Check if already authenticated - redirect to dashboard
+  // Live-derived validation surface — mirrors the server checks so the
+  // user sees inline guidance as they type instead of only at submit.
+  // The submit button below is also blocked on these conditions.
+  const passwordTooShort = newPassword.length > 0 && newPassword.length < 8;
+  const passwordsMismatch =
+    confirmPassword.length > 0 && newPassword !== confirmPassword;
+
+  // Check if already authenticated — redirect to the role-appropriate
+  // home rather than always /app/student/dashboard, so super admins
+  // / teachers don't get bounced into the student UI.
   useEffect(() => {
     async function checkAuth() {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      if (session) {
+      if (!session) return;
+      const role = session.user.app_metadata?.role as string | undefined;
+      if (role === "super_admin" || role === "admin") {
+        router.push("/app/admin/dashboard");
+      } else if (role === "teacher") {
+        router.push("/app/teacher/dashboard");
+      } else {
         router.push("/app/student/dashboard");
       }
     }
@@ -203,8 +218,21 @@ function ResetPasswordContent() {
               onChange={(e) => setNewPassword(e.target.value)}
               disabled={isLoading}
               className="w-full"
+              aria-invalid={passwordTooShort || undefined}
+              aria-describedby={passwordTooShort ? "new-password-error" : undefined}
             />
-            <p className="text-xs text-slate-500">Minimum 8 characters</p>
+            {passwordTooShort ? (
+              <p
+                id="new-password-error"
+                role="alert"
+                aria-live="polite"
+                className="text-xs text-error"
+              >
+                Password must be at least 8 characters
+              </p>
+            ) : (
+              <p className="text-xs text-slate-500">Minimum 8 characters</p>
+            )}
           </div>
 
           {/* Confirm Password Field */}
@@ -221,7 +249,19 @@ function ResetPasswordContent() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               disabled={isLoading}
               className="w-full"
+              aria-invalid={passwordsMismatch || undefined}
+              aria-describedby={passwordsMismatch ? "confirm-password-error" : undefined}
             />
+            {passwordsMismatch && (
+              <p
+                id="confirm-password-error"
+                role="alert"
+                aria-live="polite"
+                className="text-xs text-error"
+              >
+                Passwords do not match
+              </p>
+            )}
           </div>
 
           {/* Error Message */}
@@ -235,7 +275,9 @@ function ResetPasswordContent() {
             </div>
           )}
 
-          {/* Submit Button */}
+          {/* Submit Button — also blocks submission if the live-derived
+              validation below would reject the inputs, so the disabled
+              state matches what the server check would do. */}
           <Button
             type="submit"
             disabled={
@@ -243,7 +285,9 @@ function ResetPasswordContent() {
               !email ||
               otp.length !== OTP_LENGTH ||
               !newPassword ||
-              !confirmPassword
+              !confirmPassword ||
+              passwordTooShort ||
+              passwordsMismatch
             }
             className="w-full mt-6"
           >
