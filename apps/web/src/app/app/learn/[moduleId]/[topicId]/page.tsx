@@ -833,7 +833,7 @@ export default function LessonPage() {
             >
               {inputMode === "text" ? (
                 <form
-                  id="chat-form"
+                  id="chat-form-desktop"
                   onSubmit={handleSubmit}
                   className="flex gap-2"
                 >
@@ -1018,7 +1018,7 @@ export default function LessonPage() {
             >
               {inputMode === "text" ? (
                 <form
-                  id="chat-form"
+                  id="chat-form-mobile"
                   onSubmit={handleSubmit}
                   className="flex gap-2"
                 >

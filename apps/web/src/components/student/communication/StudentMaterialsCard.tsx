@@ -168,7 +168,7 @@ export function StudentMaterialsCard({
                       <h4 className="font-black text-slate-800 truncate">
                         {material.title}
                       </h4>
-                      <div className="flex items-center gap-2 text-xs text-slate-400 flex-wrap">
+                      <div className="flex items-center gap-2 text-xs text-slate-500 flex-wrap">
                         <Badge variant="secondary" className="text-xs">
                           {config.label}
                         </Badge>

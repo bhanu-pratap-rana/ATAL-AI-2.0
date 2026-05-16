@@ -239,7 +239,7 @@ export function DashboardMetrics() {
     }
 
     return items.length === 0 ? (
-      <p className="text-center text-slate-400 py-8">{emptyMessage}</p>
+      <p className="text-center text-slate-500 py-8">{emptyMessage}</p>
     ) : (
       <div className="space-y-3">
         {items.map((item) => (
@@ -357,7 +357,7 @@ export function DashboardMetrics() {
       value: metrics.inactivePins,
       icon: Lock,
       color: "bg-border-light",
-      iconColor: "text-slate-400",
+      iconColor: "text-slate-500",
       hoverColor: "hover:border-text-tertiary",
       modalType: "inactivePINs" as ModalType,
     },

@@ -316,7 +316,7 @@ export function AdminListTable({
                 size="icon"
                 onClick={closeResetModal}
                 aria-label="Close password reset dialog"
-                className="text-slate-400 hover:text-slate-800"
+                className="text-slate-500 hover:text-slate-800"
               >
                 <X className="w-6 h-6" />
               </Button>

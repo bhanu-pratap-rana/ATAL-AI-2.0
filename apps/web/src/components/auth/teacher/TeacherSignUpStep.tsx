@@ -47,11 +47,13 @@ export function TeacherSignUpStep({
         description="Step 1 of 4: Choose your verification method"
       >
         <div className="space-y-3 sm:space-y-4">
-          {/* Tab Navigation - Responsive sizing */}
-          <div role="tablist" className="flex gap-2 sm:gap-3">
+          {/* PR-68: tab/tabpanel pair wired via aria-controls. */}
+          <div role="tablist" aria-label="Verification method" className="flex gap-2 sm:gap-3">
             <Button
               type="button"
               role="tab"
+              id="tab-signup-email"
+              aria-controls="panel-signup-method"
               aria-selected={state.signupMethod === "email"}
               size="sm"
               variant={state.signupMethod === "email" ? "default" : "secondary"}
@@ -65,6 +67,8 @@ export function TeacherSignUpStep({
             <Button
               type="button"
               role="tab"
+              id="tab-signup-phone"
+              aria-controls="panel-signup-method"
               aria-selected={state.signupMethod === "phone"}
               size="sm"
               variant={state.signupMethod === "phone" ? "default" : "secondary"}
@@ -76,6 +80,12 @@ export function TeacherSignUpStep({
               Phone
             </Button>
           </div>
+
+          <div
+            role="tabpanel"
+            id="panel-signup-method"
+            aria-labelledby={state.signupMethod === "phone" ? "tab-signup-phone" : "tab-signup-email"}
+          >
 
           {/* Email Method */}
           {state.signupMethod === "email" && (
@@ -327,6 +337,7 @@ export function TeacherSignUpStep({
             >
               ← Back to options
             </Button>
+          </div>
           </div>
         </div>
       </AuthCard>

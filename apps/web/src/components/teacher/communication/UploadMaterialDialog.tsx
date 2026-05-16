@@ -278,10 +278,12 @@ export function UploadMaterialDialog({
             {/* Source Mode Toggle */}
             <div className="space-y-2">
               <Label>Source</Label>
-              <div role="tablist" className="flex gap-2">
+              <div role="tablist" aria-label="Material source" className="flex gap-2">
                 <Button
                   type="button"
                   role="tab"
+                  id="tab-source-file"
+                  aria-controls="panel-source"
                   aria-selected={sourceMode === "file"}
                   variant={sourceMode === "file" ? "default" : "outline"}
                   size="sm"
@@ -295,6 +297,8 @@ export function UploadMaterialDialog({
                 <Button
                   type="button"
                   role="tab"
+                  id="tab-source-url"
+                  aria-controls="panel-source"
                   aria-selected={sourceMode === "url"}
                   variant={sourceMode === "url" ? "default" : "outline"}
                   size="sm"
@@ -308,6 +312,11 @@ export function UploadMaterialDialog({
               </div>
             </div>
 
+            <div
+              role="tabpanel"
+              id="panel-source"
+              aria-labelledby={sourceMode === "url" ? "tab-source-url" : "tab-source-file"}
+            >
             {sourceMode === "file" ? (
               <div className="space-y-2">
                 <Label htmlFor="material-file">File</Label>
@@ -340,11 +349,12 @@ export function UploadMaterialDialog({
                   required={sourceMode === "url"}
                   disabled={loading}
                 />
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-500">
                   Paste a link to a video, document, or any learning resource
                 </p>
               </div>
             )}
+            </div>
           </div>
 
           <DialogFooter>

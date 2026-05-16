@@ -40,6 +40,21 @@ export async function awardLessonCompletionPoints(
       return { success: false, error: "Too many requests. Please try again later." };
     }
 
+    // PR-68: reject score=0 awards. With PR-64's stricter calculateScore
+    // (returns 0 on missing/undefined input), an unmount cleanup or
+    // double-fire after a partial lesson would otherwise hand out the
+    // 10-point base activity bonus + badge check for free. A legitimate
+    // zero-score completion shouldn't earn lesson points either.
+    if (!Number.isFinite(score) || score <= 0) {
+      authLogger.debug("[awardLessonCompletionPoints] Skipped — non-positive score", {
+        userId: user.id,
+        moduleId,
+        topicId,
+        score,
+      });
+      return { success: true, pointsAwarded: 0, newBadges: [] };
+    }
+
     authLogger.debug("[awardLessonCompletionPoints] Awarding points", {
       userId: user.id,
       moduleId,

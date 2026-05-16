@@ -5,19 +5,24 @@ import { createClient } from "@/lib/supabase-server";
 import { isTeacherOrHigher } from "@/lib/auth/role-utils";
 import { getClassAssessmentResults } from "@/app/actions/teacher";
 import { formatRelativeDay as formatRelativeTime } from "@/lib/utils/format-date";
+import { MASTERY_THRESHOLDS } from "@/lib/constants/thresholds";
 
 import { BentoCard } from "@/components/ui/bento-card";
+// PR-68: thresholds aligned with MASTERY_THRESHOLDS.PASSING (70). Was a
+// local 80/60 ladder which contradicted the score-helpers used elsewhere
+// in the app (a 72%-averaging class showed amber "Intermediate" to the
+// teacher but emerald "Mastered" to the student).
 function getScoreColor(score: number | null): string {
   if (score === null) return "bg-slate-100 text-slate-500";
-  if (score >= 80) return "bg-emerald-500 text-white";
-  if (score >= 60) return "bg-amber-400 text-white";
+  if (score >= MASTERY_THRESHOLDS.PASSING) return "bg-emerald-500 text-white";
+  if (score >= MASTERY_THRESHOLDS.STRUGGLING) return "bg-amber-400 text-white";
   return "bg-red-400 text-white";
 }
 
 function getSkillLevel(score: number | null): { label: string; color: string } {
-  if (score === null) return { label: "No Data", color: "bg-slate-100 text-slate-400" };
-  if (score >= 80) return { label: "Advanced", color: "bg-emerald-100 text-emerald-700" };
-  if (score >= 60) return { label: "Intermediate", color: "bg-amber-100 text-amber-700" };
+  if (score === null) return { label: "No Data", color: "bg-slate-100 text-slate-500" };
+  if (score >= MASTERY_THRESHOLDS.HIGH_SCORE_BONUS) return { label: "Advanced", color: "bg-emerald-100 text-emerald-700" };
+  if (score >= MASTERY_THRESHOLDS.PASSING) return { label: "Intermediate", color: "bg-amber-100 text-amber-700" };
   return { label: "Beginner", color: "bg-red-100 text-red-700" };
 }
 

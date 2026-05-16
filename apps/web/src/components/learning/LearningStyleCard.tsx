@@ -104,7 +104,7 @@ export function LearningStyleCard({
         {/* Activity Stat */}
         <div className="pt-3 border-t border-slate-100">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-400">{activityLabel}</span>
+            <span className="text-slate-500">{activityLabel}</span>
             <span className={`font-medium ${isActive ? colors.text : "text-slate-500"}`}>
               {activityCount}
             </span>

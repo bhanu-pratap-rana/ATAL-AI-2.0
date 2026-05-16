@@ -29,12 +29,8 @@ interface QuestionDetails {
 }
 
 
-// Get score color helper
-function getScoreColor(score: number): string {
-  if (score >= 80) return "text-emerald-600";
-  if (score >= 60) return "text-amber-600";
-  return "text-red-600";
-}
+// PR-68: thresholds aligned with MASTERY_THRESHOLDS via canonical helper.
+import { getScoreTextColor as getScoreColor } from "@/lib/utils/score-helpers";
 
 
 export default async function AssessmentDetailPage({

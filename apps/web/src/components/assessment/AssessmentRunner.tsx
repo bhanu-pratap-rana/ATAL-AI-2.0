@@ -509,7 +509,7 @@ export function AssessmentRunner({
       <div className="flex items-center justify-center min-h-screen bg-slate-50">
         <div className="text-center">
           <div className="w-12 h-12 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-slate-400">Loading assessment...</p>
+          <p className="text-slate-500">Loading assessment...</p>
         </div>
       </div>
     );
@@ -642,7 +642,7 @@ export function AssessmentRunner({
           <p className="text-sm text-slate-500 text-center">
             Take your time to read each question carefully
           </p>
-          <p className="text-xs text-slate-400 text-center">
+          <p className="text-xs text-slate-500 text-center">
             Use arrow keys to navigate options, Enter/Space to submit, or 1-4
             for quick selection
           </p>

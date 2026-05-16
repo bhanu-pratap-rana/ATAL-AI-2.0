@@ -16,12 +16,19 @@ import {
   formatRelativeDay as formatRelativeTime,
 } from "@/lib/utils/format-date";
 import { getScoreBgColor as getScoreCircleColor } from "@/lib/utils/score-helpers";
+import { MASTERY_THRESHOLDS } from "@/lib/constants/thresholds";
 
 import { BentoCard } from "@/components/ui/bento-card";
-// Get skill level from score
+// PR-68: align with MASTERY_THRESHOLDS to fix the visual contradiction
+// where a 72% score rendered a green-emerald circle next to an "Intermediate"
+// amber pill. Now 90+ = Advanced (emerald), 70+ = Intermediate (still amber
+// but at the canonical PASSING threshold), <70 = Beginner. Green circle +
+// green Advanced pill or amber circle + amber Intermediate pill — they
+// can no longer diverge mid-bucket.
 function getSkillLevel(score: number, language: SupportedLanguage): { label: string; color: string } {
-  if (score >= 80) return { label: getTranslation("skill.advanced", language), color: "bg-emerald-500 text-white" };
-  if (score >= 60)
+  if (score >= MASTERY_THRESHOLDS.HIGH_SCORE_BONUS)
+    return { label: getTranslation("skill.advanced", language), color: "bg-emerald-500 text-white" };
+  if (score >= MASTERY_THRESHOLDS.PASSING)
     return { label: getTranslation("skill.intermediate", language), color: "bg-amber-400 text-white" };
   return { label: getTranslation("skill.beginner", language), color: "bg-info text-white" };
 }

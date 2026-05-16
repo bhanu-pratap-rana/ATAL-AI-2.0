@@ -18,12 +18,18 @@ interface ClassAssessmentCardProps {
 }
 
 /**
- * Get score color based on value
+ * Get score color based on value (PR-68: thresholds via MASTERY_THRESHOLDS).
+ * The semantic tokens (success-light/dark, warning-light/dark) are the
+ * one outlier in the app — they map onto the design system's named
+ * status palette. Keep the local color list but pull the thresholds
+ * from the canonical helper.
  */
+import { MASTERY_THRESHOLDS } from "@/lib/constants/thresholds";
+
 function getScoreColor(score: number | null): string {
-  if (score === null) return "bg-slate-50 text-slate-400";
-  if (score >= 80) return "bg-success-light text-success-dark";
-  if (score >= 60) return "bg-warning-light text-warning-dark";
+  if (score === null) return "bg-slate-50 text-slate-500";
+  if (score >= MASTERY_THRESHOLDS.PASSING) return "bg-success-light text-success-dark";
+  if (score >= MASTERY_THRESHOLDS.STRUGGLING) return "bg-warning-light text-warning-dark";
   return "bg-error-light text-error-dark";
 }
 

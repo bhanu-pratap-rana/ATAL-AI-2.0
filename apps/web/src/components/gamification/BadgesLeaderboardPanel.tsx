@@ -115,13 +115,15 @@ export function BadgesLeaderboardPanel({
 
   return (
     <div>
-      {/* ── Mobile Tab Bar ── */}
-      <div role="tablist" className="flex md:hidden gap-2 mb-4">
+      {/* ── Mobile Tab Bar — PR-68: aria-controls + tabpanel wiring ── */}
+      <div role="tablist" aria-label="Achievements view" className="flex md:hidden gap-2 mb-4">
         {(["badges", "leaderboard"] as const).map((t) => (
           <Button
             key={t}
             type="button"
             role="tab"
+            id={`tab-bp-${t}`}
+            aria-controls="panel-bp"
             aria-selected={tab === t}
             size="sm"
             variant={tab === t ? "default" : "secondary"}
@@ -143,8 +145,15 @@ export function BadgesLeaderboardPanel({
         ))}
       </div>
 
-      {/* ── Split Layout ── */}
-      <div className="flex flex-col md:flex-row gap-4">
+      {/* ── Split Layout (also the tabpanel on mobile; on md+ both
+            sub-panels are visible so the tab semantics only apply at
+            mobile widths where the role="tablist" is rendered) ── */}
+      <div
+        role="tabpanel"
+        id="panel-bp"
+        aria-labelledby={`tab-bp-${tab}`}
+        className="flex flex-col md:flex-row gap-4"
+      >
 
         {/* LEFT — Badges */}
         <div className={`flex-1 ${tab === "leaderboard" ? "hidden md:block" : ""}`}>

@@ -51,11 +51,13 @@ export function CommunicationSection({
         </div>
       </CardHeader>
       <CardContent>
-        {/* Custom Tab Navigation */}
-        <div role="tablist" className="flex border-b border-slate-200 mb-4">
+        {/* PR-68: tab/tabpanel pair properly wired via aria-controls. */}
+        <div role="tablist" aria-label="Class communication" className="flex border-b border-slate-200 mb-4">
           <Button
             type="button"
             role="tab"
+            id="tab-comm-announcements"
+            aria-controls="panel-comm"
             aria-selected={activeTab === "announcements"}
             variant="ghost"
             onClick={() => setActiveTab("announcements")}
@@ -76,6 +78,8 @@ export function CommunicationSection({
           <Button
             type="button"
             role="tab"
+            id="tab-comm-materials"
+            aria-controls="panel-comm"
             aria-selected={activeTab === "materials"}
             variant="ghost"
             onClick={() => setActiveTab("materials")}
@@ -96,12 +100,20 @@ export function CommunicationSection({
         </div>
 
         {/* Tab Content */}
-        {activeTab === "announcements" && (
-          <AnnouncementList announcements={announcements} classId={classId} />
-        )}
-        {activeTab === "materials" && (
-          <MaterialsList materials={materials} classId={classId} />
-        )}
+        <div
+          role="tabpanel"
+          id="panel-comm"
+          aria-labelledby={
+            activeTab === "announcements" ? "tab-comm-announcements" : "tab-comm-materials"
+          }
+        >
+          {activeTab === "announcements" && (
+            <AnnouncementList announcements={announcements} classId={classId} />
+          )}
+          {activeTab === "materials" && (
+            <MaterialsList materials={materials} classId={classId} />
+          )}
+        </div>
       </CardContent>
     </Card>
   );

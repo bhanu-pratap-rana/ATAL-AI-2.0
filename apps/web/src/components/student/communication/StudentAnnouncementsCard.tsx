@@ -140,7 +140,7 @@ export function StudentAnnouncementsCard({
                   <p className="text-sm text-slate-500 whitespace-pre-wrap mb-2">
                     {announcement.body}
                   </p>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-500">
                     {formatRelativeTime(announcement.created_at)}
                   </p>
                 </div>

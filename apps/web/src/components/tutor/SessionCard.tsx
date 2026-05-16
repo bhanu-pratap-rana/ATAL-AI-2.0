@@ -10,6 +10,7 @@
 import Link from "next/link";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ChevronDown, ChevronUp, MessageCircle, Mic, Type, ExternalLink } from "lucide-react";
+import { MS_PER_DAY } from "@/lib/constants/time";
 
 interface Message {
   id: string;
@@ -40,7 +41,7 @@ function formatDate(dateString: string): string {
   const date = new Date(dateString);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const diffDays = Math.floor(diffMs / MS_PER_DAY);
 
   if (diffDays === 0) {
     return `Today at ${date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;

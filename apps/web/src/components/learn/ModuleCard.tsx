@@ -90,10 +90,10 @@ export function ModuleCard({
               {progress.is_complete && (
                 <span className="text-success text-sm">✓</span>
               )}
-              {!isUnlocked && <Lock size={14} strokeWidth={2.5} className="text-slate-400" aria-label="Locked" />}
+              {!isUnlocked && <Lock size={14} strokeWidth={2.5} className="text-slate-500" aria-label="Locked" />}
             </h3>
             {secondaryName && (
-              <p className="text-xs text-slate-400">{secondaryName}</p>
+              <p className="text-xs text-slate-500">{secondaryName}</p>
             )}
           </div>
         </div>
@@ -101,7 +101,7 @@ export function ModuleCard({
           <div className="text-sm font-bold text-slate-700">
             {progress.topics_completed}/{module.topics}
           </div>
-          <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t("learn.topics")}</div>
+          <div className="text-xs font-bold text-slate-500 uppercase tracking-widest">{t("learn.topics")}</div>
         </div>
       </div>
 
@@ -119,7 +119,7 @@ export function ModuleCard({
 
       {/* Progress Bar */}
       <div className="mb-4">
-        <div className="flex justify-between text-xs text-slate-400 mb-1.5">
+        <div className="flex justify-between text-xs text-slate-500 mb-1.5">
           <span className="font-semibold">{progressPercent}% {t("learn.complete")}</span>
           <span>{t("learn.avg")} {progress.average_mastery}%</span>
         </div>
@@ -148,7 +148,7 @@ export function ModuleCard({
       )}
 
       {!isUnlocked && (
-        <div className="text-center text-sm text-slate-400">
+        <div className="text-center text-sm text-slate-500">
           {t("learn.completeToUnlock", { n: String(index) })}
         </div>
       )}
