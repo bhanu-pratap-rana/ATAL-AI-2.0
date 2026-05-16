@@ -51,10 +51,16 @@ export function useAdaptiveContext(topicId: string | null): AdaptiveContext {
         }
 
         const [profileRes, masteryRes] = await Promise.all([
+          // F35: filter by `student_id` — the actual column on
+          // `learning_style_profile`. The earlier `.eq("user_id", ...)`
+          // returned 42703 `column ... does not exist` and surfaced as
+          // four 400s per lesson load. All other callers
+          // (learning-profile-queries, adaptive-service, admin-delete)
+          // already use student_id.
           supabase
             .from("learning_style_profile")
             .select("preferred_style")
-            .eq("user_id", user.id)
+            .eq("student_id", user.id)
             .maybeSingle(),
           topicId
             ? supabase

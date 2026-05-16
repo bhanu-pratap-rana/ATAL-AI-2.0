@@ -16,6 +16,19 @@ import { clientLogger } from "@/lib/client-logger";
 import { BadgesDisplay } from "./BadgesDisplay";
 import { Button } from "@/components/ui/button";
 
+/**
+ * F34: normalise unknown thrown values (notably Supabase PostgrestError,
+ * which is a plain object) into a real Error so clientLogger / Next.js
+ * dev overlay can read `.stack` without crashing.
+ */
+function toError(err: unknown): Error {
+  if (err instanceof Error) return err;
+  if (typeof err === "object" && err !== null && "message" in err) {
+    return new Error(String(err.message));
+  }
+  return new Error(typeof err === "string" ? err : JSON.stringify(err));
+}
+
 /** Top-3 ranks get medal icons; rest fall back to numeric label like #4, #5. */
 function RankBadge({ rank, isViewing }: { readonly rank: number; readonly isViewing: boolean }) {
   if (rank === 1) {
@@ -95,7 +108,14 @@ export function BadgesLeaderboardPanel({
         }))
       );
     } catch (err) {
-      clientLogger.error("[BadgesLeaderboardPanel] leaderboard fetch failed", err instanceof Error ? err : undefined);
+      // F34: Supabase PostgrestError is not an Error instance. Passing
+      // `undefined` made Next.js dev overlay crash on `.stack` lookup,
+      // surfacing as a follow-on TypeError per failure. Normalise to an
+      // Error so the logger and overlay both behave.
+      clientLogger.error(
+        "[BadgesLeaderboardPanel] leaderboard fetch failed",
+        toError(err),
+      );
     } finally {
       setLoadingLeaders(false);
     }
