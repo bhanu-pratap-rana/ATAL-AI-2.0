@@ -122,7 +122,7 @@ export const TopicRow = memo(function TopicRow({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 bg-success/10 hover:bg-success/20"
+                  className="h-11 w-11 bg-success/10 hover:bg-success/20"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -147,7 +147,7 @@ export const TopicRow = memo(function TopicRow({
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8"
+            className="h-11 w-11"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -155,6 +155,7 @@ export const TopicRow = memo(function TopicRow({
             }}
             disabled={isDownloading}
             title={t("learn.downloadForOffline")}
+            aria-label={t("learn.downloadForOffline")}
           >
             <Download
               className={cn(

@@ -530,6 +530,7 @@ export default function AITutorPage() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder={getTextInputPlaceholder(language)}
+                aria-label={getTextInputPlaceholder(language)}
                 className="flex-1 px-4 py-3 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-transparent font-medium text-sm"
                 disabled={isLoading}
               />

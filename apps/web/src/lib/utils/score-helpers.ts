@@ -1,18 +1,23 @@
 /**
  * Centralised score → colour mapping.
  *
- * Four files used to ship their own `getScoreColor()` and they all
- * returned different shapes (`bg-emerald-500`, `text-emerald-600`,
- * bg+text combinations) for the same score buckets. PR-65 unifies them
- * with explicit-purpose helpers so callers pick the shape that
- * matches the surface (progress bar fill vs. text vs. score badge).
+ * Four files used to ship their own `getScoreColor()` returning
+ * different shapes (`bg-emerald-500`, `text-emerald-600`, bg+text
+ * combinations) for the same buckets. PR-65 unified them with
+ * explicit-purpose helpers so callers pick the shape that matches
+ * the surface (progress bar fill vs. text vs. score badge).
  *
- * Thresholds: ≥80 = success, ≥60 = warning, <60 = error.
- * These match `MASTERY_THRESHOLDS` from lib/constants/thresholds.
+ * PR-66 fix: thresholds were drifted (80/60) from the canonical
+ * MASTERY_THRESHOLDS.PASSING=70. A score of 72 now correctly renders
+ * green ("mastered") instead of amber. We expose the lower band as
+ * a separate `WARNING` constant since `STRUGGLING=50` is what
+ * `MASTERY_THRESHOLDS` actually documents.
  */
 
-const SUCCESS = 80;
-const WARNING = 60;
+import { MASTERY_THRESHOLDS } from "@/lib/constants/thresholds";
+
+const SUCCESS = MASTERY_THRESHOLDS.PASSING;
+const WARNING = MASTERY_THRESHOLDS.STRUGGLING;
 
 /** Background colour for filled bars / dots / chips. */
 export function getScoreBgColor(score: number): string {
@@ -39,8 +44,8 @@ export function getScoreBadgeClasses(score: number): string {
 }
 
 /** Short label for a score bucket — used in badges/lists. */
-export function getScoreLabel(score: number): "Excellent" | "Good" | "Needs work" {
-  if (score >= SUCCESS) return "Excellent";
-  if (score >= WARNING) return "Good";
+export function getScoreLabel(score: number): "Mastered" | "On track" | "Needs work" {
+  if (score >= SUCCESS) return "Mastered";
+  if (score >= WARNING) return "On track";
   return "Needs work";
 }

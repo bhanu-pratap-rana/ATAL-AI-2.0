@@ -100,7 +100,7 @@ export function PasswordInput({
             variant="ghost"
             size="icon"
             onClick={() => handleShowPasswordChange(!showPassword)}
-            className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-slate-500 hover:text-text"
+            className="absolute right-1 top-1/2 -translate-y-1/2 h-11 w-11 text-slate-500 hover:text-text"
             disabled={disabled}
             aria-label={showPassword ? ariaLabelHide : ariaLabelShow}
           >

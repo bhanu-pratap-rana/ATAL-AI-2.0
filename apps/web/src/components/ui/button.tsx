@@ -93,24 +93,21 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {loading && (
-          // PR-64: spinner overlay carries `role="status"` + a visually
-          // hidden "Loading" label so screen readers announce the busy
-          // state instead of reading the original button text (which is
-          // still in the DOM, visually covered by the overlay).
+          // PR-66: spinner overlay is decorative — `aria-hidden`. The
+          // button's accessible name comes from its children (kept
+          // visible to AT via the same DOM) plus `aria-busy`, so SRs
+          // announce "Send, busy" instead of the previous PR-64 design
+          // which hid children with className="invisible" + aria-hidden
+          // and collapsed the accessible name to "Loading" — losing
+          // the action label and any aria-label on the trigger.
           <span
-            role="status"
-            aria-label="Loading"
+            aria-hidden="true"
             className="absolute inset-0 flex items-center justify-center bg-linear-to-br from-primary/90 to-primary-light/90"
           >
-            <span
-              aria-hidden="true"
-              className="h-5 w-5 rounded-full border-2 border-white border-t-transparent animate-spin motion-reduce:animate-none"
-            />
+            <span className="h-5 w-5 rounded-full border-2 border-white border-t-transparent animate-spin motion-reduce:animate-none" />
           </span>
         )}
-        <span aria-hidden={loading || undefined} className={loading ? "invisible" : undefined}>
-          {children}
-        </span>
+        <span className={loading ? "opacity-0" : undefined}>{children}</span>
       </Comp>
     );
   },

@@ -1,0 +1,22 @@
+-- 194_lockdown_remaining_secdef_rpcs.sql
+--
+-- PR-66: same pattern PR-64 applied to 7 RPCs — extend to the 6 the
+-- post-PR-65 audit found still un-gated. Each is SECDEF + grantable to
+-- authenticated, takes a target user/material/student id, and lacked
+-- any auth.uid() check, so any logged-in user could call them on
+-- behalf of anyone else.
+--
+-- See migration commit message (PR-66) for the full per-RPC
+-- pre-condition discussion. RPCs covered:
+--   • verify_staff_pin           — REVOKE EXECUTE from anon/authenticated
+--   • submit_assessment          — gate on auth.uid() = p_user_id
+--   • increment_visual_score     — gate on auth.uid() = p_student_id
+--   • increment_auditory_score   — gate on auth.uid() = p_student_id
+--   • increment_text_score       — gate on auth.uid() = p_student_id
+--   • increment_material_download — gate on teacher-of-class OR enrolled
+--   • check_curriculum_completion — gate on auth.uid() = p_student_id
+--   • get_unread_announcements   — gate on auth.uid() = p_student_id
+--
+-- See live DB definitions for the bodies (applied via Supabase MCP).
+
+REVOKE EXECUTE ON FUNCTION public.verify_staff_pin(uuid, text) FROM PUBLIC, anon, authenticated;

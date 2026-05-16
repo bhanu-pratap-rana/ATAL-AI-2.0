@@ -342,7 +342,7 @@ export function AdminListTable({
                   size="icon"
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? "Hide password" : "Show password"}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 text-slate-400 hover:text-slate-800"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-11 w-11 text-slate-500 hover:text-slate-800"
                 >
                   {showPassword ? (
                     <EyeOff className="w-4 h-4" />

@@ -185,18 +185,34 @@ export async function POST(request: Request): Promise<Response> {
     // Track start time for logging
     const startTime = Date.now();
 
-    // Log user message
-    // SEC-10 FIX: Truncate user content in logs to limit PII exposure
-    await logInteraction({
+    // PR-66: stable per-request sessionId. Previously two separate
+    // `sessionId || crypto.randomUUID()` calls (one here, one in
+    // onFinish for the assistant log) generated DIFFERENT UUIDs when
+    // the client didn't pass a sessionId, splitting the conversation
+    // into two distinct rows in AIInteractionsLog. Generate once,
+    // reuse for both logs.
+    const logSessionId = sessionId || crypto.randomUUID();
+
+    // PR-66: log the user message fire-and-forget. Was previously
+    // awaited before streamText — if the DB insert threw (RLS edge
+    // case, transient network), the user saw a 500 even though the
+    // chat itself would have worked.
+    void logInteraction({
       studentId: authenticatedUser.id,
-      sessionId: sessionId || crypto.randomUUID(),
+      sessionId: logSessionId,
       topicId,
       messageRole: "user",
+      // SEC-10: truncate user content in logs to limit PII exposure
       messageContent: userQuery.slice(0, 500),
       inputMode,
       language,
       tokensUsed: 0,
       responseTimeMs: 0,
+    }).catch((err) => {
+      authLogger.warn("[TutorChat] user logInteraction failed (non-blocking)", {
+        error: err instanceof Error ? err.message : String(err),
+        userId: authenticatedUser.id,
+      });
     });
 
     // Stream response with runtime auto-failover across configured
@@ -221,7 +237,7 @@ export async function POST(request: Request): Promise<Response> {
         try {
           await logInteraction({
             studentId: authenticatedUser.id,
-            sessionId: sessionId || crypto.randomUUID(),
+            sessionId: logSessionId,
             topicId,
             messageRole: "assistant",
             messageContent: text,

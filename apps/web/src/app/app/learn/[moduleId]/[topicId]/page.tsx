@@ -34,7 +34,7 @@ import { Button } from "@/components/ui/button";
 import { awardLessonCompletionPoints } from "@/app/actions/gamification";
 import { completeLessonAndUpdateProgress } from "@/app/actions/lesson-completion";
 import { stopTTS } from "@/lib/utils/client-tts";
-import { MAX_SCORE_WITHOUT_QUIZ } from "@/lib/constants/thresholds";
+import { MAX_SCORE_WITHOUT_QUIZ, getStatusFromScore } from "@/lib/constants/thresholds";
 
 // Lesson content interface
 interface LessonContent {
@@ -511,10 +511,14 @@ export default function LessonPage() {
         });
 
         // Award points for lesson completion
+        // PR-66: use ?? not || so a legitimate masteryScore of 0
+        // (post-PR-64 calculateScore is now strict and CAN return 0)
+        // doesn't fall through to the locally-calculated score.
+        const finalScore = result.masteryScore ?? score;
         const pointsResult = await awardLessonCompletionPoints(
           moduleId,
           topicId,
-          result.masteryScore || score,
+          finalScore,
         );
 
         if (pointsResult.success) {
@@ -526,20 +530,22 @@ export default function LessonPage() {
 
         // Show personalized completion modal instead of navigating immediately
         setCompletionData({
-          score: result.masteryScore || score,
+          score: finalScore,
           status: result.status === "mastered" ? "mastered" : "in_progress",
-          attempts: result.attempts || 1,
-          pointsAwarded: pointsResult?.pointsAwarded || 0,
-          newBadges: pointsResult?.newBadges || [],
+          attempts: result.attempts ?? 1,
+          pointsAwarded: pointsResult?.pointsAwarded ?? 0,
+          newBadges: pointsResult?.newBadges ?? [],
         });
       } else {
         clientLogger.error("[LessonPage] Failed to update progress", {
           error: result.error,
         });
-        // Still show completion modal with the calculated score on failure
+        // PR-66: source the threshold from MASTERY_THRESHOLDS instead of
+        // hardcoding 70 — keeps the failure-path status in lockstep with
+        // the SQL function and getStatusFromScore() helper.
         setCompletionData({
           score,
-          status: score >= 70 ? "mastered" : "in_progress",
+          status: getStatusFromScore(score),
           attempts: 1,
           pointsAwarded: 0,
           newBadges: [],

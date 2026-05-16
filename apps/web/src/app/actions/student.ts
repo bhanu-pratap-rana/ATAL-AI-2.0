@@ -244,6 +244,24 @@ export async function previewClass(classCode: string): Promise<{
       return { success: zodError.success, error: zodError.error };
     }
 
+    // PR-66: rate-limit preview. The post-PR-64 audit flagged that
+    // previewClass was the only class-code path without one, so an
+    // authenticated user could iterate every class_code in the space
+    // and harvest {className, teacherName, studentCount} for every
+    // class system-wide. Reuse the same per-user bucket as PIN joins,
+    // bumped to a generous 60/hour since previewing is innocuous when
+    // legit but should be capped against brute enumeration.
+    const previewAllowed = await checkRateLimit(
+      `class-preview:${user.id}`,
+      RATE_LIMITS.classJoinAttempts,
+    );
+    if (!previewAllowed) {
+      return {
+        success: false,
+        error: "Too many class preview requests. Please wait before trying again.",
+      };
+    }
+
     // PR-64 lockdown: classes_select no longer permits "any class with a
     // class_code" — that disjunct used to leak every row's plaintext
     // join_pin to any logged-in user. Now we route the preview through
@@ -435,9 +453,16 @@ async function createEnrollment(
  */
 export async function joinClass({ classCode, pin }: JoinClassParams) {
   try {
+    // PR-66: normalize the class code before BOTH the Zod validation
+    // and the rate-limit key, matching previewClass(). The previous
+    // flow let `"abc-123"` hit a different rate-limit bucket from
+    // `"ABC123"` — an attacker could amortize join attempts across
+    // case + hyphen variants of the same real code. Normalize first.
+    const normalizedClassCode = classCode.toUpperCase().replaceAll(/[^A-Z0-9]/g, "");
+
     let validatedInput;
     try {
-      validatedInput = JoinClassSchema.parse({ classCode, pin });
+      validatedInput = JoinClassSchema.parse({ classCode: normalizedClassCode, pin });
     } catch (error) {
       return handleZodError(error);
     }
