@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient, getCurrentUser } from "@/lib/supabase-server";
 import { authLogger } from "@/lib/auth-logger";
+import { formatDurationMMSS as formatTime } from "@/lib/utils/format-date";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -118,14 +119,7 @@ function buildModuleStats(questionStats: QuestionStats[]): Record<string, { tota
   );
 }
 
-function formatTime(ms: number): string {
-  if (ms < 1000) return "<1s";
-  const seconds = Math.round(ms / 1000);
-  if (seconds < 60) return `${seconds}s`;
-  const minutes = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${minutes}:${secs.toString().padStart(2, "0")}`;
-}
+// formatTime is imported above from lib/utils/format-date.ts
 
 export default async function PracticeQuestionAnalyticsPage() {
   const user = await getCurrentUser();

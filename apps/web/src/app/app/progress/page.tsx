@@ -10,35 +10,11 @@ import {
 } from "lucide-react";
 import { getProgressStats } from "@/app/actions/dashboard-stats";
 import { BadgesDisplay } from "@/components/gamification/BadgesDisplay";
-
-// Format time in minutes to readable string
-function formatTime(minutes: number): string {
-  if (minutes < 60) return `${minutes}m`;
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-  return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
-}
-
-// Format date to relative time
-function formatRelativeTime(dateString: string): string {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) return "Today";
-  if (diffDays === 1) return "Yesterday";
-  if (diffDays < 7) return `${diffDays} days ago`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-  return date.toLocaleDateString();
-}
-
-// Get score progress bar color based on performance level
-function getScoreColor(score: number): string {
-  if (score >= 80) return "bg-emerald-500";
-  if (score >= 60) return "bg-amber-400";
-  return "bg-error";
-}
+import {
+  formatDurationFromMinutes as formatTime,
+  formatRelativeDay as formatRelativeTime,
+} from "@/lib/utils/format-date";
+import { getScoreBgColor as getScoreColor } from "@/lib/utils/score-helpers";
 
 export default async function ProgressPage() {
   const supabase = await createClient();

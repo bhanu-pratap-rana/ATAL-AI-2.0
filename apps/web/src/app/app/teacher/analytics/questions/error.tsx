@@ -1,13 +1,3 @@
 "use client";
-
-import { ErrorFallback } from "@/components/errors/ErrorFallback";
-
-export default function TeacherAnalyticsError({
-  error,
-  reset,
-}: Readonly<{
-  error: Error & { digest?: string };
-  reset: () => void;
-}>) {
-  return <ErrorFallback error={error} reset={reset} context="teacher-analytics" />;
-}
+import { createRouteError } from "@/components/errors/create-route-error";
+export default createRouteError("teacher-analytics-questions");

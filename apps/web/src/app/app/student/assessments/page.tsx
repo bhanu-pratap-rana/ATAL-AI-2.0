@@ -11,28 +11,11 @@ import { createClient } from "@/lib/supabase-server";
 import { getTranslation } from "@/lib/i18n";
 import { getServerLanguage } from "@/lib/i18n/server";
 import type { SupportedLanguage } from "@/lib/i18n";
-
-// Format time in seconds to readable string
-function formatTime(seconds: number): string {
-  if (seconds < 60) return `${seconds}s`;
-  const minutes = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return secs > 0 ? `${minutes}m ${secs}s` : `${minutes}m`;
-}
-
-// Format date to relative time
-function formatRelativeTime(dateString: string): string {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) return "Today";
-  if (diffDays === 1) return "Yesterday";
-  if (diffDays < 7) return `${diffDays} days ago`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-  return date.toLocaleDateString();
-}
+import {
+  formatDurationFromSeconds as formatTime,
+  formatRelativeDay as formatRelativeTime,
+} from "@/lib/utils/format-date";
+import { getScoreBgColor as getScoreCircleColor } from "@/lib/utils/score-helpers";
 
 // Get skill level from score
 function getSkillLevel(score: number, language: SupportedLanguage): { label: string; color: string } {
@@ -40,13 +23,6 @@ function getSkillLevel(score: number, language: SupportedLanguage): { label: str
   if (score >= 60)
     return { label: getTranslation("skill.intermediate", language), color: "bg-amber-400 text-white" };
   return { label: getTranslation("skill.beginner", language), color: "bg-info text-white" };
-}
-
-// Get score circle background color
-function getScoreCircleColor(score: number): string {
-  if (score >= 80) return "bg-emerald-500";
-  if (score >= 60) return "bg-amber-400";
-  return "bg-error";
 }
 
 interface AssessmentSession {

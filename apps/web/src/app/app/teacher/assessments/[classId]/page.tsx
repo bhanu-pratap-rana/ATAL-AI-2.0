@@ -4,24 +4,10 @@ import { ArrowLeft, BarChart3 } from "lucide-react";
 import { createClient } from "@/lib/supabase-server";
 import { isTeacherOrHigher } from "@/lib/auth/role-utils";
 import { getClassAssessmentResults } from "@/app/actions/teacher";
-import { formatDate } from "@/lib/date-format";
-
-function formatRelativeTime(dateString: string | null): string {
-  if (!dateString) return "Never";
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) return "Today";
-  if (diffDays === 1) return "Yesterday";
-  if (diffDays < 7) return `${diffDays} days ago`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-  return formatDate(dateString);
-}
+import { formatRelativeDay as formatRelativeTime } from "@/lib/utils/format-date";
 
 function getScoreColor(score: number | null): string {
-  if (score === null) return "bg-slate-100 text-slate-400";
+  if (score === null) return "bg-slate-100 text-slate-500";
   if (score >= 80) return "bg-emerald-500 text-white";
   if (score >= 60) return "bg-amber-400 text-white";
   return "bg-red-400 text-white";
