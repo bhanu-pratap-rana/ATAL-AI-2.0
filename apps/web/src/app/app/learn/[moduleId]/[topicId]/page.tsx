@@ -15,19 +15,8 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useParams, useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport, type UIMessage } from "ai";
-
-/**
- * v6 UIMessage helper — see comment in ai-tools/tutor/page.tsx for the
- * full rationale. Pulls the plain-text body out of a parts-shaped message.
- */
-function messageText(m: UIMessage): string {
-  let out = "";
-  for (const p of m.parts) {
-    if (p.type === "text") out += p.text;
-  }
-  return out;
-}
+import { DefaultChatTransport } from "ai";
+import { messageText } from "@/lib/ai/ui-message";
 import { ConversationalVoiceChat } from "@/components/voice/ConversationalVoiceChat";
 import type { Language } from "@/hooks/useConversationalVoice";
 import { createClient } from "@/lib/supabase-browser";
@@ -370,22 +359,20 @@ export default function LessonPage() {
 
   // AI Chat integration — SDK 6 removed input/handleInputChange/handleSubmit/append
   // from useChat. We track the input box locally and use sendMessage()
-  // for both form-submit and voice transcripts. The wire-level config
-  // moves to DefaultChatTransport; `body` is re-evaluated per send so
-  // language / inputMode changes propagate without rebuilding the hook.
-  // `initialMessages` was renamed to `messages` (a seed) and the message
-  // shape moved from `content` to `parts: [{type: 'text', text}]`.
+  // for both form-submit and voice transcripts.
+  //
+  // PR-64 fixes vs PR-63:
+  //   * The wire-level config goes through DefaultChatTransport. The
+  //     `body` callback is also re-evaluated on every send, but useChat
+  //     in @ai-sdk/react v3 latches its transport on first mount and
+  //     ignores subsequent prop changes — so we pass a stable `key` to
+  //     force the hook to reinitialize whenever language/inputMode flip.
+  //   * The `messages:` seed used to re-fire on every language/lesson
+  //     change, which wiped in-flight conversation history. We removed
+  //     the seed and instead render the welcome message inline in the
+  //     empty state, so live history is preserved across language flips.
   const [input, setInput] = useState("");
-  const initialMessages = useMemo<UIMessage[]>(
-    () => [
-      {
-        id: "welcome",
-        role: "assistant",
-        parts: [{ type: "text", text: getAIWelcomeMessage(language, lesson) }],
-      },
-    ],
-    [language, lesson],
-  );
+  const chatKey = `${language}|${moduleId}|${topicId}|${inputMode}`;
   const chatTransport = useMemo(
     () =>
       new DefaultChatTransport({
@@ -396,8 +383,8 @@ export default function LessonPage() {
   );
   const { messages, sendMessage, status: chatStatus, error: chatError } =
     useChat({
+      id: chatKey,
       transport: chatTransport,
-      messages: initialMessages,
     });
   const handleSubmit = useCallback(
     (e: React.FormEvent<HTMLFormElement>) => {
@@ -486,10 +473,16 @@ export default function LessonPage() {
   // Calculate practice score
   // ROOT CAUSE FIX: Check dynamic mode FIRST before practice questions
   // Bug: Static lesson.practice_questions was being checked even in dynamic mode,
-  // causing score=0 because practiceAnswers is empty when using LessonPlayer
+  // causing score=0 because practiceAnswers is empty when using LessonPlayer.
+  //
+  // PR-64: previously fell back to `?? totalChunksCount`, which awarded
+  // 100% whenever the caller forgot the args (e.g. unmount cleanup, double
+  // fire). Now require a numeric `completed` — if missing, return 0 so
+  // accidental fires don't grant full mastery.
   const calculateScore = (completedChunksCount?: number, totalChunksCount?: number): number => {
     if (!totalChunksCount || totalChunksCount === 0) return 0;
-    const safeCompleted = completedChunksCount ?? totalChunksCount;
+    if (typeof completedChunksCount !== "number" || completedChunksCount < 0) return 0;
+    const safeCompleted = Math.min(completedChunksCount, totalChunksCount);
     return Math.round((safeCompleted / totalChunksCount) * MAX_SCORE_WITHOUT_QUIZ);
   };
 
@@ -744,9 +737,12 @@ export default function LessonPage() {
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.length <= 1 ? (
+              {messages.length === 0 ? (
                 <div className="text-center py-6">
-                  <p className="text-slate-500 text-sm mb-3">
+                  <p className="text-slate-700 text-sm mb-3 font-medium">
+                    {getAIWelcomeMessage(language, lesson)}
+                  </p>
+                  <p className="text-slate-500 text-xs mb-3">
                     {inputMode === "voice"
                       ? "Tap the microphone to start!"
                       : "Ask me anything about this lesson!"}
@@ -912,9 +908,12 @@ export default function LessonPage() {
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.length <= 1 ? (
+              {messages.length === 0 ? (
                 <div className="text-center py-6">
-                  <p className="text-slate-500 text-sm mb-3">
+                  <p className="text-slate-700 text-sm mb-3 font-medium">
+                    {getAIWelcomeMessage(language, lesson)}
+                  </p>
+                  <p className="text-slate-500 text-xs mb-3">
                     {inputMode === "voice"
                       ? "Tap the microphone to start!"
                       : "Ask me anything about this lesson!"}

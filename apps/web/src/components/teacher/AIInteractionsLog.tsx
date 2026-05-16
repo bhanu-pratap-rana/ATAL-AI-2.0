@@ -67,9 +67,25 @@ export function AIInteractionsLog({
 
       if (cancelled.current) return;
 
-      const ids = enrollments?.map((e) => e.student_id) || [];
+      // PR-64: dedup + sort so the resulting array's identity is stable
+      // across refetches when membership didn't actually change. The
+      // realtime-subscription effect below depends on this array's
+      // identity to decide whether to resubscribe; without dedup the
+      // channel was rebuilt on every fetch and lost buffered INSERTs.
+      const ids = [...new Set(enrollments?.map((e) => e.student_id) ?? [])].sort((a, b) =>
+        a.localeCompare(b),
+      );
       enrolledIdsRef.current = new Set(ids);
-      setStudentIds(ids);
+      setStudentIds((prev) => {
+        if (
+          prev &&
+          prev.length === ids.length &&
+          prev.every((v, i) => v === ids[i])
+        ) {
+          return prev;
+        }
+        return ids;
+      });
 
       if (ids.length === 0) {
         setInteractions([]);
@@ -114,35 +130,41 @@ export function AIInteractionsLog({
 
   // Realtime channel keyed by the enrolled student list. We push a
   // server-side `filter: student_id=in.(...)` so every teacher only
-  // receives their own class's events instead of the global firehose
-  // (previously every connected teacher got every student's INSERTs
-  // and filtered client-side via enrolledIdsRef — wasted bandwidth
-  // and a soft privacy issue). Channel resubscribes when the roster
-  // changes (student added/removed). Skip subscription entirely when
-  // the class has no enrolled students.
+  // receives their own class's events instead of the global firehose.
+  //
+  // PR-64: for classes larger than REALTIME_FILTER_CAP, Supabase's
+  // postgres_changes filter string runs into PostgREST URL-length
+  // limits (default ~8 KB) and the subscription silently fails to
+  // bind. Above the cap we fall back to a wildcard subscription +
+  // client-side filtering via enrolledIdsRef (the same path the
+  // pre-PR-62 code used). Below the cap, server-side filtering wins.
   useEffect(() => {
     if (!studentIds || studentIds.length === 0) return;
 
     const supabase = createClient();
-    const filter = `student_id=in.(${studentIds.join(",")})`;
-    const channel = supabase
-      .channel(`ai-interactions-${classId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
+    const REALTIME_FILTER_CAP = 100;
+    const useServerFilter = studentIds.length <= REALTIME_FILTER_CAP;
+    const channelBuilder = supabase.channel(`ai-interactions-${classId}`);
+    const subscribeArgs = useServerFilter
+      ? {
+          event: "INSERT" as const,
           schema: "public",
           table: "ai_tutor_interactions",
-          filter,
-        },
-        (payload) => {
-          const newInteraction = payload.new as AIInteraction;
-          // Defensive: server filter is authoritative, but ref is
-          // also kept in sync so we still gate client-side.
-          if (!enrolledIdsRef.current.has(newInteraction.student_id)) return;
-          setInteractions((prev) => [newInteraction, ...prev].slice(0, limit));
-        },
-      )
+          filter: `student_id=in.(${studentIds.join(",")})`,
+        }
+      : {
+          event: "INSERT" as const,
+          schema: "public",
+          table: "ai_tutor_interactions",
+        };
+    const channel = channelBuilder
+      .on("postgres_changes", subscribeArgs, (payload) => {
+        const newInteraction = payload.new as AIInteraction;
+        // enrolledIdsRef is authoritative; mandatory when we're on the
+        // wildcard fallback, defensive when server filter is in use.
+        if (!enrolledIdsRef.current.has(newInteraction.student_id)) return;
+        setInteractions((prev) => [newInteraction, ...prev].slice(0, limit));
+      })
       .subscribe();
 
     return () => {

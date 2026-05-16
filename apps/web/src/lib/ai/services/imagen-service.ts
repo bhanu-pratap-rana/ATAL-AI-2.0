@@ -233,8 +233,16 @@ export async function generateImage(
       break;
     }
 
-    if (!response!.ok) {
-      const errorBody = await response!.text();
+    // PR-64: replace `response!.` non-null asserts. The retry loop above
+    // CAN exit with `response` still undefined if every attempt is a 429
+    // and the last `continue` runs before assignment — better to fail
+    // loudly with a clear message than NPE on `response!.ok`.
+    if (!response) {
+      throw new Error("Vertex AI Imagen: no response after retries (all attempts rate-limited)");
+    }
+
+    if (!response.ok) {
+      const errorBody = await response.text();
       let errorMessage: string;
 
       try {
@@ -245,15 +253,15 @@ export async function generateImage(
       }
 
       authLogger.error("[Imagen] Vertex AI error", {
-        status: response!.status,
-        statusText: response!.statusText,
+        status: response.status,
+        statusText: response.statusText,
         error: errorMessage,
       });
 
-      throw new Error(`Vertex AI Imagen error (${response!.status}): ${errorMessage}`);
+      throw new Error(`Vertex AI Imagen error (${response.status}): ${errorMessage}`);
     }
 
-    const result = await response!.json();
+    const result = await response.json();
 
     // Vertex AI response format: predictions[0].bytesBase64Encoded
     const imageData = result.predictions?.[0]?.bytesBase64Encoded;

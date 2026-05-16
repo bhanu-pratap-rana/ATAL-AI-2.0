@@ -202,7 +202,7 @@ export default async function LearningStylePage() {
             ].map((item) => (
               <div key={item.label} className="p-3 bg-slate-50 rounded-2xl">
                 <span className="font-black text-orange-500">{item.label}</span>
-                <p className="text-slate-400 font-bold mt-1 text-xs">{item.desc}</p>
+                <p className="text-slate-500 font-bold mt-1 text-xs">{item.desc}</p>
               </div>
             ))}
           </div>

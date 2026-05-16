@@ -100,6 +100,19 @@ export function AnonymousJoinStep({ actions }: AnonymousJoinStepProps) {
       router.push("/app/student/dashboard");
     } catch (err) {
       authLogger.error("[AnonymousJoin] Unexpected error", err);
+      // PR-64: also tear down the anonymous Supabase session in the
+      // unhandled-throw path. Previously only the explicit !success path
+      // signed out — if joinClassAsAnonymous threw (network/RPC failure),
+      // the anon session remained active but the user had no profile or
+      // enrollment, so subsequent RLS-bound reads failed silently.
+      try {
+        await supabase.auth.signOut();
+      } catch (signOutErr) {
+        authLogger.warn(
+          "[AnonymousJoin] signOut after failure also threw",
+          signOutErr instanceof Error ? signOutErr : { error: String(signOutErr) },
+        );
+      }
       setError("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);

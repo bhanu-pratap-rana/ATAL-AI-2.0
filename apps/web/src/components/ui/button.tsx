@@ -20,6 +20,10 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
+  // PR-64: added `active:bg-slate-100` to secondary/ghost via the
+  // variant-level recipes below so reduced-motion users still get
+  // visible press feedback (the motion-safe scale transform was the
+  // only press signal previously, which left those two variants flat).
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl text-sm font-bold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 relative overflow-hidden motion-safe:hover:scale-[1.02] motion-safe:active:scale-[0.98] will-change-transform",
   {
     variants: {
@@ -29,15 +33,15 @@ const buttonVariants = cva(
           // white text keeps ≥4.5:1 contrast even at the lightest pixel.
           "bg-linear-to-br from-primary to-primary-dark text-white border-2 border-white/20 shadow-[0_4px_14px_0_rgba(249,136,25,0.39)] hover:brightness-[1.08] hover:shadow-[0_6px_20px_rgba(249,136,25,0.5)] active:brightness-[0.92] active:shadow-[0_2px_6px_rgba(249,136,25,0.2)] active:translate-y-px",
         destructive:
-          "bg-error text-white hover:bg-error/90 shadow-md border-2 border-white/20",
+          "bg-error text-white hover:bg-error/90 active:bg-error/80 shadow-md border-2 border-white/20",
         outline:
           // text-primary-darkest (#8B4A0B) is ~8:1 vs white, comfortably
           // clearing WCAG AA. --primary alone failed Lighthouse here.
-          "border-2 border-primary bg-white text-primary-darkest hover:bg-slate-50",
+          "border-2 border-primary bg-white text-primary-darkest hover:bg-slate-50 active:bg-slate-100",
         secondary:
-          "bg-slate-50 text-slate-800 hover:bg-border border-2 border-slate-200",
+          "bg-slate-50 text-slate-800 hover:bg-border active:bg-slate-200 border-2 border-slate-200",
         ghost:
-          "hover:bg-slate-50 hover:text-primary border-2 border-transparent",
+          "hover:bg-slate-50 hover:text-primary active:bg-slate-100 border-2 border-transparent",
         link: "text-primary underline-offset-4 hover:underline",
         gradient:
           "bg-linear-to-br from-primary to-primary-light text-white border-2 border-white/20 shadow-[0_4px_14px_0_rgba(249,136,25,0.39)] hover:brightness-[1.08] hover:shadow-[0_6px_20px_rgba(249,136,25,0.5)] active:brightness-[0.92] active:shadow-[0_2px_6px_rgba(249,136,25,0.2)] active:translate-y-px",
@@ -89,14 +93,24 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {loading && (
+          // PR-64: spinner overlay carries `role="status"` + a visually
+          // hidden "Loading" label so screen readers announce the busy
+          // state instead of reading the original button text (which is
+          // still in the DOM, visually covered by the overlay).
           <span
-            aria-hidden="true"
+            role="status"
+            aria-label="Loading"
             className="absolute inset-0 flex items-center justify-center bg-linear-to-br from-primary/90 to-primary-light/90"
           >
-            <span className="h-5 w-5 rounded-full border-2 border-white border-t-transparent animate-spin motion-reduce:animate-none" />
+            <span
+              aria-hidden="true"
+              className="h-5 w-5 rounded-full border-2 border-white border-t-transparent animate-spin motion-reduce:animate-none"
+            />
           </span>
         )}
-        {children}
+        <span aria-hidden={loading || undefined} className={loading ? "invisible" : undefined}>
+          {children}
+        </span>
       </Comp>
     );
   },

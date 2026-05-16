@@ -1477,7 +1477,24 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: string[]
       }
-      get_user_id_by_username: { Args: { p_username: string }; Returns: string }
+      preview_class_by_code: {
+        Args: { p_class_code: string }
+        Returns: {
+          class_id: string
+          class_name: string
+          subject: string | null
+          teacher_name: string
+          student_count: number
+        }[]
+      }
+      verify_class_join_pin: {
+        Args: { p_class_code: string; p_pin: string }
+        Returns: {
+          success: boolean
+          class_id: string | null
+          class_name: string | null
+        }[]
+      }
       has_assessment_type: {
         Args: { p_type: string; p_user_id: string }
         Returns: boolean

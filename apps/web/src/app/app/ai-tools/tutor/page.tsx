@@ -13,20 +13,7 @@ import {
   Mic,
   Pencil,
 } from "lucide-react";
-
-/**
- * Pull the plain-text body out of a v6 UIMessage. The new message
- * shape is `{ parts: [{type, text}, ...] }`. We concatenate every
- * text part — assistant streams arrive as a single text part most
- * of the time, but multi-part is allowed.
- */
-function messageText(m: UIMessage): string {
-  let out = "";
-  for (const p of m.parts) {
-    if (p.type === "text") out += p.text;
-  }
-  return out;
-}
+import { messageText } from "@/lib/ai/ui-message";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { VoiceChat } from "@/components/voice/VoiceChat";
 import { ConversationalVoiceChat } from "@/components/voice/ConversationalVoiceChat";
@@ -107,10 +94,15 @@ export default function AITutorPage() {
   // SDK 6 removed `input` / `handleInputChange` / `handleSubmit` / `append`
   // from useChat — we manage the input box state locally and call
   // `sendMessage()` from the hook. The wire-level config (URL + body) moves
-  // to `DefaultChatTransport`. `body` is re-evaluated per send because
-  // language / inputMode change at runtime, so the transport is rebuilt
-  // inside a memo. SessionId is stable for the page lifetime.
+  // to `DefaultChatTransport`.
+  //
+  // PR-64: useChat in @ai-sdk/react v3 latches its transport on first
+  // mount and ignores later prop changes — so we pass an `id` keyed by
+  // language/inputMode. When either flips, useChat re-initializes
+  // against the fresh transport so subsequent requests carry the new
+  // values instead of the stale closure.
   const [input, setInput] = useState("");
+  const chatKey = `${language}|${inputMode}|${sessionId}`;
   const chatTransport = useMemo(
     () =>
       new DefaultChatTransport({
@@ -120,6 +112,7 @@ export default function AITutorPage() {
     [language, sessionId, inputMode],
   );
   const { messages, sendMessage, status, error } = useChat({
+    id: chatKey,
     transport: chatTransport,
   });
   const handleSubmit = useCallback(
@@ -187,7 +180,7 @@ export default function AITutorPage() {
   if (isAuthChecking) {
     return (
       <div className="min-h-screen [background:var(--bento-bg)] flex items-center justify-center">
-        <div className="animate-pulse text-slate-400 font-bold">Loading...</div>
+        <div className="animate-pulse text-slate-500 font-bold">Loading...</div>
       </div>
     );
   }
@@ -272,7 +265,7 @@ export default function AITutorPage() {
           <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-4 flex flex-wrap items-center gap-4">
             {/* Voice Mode Selector */}
             <div role="tablist" className="flex items-center gap-2">
-              <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Mode:</span>
+              <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Mode:</span>
               <Button
                 type="button"
                 role="tab"
@@ -298,7 +291,7 @@ export default function AITutorPage() {
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-slate-400">
+              <span className="text-xs font-bold text-slate-500">
                 Response: <strong className="text-orange-500">{getLanguageName(language)}</strong>
               </span>
               <span className="text-xs font-bold text-emerald-600 flex items-center gap-1.5">
@@ -309,17 +302,34 @@ export default function AITutorPage() {
 
             {/* Auto-TTS Toggle */}
             <div className="flex items-center gap-2 ml-auto">
-              <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Auto-speak:</span>
+              <span
+                id="auto-tts-label"
+                className="text-xs font-black text-slate-500 uppercase tracking-widest"
+              >
+                Auto-speak:
+              </span>
               <Button
                 type="button"
                 role="switch"
                 aria-checked={autoTTS}
-                aria-label={autoTTS ? "Disable auto-TTS" : "Enable auto-TTS"}
+                aria-labelledby="auto-tts-label"
                 variant="ghost"
                 onClick={() => setAutoTTS(!autoTTS)}
-                className={`relative w-10 h-5 p-0 rounded-full border-0 hover:bg-current ${autoTTS ? "bg-orange-400 hover:bg-orange-400" : "bg-slate-200 hover:bg-slate-200"}`}
+                // PR-64: was 40×20 (fails 44×44 touch target). Wrap the
+                // visual switch in a 44×44 hit area and keep the rail
+                // visual where it was. Also: dropped the contradictory
+                // toggled aria-label (SRs were reading "Disable auto-TTS,
+                // on") and the no-op `hover:bg-current` class.
+                className={`relative min-w-[44px] min-h-[44px] p-0 rounded-full border-0 flex items-center justify-center bg-transparent hover:bg-transparent`}
               >
-                <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${autoTTS ? "translate-x-5" : "translate-x-0"}`} />
+                <span
+                  aria-hidden="true"
+                  className={`relative block w-10 h-5 rounded-full transition-colors ${autoTTS ? "bg-orange-400" : "bg-slate-200"}`}
+                >
+                  <span
+                    className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${autoTTS ? "translate-x-5" : "translate-x-0"}`}
+                  />
+                </span>
               </Button>
             </div>
           </div>
@@ -354,7 +364,7 @@ export default function AITutorPage() {
           <div className="h-[calc(100vh-360px)] sm:h-[400px] lg:h-[500px] overflow-y-auto space-y-4 mb-4">
             {messages.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-slate-400 font-bold mb-4">
+                <p className="text-slate-500 font-bold mb-4">
                   {inputMode === "voice" ? "Tap the microphone to start a voice conversation!" : "Start a conversation with your AI tutor!"}
                 </p>
                 <div className="flex flex-wrap justify-center gap-2">

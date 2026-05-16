@@ -252,7 +252,7 @@ export default async function ClassDetailPage({
             <h2 className="font-black text-slate-800 text-lg mb-1 flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-(--bento-sky-d)" strokeWidth={2.25} aria-hidden="true" /> Real-time Student Progress
             </h2>
-            <p className="text-xs font-bold text-slate-400 mb-4">Live view of student learning progress and at-risk indicators</p>
+            <p className="text-xs font-bold text-slate-500 mb-4">Live view of student learning progress and at-risk indicators</p>
             <StudentProgressGrid classId={id} />
           </div>
         )}
@@ -263,7 +263,7 @@ export default async function ClassDetailPage({
             <h2 className="font-black text-slate-800 text-lg mb-1 flex items-center gap-2">
               <Bot className="w-5 h-5 text-(--bento-purple-d)" strokeWidth={2.25} aria-hidden="true" /> AI Tutor Activity
             </h2>
-            <p className="text-xs font-bold text-slate-400 mb-4">Recent AI tutor conversations from your students</p>
+            <p className="text-xs font-bold text-slate-500 mb-4">Recent AI tutor conversations from your students</p>
             <AIInteractionsLog classId={id} limit={15} />
           </div>
         )}
@@ -278,14 +278,14 @@ export default async function ClassDetailPage({
         {/* Roster */}
         <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-6">
           <h2 className="font-black text-slate-800 text-lg mb-1">Class Roster</h2>
-          <p className="text-xs font-bold text-slate-400 mb-4">View and manage students enrolled in this class</p>
+          <p className="text-xs font-bold text-slate-500 mb-4">View and manage students enrolled in this class</p>
           {enrollments.length === 0 ? (
             <div className="text-center py-10">
               <div className="mx-auto mb-4 w-16 h-16 rounded-3xl bg-(--bento-tint-sky) border-4 border-white shadow-sm flex items-center justify-center text-(--bento-sky-d)">
                 <Users className="w-8 h-8" strokeWidth={2.25} aria-hidden="true" />
               </div>
               <h3 className="font-black text-slate-800 text-lg mb-2">No students enrolled yet</h3>
-              <p className="font-bold text-slate-400 text-sm">Use the Invite Student button above or share the class details</p>
+              <p className="font-bold text-slate-500 text-sm">Use the Invite Student button above or share the class details</p>
             </div>
           ) : (
             <RosterTable enrollments={enrollments} classId={id} />

@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { timingSafeEqual } from "node:crypto";
 import {
   createAdminClient,
   createClient,
@@ -245,56 +244,45 @@ export async function previewClass(classCode: string): Promise<{
       return { success: zodError.success, error: zodError.error };
     }
 
-    // Use regular client - RLS policy allows authenticated users to preview classes by code
+    // PR-64 lockdown: classes_select no longer permits "any class with a
+    // class_code" — that disjunct used to leak every row's plaintext
+    // join_pin to any logged-in user. Now we route the preview through
+    // the SECURITY DEFINER `preview_class_by_code` RPC which returns
+    // only the safe subset (id, name, subject, teacher_name, count) and
+    // never exposes the PIN.
     const supabase = await createClient();
+    const { data: previewRows, error: previewError } = await supabase.rpc(
+      "preview_class_by_code",
+      { p_class_code: validatedClassCode },
+    );
 
-    // Find class by code (no PIN required for preview)
-    const { data: classData, error: classError } = await supabase
-      .from("classes")
-      .select(
-        `
-        id,
-        name,
-        subject,
-        teacher_id
-      `,
-      )
-      .eq("class_code", validatedClassCode)
-      .maybeSingle();
-
-    if (classError) {
-      authLogger.error("[previewClass] Error looking up class", classError);
+    if (previewError) {
+      authLogger.error("[previewClass] preview RPC failed", previewError);
       return { success: false, error: "Failed to lookup class" };
     }
 
-    if (!classData) {
+    const preview = (previewRows as Array<{
+      class_id: string;
+      class_name: string;
+      subject: string | null;
+      teacher_name: string;
+      student_count: number;
+    }> | null)?.[0];
+
+    if (!preview) {
       return {
         success: false,
         error: "Class not found. Please check the code.",
       };
     }
 
-    // Teacher name and student count are independent of each other; fetch
-    // in parallel so the preview drops from 3 round trips to 2.
-    const [teacherRes, countRes] = await Promise.all([
-      supabase
-        .from("teacher_profiles")
-        .select("name")
-        .eq("user_id", classData.teacher_id)
-        .maybeSingle(),
-      supabase
-        .from("enrollments")
-        .select("*", { count: "exact", head: true })
-        .eq("class_id", classData.id),
-    ]);
-
     return {
       success: true,
       data: {
-        className: classData.name,
-        teacherName: teacherRes.data?.name || "Unknown Teacher",
-        subject: classData.subject,
-        studentCount: countRes.count || 0,
+        className: preview.class_name,
+        teacherName: preview.teacher_name,
+        subject: preview.subject,
+        studentCount: preview.student_count,
       },
     };
   } catch (error) {
@@ -312,57 +300,53 @@ interface JoinClassParams {
 }
 
 /**
- * Helper: Verify PIN using constant-time comparison
+ * Helper: Verify class PIN server-side via SECURITY DEFINER RPC.
+ *
+ * PR-64 lockdown: the previous flow fetched `join_pin` over the wire
+ * (RLS-bound) and compared with timingSafeEqual client-side. That worked
+ * but required `classes.join_pin` to be readable by the caller, and
+ * combined with the broad `class_code IS NOT NULL` RLS clause, exposed
+ * every plaintext PIN to every authenticated user. We now hand both the
+ * code and PIN to `verify_class_join_pin`, which does the equality
+ * compare inside the database and returns only {success, class_id,
+ * class_name} — never the PIN itself.
  */
-function verifyPin(pin: string, storedPin: string | null): boolean {
-  if (!storedPin) {
-    return false;
-  }
-  const pinBuffer = Buffer.from(pin);
-  const storedBuffer = Buffer.from(storedPin);
-  // timingSafeEqual throws if lengths differ — check first
-  if (pinBuffer.length !== storedBuffer.length) {
-    return false;
-  }
-  return timingSafeEqual(pinBuffer, storedBuffer);
-}
-
-/**
- * Helper: Lookup class by code
- * Uses regular client - RLS policy allows authenticated users to preview classes by code
- */
-async function lookupClassByCode(
+async function verifyClassJoinPin(
   supabase: Awaited<ReturnType<typeof createClient>>,
   classCode: string,
+  pin: string,
 ): Promise<
-  | {
-      success: true;
-      classData: {
-        id: string;
-        name: string;
-        class_code: string;
-        join_pin: string | null;
-      };
-    }
+  | { success: true; classData: { id: string; name: string; class_code: string } }
   | { success: false; error: string }
 > {
-  const { data: classData, error: classError } = await supabase
-    .from("classes")
-    .select("id, name, class_code, join_pin")
-    .eq("class_code", classCode)
-    .maybeSingle();
+  const { data, error } = await supabase.rpc("verify_class_join_pin", {
+    p_class_code: classCode,
+    p_pin: pin,
+  });
 
-  if (classError) {
-    authLogger.error("[joinClass] Error looking up class", classError);
-    return { success: false, error: "Failed to lookup class" };
+  if (error) {
+    authLogger.error("[joinClass] verify_class_join_pin RPC failed", error);
+    return { success: false, error: "Failed to verify class" };
   }
 
-  if (!classData) {
-    authLogger.debug("[joinClass] Class not found", { classCode });
+  const row = (data as Array<{
+    success: boolean;
+    class_id: string | null;
+    class_name: string | null;
+  }> | null)?.[0];
+
+  if (!row || !row.success || !row.class_id || !row.class_name) {
     return { success: false, error: "Invalid class code or PIN" };
   }
 
-  return { success: true, classData };
+  return {
+    success: true,
+    classData: {
+      id: row.class_id,
+      name: row.class_name,
+      class_code: classCode,
+    },
+  };
 }
 
 /**
@@ -481,19 +465,20 @@ export async function joinClass({ classCode, pin }: JoinClassParams) {
     }
 
     const supabase = await createClient();
-    // Use regular client - RLS policy allows authenticated users to preview classes by code
-    const classLookup = await lookupClassByCode(supabase, validatedClassCode);
+    // PR-64 lockdown: verify class + PIN server-side via SECURITY DEFINER
+    // RPC. The previous client-side compare required the PIN to be
+    // readable over the wire.
+    const classLookup = await verifyClassJoinPin(
+      supabase,
+      validatedClassCode,
+      validatedPin,
+    );
     if (!classLookup.success) {
-      return { success: false, error: classLookup.error };
-    }
-
-    const pinValid = verifyPin(validatedPin, classLookup.classData.join_pin);
-    if (!pinValid) {
       authLogger.warn("[joinClass] Invalid PIN attempt", {
         classCode: validatedClassCode,
         userId: auth.user.id,
       });
-      return { success: false, error: "Invalid class code or PIN" };
+      return { success: false, error: classLookup.error };
     }
 
     const enrollmentCheck = await checkExistingEnrollment(
@@ -619,18 +604,17 @@ export async function joinClassAsAnonymous(
     }
 
     const upperClassCode = params.classCode.toUpperCase().trim();
-    const classLookup = await lookupClassByCode(supabase, upperClassCode);
+    const classLookup = await verifyClassJoinPin(
+      supabase,
+      upperClassCode,
+      params.pin.trim(),
+    );
     if (!classLookup.success) {
-      return { success: false, error: classLookup.error };
-    }
-
-    const pinValid = verifyPin(params.pin.trim(), classLookup.classData.join_pin);
-    if (!pinValid) {
       authLogger.warn("[joinClassAsAnonymous] Invalid PIN attempt", {
         classCode: upperClassCode,
         userId: user.id,
       });
-      return { success: false, error: "Invalid class code or PIN" };
+      return { success: false, error: classLookup.error };
     }
 
     const { data: rpcResult, error: rpcError } = await supabase.rpc(

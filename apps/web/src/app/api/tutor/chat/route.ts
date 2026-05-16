@@ -15,6 +15,7 @@
 export const maxDuration = 60;
 
 import { z } from "zod";
+import { convertToModelMessages, type UIMessage } from "ai";
 import { getCurrentUser, createClient } from "@/lib/supabase-server";
 import { MODEL_CONFIGS } from "@/lib/ai/providers";
 import { streamTextWithFallback } from "@/lib/ai/with-fallback";
@@ -32,18 +33,42 @@ import type {
 } from "@/lib/ai/services/tutor-service";
 
 /**
- * Request body schema for tutor chat API
- * SECURITY: Includes bounds validation to prevent DoS attacks via large payloads
+ * Request body schema for tutor chat API.
+ *
+ * SDK 6 wire-shape: messages are UIMessages with `parts: [{ type, text, ... }]`
+ * instead of the v4 `content: string`. We validate the part shapes we care
+ * about (text), then `convertToModelMessages` translates UIMessage → ModelMessage
+ * before forwarding to streamText. Pre-PR-63 the schema still expected
+ * `content: string` and rejected every request with HTTP 400 — fixed here.
+ *
+ * SECURITY: per-part text length cap + max-parts cap keep payload size bounded.
  */
+const TextPartSchema = z.object({
+  type: z.literal("text"),
+  text: z
+    .string()
+    .min(1, "Text part cannot be empty")
+    .max(5000, "Text part must be less than 5000 characters"),
+});
+
+// Accept and ignore non-text parts (tool calls, files, reasoning, etc.) so the
+// schema doesn't reject a legitimate UIMessage with mixed parts. Only text
+// parts get extracted for the prompt.
+const NonTextPartSchema = z
+  .object({ type: z.string() })
+  .passthrough()
+  .transform((p) => p as Record<string, unknown>);
+
 const ChatRequestSchema = z.object({
   messages: z
     .array(
       z.object({
+        id: z.string().optional(),
         role: z.enum(["user", "assistant", "system"]),
-        content: z
-          .string()
-          .min(1, "Message content cannot be empty")
-          .max(5000, "Message content must be less than 5000 characters"),
+        parts: z
+          .array(z.union([TextPartSchema, NonTextPartSchema]))
+          .min(1, "Message must have at least one part")
+          .max(20, "Message must not exceed 20 parts"),
       }),
     )
     .min(1, "At least one message is required")
@@ -54,6 +79,18 @@ const ChatRequestSchema = z.object({
   sessionId: z.string().optional(),
   inputMode: z.enum(["text", "voice"]).default("text"),
 });
+
+/**
+ * Extract the concatenated text from a UIMessage's parts. Mirrors the
+ * client-side `messageText()` helper in tutor + lesson topic pages.
+ */
+function uiMessageText(m: { parts: ReadonlyArray<Record<string, unknown>> }): string {
+  let out = "";
+  for (const p of m.parts) {
+    if (p.type === "text" && typeof p.text === "string") out += p.text;
+  }
+  return out;
+}
 
 export async function POST(request: Request): Promise<Response> {
   let user: Awaited<ReturnType<typeof getCurrentUser>> | null = null;
@@ -117,10 +154,11 @@ export async function POST(request: Request): Promise<Response> {
     const { messages, language, topicId, moduleId, sessionId, inputMode } =
       validatedData;
 
-    // Get the latest user message for RAG
+    // Get the latest user message for RAG. v6 UIMessages carry text in
+    // parts[].text — extract via the helper.
     const latestMessage = messages.at(-1);
     // SEC-2 FIX: Truncate user query to limit prompt injection surface
-    const userQuery = (latestMessage?.content ?? "").slice(0, 4000);
+    const userQuery = (latestMessage ? uiMessageText(latestMessage) : "").slice(0, 4000);
 
     // Curriculum context (RAG) and learning profile are independent; fetch in parallel.
     const [context, learningProfile] = await Promise.all([
@@ -165,9 +203,15 @@ export async function POST(request: Request): Promise<Response> {
     // providers (Gemini → HuggingFace → Groq). If the primary provider
     // errors before the first token (auth / rate-limit / 5xx), the
     // wrapper transparently retries on the next provider.
+    //
+    // SDK 6: convertToModelMessages translates UIMessages (parts-shaped,
+    // sent by useChat / DefaultChatTransport) into the ModelMessage[]
+    // format streamText expects. The cast through `unknown as UIMessage[]`
+    // is safe because Zod has already validated the parts shape above.
+    const modelMessages = await convertToModelMessages(messages as unknown as UIMessage[]);
     const result = await streamTextWithFallback({
       system: systemPrompt,
-      messages,
+      messages: modelMessages,
       ...MODEL_CONFIGS.tutor,
       onFinish: async ({ text, totalUsage }) => {
         // Log assistant response - with proper error handling for async operation

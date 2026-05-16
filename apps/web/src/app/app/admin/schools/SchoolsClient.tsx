@@ -223,7 +223,7 @@ function SchoolFinderModal({
                   <strong>Block:</strong> {school.block || "N/A"}
                 </div>
                 {school.address && (
-                  <div className="text-xs text-slate-400 mt-1 font-normal">
+                  <div className="text-xs text-slate-500 mt-1 font-normal">
                     {school.address}
                   </div>
                 )}
@@ -233,7 +233,7 @@ function SchoolFinderModal({
         )}
 
         {selectedDistrict && schools.length === 0 && !loading && (
-          <div className="text-center py-4 text-slate-400 text-sm">
+          <div className="text-center py-4 text-slate-500 text-sm">
             No schools found in{" "}
             {selectedBlock ? `${selectedBlock} block` : "this district"}
           </div>
@@ -516,7 +516,7 @@ export function SchoolsClient() {
               <Shield className="w-6 h-6 shrink-0" strokeWidth={2.25} aria-hidden="true" />
               School Management
             </h1>
-            <p className="text-[11px] font-black uppercase tracking-widest text-slate-400 mt-1">
+            <p className="text-[11px] font-black uppercase tracking-widest text-slate-500 mt-1">
               Assam Digital Initiative • Admin Portal
             </p>
           </div>
@@ -589,7 +589,7 @@ export function SchoolsClient() {
                         {school.school_code} • {school.district}
                       </div>
                     </div>
-                    <Copy className="h-4 w-4 text-slate-400" />
+                    <Copy className="h-4 w-4 text-slate-500" />
                   </Button>
                 ))}
               </div>
