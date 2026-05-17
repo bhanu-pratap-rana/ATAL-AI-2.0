@@ -63,11 +63,22 @@ export function LessonCompletionModal({
   const isPassing = score >= 70;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    // F43: dialog semantics so screen readers announce this overlay as
+    // a modal dialog and aria-modal traps assistive focus, instead of
+    // it being a plain decorative div. aria-labelledby/-describedby
+    // point at the title and the score-headline paragraph so the
+    // announcement contains both.
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="lesson-completion-title"
+      aria-describedby="lesson-completion-score"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+    >
       <Card className="w-full max-w-md animate-in fade-in zoom-in-95 duration-300">
         <CardHeader className="text-center pb-2">
           <ScoreIconChip score={score} />
-          <CardTitle className="text-2xl">
+          <CardTitle id="lesson-completion-title" className="text-2xl">
             {getTranslation("lessonCompletion.title", language)}
           </CardTitle>
         </CardHeader>
@@ -77,7 +88,7 @@ export function LessonCompletionModal({
             <p className="text-sm text-slate-500 mb-1">
               {getTranslation("lessonCompletion.score", language)}
             </p>
-            <div className="text-3xl sm:text-5xl font-black mb-2">
+            <div id="lesson-completion-score" className="text-3xl sm:text-5xl font-black mb-2">
               {score}%
             </div>
             <Progress

@@ -293,6 +293,12 @@ function CheckpointQuiz({
           const isSelected = selected === index;
           const isCorrect = index === question.correctIndex;
           const showResult = submitted;
+          // F42: AI-generated practice questions sometimes return the
+          // option text already prefixed (e.g. `"A. Input"`). The
+          // component always prepends its own `"A."` letter, so the
+          // unstripped text rendered as `A.A. Input`. Strip any leading
+          // letter+separator (A./B)/C-) before display.
+          const cleanOption = option.replace(/^[A-D][.)-]\s*/i, "").trim();
 
           let buttonClass = "w-full text-left px-4 py-3 sm:px-5 sm:py-4 min-h-[56px] rounded-xl border-2 transition-all ";
           if (showResult) {
@@ -319,7 +325,7 @@ function CheckpointQuiz({
               className={`${buttonClass} h-auto whitespace-normal justify-start text-left`}
             >
               <span className="font-medium mr-2 text-sm sm:text-base">{String.fromCodePoint(65 + index)}.</span>
-              <span className="text-sm sm:text-base">{option}</span>
+              <span className="text-sm sm:text-base">{cleanOption}</span>
               {showResult && isCorrect && <CheckCircle className="inline ml-2 h-4 w-4" />}
             </Button>
           );
