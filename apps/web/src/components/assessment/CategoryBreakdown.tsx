@@ -48,12 +48,19 @@ const CATEGORY_CONFIG: Record<string, { label: string; Icon: LucideIcon }> = {
 };
 
 const getCategoryConfig = (key: string): { label: string; Icon: LucideIcon } => {
-  return (
-    CATEGORY_CONFIG[key] || {
-      label: key.replaceAll("-", " ").replaceAll(/\b\w/g, (c) => c.toUpperCase()),
-      Icon: CircleHelp,
-    }
-  );
+  // F40: DB sometimes returns the slug Title_Case_Underscored (e.g.
+  // `Internet_web_awareness`) while CATEGORY_CONFIG keys are
+  // hyphenated-lower (`internet-web-awareness`). Normalise both to
+  // lowercase + hyphenated so the lookup hits the right icon and
+  // label regardless of how the slug was stored.
+  const normalised = key.toLowerCase().replaceAll("_", "-");
+  if (CATEGORY_CONFIG[normalised]) return CATEGORY_CONFIG[normalised];
+  return {
+    label: normalised
+      .replaceAll("-", " ")
+      .replaceAll(/\b\w/g, (c) => c.toUpperCase()),
+    Icon: CircleHelp,
+  };
 };
 
 const getProgressBarColor = (percentage: number) => {

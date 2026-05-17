@@ -84,6 +84,24 @@ const CATEGORY_NAMES: Record<string, string> = {
   problem_solving_aptitude: "Problem Solving",
 };
 
+/**
+ * F40: produce a human label for an IRT category. The DB sometimes
+ * returns the slug as Title_Case_Snake (e.g. `Internet_web_awareness`)
+ * and sometimes as lower_snake, so the lookup has to be case-
+ * insensitive. The fallback also title-cases each word instead of
+ * just stripping underscores, so an unknown category renders as
+ * "Some Future Category" instead of "Some future category".
+ */
+function humanizeCategoryName(category: string): string {
+  const slug = category.toLowerCase();
+  if (CATEGORY_NAMES[slug]) return CATEGORY_NAMES[slug];
+  return slug
+    .split("_")
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
 /** Map IRT assessment categories to curriculum module IDs */
 const CATEGORY_TO_MODULE: Record<string, string> = {
   digital_device_familiarity: "M1",
@@ -121,7 +139,7 @@ function getCategoryScores(
 ): { category: string; name: string; score: number; moduleId: string }[] {
   return Object.entries(breakdown).map(([category, data]) => ({
     category,
-    name: CATEGORY_NAMES[category] || category.replaceAll("_", " "),
+    name: humanizeCategoryName(category),
     score: data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0,
     moduleId: CATEGORY_TO_MODULE[category] || "M1",
   }));
@@ -349,7 +367,7 @@ export function AssessmentSummary({
                 return (
                   <div key={module} className="flex items-center gap-3">
                     <div className="w-24 sm:w-36 md:w-40 text-sm font-medium text-slate-500 truncate">
-                      {CATEGORY_NAMES[module] || module.replaceAll("\_", " ")}
+                      {humanizeCategoryName(module)}
                     </div>
                     <div className="flex-1 flex items-center gap-2">
                       <div className="flex-1 bg-slate-50 rounded-full h-2 overflow-hidden">
