@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Input } from "./input";
+import { Button } from "./button";
 import { Eye, EyeOff } from "lucide-react";
 
 interface PasswordInputProps {
@@ -26,6 +27,9 @@ interface PasswordInputProps {
   readonly required?: boolean;
   /** Show/hide the password toggle button */
   readonly showToggle?: boolean;
+  /** autoComplete hint for password manager / browser autofill behaviour
+   *  (e.g. "current-password", "new-password", "off"). */
+  readonly autoComplete?: string;
 }
 
 /**
@@ -56,6 +60,7 @@ export function PasswordInput({
   autoFocus = false,
   required = true,
   showToggle = true,
+  autoComplete,
 }: PasswordInputProps) {
   // Use internal state if external state not provided
   const [internalShowPassword, setInternalShowPassword] = useState(false);
@@ -89,15 +94,18 @@ export function PasswordInput({
           disabled={disabled}
           autoFocus={autoFocus}
           required={required}
+          autoComplete={autoComplete}
           aria-label={label}
           aria-describedby={ariaDescribedBy || (error ? `${id}-error` : undefined)}
           className={`focus:ring-primary focus:border-primary pr-10 ${className}`}
         />
         {showToggle && (
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             onClick={() => handleShowPasswordChange(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-text disabled:opacity-50"
+            className="absolute right-1 top-1/2 -translate-y-1/2 h-11 w-11 text-slate-500 hover:text-text"
             disabled={disabled}
             aria-label={showPassword ? ariaLabelHide : ariaLabelShow}
           >
@@ -106,7 +114,7 @@ export function PasswordInput({
             ) : (
               <Eye className="w-4 h-4" />
             )}
-          </button>
+          </Button>
         )}
       </div>
 

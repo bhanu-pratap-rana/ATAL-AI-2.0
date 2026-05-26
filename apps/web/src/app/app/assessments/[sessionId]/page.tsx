@@ -3,7 +3,9 @@ import { createAdminClient, createClient, getCurrentUser } from "@/lib/supabase-
 import Link from "next/link";
 import { AssessmentBreakdown } from "@/components/assessment/AssessmentBreakdown";
 import { ArrowLeft, Clock, CheckCircle, XCircle, BarChart3 } from "lucide-react";
+import { formatDateLong } from "@/lib/date-format";
 
+import { BentoCard } from "@/components/ui/bento-card";
 /**
  * Assessment Detail Page
  *
@@ -27,12 +29,8 @@ interface QuestionDetails {
 }
 
 
-// Get score color helper
-function getScoreColor(score: number): string {
-  if (score >= 80) return "text-emerald-600";
-  if (score >= 60) return "text-amber-600";
-  return "text-red-600";
-}
+// PR-68: thresholds aligned with MASTERY_THRESHOLDS via canonical helper.
+import { getScoreTextColor as getScoreColor } from "@/lib/utils/score-helpers";
 
 
 export default async function AssessmentDetailPage({
@@ -135,23 +133,35 @@ export default async function AssessmentDetailPage({
   else if (score >= 60) scoreLabel = "Good Job!";
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
+    <div className="min-h-screen [background:var(--bento-bg)] p-4 md:p-6 pb-28">
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Banner */}
-        <div className="rounded-[32px] p-6 text-white" style={{ background: "var(--gradient-primary)" }}>
-          <Link href="/app/student/assessments" className="inline-flex items-center gap-2 text-white/80 text-xs font-black uppercase tracking-widest mb-4">
-            <ArrowLeft className="w-4 h-4" /> Back to Assessments
+        <div
+          className="rounded-[32px] border-4 border-white p-6 text-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)]"
+          style={{ background: "var(--gradient-primary)" }}
+        >
+          <Link
+            href="/app/student/assessments"
+            className="inline-flex items-center gap-1.5 text-white/85 text-xs font-black uppercase tracking-widest mb-4 hover:text-white"
+          >
+            <ArrowLeft size={14} strokeWidth={2.5} aria-hidden="true" />
+            Back to Assessments
           </Link>
-          <h1 className="text-xl sm:text-2xl font-black mb-1">Assessment Details 📊</h1>
-          <p className="text-white/80 text-sm font-bold">
-            {session.submitted_at
-              ? new Date(session.submitted_at).toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" })
-              : "In progress"}
-          </p>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-white/25 border-2 border-white/40 flex items-center justify-center shrink-0 text-white">
+              <BarChart3 className="w-7 h-7" strokeWidth={2.25} aria-hidden="true" />
+            </div>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-black mb-0.5 leading-tight">Assessment Details</h1>
+              <p className="text-white/85 text-sm font-bold">
+                {session.submitted_at ? formatDateLong(session.submitted_at) : "In progress"}
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Score Summary */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+        <BentoCard padding="lg">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-5">
               <div className={`w-20 h-20 rounded-full flex items-center justify-center text-2xl font-black ${getScoreColor(score)} bg-slate-50 shadow-sm border-4 border-white ring-2 ring-slate-100`}>
@@ -168,21 +178,21 @@ export default async function AssessmentDetailPage({
                   <CheckCircle className="w-5 h-5" />
                   <span className="text-xl sm:text-2xl font-black">{correctAnswers}</span>
                 </div>
-                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Correct</p>
+                <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Correct</p>
               </div>
               <div>
                 <div className="flex items-center gap-1 justify-center text-red-500">
                   <XCircle className="w-5 h-5" />
                   <span className="text-xl sm:text-2xl font-black">{incorrectAnswers}</span>
                 </div>
-                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Incorrect</p>
+                <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Incorrect</p>
               </div>
               <div>
                 <div className="flex items-center gap-1 justify-center text-primary">
                   <Clock className="w-5 h-5" />
                   <span className="text-xl sm:text-2xl font-black">{Math.round(avgTimeMs / 1000)}s</span>
                 </div>
-                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Avg Time</p>
+                <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Avg Time</p>
               </div>
             </div>
           </div>
@@ -190,8 +200,8 @@ export default async function AssessmentDetailPage({
           {/* Module Breakdown */}
           <div className="mt-5 pt-5 border-t border-slate-50">
             <div className="flex items-center gap-2 mb-3">
-              <BarChart3 className="w-4 h-4 text-slate-400" />
-              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Performance by Module</p>
+              <BarChart3 className="w-4 h-4 text-slate-500" />
+              <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Performance by Module</p>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3">
               {Object.entries(moduleStats).map(([module, stats]) => {
@@ -200,19 +210,19 @@ export default async function AssessmentDetailPage({
                   <div key={module} className="p-3 bg-slate-50 rounded-2xl text-center">
                     <div className={`text-lg font-black ${getScoreColor(moduleScore)}`}>{moduleScore}%</div>
                     <div className="text-xs font-bold text-slate-600 capitalize truncate mt-0.5">{module.replaceAll("_", " ")}</div>
-                    <div className="text-xs font-bold text-slate-400">{stats.correct}/{stats.total}</div>
+                    <div className="text-xs font-bold text-slate-500">{stats.correct}/{stats.total}</div>
                   </div>
                 );
               })}
             </div>
           </div>
-        </div>
+        </BentoCard>
 
         {/* Question Breakdown */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+        <BentoCard padding="lg">
           <h2 className="font-black text-slate-800 text-lg mb-4">Question-by-Question Breakdown</h2>
           <AssessmentBreakdown responses={responses} questionDetails={questionDetailsMap} />
-        </div>
+        </BentoCard>
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-3">
@@ -222,7 +232,7 @@ export default async function AssessmentDetailPage({
           <Link href="/app/learn" className="flex-1 py-3 rounded-2xl font-black text-sm text-slate-700 text-center bg-white border border-slate-200 transition-all active:scale-95">
             Continue Learning
           </Link>
-          <Link href="/app/student/dashboard" className="flex-1 py-3 rounded-2xl font-black text-sm text-slate-400 text-center transition-all active:scale-95">
+          <Link href="/app/student/dashboard" className="flex-1 py-3 rounded-2xl font-black text-sm text-slate-500 text-center transition-all active:scale-95">
             Go to Dashboard
           </Link>
         </div>

@@ -13,6 +13,7 @@
  */
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { Bot, GraduationCap, Mic, Settings } from "lucide-react";
 import { createClient } from "@/lib/supabase-browser";
 import type { SupportedLanguage } from "@/types/common";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,6 +52,7 @@ export function AIInteractionsLog({
   const [interactions, setInteractions] = useState<AIInteraction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [studentIds, setStudentIds] = useState<string[] | null>(null);
   const enrolledIdsRef = useRef<Set<string>>(new Set());
 
   const fetchInteractions = useCallback(async (cancelled: { current: boolean }) => {
@@ -65,10 +67,27 @@ export function AIInteractionsLog({
 
       if (cancelled.current) return;
 
-      const studentIds = enrollments?.map((e) => e.student_id) || [];
-      enrolledIdsRef.current = new Set(studentIds);
+      // PR-64: dedup + sort so the resulting array's identity is stable
+      // across refetches when membership didn't actually change. The
+      // realtime-subscription effect below depends on this array's
+      // identity to decide whether to resubscribe; without dedup the
+      // channel was rebuilt on every fetch and lost buffered INSERTs.
+      const ids = [...new Set(enrollments?.map((e) => e.student_id) ?? [])].sort((a, b) =>
+        a.localeCompare(b),
+      );
+      enrolledIdsRef.current = new Set(ids);
+      setStudentIds((prev) => {
+        if (
+          prev &&
+          prev.length === ids.length &&
+          prev.every((v, i) => v === ids[i])
+        ) {
+          return prev;
+        }
+        return ids;
+      });
 
-      if (studentIds.length === 0) {
+      if (ids.length === 0) {
         setInteractions([]);
         setLoading(false);
         return;
@@ -81,7 +100,7 @@ export function AIInteractionsLog({
         .select(
           "id, student_id, session_id, topic_id, message_role, message_content, input_mode, language, tokens_used, created_at",
         )
-        .in("student_id", studentIds)
+        .in("student_id", ids)
         .order("created_at", { ascending: false })
         .limit(limit);
 
@@ -104,33 +123,54 @@ export function AIInteractionsLog({
   useEffect(() => {
     const cancelled = { current: false };
     fetchInteractions(cancelled);
+    return () => {
+      cancelled.current = true;
+    };
+  }, [fetchInteractions]);
+
+  // Realtime channel keyed by the enrolled student list. We push a
+  // server-side `filter: student_id=in.(...)` so every teacher only
+  // receives their own class's events instead of the global firehose.
+  //
+  // PR-64: for classes larger than REALTIME_FILTER_CAP, Supabase's
+  // postgres_changes filter string runs into PostgREST URL-length
+  // limits (default ~8 KB) and the subscription silently fails to
+  // bind. Above the cap we fall back to a wildcard subscription +
+  // client-side filtering via enrolledIdsRef (the same path the
+  // pre-PR-62 code used). Below the cap, server-side filtering wins.
+  useEffect(() => {
+    if (!studentIds || studentIds.length === 0) return;
 
     const supabase = createClient();
-
-    // Subscribe to new interactions
-    const channel = supabase
-      .channel(`ai-interactions-${classId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
+    const REALTIME_FILTER_CAP = 100;
+    const useServerFilter = studentIds.length <= REALTIME_FILTER_CAP;
+    const channelBuilder = supabase.channel(`ai-interactions-${classId}`);
+    const subscribeArgs = useServerFilter
+      ? {
+          event: "INSERT" as const,
           schema: "public",
           table: "ai_tutor_interactions",
-        },
-        (payload) => {
-          const newInteraction = payload.new as AIInteraction;
-          if (!enrolledIdsRef.current.has(newInteraction.student_id)) return;
-          setInteractions((prev) => [newInteraction, ...prev].slice(0, limit));
-        },
-      )
+          filter: `student_id=in.(${studentIds.join(",")})`,
+        }
+      : {
+          event: "INSERT" as const,
+          schema: "public",
+          table: "ai_tutor_interactions",
+        };
+    const channel = channelBuilder
+      .on("postgres_changes", subscribeArgs, (payload) => {
+        const newInteraction = payload.new as AIInteraction;
+        // enrolledIdsRef is authoritative; mandatory when we're on the
+        // wildcard fallback, defensive when server filter is in use.
+        if (!enrolledIdsRef.current.has(newInteraction.student_id)) return;
+        setInteractions((prev) => [newInteraction, ...prev].slice(0, limit));
+      })
       .subscribe();
 
     return () => {
-      cancelled.current = true;
       channel.unsubscribe();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [classId, limit]); // Only depend on classId and limit to avoid subscription recreation
+  }, [classId, limit, studentIds]);
 
   if (loading) {
     return (
@@ -235,17 +275,31 @@ function getMessageBoxClass(messageRole: MessageRole): string {
 }
 
 /**
- * Get label and emoji for message role
+ * Render label + Lucide icon for message role
  */
-function getMessageRoleLabel(messageRole: MessageRole): string {
-  switch (messageRole) {
-    case "user":
-      return "🧑‍🎓 Student";
-    case "assistant":
-      return "🤖 ATAL AI";
-    case "system":
-      return "⚙️ System";
+function MessageRoleLabel({ messageRole }: { readonly messageRole: MessageRole }) {
+  if (messageRole === "user") {
+    return (
+      <span className="font-medium text-xs inline-flex items-center gap-1">
+        <GraduationCap size={12} strokeWidth={2.5} aria-hidden="true" />
+        Student
+      </span>
+    );
   }
+  if (messageRole === "assistant") {
+    return (
+      <span className="font-medium text-xs inline-flex items-center gap-1">
+        <Bot size={12} strokeWidth={2.5} aria-hidden="true" />
+        ATAL AI
+      </span>
+    );
+  }
+  return (
+    <span className="font-medium text-xs inline-flex items-center gap-1">
+      <Settings size={12} strokeWidth={2.5} aria-hidden="true" />
+      System
+    </span>
+  );
 }
 
 function SessionCard({ session }: { readonly session: Session }) {
@@ -325,11 +379,9 @@ function SessionCard({ session }: { readonly session: Session }) {
                   className={`p-2 rounded-lg text-sm ${getMessageBoxClass(message.message_role)}`}
                 >
                   <div className="flex items-center gap-1 mb-1">
-                    <span className="font-medium text-xs">
-                      {getMessageRoleLabel(message.message_role)}
-                    </span>
+                    <MessageRoleLabel messageRole={message.message_role} />
                     {message.input_mode === "voice" && (
-                      <span className="text-xs text-slate-500">🎤</span>
+                      <Mic size={12} strokeWidth={2.5} className="text-slate-500" aria-label="Voice message" />
                     )}
                   </div>
                   <p className="whitespace-pre-wrap wrap-break-word">

@@ -1,5 +1,6 @@
 "use client";
 
+import { Clock } from "lucide-react";
 import { useTimer, formatTimeMMSS } from "@/hooks/useTimer";
 
 /**
@@ -44,9 +45,7 @@ export function AssessmentTimer({
       role="timer"
       aria-label={`Elapsed time: ${formatTimeMMSS(elapsedSeconds)}`}
     >
-      <span className="text-lg" aria-hidden="true">
-        ⏱️
-      </span>
+      <Clock size={16} strokeWidth={2.25} aria-hidden="true" />
       <span className="font-mono text-base font-medium tabular-nums">
         {formatTimeMMSS(elapsedSeconds)}
       </span>

@@ -1,45 +1,36 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
+import {
+  ArrowLeft,
+  BarChart3,
+  BookOpen,
+  ClipboardCheck,
+  Play,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase-server";
 import { getTranslation } from "@/lib/i18n";
 import { getServerLanguage } from "@/lib/i18n/server";
 import type { SupportedLanguage } from "@/lib/i18n";
-import Link from "next/link";
+import {
+  formatDurationFromSeconds as formatTime,
+  formatRelativeDay as formatRelativeTime,
+} from "@/lib/utils/format-date";
+import { getScoreBgColor as getScoreCircleColor } from "@/lib/utils/score-helpers";
+import { MASTERY_THRESHOLDS } from "@/lib/constants/thresholds";
 
-// Format time in seconds to readable string
-function formatTime(seconds: number): string {
-  if (seconds < 60) return `${seconds}s`;
-  const minutes = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return secs > 0 ? `${minutes}m ${secs}s` : `${minutes}m`;
-}
-
-// Format date to relative time
-function formatRelativeTime(dateString: string): string {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) return "Today";
-  if (diffDays === 1) return "Yesterday";
-  if (diffDays < 7) return `${diffDays} days ago`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-  return date.toLocaleDateString();
-}
-
-// Get skill level from score
+import { BentoCard } from "@/components/ui/bento-card";
+// PR-68: align with MASTERY_THRESHOLDS to fix the visual contradiction
+// where a 72% score rendered a green-emerald circle next to an "Intermediate"
+// amber pill. Now 90+ = Advanced (emerald), 70+ = Intermediate (still amber
+// but at the canonical PASSING threshold), <70 = Beginner. Green circle +
+// green Advanced pill or amber circle + amber Intermediate pill — they
+// can no longer diverge mid-bucket.
 function getSkillLevel(score: number, language: SupportedLanguage): { label: string; color: string } {
-  if (score >= 80) return { label: getTranslation("skill.advanced", language), color: "bg-emerald-500 text-white" };
-  if (score >= 60)
+  if (score >= MASTERY_THRESHOLDS.HIGH_SCORE_BONUS)
+    return { label: getTranslation("skill.advanced", language), color: "bg-emerald-500 text-white" };
+  if (score >= MASTERY_THRESHOLDS.PASSING)
     return { label: getTranslation("skill.intermediate", language), color: "bg-amber-400 text-white" };
   return { label: getTranslation("skill.beginner", language), color: "bg-info text-white" };
-}
-
-// Get score circle background color
-function getScoreCircleColor(score: number): string {
-  if (score >= 80) return "bg-emerald-500";
-  if (score >= 60) return "bg-amber-400";
-  return "bg-error";
 }
 
 interface AssessmentSession {
@@ -142,38 +133,55 @@ export default async function StudentAssessmentsPage() {
   const hasHistory = assessmentHistory.length > 0;
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
+    <div className="min-h-screen [background:var(--bento-bg)] p-4 md:p-6 pb-28">
       <div className="max-w-2xl mx-auto space-y-4">
         {/* Banner */}
-        <div className="rounded-[32px] p-6 text-white" style={{ background: "var(--gradient-primary)" }}>
-          <Link href="/app/student/dashboard" className="inline-flex items-center gap-2 text-white/80 text-xs font-black uppercase tracking-widest mb-4">
-            ← Dashboard
+        <div
+          className="rounded-[32px] border-4 border-white p-6 text-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)]"
+          style={{ background: "var(--gradient-primary)" }}
+        >
+          <Link
+            href="/app/student/dashboard"
+            className="inline-flex items-center gap-1.5 text-white/85 text-xs font-black uppercase tracking-widest mb-4 hover:text-white"
+          >
+            <ArrowLeft size={14} strokeWidth={2.5} aria-hidden="true" />
+            Dashboard
           </Link>
-          <h1 className="text-xl sm:text-2xl font-black mb-1">Assessments 📝</h1>
-          <p className="text-white/80 text-sm font-bold">Test your digital literacy skills</p>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-white/25 border-2 border-white/40 flex items-center justify-center shrink-0 text-white">
+              <ClipboardCheck className="w-7 h-7" strokeWidth={2.25} aria-hidden="true" />
+            </div>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-black mb-0.5 leading-tight">Assessments</h1>
+              <p className="text-white/85 text-sm font-bold">Test your digital literacy skills</p>
+            </div>
+          </div>
         </div>
 
         {/* Start New */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 flex items-center justify-between gap-4">
+        <BentoCard padding="lg" className="flex items-center justify-between gap-4">
           <div>
-            <h2 className="font-black text-slate-800 mb-1">Start a New Assessment</h2>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Comprehensive Digital Literacy Test</p>
+            <h2 className="font-black text-slate-900 mb-1">Start a New Assessment</h2>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Comprehensive Digital Literacy Test</p>
           </div>
           <Link
             href="/app/assessment/start"
-            className="px-5 py-3 rounded-2xl font-black text-sm text-white shrink-0 transition-all active:scale-95"
-            style={{ background: "var(--gradient-primary)", boxShadow: "0 4px 14px rgba(249,136,25,0.39)" }}
+            className="btn-bento gap-2 justify-center shrink-0 px-5 py-3 rounded-2xl text-sm inline-flex"
           >
+            <Play size={16} strokeWidth={2.5} aria-hidden="true" />
             Start
           </Link>
-        </div>
+        </BentoCard>
 
         {/* Assessment History */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+        <BentoCard padding="lg">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-black text-slate-800 text-lg">📊 History</h2>
+            <h2 className="font-black text-slate-900 text-lg flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-(--bento-purple-d)" strokeWidth={2.25} aria-hidden="true" />
+              <span>History</span>
+            </h2>
             {hasHistory && (
-              <span className="text-xs font-black text-slate-400 uppercase tracking-widest">{assessmentHistory.length} completed</span>
+              <span className="text-xs font-black text-slate-500 uppercase tracking-widest">{assessmentHistory.length} completed</span>
             )}
           </div>
             {hasHistory ? (
@@ -209,7 +217,7 @@ export default async function StudentAssessmentsPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-3 sm:flex-col sm:items-end shrink-0">
-                        <span className="text-xs font-black text-slate-400">
+                        <span className="text-xs font-black text-slate-500">
                           {formatRelativeTime(assessment.submitted_at || assessment.started_at)}
                         </span>
                         <Link
@@ -225,19 +233,21 @@ export default async function StudentAssessmentsPage() {
               </div>
             ) : (
               <div className="text-center py-10">
-                <div className="text-4xl mb-4">📚</div>
-                <p className="font-black text-slate-800 text-lg mb-1">No assessments yet</p>
-                <p className="text-sm font-bold text-slate-400 mb-6">Take your first assessment to track progress</p>
+                <div className="mx-auto mb-4 w-16 h-16 rounded-3xl bg-(--bento-tint-orange) border-4 border-white shadow-sm flex items-center justify-center text-(--bento-orange-d)">
+                  <BookOpen className="w-8 h-8" strokeWidth={2.25} aria-hidden="true" />
+                </div>
+                <p className="font-black text-slate-900 text-lg mb-1">No assessments yet</p>
+                <p className="text-sm font-bold text-slate-500 mb-6">Take your first assessment to track progress</p>
                 <Link
                   href="/app/assessment/start"
-                  className="px-6 py-3 rounded-2xl font-black text-sm text-white transition-all active:scale-95 inline-block"
-                  style={{ background: "var(--gradient-primary)", boxShadow: "0 4px 14px rgba(249,136,25,0.39)" }}
+                  className="btn-bento gap-2 justify-center px-6 py-3 rounded-2xl text-sm inline-flex"
                 >
+                  <Play size={16} strokeWidth={2.5} aria-hidden="true" />
                   Take First Assessment
                 </Link>
               </div>
             )}
-        </div>
+        </BentoCard>
 
         {/* Stats Summary */}
         {hasHistory && (
@@ -248,9 +258,9 @@ export default async function StudentAssessmentsPage() {
               { value: `${Math.max(...assessmentHistory.map((a) => a.score))}%`, label: "Best Score", color: "bg-primary-lightest text-primary" },
               { value: assessmentHistory.filter((a) => a.score >= 60).length, label: "Passed (60%+)", color: "bg-success/10 text-success" },
             ].map((stat) => (
-              <div key={stat.label} className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-center">
+              <div key={stat.label} className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-4 text-center">
                 <p className={`text-xl sm:text-2xl font-black mb-1 ${stat.color.split(" ")[1]}`}>{stat.value}</p>
-                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
+                <p className="text-xs font-black text-slate-500 uppercase tracking-widest">{stat.label}</p>
               </div>
             ))}
           </div>

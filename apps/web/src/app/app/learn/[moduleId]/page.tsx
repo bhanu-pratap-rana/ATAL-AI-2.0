@@ -16,7 +16,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Mountain } from "lucide-react";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { UnitAccordion, type UnitData } from "@/components/learn/UnitAccordion";
 import { LanguageSelector } from "@/components/learn/LanguageSelector";
@@ -26,6 +26,7 @@ import { useToast } from "@/hooks/use-toast";
 import { clientLogger } from "@/lib/client-logger";
 import { useOfflineLesson } from "@/hooks/useOfflineLesson";
 
+import { BentoCard } from "@/components/ui/bento-card";
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -197,14 +198,14 @@ export default function ModuleUnitsPage({
   // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
+      <div className="min-h-screen [background:var(--bento-bg)] p-4 md:p-6 pb-28">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 text-center">
+          <BentoCard padding="lg" className="text-center">
             <p className="text-red-600 mb-4">{error}</p>
             <Link href="/app/learn" className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl font-black text-sm text-slate-700 border border-slate-200 bg-white hover:bg-slate-50 transition-colors">
               {t("nav.backToLearningPath")}
             </Link>
-          </div>
+          </BentoCard>
         </div>
       </div>
     );
@@ -220,7 +221,7 @@ export default function ModuleUnitsPage({
       : 0;
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
+    <div className="min-h-screen [background:var(--bento-bg)] p-4 md:p-6 pb-28">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -258,8 +259,8 @@ export default function ModuleUnitsPage({
 
             {/* Cultural Note */}
             {data.module.culturalNote && (
-              <p className="mt-3 text-sm text-white/70 flex items-center gap-2">
-                <span>🏔️</span>
+              <p className="mt-3 text-sm text-white/85 font-bold flex items-center gap-2">
+                <Mountain size={16} strokeWidth={2.25} aria-hidden="true" className="shrink-0" />
                 {data.module.culturalNote}
               </p>
             )}
@@ -303,11 +304,11 @@ export default function ModuleUnitsPage({
 
         {/* Empty state if no units */}
         {data.units.length === 0 && (
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 text-center">
+          <BentoCard padding="lg" className="text-center">
             <p className="text-slate-500">
               {t("learn.noUnitsAvailable")}
             </p>
-          </div>
+          </BentoCard>
         )}
       </div>
 

@@ -1,5 +1,12 @@
 "use client";
 
+// PR-67: input is milliseconds → seconds → "Xm Ys" / "Xs". The previous
+// inline formatTime did the seconds conversion before delegating; the
+// canonical helper takes seconds directly, so we convert at the call site.
+import { formatDurationFromSeconds } from "@/lib/utils/format-date";
+
+const formatTime = (ms: number) => formatDurationFromSeconds(Math.round(ms / 1000));
+
 interface IRTCategoryScore {
   readonly theta: number;
   readonly score: number;
@@ -19,17 +26,6 @@ interface AssessmentStatsProps {
   readonly avgResponseTime: number;
   readonly moduleBreakdown: Record<string, { total: number; correct: number }>;
   readonly irtData?: IRTData;
-}
-
-/**
- * Format time display
- */
-function formatTime(ms: number): string {
-  const seconds = Math.round(ms / 1000);
-  if (seconds < 60) return `${seconds}s`;
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  return `${minutes}m ${remainingSeconds}s`;
 }
 
 export function AssessmentStats({

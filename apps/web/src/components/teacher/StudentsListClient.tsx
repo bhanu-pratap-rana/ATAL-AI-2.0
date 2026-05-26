@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Search } from "lucide-react";
+import { Search, Users, GraduationCap } from "lucide-react";
 import type { StudentRow } from "@/app/app/teacher/classes/page";
+import { CreateClassDialog } from "@/components/teacher/CreateClassDialog";
 
 function getInitial(name: string | null): string {
   return (name ?? "?").charAt(0).toUpperCase();
@@ -35,8 +36,23 @@ export function StudentsListClient({ students }: Readonly<{ students: StudentRow
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
+    <div className="min-h-screen [background:var(--bento-bg)] p-4 md:p-6 pb-28">
       <div className="max-w-4xl mx-auto space-y-4">
+        {/* One-line role-tinted heading (utility-page pattern — banners are
+            reserved for top-level dashboards). */}
+        <div className="flex items-center justify-between gap-4 flex-wrap pt-2 pb-4 mb-2 border-b border-slate-200">
+          <div className="flex items-center gap-4 flex-wrap">
+            <h1 className="text-xl sm:text-2xl font-black text-[#2563EB] inline-flex items-center gap-2">
+              <GraduationCap className="w-6 h-6 shrink-0" strokeWidth={2.25} aria-hidden="true" />
+              My Students
+            </h1>
+            <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">
+              {students.length} student{students.length === 1 ? "" : "s"} across all your classes
+            </p>
+          </div>
+          <CreateClassDialog />
+        </div>
+
         {/* Search bar */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3 px-4 py-3">
           <Search size={18} className="text-slate-400 shrink-0" />
@@ -52,7 +68,9 @@ export function StudentsListClient({ students }: Readonly<{ students: StudentRow
         {/* Students list */}
         {filtered.length === 0 ? (
           <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8 sm:p-12 text-center">
-            <div className="text-4xl mb-3">👥</div>
+            <div className="mx-auto mb-3 w-16 h-16 rounded-3xl bg-(--bento-tint-sky) border-4 border-white shadow-sm flex items-center justify-center text-(--bento-sky-d)">
+              <Users className="w-8 h-8" strokeWidth={2.25} aria-hidden="true" />
+            </div>
             <p className="font-black text-slate-800 mb-1">
               {students.length === 0 ? "No students enrolled" : "No results"}
             </p>

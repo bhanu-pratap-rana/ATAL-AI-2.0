@@ -31,10 +31,15 @@
     "info": "जानकारी"
   },
   "nav": {
+    "home": "होम",
     "dashboard": "डैशबोर्ड",
     "learn": "सीखें",
+    "aiTools": "AI टूल",
     "classes": "कक्षाएं",
+    "students": "छात्र",
+    "analytics": "विश्लेषण",
     "assessments": "मूल्यांकन",
+    "schools": "स्कूल",
     "profile": "प्रोफाइल",
     "backToDashboard": "डैशबोर्ड पर वापस",
     "backToLearningPath": "लर्निंग पाथ पर वापस"
@@ -256,7 +261,10 @@
     "moduleNotFound": "मॉड्यूल नहीं मिला",
     "lessonNotFound": "पाठ नहीं मिला",
     "loadingFailed": "लोड करने में विफल। कृपया फिर से प्रयास करें।",
-    "unexpectedError": "एक अप्रत्याशित त्रुटि हुई"
+    "unexpectedError": "एक अप्रत्याशित त्रुटि हुई",
+    "weakPasswordBreached": "यह पासवर्ड एक डेटा उल्लंघन में पाया गया है। कृपया अपनी सुरक्षा के लिए अलग पासवर्ड चुनें।",
+    "signInRequired": "जारी रखने के लिए कृपया साइन इन करें।",
+    "rateLimitWait": "आप बहुत तेज़ी से संदेश भेज रहे हैं। कृपया एक पल रुकें और फिर से कोशिश करें।"
   },
   "class": {
     "classCreated": "कक्षा बन गई!",

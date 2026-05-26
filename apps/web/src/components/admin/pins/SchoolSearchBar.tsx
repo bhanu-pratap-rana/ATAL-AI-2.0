@@ -5,6 +5,7 @@
 
 import { Search, Loader } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import type { SchoolListItem } from "@/app/actions/admin-pin-management";
 
 interface SchoolSearchBarProps {
@@ -42,7 +43,7 @@ export function SchoolSearchBar({
           disabled={loadingSchoolDetails}
         />
         {loadingSchoolDetails && (
-          <Loader className="absolute right-3 top-1/2 -translate-y-1/2 text-primary animate-spin" />
+          <Loader className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1E3A5F] animate-spin" />
         )}
       </div>
 
@@ -50,19 +51,22 @@ export function SchoolSearchBar({
       {showSuggestions && visibleSchools.length > 0 && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-100 rounded-2xl shadow-lg z-10 max-h-60 overflow-y-auto">
           {visibleSchools.map((school) => (
-            <button
-                type="button"
+            <Button
+              type="button"
+              variant="ghost"
               key={school.schoolId}
               onClick={() => onSelectSchool(school)}
-              className="w-full text-left px-4 py-3 hover:bg-slate-100 transition-colors border-b border-slate-200 last:border-b-0"
+              className="w-full h-auto justify-start text-left px-4 py-3 hover:bg-slate-100 border-b border-slate-200 last:border-b-0 whitespace-normal rounded-none"
               disabled={loadingSchoolDetails}
             >
-              <p className="font-medium text-text">{school.schoolName}</p>
-              <p className="text-xs text-slate-500">
-                Code: {school.schoolCode}
-                {school.districtName && ` • ${school.districtName}`}
-              </p>
-            </button>
+              <div className="w-full">
+                <p className="font-medium text-text">{school.schoolName}</p>
+                <p className="text-xs text-slate-500 font-normal">
+                  Code: {school.schoolCode}
+                  {school.districtName && ` • ${school.districtName}`}
+                </p>
+              </div>
+            </Button>
           ))}
           {filteredSchools.length > 10 && (
             <div className="px-4 py-2 text-xs text-slate-500 text-center border-t border-slate-200">

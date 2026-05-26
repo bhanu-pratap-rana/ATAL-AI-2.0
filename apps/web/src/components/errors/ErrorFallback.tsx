@@ -9,6 +9,7 @@
 
 import Link from "next/link";
 import { clientLogger } from "@/lib/client-logger";
+import { Button } from "@/components/ui/button";
 
 interface ErrorFallbackProps {
   readonly error: Error & { digest?: string };
@@ -37,13 +38,13 @@ export function ErrorFallback({ error, reset, context }: ErrorFallbackProps) {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3">
-          <button
+          <Button
             type="button"
             onClick={reset}
-            className="flex-1 px-4 py-2 bg-primary text-white rounded-2xl hover:bg-primary/90 transition-colors text-sm font-black active:scale-95"
+            className="flex-1 font-black"
           >
             Try Again
-          </button>
+          </Button>
           <Link
             href="/app/student/dashboard"
             className="flex-1 px-4 py-2 bg-white text-slate-500 border border-slate-200 rounded-2xl hover:bg-slate-50 transition-colors text-sm font-black inline-flex items-center justify-center active:scale-95"

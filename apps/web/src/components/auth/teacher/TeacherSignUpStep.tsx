@@ -7,6 +7,7 @@
 "use client";
 
 import { useCallback } from "react";
+import { Mail, Smartphone } from "lucide-react";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,33 +47,45 @@ export function TeacherSignUpStep({
         description="Step 1 of 4: Choose your verification method"
       >
         <div className="space-y-3 sm:space-y-4">
-          {/* Tab Navigation - Responsive sizing */}
-          <div className="flex gap-2 sm:gap-3">
-            <button
-                type="button"
+          {/* PR-68: tab/tabpanel pair wired via aria-controls. */}
+          <div role="tablist" aria-label="Verification method" className="flex gap-2 sm:gap-3">
+            <Button
+              type="button"
+              role="tab"
+              id="tab-signup-email"
+              aria-controls="panel-signup-method"
+              aria-selected={state.signupMethod === "email"}
+              size="sm"
+              variant={state.signupMethod === "email" ? "default" : "secondary"}
               onClick={handleEmailMethodSelect}
-              className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-colors text-xs sm:text-sm ${
-                state.signupMethod === "email"
-                  ? "bg-primary text-white shadow-md"
-                  : "bg-slate-50 text-slate-500 hover:bg-slate-100"
-              }`}
+              className="flex-1 gap-1.5 text-xs sm:text-sm"
               disabled={state.loading}
             >
-              <span className="hidden sm:inline">📧 </span>Email
-            </button>
-            <button
-                type="button"
+              <Mail size={14} strokeWidth={2.5} aria-hidden="true" className="hidden sm:block" />
+              Email
+            </Button>
+            <Button
+              type="button"
+              role="tab"
+              id="tab-signup-phone"
+              aria-controls="panel-signup-method"
+              aria-selected={state.signupMethod === "phone"}
+              size="sm"
+              variant={state.signupMethod === "phone" ? "default" : "secondary"}
               onClick={handlePhoneMethodSelect}
-              className={`flex-1 py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg font-medium transition-colors text-xs sm:text-sm ${
-                state.signupMethod === "phone"
-                  ? "bg-primary text-white shadow-md"
-                  : "bg-slate-50 text-slate-500 hover:bg-slate-100"
-              }`}
+              className="flex-1 gap-1.5 text-xs sm:text-sm"
               disabled={state.loading}
             >
-              <span className="hidden sm:inline">📱 </span>Phone
-            </button>
+              <Smartphone size={14} strokeWidth={2.5} aria-hidden="true" className="hidden sm:block" />
+              Phone
+            </Button>
           </div>
+
+          <div
+            role="tabpanel"
+            id="panel-signup-method"
+            aria-labelledby={state.signupMethod === "phone" ? "tab-signup-phone" : "tab-signup-email"}
+          >
 
           {/* Email Method */}
           {state.signupMethod === "email" && (
@@ -87,6 +100,8 @@ export function TeacherSignUpStep({
                     <Input
                       id="otp"
                       type="text"
+                      autoComplete="one-time-code"
+                      inputMode="numeric"
                       placeholder="123456"
                       value={state.otp}
                       onChange={(e) =>
@@ -106,7 +121,7 @@ export function TeacherSignUpStep({
 
                   <Button
                     type="submit"
-                    className="w-full shadow-[var(--shadow-primary)]"
+                    className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white border-2 border-[#2563EB]/40 shadow-md" variant="ghost"
                     disabled={state.loading || state.otp.length !== 6}
                     loading={state.loading}
                   >
@@ -114,25 +129,27 @@ export function TeacherSignUpStep({
                   </Button>
 
                   <div className="flex flex-col items-center gap-2">
-                    <button
+                    <Button
                       type="button"
+                      variant="link"
                       onClick={actions.handleSendOTP}
-                      className="text-sm text-primary hover:text-primary-dark hover:underline"
+                      className="text-sm hover:text-[#1D4ED8] text-[#2563EB]"
                       disabled={state.loading}
                     >
                       Resend OTP
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
+                      variant="link"
                       onClick={() => {
                         actions.setOtpSent(false);
                         actions.setOtp("");
                       }}
-                      className="text-sm text-primary hover:underline"
+                      className="text-sm"
                       disabled={state.loading}
                     >
                       Use different email
-                    </button>
+                    </Button>
                   </div>
                 </form>
               ) : (
@@ -142,6 +159,7 @@ export function TeacherSignUpStep({
                     <Input
                       id="email"
                       type="email"
+                      autoComplete="email"
                       placeholder="teacher@school.edu"
                       value={state.email}
                       onChange={(e) => actions.setEmail(e.target.value)}
@@ -149,21 +167,22 @@ export function TeacherSignUpStep({
                       disabled={state.loading}
                     />
                     {state.emailError && (
-                      <div className="space-y-2">
+                      <div role="alert" aria-live="polite" className="space-y-2">
                         <p className="text-sm text-error">
                           {state.emailError}
                         </p>
                         {state.emailSuggestion && (
-                          <button
+                          <Button
                             type="button"
+                            variant="link"
                             onClick={() =>
                               actions.setEmail(state.emailSuggestion)
                             }
-                            className="text-sm text-cyan hover:text-cyan-dark hover:underline"
+                            className="h-auto p-0 text-sm text-cyan hover:text-cyan-dark"
                             disabled={state.loading}
                           >
                             ✓ Use suggested: {state.emailSuggestion}
-                          </button>
+                          </Button>
                         )}
                       </div>
                     )}
@@ -174,7 +193,7 @@ export function TeacherSignUpStep({
 
                   <Button
                     type="submit"
-                    className="w-full shadow-[var(--shadow-primary)]"
+                    className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white border-2 border-[#2563EB]/40 shadow-md" variant="ghost"
                     disabled={state.loading || !state.email}
                     loading={state.loading}
                   >
@@ -189,8 +208,9 @@ export function TeacherSignUpStep({
           {state.signupMethod === "phone" && (
             <div className="space-y-4">
               <div className="bg-cyan-lightest border-l-4 border-cyan p-3 rounded-xl">
-                <p className="text-xs text-cyan-darkest">
-                  <strong>📱 Phone Verification</strong>
+                <p className="text-xs text-cyan-darkest inline-flex items-start gap-1.5 flex-wrap">
+                  <Smartphone size={14} strokeWidth={2.5} aria-hidden="true" className="shrink-0 mt-0.5" />
+                  <strong>Phone Verification</strong>
                   <br />
                   Enter your 10-digit phone number. We&apos;ll send a
                   verification code via OTP.
@@ -208,6 +228,7 @@ export function TeacherSignUpStep({
                     <Input
                       id="phone"
                       type="tel"
+                      autoComplete="tel"
                       placeholder="9876543210"
                       value={state.phoneNumber}
                       onChange={(e) => {
@@ -223,7 +244,9 @@ export function TeacherSignUpStep({
                     />
                   </div>
                   {state.phoneError && (
-                    <p className="text-sm text-error">{state.phoneError}</p>
+                    <p role="alert" aria-live="polite" className="text-sm text-error">
+                      {state.phoneError}
+                    </p>
                   )}
                   <p className="text-xs text-slate-500">
                     10-digit Indian phone number
@@ -240,7 +263,7 @@ export function TeacherSignUpStep({
                       actions.setPhoneError("Phone number must be 10 digits");
                     }
                   }}
-                  className="w-full shadow-[var(--shadow-primary)]"
+                  className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white border-2 border-[#2563EB]/40 shadow-md" variant="ghost"
                   disabled={state.loading || state.phoneNumber.length !== 10}
                   loading={state.loading}
                 >
@@ -255,6 +278,8 @@ export function TeacherSignUpStep({
                     <Input
                       id="phone-otp"
                       type="text"
+                      autoComplete="one-time-code"
+                      inputMode="numeric"
                       placeholder="123456"
                       value={state.phoneOtp}
                       onChange={(e) =>
@@ -280,38 +305,41 @@ export function TeacherSignUpStep({
                         actions.setStep("set-password");
                       }
                     }}
-                    className="w-full shadow-[var(--shadow-primary)]"
+                    className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white border-2 border-[#2563EB]/40 shadow-md" variant="ghost"
                     disabled={state.loading || state.phoneOtp.length !== 6}
                     loading={state.loading}
                   >
                     Verify & Continue
                   </Button>
 
-                  <button
+                  <Button
                     type="button"
+                    variant="link"
                     onClick={() => {
                       actions.setPhoneOtpSent(false);
                       actions.setPhoneOtp("");
                     }}
-                    className="text-sm text-primary hover:underline block w-full text-center"
+                    className="w-full text-sm"
                     disabled={state.loading}
                   >
                     Change phone number
-                  </button>
+                  </Button>
                 </form>
               )}
             </div>
           )}
 
           <div className="text-center pt-2">
-            <button
+            <Button
               type="button"
+              variant="link"
               onClick={() => actions.setStep("choice")}
-              className="text-sm text-primary hover:underline"
+              className="text-sm"
               disabled={state.loading}
             >
               ← Back to options
-            </button>
+            </Button>
+          </div>
           </div>
         </div>
       </AuthCard>

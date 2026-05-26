@@ -92,10 +92,20 @@ export default async function AssessmentSummaryPage({
   const totalQuestions = responses.length;
   const correctAnswers = responses.filter((r) => r.is_correct).length;
 
-  // Use IRT score if available, otherwise fall back to percentage
+  // F41: the user-facing "Overall Score" is now the raw correctness
+  // percentage (`correctAnswers / totalQuestions`) instead of the IRT
+  // mastery estimate. The IRT estimate is mathematically defensible
+  // but it floors at 0% for low-ability latent estimates, which
+  // contradicts the "8/30 Correct Answers" displayed in the very next
+  // card — users see "0% Overall Score" right next to "8/30" and
+  // assume the score widget is broken. The IRT-derived θ and mastery
+  // badge are unchanged; only the headline percentage swaps to the
+  // intuitive measure, matching the team's earlier standardisation
+  // for the dashboard "Avg Score" widget.
   const score =
-    irtScore?.overallScore ??
-    Math.round((correctAnswers / totalQuestions) * 100);
+    totalQuestions > 0
+      ? Math.round((correctAnswers / totalQuestions) * 100)
+      : 0;
 
   // Group by module with IRT-enhanced data
   const moduleBreakdown = responses.reduce(

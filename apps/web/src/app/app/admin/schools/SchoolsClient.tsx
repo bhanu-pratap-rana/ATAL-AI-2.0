@@ -19,14 +19,20 @@ import {
 } from "@/app/actions/school-finder";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { BentoCard } from "@/components/ui/bento-card";
 import {
+  AlertTriangle,
   Calendar,
-  Shield,
+  Check,
+  ClipboardList,
+  Copy,
+  Lock,
+  MapPin,
   RefreshCw,
   Search,
-  Copy,
-  Check,
-  MapPin,
+  Shield,
+  ShieldAlert,
 } from "lucide-react";
 
 // School Finder Modal Component
@@ -146,7 +152,7 @@ function SchoolFinderModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 max-w-2xl w-full mx-4 max-h-96 overflow-auto">
+      <BentoCard padding="lg" className="max-w-2xl w-full mx-4 max-h-96 overflow-auto">
         <h2 className="text-xl font-black mb-4 flex items-center gap-2">
           <MapPin className="h-5 w-5" />
           Find School by Location
@@ -196,8 +202,9 @@ function SchoolFinderModal({
         {schools.length > 0 && (
           <div className="border border-slate-200 rounded-lg divide-y max-h-64 overflow-y-auto">
             {schools.map((school) => (
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 key={school.id}
                 onClick={async () => {
                   try {
@@ -206,42 +213,43 @@ function SchoolFinderModal({
                     onClose();
                   }
                 }}
-                className="w-full text-left p-3 hover:bg-slate-50 transition-colors"
+                className="w-full justify-start h-auto p-3 hover:bg-slate-50 text-left whitespace-normal block rounded-none"
                 disabled={loading}
               >
                 <div className="font-semibold text-sm text-slate-800">
                   {school.school_name}
                 </div>
-                <div className="text-xs text-slate-500 mt-1">
+                <div className="text-xs text-slate-500 mt-1 font-normal">
                   <strong>Code:</strong> {school.school_code} •{" "}
                   <strong>Block:</strong> {school.block || "N/A"}
                 </div>
                 {school.address && (
-                  <div className="text-xs text-slate-400 mt-1">
+                  <div className="text-xs text-slate-500 mt-1 font-normal">
                     {school.address}
                   </div>
                 )}
-              </button>
+              </Button>
             ))}
           </div>
         )}
 
         {selectedDistrict && schools.length === 0 && !loading && (
-          <div className="text-center py-4 text-slate-400 text-sm">
+          <div className="text-center py-4 text-slate-500 text-sm">
             No schools found in{" "}
             {selectedBlock ? `${selectedBlock} block` : "this district"}
           </div>
         )}
 
         {/* Close Button */}
-        <button
-                type="button"
+        <Button
+          type="button"
+          variant="outline"
           onClick={onClose}
-          className="mt-4 w-full px-4 py-2 rounded-2xl font-black text-sm text-slate-700 border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
+          className="mt-4 w-full text-slate-700 font-black"
         >
           Close
-        </button>
-      </div>
+        </Button>
+      </BentoCard>
     </div>
   );
 }
@@ -263,18 +271,17 @@ function CopyButton({ text }: Readonly<{ text: string }>) {
   }
 
   return (
-    <button
-                type="button"
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
       onClick={handleCopy}
-      className={`p-2 rounded transition-all ${
-        copied
-          ? "bg-emerald-50 text-emerald-600"
-          : "bg-slate-50 hover:bg-slate-100 text-slate-500"
-      }`}
+      className={`h-11 w-11 rounded ${copied ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-50" : "bg-slate-50 hover:bg-slate-100 text-slate-500"}`}
       title="Copy to clipboard"
+      aria-label={copied ? "Copied" : "Copy to clipboard"}
     >
       {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-    </button>
+    </Button>
   );
 }
 
@@ -296,14 +303,16 @@ function PinStatusDisplay({
 }>) {
   if (!pinStatus) {
     return (
-      <button
-                type="button"
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
         onClick={() => onCheckStatus(schoolCode)}
         disabled={loading}
-        className="px-4 py-2 rounded-2xl font-black text-sm text-slate-700 border border-slate-200 bg-white hover:bg-slate-50 transition-colors disabled:opacity-50"
+        className="text-slate-700 font-black"
       >
         {loading ? "Checking..." : "Check PIN Status"}
-      </button>
+      </Button>
     );
   }
 
@@ -332,7 +341,9 @@ function PinStatusDisplay({
 
   return (
     <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded">
-      <p className="text-xs text-amber-800 font-semibold">⚠ No PIN Found</p>
+      <p className="text-xs text-amber-800 font-semibold flex items-center gap-1.5">
+        <AlertTriangle size={12} strokeWidth={2.5} aria-hidden="true" /> No PIN Found
+      </p>
       <p className="text-sm text-amber-800 mt-2">
         This school doesn&apos;t have a PIN yet. Create one in Step 3.
       </p>
@@ -496,25 +507,23 @@ export function SchoolsClient() {
   const pinActionLabel = pinStatus?.exists ? "Rotate" : "Create";
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6 pb-28">
+    <div className="min-h-screen [background:var(--bento-bg)] p-6 pb-28">
       <div className="max-w-3xl mx-auto">
-        {/* Red Gradient Banner */}
-        <div className="rounded-[32px] p-6 text-white mb-8" style={{ background: "var(--gradient-admin)" }}>
-          <h1 className="text-xl sm:text-2xl font-black mb-1">School Management</h1>
-          <p className="text-red-100 text-xs font-black uppercase tracking-widest mb-6">Assam Digital Initiative • Admin Portal</p>
-          <div className="grid grid-cols-3 gap-3">
-            <div className="bg-white/10 p-3 rounded-2xl text-center backdrop-blur-md">
-              <p className="text-xl font-black">124</p>
-              <p className="text-[11px] uppercase font-black text-red-100">Schools</p>
-            </div>
-            <div className="bg-white/10 p-3 rounded-2xl text-center backdrop-blur-md">
-              <Shield className="h-5 w-5 mx-auto mb-1" />
-              <p className="text-[11px] uppercase font-black text-red-100">PIN Mgmt</p>
-            </div>
-            <div className="bg-white/10 p-3 rounded-2xl text-center backdrop-blur-md">
-              <p className="text-xl font-black">🔐</p>
-              <p className="text-[11px] uppercase font-black text-red-100">Secure</p>
-            </div>
+        {/* One-line role-tinted heading (utility-page pattern — banners are
+            reserved for top-level dashboards). */}
+        <div className="flex items-center justify-between gap-4 flex-wrap pt-2 pb-4 mb-4 border-b border-slate-200">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-black text-[#1E3A5F] inline-flex items-center gap-2">
+              <Shield className="w-6 h-6 shrink-0" strokeWidth={2.25} aria-hidden="true" />
+              School Management
+            </h1>
+            <p className="text-[11px] font-black uppercase tracking-widest text-slate-500 mt-1">
+              Assam Digital Initiative • Admin Portal
+            </p>
+          </div>
+          <div className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-slate-500">
+            <Lock className="w-3.5 h-3.5" strokeWidth={2.5} aria-hidden="true" />
+            Secure
           </div>
         </div>
 
@@ -528,7 +537,7 @@ export function SchoolsClient() {
         {/* Step 1: Find School */}
         <div className="mb-6 p-6 bg-white border border-slate-100 rounded-3xl">
           <h2 className="text-lg font-black mb-4 flex items-center gap-2">
-            <Search className="h-5 w-5 text-primary" />
+            <Search className="h-5 w-5 text-[#1E3A5F]" strokeWidth={2.25} aria-hidden="true" />
             Step 1: Find School
           </h2>
 
@@ -548,15 +557,17 @@ export function SchoolsClient() {
                   disabled={loading}
                   className="flex-1"
                 />
-                <button
-                type="button"
+                <Button
+                  type="button"
+                  size="icon"
                   onClick={handleSearch}
                   disabled={loading}
-                  className="px-4 py-2 rounded-2xl font-black text-sm text-white flex items-center justify-center disabled:opacity-50 transition-all active:scale-95 shrink-0"
+                  className="shrink-0"
                   style={{ background: "var(--gradient-admin)" }}
+                  aria-label="Search schools"
                 >
                   <Search className="h-4 w-4" />
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -564,35 +575,37 @@ export function SchoolsClient() {
             {searchResults.length > 0 && (
               <div className="border border-slate-200 rounded-lg divide-y max-h-48 overflow-y-auto">
                 {searchResults.map((school) => (
-                  <button
-                type="button"
+                  <Button
+                    type="button"
+                    variant="ghost"
                     key={school.id}
                     onClick={() => handleSelectSchool(school)}
-                    className="w-full text-left p-3 hover:bg-slate-50 transition-colors flex justify-between items-center"
+                    className="w-full justify-between h-auto p-3 hover:bg-slate-50 text-left whitespace-normal rounded-none"
                   >
                     <div>
                       <div className="font-semibold text-sm text-slate-800">
                         {school.school_name}
                       </div>
-                      <div className="text-xs text-slate-500 mt-1">
+                      <div className="text-xs text-slate-500 mt-1 font-normal">
                         {school.school_code} • {school.district}
                       </div>
                     </div>
-                    <Copy className="h-4 w-4 text-slate-400" />
-                  </button>
+                    <Copy className="h-4 w-4 text-slate-500" />
+                  </Button>
                 ))}
               </div>
             )}
 
             {/* Hierarchical Finder Button */}
-            <button
-                type="button"
+            <Button
+              type="button"
+              variant="ghost"
               onClick={() => setFinderModalOpen(true)}
-              className="w-full px-4 py-2 rounded-2xl font-black text-sm text-slate-700 border border-slate-200 bg-white hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
+              className="w-full border-2 border-[#1E3A5F]/30 bg-white text-[#1E3A5F] font-black hover:bg-[#1E3A5F]/5"
             >
               <MapPin className="h-4 w-4" />
               Or Browse by District &amp; Block
-            </button>
+            </Button>
           </div>
 
           {/* Selected School Display */}
@@ -620,7 +633,7 @@ export function SchoolsClient() {
         {selectedSchool && (
           <div className="mb-6 p-6 bg-white border border-slate-100 rounded-3xl">
             <h2 className="text-lg font-black mb-4 flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-primary" />
+              <Calendar className="h-5 w-5 text-[#1E3A5F]" strokeWidth={2.25} aria-hidden="true" />
               Step 2: PIN Status
             </h2>
 
@@ -639,7 +652,7 @@ export function SchoolsClient() {
         {selectedSchool && (
           <div className="p-6 bg-white border border-slate-100 rounded-3xl">
             <h2 className="text-lg font-black mb-4 flex items-center gap-2">
-              <RefreshCw className="h-5 w-5 text-primary" />
+              <RefreshCw className="h-5 w-5 text-[#1E3A5F]" strokeWidth={2.25} aria-hidden="true" />
               Step 3: {pinActionLabel} PIN
             </h2>
 
@@ -695,8 +708,9 @@ export function SchoolsClient() {
               </div>
 
               <div className="bg-amber-50 border-l-4 border-amber-400 p-3 rounded text-xs text-amber-800">
-                <p>
-                  <strong>⚠️ Security Notice</strong>
+                <p className="flex items-center gap-1.5 font-semibold">
+                  <ShieldAlert size={14} strokeWidth={2.5} aria-hidden="true" />
+                  <strong>Security Notice</strong>
                 </p>
                 <p className="mt-1">
                   PIN will be bcrypt hashed.{" "}
@@ -706,21 +720,22 @@ export function SchoolsClient() {
                 </p>
               </div>
 
-              <button
+              <Button
                 type="submit"
                 disabled={loading || newPin !== confirmPin || newPin.length < 4}
-                className="w-full px-4 py-3 rounded-2xl font-black text-sm text-white flex items-center justify-center gap-2 disabled:opacity-50 transition-all active:scale-95"
+                className="w-full font-black"
                 style={{ background: "var(--gradient-admin)" }}
               >
                 <RefreshCw className="h-4 w-4" />
                 {loading ? "Processing..." : `${pinActionLabel} PIN`}
-              </button>
+              </Button>
             </form>
 
             {/* Help */}
             <div className="mt-6 bg-blue-50 border border-slate-100 p-4 rounded-2xl">
-              <h3 className="font-black text-slate-800 text-sm mb-2">
-                📋 Quick Guide
+              <h3 className="font-black text-slate-800 text-sm mb-2 flex items-center gap-2">
+                <ClipboardList className="w-4 h-4 text-blue-600" strokeWidth={2.25} aria-hidden="true" />
+                Quick Guide
               </h3>
               <ul className="text-sm text-slate-500 space-y-2">
                 <li>

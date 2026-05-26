@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { Megaphone } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatRelativeTime } from "@/lib/utils/format-date";
@@ -82,7 +83,8 @@ export function StudentAnnouncementsCard({
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center justify-between text-lg">
           <span className="flex items-center gap-2">
-            <span>📢</span> Announcements
+            <Megaphone size={18} strokeWidth={2.25} className="text-(--bento-orange-d)" aria-hidden="true" />
+            Announcements
           </span>
           {unreadCount > 0 && (
             <Badge variant="error" className="text-xs">
@@ -138,7 +140,7 @@ export function StudentAnnouncementsCard({
                   <p className="text-sm text-slate-500 whitespace-pre-wrap mb-2">
                     {announcement.body}
                   </p>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-500">
                     {formatRelativeTime(announcement.created_at)}
                   </p>
                 </div>

@@ -6,6 +6,7 @@
 
 "use client";
 
+import { PartyPopper } from "lucide-react";
 import { AuthCard } from "@/components/auth/AuthCard";
 
 export function TeacherCompleteStep() {
@@ -16,7 +17,9 @@ export function TeacherCompleteStep() {
         description="Welcome to ATAL AI"
       >
         <div className="text-center space-y-4">
-          <div className="text-4xl sm:text-6xl">🎉</div>
+          <div className="mx-auto w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-[#2563EB]/10 border-4 border-white shadow-sm flex items-center justify-center text-[#2563EB]">
+            <PartyPopper className="w-9 h-9 sm:w-11 sm:h-11" strokeWidth={2.25} aria-hidden="true" />
+          </div>
           <p className="text-lg font-black">You&apos;re all set!</p>
           <p className="text-sm text-slate-500">
             Redirecting to your teacher dashboard...

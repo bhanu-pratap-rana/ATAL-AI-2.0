@@ -342,6 +342,14 @@ export async function setPassword(
 
     if (updateError) {
       authLogger.error("[Set Password] Update error", { error: updateError.message });
+      // Surface HaveIBeenPwned rejection via i18n key.
+      const msg = updateError.message ?? "";
+      if (
+        (updateError as { code?: string }).code === "weak_password" ||
+        /weak.?password|pwned|leaked/i.test(msg)
+      ) {
+        return { success: false, error: "i18n:errors.weakPasswordBreached" };
+      }
       return { success: false, error: "Failed to set password. Please try again." };
     }
 
@@ -557,7 +565,10 @@ export async function updateTeacherProfile({
 /**
  * Get current user's teacher profile
  */
-export async function getTeacherProfile() {
+export async function getTeacherProfile(): Promise<
+  | { success: true; profile: unknown }
+  | { success: false; error: string; profile: null }
+> {
   try {
     const user = await getCurrentUser();
 

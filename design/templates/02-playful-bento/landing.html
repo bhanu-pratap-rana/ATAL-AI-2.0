@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ATAL AI — Make learning fun!</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --p-orange:#FF8A3D; --p-orange-d:#E66A1A;
+    --p-yellow:#FFD66B; --p-purple:#A78BFA; --p-sky:#6DC5E8;
+    --p-pink:#FF8FB8; --p-mint:#7EE0C2; --p-bg:#FFFBF5;
+  }
+  body{font-family:'Nunito',system-ui,sans-serif;background:var(--p-bg);color:#231C2E;}
+  .chunk{ box-shadow: 0 6px 0 rgba(0,0,0,.08), 0 16px 30px -10px rgba(0,0,0,.15); }
+  .chunk-press{ box-shadow: 0 2px 0 rgba(0,0,0,.12); transform: translateY(3px); }
+  .btn-bounce{ box-shadow: 0 5px 0 var(--p-orange-d); transition: all .15s; }
+  .btn-bounce:active{ transform: translateY(3px); box-shadow: 0 2px 0 var(--p-orange-d); }
+  @keyframes wiggle{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+  .wiggle{animation:wiggle 2s ease-in-out infinite;}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  .bob{animation:bob 3s ease-in-out infinite;}
+  .blob{ filter: blur(40px); opacity:.35;}
+  .ring-rainbow{ background:conic-gradient(from 0deg,#FF8A3D,#FFD66B,#7EE0C2,#6DC5E8,#A78BFA,#FF8FB8,#FF8A3D); padding:4px; border-radius:9999px;}
+</style>
+</head>
+<body class="min-h-screen overflow-x-hidden">
+
+<!-- Decorative blobs -->
+<div class="fixed -top-20 -left-20 w-96 h-96 rounded-full blob" style="background:var(--p-yellow)"></div>
+<div class="fixed top-40 -right-20 w-96 h-96 rounded-full blob" style="background:var(--p-purple)"></div>
+<div class="fixed bottom-0 left-1/3 w-96 h-96 rounded-full blob" style="background:var(--p-sky)"></div>
+
+<div class="relative">
+
+<!-- Nav -->
+<header class="pt-6">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6">
+    <nav class="flex items-center justify-between bg-white rounded-full chunk px-3 py-2 sm:px-5 sm:py-3 border-4 border-white">
+      <a href="../index.html" class="flex items-center gap-2.5">
+        <div class="ring-rainbow"><img src="../shared/logo.png" class="h-10 w-10 rounded-full bg-white"/></div>
+        <div class="font-black text-xl">ATAL <span style="color:var(--p-orange)">AI</span></div>
+      </a>
+      <div class="hidden sm:flex items-center gap-1 font-extrabold text-sm">
+        <a class="px-3 py-2 rounded-full hover:bg-orange-50" href="#play">Play</a>
+        <a class="px-3 py-2 rounded-full hover:bg-orange-50" href="#subjects">Subjects</a>
+        <a class="px-3 py-2 rounded-full hover:bg-orange-50" href="#streak">Streaks</a>
+      </div>
+      <a href="#start" class="text-white font-black px-5 py-2.5 rounded-full btn-bounce" style="background:var(--p-orange)">Get started</a>
+    </nav>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="pt-12 pb-8 sm:pt-20">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 grid lg:grid-cols-2 gap-10 items-center">
+    <div>
+      <div class="inline-flex items-center gap-2 bg-white rounded-full chunk px-4 py-2 mb-6 border-2 border-yellow-200">
+        <span class="text-xl wiggle inline-block">🎉</span>
+        <span class="font-black text-sm">Free forever · 12,400+ students</span>
+      </div>
+      <h1 class="text-5xl sm:text-6xl lg:text-7xl font-black leading-[0.95] mb-5">
+        Make learning <span class="inline-block px-3 rounded-2xl rotate-[-2deg]" style="background:var(--p-yellow)">fun</span>
+        <span class="inline-block">again!</span>
+      </h1>
+      <p class="text-lg font-bold text-slate-700 max-w-md mb-7">
+        Bite-size lessons. Friendly mascot. Big streaks. Learn anything in Assamese, Hindi or English — even offline.
+      </p>
+      <div class="flex flex-wrap gap-3 mb-8">
+        <a href="#start" class="text-white text-lg font-black px-7 py-4 rounded-2xl btn-bounce" style="background:var(--p-orange)">Start playing →</a>
+        <a href="#how" class="text-lg font-black px-7 py-4 rounded-2xl bg-white border-4 border-slate-900 hover:bg-yellow-50">I'm a teacher</a>
+      </div>
+      <div class="flex items-center gap-3 text-sm font-bold">
+        <div class="flex -space-x-2">
+          <div class="w-9 h-9 rounded-full ring-4 ring-white bg-orange-200 flex items-center justify-center font-black">A</div>
+          <div class="w-9 h-9 rounded-full ring-4 ring-white bg-yellow-200 flex items-center justify-center font-black">P</div>
+          <div class="w-9 h-9 rounded-full ring-4 ring-white bg-purple-200 flex items-center justify-center font-black">R</div>
+          <div class="w-9 h-9 rounded-full ring-4 ring-white bg-sky-200 flex items-center justify-center font-black">M</div>
+        </div>
+        <span>⭐⭐⭐⭐⭐ from 3,200+ kids</span>
+      </div>
+    </div>
+
+    <!-- Hero card -->
+    <div class="relative">
+      <!-- floating mini badges -->
+      <div class="absolute -top-4 -left-3 bg-white rounded-2xl chunk p-3 z-10 wiggle">
+        <div class="text-2xl">🔥</div>
+        <div class="text-xs font-black">7-day streak!</div>
+      </div>
+      <div class="absolute -top-4 -right-2 bg-white rounded-2xl chunk p-3 z-10 bob">
+        <div class="text-2xl">🏆</div>
+        <div class="text-xs font-black">+50 XP</div>
+      </div>
+
+      <div class="bg-white rounded-[40px] chunk p-6 sm:p-8 border-4 border-white relative">
+        <div class="flex items-center gap-4 mb-5">
+          <div class="ring-rainbow"><img src="../shared/logo.png" class="w-16 h-16 rounded-full bg-white"/></div>
+          <div>
+            <div class="text-xs font-black uppercase tracking-wider text-orange-600">Jyoti says</div>
+            <div class="text-2xl font-black">Hi Aarav! Ready? 👋</div>
+          </div>
+        </div>
+
+        <div class="rounded-3xl p-5 mb-4 border-4" style="background:#FFF6E5;border-color:#FFE2A0;">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-black uppercase tracking-wider text-orange-700">Today's quest</span>
+            <span class="text-xs font-black px-2 py-1 rounded-full text-white" style="background:var(--p-orange)">⚡ 12 min</span>
+          </div>
+          <div class="text-xl font-black mb-3">Master Quadratics 🎯</div>
+          <div class="h-4 rounded-full bg-orange-100 overflow-hidden mb-2 border-2 border-orange-200">
+            <div class="h-full w-3/5 rounded-full" style="background:linear-gradient(90deg,var(--p-orange),var(--p-yellow))"></div>
+          </div>
+          <div class="flex justify-between text-xs font-black">
+            <span class="text-slate-600">3 / 5 levels</span>
+            <span style="color:var(--p-orange-d)">60%</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3 mb-5">
+          <div class="rounded-2xl border-4 border-orange-200 bg-orange-50 p-3 text-center">
+            <div class="text-3xl mb-1">🔥</div>
+            <div class="text-2xl font-black">7</div>
+            <div class="text-[10px] font-black uppercase text-orange-700">streak</div>
+          </div>
+          <div class="rounded-2xl border-4 border-yellow-200 bg-yellow-50 p-3 text-center">
+            <div class="text-3xl mb-1">⭐</div>
+            <div class="text-2xl font-black">245</div>
+            <div class="text-[10px] font-black uppercase text-yellow-800">xp</div>
+          </div>
+          <div class="rounded-2xl border-4 border-purple-200 bg-purple-50 p-3 text-center">
+            <div class="text-3xl mb-1">💎</div>
+            <div class="text-2xl font-black">12</div>
+            <div class="text-[10px] font-black uppercase text-purple-700">gems</div>
+          </div>
+        </div>
+
+        <button class="w-full text-white text-lg font-black py-4 rounded-2xl btn-bounce" style="background:var(--p-orange)">PLAY NOW →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Bento "how it works" -->
+<section id="how" class="py-16">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6">
+    <h2 class="text-4xl sm:text-5xl font-black text-center mb-3">How it works <span class="inline-block wiggle">🎮</span></h2>
+    <p class="text-center font-bold text-slate-600 mb-10">Three super-simple steps</p>
+
+    <div class="grid sm:grid-cols-3 gap-5">
+      <div class="bg-white rounded-[32px] chunk p-7 border-4 border-white">
+        <div class="w-16 h-16 rounded-2xl flex items-center justify-center text-4xl mb-4" style="background:var(--p-yellow)">1️⃣</div>
+        <h3 class="text-2xl font-black mb-2">Pick a quest</h3>
+        <p class="text-sm font-bold text-slate-600">Math · Science · English · whatever you want to crush today.</p>
+      </div>
+      <div class="rounded-[32px] chunk p-7 border-4 border-white text-white" style="background:linear-gradient(135deg,var(--p-orange),var(--p-pink))">
+        <div class="w-16 h-16 rounded-2xl bg-white/30 flex items-center justify-center text-4xl mb-4">2️⃣</div>
+        <h3 class="text-2xl font-black mb-2">Play with Jyoti</h3>
+        <p class="text-sm font-bold opacity-95">Tap, type, talk. Jyoti cheers when you nail it 🎉</p>
+      </div>
+      <div class="bg-white rounded-[32px] chunk p-7 border-4 border-white">
+        <div class="w-16 h-16 rounded-2xl flex items-center justify-center text-4xl mb-4" style="background:var(--p-purple);color:white">3️⃣</div>
+        <h3 class="text-2xl font-black mb-2">Earn gems & streaks</h3>
+        <p class="text-sm font-bold text-slate-600">Daily streak = real prizes. Don't break the chain!</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Subjects bento -->
+<section id="subjects" class="py-12">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6">
+    <h2 class="text-4xl sm:text-5xl font-black text-center mb-10">Pick your favorite 💖</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+      <a href="dashboard.html" class="bg-white rounded-3xl chunk p-5 text-center border-4 border-white hover:border-orange-300 transition" style="background:#FFEFE2"><div class="text-5xl mb-2">🧮</div><div class="font-black">Math</div></a>
+      <a href="dashboard.html" class="bg-white rounded-3xl chunk p-5 text-center border-4 border-white hover:border-sky-300 transition" style="background:#E5F4FB"><div class="text-5xl mb-2">🔬</div><div class="font-black">Science</div></a>
+      <a href="dashboard.html" class="bg-white rounded-3xl chunk p-5 text-center border-4 border-white hover:border-rose-300 transition" style="background:#FFEAF2"><div class="text-5xl mb-2">📜</div><div class="font-black">History</div></a>
+      <a href="dashboard.html" class="bg-white rounded-3xl chunk p-5 text-center border-4 border-white hover:border-emerald-300 transition" style="background:#E3F8EF"><div class="text-5xl mb-2">🌍</div><div class="font-black">Geo</div></a>
+      <a href="dashboard.html" class="bg-white rounded-3xl chunk p-5 text-center border-4 border-white hover:border-purple-300 transition" style="background:#EFEAFF"><div class="text-5xl mb-2">✍️</div><div class="font-black">English</div></a>
+      <a href="dashboard.html" class="bg-white rounded-3xl chunk p-5 text-center border-4 border-white hover:border-yellow-300 transition" style="background:#FFF6D6"><div class="text-5xl mb-2 font-black">অ</div><div class="font-black">Assamese</div></a>
+    </div>
+  </div>
+</section>
+
+<!-- Streak callout -->
+<section id="streak" class="py-16">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6">
+    <div class="rounded-[40px] chunk p-8 sm:p-12 text-white border-4 border-white relative overflow-hidden" style="background:linear-gradient(135deg,var(--p-orange),#FF5C8A 100%)">
+      <div class="absolute -top-10 -right-10 text-[200px] opacity-20 select-none">🔥</div>
+      <div class="relative max-w-xl">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/25 text-xs font-black backdrop-blur mb-4">STREAK MAGIC 🪄</div>
+        <h2 class="text-4xl sm:text-5xl font-black mb-3">Don't break the chain</h2>
+        <p class="text-lg font-bold opacity-95 mb-6">Practice every day for 30 days → unlock a real Muga Silk badge from Sualkuchi artisans 🧵</p>
+        <a href="#start" class="inline-block bg-white text-orange-600 px-7 py-4 rounded-2xl font-black btn-bounce" style="box-shadow:0 5px 0 #BB4D14">Start my streak →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Role picker -->
+<section id="start" class="py-16">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 text-center">
+    <h2 class="text-4xl sm:text-5xl font-black mb-3">Who are you? 🤔</h2>
+    <p class="font-bold text-slate-600 mb-10">Pick how you're using ATAL AI today.</p>
+    <div class="grid sm:grid-cols-3 gap-5 max-w-4xl mx-auto">
+      <a href="dashboard.html" class="bg-white rounded-[32px] chunk p-7 border-4 border-white hover:border-orange-300 transition">
+        <div class="text-6xl mb-3 bob inline-block">🎓</div>
+        <h3 class="text-2xl font-black mb-1">Student</h3>
+        <p class="text-sm font-bold text-slate-500 mb-4">Class 6 to 12</p>
+        <div class="px-4 py-2.5 rounded-xl text-white font-black text-sm btn-bounce" style="background:var(--p-orange)">Let's go!</div>
+      </a>
+      <a href="#" class="bg-white rounded-[32px] chunk p-7 border-4 border-white hover:border-sky-300 transition">
+        <div class="text-6xl mb-3 bob inline-block" style="animation-delay:.5s">👩‍🏫</div>
+        <h3 class="text-2xl font-black mb-1">Teacher</h3>
+        <p class="text-sm font-bold text-slate-500 mb-4">Manage class</p>
+        <div class="px-4 py-2.5 rounded-xl text-white font-black text-sm btn-bounce" style="background:var(--p-sky);box-shadow:0 5px 0 #3FA0C6">Teacher login</div>
+      </a>
+      <a href="#" class="bg-white rounded-[32px] chunk p-7 border-4 border-white hover:border-purple-300 transition">
+        <div class="text-6xl mb-3 bob inline-block" style="animation-delay:1s">🛡️</div>
+        <h3 class="text-2xl font-black mb-1">Admin</h3>
+        <p class="text-sm font-bold text-slate-500 mb-4">School level</p>
+        <div class="px-4 py-2.5 rounded-xl text-white font-black text-sm btn-bounce" style="background:var(--p-purple);box-shadow:0 5px 0 #7858E0">Admin →</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer class="py-10">
+  <div class="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <img src="../shared/logo.png" class="h-9 w-9 rounded-full ring-4 ring-white chunk"/>
+      <div class="font-black">ATAL AI · Made with 💖</div>
+    </div>
+    <a href="../index.html" class="text-xs font-black text-slate-500 hover:text-orange-600">← Back to gallery</a>
+  </div>
+</footer>
+
+</div>
+</body>
+</html>

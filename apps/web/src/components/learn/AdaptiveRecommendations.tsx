@@ -14,6 +14,8 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import { ArrowRight, Bot, Sparkles, Star, Target } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase-browser";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { clientLogger } from "@/lib/client-logger";
@@ -32,7 +34,7 @@ interface Recommendation {
   readonly topicName: string;
   readonly reasonKey: string;
   readonly priority: "high" | "medium" | "low";
-  readonly icon: string;
+  readonly Icon: LucideIcon;
   readonly color: string;
 }
 
@@ -153,7 +155,7 @@ export function AdaptiveRecommendations({
             topicName: getTopicNameLocal(topic.topic_id),
             reasonKey: "learn.youveBeenWorking",
             priority: "high",
-            icon: "🎯",
+            Icon: Target,
             color: "from-error to-error-dark",
           });
         }
@@ -171,7 +173,7 @@ export function AdaptiveRecommendations({
             topicName: getTopicNameLocal(topic.topic_id),
             reasonKey: "learn.almostMastery",
             priority: "medium",
-            icon: "⭐",
+            Icon: Star,
             color: "from-warning to-warning-dark",
           });
         }
@@ -202,7 +204,7 @@ export function AdaptiveRecommendations({
               topicName: getTopicNameLocal(nextTopic),
               reasonKey: "learn.continueJourney",
               priority: "low",
-              icon: "➡️",
+              Icon: ArrowRight,
               color: "from-primary to-primary-dark",
             });
           }
@@ -227,7 +229,7 @@ export function AdaptiveRecommendations({
                 topicName: getTopicNameLocal(firstTopic),
                 reasonKey: "learn.startNewModule",
                 priority: "low",
-                icon: "🆕",
+                Icon: Sparkles,
                 color: "from-success to-success-dark",
               });
             }
@@ -280,7 +282,7 @@ export function AdaptiveRecommendations({
     <Card className="border-2 border-primary/20 bg-linear-to-br from-primary/5 to-cyan/5">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <span>🤖</span>
+          <Bot className="w-5 h-5 text-(--bento-purple-d)" strokeWidth={2.25} aria-hidden="true" />
           <span>{t("learn.aiRecommendations")}</span>
         </CardTitle>
         <p className="text-sm text-slate-500">
@@ -298,13 +300,15 @@ export function AdaptiveRecommendations({
             >
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="text-3xl">{rec.icon}</div>
+                  <div className="w-11 h-11 rounded-2xl bg-white/25 border-2 border-white/40 flex items-center justify-center shrink-0 text-white">
+                    <rec.Icon className="w-6 h-6" strokeWidth={2.25} aria-hidden="true" />
+                  </div>
                   <div className="flex-1">
                     <div className="font-semibold">{rec.topicName}</div>
                     <div className="text-xs opacity-80">{rec.moduleName}</div>
                     <div className="text-sm mt-1 opacity-90">{t(rec.reasonKey)}</div>
                   </div>
-                  <div className="text-white/70">→</div>
+                  <ArrowRight className="w-5 h-5 text-white/80 shrink-0" strokeWidth={2.25} aria-hidden="true" />
                 </div>
               </CardContent>
             </Card>

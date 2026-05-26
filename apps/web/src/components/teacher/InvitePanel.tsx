@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { toast } from "sonner";
+import { Copy, Lightbulb, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { authLogger } from "@/lib/auth-logger";
 import { clientLogger } from "@/lib/client-logger";
@@ -169,7 +170,7 @@ export function InvitePanel({
               size="sm"
               className="w-full touch-target"
             >
-              📋 Copy Class Code
+<Copy size={14} strokeWidth={2.5} aria-hidden="true" className="mr-1.5" />Copy Class Code
             </Button>
             <p className="text-xs text-slate-400">
               Students will enter this 6-character code
@@ -190,7 +191,7 @@ export function InvitePanel({
               size="sm"
               className="w-full touch-target"
             >
-              📋 Copy PIN
+<Copy size={14} strokeWidth={2.5} aria-hidden="true" className="mr-1.5" />Copy PIN
             </Button>
             <p className="text-xs text-slate-400">
               4-digit PIN for class security
@@ -216,7 +217,7 @@ export function InvitePanel({
               variant="outline"
               className="w-full touch-target bg-white hover:bg-success-light/30 border-success/30"
             >
-              📋 Copy Invite Link
+<Copy size={14} strokeWidth={2.5} aria-hidden="true" className="mr-1.5" />Copy Invite Link
             </Button>
             <Button
               onClick={shareOnWhatsApp}
@@ -233,7 +234,7 @@ export function InvitePanel({
             </Button>
           </div>
           <p className="text-xs text-success-dark mt-2">
-            <strong>✨ Best for sharing:</strong> This link auto-fills
+<strong className="inline-flex items-center gap-1.5"><Sparkles size={14} strokeWidth={2.5} aria-hidden="true" />Best for sharing:</strong> This link auto-fills
             everything and allows anonymous guest access
           </p>
         </div>
@@ -241,7 +242,7 @@ export function InvitePanel({
         {/* Info Banner */}
         <div className="bg-warning-light/50 border-l-4 border-warning p-3 md:p-4 rounded">
           <p className="text-sm text-warning-dark">
-            <strong>💡 How it works:</strong> When students click the invite
+<strong className="inline-flex items-center gap-1.5"><Lightbulb size={14} strokeWidth={2.5} aria-hidden="true" />How it works:</strong> When students click the invite
             link, they can join as a guest instantly or use phone OTP. No email
             required! They can add their email/phone later from Settings.
           </p>

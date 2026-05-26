@@ -3,7 +3,9 @@
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import { ClipboardCheck, GraduationCap, Info } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { AssessmentRunner } from "@/components/assessment/AssessmentRunner";
 import { AssessmentSkeleton } from "@/components/assessment/AssessmentSkeleton";
 import {
@@ -11,7 +13,10 @@ import {
   getAdaptiveQuestions,
 } from "@/app/actions/assessment";
 import { clientLogger } from "@/lib/client-logger";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { useLanguage } from "@/lib/i18n";
 
+import { BentoCard } from "@/components/ui/bento-card";
 function getSessionTypeLabel(type: string): string {
   if (type === "pre") return "Pre-Assessment";
   if (type === "post") return "Post-Assessment";
@@ -39,6 +44,12 @@ interface Question {
 }
 
 function AssessmentStartContent() {
+  // Client-side auth gate. The downstream server actions
+  // (`startAssessment`, `getAdaptiveQuestions`) already `verifyStudentAuth`
+  // server-side, but redirecting upfront avoids letting an unauthed user
+  // configure language / click Start only to bounce on the toast.
+  const { loading: isAuthChecking } = useRequireAuth("/student/start");
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const classId = searchParams.get("classId");
@@ -46,8 +57,12 @@ function AssessmentStartContent() {
   const sessionType: "pre" | "adaptive" | "post" =
     typeParam === "pre" || typeParam === "post" ? typeParam : "adaptive";
 
+  // F36: default to the user's stored language preference instead of
+  // hard-coding "en". A Hindi-only student would otherwise see English
+  // questions until they re-pick the language every time.
+  const { language: userLanguage } = useLanguage();
   const [selectedLanguage, setSelectedLanguage] = useState<"en" | "hi" | "as">(
-    "en",
+    userLanguage,
   );
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -107,31 +122,43 @@ function AssessmentStartContent() {
     );
   }
 
+  // While `useRequireAuth` is still resolving, render the skeleton so
+  // we don't briefly show the configuration form to an unauth visitor.
+  if (isAuthChecking) {
+    return <AssessmentSkeleton />;
+  }
+
   // Show language selection screen
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+    <div className="min-h-screen [background:var(--bento-bg)] flex items-center justify-center p-4">
       {/* Card with Gradient Border */}
       <div className="max-w-2xl w-full">
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 md:p-8">
+        <BentoCard padding="lg" className="md:p-8">
             {/* Error Display */}
             {error && (
               <div className="mb-6 p-4 bg-red-50 border border-red-200/30 rounded-2xl">
                 <p className="text-red-600 font-black">{error}</p>
-                <button
-                type="button"
+                <Button
+                  type="button"
+                  variant="link"
+                  size="sm"
                   onClick={() => setError(null)}
-                  className="text-sm text-red-600/70 hover:text-red-600 mt-2"
+                  className="h-auto p-0 mt-2 text-sm text-red-600/70 hover:text-red-600"
                 >
                   Dismiss
-                </button>
+                </Button>
               </div>
             )}
 
             {/* Header */}
             <div className="text-center mb-8">
               {/* Icon Box - Primary Light */}
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-light rounded-2xl mb-4">
-                <span className="text-2xl sm:text-3xl">{sessionType === "post" ? "🎓" : "📝"}</span>
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-light rounded-2xl mb-4 border-2 border-white shadow-sm text-(--bento-orange-d)">
+                {sessionType === "post" ? (
+                  <GraduationCap className="w-8 h-8" strokeWidth={2.25} aria-hidden="true" />
+                ) : (
+                  <ClipboardCheck className="w-8 h-8" strokeWidth={2.25} aria-hidden="true" />
+                )}
               </div>
               <h1 className="text-xl sm:text-3xl font-black text-slate-800 mb-2">
                 {getSessionTypeLabel(sessionType)}
@@ -146,7 +173,7 @@ function AssessmentStartContent() {
             {/* Assessment Info - Info Alert */}
             <div className="bg-info-light border-l-4 border-info p-4 rounded-2xl mb-6">
               <div className="flex items-start gap-3">
-                <span className="text-2xl">ℹ️</span>
+                <Info className="w-6 h-6 text-info-dark shrink-0 mt-0.5" strokeWidth={2.25} aria-hidden="true" />
                 <div>
                   <h3 className="font-black text-info-dark mb-2">
                     What to expect:
@@ -173,85 +200,60 @@ function AssessmentStartContent() {
               <Label className="text-base font-black mb-4 block text-slate-800">
                 Choose your preferred language:
               </Label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {/* English */}
-                <button
-                type="button"
-                  onClick={() => setSelectedLanguage("en")}
-                  className={`p-4 rounded-2xl border-2 transition-all duration-200 active:scale-95 ${
-                    selectedLanguage === "en"
-                      ? "border-primary bg-primary-light shadow-primary-sm"
-                      : "border-slate-200 bg-white hover:border-primary/30 hover:bg-primary-lighter"
-                  }`}
-                >
-                  <div className="text-center">
-                    <span className="text-3xl mb-2 block">🇬🇧</span>
-                    <span className="font-black text-slate-800">
-                      English
-                    </span>
-                  </div>
-                </button>
-
-                {/* Hindi */}
-                <button
-                type="button"
-                  onClick={() => setSelectedLanguage("hi")}
-                  className={`p-4 rounded-2xl border-2 transition-all duration-200 active:scale-95 ${
-                    selectedLanguage === "hi"
-                      ? "border-primary bg-primary-light shadow-primary-sm"
-                      : "border-slate-200 bg-white hover:border-primary/30 hover:bg-primary-lighter"
-                  }`}
-                >
-                  <div className="text-center">
-                    <span className="text-3xl mb-2 block">🇮🇳</span>
-                    <span className="font-black text-slate-800">
-                      हिंदी
-                    </span>
-                  </div>
-                </button>
-
-                {/* Assamese */}
-                <button
-                type="button"
-                  onClick={() => setSelectedLanguage("as")}
-                  className={`p-4 rounded-2xl border-2 transition-all duration-200 active:scale-95 ${
-                    selectedLanguage === "as"
-                      ? "border-primary bg-primary-light shadow-primary-sm"
-                      : "border-slate-200 bg-white hover:border-primary/30 hover:bg-primary-lighter"
-                  }`}
-                >
-                  <div className="text-center">
-                    <span className="text-3xl mb-2 block">🇮🇳</span>
-                    <span className="font-black text-slate-800">
-                      অসমীয়া
-                    </span>
-                  </div>
-                </button>
+              <div role="radiogroup" aria-label="Preferred language" className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {[
+                  { code: "en" as const, flag: "🇬🇧", label: "English" },
+                  { code: "hi" as const, flag: "🇮🇳", label: "हिंदी" },
+                  // F36b: mountain emoji used elsewhere (dashboard /
+                  // lesson page) to mark the Assamese option; the old
+                  // 🇮🇳 here matched Hindi and broke that consistency.
+                  { code: "as" as const, flag: "🏔️", label: "অসমীয়া" },
+                ].map(({ code, flag, label }) => (
+                  <Button
+                    key={code}
+                    type="button"
+                    role="radio"
+                    aria-checked={selectedLanguage === code}
+                    variant="ghost"
+                    onClick={() => setSelectedLanguage(code)}
+                    className={`h-auto p-4 rounded-2xl border-2 whitespace-normal ${
+                      selectedLanguage === code
+                        ? "border-primary bg-primary-light shadow-primary-sm hover:bg-primary-light"
+                        : "border-slate-200 bg-white hover:border-primary/30 hover:bg-primary-lighter"
+                    }`}
+                  >
+                    <div className="text-center">
+                      <span className="text-3xl mb-2 block">{flag}</span>
+                      <span className="font-black text-slate-800">{label}</span>
+                    </div>
+                  </Button>
+                ))}
               </div>
             </div>
 
             {/* Action Buttons */}
             <div className="flex flex-col gap-4">
-              <button
+              <Button
                 type="button"
+                size="lg"
                 onClick={handleStartAssessment}
                 disabled={loading}
-                className="w-full py-4 rounded-2xl font-black text-lg text-white disabled:opacity-50 transition-all active:scale-95"
-                style={{ background: "var(--gradient-primary)" }}
+                className="w-full font-black"
               >
                 {loading ? "Starting Assessment..." : "Start Assessment"}
-              </button>
+              </Button>
 
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 onClick={() => router.back()}
                 disabled={loading}
-                className="w-full py-3 rounded-2xl font-black text-sm text-slate-700 border border-slate-200 bg-white hover:bg-slate-50 transition-colors disabled:opacity-50"
+                className="w-full text-slate-700 font-black"
               >
                 Back
-              </button>
+              </Button>
             </div>
-        </div>
+        </BentoCard>
       </div>
     </div>
   );

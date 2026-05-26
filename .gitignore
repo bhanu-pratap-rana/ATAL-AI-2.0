@@ -293,3 +293,10 @@ client_secret*.json
 test-imagen-output.png
 test-*-output.*
 .gstack/
+
+# Manual QA screenshots + transcripts (Playwright MCP)
+# These are session-level artefacts. They should never enter the tree.
+_verify_*.png
+/.playwright-mcp/
+/tests/.screenshots/
+/design/templates/_verify_*.png

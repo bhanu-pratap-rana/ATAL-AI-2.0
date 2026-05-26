@@ -233,8 +233,16 @@ export async function generateImage(
       break;
     }
 
-    if (!response!.ok) {
-      const errorBody = await response!.text();
+    // PR-64: replace `response!.` non-null asserts. The retry loop above
+    // CAN exit with `response` still undefined if every attempt is a 429
+    // and the last `continue` runs before assignment — better to fail
+    // loudly with a clear message than NPE on `response!.ok`.
+    if (!response) {
+      throw new Error("Vertex AI Imagen: no response after retries (all attempts rate-limited)");
+    }
+
+    if (!response.ok) {
+      const errorBody = await response.text();
       let errorMessage: string;
 
       try {
@@ -245,15 +253,15 @@ export async function generateImage(
       }
 
       authLogger.error("[Imagen] Vertex AI error", {
-        status: response!.status,
-        statusText: response!.statusText,
+        status: response.status,
+        statusText: response.statusText,
         error: errorMessage,
       });
 
-      throw new Error(`Vertex AI Imagen error (${response!.status}): ${errorMessage}`);
+      throw new Error(`Vertex AI Imagen error (${response.status}): ${errorMessage}`);
     }
 
-    const result = await response!.json();
+    const result = await response.json();
 
     // Vertex AI response format: predictions[0].bytesBase64Encoded
     const imageData = result.predictions?.[0]?.bytesBase64Encoded;
@@ -528,5 +536,176 @@ export async function getTopicImage(
     language,
   };
 
-  return generateImage(params);
+  return generateImageWithFallback(params);
+}
+
+// ===========================================================================
+// FALLBACK CHAIN — runtime auto-switch when Vertex AI Imagen 3 errors out.
+//
+//   Tier 1: Vertex AI Imagen 3                  (paid, current primary)
+//   Tier 2: FLUX.1-schnell on HuggingFace        (FREE rate-limited, needs HF key)
+//   Tier 3: Pollinations.ai                      (FREE, no key, last resort)
+//
+// Result of each fallback is uploaded to Supabase Storage with the same
+// cache key as the primary, so subsequent calls for the same prompt hit
+// the cache regardless of which provider originally rendered it.
+// ===========================================================================
+
+// HuggingFace migrated from `api-inference.huggingface.co/models/...` to
+// the Inference Providers router pattern in 2025. The legacy path now
+// 404s; the router URL is the supported entry point.
+const HF_FLUX_ENDPOINT =
+  "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell";
+const POLLINATIONS_ENDPOINT = "https://image.pollinations.ai/prompt";
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB upload guard (matches Vertex path)
+
+/**
+ * Upload image bytes to Supabase Storage under the cache key and return
+ * the public URL. Falls back to base64 inline if storage is unavailable.
+ */
+async function persistImageBuffer(
+  buffer: Buffer,
+  params: ImagenParams,
+  source: "flux" | "pollinations",
+): Promise<ImagenResult> {
+  const cacheKey = getCacheKey(params);
+  const base64Url = `data:image/png;base64,${buffer.toString("base64")}`;
+
+  if (buffer.length > MAX_IMAGE_SIZE) {
+    authLogger.warn("[Imagen/fallback] Image exceeds size limit, returning base64", {
+      source,
+      size: buffer.length,
+    });
+    return { imageId: cacheKey, url: base64Url, cached: false };
+  }
+
+  try {
+    const supabase = await createClient();
+    const { error: uploadError } = await supabase.storage
+      .from("lesson-assets")
+      .upload(cacheKey, buffer, {
+        contentType: "image/png",
+        cacheControl: "31536000",
+        upsert: true,
+      });
+
+    if (uploadError) {
+      authLogger.warn("[Imagen/fallback] Upload failed, using base64", {
+        source,
+        error: uploadError.message,
+      });
+      return { imageId: cacheKey, url: base64Url, cached: false };
+    }
+
+    const { data: urlData } = supabase.storage
+      .from("lesson-assets")
+      .getPublicUrl(cacheKey);
+    return {
+      imageId: cacheKey,
+      url: urlData?.publicUrl || base64Url,
+      cached: false,
+    };
+  } catch (storageErr) {
+    authLogger.warn("[Imagen/fallback] Storage unavailable, using base64", {
+      source,
+      error: storageErr instanceof Error ? storageErr.message : String(storageErr),
+    });
+    return { imageId: cacheKey, url: base64Url, cached: false };
+  }
+}
+
+/**
+ * FLUX.1-schnell via HuggingFace Inference. FREE tier, rate-limited
+ * (~30 RPM, ~300 images/day). Requires HUGGINGFACE_API_KEY in env.
+ */
+async function generateImageWithFlux(
+  params: ImagenParams,
+): Promise<ImagenResult> {
+  const apiKey = process.env.HUGGINGFACE_API_KEY;
+  if (!apiKey) {
+    throw new Error("HUGGINGFACE_API_KEY not configured");
+  }
+
+  const enhancedPrompt = buildImagePrompt(params);
+  const response = await fetch(HF_FLUX_ENDPOINT, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      inputs: enhancedPrompt,
+      parameters: { width: 512, height: 512 },
+    }),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`HF FLUX returned ${response.status}: ${text.slice(0, 200)}`);
+  }
+
+  const buffer = Buffer.from(await response.arrayBuffer());
+  authLogger.info("[Imagen/fallback] FLUX rendered image", { bytes: buffer.length });
+  return persistImageBuffer(buffer, params, "flux");
+}
+
+/**
+ * Pollinations.ai — fully free, no API key. Serves images on-demand
+ * from a public URL. We still proxy the bytes through our cache so the
+ * lesson keeps working if Pollinations later goes dark.
+ */
+async function generateImageWithPollinations(
+  params: ImagenParams,
+): Promise<ImagenResult> {
+  const enhancedPrompt = buildImagePrompt(params);
+  const encoded = encodeURIComponent(enhancedPrompt);
+  const url = `${POLLINATIONS_ENDPOINT}/${encoded}?width=512&height=512&nologo=true&safe=true`;
+
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Pollinations returned ${response.status}`);
+  }
+
+  const buffer = Buffer.from(await response.arrayBuffer());
+  authLogger.info("[Imagen/fallback] Pollinations rendered image", { bytes: buffer.length });
+  return persistImageBuffer(buffer, params, "pollinations");
+}
+
+/**
+ * Public entry point — try Vertex AI Imagen 3 first, fall back through
+ * the free providers on error. Always returns an ImagenResult unless
+ * every layer (including Pollinations) fails, in which case throws.
+ *
+ * Called by the /api/imagen/generate route and by getTopicImage.
+ */
+export async function generateImageWithFallback(
+  params: ImagenParams,
+): Promise<ImagenResult> {
+  // The primary generateImage() already short-circuits on cache hits
+  // for the same prompt+language+type, so we don't duplicate the check.
+  try {
+    return await generateImage(params);
+  } catch (primaryErr) {
+    authLogger.warn(
+      "[Imagen/fallback] Vertex AI failed, trying FLUX via HuggingFace",
+      {
+        error:
+          primaryErr instanceof Error ? primaryErr.message : String(primaryErr),
+      },
+    );
+  }
+
+  if (process.env.HUGGINGFACE_API_KEY) {
+    try {
+      return await generateImageWithFlux(params);
+    } catch (fluxErr) {
+      authLogger.warn(
+        "[Imagen/fallback] FLUX failed, trying Pollinations.ai",
+        { error: fluxErr instanceof Error ? fluxErr.message : String(fluxErr) },
+      );
+    }
+  }
+
+  // Pollinations needs no auth — always try it last.
+  return generateImageWithPollinations(params);
 }

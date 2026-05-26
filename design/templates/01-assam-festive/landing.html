@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ATAL AI — Learn. Grow. Shine.</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,800&family=Sora:wght@400;600;700;800&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --brand-primary:#F98819;
+    --brand-primary-dark:#C66610;
+    --brand-muga:#C9A227;
+    --brand-brahmaputra:#2E5A8C;
+    --brand-bihu-red:#D93B3B;
+    --brand-cream:#FBF7F0;
+    --brand-ink:#1F1A14;
+  }
+  html,body{background:var(--brand-cream);color:var(--brand-ink);}
+  body{font-family:'Sora',system-ui,sans-serif;}
+  .font-display{font-family:'Fraunces',Georgia,serif;font-optical-sizing:auto;}
+  .gamosa{
+    background-image: repeating-linear-gradient(90deg,
+      #fff 0 14px, transparent 14px 28px,
+      var(--brand-bihu-red) 28px 38px, transparent 38px 52px,
+      #fff 52px 58px, transparent 58px 70px);
+  }
+  .lotus-border::before, .lotus-border::after{
+    content:"❀"; color:var(--brand-muga); margin:0 .5rem; font-size:.9em; opacity:.7;
+  }
+  .silk-shimmer{
+    background:linear-gradient(110deg, var(--brand-muga) 0%, #E8C763 40%, var(--brand-muga) 70%, #B0892A 100%);
+    background-size:200% 100%;
+    animation:shimmer 4s ease-in-out infinite;
+  }
+  @keyframes shimmer{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+  .river-wave{
+    background:linear-gradient(180deg, #4A7CB8 0%, var(--brand-brahmaputra) 100%);
+  }
+  .ornament{ color:var(--brand-muga); }
+  .btn-primary{ background:var(--brand-primary); color:#fff; }
+  .btn-primary:hover{ background:var(--brand-primary-dark); }
+  .ring-warm{ box-shadow: 0 0 0 4px rgba(249,136,25,.15), 0 12px 30px -8px rgba(198,102,16,.35); }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- Gamosa stripe border (top) -->
+<div class="h-2 gamosa"></div>
+
+<!-- Top nav -->
+<header class="sticky top-2 z-30">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6">
+    <nav class="flex items-center justify-between bg-white/90 backdrop-blur rounded-2xl border border-orange-100 px-4 py-3 shadow-sm">
+      <a href="../index.html" class="flex items-center gap-2.5">
+        <img src="../shared/logo.png" alt="" class="h-9 w-9 rounded-full ring-2 ring-orange-200" />
+        <div class="leading-tight">
+          <div class="font-display font-bold text-lg">ATAL AI</div>
+          <div class="text-[10px] text-orange-700 font-bold tracking-widest uppercase">জ্যোতি · Light of Learning</div>
+        </div>
+      </a>
+      <div class="hidden sm:flex items-center gap-1 text-sm font-bold text-slate-700">
+        <a class="px-3 py-1.5 rounded-lg hover:bg-orange-50" href="#how">How it works</a>
+        <a class="px-3 py-1.5 rounded-lg hover:bg-orange-50" href="#subjects">Subjects</a>
+        <a class="px-3 py-1.5 rounded-lg hover:bg-orange-50" href="#parents">For Parents</a>
+      </div>
+      <a href="#signin" class="btn-primary px-4 py-2 rounded-xl text-sm font-extrabold shadow-md">Sign in</a>
+    </nav>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="relative overflow-hidden pt-8 pb-16">
+  <!-- Decorative ornaments -->
+  <div class="absolute -top-10 -right-10 text-9xl opacity-10 ornament select-none">❀</div>
+  <div class="absolute top-40 -left-8 text-7xl opacity-10 ornament select-none">❁</div>
+
+  <div class="max-w-6xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
+    <div>
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-100 border border-yellow-200 text-yellow-900 text-xs font-extrabold mb-5">
+        <span class="silk-shimmer w-2 h-2 rounded-full inline-block"></span>
+        Made for Assam · Class 6–12
+      </div>
+      <h1 class="font-display text-5xl sm:text-6xl lg:text-7xl font-extrabold leading-[1.05] mb-5">
+        Learn. Grow.<br/>
+        <span class="text-orange-600">Shine like Jyoti.</span>
+      </h1>
+      <p class="text-lg text-slate-700 max-w-lg mb-7 leading-relaxed">
+        Free AI tutoring in <strong>Assamese, Hindi & English</strong>. Lessons, voice-guided practice and a friendly mascot who learns with you — works offline on a basic smartphone.
+      </p>
+      <div class="flex flex-wrap gap-3 mb-8">
+        <a href="#signin" class="btn-primary px-6 py-3.5 rounded-2xl font-extrabold shadow-lg ring-warm">Start free →</a>
+        <a href="#how" class="px-6 py-3.5 rounded-2xl font-extrabold border-2 border-slate-300 hover:border-orange-400 hover:text-orange-700">See how it works</a>
+      </div>
+      <div class="flex items-center gap-5 text-sm text-slate-600">
+        <div class="flex -space-x-2">
+          <div class="w-8 h-8 rounded-full bg-orange-200 ring-2 ring-white flex items-center justify-center text-xs font-bold">A</div>
+          <div class="w-8 h-8 rounded-full bg-yellow-200 ring-2 ring-white flex items-center justify-center text-xs font-bold">P</div>
+          <div class="w-8 h-8 rounded-full bg-blue-200 ring-2 ring-white flex items-center justify-center text-xs font-bold">R</div>
+          <div class="w-8 h-8 rounded-full bg-rose-200 ring-2 ring-white flex items-center justify-center text-xs font-bold">M</div>
+        </div>
+        <div><strong class="text-slate-900">12,400+</strong> students across 28 districts</div>
+      </div>
+    </div>
+
+    <!-- Hero card -->
+    <div class="relative">
+      <div class="absolute -inset-6 rounded-[40px] silk-shimmer opacity-30 blur-2xl"></div>
+      <div class="relative bg-white rounded-[36px] border border-orange-100 shadow-2xl shadow-orange-200/40 p-7">
+        <div class="flex items-center gap-3 mb-5">
+          <img src="../shared/logo.png" class="w-14 h-14 rounded-full ring-4 ring-orange-100" />
+          <div>
+            <div class="text-xs font-bold text-orange-700 uppercase tracking-widest">Jyoti says</div>
+            <div class="font-display text-2xl font-bold">নমস্কাৰ, Aarav! 👋</div>
+          </div>
+        </div>
+        <div class="rounded-2xl bg-gradient-to-br from-orange-50 to-yellow-50 border border-orange-100 p-5 mb-5">
+          <div class="text-sm font-extrabold text-slate-500 uppercase tracking-wider mb-1">Today's lesson</div>
+          <div class="font-display text-xl font-bold mb-1">Quadratic Equations</div>
+          <div class="text-sm text-slate-600 mb-3">Class 10 · Math · 12 min</div>
+          <div class="h-2 rounded-full bg-orange-100 overflow-hidden">
+            <div class="h-full w-3/5 bg-gradient-to-r from-orange-500 to-orange-400 rounded-full"></div>
+          </div>
+          <div class="flex justify-between text-xs mt-2 font-bold">
+            <span class="text-slate-500">3 of 5 done</span>
+            <span class="text-orange-700">60%</span>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-2 mb-5">
+          <div class="rounded-xl p-3 bg-yellow-50 border border-yellow-200 text-center">
+            <div class="text-2xl">🔥</div><div class="text-[11px] font-extrabold text-yellow-900 mt-1">7-day<br/>streak</div>
+          </div>
+          <div class="rounded-xl p-3 bg-blue-50 border border-blue-200 text-center">
+            <div class="text-2xl">📖</div><div class="text-[11px] font-extrabold text-blue-900 mt-1">245 XP<br/>this week</div>
+          </div>
+          <div class="rounded-xl p-3 bg-rose-50 border border-rose-200 text-center">
+            <div class="text-2xl">🏆</div><div class="text-[11px] font-extrabold text-rose-900 mt-1">Muga<br/>Silk badge</div>
+          </div>
+        </div>
+        <button class="w-full btn-primary py-3.5 rounded-2xl font-extrabold shadow-md">Continue lesson →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Gamosa divider -->
+<div class="h-3 gamosa my-2"></div>
+
+<!-- HOW IT WORKS -->
+<section id="how" class="py-16">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="text-center mb-12 lotus-border">
+      <span class="font-display text-4xl sm:text-5xl font-extrabold">Three steps to shine</span>
+    </div>
+    <div class="grid sm:grid-cols-3 gap-6">
+      <div class="bg-white rounded-3xl p-7 border border-orange-100 shadow-sm">
+        <div class="w-14 h-14 rounded-2xl bg-orange-100 text-orange-700 font-display font-extrabold text-3xl flex items-center justify-center mb-4">১</div>
+        <h3 class="font-display text-2xl font-bold mb-2">Choose your class</h3>
+        <p class="text-slate-600 text-sm">Class 6 to 12 — SEBA, CBSE, and Assam state board. Pick your language: Assamese, Hindi, or English.</p>
+      </div>
+      <div class="bg-white rounded-3xl p-7 border border-yellow-200 shadow-sm relative overflow-hidden">
+        <div class="absolute top-0 right-0 silk-shimmer w-24 h-24 -mr-12 -mt-12 rounded-full opacity-30"></div>
+        <div class="w-14 h-14 rounded-2xl bg-yellow-100 text-yellow-800 font-display font-extrabold text-3xl flex items-center justify-center mb-4">২</div>
+        <h3 class="font-display text-2xl font-bold mb-2">Learn with Jyoti</h3>
+        <p class="text-slate-600 text-sm">Bite-size lessons + voice tutor. Jyoti adapts to your pace using the same IRT model the IIT-JEE coaches use.</p>
+      </div>
+      <div class="bg-white rounded-3xl p-7 border border-blue-100 shadow-sm">
+        <div class="w-14 h-14 rounded-2xl bg-blue-100 text-blue-800 font-display font-extrabold text-3xl flex items-center justify-center mb-4">৩</div>
+        <h3 class="font-display text-2xl font-bold mb-2">Earn silk badges</h3>
+        <p class="text-slate-600 text-sm">Muga, Eri, Pat silk badges for mastery. Real prizes from local artisans at 100-day streaks.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SUBJECTS -->
+<section id="subjects" class="py-16 river-wave text-white relative overflow-hidden">
+  <div class="absolute inset-0 opacity-10" style="background-image:radial-gradient(circle at 20% 30%,#fff 1px,transparent 1px),radial-gradient(circle at 80% 70%,#fff 1px,transparent 1px);background-size:48px 48px;"></div>
+  <div class="max-w-6xl mx-auto px-6 relative">
+    <h2 class="font-display text-4xl sm:text-5xl font-extrabold mb-3 text-center">All your subjects</h2>
+    <p class="text-center text-blue-100 mb-10 font-semibold">Aligned with SEBA, CBSE & Assam HSSLC syllabus</p>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div class="bg-white/10 backdrop-blur border border-white/20 rounded-2xl p-4 text-center hover:bg-white/20 transition"><div class="text-3xl mb-2">🧮</div><div class="font-extrabold text-sm">Math</div></div>
+      <div class="bg-white/10 backdrop-blur border border-white/20 rounded-2xl p-4 text-center hover:bg-white/20 transition"><div class="text-3xl mb-2">🔬</div><div class="font-extrabold text-sm">Science</div></div>
+      <div class="bg-white/10 backdrop-blur border border-white/20 rounded-2xl p-4 text-center hover:bg-white/20 transition"><div class="text-3xl mb-2">📜</div><div class="font-extrabold text-sm">History</div></div>
+      <div class="bg-white/10 backdrop-blur border border-white/20 rounded-2xl p-4 text-center hover:bg-white/20 transition"><div class="text-3xl mb-2">🌍</div><div class="font-extrabold text-sm">Geography</div></div>
+      <div class="bg-white/10 backdrop-blur border border-white/20 rounded-2xl p-4 text-center hover:bg-white/20 transition"><div class="text-3xl mb-2">✍️</div><div class="font-extrabold text-sm">English</div></div>
+      <div class="bg-white/10 backdrop-blur border border-white/20 rounded-2xl p-4 text-center hover:bg-white/20 transition"><div class="text-3xl mb-2">অ</div><div class="font-extrabold text-sm">Assamese</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SIGN IN -->
+<section id="signin" class="py-20">
+  <div class="max-w-5xl mx-auto px-6">
+    <div class="text-center mb-10 lotus-border">
+      <span class="font-display text-4xl sm:text-5xl font-extrabold">Welcome to ATAL AI</span>
+    </div>
+    <p class="text-center text-slate-600 mb-10">Pick how you're using the app today.</p>
+
+    <div class="grid sm:grid-cols-3 gap-5 max-w-4xl mx-auto">
+      <a href="dashboard.html" class="group bg-white rounded-3xl p-7 border-2 border-orange-200 hover:border-orange-500 hover:shadow-xl transition shadow-md">
+        <div class="text-5xl mb-4">🎓</div>
+        <h3 class="font-display text-2xl font-bold mb-1">Student</h3>
+        <p class="text-sm text-slate-600 mb-5">Learn at your own pace with Jyoti.</p>
+        <div class="text-orange-700 font-extrabold text-sm">Continue as student →</div>
+      </a>
+      <a href="#" class="group bg-white rounded-3xl p-7 border-2 border-blue-200 hover:border-blue-500 hover:shadow-xl transition shadow-md">
+        <div class="text-5xl mb-4">👩‍🏫</div>
+        <h3 class="font-display text-2xl font-bold mb-1">Teacher</h3>
+        <p class="text-sm text-slate-600 mb-5">Track your class. Send lessons home.</p>
+        <div class="text-blue-700 font-extrabold text-sm">Teacher portal →</div>
+      </a>
+      <a href="#" class="group bg-white rounded-3xl p-7 border-2 border-slate-200 hover:border-slate-500 hover:shadow-xl transition shadow-md">
+        <div class="text-5xl mb-4">🛡️</div>
+        <h3 class="font-display text-2xl font-bold mb-1">Admin</h3>
+        <p class="text-sm text-slate-600 mb-5">School-level dashboard & content.</p>
+        <div class="text-slate-700 font-extrabold text-sm">Admin login →</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- FOR PARENTS -->
+<section id="parents" class="py-16 bg-white border-t border-orange-100">
+  <div class="max-w-4xl mx-auto px-6 text-center">
+    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-100 text-orange-800 text-xs font-extrabold mb-5">FOR PARENTS · অভিভাৱকৰ বাবে</div>
+    <h2 class="font-display text-4xl font-extrabold mb-4">"My daughter studies even when there's no signal."</h2>
+    <p class="text-slate-600 max-w-2xl mx-auto mb-6">
+      ATAL AI works offline. Lessons download once when there's WiFi at school, and your child can practice all week — even in remote areas of Majuli or Dhemaji.
+    </p>
+    <div class="flex flex-wrap justify-center gap-3 text-sm font-bold">
+      <span class="px-3 py-1.5 rounded-full bg-green-100 text-green-800">✓ 100% free</span>
+      <span class="px-3 py-1.5 rounded-full bg-green-100 text-green-800">✓ Works offline</span>
+      <span class="px-3 py-1.5 rounded-full bg-green-100 text-green-800">✓ No ads</span>
+      <span class="px-3 py-1.5 rounded-full bg-green-100 text-green-800">✓ Child-safe</span>
+    </div>
+  </div>
+</section>
+
+<footer class="py-10 border-t border-orange-100 bg-orange-50/40">
+  <div class="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <img src="../shared/logo.png" class="h-8 w-8 rounded-full" />
+      <div class="text-sm font-bold">ATAL AI · Made with ❤️ in Assam</div>
+    </div>
+    <div class="text-xs text-slate-500 font-semibold">© 2026 · <a href="../index.html" class="hover:text-orange-700">← Back to gallery</a></div>
+  </div>
+</footer>
+
+<div class="h-2 gamosa"></div>
+
+</body>
+</html>

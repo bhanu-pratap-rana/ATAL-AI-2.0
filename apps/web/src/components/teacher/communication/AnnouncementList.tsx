@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Megaphone, Trash2 } from "lucide-react";
 import { formatRelativeTime } from "@/lib/utils/format-date";
 import {
   Card,
@@ -66,8 +67,8 @@ export function AnnouncementList({
   if (announcements.length === 0) {
     return (
       <div className="text-center py-8">
-        <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-          <span className="text-3xl">📢</span>
+        <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4 text-(--bento-orange-d)">
+          <Megaphone className="w-8 h-8" strokeWidth={2.25} aria-hidden="true" />
         </div>
         <h3 className="text-lg font-black text-slate-800 mb-2">
           No announcements yet
@@ -127,8 +128,13 @@ export function AnnouncementList({
                   onClick={() => setConfirmDeleteId(announcement.id)}
                   disabled={deletingId === announcement.id}
                   className="text-slate-400 hover:text-error"
+                  aria-label="Delete announcement"
                 >
-                  {deletingId === announcement.id ? "..." : "🗑️"}
+                  {deletingId === announcement.id ? (
+                    "..."
+                  ) : (
+                    <Trash2 size={16} strokeWidth={2.25} aria-hidden="true" />
+                  )}
                 </Button>
               </div>
             </div>

@@ -3,6 +3,7 @@
 import { useCallback, useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { FolderClosed, Link2, Paperclip } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -27,11 +28,11 @@ interface UploadMaterialDialogProps {
 }
 
 const materialTypeOptions = [
-  { value: "document", label: "📄 Document" },
-  { value: "video", label: "🎬 Video" },
-  { value: "link", label: "🔗 Link" },
-  { value: "image", label: "🖼️ Image" },
-  { value: "other", label: "📎 Other" },
+  { value: "document", label: "Document" },
+  { value: "video", label: "Video" },
+  { value: "link", label: "Link" },
+  { value: "image", label: "Image" },
+  { value: "other", label: "Other" },
 ];
 
 const MAX_FILE_SIZE_MB = 50;
@@ -193,13 +194,13 @@ export function UploadMaterialDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className={className}>
-          <span className="mr-2">📁</span>
+        <Button variant="outline" className={`${className} gap-2`}>
+          <FolderClosed size={16} strokeWidth={2.25} aria-hidden="true" />
           <span>Add Material</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg">
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           <DialogHeader>
             <DialogTitle>Add Learning Material</DialogTitle>
             <DialogDescription>
@@ -277,34 +278,45 @@ export function UploadMaterialDialog({
             {/* Source Mode Toggle */}
             <div className="space-y-2">
               <Label>Source</Label>
-              <div className="flex gap-2">
-                <button
+              <div role="tablist" aria-label="Material source" className="flex gap-2">
+                <Button
                   type="button"
+                  role="tab"
+                  id="tab-source-file"
+                  aria-controls="panel-source"
+                  aria-selected={sourceMode === "file"}
+                  variant={sourceMode === "file" ? "default" : "outline"}
+                  size="sm"
                   onClick={() => setSourceMode("file")}
                   disabled={loading}
-                  className={`flex-1 px-3 py-2 text-sm rounded-md border transition-colors ${
-                    sourceMode === "file"
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-background border-input hover:bg-slate-100"
-                  }`}
+                  className="flex-1 text-sm gap-1.5"
                 >
-                  📎 Upload File
-                </button>
-                <button
+                  <Paperclip size={14} strokeWidth={2.5} aria-hidden="true" />
+                  Upload File
+                </Button>
+                <Button
                   type="button"
+                  role="tab"
+                  id="tab-source-url"
+                  aria-controls="panel-source"
+                  aria-selected={sourceMode === "url"}
+                  variant={sourceMode === "url" ? "default" : "outline"}
+                  size="sm"
                   onClick={() => setSourceMode("url")}
                   disabled={loading}
-                  className={`flex-1 px-3 py-2 text-sm rounded-md border transition-colors ${
-                    sourceMode === "url"
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-background border-input hover:bg-slate-100"
-                  }`}
+                  className="flex-1 text-sm gap-1.5"
                 >
-                  🔗 Paste URL
-                </button>
+                  <Link2 size={14} strokeWidth={2.5} aria-hidden="true" />
+                  Paste URL
+                </Button>
               </div>
             </div>
 
+            <div
+              role="tabpanel"
+              id="panel-source"
+              aria-labelledby={sourceMode === "url" ? "tab-source-url" : "tab-source-file"}
+            >
             {sourceMode === "file" ? (
               <div className="space-y-2">
                 <Label htmlFor="material-file">File</Label>
@@ -337,11 +349,12 @@ export function UploadMaterialDialog({
                   required={sourceMode === "url"}
                   disabled={loading}
                 />
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-500">
                   Paste a link to a video, document, or any learning resource
                 </p>
               </div>
             )}
+            </div>
           </div>
 
           <DialogFooter>
@@ -353,7 +366,11 @@ export function UploadMaterialDialog({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitDisabled}>
+            <Button
+              type="submit"
+              disabled={isSubmitDisabled}
+              onClick={handleSubmit}
+            >
               {loading ? "Uploading..." : "Add Material"}
             </Button>
           </DialogFooter>

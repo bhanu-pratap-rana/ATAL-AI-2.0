@@ -37,15 +37,22 @@ export async function POST(request: Request): Promise<Response> {
     // Authenticate user
     const user = await getCurrentUser();
     if (!user) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
+      return Response.json(
+        { error: "Please sign in to continue.", errorKey: "errors.signInRequired" },
+        { status: 401 },
+      );
     }
 
     // Rate limit check
     const isAllowed = await checkRateLimit(`tts:${user.id}`, RATE_LIMITS.tts);
     if (!isAllowed) {
       return Response.json(
-        { error: "Rate limit exceeded. Please wait before making another TTS request." },
-        { status: 429 },
+        {
+          error: "Voice playback is busy. Please wait a moment and try again.",
+          errorKey: "errors.rateLimitWait",
+          retryAfter: 72,
+        },
+        { status: 429, headers: { "Retry-After": "72" } },
       );
     }
 

@@ -171,12 +171,14 @@ export function JoinClassStep({
         </div>
 
         {state.joinClassError && (
-          <p className="text-sm text-error">{state.joinClassError}</p>
+          <p role="alert" aria-live="polite" className="text-sm text-error">
+            {state.joinClassError}
+          </p>
         )}
 
         <Button
           type="submit"
-          className="w-full text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5"
+          className="w-full text-[17px] shadow-primary hover:shadow-(--shadow-primary-hover) hover:-translate-y-0.5"
           disabled={
             isLoading ||
             !state.joinClassCode ||
@@ -187,14 +189,15 @@ export function JoinClassStep({
           <span className="ml-2">→</span>
         </Button>
 
-        <button
+        <Button
           type="button"
+          variant="link"
           onClick={() => router.push("/app/student/dashboard")}
-          className="text-sm text-slate-500 hover:underline block w-full text-center"
+          className="w-full text-sm text-slate-500"
           disabled={isLoading}
         >
           Skip for now →
-        </button>
+        </Button>
       </form>
     </AuthCard>
   );

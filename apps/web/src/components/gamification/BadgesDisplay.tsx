@@ -13,7 +13,9 @@
 
 import { useState, useEffect, useCallback, useRef, memo } from "react";
 import { toast } from "sonner";
+import { Lock, Mountain, Trophy } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase-browser";
 import { clientLogger } from "@/lib/client-logger";
 import type { Badge as BaseBadge } from "@/lib/services/gamification-service";
@@ -151,8 +153,9 @@ export const BadgesDisplay = memo(function BadgesDisplay({
             const newBadge = allBadges.find((b) => b.id === badgeId);
             if (newBadge) {
               toast.success(
-                `🏆 ${t("gamification.badgeEarned", { name: newBadge.name_en })}`,
+                t("gamification.badgeEarned", { name: newBadge.name_en }),
                 {
+                  icon: <Trophy size={18} strokeWidth={2.5} className="text-amber-500" aria-hidden="true" />,
                   description: newBadge.cultural_note || newBadge.description,
                   duration: 5000,
                 }
@@ -341,16 +344,17 @@ export const BadgesDisplay = memo(function BadgesDisplay({
           const isEarned = earnedIds.has(badge.id);
 
           return (
-            <button
-                type="button"
+            <Button
+              type="button"
+              variant="ghost"
               key={badge.id}
               onClick={() => setSelectedBadge(badge)}
-              className={`group relative p-3 rounded-xl border-2 transition-all duration-300 overflow-hidden text-center ${getBadgeCardClass(isEarned ? "earned" : "locked", badge.rarity)}`}
+              className={`group relative h-auto p-3 rounded-xl border-2 overflow-hidden flex-col text-center whitespace-normal ${getBadgeCardClass(isEarned ? "earned" : "locked", badge.rarity)}`}
             >
               {/* Lock Icon for Locked Badges */}
               {!isEarned && (
-                <div className="absolute top-1 right-1 text-xs text-slate-500">
-                  🔒
+                <div className="absolute top-1 right-1 text-slate-400">
+                  <Lock size={12} strokeWidth={2.5} aria-label="Locked" />
                 </div>
               )}
 
@@ -375,7 +379,7 @@ export const BadgesDisplay = memo(function BadgesDisplay({
               <div className="text-xs text-slate-500">
                 +{badge.points_value}
               </div>
-            </button>
+            </Button>
           );
         })}
       </div>
@@ -406,8 +410,9 @@ export const BadgesDisplay = memo(function BadgesDisplay({
 
               {/* Cultural Note */}
               {selectedBadge.cultural_note && (
-                <p className="mt-4 text-sm italic text-warning bg-warning/10 p-3 rounded-2xl">
-                  🏔️ {selectedBadge.cultural_note}
+                <p className="mt-4 text-sm italic text-warning bg-warning/10 p-3 rounded-2xl flex items-start gap-2 text-left">
+                  <Mountain size={16} strokeWidth={2.25} aria-hidden="true" className="shrink-0 mt-0.5" />
+                  <span>{selectedBadge.cultural_note}</span>
                 </p>
               )}
 
@@ -418,21 +423,23 @@ export const BadgesDisplay = memo(function BadgesDisplay({
                     ✓ {t("gamification.earned")} • +{selectedBadge.points_value} {t("gamification.points")}
                   </span>
                 ) : (
-                  <span className="inline-block px-4 py-2 bg-slate-50 text-slate-500 rounded-full">
-                    🔒 {t("gamification.locked")}
+                  <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-50 text-slate-500 rounded-full">
+                    <Lock size={14} strokeWidth={2.5} aria-hidden="true" />
+                    {t("gamification.locked")}
                   </span>
                 )}
               </div>
 
               {/* Close Button */}
-              <button
+              <Button
                 type="button"
+                variant="link"
                 onClick={() => setSelectedBadge(null)}
                 className="mt-4 text-sm text-slate-500 hover:text-primary"
                 aria-label="Close badge details"
               >
                 {t("common.close")}
-              </button>
+              </Button>
             </CardContent>
           </Card>
         )}

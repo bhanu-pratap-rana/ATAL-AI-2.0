@@ -39,6 +39,7 @@ export function TeacherLoginStep({
             <Input
               id="login-email"
               type="email"
+              autoComplete="username"
               placeholder="teacher@school.edu"
               value={state.loginEmail}
               onChange={(e) => actions.setLoginEmail(e.target.value)}
@@ -55,6 +56,7 @@ export function TeacherLoginStep({
             <Input
               id="login-password"
               type="password"
+              autoComplete="current-password"
               placeholder="Enter your password"
               value={state.loginPassword}
               onChange={(e) => actions.setLoginPassword(e.target.value)}
@@ -62,13 +64,16 @@ export function TeacherLoginStep({
               disabled={state.loading}
             />
             {state.loginError && (
-              <p className="text-sm text-error">{state.loginError}</p>
+              <p role="alert" aria-live="polite" className="text-sm text-error">
+                {state.loginError}
+              </p>
             )}
           </div>
 
           <Button
             type="submit"
-            className="w-full shadow-[var(--shadow-primary)]"
+            variant="ghost"
+            className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white border-2 border-[#2563EB]/40 shadow-md"
             disabled={
               state.loading || !state.loginEmail || !state.loginPassword
             }
@@ -78,35 +83,38 @@ export function TeacherLoginStep({
           </Button>
 
           <div className="space-y-2 pt-4">
-            <button
+            <Button
               type="button"
+              variant="link"
               onClick={() => {
                 actions.setForgotEmail(state.loginEmail);
                 actions.setStep("forgot-password");
               }}
-              className="text-sm text-primary hover:text-primary-dark hover:underline w-full text-center"
+              className="w-full text-sm text-[#2563EB] hover:text-[#1D4ED8]"
               disabled={state.loading}
             >
               Forgot your password?
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="link"
               onClick={() => actions.setStep("choice")}
-              className="text-sm text-primary hover:underline w-full text-center"
+              className="w-full text-sm text-[#2563EB] hover:text-[#1D4ED8]"
               disabled={state.loading}
             >
               Back to options
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="link"
               onClick={() => {
                 globalThis.location.href = "/";
               }}
-              className="text-sm text-slate-500 hover:text-primary hover:underline w-full text-center"
+              className="w-full text-sm text-slate-500 hover:text-[#2563EB]"
               disabled={state.loading}
             >
               Back to home
-            </button>
+            </Button>
           </div>
         </form>
       </AuthCard>

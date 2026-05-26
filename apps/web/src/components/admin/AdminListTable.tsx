@@ -22,10 +22,14 @@ interface AdminListTableProps {
  * Get role badge styling based on admin role
  */
 function getRoleBadgeClass(role: string): string {
+  // Navy palette for the admin role. Super-admin gets the deeper navy
+  // chip (Brahmaputra blue family); regular admin gets a softer indigo
+  // chip. Both pair cleanly with the navy gradient banner introduced in
+  // SP13 PR-32.
   if (role === "super_admin") {
-    return "bg-accent-light text-accent-dark";
+    return "bg-[#1E3A5F]/10 text-[#1E3A5F]";
   }
-  return "bg-primary-light text-primary-dark";
+  return "bg-indigo-50 text-indigo-700";
 }
 
 /**
@@ -253,19 +257,20 @@ export function AdminListTable({
                       onClick={() => openResetModal(admin.id, admin.email)}
                       disabled={resetingId === admin.id}
                       size="sm"
-                      variant="outline"
-                      className="text-xs"
+                      variant="ghost"
+                      className="text-xs border-2 border-[#1E3A5F]/30 bg-white text-[#1E3A5F] hover:bg-[#1E3A5F]/5"
                       title="Reset Password"
+                      aria-label="Reset Password"
                     >
                       {resetingId === admin.id ? (
                         <>
-                          <RotateCcw className="w-3 h-3 mr-1 animate-spin" />
-                          Resetting...
+                          <RotateCcw className="w-3 h-3 sm:mr-1 animate-spin" strokeWidth={2.5} aria-hidden="true" />
+                          <span className="hidden sm:inline">Resetting...</span>
                         </>
                       ) : (
                         <>
-                          <RotateCcw className="w-3 h-3 mr-1" />
-                          Reset
+                          <RotateCcw className="w-3 h-3 sm:mr-1" strokeWidth={2.5} aria-hidden="true" />
+                          <span className="hidden sm:inline">Reset</span>
                         </>
                       )}
                     </Button>
@@ -278,16 +283,17 @@ export function AdminListTable({
                         variant="outline"
                         className="text-xs text-error border-error/30 hover:bg-error-light"
                         title="Delete Admin"
+                        aria-label="Delete Admin"
                       >
                         {deletingId === admin.id ? (
                           <>
-                            <Trash2 className="w-3 h-3 mr-1 animate-spin" />
-                            Deleting...
+                            <Trash2 className="w-3 h-3 sm:mr-1 animate-spin" />
+                            <span className="hidden sm:inline">Deleting...</span>
                           </>
                         ) : (
                           <>
-                            <Trash2 className="w-3 h-3 mr-1" />
-                            Delete
+                            <Trash2 className="w-3 h-3 sm:mr-1" />
+                            <span className="hidden sm:inline">Delete</span>
                           </>
                         )}
                       </Button>
@@ -306,14 +312,16 @@ export function AdminListTable({
           <div className="bg-white rounded-3xl shadow-xl max-w-md w-full">
             <div className="flex items-center justify-between p-6 border-b border-slate-200">
               <h2 className="text-xl font-black text-text">Reset Password</h2>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon"
                 onClick={closeResetModal}
                 aria-label="Close password reset dialog"
-                className="text-slate-400 hover:text-slate-800"
+                className="text-slate-500 hover:text-slate-800"
               >
                 <X className="w-6 h-6" />
-              </button>
+              </Button>
             </div>
 
             <div className="p-6 space-y-4">
@@ -330,17 +338,20 @@ export function AdminListTable({
                   onKeyDown={(e) => e.key === "Enter" && handleResetPassword()}
                   className="pr-10"
                 />
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-800"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-11 w-11 text-slate-500 hover:text-slate-800"
                 >
                   {showPassword ? (
                     <EyeOff className="w-4 h-4" />
                   ) : (
                     <Eye className="w-4 h-4" />
                   )}
-                </button>
+                </Button>
               </div>
 
               {resetError && <p className="text-sm text-error">{resetError}</p>}
@@ -357,7 +368,8 @@ export function AdminListTable({
               <Button
                 onClick={handleResetPassword}
                 disabled={resetingId === resetAdmin.id}
-                className="flex-1 bg-primary hover:bg-primary-dark"
+                variant="ghost"
+                className="flex-1 bg-[#1E3A5F] hover:bg-[#152a44] text-white"
               >
                 {resetingId === resetAdmin.id ? MODAL_BUTTON_TEXT.active : MODAL_BUTTON_TEXT.idle}
               </Button>

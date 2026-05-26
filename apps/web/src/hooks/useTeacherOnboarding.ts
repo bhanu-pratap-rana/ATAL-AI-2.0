@@ -17,8 +17,8 @@ import {
   resetPasswordWithOtp,
 } from "@/app/actions/auth";
 import { verifyTeacher } from "@/app/actions/school";
+import { validateEmail } from "@/lib/email-validation";
 import {
-  validateEmail,
   validatePassword,
   validatePasswordMatch,
   validateOptionalPhone,
@@ -800,24 +800,42 @@ export function useTeacherOnboarding() {
   );
 
   // HANDLER: Password Change (updates strength)
-  // PERF-011 FIX: Dynamic import of zxcvbn to reduce bundle size by ~700KB
-  // zxcvbn is only loaded when user starts typing a password
+  //
+  // Dynamic import of @zxcvbn-ts (replaces the legacy `zxcvbn` package
+  // which had unmaintained CVEs). Same ~700KB-savings rationale: the
+  // wordlists + language data only load when the user types in a
+  // password field. Core + common + en wordlists are loaded together
+  // because they're all required for the first score call.
   const handlePasswordChange = useCallback((password: string) => {
     setPassword(password);
-    if (password.length > 0) {
-      // Dynamic import - only loads zxcvbn when needed
-      import("zxcvbn")
-        .then((module) => {
-          const zxcvbn = module.default;
-          const result = zxcvbn(password);
-          setPasswordStrength(result.score);
-        })
-        .catch(() => {
-          setPasswordStrength(0);
-        });
-    } else {
+    if (password.length === 0) {
       setPasswordStrength(0);
+      return;
     }
+    Promise.all([
+      import("@zxcvbn-ts/core"),
+      import("@zxcvbn-ts/language-common"),
+      import("@zxcvbn-ts/language-en"),
+    ])
+      .then(([core, common, en]) => {
+        core.zxcvbnOptions.setOptions({
+          translations: en.translations,
+          graphs: common.adjacencyGraphs,
+          dictionary: {
+            ...common.dictionary,
+            ...en.dictionary,
+          },
+        });
+        const result = core.zxcvbn(password);
+        setPasswordStrength(result.score);
+      })
+      .catch((err) => {
+        // Defensive: fall back to a conservative weak score so the UI
+        // doesn't lie if the wordlists fail to load.
+        // eslint-disable-next-line no-console
+        console.debug("[onboarding] zxcvbn-ts load failed", err);
+        setPasswordStrength(0);
+      });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

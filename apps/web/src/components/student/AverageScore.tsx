@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Target } from "lucide-react";
 import { createClient } from "@/lib/supabase-server";
 
 interface Props {
@@ -37,8 +38,8 @@ export async function AverageScore({ userId }: Props) {
       href="/app/progress"
       className="bg-white rounded-2xl p-4 shadow-[0_4px_20px_rgb(0,0,0,0.05)] border border-slate-100 flex flex-col items-center text-center gap-1 hover:shadow-md transition-shadow active:scale-95"
     >
-      <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center text-xl shrink-0">
-        🎯
+      <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center shrink-0 text-(--bento-orange-d)">
+        <Target className="w-5 h-5" strokeWidth={2.25} aria-hidden="true" />
       </div>
       <p className="text-xl font-black text-slate-800 leading-none">{value}</p>
       <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider leading-tight">

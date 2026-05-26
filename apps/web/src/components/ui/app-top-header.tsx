@@ -1,42 +1,88 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { GraduationCap, ShieldCheck, User, LogOut } from "lucide-react";
+import { GraduationCap, ShieldCheck, User, LogOut, Settings } from "lucide-react";
 import { createClient } from "@/lib/supabase-browser";
 import { authLogger } from "@/lib/auth-logger";
 import { LanguageSelector } from "@/components/learn/LanguageSelector";
 import { SyncStatusIndicator } from "@/components/offline/SyncStatusIndicator";
+import { Button } from "@/components/ui/button";
 
-function getPortalConfig(pathname: string) {
-  if (pathname.startsWith("/app/teacher")) {
-    return {
-      label: "Teacher Portal",
-      Icon: GraduationCap,
-      style: { background: "var(--gradient-teacher)" },
-      signOutPath: "/teacher/start",
-    };
-  }
-  if (pathname.startsWith("/app/admin")) {
-    return {
-      label: "Admin Portal",
-      Icon: ShieldCheck,
-      style: { background: "var(--gradient-admin)" },
-      signOutPath: "/admin/login",
-    };
-  }
-  return {
+type Portal = "teacher" | "admin" | "student";
+
+const PORTAL_CONFIG: Record<Portal, {
+  label: string;
+  Icon: typeof GraduationCap;
+  style: { background: string };
+  signOutPath: string;
+}> = {
+  teacher: {
+    label: "Teacher Portal",
+    Icon: GraduationCap,
+    style: { background: "var(--gradient-teacher)" },
+    signOutPath: "/teacher/start",
+  },
+  admin: {
+    label: "Admin Portal",
+    Icon: ShieldCheck,
+    style: { background: "var(--gradient-admin)" },
+    signOutPath: "/admin/login",
+  },
+  student: {
     label: "Student Portal",
     Icon: User,
     style: { background: "var(--gradient-primary)" },
     signOutPath: "/student/start",
-  };
+  },
+};
+
+function portalFromPath(pathname: string): Portal | null {
+  if (pathname.startsWith("/app/teacher")) return "teacher";
+  if (pathname.startsWith("/app/admin")) return "admin";
+  if (pathname.startsWith("/app/student")) return "student";
+  return null;
 }
 
-export function AppTopHeader() {
+function portalFromRole(role: string | undefined): Portal | null {
+  if (role === "teacher") return "teacher";
+  if (role === "admin" || role === "super_admin") return "admin";
+  if (role === "student") return "student";
+  return null;
+}
+
+interface AppTopHeaderProps {
+  readonly initialRole?: string;
+}
+
+export function AppTopHeader({ initialRole }: AppTopHeaderProps = {}) {
   const router = useRouter();
   const pathname = usePathname();
   const supabase = createClient();
-  const config = getPortalConfig(pathname);
+
+  // The role is resolved server-side in the app layout and passed in as a
+  // prop, so the first paint already has the correct portal identity —
+  // no "student-flash" on /app/settings or other non-role-scoped paths.
+  // The client-side getUser() below is a safety net in case the prop is
+  // missing (e.g. legacy callers).
+  const [role, setRole] = useState<string | undefined>(initialRole);
+  useEffect(() => {
+    if (initialRole) return;
+    let cancelled = false;
+    supabase.auth.getUser().then(({ data }) => {
+      if (cancelled) return;
+      const value = data.user?.app_metadata?.role;
+      if (typeof value === "string") setRole(value);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase, initialRole]);
+
+  const portal: Portal =
+    portalFromRole(role) ?? portalFromPath(pathname) ?? "student";
+  const config = PORTAL_CONFIG[portal];
   const { Icon } = config;
 
   async function handleSignOut() {
@@ -71,15 +117,27 @@ export function AppTopHeader() {
         <div className="flex items-center gap-2 shrink-0">
           <LanguageSelector variant="compact" />
           <SyncStatusIndicator compact />
-          <button
+          {pathname !== "/app/settings" && (
+            <Link
+              href="/app/settings"
+              aria-label="Settings"
+              title="Settings"
+              className="inline-flex items-center justify-center w-11 h-11 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100"
+            >
+              <Settings size={18} strokeWidth={2.25} aria-hidden="true" />
+            </Link>
+          )}
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             onClick={handleSignOut}
             aria-label="Sign out"
             title="Sign out"
-            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+            className="rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-100"
           >
-            <LogOut size={18} />
-          </button>
+            <LogOut size={18} aria-hidden="true" />
+          </Button>
         </div>
       </div>
     </header>

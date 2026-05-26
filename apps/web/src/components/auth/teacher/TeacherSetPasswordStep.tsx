@@ -6,6 +6,7 @@
 
 "use client";
 
+import { Lock } from "lucide-react";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,6 +58,7 @@ export function TeacherSetPasswordStep({
             <Input
               id="password"
               type="password"
+              autoComplete="new-password"
               placeholder="Enter password (min 8 characters)"
               value={state.password}
               onChange={(e) => actions.handlePasswordChange(e.target.value)}
@@ -102,6 +104,7 @@ export function TeacherSetPasswordStep({
             <Input
               id="password-confirm"
               type="password"
+              autoComplete="new-password"
               placeholder="Re-enter password"
               value={state.passwordConfirm}
               onChange={(e) => actions.setPasswordConfirm(e.target.value)}
@@ -113,7 +116,7 @@ export function TeacherSetPasswordStep({
 
           <div className="bg-cyan-lightest border-l-4 border-cyan p-3 rounded-xl">
             <p className="text-xs text-cyan-darkest">
-              <strong>🔒 Why a password?</strong>
+              <strong className="inline-flex items-center gap-1.5"><Lock size={14} strokeWidth={2.5} aria-hidden="true" />Why a password?</strong>
               <br />A password enables account recovery and allows you to
               access your account from multiple devices securely.
             </p>
@@ -121,7 +124,7 @@ export function TeacherSetPasswordStep({
 
           <Button
             type="submit"
-            className="w-full shadow-[var(--shadow-primary)]"
+            className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white border-2 border-[#2563EB]/40 shadow-md" variant="ghost"
             disabled={
               state.loading ||
               !validatePassword(state.password).valid ||

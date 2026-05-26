@@ -183,20 +183,29 @@ export async function startAssessment(classId?: string, sessionType: "pre" | "ad
 
     const supabase = await createClient();
 
-    // For pre/post assessments, check if one already exists
+    // For pre/post assessments, check if one already exists OR is in
+    // progress. PR-64 widened the check vs PR-62: previously we only
+    // looked at `submitted_at IS NOT NULL`, so a student who started
+    // but never submitted could open unlimited new pre-sessions
+    // (and TOCTOU between SELECT + INSERT let two concurrent calls
+    // both pass the check). Now we reject if ANY pre/post row exists
+    // for the user, and rely on the unique partial index added in
+    // migration 188 to prevent the race.
     if (sessionType === "pre" || sessionType === "post") {
       const { data: existing } = await supabase
         .from("assessment_sessions")
-        .select("id")
+        .select("id, submitted_at")
         .eq("user_id", auth.user.id)
         .eq("session_type", sessionType)
-        .not("submitted_at", "is", null)
         .limit(1);
 
-      if (existing && existing.length > 0) {
+      const existingRow = existing?.[0];
+      if (existingRow) {
         return {
           success: false,
-          error: `You have already completed a ${sessionType}-assessment.`,
+          error: existingRow.submitted_at
+            ? `You have already completed a ${sessionType}-assessment.`
+            : `You already have a ${sessionType}-assessment in progress.`,
         };
       }
     }
@@ -395,8 +404,13 @@ export async function submitAssessment(
     revalidatePath("/app/student/dashboard");
     revalidatePath("/app/progress");
 
-    // Award gamification points for completing an assessment (non-blocking)
-    gamificationService.triggerActivityCheck(auth.user.id, "assessment").catch(() => {});
+    // Award gamification points for completing an assessment (non-blocking).
+    // Failure here must not abort the submission — log and move on.
+    gamificationService.triggerActivityCheck(auth.user.id, "assessment").catch((err) => {
+      authLogger.warn("[submitAssessment] gamification triggerActivityCheck failed", {
+        error: err instanceof Error ? err.message : String(err),
+      });
+    });
 
     return {
       success: true,

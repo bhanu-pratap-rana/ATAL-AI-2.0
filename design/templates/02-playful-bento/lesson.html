@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Quadratics · Question 3 — ATAL AI</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --p-orange:#FF8A3D; --p-orange-d:#E66A1A;
+    --p-yellow:#FFD66B; --p-purple:#A78BFA; --p-sky:#6DC5E8;
+    --p-pink:#FF8FB8; --p-mint:#7EE0C2; --p-bg:#FFFBF5;
+    --p-green:#22C55E; --p-red:#EF4444;
+  }
+  body{font-family:'Nunito',system-ui,sans-serif;background:var(--p-bg);color:#231C2E;}
+  .chunk{ box-shadow: 0 6px 0 rgba(0,0,0,.06), 0 14px 28px -10px rgba(0,0,0,.12); }
+  .btn-bounce{ box-shadow: 0 5px 0 var(--p-orange-d); transition:.15s; }
+  .btn-bounce:active{ transform: translateY(3px); box-shadow:0 2px 0 var(--p-orange-d);}
+  .btn-green{ background:var(--p-green); box-shadow:0 5px 0 #15803D;}
+  .btn-grey{ background:#fff; color:#231C2E; box-shadow:0 5px 0 #CFCAC0; border:3px solid #EDEAE2;}
+  .btn-grey:active{ transform:translateY(3px); box-shadow:0 2px 0 #CFCAC0;}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+  .bob{animation:bob 2.6s ease-in-out infinite}
+  @keyframes pop{0%{transform:scale(0)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+  .pop{animation:pop .35s ease-out;}
+  .ring-rainbow{ background:conic-gradient(from 0deg,#FF8A3D,#FFD66B,#7EE0C2,#6DC5E8,#A78BFA,#FF8FB8,#FF8A3D); padding:3px; border-radius:9999px;}
+  .blob{filter:blur(50px);opacity:.3;}
+  .option{ transition: all .15s; }
+  .option:hover{ transform: translateY(-2px); }
+  .option.selected{ border-color:var(--p-orange); background:#FFEFE2; box-shadow:0 6px 0 var(--p-orange);}
+  .option.correct{ border-color:var(--p-green); background:#DCFCE7; box-shadow:0 6px 0 #15803D;}
+  .option.incorrect{ border-color:var(--p-red); background:#FEE2E2; box-shadow:0 6px 0 #B91C1C;}
+</style>
+</head>
+<body class="min-h-screen overflow-x-hidden">
+
+<div class="fixed -top-20 -left-20 w-96 h-96 rounded-full blob" style="background:var(--p-yellow)"></div>
+<div class="fixed bottom-0 right-0 w-80 h-80 rounded-full blob" style="background:var(--p-purple)"></div>
+
+<div class="relative min-h-screen flex flex-col">
+
+<!-- Top bar: progress + hearts + exit -->
+<header class="px-4 sm:px-6 pt-4">
+  <div class="max-w-3xl mx-auto flex items-center gap-3">
+    <button class="w-10 h-10 rounded-full bg-white chunk border-4 border-white flex items-center justify-center text-xl hover:bg-stone-50" title="Exit">✕</button>
+
+    <!-- Progress bar -->
+    <div class="flex-1 h-4 rounded-full bg-white chunk border-4 border-white overflow-hidden">
+      <div class="h-full rounded-full transition-all" style="width:30%;background:linear-gradient(90deg,var(--p-orange),var(--p-yellow))"></div>
+    </div>
+
+    <!-- Hearts -->
+    <div class="flex items-center gap-1 bg-white chunk border-4 border-white rounded-full px-3 py-1.5">
+      <span class="text-lg">❤️</span>
+      <span class="font-black">3</span>
+    </div>
+  </div>
+  <div class="max-w-3xl mx-auto text-center mt-3">
+    <span class="text-xs font-black uppercase tracking-wider" style="color:var(--p-orange-d)">Question 3 of 10 · Quadratics · Class 10</span>
+  </div>
+</header>
+
+<!-- Main question area -->
+<main class="flex-1 flex items-center justify-center px-4 sm:px-6 py-8">
+  <div class="w-full max-w-3xl">
+
+    <!-- Mascot prompt -->
+    <div class="flex items-start gap-4 mb-6">
+      <div class="ring-rainbow flex-shrink-0 bob"><img src="../shared/logo.png" class="w-20 h-20 rounded-full bg-white"/></div>
+      <div class="bg-white rounded-3xl chunk border-4 border-white p-5 relative flex-1">
+        <!-- speech triangle -->
+        <div class="absolute left-0 top-6 -translate-x-2 w-4 h-4 bg-white rotate-45 border-l-4 border-b-4 border-white"></div>
+        <div class="text-xs font-black uppercase tracking-wider mb-1" style="color:var(--p-orange-d)">Jyoti says</div>
+        <p class="font-bold text-slate-700 text-sm sm:text-base leading-relaxed">
+          Find the roots of the equation. Take your time — read both sides carefully! 💡
+        </p>
+      </div>
+    </div>
+
+    <!-- Question card -->
+    <div class="bg-white rounded-[36px] chunk border-4 border-white p-6 sm:p-8 mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <span class="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider text-white" style="background:var(--p-orange)">Multiple choice</span>
+        <button class="flex items-center gap-1.5 text-xs font-black px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200">🔊 <span>Listen</span></button>
+      </div>
+
+      <!-- Question -->
+      <h2 class="text-2xl sm:text-3xl font-black mb-2 leading-tight">
+        Solve: <span class="font-mono px-2 py-1 rounded-lg" style="background:#FFF6E5">x² − 5x + 6 = 0</span>
+      </h2>
+      <p class="text-sm font-bold text-slate-500 mb-6">Tap the correct pair of roots.</p>
+
+      <!-- Options -->
+      <div class="grid sm:grid-cols-2 gap-3">
+        <button class="option text-left flex items-center gap-4 p-4 rounded-2xl bg-white border-4 border-slate-200 font-bold">
+          <span class="w-9 h-9 rounded-xl flex items-center justify-center font-black text-white flex-shrink-0" style="background:var(--p-purple)">A</span>
+          <span class="font-mono text-lg">x = 1, x = 6</span>
+        </button>
+        <button class="option text-left flex items-center gap-4 p-4 rounded-2xl bg-white border-4 border-slate-200 font-bold correct">
+          <span class="w-9 h-9 rounded-xl flex items-center justify-center font-black text-white flex-shrink-0" style="background:var(--p-green)">✓</span>
+          <span class="font-mono text-lg">x = 2, x = 3</span>
+          <span class="ml-auto text-2xl pop">🎉</span>
+        </button>
+        <button class="option text-left flex items-center gap-4 p-4 rounded-2xl bg-white border-4 border-slate-200 font-bold">
+          <span class="w-9 h-9 rounded-xl flex items-center justify-center font-black text-white flex-shrink-0" style="background:var(--p-sky)">C</span>
+          <span class="font-mono text-lg">x = −2, x = −3</span>
+        </button>
+        <button class="option text-left flex items-center gap-4 p-4 rounded-2xl bg-white border-4 border-slate-200 font-bold">
+          <span class="w-9 h-9 rounded-xl flex items-center justify-center font-black text-white flex-shrink-0" style="background:var(--p-pink)">D</span>
+          <span class="font-mono text-lg">x = 5, x = 6</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Action toolbar -->
+    <div class="grid grid-cols-3 gap-3 mb-4">
+      <button class="btn-grey rounded-2xl py-3 px-4 font-black flex items-center justify-center gap-2 text-sm">
+        💡 <span class="hidden sm:inline">Hint</span>
+      </button>
+      <button class="btn-grey rounded-2xl py-3 px-4 font-black flex items-center justify-center gap-2 text-sm">
+        🎙️ <span class="hidden sm:inline">Voice tutor</span>
+      </button>
+      <button class="btn-grey rounded-2xl py-3 px-4 font-black flex items-center justify-center gap-2 text-sm">
+        🌐 <span class="hidden sm:inline">অসমীয়া</span>
+      </button>
+    </div>
+
+    <!-- Feedback banner (showing correct state) -->
+    <div class="rounded-3xl chunk border-4 border-white p-5 sm:p-6 mb-4 pop" style="background:#DCFCE7;border-color:#86EFAC">
+      <div class="flex items-start gap-4">
+        <div class="text-4xl">🎉</div>
+        <div class="flex-1">
+          <div class="font-black text-lg sm:text-xl mb-1" style="color:#15803D">Brilliant, Aarav!</div>
+          <p class="text-sm font-bold text-slate-700">
+            <strong>x² − 5x + 6 = (x − 2)(x − 3) = 0</strong>, so x = 2 or x = 3. You used factorisation perfectly.
+          </p>
+          <div class="mt-3 flex flex-wrap items-center gap-2">
+            <span class="text-xs font-black px-3 py-1 rounded-full bg-white border-2 border-green-300" style="color:#15803D">+10 XP</span>
+            <span class="text-xs font-black px-3 py-1 rounded-full bg-white border-2 border-orange-300 text-orange-700">🔥 streak saved</span>
+            <span class="text-xs font-black px-3 py-1 rounded-full bg-white border-2 border-purple-300 text-purple-700">💎 +1 gem</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="w-full btn-bounce btn-green rounded-2xl py-4 sm:py-5 text-lg sm:text-xl font-black text-white">
+      CONTINUE →
+    </button>
+  </div>
+</main>
+
+<!-- Footer -->
+<footer class="px-4 sm:px-6 py-4 text-center">
+  <a href="../index.html" class="text-xs font-black text-slate-500 hover:text-orange-600">← Back to gallery</a>
+  <span class="mx-3 text-slate-300">·</span>
+  <a href="dashboard.html" class="text-xs font-black text-slate-500 hover:text-orange-600">Dashboard</a>
+  <span class="mx-3 text-slate-300">·</span>
+  <a href="teacher.html" class="text-xs font-black text-slate-500 hover:text-orange-600">Teacher view</a>
+</footer>
+
+</div>
+</body>
+</html>

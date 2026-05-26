@@ -8,95 +8,27 @@
 import {
   EMAIL_MAX_LENGTH,
   EMAIL_REGEX,
-  VALID_EMAIL_PROVIDERS,
+  VALID_TLDS,
   BLOCKED_EMAIL_DOMAINS,
   COMMON_DOMAIN_TYPOS,
   AUTH_ERRORS,
 } from "./auth-constants";
 
-export const VALID_TLDS = [
-  "com",
-  "org",
-  "net",
-  "edu",
-  "gov",
-  "mil",
-  "int",
-  "co",
-  "in",
-  "uk",
-  "us",
-  "ca",
-  "au",
-  "de",
-  "fr",
-  "jp",
-  "cn",
-  "io",
-  "ai",
-  "tv",
-  "cc",
-  "ws",
-  "me",
-  "co.uk",
-  "co.in",
-];
+export { VALID_TLDS } from "./auth-constants";
 
 /**
- * Calculates Levenshtein distance between two strings
- * Used for detecting email domain typos
- */
-function levenshteinDistance(str1: string, str2: string): number {
-  const m = str1.length;
-  const n = str2.length;
-  const dp: number[][] = new Array(m + 1)
-    .fill(null)
-    .map(() => new Array(n + 1).fill(0));
-
-  for (let i = 0; i <= m; i++) dp[i][0] = i;
-  for (let j = 0; j <= n; j++) dp[0][j] = j;
-
-  for (let i = 1; i <= m; i++) {
-    for (let j = 1; j <= n; j++) {
-      if (str1[i - 1] === str2[j - 1]) {
-        dp[i][j] = dp[i - 1][j - 1];
-      } else {
-        dp[i][j] = 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
-      }
-    }
-  }
-
-  return dp[m][n];
-}
-
-/**
- * Detects if an email domain has a typo and suggests the correct domain
+ * Why fixed map (not Levenshtein): a distance-based check against a closed
+ * provider whitelist produced false positives on legitimate institutional
+ * domains like `assam.gov.in` (distance 2 from `gmail.com`).
  */
 export function detectDomainTypo(domain: string): {
   hasTypo: boolean;
   suggestion?: string;
 } {
-  if (COMMON_DOMAIN_TYPOS[domain]) {
-    return { hasTypo: true, suggestion: COMMON_DOMAIN_TYPOS[domain] };
+  const correction = COMMON_DOMAIN_TYPOS[domain];
+  if (correction) {
+    return { hasTypo: true, suggestion: correction };
   }
-
-  const validDomains = VALID_EMAIL_PROVIDERS;
-  let closestMatch: { domain: string; distance: number } | null = null;
-  const threshold = 2;
-
-  for (const validDomain of validDomains) {
-    const distance = levenshteinDistance(domain, validDomain);
-    if (distance <= threshold) {
-      if (!closestMatch || distance < closestMatch.distance) {
-        closestMatch = { domain: validDomain, distance };
-      }
-    }
-  }
-
-  if (closestMatch) {
-    return { hasTypo: true, suggestion: closestMatch.domain };
-  }
-
   return { hasTypo: false };
 }
 
@@ -106,27 +38,17 @@ export function detectDomainTypo(domain: string): {
 export function isValidEmailDomain(domain: string): boolean {
   const lowerDomain = domain.toLowerCase();
 
-  if (
-    VALID_EMAIL_PROVIDERS.some(
-      (provider) =>
-        lowerDomain === provider || lowerDomain.endsWith("." + provider),
-    )
-  ) {
-    return true;
-  }
-
   const domainParts = lowerDomain.split(".");
   if (domainParts.length < 2) return false;
 
   if (domainParts.some((part) => part.length === 0)) return false;
 
-  const tld = domainParts.at(-1);
-  if (!tld || !VALID_TLDS.includes(tld)) return false;
-
   const domainName = domainParts[0];
   if (domainName.length < 2) return false;
 
-  return true;
+  return VALID_TLDS.some((tld) => {
+    return lowerDomain === tld || lowerDomain.endsWith(`.${tld}`);
+  });
 }
 
 /**
@@ -158,12 +80,6 @@ export function validateEmail(email: string): {
     return { valid: false, error: AUTH_ERRORS.DISPOSABLE_EMAIL };
   }
 
-  const isValidDomain = VALID_EMAIL_PROVIDERS.includes(domain);
-
-  if (isValidDomain) {
-    return { valid: true };
-  }
-
   const typoDetection = detectDomainTypo(domain);
   if (typoDetection.hasTypo && typoDetection.suggestion) {
     const suggestedEmail = `${localPart}@${typoDetection.suggestion}`;
@@ -172,6 +88,10 @@ export function validateEmail(email: string): {
       error: `Email domain typo detected. Did you mean ${suggestedEmail}?`,
       suggestion: suggestedEmail,
     };
+  }
+
+  if (isValidEmailDomain(domain)) {
+    return { valid: true };
   }
 
   return { valid: false, error: AUTH_ERRORS.INVALID_EMAIL };

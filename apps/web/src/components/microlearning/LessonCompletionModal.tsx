@@ -15,7 +15,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle, ArrowRight, RotateCcw, Trophy, Star } from "lucide-react";
+import { ArrowRight, CheckCircle, Dumbbell, RotateCcw, Star, ThumbsUp, Trophy } from "lucide-react";
 import type { SupportedLanguage } from "@/types/common";
 import { getTranslation } from "@/lib/i18n";
 
@@ -51,15 +51,6 @@ function getPersonalizedMessage(
   return getTranslation("lessonCompletion.msgKeepGoing", language, { topic: topicName });
 }
 
-/**
- * Get emoji/icon based on score
- */
-function getScoreEmoji(score: number): string {
-  if (score >= 90) return "🏆";
-  if (score >= 70) return "⭐";
-  if (score >= 50) return "👍";
-  return "💪";
-}
 
 export function LessonCompletionModal({
   data,
@@ -72,11 +63,22 @@ export function LessonCompletionModal({
   const isPassing = score >= 70;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    // F43: dialog semantics so screen readers announce this overlay as
+    // a modal dialog and aria-modal traps assistive focus, instead of
+    // it being a plain decorative div. aria-labelledby/-describedby
+    // point at the title and the score-headline paragraph so the
+    // announcement contains both.
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="lesson-completion-title"
+      aria-describedby="lesson-completion-score"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+    >
       <Card className="w-full max-w-md animate-in fade-in zoom-in-95 duration-300">
         <CardHeader className="text-center pb-2">
-          <div className="text-4xl sm:text-5xl mb-2">{getScoreEmoji(score)}</div>
-          <CardTitle className="text-2xl">
+          <ScoreIconChip score={score} />
+          <CardTitle id="lesson-completion-title" className="text-2xl">
             {getTranslation("lessonCompletion.title", language)}
           </CardTitle>
         </CardHeader>
@@ -86,7 +88,7 @@ export function LessonCompletionModal({
             <p className="text-sm text-slate-500 mb-1">
               {getTranslation("lessonCompletion.score", language)}
             </p>
-            <div className="text-3xl sm:text-5xl font-black mb-2">
+            <div id="lesson-completion-score" className="text-3xl sm:text-5xl font-black mb-2">
               {score}%
             </div>
             <Progress
@@ -154,6 +156,21 @@ export function LessonCompletionModal({
           </div>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function ScoreIconChip({ score }: { readonly score: number }) {
+  const iconClass = "w-8 h-8 sm:w-9 sm:h-9";
+  const props = { className: iconClass, strokeWidth: 2.25, "aria-hidden": true };
+  let icon;
+  if (score >= 90) icon = <Trophy {...props} />;
+  else if (score >= 70) icon = <Star {...props} />;
+  else if (score >= 50) icon = <ThumbsUp {...props} />;
+  else icon = <Dumbbell {...props} />;
+  return (
+    <div className="mx-auto mb-2 w-14 h-14 sm:w-16 sm:h-16 rounded-3xl bg-(--bento-tint-orange) border-4 border-white shadow-sm flex items-center justify-center text-(--bento-orange-d)">
+      {icon}
     </div>
   );
 }

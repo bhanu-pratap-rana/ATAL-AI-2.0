@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { BarChart3, Bot, BookOpen, Users } from "lucide-react";
 import { createClient, getCurrentUser } from "@/lib/supabase-server";
 import { authLogger } from "@/lib/auth-logger";
 import { InviteStudentDialog } from "@/components/teacher/InviteStudentDialog";
@@ -9,6 +10,7 @@ import { AnalyticsTiles } from "@/components/teacher/AnalyticsTiles";
 import { StudentProgressGrid } from "@/components/teacher/StudentProgressGrid";
 import { AIInteractionsLog } from "@/components/teacher/AIInteractionsLog";
 import { CommunicationSection } from "@/components/teacher/communication";
+import { BentoCard } from "@/components/ui/bento-card";
 import {
   getClassAnalytics,
   getClassAnnouncements,
@@ -208,7 +210,7 @@ export default async function ClassDetailPage({
     : [];
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
+    <div className="min-h-screen [background:var(--bento-bg)] p-4 md:p-6 pb-28">
       <div className="max-w-6xl mx-auto space-y-4">
         {/* Banner */}
         <div className="rounded-[32px] p-6 text-white" style={{ background: "var(--gradient-teacher)" }}>
@@ -217,7 +219,10 @@ export default async function ClassDetailPage({
           </Link>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-xl sm:text-2xl font-black mb-1">📚 {classData.name}</h1>
+              <h1 className="text-xl sm:text-2xl font-black mb-1 flex items-center gap-2">
+                <BookOpen className="w-6 h-6 shrink-0" strokeWidth={2.25} aria-hidden="true" />
+                <span className="truncate">{classData.name}</span>
+              </h1>
               <p className="text-white/80 text-sm font-bold">
                 {enrollments.length} {enrollments.length === 1 ? "student" : "students"} enrolled
               </p>
@@ -244,24 +249,24 @@ export default async function ClassDetailPage({
 
         {/* Real-time Student Progress Grid */}
         {enrollments.length > 0 && (
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+          <BentoCard padding="lg">
             <h2 className="font-black text-slate-800 text-lg mb-1 flex items-center gap-2">
-              <span>📊</span> Real-time Student Progress
+              <BarChart3 className="w-5 h-5 text-(--bento-sky-d)" strokeWidth={2.25} aria-hidden="true" /> Real-time Student Progress
             </h2>
-            <p className="text-xs font-bold text-slate-400 mb-4">Live view of student learning progress and at-risk indicators</p>
+            <p className="text-xs font-bold text-slate-500 mb-4">Live view of student learning progress and at-risk indicators</p>
             <StudentProgressGrid classId={id} />
-          </div>
+          </BentoCard>
         )}
 
         {/* AI Tutor Interactions Log */}
         {enrollments.length > 0 && (
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+          <BentoCard padding="lg">
             <h2 className="font-black text-slate-800 text-lg mb-1 flex items-center gap-2">
-              <span>🤖</span> AI Tutor Activity
+              <Bot className="w-5 h-5 text-(--bento-purple-d)" strokeWidth={2.25} aria-hidden="true" /> AI Tutor Activity
             </h2>
-            <p className="text-xs font-bold text-slate-400 mb-4">Recent AI tutor conversations from your students</p>
+            <p className="text-xs font-bold text-slate-500 mb-4">Recent AI tutor conversations from your students</p>
             <AIInteractionsLog classId={id} limit={15} />
-          </div>
+          </BentoCard>
         )}
 
         {/* Teacher Communication: Announcements & Materials */}
@@ -272,19 +277,21 @@ export default async function ClassDetailPage({
         />
 
         {/* Roster */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+        <BentoCard padding="lg">
           <h2 className="font-black text-slate-800 text-lg mb-1">Class Roster</h2>
-          <p className="text-xs font-bold text-slate-400 mb-4">View and manage students enrolled in this class</p>
+          <p className="text-xs font-bold text-slate-500 mb-4">View and manage students enrolled in this class</p>
           {enrollments.length === 0 ? (
             <div className="text-center py-10">
-              <div className="text-4xl mb-4">👥</div>
+              <div className="mx-auto mb-4 w-16 h-16 rounded-3xl bg-(--bento-tint-sky) border-4 border-white shadow-sm flex items-center justify-center text-(--bento-sky-d)">
+                <Users className="w-8 h-8" strokeWidth={2.25} aria-hidden="true" />
+              </div>
               <h3 className="font-black text-slate-800 text-lg mb-2">No students enrolled yet</h3>
-              <p className="font-bold text-slate-400 text-sm">Use the Invite Student button above or share the class details</p>
+              <p className="font-bold text-slate-500 text-sm">Use the Invite Student button above or share the class details</p>
             </div>
           ) : (
             <RosterTable enrollments={enrollments} classId={id} />
           )}
-        </div>
+        </BentoCard>
       </div>
     </div>
   );

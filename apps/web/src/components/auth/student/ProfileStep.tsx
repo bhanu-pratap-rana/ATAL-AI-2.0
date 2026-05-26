@@ -119,7 +119,7 @@ export function ProfileStep({
           <Input
             id="profile-name"
             type="text"
-            placeholder="John Doe"
+            placeholder="Enter your full name"
             value={state.profileName}
             onChange={(e) => actions.setProfileName(e.target.value)}
             required
@@ -150,12 +150,13 @@ export function ProfileStep({
 
         {/* ── Optional fields toggle ───────────────────────── */}
         <div className="pt-1">
-          <button
+          <Button
             type="button"
+            variant="link"
             onClick={() => setShowOptional((v) => !v)}
             aria-expanded={showOptional}
             aria-controls="profile-optional-fields"
-            className="flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+            className="h-auto p-0 text-sm font-medium gap-1.5"
           >
             <span
               aria-hidden="true"
@@ -164,7 +165,7 @@ export function ProfileStep({
               ▶
             </span>
             {showOptional ? "Hide optional details" : "Add optional details"}
-          </button>
+          </Button>
         </div>
 
         {/* ── Optional fields ──────────────────────────────── */}
@@ -260,7 +261,7 @@ export function ProfileStep({
 
         <Button
           type="submit"
-          className="w-full text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5"
+          className="w-full text-[17px] shadow-primary hover:shadow-(--shadow-primary-hover) hover:-translate-y-0.5"
           disabled={isLoading || !state.profileName || !state.profileGender}
           aria-describedby={state.profileError ? "profile-error" : undefined}
         >

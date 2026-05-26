@@ -49,16 +49,17 @@ export default function AdminSchoolPINsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <PINManagementHeader
-        isSuperAdmin={isSuperAdmin}
-        onSignOut={handleSignOut}
-        onDashboardClick={navigateToDashboard}
-      />
+    <div className="min-h-screen [background:var(--bento-bg)] p-4 md:p-6 pb-12">
+      <div className="max-w-6xl mx-auto space-y-4">
+        {/* Gradient banner — canonical SP13 admin theme */}
+        <PINManagementHeader
+          isSuperAdmin={isSuperAdmin}
+          onSignOut={handleSignOut}
+          onDashboardClick={navigateToDashboard}
+        />
 
       {/* Main Content */}
-      <div className="flex-1 p-6">
+      <div className="flex-1">
         {/* Statistics */}
         <StatisticsDashboard stats={stats} />
 
@@ -130,16 +131,21 @@ export default function AdminSchoolPINsPage() {
             )}
           </div>
 
-          {/* Right Column: Schools List */}
+          {/* Right Column: Schools List — uses filteredSchools so the
+             list itself shrinks while the admin types in the search.
+             When the query is empty, filteredSchools === allSchools.
+             A render cap keeps the DOM size bounded on low-end devices. */}
           <div className="bg-white border border-slate-100 rounded-3xl overflow-hidden flex flex-col">
             <SchoolsList
-              schools={allSchools}
+              schools={filteredSchools}
+              totalCount={allSchools.length}
               selectedSchool={selectedSchool}
               onSelectSchool={handleSelectSchool}
               isLoading={loadingSchoolDetails}
             />
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

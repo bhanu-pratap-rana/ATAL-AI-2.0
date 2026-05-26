@@ -9,13 +9,31 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { unstable_cache } from "next/cache";
-import { ChevronRight, Flame, BookOpen, Users, PlusCircle, Trophy, ClipboardList } from "lucide-react";
-import { getCurrentUser, createClient, createAdminClient } from "@/lib/supabase-server";
+import {
+  Users,
+  PlusCircle,
+  Trophy,
+  ClipboardList,
+  ClipboardCheck,
+  Flame,
+  Star,
+  Award,
+} from "lucide-react";
+import { getCurrentUser, createClient } from "@/lib/supabase-server";
 import { BadgesLeaderboardPanel } from "@/components/gamification/BadgesLeaderboardPanel";
 import { AverageScore, AverageScoreSkeleton } from "@/components/student/AverageScore";
+import {
+  ChunkCard,
+  Mascot,
+  RainbowRing,
+  StreakFlame,
+} from "@/components/system";
 import { isTeacherOrHigher } from "@/lib/auth/role-utils";
 import { authLogger } from "@/lib/auth-logger";
+import {
+  ContinueLearningSection,
+  ContinueLearningSkeleton,
+} from "./ContinueLearningSection";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -33,48 +51,18 @@ interface EnrolledClass {
   class_code: string;
 }
 
-interface ModuleData {
-  id: string;
-  name_en: string;
-  icon: string;
-  color_gradient: string;
-  display_order: number;
-  topic_count: number;
-}
-
 interface StudentDashboardData {
   profile: StudentProfile;
   classes: EnrolledClass[];
   assessmentCount: number;
   streakDays: number;
-  modules: ModuleData[];
-  moduleProgress: Map<string, number>; // moduleId → % complete (0-100)
 }
-
-// ─── Module fetching (cached, uses admin client) ──────────────────────────────
-
-async function fetchModulesFromDB(): Promise<ModuleData[]> {
-  const supabase = await createAdminClient();
-  const { data: rpcData, error: rpcError } = await supabase.rpc("get_modules_with_counts");
-  if (!rpcError && rpcData && rpcData.length > 0) {
-    return (rpcData as ModuleData[]).slice(0, 3);
-  }
-  const { data, error } = await supabase
-    .from("modules")
-    .select("id, name_en, icon, color_gradient, display_order")
-    .eq("is_active", true)
-    .order("display_order")
-    .limit(3);
-  if (error || !data) return [];
-  return data.map((m) => ({ ...m, topic_count: 0 })) as ModuleData[];
-}
-
-const getModulesFromDB = unstable_cache(fetchModulesFromDB, ["modules-list-dashboard"], {
-  revalidate: 3600,
-  tags: ["modules"],
-});
 
 // ─── Data fetching ────────────────────────────────────────────────────────────
+//
+// SP9 T9.1: above-fold data only. Module list + per-module progress used
+// to fetch in the same Promise.all and held up the banner LCP for ~50ms.
+// They are now in <ContinueLearningSection /> behind a Suspense boundary.
 
 async function getStudentDashboardData(userId: string): Promise<StudentDashboardData> {
   const supabase = await createClient();
@@ -86,7 +74,6 @@ async function getStudentDashboardData(userId: string): Promise<StudentDashboard
     streakResult,
     tutorInteractionsResult,
     assessmentActivityResult,
-    modules,
   ] = await Promise.all([
       supabase
         .from("student_profiles")
@@ -109,7 +96,7 @@ async function getStudentDashboardData(userId: string): Promise<StudentDashboard
 
       supabase
         .from("student_knowledge_state")
-        .select("module, mastery_score, last_attempt_at")
+        .select("last_attempt_at")
         .eq("student_id", userId)
         .order("last_attempt_at", { ascending: false })
         .limit(60),
@@ -129,8 +116,6 @@ async function getStudentDashboardData(userId: string): Promise<StudentDashboard
         .eq("user_id", userId)
         .order("started_at", { ascending: false })
         .limit(60),
-
-      getModulesFromDB(),
     ]);
 
   // Build enrolled classes with teacher names
@@ -193,20 +178,6 @@ async function getStudentDashboardData(userId: string): Promise<StudentDashboard
     }
   }
 
-  // Build per-module progress (average mastery score → %)
-  const moduleScoreMap = new Map<string, number[]>();
-  for (const row of knowledgeRows) {
-    if (!row.module) continue;
-    const arr = moduleScoreMap.get(row.module) ?? [];
-    arr.push(row.mastery_score ?? 0);
-    moduleScoreMap.set(row.module, arr);
-  }
-  const moduleProgress = new Map<string, number>();
-  for (const [moduleId, scores] of moduleScoreMap.entries()) {
-    const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
-    moduleProgress.set(moduleId, Math.round(avg * 100));
-  }
-
   return {
     profile: {
       name: profileResult.data?.name ?? null,
@@ -216,8 +187,6 @@ async function getStudentDashboardData(userId: string): Promise<StudentDashboard
     classes,
     assessmentCount: completedAssessmentsResult.count ?? 0,
     streakDays,
-    modules,
-    moduleProgress,
   };
 }
 
@@ -236,15 +205,33 @@ export default async function StudentDashboardPage() {
   if (isTeacherOrHigher(user.app_metadata?.role)) redirect("/app/teacher/dashboard");
 
   const data = await getStudentDashboardData(user.id);
-  const { profile, classes, assessmentCount, streakDays, modules, moduleProgress } = data;
+  const { profile, classes, assessmentCount, streakDays } = data;
 
   const displayName = profile.name ?? user.email?.split("@")[0] ?? "Student";
   const bannerStyle = { background: "var(--gradient-primary)" };
 
+  // Lucide icons replace emoji glyphs for a production-grade look.
+  // Per-card color hints map to the rotating bento tint of the tile
+  // background so the icon and tile sing the same note.
   const statCards = [
-    { icon: "👥", value: classes.length, label: "Classes", href: "/app/student/classes" },
-    { icon: "📝", value: assessmentCount, label: "Assessments", href: "/app/student/assessments" },
-    { icon: "🔥", value: streakDays, label: "Day Streak", href: "/app/learn" },
+    {
+      icon: <Users className="w-6 h-6 text-(--bento-orange-d)" strokeWidth={2.25} aria-hidden="true" />,
+      value: classes.length,
+      label: "Classes",
+      href: "/app/student/classes",
+    },
+    {
+      icon: <ClipboardCheck className="w-6 h-6 text-(--bento-purple-d)" strokeWidth={2.25} aria-hidden="true" />,
+      value: assessmentCount,
+      label: "Assessments",
+      href: "/app/student/assessments",
+    },
+    {
+      icon: <Flame className="w-6 h-6 text-orange-600" strokeWidth={2.25} aria-hidden="true" />,
+      value: streakDays,
+      label: "Day Streak",
+      href: "/app/learn",
+    },
   ];
 
   // Quick Actions: must NOT duplicate bottom nav (Home / Learn / AI Tutor / Profile)
@@ -276,21 +263,36 @@ export default async function StudentDashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
-      <div className="max-w-4xl mx-auto space-y-4">
+    <div className="min-h-screen p-4 md:p-6 pb-28 relative overflow-hidden [background:var(--bento-bg)]">
+      {/* Decorative pastel blobs — pure decoration, behind content */}
+      <div
+        className="bento-blob -top-20 -left-20 w-96 h-96"
+        style={{ background: "var(--bento-yellow)" }}
+        aria-hidden="true"
+      />
+      <div
+        className="bento-blob top-1/2 -right-20 w-80 h-80"
+        style={{ background: "var(--bento-purple)" }}
+        aria-hidden="true"
+      />
 
-        {/* ── Orange Banner ── */}
-        <div className="rounded-[32px] p-6 text-white" style={bannerStyle}>
+      <div className="relative max-w-4xl mx-auto space-y-4">
+
+        {/* ── Welcome Banner (chunky orange) ── */}
+        <ChunkCard size="lg" className="text-white border-white! relative overflow-hidden" style={bannerStyle}>
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-2xl shrink-0">
-              🧑‍🎓
-            </div>
+            {/* Mascot framed by rainbow ring — ties to logo headphones.
+                Bobs gently on idle; respects prefers-reduced-motion via
+                MotionConfigProvider. */}
+            <RainbowRing>
+              <Mascot size="sm" animate="bob" priority />
+            </RainbowRing>
             <div className="flex-1 min-w-0">
-              <h1 className="text-xl sm:text-2xl font-black mb-1 truncate">
-                Welcome, {displayName}!
+              <h1 className="text-2xl sm:text-3xl font-black mb-1 truncate leading-tight">
+                Hi, {displayName}! <span className="inline-block animate-bento-wiggle">👋</span>
               </h1>
               {(profile.class_name ?? profile.roll_number) && (
-                <p className="text-white/80 text-xs font-black uppercase tracking-widest">
+                <p className="text-white/85 text-xs font-black uppercase tracking-widest">
                   {[
                     profile.class_name,
                     profile.roll_number ? `Roll No. ${profile.roll_number}` : null,
@@ -302,53 +304,59 @@ export default async function StudentDashboardPage() {
             </div>
           </div>
           <div className="mt-4 flex items-center gap-2 flex-wrap">
-            <div className="bg-white/20 px-4 py-2 rounded-2xl flex items-center gap-2 backdrop-blur-md w-fit">
-              <Flame size={14} className="text-yellow-200 fill-yellow-200" />
-              <span className="text-xs font-black">{streakDays} Day Streak</span>
-            </div>
+            <StreakFlame days={streakDays} onDark />
             {assessmentCount > 0 && (
-              <div className="bg-white/20 px-4 py-2 rounded-2xl flex items-center gap-2 backdrop-blur-md w-fit">
-                <span className="text-xs font-black">⭐ {assessmentCount} Assessments Done</span>
+              <div className="bg-white/25 px-4 py-2 rounded-2xl flex items-center gap-2 backdrop-blur-md w-fit border-2 border-white/30">
+                <Star className="w-4 h-4 fill-yellow-300 text-yellow-300" strokeWidth={2.25} aria-hidden="true" />
+                <span className="text-xs font-black">{assessmentCount} Assessments Done</span>
               </div>
             )}
           </div>
-        </div>
+        </ChunkCard>
 
-        {/* ── Stat Cards (clickable) ── */}
+        {/* ── Stat Cards (clickable, chunky bento tiles) ── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {statCards.map((stat) => (
-            <Link
-              key={stat.label}
-              href={stat.href}
-              className="bg-white rounded-2xl p-4 shadow-[0_4px_20px_rgb(0,0,0,0.05)] border border-slate-100 flex flex-col items-center text-center gap-1 hover:shadow-md transition-shadow active:scale-95"
-            >
-              <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center text-xl shrink-0">
-                {stat.icon}
-              </div>
-              <p className="text-xl font-black text-slate-800 leading-none">{stat.value}</p>
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider leading-tight">
-                {stat.label}
-              </p>
-            </Link>
-          ))}
+          {statCards.map((stat, i) => {
+            // Rotate through bento tints so the grid has visual variety.
+            const tints = ["orange", "purple", "yellow"] as const;
+            const tint = tints[i % tints.length];
+            return (
+              <Link
+                key={stat.label}
+                href={stat.href}
+                prefetch={false}
+                className="chunk-card-sm border-4 border-white p-4 flex flex-col items-center text-center gap-1 active:translate-y-1 transition-transform"
+                style={{ background: `var(--bento-tint-${tint})` }}
+              >
+                <div className="w-11 h-11 bg-white rounded-2xl flex items-center justify-center shrink-0 border-2 border-white shadow-sm">
+                  {stat.icon}
+                </div>
+                <p className="text-2xl font-black text-slate-900 leading-none mt-1">{stat.value}</p>
+                <p className="text-[11px] font-black text-slate-600 uppercase tracking-wider leading-tight">
+                  {stat.label}
+                </p>
+              </Link>
+            );
+          })}
           {/* Avg Score streams independently — doesn't block the rest of the stat grid */}
           <Suspense fallback={<AverageScoreSkeleton />}>
             <AverageScore userId={user.id} />
           </Suspense>
         </div>
 
-        {/* ── Quick Actions ── */}
+        {/* ── Quick Actions (bento grid) ── */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {quickActions.map((action) => (
             <Link
               key={action.href}
               href={action.href}
-              className="flex flex-col items-center gap-2 p-3 bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow active:scale-95"
+              prefetch={false}
+              className="chunk-card-sm border-4 border-white flex flex-col items-center gap-2 p-3 active:translate-y-1 transition-transform"
             >
-              <div className={`w-11 h-11 ${action.bg} rounded-xl flex items-center justify-center`}>
+              <div className={`w-12 h-12 ${action.bg} rounded-2xl flex items-center justify-center border-2 border-white shadow-sm`}>
                 {action.icon}
               </div>
-              <span className="text-[11px] font-black text-slate-600 uppercase tracking-wider text-center leading-tight">
+              <span className="text-[11px] font-black text-slate-700 uppercase tracking-wider text-center leading-tight">
                 {action.label}
               </span>
             </Link>
@@ -356,84 +364,30 @@ export default async function StudentDashboardPage() {
         </div>
 
         {/* ── Badges & Leaderboard ── */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5">
+        <ChunkCard size="md">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-black text-slate-800 text-base">🏅 Badges & Rankings</h2>
+            <h2 className="font-black text-slate-900 text-lg flex items-center gap-2">
+              <Award className="w-5 h-5 text-[#C9A227]" strokeWidth={2.25} aria-hidden="true" />
+              <span>Badges & Rankings</span>
+            </h2>
             <Link
               href="/app/progress"
-              className="text-xs font-black text-slate-400 hover:text-orange-500 transition-colors"
+              prefetch={false}
+              className="text-xs font-black text-slate-500 hover:text-(--bento-orange) transition-colors"
             >
-              See All
+              See All →
             </Link>
           </div>
           <BadgesLeaderboardPanel
             currentUserId={user.id}
             classId={classes[0]?.id ?? null}
           />
-        </div>
+        </ChunkCard>
 
-        {/* ── Continue Learning (Module Cards) ── */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-black text-slate-800 text-base flex items-center gap-2">
-              <BookOpen size={16} className="text-orange-400" /> Continue Learning
-            </h2>
-            <Link
-              href="/app/learn"
-              className="text-xs font-black text-slate-400 hover:text-orange-500 transition-colors"
-            >
-              See All
-            </Link>
-          </div>
-          {modules.length > 0 ? (
-            <div className="space-y-3">
-              {modules.map((mod) => {
-                const progress = moduleProgress.get(mod.id) ?? 0;
-                const topicCount = Number(mod.topic_count) || 10;
-                return (
-                  <Link key={mod.id} href={`/app/learn/${mod.id}`}>
-                    <div className="flex items-center gap-3 p-3 rounded-2xl hover:bg-slate-50 transition-colors -mx-1 px-2">
-                      <div
-                        className="w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0"
-                        style={{ background: mod.color_gradient || "var(--gradient-primary)" }}
-                      >
-                        {mod.icon || "📚"}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-black text-slate-800 text-sm truncate">{mod.name_en}</p>
-                        <p className="text-[11px] font-bold text-slate-400 mb-1">
-                          {topicCount} topics
-                        </p>
-                        <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all"
-                            style={{
-                              width: `${progress}%`,
-                              background: "var(--gradient-primary-vertical)",
-                            }}
-                          />
-                        </div>
-                        <p className="text-[11px] font-bold text-slate-400 mt-0.5">{progress}% complete</p>
-                      </div>
-                      <ChevronRight size={16} className="text-slate-300 shrink-0" />
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          ) : (
-            <Link href="/app/learn" className="flex items-center gap-4 p-3 rounded-2xl hover:bg-slate-50 transition-colors">
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0" style={bannerStyle}>
-                <BookOpen className="w-7 h-7 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-black text-slate-800 text-sm">Start Learning</p>
-                <p className="text-xs font-bold text-slate-400 mt-0.5">Explore all modules</p>
-              </div>
-              <ChevronRight size={16} className="text-slate-300 shrink-0" />
-            </Link>
-          )}
-        </div>
+        {/* ── Continue Learning (streams independently) ── */}
+        <Suspense fallback={<ContinueLearningSkeleton />}>
+          <ContinueLearningSection userId={user.id} />
+        </Suspense>
 
       </div>
     </div>

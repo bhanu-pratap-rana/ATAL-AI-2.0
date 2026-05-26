@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { timingSafeEqual } from "node:crypto";
 import {
+  createAdminClient,
   createClient,
   getCurrentUser,
   verifyStudentAuth,
@@ -37,7 +37,9 @@ interface StudentProfileParams {
  * Save student profile after signup
  * Creates a new record in student_profiles table
  */
-export async function saveStudentProfile(params: StudentProfileParams) {
+export async function saveStudentProfile(
+  params: StudentProfileParams,
+): Promise<{ success: true } | { success: false; error: string }> {
   try {
     // Validate inputs
     let validatedInput;
@@ -184,7 +186,10 @@ async function fetchStudentProfileFromDB(userId: string) {
  * Get current user's student profile
  * PERFORMANCE: Results cached for 2 minutes to reduce database load
  */
-export async function getStudentProfile() {
+export async function getStudentProfile(): Promise<
+  | { success: true; profile: unknown }
+  | { success: false; error: string; profile: null }
+> {
   try {
     const user = await getCurrentUser();
 
@@ -244,55 +249,63 @@ export async function previewClass(classCode: string): Promise<{
       return { success: zodError.success, error: zodError.error };
     }
 
-    // Use regular client - RLS policy allows authenticated users to preview classes by code
+    // PR-66: rate-limit preview. The post-PR-64 audit flagged that
+    // previewClass was the only class-code path without one, so an
+    // authenticated user could iterate every class_code in the space
+    // and harvest {className, teacherName, studentCount} for every
+    // class system-wide. Reuse the same per-user bucket as PIN joins,
+    // bumped to a generous 60/hour since previewing is innocuous when
+    // legit but should be capped against brute enumeration.
+    const previewAllowed = await checkRateLimit(
+      `class-preview:${user.id}`,
+      RATE_LIMITS.classJoinAttempts,
+    );
+    if (!previewAllowed) {
+      return {
+        success: false,
+        error: "Too many class preview requests. Please wait before trying again.",
+      };
+    }
+
+    // PR-64 lockdown: classes_select no longer permits "any class with a
+    // class_code" — that disjunct used to leak every row's plaintext
+    // join_pin to any logged-in user. Now we route the preview through
+    // the SECURITY DEFINER `preview_class_by_code` RPC which returns
+    // only the safe subset (id, name, subject, teacher_name, count) and
+    // never exposes the PIN.
     const supabase = await createClient();
+    const { data: previewRows, error: previewError } = await supabase.rpc(
+      "preview_class_by_code",
+      { p_class_code: validatedClassCode },
+    );
 
-    // Find class by code (no PIN required for preview)
-    const { data: classData, error: classError } = await supabase
-      .from("classes")
-      .select(
-        `
-        id,
-        name,
-        subject,
-        teacher_id
-      `,
-      )
-      .eq("class_code", validatedClassCode)
-      .maybeSingle();
-
-    if (classError) {
-      authLogger.error("[previewClass] Error looking up class", classError);
+    if (previewError) {
+      authLogger.error("[previewClass] preview RPC failed", previewError);
       return { success: false, error: "Failed to lookup class" };
     }
 
-    if (!classData) {
+    const preview = (previewRows as Array<{
+      class_id: string;
+      class_name: string;
+      subject: string | null;
+      teacher_name: string;
+      student_count: number;
+    }> | null)?.[0];
+
+    if (!preview) {
       return {
         success: false,
         error: "Class not found. Please check the code.",
       };
     }
 
-    // Get teacher name
-    const { data: teacherProfile } = await supabase
-      .from("teacher_profiles")
-      .select("name")
-      .eq("user_id", classData.teacher_id)
-      .maybeSingle();
-
-    // Get student count
-    const { count: studentCount } = await supabase
-      .from("enrollments")
-      .select("*", { count: "exact", head: true })
-      .eq("class_id", classData.id);
-
     return {
       success: true,
       data: {
-        className: classData.name,
-        teacherName: teacherProfile?.name || "Unknown Teacher",
-        subject: classData.subject,
-        studentCount: studentCount || 0,
+        className: preview.class_name,
+        teacherName: preview.teacher_name,
+        subject: preview.subject,
+        studentCount: preview.student_count,
       },
     };
   } catch (error) {
@@ -310,57 +323,53 @@ interface JoinClassParams {
 }
 
 /**
- * Helper: Verify PIN using constant-time comparison
+ * Helper: Verify class PIN server-side via SECURITY DEFINER RPC.
+ *
+ * PR-64 lockdown: the previous flow fetched `join_pin` over the wire
+ * (RLS-bound) and compared with timingSafeEqual client-side. That worked
+ * but required `classes.join_pin` to be readable by the caller, and
+ * combined with the broad `class_code IS NOT NULL` RLS clause, exposed
+ * every plaintext PIN to every authenticated user. We now hand both the
+ * code and PIN to `verify_class_join_pin`, which does the equality
+ * compare inside the database and returns only {success, class_id,
+ * class_name} — never the PIN itself.
  */
-function verifyPin(pin: string, storedPin: string | null): boolean {
-  if (!storedPin) {
-    return false;
-  }
-  const pinBuffer = Buffer.from(pin);
-  const storedBuffer = Buffer.from(storedPin);
-  // timingSafeEqual throws if lengths differ — check first
-  if (pinBuffer.length !== storedBuffer.length) {
-    return false;
-  }
-  return timingSafeEqual(pinBuffer, storedBuffer);
-}
-
-/**
- * Helper: Lookup class by code
- * Uses regular client - RLS policy allows authenticated users to preview classes by code
- */
-async function lookupClassByCode(
+async function verifyClassJoinPin(
   supabase: Awaited<ReturnType<typeof createClient>>,
   classCode: string,
+  pin: string,
 ): Promise<
-  | {
-      success: true;
-      classData: {
-        id: string;
-        name: string;
-        class_code: string;
-        join_pin: string | null;
-      };
-    }
+  | { success: true; classData: { id: string; name: string; class_code: string } }
   | { success: false; error: string }
 > {
-  const { data: classData, error: classError } = await supabase
-    .from("classes")
-    .select("id, name, class_code, join_pin")
-    .eq("class_code", classCode)
-    .maybeSingle();
+  const { data, error } = await supabase.rpc("verify_class_join_pin", {
+    p_class_code: classCode,
+    p_pin: pin,
+  });
 
-  if (classError) {
-    authLogger.error("[joinClass] Error looking up class", classError);
-    return { success: false, error: "Failed to lookup class" };
+  if (error) {
+    authLogger.error("[joinClass] verify_class_join_pin RPC failed", error);
+    return { success: false, error: "Failed to verify class" };
   }
 
-  if (!classData) {
-    authLogger.debug("[joinClass] Class not found", { classCode });
+  const row = (data as Array<{
+    success: boolean;
+    class_id: string | null;
+    class_name: string | null;
+  }> | null)?.[0];
+
+  if (!row || !row.success || !row.class_id || !row.class_name) {
     return { success: false, error: "Invalid class code or PIN" };
   }
 
-  return { success: true, classData };
+  return {
+    success: true,
+    classData: {
+      id: row.class_id,
+      name: row.class_name,
+      class_code: classCode,
+    },
+  };
 }
 
 /**
@@ -447,11 +456,23 @@ async function createEnrollment(
  * Join a class using class code and PIN (refactored to reduce cognitive complexity)
  * CRITICAL FIX: Reduced complexity from 16 to <15 by extracting helper functions
  */
-export async function joinClass({ classCode, pin }: JoinClassParams) {
+export async function joinClass(
+  { classCode, pin }: JoinClassParams,
+): Promise<
+  | { success: true; data: { className: string; [key: string]: unknown } }
+  | { success: false; error: string }
+> {
   try {
+    // PR-66: normalize the class code before BOTH the Zod validation
+    // and the rate-limit key, matching previewClass(). The previous
+    // flow let `"abc-123"` hit a different rate-limit bucket from
+    // `"ABC123"` — an attacker could amortize join attempts across
+    // case + hyphen variants of the same real code. Normalize first.
+    const normalizedClassCode = classCode.toUpperCase().replaceAll(/[^A-Z0-9]/g, "");
+
     let validatedInput;
     try {
-      validatedInput = JoinClassSchema.parse({ classCode, pin });
+      validatedInput = JoinClassSchema.parse({ classCode: normalizedClassCode, pin });
     } catch (error) {
       return handleZodError(error);
     }
@@ -479,19 +500,20 @@ export async function joinClass({ classCode, pin }: JoinClassParams) {
     }
 
     const supabase = await createClient();
-    // Use regular client - RLS policy allows authenticated users to preview classes by code
-    const classLookup = await lookupClassByCode(supabase, validatedClassCode);
+    // PR-64 lockdown: verify class + PIN server-side via SECURITY DEFINER
+    // RPC. The previous client-side compare required the PIN to be
+    // readable over the wire.
+    const classLookup = await verifyClassJoinPin(
+      supabase,
+      validatedClassCode,
+      validatedPin,
+    );
     if (!classLookup.success) {
-      return { success: false, error: classLookup.error };
-    }
-
-    const pinValid = verifyPin(validatedPin, classLookup.classData.join_pin);
-    if (!pinValid) {
       authLogger.warn("[joinClass] Invalid PIN attempt", {
         classCode: validatedClassCode,
         userId: auth.user.id,
       });
-      return { success: false, error: "Invalid class code or PIN" };
+      return { success: false, error: classLookup.error };
     }
 
     const enrollmentCheck = await checkExistingEnrollment(
@@ -527,7 +549,175 @@ export async function joinClass({ classCode, pin }: JoinClassParams) {
   }
 }
 
-export async function leaveClass(classId: string) {
+interface JoinClassAsAnonymousParams {
+  name: string;
+  gender: "male" | "female";
+  classCode: string;
+  pin: string;
+  rollNumber?: string;
+}
+
+/**
+ * First-contact join for rural students who have no email or phone.
+ *
+ * Flow: client calls supabase.auth.signInAnonymously() first (gets an
+ * anon UID + session), then calls this action with a username + class
+ * details. We:
+ *   1. Validate input
+ *   2. Confirm caller is authenticated (anonymous is fine)
+ *   3. Refuse if a student_profiles row already exists for this user —
+ *      this action is strictly first-contact, not a renaming tool
+ *   4. Verify class code + PIN
+ *   5. Upsert the student_profiles row via the existing RPC
+ *   6. Insert the enrollment
+ *
+ * RLS: the existing student_profiles INSERT policy permits an
+ * authenticated user to insert a row with `user_id = auth.uid()`. The
+ * enrollments INSERT policy permits an authenticated user to insert
+ * with `student_id = auth.uid()`. Anonymous users have a real
+ * `auth.uid()` so both checks pass.
+ */
+export async function joinClassAsAnonymous(
+  params: JoinClassAsAnonymousParams,
+) {
+  try {
+    let validatedInput;
+    try {
+      validatedInput = StudentProfileSchema.partial({
+        phone: true,
+        schoolName: true,
+        className: true,
+        village: true,
+      }).parse({
+        name: params.name,
+        gender: params.gender,
+        rollNumber: params.rollNumber,
+      });
+      JoinClassSchema.parse({ classCode: params.classCode, pin: params.pin });
+    } catch (error) {
+      return handleZodError(error);
+    }
+
+    const user = await getCurrentUser();
+    if (!user) {
+      return { success: false, error: "Not authenticated" };
+    }
+
+    authLogger.debug("[joinClassAsAnonymous] Caller authenticated", {
+      userId: user.id,
+      isAnonymous: user.is_anonymous,
+    });
+
+    const supabase = await createClient();
+
+    const { data: existingProfile } = await supabase
+      .from("student_profiles")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (existingProfile) {
+      authLogger.warn(
+        "[joinClassAsAnonymous] Profile already exists; this entry point is first-contact only",
+        { userId: user.id },
+      );
+      return {
+        success: false,
+        error: "You already have a profile. Use the regular join flow.",
+      };
+    }
+
+    const rateAllowed = await checkRateLimit(
+      `join-class-anon:${user.id}:${params.classCode}`,
+      RATE_LIMITS.classJoinAttempts,
+    );
+    if (!rateAllowed) {
+      return {
+        success: false,
+        error: "Too many join attempts. Please wait before trying again.",
+      };
+    }
+
+    const upperClassCode = params.classCode.toUpperCase().trim();
+    const classLookup = await verifyClassJoinPin(
+      supabase,
+      upperClassCode,
+      params.pin.trim(),
+    );
+    if (!classLookup.success) {
+      authLogger.warn("[joinClassAsAnonymous] Invalid PIN attempt", {
+        classCode: upperClassCode,
+        userId: user.id,
+      });
+      return { success: false, error: classLookup.error };
+    }
+
+    const { data: rpcResult, error: rpcError } = await supabase.rpc(
+      "upsert_student_profile",
+      {
+        p_user_id: user.id,
+        p_name: validatedInput.name,
+        p_gender: validatedInput.gender,
+        p_phone: null,
+        p_roll_number: validatedInput.rollNumber || null,
+        p_school_name: null,
+        p_village: null,
+        p_class_name: classLookup.classData.name,
+      },
+    );
+
+    if (rpcError) {
+      authLogger.error(
+        "[joinClassAsAnonymous] RPC upsert_student_profile failed",
+        {
+          code: rpcError.code,
+          message: rpcError.message,
+          userId: user.id,
+        },
+      );
+      return { success: false, error: "Failed to create profile. Please try again." };
+    }
+
+    const rpcResponse = rpcResult as UpsertStudentProfileRPCResponse;
+    if (rpcResponse && typeof rpcResponse === "object" && !rpcResponse.success) {
+      authLogger.error("[joinClassAsAnonymous] RPC returned error", {
+        error: rpcResponse.error,
+        userId: user.id,
+      });
+      return { success: false, error: "Failed to create profile. Please try again." };
+    }
+
+    // SECURITY: use the admin client for the enrollment insert ONLY.
+    // The enrollments SELECT RLS policy calls get_teacher_class_ids(),
+    // which recurses on enrollments when the caller is anonymous — the
+    // post-insert .select() roundtrip then throws
+    // "infinite recursion detected in policy for relation enrollments".
+    // All the gating checks (auth, profile-doesn't-exist, rate limit,
+    // class+PIN match) ran above with the user's regular RLS-bound
+    // client, so writing the enrollment row server-side here is safe.
+    const adminSupabase = await createAdminClient();
+    const enrollmentResult = await createEnrollment(
+      adminSupabase,
+      classLookup.classData.id,
+      user.id,
+      classLookup.classData.name,
+    );
+
+    if (enrollmentResult.success) {
+      revalidatePath("/app/student/classes");
+      revalidatePath("/app/student/dashboard");
+    }
+
+    return enrollmentResult;
+  } catch (error) {
+    authLogger.error("[joinClassAsAnonymous] Unexpected error", error);
+    return { success: false, error: "An unexpected error occurred" };
+  }
+}
+
+export async function leaveClass(
+  classId: string,
+): Promise<{ success: true } | { success: false; error: string }> {
   try {
     // Validate class ID
     let validatedClassId;

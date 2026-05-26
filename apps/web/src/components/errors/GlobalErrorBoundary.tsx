@@ -10,6 +10,7 @@
 import React from "react";
 import Link from "next/link";
 import { clientLogger } from "@/lib/client-logger";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   readonly children: React.ReactNode;
@@ -77,13 +78,14 @@ export class GlobalErrorBoundary extends React.Component<Props, State> {
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
-              <button
+              <Button
                 type="button"
                 onClick={this.handleReload}
-                className="flex-1 px-6 py-3 bg-primary text-white rounded-2xl hover:bg-primary-dark transition-colors font-black active:scale-95"
+                size="lg"
+                className="flex-1 font-black"
               >
                 Reload Page
-              </button>
+              </Button>
               <Link
                 href="/app/student/dashboard"
                 className="flex-1 px-6 py-3 bg-white text-slate-500 border border-slate-200 rounded-2xl hover:bg-slate-50 transition-colors font-black inline-flex items-center justify-center active:scale-95"

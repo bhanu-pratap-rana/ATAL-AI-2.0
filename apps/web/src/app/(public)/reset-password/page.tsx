@@ -5,7 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase-browser";
 import { resetPasswordWithOtp } from "@/app/actions/auth";
-import { validateEmail, validatePasswordMatch } from "@/lib/validation-utils";
+import { validateEmail } from "@/lib/email-validation";
+import { validatePasswordMatch } from "@/lib/validation-utils";
 import { getPasswordValidationError } from "@/lib/password-utils";
 import { OTP_LENGTH } from "@/lib/auth-constants";
 import { AuthCard } from "@/components/auth/AuthCard";
@@ -27,13 +28,28 @@ function ResetPasswordContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Check if already authenticated - redirect to dashboard
+  // Live-derived validation surface — mirrors the server checks so the
+  // user sees inline guidance as they type instead of only at submit.
+  // The submit button below is also blocked on these conditions.
+  const passwordTooShort = newPassword.length > 0 && newPassword.length < 8;
+  const passwordsMismatch =
+    confirmPassword.length > 0 && newPassword !== confirmPassword;
+
+  // Check if already authenticated — redirect to the role-appropriate
+  // home rather than always /app/student/dashboard, so super admins
+  // / teachers don't get bounced into the student UI.
   useEffect(() => {
     async function checkAuth() {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      if (session) {
+      if (!session) return;
+      const role = session.user.app_metadata?.role as string | undefined;
+      if (role === "super_admin" || role === "admin") {
+        router.push("/app/admin/dashboard");
+      } else if (role === "teacher") {
+        router.push("/app/teacher/dashboard");
+      } else {
         router.push("/app/student/dashboard");
       }
     }
@@ -154,6 +170,7 @@ function ResetPasswordContent() {
             <Input
               id="email"
               type="email"
+              autoComplete="username"
               placeholder="your@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -173,6 +190,8 @@ function ResetPasswordContent() {
             <Input
               id="otp"
               type="text"
+              autoComplete="one-time-code"
+              inputMode="numeric"
               placeholder="000000"
               value={otp}
               onChange={(e) => handleOtpChange(e.target.value)}
@@ -193,13 +212,27 @@ function ResetPasswordContent() {
             <Input
               id="newPassword"
               type="password"
+              autoComplete="new-password"
               placeholder="Enter new password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               disabled={isLoading}
               className="w-full"
+              aria-invalid={passwordTooShort || undefined}
+              aria-describedby={passwordTooShort ? "new-password-error" : undefined}
             />
-            <p className="text-xs text-slate-500">Minimum 8 characters</p>
+            {passwordTooShort ? (
+              <p
+                id="new-password-error"
+                role="alert"
+                aria-live="polite"
+                className="text-xs text-error"
+              >
+                Password must be at least 8 characters
+              </p>
+            ) : (
+              <p className="text-xs text-slate-500">Minimum 8 characters</p>
+            )}
           </div>
 
           {/* Confirm Password Field */}
@@ -210,22 +243,41 @@ function ResetPasswordContent() {
             <Input
               id="confirmPassword"
               type="password"
+              autoComplete="new-password"
               placeholder="Confirm your password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               disabled={isLoading}
               className="w-full"
+              aria-invalid={passwordsMismatch || undefined}
+              aria-describedby={passwordsMismatch ? "confirm-password-error" : undefined}
             />
+            {passwordsMismatch && (
+              <p
+                id="confirm-password-error"
+                role="alert"
+                aria-live="polite"
+                className="text-xs text-error"
+              >
+                Passwords do not match
+              </p>
+            )}
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="p-3 bg-error/10 border border-error/30 rounded-2xl">
+            <div
+              role="alert"
+              aria-live="polite"
+              className="p-3 bg-error/10 border border-error/30 rounded-2xl"
+            >
               <p className="text-sm text-error">{error}</p>
             </div>
           )}
 
-          {/* Submit Button */}
+          {/* Submit Button — also blocks submission if the live-derived
+              validation below would reject the inputs, so the disabled
+              state matches what the server check would do. */}
           <Button
             type="submit"
             disabled={
@@ -233,7 +285,9 @@ function ResetPasswordContent() {
               !email ||
               otp.length !== OTP_LENGTH ||
               !newPassword ||
-              !confirmPassword
+              !confirmPassword ||
+              passwordTooShort ||
+              passwordsMismatch
             }
             className="w-full mt-6"
           >
@@ -244,13 +298,14 @@ function ResetPasswordContent() {
           <div className="text-center">
             <p className="text-sm text-slate-500">
               Remember your password?{" "}
-              <button
+              <Button
                 type="button"
+                variant="link"
                 onClick={() => router.push("/student/start")}
-                className="text-primary hover:underline font-medium"
+                className="inline h-auto p-0 align-baseline font-medium"
               >
                 Sign in here
-              </button>
+              </Button>
             </p>
           </div>
         </form>

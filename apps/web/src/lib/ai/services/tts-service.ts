@@ -1,22 +1,48 @@
 /**
- * TTS Service - Multi-Provider Text-to-Speech
+ * TTS Service — Multi-Provider Text-to-Speech with language-aware
+ * provider routing.
  *
  * Priority order:
- * 1. Google Cloud TTS (high quality, 1M chars/month free)
- * 2. Browser Speech Synthesis (fallback, always free)
+ *   For Assamese (`as`):  Sarvam (NATIVE) → Google Cloud (bn-IN proxy) → browser
+ *   For Hindi    (`hi`):  Google Cloud Neural2 → Sarvam → browser
+ *   For English  (`en`):  Google Cloud Neural2 → Sarvam → browser
  *
- * Supported Languages:
- * - English (en) - Excellent support on all providers
- * - Hindi (hi) - Google Cloud Neural2 voices, browser TTS in Chrome
- * - Assamese (as) - Falls back to Bengali (similar script/pronunciation)
+ * Sarvam is the Assamese primary because it has a real `as-IN` voice
+ * (Bulbul v2). Google's Bengali fallback was readable but mispronounced
+ * Assamese-specific phonemes. For Hindi and English, Google's Neural2
+ * voices are already excellent and free quota is generous, so they
+ * stay primary and Sarvam acts as a quality-preserving fallback when
+ * Google's quota runs out.
  *
- * Setup for Google Cloud TTS:
- * 1. Enable Cloud Text-to-Speech API in Google Cloud Console
- * 2. Set GOOGLE_CLOUD_TTS_API_KEY or GOOGLE_APPLICATION_CREDENTIALS
+ * Setup:
+ *   Sarvam:    SARVAM_API_KEY
+ *   Google:    GOOGLE_CLOUD_TTS_API_KEY or GOOGLE_APPLICATION_CREDENTIALS
  */
 
 import { authLogger } from "@/lib/auth-logger";
 import { googleCloudTTS, type GoogleTTSOptions } from "./google-cloud-tts";
+import { sarvamTTS } from "./sarvam-tts";
+
+// Sarvam takes pace/pitch directly (not Google's pitch-in-semitones model).
+// Map our friendly/encouraging/calm presets to Sarvam-native values so
+// Assamese narration carries the same emotional shading.
+function emotionToSarvamPace(
+  emotion: TTSOptions["emotion"],
+  speed?: number,
+): number {
+  if (typeof speed === "number") return speed;
+  if (emotion === "friendly") return 1.05;
+  if (emotion === "encouraging") return 1.1;
+  if (emotion === "calm") return 0.95;
+  return 1;
+}
+
+function emotionToSarvamPitch(emotion: TTSOptions["emotion"]): number {
+  if (emotion === "friendly") return 1.05;
+  if (emotion === "encouraging") return 1.1;
+  if (emotion === "calm") return 0.95;
+  return 1;
+}
 
 /**
  * Supported TTS languages with Assamese priority
@@ -62,6 +88,42 @@ export class TTSService {
   ): Promise<ArrayBuffer> {
     if (!text || text.trim().length === 0) {
       throw new Error("Text is required for TTS synthesis");
+    }
+
+    // Assamese: prefer Sarvam (native voice) over Google's Bengali
+    // proxy *if* the deployment has been granted Sarvam's beta access
+    // for `as-IN`. Sarvam Bulbul v3 requires manually-granted beta
+    // access for Assamese (request via support@sarvam.ai); until that
+    // lands, every as request would 400 with "beta access required"
+    // and waste a round-trip. Gate it on SARVAM_ENABLE_ASSAMESE=true
+    // so the cost only kicks in once Sarvam has approved the account.
+    const sarvamAsEnabled =
+      process.env.SARVAM_ENABLE_ASSAMESE === "true";
+    if (
+      language === "as" &&
+      sarvamAsEnabled &&
+      sarvamTTS.isConfigured()
+    ) {
+      try {
+        authLogger.info("[TTS] Using Sarvam TTS (native Assamese)", {
+          language,
+          textLength: text.length,
+        });
+        return await sarvamTTS.synthesize(text, "as", {
+          pace: emotionToSarvamPace(options.emotion, options.speed),
+          pitch: emotionToSarvamPitch(options.emotion),
+        });
+      } catch (sarvamError) {
+        authLogger.warn(
+          "[TTS] Sarvam Assamese failed, falling through to Google bn-IN proxy",
+          {
+            error:
+              sarvamError instanceof Error
+                ? sarvamError.message
+                : String(sarvamError),
+          },
+        );
+      }
     }
 
     // Try Google Cloud TTS first (high quality)

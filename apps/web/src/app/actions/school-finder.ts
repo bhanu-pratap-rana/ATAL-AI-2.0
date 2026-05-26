@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { createClient } from "@/lib/supabase-server";
+import { createAdminClient, createClient, verifyAdminAuth } from "@/lib/supabase-server";
 import { authLogger } from "@/lib/auth-logger";
 import { checkSchoolFinderRateLimit } from "@/lib/rate-limiter-distributed";
 import { RATE_LIMIT_ERRORS } from "@/lib/constants/error-messages";
@@ -212,6 +212,14 @@ export async function getSchoolPinStatus(schoolCode: string) {
       return { success: false, error: validation.error.issues[0]?.message || "Invalid school code", exists: false };
     }
 
+    // SECURITY: Only authenticated admins can probe PIN existence.
+    // Without this gate any rate-limited caller could enumerate which
+    // school codes have provisioned PINs.
+    const auth = await verifyAdminAuth("getSchoolPinStatus");
+    if (!auth.authorized) {
+      return { success: false, error: "Unauthorized", exists: false };
+    }
+
     // SECURITY: Rate limit school finder to prevent abuse
     const normalizedCode = validation.data.toUpperCase();
     const isAllowed = await checkSchoolFinderRateLimit(normalizedCode);
@@ -255,11 +263,17 @@ export async function getSchoolPinStatus(schoolCode: string) {
       };
     }
 
-    // Check if PIN exists - use .maybeSingle() as PIN may not exist
-    const { data: credentials, error: credError } = await supabase
+    // BUGFIX: `school_staff_credentials` is RLS-locked to `service_role`
+    // (staff_creds_read_service_only policy). The user-scoped Supabase
+    // client returns no rows for admins, so the previous code reported
+    // "No PIN Found" for every school. Use the admin client now that
+    // the caller's super_admin/admin role has been verified above.
+    const adminClient = await createAdminClient();
+    const { data: credentials, error: credError } = await adminClient
       .from("school_staff_credentials")
-      .select("id, rotated_at, created_at")
+      .select("id, rotated_at, created_at, deleted_at")
       .eq("school_id", school.id)
+      .is("deleted_at", null)
       .maybeSingle();
 
     if (credError) {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { FolderClosed, Megaphone, MessageSquare } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -11,6 +12,7 @@ import {
 import { CreateAnnouncementDialog } from "./CreateAnnouncementDialog";
 import { AnnouncementList } from "./AnnouncementList";
 import { UploadMaterialDialog } from "./UploadMaterialDialog";
+import { Button } from "@/components/ui/button";
 import { MaterialsList } from "./MaterialsList";
 import type { Announcement, Material } from "@/app/actions/teacher";
 
@@ -35,7 +37,8 @@ export function CommunicationSection({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <CardTitle className="text-lg md:text-xl flex items-center gap-2">
-              <span>💬</span> Communication
+              <MessageSquare className="w-5 h-5 text-(--bento-sky-d)" strokeWidth={2.25} aria-hidden="true" />
+              Communication
             </CardTitle>
             <CardDescription>
               Share announcements and learning materials with your students
@@ -48,51 +51,69 @@ export function CommunicationSection({
         </div>
       </CardHeader>
       <CardContent>
-        {/* Custom Tab Navigation */}
-        <div className="flex border-b border-slate-200 mb-4">
-          <button
+        {/* PR-68: tab/tabpanel pair properly wired via aria-controls. */}
+        <div role="tablist" aria-label="Class communication" className="flex border-b border-slate-200 mb-4">
+          <Button
             type="button"
+            role="tab"
+            id="tab-comm-announcements"
+            aria-controls="panel-comm"
+            aria-selected={activeTab === "announcements"}
+            variant="ghost"
             onClick={() => setActiveTab("announcements")}
-            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            className={`gap-2 rounded-none border-b-2 text-sm font-medium ${
               activeTab === "announcements"
-                ? "border-primary text-primary"
+                ? "border-primary text-primary hover:bg-transparent"
                 : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-200"
             }`}
           >
-            <span>📢</span>
+            <Megaphone size={16} strokeWidth={2.25} aria-hidden="true" />
             <span>Announcements</span>
             {announcements.length > 0 && (
               <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary/20 rounded-full">
                 {announcements.length}
               </span>
             )}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            role="tab"
+            id="tab-comm-materials"
+            aria-controls="panel-comm"
+            aria-selected={activeTab === "materials"}
+            variant="ghost"
             onClick={() => setActiveTab("materials")}
-            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            className={`gap-2 rounded-none border-b-2 text-sm font-medium ${
               activeTab === "materials"
-                ? "border-primary text-primary"
+                ? "border-primary text-primary hover:bg-transparent"
                 : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-200"
             }`}
           >
-            <span>📁</span>
+            <FolderClosed size={16} strokeWidth={2.25} aria-hidden="true" />
             <span>Materials</span>
             {materials.length > 0 && (
               <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary/20 rounded-full">
                 {materials.length}
               </span>
             )}
-          </button>
+          </Button>
         </div>
 
         {/* Tab Content */}
-        {activeTab === "announcements" && (
-          <AnnouncementList announcements={announcements} classId={classId} />
-        )}
-        {activeTab === "materials" && (
-          <MaterialsList materials={materials} classId={classId} />
-        )}
+        <div
+          role="tabpanel"
+          id="panel-comm"
+          aria-labelledby={
+            activeTab === "announcements" ? "tab-comm-announcements" : "tab-comm-materials"
+          }
+        >
+          {activeTab === "announcements" && (
+            <AnnouncementList announcements={announcements} classId={classId} />
+          )}
+          {activeTab === "materials" && (
+            <MaterialsList materials={materials} classId={classId} />
+          )}
+        </div>
       </CardContent>
     </Card>
   );

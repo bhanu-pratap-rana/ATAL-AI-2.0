@@ -14,11 +14,10 @@ import {
   signInWithUsername,
 } from "@/app/actions/auth";
 import { usePhoneInput } from "@/hooks/usePhoneInput";
-import {
-  validateEmail,
-  validatePhone,
-} from "@/lib/validation-utils";
+import { validateEmail } from "@/lib/email-validation";
+import { validatePhone } from "@/lib/validation-utils";
 import { authLogger } from "@/lib/auth-logger";
+import { Mail, Smartphone, UserRound } from "lucide-react";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -257,54 +256,72 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
   return (
     <AuthCard title="Sign In" description="Choose your sign-in method">
       <div className="space-y-4">
-        {/* Tab Navigation */}
-        <div className="flex gap-2">
-          <button
-                type="button"
+        {/* Tab Navigation — WAI-ARIA tab pattern wires each tab to its panel
+            via id ↔ aria-controls / aria-labelledby, so SRs can find the
+            form when the user activates a tab. */}
+        <div role="tablist" className="flex gap-2" aria-label="Sign in method">
+          <Button
+            type="button"
+            role="tab"
+            id="signin-tab-email"
+            aria-selected={state.signinTab === "email"}
+            aria-controls="signin-panel-email"
+            variant={state.signinTab === "email" ? "default" : "secondary"}
+            size="sm"
             onClick={() => actions.setSigninTab("email")}
-            className={`flex-1 py-2 px-3 rounded-lg font-medium transition-colors text-sm ${
-              state.signinTab === "email"
-                ? "bg-primary text-white"
-                : "bg-slate-50 text-slate-500 hover:bg-slate-100"
-            }`}
+            className="flex-1 gap-1.5"
             disabled={isLoading}
           >
-            📧 Email
-          </button>
-          <button
-                type="button"
+            <Mail size={14} strokeWidth={2.5} aria-hidden="true" />
+            Email
+          </Button>
+          <Button
+            type="button"
+            role="tab"
+            id="signin-tab-phone"
+            aria-selected={state.signinTab === "phone"}
+            aria-controls="signin-panel-phone"
+            variant={state.signinTab === "phone" ? "default" : "secondary"}
+            size="sm"
             onClick={() => actions.setSigninTab("phone")}
-            className={`flex-1 py-2 px-3 rounded-lg font-medium transition-colors text-sm ${
-              state.signinTab === "phone"
-                ? "bg-primary text-white"
-                : "bg-slate-50 text-slate-500 hover:bg-slate-100"
-            }`}
+            className="flex-1 gap-1.5"
             disabled={isLoading}
           >
-            📱 Phone
-          </button>
-          <button
-                type="button"
+            <Smartphone size={14} strokeWidth={2.5} aria-hidden="true" />
+            Phone
+          </Button>
+          <Button
+            type="button"
+            role="tab"
+            id="signin-tab-username"
+            aria-selected={state.signinTab === "username"}
+            aria-controls="signin-panel-username"
+            variant={state.signinTab === "username" ? "default" : "secondary"}
+            size="sm"
             onClick={() => actions.setSigninTab("username")}
-            className={`flex-1 py-2 px-3 rounded-lg font-medium transition-colors text-sm ${
-              state.signinTab === "username"
-                ? "bg-primary text-white"
-                : "bg-slate-50 text-slate-500 hover:bg-slate-100"
-            }`}
+            className="flex-1 gap-1.5"
             disabled={isLoading}
           >
-            👤 Username
-          </button>
+            <UserRound size={14} strokeWidth={2.5} aria-hidden="true" />
+            Username
+          </Button>
         </div>
 
         {/* Email Sign In Form */}
         {state.signinTab === "email" && (
-          <form onSubmit={handleSignInEmail} className="space-y-4">
+          <form
+            id="signin-panel-email"
+            role="tabpanel"
+            aria-labelledby="signin-tab-email"
+            onSubmit={handleSignInEmail}
+            className="space-y-4"
+          >
             <div className="space-y-2">
               <Label htmlFor="signin-email">Email Address</Label>
               <Input
                 id="signin-email"
                 type="email"
+                autoComplete="username"
                 placeholder="your.email@example.com"
                 value={state.signinEmailAddress}
                 onChange={(e) =>
@@ -320,6 +337,7 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
               <Input
                 id="signin-password"
                 type="password"
+                autoComplete="current-password"
                 placeholder="Enter your password"
                 value={state.signinEmailPassword}
                 onChange={(e) =>
@@ -327,15 +345,17 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
                 }
                 required
                 disabled={isLoading}
+                aria-invalid={!!state.signinEmailError}
+                aria-describedby={state.signinEmailError ? "signin-email-error" : undefined}
               />
               {state.signinEmailError && (
-                <p className="text-sm text-error">{state.signinEmailError}</p>
+                <p id="signin-email-error" role="alert" className="text-sm text-error">{state.signinEmailError}</p>
               )}
             </div>
 
             <Button
               type="submit"
-              className="w-full text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5"
+              className="w-full text-[17px] shadow-primary hover:shadow-(--shadow-primary-hover) hover:-translate-y-0.5"
               disabled={isLoading}
             >
               {isLoading ? "Signing in..." : "Sign In"}
@@ -343,26 +363,34 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
 
             <p className="text-center text-sm text-slate-500">
               Don&apos;t have an account?{" "}
-              <button
+              <Button
                 type="button"
+                variant="link"
                 onClick={() => actions.setMainStep("signup")}
-                className="text-primary hover:underline font-medium"
+                className="inline h-auto p-0 align-baseline font-medium"
                 disabled={isLoading}
               >
                 Create one
-              </button>
+              </Button>
             </p>
           </form>
         )}
 
         {/* Phone Sign In Form */}
         {state.signinTab === "phone" && (
-          <form onSubmit={handleSignInPhone} className="space-y-4">
+          <form
+            id="signin-panel-phone"
+            role="tabpanel"
+            aria-labelledby="signin-tab-phone"
+            onSubmit={handleSignInPhone}
+            className="space-y-4"
+          >
             <div className="space-y-2">
               <Label htmlFor="signin-phone">Phone Number</Label>
               <Input
                 id="signin-phone"
                 type="tel"
+                autoComplete="tel"
                 placeholder="+1 (555) 123-4567"
                 value={signinPhoneInput.displayValue}
                 onChange={(e) => signinPhoneInput.onChange(e.target.value)}
@@ -376,6 +404,7 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
               <Input
                 id="signin-phone-password"
                 type="password"
+                autoComplete="current-password"
                 placeholder="Enter your password"
                 value={state.signinPhonePassword}
                 onChange={(e) =>
@@ -383,15 +412,17 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
                 }
                 required
                 disabled={isLoading}
+                aria-invalid={!!state.signinPhoneError}
+                aria-describedby={state.signinPhoneError ? "signin-phone-error" : undefined}
               />
               {state.signinPhoneError && (
-                <p className="text-sm text-error">{state.signinPhoneError}</p>
+                <p id="signin-phone-error" role="alert" className="text-sm text-error">{state.signinPhoneError}</p>
               )}
             </div>
 
             <Button
               type="submit"
-              className="w-full text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5"
+              className="w-full text-[17px] shadow-primary hover:shadow-(--shadow-primary-hover) hover:-translate-y-0.5"
               disabled={isLoading}
             >
               {isLoading ? "Signing in..." : "Sign In"}
@@ -399,26 +430,34 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
 
             <p className="text-center text-sm text-slate-500">
               Don&apos;t have an account?{" "}
-              <button
+              <Button
                 type="button"
+                variant="link"
                 onClick={() => actions.setMainStep("signup")}
-                className="text-primary hover:underline font-medium"
+                className="inline h-auto p-0 align-baseline font-medium"
                 disabled={isLoading}
               >
                 Create one
-              </button>
+              </Button>
             </p>
           </form>
         )}
 
         {/* Username Sign In Form */}
         {state.signinTab === "username" && (
-          <form onSubmit={handleSignInUsername} className="space-y-4">
+          <form
+            id="signin-panel-username"
+            role="tabpanel"
+            aria-labelledby="signin-tab-username"
+            onSubmit={handleSignInUsername}
+            className="space-y-4"
+          >
             <div className="space-y-2">
               <Label htmlFor="signin-username">Username</Label>
               <Input
                 id="signin-username"
                 type="text"
+                autoComplete="username"
                 placeholder="your.username"
                 value={state.signinUsername}
                 onChange={(e) =>
@@ -434,6 +473,7 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
               <Input
                 id="signin-username-password"
                 type="password"
+                autoComplete="current-password"
                 placeholder="Enter your password"
                 value={state.signinUsernamePassword}
                 onChange={(e) =>
@@ -441,15 +481,17 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
                 }
                 required
                 disabled={isLoading}
+                aria-invalid={!!state.signinUsernameError}
+                aria-describedby={state.signinUsernameError ? "signin-username-error" : undefined}
               />
               {state.signinUsernameError && (
-                <p className="text-sm text-error">{state.signinUsernameError}</p>
+                <p id="signin-username-error" role="alert" className="text-sm text-error">{state.signinUsernameError}</p>
               )}
             </div>
 
             <Button
               type="submit"
-              className="w-full text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5"
+              className="w-full text-[17px] shadow-primary hover:shadow-(--shadow-primary-hover) hover:-translate-y-0.5"
               disabled={isLoading}
             >
               {isLoading ? "Signing in..." : "Sign In"}
@@ -457,14 +499,15 @@ export function SignInStep({ state, actions, isLoading }: SignInStepProps) {
 
             <p className="text-center text-sm text-slate-500">
               Don&apos;t have an account?{" "}
-              <button
+              <Button
                 type="button"
+                variant="link"
                 onClick={() => actions.setMainStep("signup")}
-                className="text-primary hover:underline font-medium"
+                className="inline h-auto p-0 align-baseline font-medium"
                 disabled={isLoading}
               >
                 Create one
-              </button>
+              </Button>
             </p>
           </form>
         )}

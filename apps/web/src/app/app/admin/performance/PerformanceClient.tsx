@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import { queryMonitor } from "@/lib/supabase-query-wrapper";
 import { connectionPoolMonitor } from "@/lib/monitoring/connection-pool-monitor";
 import type { ConnectionPoolMetrics, PoolAlert } from "@/types/monitoring";
-import { AlertCircle, TrendingDown, Zap } from "lucide-react";
+import { AlertCircle, CheckCircle2, Microscope, TrendingDown, Zap } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
+import { BentoCard } from "@/components/ui/bento-card";
 function getAlertClassName(level: string): string {
   switch (level) {
     case "critical":
@@ -33,6 +35,13 @@ function getUtilizationColors(percent: number): UtilizationColors {
 }
 
 export function PerformanceClient() {
+  // `lastUpdated` is rendered as a locale time string. Initialising it from
+  // `new Date()` on render would cause a hydration mismatch because the
+  // server and client locale defaults differ (12-hour PM vs 24-hour).
+  // Start as empty on the server / first client render, then seed on mount
+  // — the empty placeholder hydrates cleanly and the visible value is set
+  // by the first effect tick.
+  const [lastUpdated, setLastUpdated] = useState<string>("");
   const [stats, setStats] = useState(queryMonitor.getStats());
   const [slowQueries, setSlowQueries] = useState(
     queryMonitor.getSlowestQueries(10),
@@ -47,10 +56,16 @@ export function PerformanceClient() {
   const [refreshInterval, setRefreshInterval] = useState(5000);
 
   useEffect(() => {
+    // Seed the timestamp asynchronously after mount so initial HTML
+    // hydrates without mismatching the SSR-empty placeholder, and so
+    // the seed doesn't trip react-hooks/set-state-in-effect.
+    queueMicrotask(() => setLastUpdated(new Date().toLocaleTimeString()));
+
     const interval = setInterval(async () => {
       setStats(queryMonitor.getStats());
       setSlowQueries(queryMonitor.getSlowestQueries(10));
       setFailedQueries(queryMonitor.getFailedQueries(10));
+      setLastUpdated(new Date().toLocaleTimeString());
 
       const metrics = await connectionPoolMonitor.getMetrics();
       if (metrics) {
@@ -67,12 +82,19 @@ export function PerformanceClient() {
   }, [refreshInterval]);
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
+    <div className="min-h-screen [background:var(--bento-bg)] p-4 md:p-6 pb-28">
       <div className="max-w-6xl mx-auto space-y-4">
         {/* Banner */}
-        <div className="rounded-[32px] p-6 text-white" style={{ background: "var(--gradient-admin)" }}>
-          <h1 className="text-xl sm:text-2xl font-black mb-1">Performance Monitoring 🔬</h1>
-          <p className="text-white/80 text-sm font-bold">Last updated: {new Date().toLocaleTimeString()}</p>
+        <div className="flex items-center justify-between gap-4 flex-wrap pt-2 pb-1">
+          <h1 className="text-xl sm:text-2xl font-black text-[#1E3A5F] inline-flex items-center gap-2">
+            <Microscope className="w-6 h-6 shrink-0" strokeWidth={2.25} aria-hidden="true" />
+            Performance Monitoring
+          </h1>
+          {/* `suppressHydrationWarning` is defence-in-depth; the value is now
+              set on the client via useEffect so SSR always renders empty. */}
+          <p className="text-xs font-black text-slate-400 uppercase tracking-widest" suppressHydrationWarning>
+            {lastUpdated ? `Updated ${lastUpdated}` : " "}
+          </p>
         </div>
 
         {/* Query Performance Stats */}
@@ -83,7 +105,7 @@ export function PerformanceClient() {
             { value: `${stats.avgDuration.toFixed(0)}ms`, label: "Avg Duration", sub: `P95: ${stats.p95Duration.toFixed(0)}ms`, color: "text-slate-700" },
             { value: `${stats.p99Duration.toFixed(0)}ms`, label: "P99 Duration", sub: "Slowest 1% of queries", color: "text-red-600" },
           ].map((stat) => (
-            <div key={stat.label} className="bg-white rounded-3xl border border-slate-100 shadow-sm p-4 text-center">
+            <div key={stat.label} className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-4 text-center">
               <p className={`text-xl sm:text-2xl font-black mb-1 ${stat.color}`}>{stat.value}</p>
               <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
               <p className="text-[11px] font-bold text-slate-300 mt-1">{stat.sub}</p>
@@ -93,7 +115,7 @@ export function PerformanceClient() {
 
         {/* Connection Pool Stats */}
         {poolMetrics && (
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+          <BentoCard padding="lg">
             <h2 className="font-black text-slate-800 text-lg mb-4 flex items-center gap-2">
               <Zap className="w-5 h-5 text-blue-500" /> Connection Pool Status
             </h2>
@@ -115,7 +137,7 @@ export function PerformanceClient() {
                 style={{ width: `${poolMetrics.utilizationPercent}%` }}
               />
             </div>
-          </div>
+          </BentoCard>
         )}
 
         {/* Pool Alerts */}
@@ -139,12 +161,15 @@ export function PerformanceClient() {
         )}
 
         {/* Slow Queries Log */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+        <BentoCard padding="lg">
           <h2 className="font-black text-slate-800 text-lg mb-4 flex items-center gap-2">
             <TrendingDown className="w-5 h-5 text-amber-500" /> Slowest Queries (&gt; 1 second)
           </h2>
           {slowQueries.length === 0 ? (
-            <p className="text-emerald-600 font-black">✅ No slow queries detected</p>
+            <p className="text-emerald-700 font-black flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5" strokeWidth={2.25} aria-hidden="true" />
+              No slow queries detected
+            </p>
           ) : (
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {slowQueries.map((query, idx) => (
@@ -164,7 +189,7 @@ export function PerformanceClient() {
               ))}
             </div>
           )}
-        </div>
+        </BentoCard>
 
         {/* Failed Queries Log */}
         {failedQueries.length > 0 && (
@@ -190,7 +215,7 @@ export function PerformanceClient() {
         )}
 
         {/* Monitoring Settings */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+        <BentoCard padding="lg">
           <h2 className="font-black text-slate-800 text-lg mb-4">Monitoring Settings</h2>
           <div className="flex items-center gap-4 flex-wrap">
             <div>
@@ -208,20 +233,22 @@ export function PerformanceClient() {
                 <option value={60000}>1 minute</option>
               </select>
             </div>
-            <button
-                type="button"
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
               onClick={() => {
                 queryMonitor.reset();
                 connectionPoolMonitor.clearAlerts();
                 setSlowQueries([]);
                 setFailedQueries([]);
               }}
-              className="px-5 py-2 bg-slate-100 text-slate-600 rounded-2xl text-sm font-black hover:bg-slate-200 transition-colors mt-6"
+              className="text-slate-600 font-black mt-6"
             >
               Clear Metrics
-            </button>
+            </Button>
           </div>
-        </div>
+        </BentoCard>
       </div>
     </div>
   );

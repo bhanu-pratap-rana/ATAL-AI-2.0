@@ -17,14 +17,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Check,
-  X,
-  Clock,
+  CheckCircle2,
   ChevronDown,
   ChevronUp,
+  CircleDot,
+  Clock,
   Brain,
   Filter,
+  X,
+  XCircle,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatDurationMMSS } from "@/lib/utils/format-date";
 
 interface QuestionResponse {
   id: string;
@@ -52,17 +57,10 @@ interface AssessmentBreakdownProps {
   readonly showFilters?: boolean;
 }
 
-const FILTER_ICONS: Record<string, string> = { correct: "🎉", incorrect: "✨", all: "📝" };
+const FILTER_ICONS: Record<string, LucideIcon> = { correct: CheckCircle2, incorrect: XCircle, all: CircleDot };
 
-function formatTime(ms: number | null): string {
-  if (!ms) return "-";
-  if (ms < 1000) return "<1s";
-  const seconds = Math.round(ms / 1000);
-  if (seconds < 60) return `${seconds}s`;
-  const minutes = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${minutes}:${secs.toString().padStart(2, "0")}`;
-}
+// PR-67: null-safe wrapper around the canonical mm:ss formatter.
+const formatTime = (ms: number | null) => (ms === null ? "-" : formatDurationMMSS(ms));
 
 function getDifficultyLabel(difficulty: number | null): {
   label: string;
@@ -122,44 +120,56 @@ export function AssessmentBreakdown({
       <div className="flex flex-wrap items-center justify-between gap-4">
         {/* Filter Buttons */}
         {showFilters && (
-          <div className="flex items-center gap-2">
+          <div role="radiogroup" aria-label="Filter responses" className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-slate-400" />
-            <button
-                type="button"
+            <Button
+              type="button"
+              role="radio"
+              aria-checked={filterMode === "all"}
+              size="sm"
+              variant="ghost"
               onClick={() => setFilterMode("all")}
               className={cn(
-                "px-3 py-1 text-sm rounded-full transition-colors",
+                "text-sm rounded-full",
                 filterMode === "all"
-                  ? "bg-primary text-white"
+                  ? "bg-primary text-white hover:bg-primary"
                   : "bg-slate-50 hover:bg-slate-100"
               )}
             >
               All ({responses.length})
-            </button>
-            <button
-                type="button"
+            </Button>
+            <Button
+              type="button"
+              role="radio"
+              aria-checked={filterMode === "correct"}
+              size="sm"
+              variant="ghost"
               onClick={() => setFilterMode("correct")}
               className={cn(
-                "px-3 py-1 text-sm rounded-full transition-colors",
+                "text-sm rounded-full",
                 filterMode === "correct"
-                  ? "bg-success text-white"
+                  ? "bg-success text-white hover:bg-success"
                   : "bg-slate-50 hover:bg-slate-100"
               )}
             >
               Correct ({correctCount})
-            </button>
-            <button
-                type="button"
+            </Button>
+            <Button
+              type="button"
+              role="radio"
+              aria-checked={filterMode === "incorrect"}
+              size="sm"
+              variant="ghost"
               onClick={() => setFilterMode("incorrect")}
               className={cn(
-                "px-3 py-1 text-sm rounded-full transition-colors",
+                "text-sm rounded-full",
                 filterMode === "incorrect"
-                  ? "bg-error text-white"
+                  ? "bg-error text-white hover:bg-error"
                   : "bg-slate-50 hover:bg-slate-100"
               )}
             >
               Incorrect ({incorrectCount})
-            </button>
+            </Button>
           </div>
         )}
 
@@ -193,10 +203,12 @@ export function AssessmentBreakdown({
               )}
             >
               {/* Header - Always Visible */}
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                aria-expanded={isExpanded}
                 onClick={() => toggleExpanded(response.id)}
-                className="w-full p-4 flex items-center gap-4 text-left hover:bg-white/50 transition-colors"
+                className="w-full h-auto p-4 justify-start gap-4 text-left hover:bg-white/50 whitespace-normal rounded-none"
               >
                 {/* Question Number */}
                 <div
@@ -253,7 +265,7 @@ export function AssessmentBreakdown({
                     <ChevronDown className="w-5 h-5 text-slate-400" />
                   )}
                 </div>
-              </button>
+              </Button>
 
               {/* Expanded Content */}
               {isExpanded && details && (
@@ -347,9 +359,7 @@ export function AssessmentBreakdown({
       {filteredResponses.length === 0 && (
         <Card>
           <CardContent className="p-8 text-center">
-            <div className="text-4xl mb-3">
-              {FILTER_ICONS[filterMode] ?? "📝"}
-            </div>
+            <EmptyStateIcon filterMode={filterMode} />
             <h3 className="font-black text-text mb-1">
               {filterMode === "correct"
                 ? "No correct answers to show"
@@ -363,6 +373,15 @@ export function AssessmentBreakdown({
           </CardContent>
         </Card>
       )}
+    </div>
+  );
+}
+
+function EmptyStateIcon({ filterMode }: { readonly filterMode: string }) {
+  const Icon = FILTER_ICONS[filterMode] ?? CircleDot;
+  return (
+    <div className="mx-auto mb-3 w-14 h-14 rounded-2xl bg-(--bento-tint-orange) border-4 border-white shadow-sm flex items-center justify-center text-(--bento-orange-d)">
+      <Icon className="w-7 h-7" strokeWidth={2.25} aria-hidden="true" />
     </div>
   );
 }

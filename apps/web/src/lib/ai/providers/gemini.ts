@@ -13,7 +13,7 @@
 import { google } from "@ai-sdk/google";
 import { createGroq } from "@ai-sdk/groq";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import type { LanguageModelV1 } from "ai";
+import type { LanguageModel } from "ai";
 
 // ===== PRIMARY: Google Gemini =====
 // Using Gemini 2.5 Flash (stable) - best balance of speed, quality, and cost
@@ -61,34 +61,53 @@ export const groqModels = {
   mixtral: groq("mixtral-8x7b-32768"),
 } as const;
 
+// ===== QUATERNARY: Cerebras (FREE) =====
+// 30 RPM / 1M tokens-per-day free tier, llama-3.3-70b at ~2000 tok/sec.
+// OpenAI-compatible API so it slots in via createOpenAICompatible like
+// HuggingFace. Independent infrastructure from Groq, so a Groq outage
+// doesn't take down this layer too — useful when you really don't
+// want chat to stop.
+const cerebras = createOpenAICompatible({
+  name: "cerebras",
+  baseURL: "https://api.cerebras.ai/v1",
+  apiKey: process.env.CEREBRAS_API_KEY || "",
+});
+
+export const cerebrasProvider = cerebras("llama-3.3-70b");
+
+export const cerebrasModels = {
+  llama33: cerebras("llama-3.3-70b"),
+  llama31_8b: cerebras("llama3.1-8b"),
+} as const;
+
 /**
  * Provider type for configuration
  */
-export type AIProviderType = "gemini" | "huggingface" | "groq";
+export type AIProviderType = "gemini" | "huggingface" | "groq" | "cerebras";
 
 /**
- * TYPE SAFETY: Helper to cast provider to LanguageModelV1 with validation
- * The AI SDK providers implement LanguageModelV1 but have varying type definitions.
+ * TYPE SAFETY: Helper to cast provider to LanguageModel with validation
+ * The AI SDK providers implement LanguageModel but have varying type definitions.
  * This helper provides a single point for the cast with runtime validation.
  *
- * @param provider - Any AI provider that implements LanguageModelV1 interface
- * @returns Properly typed LanguageModelV1
+ * @param provider - Any AI provider that implements LanguageModel interface
+ * @returns Properly typed LanguageModel
  */
 function asLanguageModel(provider: {
   doGenerate?: unknown;
   doStream?: unknown;
   specificationVersion?: unknown;
-}): LanguageModelV1 {
-  // Runtime check: LanguageModelV1 must have these methods
+}): LanguageModel {
+  // Runtime check: LanguageModel must have these methods
   if (
     typeof provider !== "object" ||
     provider === null ||
     !("specificationVersion" in provider)
   ) {
-    throw new Error("Invalid AI provider: does not implement LanguageModelV1");
+    throw new Error("Invalid AI provider: does not implement LanguageModel");
   }
   // The provider implements the interface - safe to cast
-  return provider as LanguageModelV1;
+  return provider as LanguageModel;
 }
 
 /**
@@ -101,18 +120,19 @@ function getAvailableProviders() {
       Boolean(process.env.GOOGLE_GENERATIVE_AI_API_KEY),
     huggingface: Boolean(process.env.HUGGINGFACE_API_KEY),
     groq: Boolean(process.env.GROQ_API_KEY),
+    cerebras: Boolean(process.env.CEREBRAS_API_KEY),
   };
 }
 
 /**
  * Get the appropriate AI model based on preference and availability
  *
- * Priority: Gemini (paid) → HuggingFace (PRO) → Groq (free)
+ * Priority: Gemini (paid) → HuggingFace (PRO) → Groq (free) → Cerebras (free)
  *
  * @param preferredProvider - Override the default priority
- * @returns The AI model to use (typed as LanguageModelV1 for AI SDK compatibility)
+ * @returns The AI model to use (typed as LanguageModel for AI SDK compatibility)
  */
-export function getAIModel(preferredProvider?: AIProviderType): LanguageModelV1 {
+export function getAIModel(preferredProvider?: AIProviderType): LanguageModel {
   const available = getAvailableProviders();
 
   // If specific provider requested and available, use it
@@ -126,9 +146,12 @@ export function getAIModel(preferredProvider?: AIProviderType): LanguageModelV1 
     if (preferredProvider === "groq" && available.groq) {
       return asLanguageModel(groqProvider);
     }
+    if (preferredProvider === "cerebras" && available.cerebras) {
+      return asLanguageModel(cerebrasProvider);
+    }
   }
 
-  // Default priority: Gemini → HuggingFace → Groq
+  // Default priority: Gemini → HuggingFace → Groq → Cerebras
   if (available.gemini) {
     return asLanguageModel(geminiProvider);
   }
@@ -138,6 +161,9 @@ export function getAIModel(preferredProvider?: AIProviderType): LanguageModelV1 
   if (available.groq) {
     return asLanguageModel(groqProvider);
   }
+  if (available.cerebras) {
+    return asLanguageModel(cerebrasProvider);
+  }
 
   // No provider available - return Gemini (will error with helpful message)
   return asLanguageModel(geminiProvider);
@@ -145,12 +171,12 @@ export function getAIModel(preferredProvider?: AIProviderType): LanguageModelV1 
 
 /**
  * Get model with automatic fallback chain
- * Priority: Gemini → HuggingFace → Groq
+ * Priority: Gemini → HuggingFace → Groq → Cerebras
  *
  * @returns Model and provider info
  */
 export async function getModelWithFallback(): Promise<{
-  model: LanguageModelV1;
+  model: LanguageModel;
   provider: AIProviderType;
 }> {
   const available = getAvailableProviders();
@@ -165,13 +191,18 @@ export async function getModelWithFallback(): Promise<{
     return { model: asLanguageModel(huggingfaceProvider), provider: "huggingface" };
   }
 
-  // Priority 3: Groq (free tier)
+  // Priority 3: Groq (free tier, 14,400 RPM, llama-3.3-70b)
   if (available.groq) {
     return { model: asLanguageModel(groqProvider), provider: "groq" };
   }
 
+  // Priority 4: Cerebras (free tier, 30 RPM, llama-3.3-70b @ ~2000 tok/sec)
+  if (available.cerebras) {
+    return { model: asLanguageModel(cerebrasProvider), provider: "cerebras" };
+  }
+
   throw new Error(
-    "No AI provider configured. Set one of: GEMINI_API_KEY, HUGGINGFACE_API_KEY, or GROQ_API_KEY",
+    "No AI provider configured. Set one of: GEMINI_API_KEY, HUGGINGFACE_API_KEY, GROQ_API_KEY, or CEREBRAS_API_KEY",
   );
 }
 
@@ -189,31 +220,31 @@ export const MODEL_CONFIGS = {
   // Socratic tutoring - needs good reasoning (uses thinking mode)
   tutor: {
     temperature: 0.7,
-    maxTokens: 1024,
+    maxOutputTokens: 1024,
     topP: 0.95,
   },
   // Study/Learning with RAG - faster, cheaper (context already retrieved)
   study: {
     temperature: 0.5,
-    maxTokens: 768,
+    maxOutputTokens: 768,
     topP: 0.9,
   },
   // RAG retrieval - more deterministic
   retrieval: {
     temperature: 0.3,
-    maxTokens: 512,
+    maxOutputTokens: 512,
     topP: 0.9,
   },
   // Assessment feedback - balanced
   assessment: {
     temperature: 0.5,
-    maxTokens: 1024,
+    maxOutputTokens: 1024,
     topP: 0.9,
   },
   // Creative content (examples, stories)
   creative: {
     temperature: 0.9,
-    maxTokens: 2048,
+    maxOutputTokens: 2048,
     topP: 0.95,
   },
 } as const;

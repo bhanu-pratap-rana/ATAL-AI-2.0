@@ -14,8 +14,8 @@
  */
 
 import { SupabaseClient, User, AuthError } from "@supabase/supabase-js";
+import { validateEmail } from "./email-validation";
 import {
-  validateEmail,
   validatePhone,
   validatePassword,
 } from "./validation-utils";
@@ -507,14 +507,18 @@ export async function handleSetPassword(
 }
 
 /**
- * Anonymous/guest signin handler
- * Used for users wanting to join classes without full registration
+ * Anonymous / Quick Start sign-in.
  *
- * @param supabase - Supabase client instance
- * @returns SignInResult with success status
+ * Why this exists: many rural-Kamrup students don't have email or
+ * phone — their only credential is a username plus the class code
+ * provided by their teacher. The auth-state machine routes those users
+ * through Supabase's anonymous sign-in (a session with no identifier
+ * is created server-side; the username + class details are then
+ * attached to the new student profile).
  *
- * WHY: Simple anonymous signin pattern that may be used in multiple places.
- * Centralizing ensures consistent behavior.
+ * Wired up via the "username" / Quick Start tab in SignUpStep and
+ * SignInStep. Centralised here so the same handler covers both flows
+ * and the next consumer (join-by-class flow) gets consistent behaviour.
  */
 export async function handleAnonymousSignIn(
   supabase: SupabaseClient,

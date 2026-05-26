@@ -35,17 +35,11 @@ interface SyncStatusIndicatorProps {
   readonly compact?: boolean;
 }
 
-/**
- * Format relative time (e.g., "2 min ago")
- */
-function formatRelativeTime(timestamp: number): string {
-  const seconds = Math.floor((Date.now() - timestamp) / 1000);
-
-  if (seconds < 60) return "Just now";
-  if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)} hr ago`;
-  return `${Math.floor(seconds / 86400)} days ago`;
-}
+// PR-67: delegate to the canonical relative-time formatter. The canonical
+// helper takes Date | string, so wrap the epoch-millis input here.
+import { formatRelativeTime as formatRelativeTimeCanonical } from "@/lib/utils/format-date";
+const formatRelativeTime = (timestamp: number) =>
+  formatRelativeTimeCanonical(new Date(timestamp));
 
 /**
  * Get badge count display (caps at 9+)

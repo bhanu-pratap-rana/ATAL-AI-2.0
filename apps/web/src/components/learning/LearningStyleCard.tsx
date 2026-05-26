@@ -5,13 +5,14 @@
  * Used in the Learning Style Profile dashboard.
  */
 
+import type { LucideIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface LearningStyleCardProps {
   style: "visual" | "text" | "auditory";
   score: number;
   isActive: boolean;
-  icon: string;
+  Icon: LucideIcon;
   title: string;
   activityCount: number;
   activityLabel: string;
@@ -46,7 +47,7 @@ export function LearningStyleCard({
   style,
   score,
   isActive,
-  icon,
+  Icon,
   title,
   activityCount,
   activityLabel,
@@ -64,7 +65,13 @@ export function LearningStyleCard({
       <CardContent className="pt-6">
         {/* Icon and Title */}
         <div className="flex items-center gap-3 mb-4">
-          <span className="text-3xl">{icon}</span>
+          <div
+            className={`w-12 h-12 rounded-2xl flex items-center justify-center border-2 border-white shadow-sm ${
+              isActive ? `${colors.bar} text-white` : "bg-slate-100 text-slate-600"
+            }`}
+          >
+            <Icon className="w-6 h-6" strokeWidth={2.25} aria-hidden="true" />
+          </div>
           <div>
             <h3 className={`font-black ${isActive ? colors.text : "text-slate-800"}`}>
               {title}
@@ -97,7 +104,7 @@ export function LearningStyleCard({
         {/* Activity Stat */}
         <div className="pt-3 border-t border-slate-100">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-400">{activityLabel}</span>
+            <span className="text-slate-500">{activityLabel}</span>
             <span className={`font-medium ${isActive ? colors.text : "text-slate-500"}`}>
               {activityCount}
             </span>

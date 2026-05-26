@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ATAL AI — Personalised learning for every student in Assam</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --ink:#1A1A1A; --ink-2:#4B4B4B; --ink-3:#8A8A8A;
+    --paper:#FAFAF7; --line:#E8E5DE; --accent:#F98819; --accent-d:#8B4A0B;
+  }
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--paper);color:var(--ink);font-feature-settings:"ss01","cv11";}
+  .serif{font-family:'Fraunces',Georgia,serif;font-optical-sizing:auto;}
+  .display{font-family:'Fraunces',Georgia,serif;font-weight:600;letter-spacing:-.02em;font-optical-sizing:auto;}
+  .rule{height:1px;background:var(--line);}
+  .accent-bar{height:3px;width:36px;background:var(--accent);border-radius:2px;}
+  .btn-ink{ background:var(--ink); color:#fff; }
+  .btn-ink:hover{ background:#000; }
+  .btn-accent{ background:var(--accent); color:#fff; }
+  .btn-accent:hover{ background:var(--accent-d); }
+  .small-caps{ font-variant-caps: all-small-caps; letter-spacing:.18em; font-weight:700; }
+  .quote-mark{font-family:'Fraunces',serif;font-size:6rem;line-height:.7;color:var(--accent);}
+  .grid-bg{background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:60px 60px;}
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- Top thin bar -->
+<div class="border-b border-stone-200 bg-white">
+  <div class="max-w-6xl mx-auto px-6 py-2 flex items-center justify-between text-xs">
+    <div class="small-caps text-stone-500">Free · Offline-capable · Class 6–12</div>
+    <div class="hidden sm:flex items-center gap-4 text-stone-500 font-semibold">
+      <span>English</span>
+      <span class="text-stone-300">·</span>
+      <span>অসমীয়া</span>
+      <span class="text-stone-300">·</span>
+      <span>हिन्दी</span>
+    </div>
+  </div>
+</div>
+
+<!-- Nav -->
+<header class="border-b border-stone-200 bg-white">
+  <div class="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
+    <a href="../index.html" class="flex items-center gap-3">
+      <img src="../shared/logo.png" class="h-9 w-9 rounded-full"/>
+      <div class="display text-xl">ATAL AI</div>
+    </a>
+    <nav class="hidden sm:flex items-center gap-1 text-sm font-semibold text-stone-700">
+      <a class="px-3 py-2 rounded hover:bg-stone-100" href="#approach">Approach</a>
+      <a class="px-3 py-2 rounded hover:bg-stone-100" href="#subjects">Subjects</a>
+      <a class="px-3 py-2 rounded hover:bg-stone-100" href="#evidence">Evidence</a>
+      <a class="px-3 py-2 rounded hover:bg-stone-100" href="#for-schools">For Schools</a>
+    </nav>
+    <div class="flex items-center gap-2">
+      <a href="#signin" class="hidden sm:inline-block px-4 py-2 text-sm font-semibold text-stone-700 hover:text-stone-900">Sign in</a>
+      <a href="#signin" class="btn-accent px-4 py-2 rounded-md text-sm font-semibold">Start free</a>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="relative">
+  <div class="max-w-6xl mx-auto px-6 py-20 sm:py-28 grid lg:grid-cols-12 gap-12 items-center">
+    <div class="lg:col-span-7">
+      <div class="accent-bar mb-6"></div>
+      <div class="small-caps text-stone-500 mb-4">Issue 01 · For learners in Assam</div>
+      <h1 class="display text-5xl sm:text-6xl lg:text-7xl leading-[1.02] mb-6">
+        Personalised learning for every student.
+      </h1>
+      <p class="text-lg text-stone-600 max-w-xl leading-relaxed mb-8">
+        ATAL AI is a free, evidence-based tutor that adapts to each learner. Built for Assam's curriculum. Designed to work on a basic phone, even without internet.
+      </p>
+      <div class="flex flex-wrap items-center gap-3 mb-10">
+        <a href="#signin" class="btn-ink px-6 py-3 rounded-md font-semibold">Start learning</a>
+        <a href="#approach" class="px-6 py-3 rounded-md font-semibold text-stone-700 hover:text-stone-900 border border-stone-300 hover:border-stone-500">Read our approach →</a>
+      </div>
+      <div class="flex items-center gap-8 text-sm text-stone-600">
+        <div><div class="display text-2xl text-stone-900">12,400</div><div class="small-caps text-stone-500 text-[10px]">Students</div></div>
+        <div class="h-8 w-px bg-stone-300"></div>
+        <div><div class="display text-2xl text-stone-900">28</div><div class="small-caps text-stone-500 text-[10px]">Districts</div></div>
+        <div class="h-8 w-px bg-stone-300"></div>
+        <div><div class="display text-2xl text-stone-900">94%</div><div class="small-caps text-stone-500 text-[10px]">Return weekly</div></div>
+      </div>
+    </div>
+
+    <div class="lg:col-span-5">
+      <div class="relative">
+        <div class="absolute -inset-2 bg-stone-100 rounded-2xl rotate-1"></div>
+        <article class="relative bg-white border border-stone-200 rounded-2xl p-6 sm:p-7">
+          <div class="flex items-center justify-between mb-5 pb-5 border-b border-stone-200">
+            <div class="flex items-center gap-3">
+              <img src="../shared/logo.png" class="w-12 h-12 rounded-full"/>
+              <div>
+                <div class="display text-lg leading-none">Today's lesson</div>
+                <div class="small-caps text-stone-500 text-[11px] mt-1">Aarav · Class 10</div>
+              </div>
+            </div>
+            <span class="text-xs font-semibold text-stone-500">12 min</span>
+          </div>
+          <h3 class="display text-2xl mb-2">Quadratic Equations</h3>
+          <p class="text-sm text-stone-600 mb-5">Solve using factorisation, the quadratic formula, and completing the square.</p>
+          <div class="space-y-3 mb-6">
+            <div class="flex items-center gap-3 text-sm">
+              <div class="w-5 h-5 rounded-full bg-stone-900 text-white flex items-center justify-center text-[11px]">✓</div>
+              <span class="text-stone-600">Introduction · 4 min</span>
+            </div>
+            <div class="flex items-center gap-3 text-sm">
+              <div class="w-5 h-5 rounded-full bg-stone-900 text-white flex items-center justify-center text-[11px]">✓</div>
+              <span class="text-stone-600">Factorisation · 6 min</span>
+            </div>
+            <div class="flex items-center gap-3 text-sm font-semibold text-stone-900">
+              <div class="w-5 h-5 rounded-full border-2 border-orange-500 bg-white"></div>
+              <span>Quadratic formula · 5 min</span>
+            </div>
+            <div class="flex items-center gap-3 text-sm text-stone-400">
+              <div class="w-5 h-5 rounded-full border border-stone-300"></div>
+              <span>Practice problems · 8 min</span>
+            </div>
+          </div>
+          <button class="w-full btn-ink py-3 rounded-md font-semibold">Continue lesson</button>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="rule"></div>
+
+<!-- Approach -->
+<section id="approach" class="py-20 sm:py-24">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="grid lg:grid-cols-12 gap-12 mb-16">
+      <div class="lg:col-span-4">
+        <div class="accent-bar mb-5"></div>
+        <div class="small-caps text-stone-500 mb-4">Our approach</div>
+        <h2 class="display text-4xl sm:text-5xl leading-tight">Built on evidence, not entertainment.</h2>
+      </div>
+      <div class="lg:col-span-7 lg:col-start-6 space-y-8 text-stone-700 text-lg leading-relaxed">
+        <p>Every lesson on ATAL AI follows an Item Response Theory model — the same psychometric framework used by GRE and JEE coaches to estimate true mastery, not just answer rate.</p>
+        <p>The mascot is friendly; the science is serious.</p>
+      </div>
+    </div>
+
+    <div class="grid sm:grid-cols-3 gap-10 border-t border-stone-200 pt-12">
+      <div>
+        <div class="display text-3xl mb-3">Adaptive</div>
+        <p class="text-stone-600 leading-relaxed text-sm">Questions adjust to each student's ability in real time. Easy enough to encourage, hard enough to teach.</p>
+      </div>
+      <div>
+        <div class="display text-3xl mb-3">Offline-first</div>
+        <p class="text-stone-600 leading-relaxed text-sm">Lessons cache on the device. A student in Majuli can study even when there's no signal — and sync when they're back online.</p>
+      </div>
+      <div>
+        <div class="display text-3xl mb-3">Multilingual</div>
+        <p class="text-stone-600 leading-relaxed text-sm">Every concept is available in Assamese, Hindi, and English. Voice tutor handles natural pronunciation across all three.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="rule"></div>
+
+<!-- Subjects -->
+<section id="subjects" class="py-20 sm:py-24 bg-white">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="text-center mb-14">
+      <div class="accent-bar mx-auto mb-5"></div>
+      <div class="small-caps text-stone-500 mb-3">Curriculum</div>
+      <h2 class="display text-4xl sm:text-5xl">Aligned with SEBA, CBSE & HSSLC.</h2>
+    </div>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-stone-200 border border-stone-200">
+      <a href="dashboard.html" class="bg-white p-7 hover:bg-stone-50 transition group">
+        <div class="flex items-baseline justify-between mb-3"><div class="display text-xl">Mathematics</div><div class="small-caps text-stone-400 text-[10px]">01</div></div>
+        <div class="text-sm text-stone-600 mb-4">Algebra · Geometry · Trigonometry · Statistics</div>
+        <div class="text-xs font-semibold text-orange-700 group-hover:translate-x-1 transition-transform inline-block">12 chapters →</div>
+      </a>
+      <a href="dashboard.html" class="bg-white p-7 hover:bg-stone-50 transition group">
+        <div class="flex items-baseline justify-between mb-3"><div class="display text-xl">Science</div><div class="small-caps text-stone-400 text-[10px]">02</div></div>
+        <div class="text-sm text-stone-600 mb-4">Physics · Chemistry · Biology fundamentals</div>
+        <div class="text-xs font-semibold text-orange-700 group-hover:translate-x-1 transition-transform inline-block">16 chapters →</div>
+      </a>
+      <a href="dashboard.html" class="bg-white p-7 hover:bg-stone-50 transition group">
+        <div class="flex items-baseline justify-between mb-3"><div class="display text-xl">English</div><div class="small-caps text-stone-400 text-[10px]">03</div></div>
+        <div class="text-sm text-stone-600 mb-4">Reading · Grammar · Composition · Vocabulary</div>
+        <div class="text-xs font-semibold text-orange-700 group-hover:translate-x-1 transition-transform inline-block">10 chapters →</div>
+      </a>
+      <a href="dashboard.html" class="bg-white p-7 hover:bg-stone-50 transition group">
+        <div class="flex items-baseline justify-between mb-3"><div class="display text-xl">Assamese</div><div class="small-caps text-stone-400 text-[10px]">04</div></div>
+        <div class="text-sm text-stone-600 mb-4">Literature · Grammar · Composition</div>
+        <div class="text-xs font-semibold text-orange-700 group-hover:translate-x-1 transition-transform inline-block">8 chapters →</div>
+      </a>
+      <a href="dashboard.html" class="bg-white p-7 hover:bg-stone-50 transition group">
+        <div class="flex items-baseline justify-between mb-3"><div class="display text-xl">Social Studies</div><div class="small-caps text-stone-400 text-[10px]">05</div></div>
+        <div class="text-sm text-stone-600 mb-4">History · Geography · Civics · Economics</div>
+        <div class="text-xs font-semibold text-orange-700 group-hover:translate-x-1 transition-transform inline-block">14 chapters →</div>
+      </a>
+      <a href="dashboard.html" class="bg-white p-7 hover:bg-stone-50 transition group">
+        <div class="flex items-baseline justify-between mb-3"><div class="display text-xl">Hindi</div><div class="small-caps text-stone-400 text-[10px]">06</div></div>
+        <div class="text-sm text-stone-600 mb-4">व्याकरण · साहित्य · रचना</div>
+        <div class="text-xs font-semibold text-orange-700 group-hover:translate-x-1 transition-transform inline-block">8 chapters →</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<div class="rule"></div>
+
+<!-- Evidence / quote -->
+<section id="evidence" class="py-20 sm:py-28">
+  <div class="max-w-4xl mx-auto px-6 text-center">
+    <div class="quote-mark mb-2">"</div>
+    <blockquote class="display text-3xl sm:text-4xl leading-snug mb-8">
+      My daughter studies even when the network goes down. After three months on ATAL AI, her math marks rose from 62 to 86.
+    </blockquote>
+    <div class="small-caps text-stone-500 text-sm">Mridul Bora · parent · Dhemaji</div>
+  </div>
+</section>
+
+<div class="rule"></div>
+
+<!-- For schools -->
+<section id="for-schools" class="py-20 sm:py-24">
+  <div class="max-w-6xl mx-auto px-6 grid lg:grid-cols-12 gap-10 items-center">
+    <div class="lg:col-span-5">
+      <div class="accent-bar mb-5"></div>
+      <div class="small-caps text-stone-500 mb-3">For schools</div>
+      <h2 class="display text-4xl mb-4">A free dashboard for every classroom.</h2>
+      <p class="text-stone-600 mb-6 leading-relaxed">Teachers see who's progressing, who's stuck, and where the curriculum needs reinforcement — without grading a single quiz manually.</p>
+      <a href="#" class="btn-ink px-5 py-3 rounded-md text-sm font-semibold inline-block">Request school onboarding</a>
+    </div>
+    <div class="lg:col-span-7">
+      <div class="bg-white border border-stone-200 rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <div class="display text-xl">Class 10-A · Mathematics</div>
+            <div class="small-caps text-stone-500 text-[11px] mt-1">Sualkuchi Govt School · 38 students</div>
+          </div>
+          <span class="text-xs px-2 py-1 rounded bg-green-50 text-green-800 font-semibold border border-green-200">+12% this week</span>
+        </div>
+        <div class="grid grid-cols-4 gap-3 mb-5">
+          <div><div class="display text-2xl">86%</div><div class="small-caps text-stone-500 text-[10px]">Active</div></div>
+          <div><div class="display text-2xl">74</div><div class="small-caps text-stone-500 text-[10px]">Avg score</div></div>
+          <div><div class="display text-2xl">5.2h</div><div class="small-caps text-stone-500 text-[10px]">Weekly time</div></div>
+          <div><div class="display text-2xl">3</div><div class="small-caps text-stone-500 text-[10px]">At risk</div></div>
+        </div>
+        <div class="border-t border-stone-200 pt-4 space-y-2 text-sm">
+          <div class="flex items-center justify-between"><span class="text-stone-700">Polynomials</span><div class="flex items-center gap-2"><div class="h-1.5 w-32 bg-stone-100 rounded-full overflow-hidden"><div class="h-full bg-stone-900" style="width:88%"></div></div><span class="text-xs font-semibold w-8 text-right">88%</span></div></div>
+          <div class="flex items-center justify-between"><span class="text-stone-700">Quadratics</span><div class="flex items-center gap-2"><div class="h-1.5 w-32 bg-stone-100 rounded-full overflow-hidden"><div class="h-full bg-stone-900" style="width:62%"></div></div><span class="text-xs font-semibold w-8 text-right">62%</span></div></div>
+          <div class="flex items-center justify-between"><span class="text-stone-700">Trigonometry</span><div class="flex items-center gap-2"><div class="h-1.5 w-32 bg-stone-100 rounded-full overflow-hidden"><div class="h-full bg-orange-500" style="width:34%"></div></div><span class="text-xs font-semibold w-8 text-right">34%</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="rule"></div>
+
+<!-- Sign in -->
+<section id="signin" class="py-20 sm:py-24 bg-white">
+  <div class="max-w-4xl mx-auto px-6 text-center">
+    <div class="accent-bar mx-auto mb-5"></div>
+    <h2 class="display text-4xl sm:text-5xl mb-4">Get started</h2>
+    <p class="text-stone-600 mb-10">Choose how you'll use ATAL AI today.</p>
+    <div class="grid sm:grid-cols-3 gap-6">
+      <a href="dashboard.html" class="group p-7 border border-stone-200 rounded-xl bg-white hover:border-stone-400 transition text-left">
+        <div class="small-caps text-stone-400 mb-4">01 / Learner</div>
+        <div class="display text-2xl mb-2">Student</div>
+        <p class="text-sm text-stone-600 mb-5">Class 6–12. Personalised lessons in your language.</p>
+        <span class="text-sm font-semibold text-orange-700 group-hover:translate-x-1 inline-block transition-transform">Continue →</span>
+      </a>
+      <a href="#" class="group p-7 border border-stone-200 rounded-xl bg-white hover:border-stone-400 transition text-left">
+        <div class="small-caps text-stone-400 mb-4">02 / Educator</div>
+        <div class="display text-2xl mb-2">Teacher</div>
+        <p class="text-sm text-stone-600 mb-5">Class dashboard. Assignments. Progress reports.</p>
+        <span class="text-sm font-semibold text-orange-700 group-hover:translate-x-1 inline-block transition-transform">Teacher portal →</span>
+      </a>
+      <a href="#" class="group p-7 border border-stone-200 rounded-xl bg-white hover:border-stone-400 transition text-left">
+        <div class="small-caps text-stone-400 mb-4">03 / Operator</div>
+        <div class="display text-2xl mb-2">Admin</div>
+        <p class="text-sm text-stone-600 mb-5">School-level metrics, content, user management.</p>
+        <span class="text-sm font-semibold text-orange-700 group-hover:translate-x-1 inline-block transition-transform">Admin login →</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer class="py-12 border-t border-stone-200">
+  <div class="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <img src="../shared/logo.png" class="h-8 w-8 rounded-full"/>
+      <div class="text-sm font-semibold">ATAL AI · 2026</div>
+    </div>
+    <div class="small-caps text-stone-500 text-[11px]">A learning project for rural Assam · <a href="../index.html" class="hover:text-stone-900">Back to gallery</a></div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -90,19 +90,30 @@ export async function getSchoolPINInfo(
     // Use admin client for school_staff_credentials (RLS restricts to service_role only)
     const adminClient = await createAdminClient();
 
-    // Get school info - use .maybeSingle() since school may not exist
-    const { data: schoolData, error: schoolError } = await supabase
-      .from("schools")
-      .select(
-        `
-        id,
-        school_name,
-        school_code,
-        district
-      `,
-      )
-      .eq("id", schoolId)
-      .maybeSingle();
+    // schools and school_staff_credentials are both keyed on schoolId and
+    // mutually independent — fetch in parallel.
+    const [schoolRes, pinRes] = await Promise.all([
+      supabase
+        .from("schools")
+        .select(
+          `
+          id,
+          school_name,
+          school_code,
+          district
+        `,
+        )
+        .eq("id", schoolId)
+        .maybeSingle(),
+      adminClient
+        .from("school_staff_credentials")
+        .select("created_at, rotated_at, updated_at")
+        .eq("school_id", schoolId)
+        .maybeSingle(),
+    ]);
+
+    const { data: schoolData, error: schoolError } = schoolRes;
+    const { data: pinData, error: pinError } = pinRes;
 
     if (schoolError) {
       authLogger.error(
@@ -121,14 +132,6 @@ export async function getSchoolPINInfo(
         error: "School not found",
       };
     }
-
-    // Get PIN info from school_staff_credentials (requires service_role to access)
-    // Use .maybeSingle() - PIN credentials may not exist for this school yet
-    const { data: pinData, error: pinError } = await adminClient
-      .from("school_staff_credentials")
-      .select("created_at, rotated_at, updated_at")
-      .eq("school_id", schoolId)
-      .maybeSingle();
 
     if (pinError) {
       authLogger.error("[getSchoolPINInfo] Error fetching PIN data", pinError);
@@ -400,16 +403,18 @@ export async function getPINStatistics(): Promise<AdminPINActionResult> {
     // Use admin client for school_staff_credentials (RLS restricts to service_role only)
     const adminClient = await createAdminClient();
 
-    // Get total schools
-    const { count: totalSchools } = await supabase
-      .from("schools")
-      .select("*", { count: "exact", head: true });
-
-    // Get schools with PINs configured (requires service_role to access)
-    const { count: schoolsWithPINs } = await adminClient
-      .from("school_staff_credentials")
-      .select("*", { count: "exact", head: true })
-      .is("deleted_at", null);
+    // Two independent counts — parallel saves one RTT.
+    const [totalRes, withPinRes] = await Promise.all([
+      supabase
+        .from("schools")
+        .select("*", { count: "exact", head: true }),
+      adminClient
+        .from("school_staff_credentials")
+        .select("*", { count: "exact", head: true })
+        .is("deleted_at", null),
+    ]);
+    const totalSchools = totalRes.count;
+    const schoolsWithPINs = withPinRes.count;
 
     const stats = {
       totalSchools: totalSchools || 0,

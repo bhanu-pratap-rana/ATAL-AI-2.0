@@ -31,10 +31,15 @@
     "info": "Info"
   },
   "nav": {
+    "home": "Home",
     "dashboard": "Dashboard",
     "learn": "Learn",
+    "aiTools": "AI Tools",
     "classes": "Classes",
+    "students": "Students",
+    "analytics": "Analytics",
     "assessments": "Assessments",
+    "schools": "Schools",
     "profile": "Profile",
     "backToDashboard": "Back to Dashboard",
     "backToLearningPath": "Back to Learning Path"
@@ -256,7 +261,10 @@
     "moduleNotFound": "Module not found",
     "lessonNotFound": "Lesson not found",
     "loadingFailed": "Failed to load. Please try again.",
-    "unexpectedError": "An unexpected error occurred"
+    "unexpectedError": "An unexpected error occurred",
+    "weakPasswordBreached": "This password has appeared in a data breach. Please choose a different one for your safety.",
+    "signInRequired": "Please sign in to continue.",
+    "rateLimitWait": "You're sending messages too quickly. Please wait a moment and try again."
   },
   "class": {
     "classCreated": "Class Created!",

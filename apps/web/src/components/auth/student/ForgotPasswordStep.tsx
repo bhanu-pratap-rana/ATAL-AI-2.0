@@ -13,8 +13,8 @@ import {
   resetPasswordWithOtp,
 } from "@/app/actions/auth";
 import { useOTPInput } from "@/hooks/useOTPInput";
+import { validateEmail } from "@/lib/email-validation";
 import {
-  validateEmail,
   validatePassword,
   validatePasswordMatch,
 } from "@/lib/validation-utils";
@@ -189,6 +189,7 @@ export function ForgotPasswordStep({
             <Input
               id="forgot-password-email"
               type="email"
+              autoComplete="username"
               placeholder="your.email@example.com"
               value={state.forgotPasswordEmail}
               onChange={(e) =>
@@ -205,7 +206,7 @@ export function ForgotPasswordStep({
 
           <Button
             type="submit"
-            className="w-full text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5"
+            className="w-full text-[17px] shadow-primary hover:shadow-(--shadow-primary-hover) hover:-translate-y-0.5"
             disabled={isLoading || !state.forgotPasswordEmail}
           >
             {isLoading ? "Sending..." : "Send Reset Code"}
@@ -213,14 +214,15 @@ export function ForgotPasswordStep({
 
           <p className="text-center text-sm text-slate-500">
             Remember your password?{" "}
-            <button
+            <Button
               type="button"
+              variant="link"
               onClick={() => actions.setMainStep("signin")}
-              className="text-primary hover:underline font-medium"
+              className="inline h-auto p-0 align-baseline font-medium"
               disabled={isLoading}
             >
               Sign in
-            </button>
+            </Button>
           </p>
         </form>
       </AuthCard>
@@ -238,6 +240,8 @@ export function ForgotPasswordStep({
           <Input
             id="forgot-password-code"
             type="text"
+            autoComplete="one-time-code"
+            inputMode="numeric"
             placeholder="123456"
             value={forgotPasswordOtpInput.value}
             onChange={(e) => forgotPasswordOtpInput.onChange(e.target.value)}
@@ -303,7 +307,7 @@ export function ForgotPasswordStep({
 
         <Button
           type="submit"
-          className="w-full text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5"
+          className="w-full text-[17px] shadow-primary hover:shadow-(--shadow-primary-hover) hover:-translate-y-0.5"
           disabled={
             isLoading ||
             !forgotPasswordOtpInput.value ||
@@ -314,17 +318,18 @@ export function ForgotPasswordStep({
           {isLoading ? "Resetting..." : "Reset Password"}
         </Button>
 
-        <button
+        <Button
           type="button"
+          variant="link"
           onClick={() => {
             actions.resetForgotPassword();
             actions.setMainStep("signin");
           }}
-          className="text-sm text-slate-500 hover:underline block w-full text-center"
+          className="w-full text-sm text-slate-500"
           disabled={isLoading}
         >
           Back to sign in
-        </button>
+        </Button>
       </form>
     </AuthCard>
   );

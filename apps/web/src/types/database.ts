@@ -345,7 +345,7 @@ export type Database = {
           join_pin: string | null
           name: string
           subject: string | null
-          teacher_id: string | null
+          teacher_id: string
         }
         Insert: {
           class_code?: string | null
@@ -354,7 +354,7 @@ export type Database = {
           join_pin?: string | null
           name: string
           subject?: string | null
-          teacher_id?: string | null
+          teacher_id: string
         }
         Update: {
           class_code?: string | null
@@ -363,7 +363,7 @@ export type Database = {
           join_pin?: string | null
           name?: string
           subject?: string | null
-          teacher_id?: string | null
+          teacher_id?: string
         }
         Relationships: [
           {
@@ -941,7 +941,22 @@ export type Database = {
           topic_id?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "student_knowledge_state_module_fk"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_knowledge_state_topic_fk"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       student_profiles: {
         Row: {
@@ -1291,6 +1306,7 @@ export type Database = {
       }
       cleanup_expired_lessons: { Args: never; Returns: undefined }
       cleanup_old_sync_logs: { Args: never; Returns: number }
+      current_user_role: { Args: never; Returns: string }
       generate_class_code: { Args: never; Returns: string }
       generate_join_pin: { Args: never; Returns: string }
       get_announcements_with_reads: {
@@ -1461,7 +1477,24 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: string[]
       }
-      get_user_id_by_username: { Args: { p_username: string }; Returns: string }
+      preview_class_by_code: {
+        Args: { p_class_code: string }
+        Returns: {
+          class_id: string
+          class_name: string
+          subject: string | null
+          teacher_name: string
+          student_count: number
+        }[]
+      }
+      verify_class_join_pin: {
+        Args: { p_class_code: string; p_pin: string }
+        Returns: {
+          success: boolean
+          class_id: string | null
+          class_name: string | null
+        }[]
+      }
       has_assessment_type: {
         Args: { p_type: string; p_user_id: string }
         Returns: boolean
@@ -1485,6 +1518,16 @@ export type Database = {
       is_class_teacher: { Args: { p_class_id: string }; Returns: boolean }
       is_enrolled_in_class: { Args: { p_class_id: string }; Returns: boolean }
       is_teacher: { Args: never; Returns: boolean }
+      list_admin_users: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          id: string
+          last_sign_in_at: string
+          role: string
+        }[]
+      }
       match_curriculum: {
         Args: {
           filter_language?: string
@@ -1547,9 +1590,15 @@ export type Database = {
         Returns: {
           class_name: string
           name: string
-          phone: string
           roll_number: string
           user_id: string
+        }[]
+      }
+      get_recent_students_for_teacher: {
+        Args: { p_limit?: number }
+        Returns: {
+          user_id: string
+          name: string | null
         }[]
       }
       submit_assessment: {

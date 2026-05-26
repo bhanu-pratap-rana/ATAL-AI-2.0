@@ -110,7 +110,13 @@ export const authLogger = {
   error: (message: string, error?: unknown, context?: LogContext) => {
     if (isDevelopment) {
       const maskedContext = context ? maskSensitiveData(context) : undefined;
-      console.error(`[AUTH:ERROR] ${message}`, error, maskedContext);
+      // Avoid passing `undefined` positional args to console.error — some
+      // dev console interceptors (e.g. Console Ninja) call .stack on every
+      // arg and throw on undefined, which silently aborts the caller.
+      const args: unknown[] = [`[AUTH:ERROR] ${message}`];
+      if (error !== undefined) args.push(error);
+      if (maskedContext !== undefined) args.push(maskedContext);
+      console.error(...args);
     } else {
       // In production, only log message via structured logging service, suppress stack traces
       const sentry = getSentry();

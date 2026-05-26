@@ -17,6 +17,9 @@ interface UseDynamicLessonOptions {
   topicId: string;
   language: SupportedLanguage;
   learningStyle?: "visual" | "text" | "auditory";
+  /** Current mastery on this topic (0-100). When provided, the AI tones
+   *  the lesson easier or harder accordingly. Null/undefined = first attempt. */
+  masteryLevel?: number | null;
   enabled?: boolean;
 }
 
@@ -35,6 +38,7 @@ export function useDynamicLesson({
   topicId,
   language,
   learningStyle = "text",
+  masteryLevel,
   enabled = true,
 }: UseDynamicLessonOptions): UseDynamicLessonResult {
   const [lesson, setLesson] = useState<GeneratedLesson | null>(null);
@@ -63,6 +67,7 @@ export function useDynamicLesson({
             topicId,
             language,
             learningStyle,
+            ...(typeof masteryLevel === "number" ? { masteryLevel } : {}),
           }),
           signal: controller.signal,
         });
@@ -102,7 +107,7 @@ export function useDynamicLesson({
     fetchLesson();
 
     return () => controller.abort();
-  }, [moduleId, topicId, language, learningStyle, enabled, fetchKey]);
+  }, [moduleId, topicId, language, learningStyle, masteryLevel, enabled, fetchKey]);
 
   const refetch = () => {
     setFetchKey((prev) => prev + 1);

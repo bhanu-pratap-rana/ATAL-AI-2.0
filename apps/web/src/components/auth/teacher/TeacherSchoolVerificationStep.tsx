@@ -6,6 +6,7 @@
 
 "use client";
 
+import { Lock } from "lucide-react";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -73,7 +74,7 @@ export function TeacherSchoolVerificationStep({
 
           <div className="bg-cyan-lightest border-l-4 border-cyan p-3 rounded-xl">
             <p className="text-xs text-cyan-darkest">
-              <strong>🔒 Secure Verification</strong>
+              <strong className="inline-flex items-center gap-1.5"><Lock size={14} strokeWidth={2.5} aria-hidden="true" />Secure Verification</strong>
               <br />
               Your credentials are verified using bcrypt encryption. Staff
               PINs are never exposed to clients.
@@ -82,7 +83,7 @@ export function TeacherSchoolVerificationStep({
 
           <Button
             type="submit"
-            className="w-full shadow-[var(--shadow-primary)]"
+            className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white border-2 border-[#2563EB]/40 shadow-md" variant="ghost"
             disabled={state.loading}
             loading={state.loading}
           >

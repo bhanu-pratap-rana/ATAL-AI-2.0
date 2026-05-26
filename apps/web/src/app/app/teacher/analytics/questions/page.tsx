@@ -1,8 +1,12 @@
 import { redirect } from "next/navigation";
 import { createClient, getCurrentUser } from "@/lib/supabase-server";
 import { authLogger } from "@/lib/auth-logger";
+import { formatDurationMMSS as formatTime } from "@/lib/utils/format-date";
 import Link from "next/link";
+import { BentoCard } from "@/components/ui/bento-card";
 import {
+  ArrowLeft,
+  BarChart3,
   Clock,
   Lightbulb,
   TrendingUp,
@@ -116,14 +120,7 @@ function buildModuleStats(questionStats: QuestionStats[]): Record<string, { tota
   );
 }
 
-function formatTime(ms: number): string {
-  if (ms < 1000) return "<1s";
-  const seconds = Math.round(ms / 1000);
-  if (seconds < 60) return `${seconds}s`;
-  const minutes = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${minutes}:${secs.toString().padStart(2, "0")}`;
-}
+// formatTime is imported above from lib/utils/format-date.ts
 
 export default async function PracticeQuestionAnalyticsPage() {
   const user = await getCurrentUser();
@@ -193,44 +190,58 @@ export default async function PracticeQuestionAnalyticsPage() {
   const growthDisplay = overallSuccessRate > 0 ? `+${Math.min(overallSuccessRate, 99)}%` : "N/A";
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6 pb-28">
+    <div className="min-h-screen [background:var(--bento-bg)] p-4 md:p-6 pb-28">
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Banner */}
-        <div className="rounded-[32px] p-6 text-white" style={{ background: "var(--gradient-teacher)" }}>
-          <Link href="/app/teacher/dashboard" className="inline-flex items-center gap-2 text-white/80 text-xs font-black uppercase tracking-widest mb-4">
-            ← Dashboard
+        <div
+          className="rounded-[32px] border-4 border-white p-6 text-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)]"
+          style={{ background: "var(--gradient-teacher)" }}
+        >
+          <Link
+            href="/app/teacher/dashboard"
+            className="inline-flex items-center gap-1.5 text-white/85 text-xs font-black uppercase tracking-widest mb-4 hover:text-white"
+          >
+            <ArrowLeft size={14} strokeWidth={2.5} aria-hidden="true" />
+            Dashboard
           </Link>
-          <h1 className="text-xl sm:text-2xl font-black mb-1">Class Performance 📊</h1>
-          <p className="text-white/80 text-sm font-bold">Syllabus completion and question analytics</p>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-white/25 border-2 border-white/40 flex items-center justify-center shrink-0 text-white">
+              <BarChart3 className="w-7 h-7" strokeWidth={2.25} aria-hidden="true" />
+            </div>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-black mb-0.5 leading-tight">Class Performance</h1>
+              <p className="text-white/85 text-sm font-bold">Syllabus completion and question analytics</p>
+            </div>
+          </div>
         </div>
 
         {/* Growth + At-Risk Tiles */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+          <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-5 flex items-center gap-4">
             <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center shrink-0">
               <TrendingUp className="w-6 h-6 text-emerald-500" />
             </div>
             <div>
               <p className="text-xl sm:text-2xl font-black text-emerald-600">{growthDisplay}</p>
-              <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Success Rate</p>
+              <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Success Rate</p>
             </div>
           </div>
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 flex items-center gap-4">
+          <div className="bg-white rounded-3xl border-4 border-white shadow-[0_6px_0_rgba(0,0,0,0.06),0_14px_28px_-10px_rgba(0,0,0,0.12)] p-5 flex items-center gap-4">
             <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center shrink-0">
               <AlertTriangle className="w-6 h-6 text-red-500" />
             </div>
             <div>
               <p className="text-xl sm:text-2xl font-black text-red-600">{atRiskCount}</p>
-              <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">At-Risk Topics</p>
+              <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest">At-Risk Topics</p>
             </div>
           </div>
         </div>
 
         {/* Syllabus Completion */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
-          <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4">Syllabus Completion</p>
+        <BentoCard padding="lg">
+          <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-4">Syllabus Completion</p>
           {Object.keys(moduleStats).length === 0 ? (
-            <p className="text-slate-400 font-bold text-center py-4">No module data available yet</p>
+            <p className="text-slate-500 font-bold text-center py-4">No module data available yet</p>
           ) : (
             <div className="space-y-4">
               {Object.entries(moduleStats).map(([moduleId, stats]) => {
@@ -245,23 +256,23 @@ export default async function PracticeQuestionAnalyticsPage() {
                     <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
                       <div className={`h-full rounded-full ${barColor} transition-all`} style={{ width: `${successRate}%` }} />
                     </div>
-                    <p className="text-[11px] font-bold text-slate-400 mt-0.5">{stats.total} attempts • {stats.questions} questions</p>
+                    <p className="text-[11px] font-bold text-slate-500 mt-0.5">{stats.total} attempts • {stats.questions} questions</p>
                   </div>
                 );
               })}
             </div>
           )}
-        </div>
+        </BentoCard>
 
         {/* Two Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Hardest Questions */}
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+          <BentoCard padding="lg">
             <h2 className="font-black text-slate-800 text-lg mb-4 flex items-center gap-2">
               <TrendingDown className="w-5 h-5 text-red-500" /> Most Challenging
             </h2>
             {hardestQuestions.length === 0 ? (
-              <p className="text-slate-400 font-bold text-center py-4 text-sm">Not enough data yet (min. 3 attempts)</p>
+              <p className="text-slate-500 font-bold text-center py-4 text-sm">Not enough data yet (min. 3 attempts)</p>
             ) : (
               <div className="space-y-3">
                 {hardestQuestions.map((q, index) => {
@@ -272,7 +283,7 @@ export default async function PracticeQuestionAnalyticsPage() {
                         <span className="w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-xs font-black shrink-0">{index + 1}</span>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-bold text-slate-700 line-clamp-2">{q.questionText}</p>
-                          <div className="flex items-center gap-2 mt-1 text-xs text-slate-400 font-bold">
+                          <div className="flex items-center gap-2 mt-1 text-xs text-slate-500 font-bold">
                             <span className={getSuccessRateColor(rate)}>{rate}% success</span>
                             <span>• {q.totalAttempts} attempts</span>
                             {q.hintUsageCount > 0 && (
@@ -286,15 +297,15 @@ export default async function PracticeQuestionAnalyticsPage() {
                 })}
               </div>
             )}
-          </div>
+          </BentoCard>
 
           {/* Easiest Questions */}
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+          <BentoCard padding="lg">
             <h2 className="font-black text-slate-800 text-lg mb-4 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-emerald-500" /> Well-Mastered
             </h2>
             {easiestQuestions.length === 0 ? (
-              <p className="text-slate-400 font-bold text-center py-4 text-sm">Not enough data yet (min. 3 attempts)</p>
+              <p className="text-slate-500 font-bold text-center py-4 text-sm">Not enough data yet (min. 3 attempts)</p>
             ) : (
               <div className="space-y-3">
                 {easiestQuestions.map((q, index) => {
@@ -305,7 +316,7 @@ export default async function PracticeQuestionAnalyticsPage() {
                         <span className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-black shrink-0">{index + 1}</span>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-bold text-slate-700 line-clamp-2">{q.questionText}</p>
-                          <div className="flex items-center gap-2 mt-1 text-xs text-slate-400 font-bold">
+                          <div className="flex items-center gap-2 mt-1 text-xs text-slate-500 font-bold">
                             <span className={getSuccessRateColor(rate)}>{rate}% success</span>
                             <span>• {q.totalAttempts} attempts</span>
                             <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{formatTime(q.avgTimeMs)}</span>
@@ -317,25 +328,25 @@ export default async function PracticeQuestionAnalyticsPage() {
                 })}
               </div>
             )}
-          </div>
+          </BentoCard>
         </div>
 
         {/* All Questions Table */}
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+        <BentoCard padding="lg">
           <h2 className="font-black text-slate-800 text-lg mb-4">All Question Performance</h2>
           {sortedStats.length === 0 ? (
-            <p className="text-slate-400 font-bold text-center py-8">No practice question responses recorded yet.</p>
+            <p className="text-slate-500 font-bold text-center py-8">No practice question responses recorded yet.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-slate-100">
-                    <th className="text-left py-3 px-3 text-[11px] font-black text-slate-400 uppercase tracking-widest">Question</th>
-                    <th className="text-center py-3 px-3 text-[11px] font-black text-slate-400 uppercase tracking-widest">Module</th>
-                    <th className="text-center py-3 px-3 text-[11px] font-black text-slate-400 uppercase tracking-widest">Attempts</th>
-                    <th className="text-center py-3 px-3 text-[11px] font-black text-slate-400 uppercase tracking-widest">Success</th>
-                    <th className="text-center py-3 px-3 text-[11px] font-black text-slate-400 uppercase tracking-widest">Avg Time</th>
-                    <th className="text-center py-3 px-3 text-[11px] font-black text-slate-400 uppercase tracking-widest">Hints</th>
+                    <th className="text-left py-3 px-3 text-[11px] font-black text-slate-500 uppercase tracking-widest">Question</th>
+                    <th className="text-center py-3 px-3 text-[11px] font-black text-slate-500 uppercase tracking-widest">Module</th>
+                    <th className="text-center py-3 px-3 text-[11px] font-black text-slate-500 uppercase tracking-widest">Attempts</th>
+                    <th className="text-center py-3 px-3 text-[11px] font-black text-slate-500 uppercase tracking-widest">Success</th>
+                    <th className="text-center py-3 px-3 text-[11px] font-black text-slate-500 uppercase tracking-widest">Avg Time</th>
+                    <th className="text-center py-3 px-3 text-[11px] font-black text-slate-500 uppercase tracking-widest">Hints</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -347,8 +358,8 @@ export default async function PracticeQuestionAnalyticsPage() {
                         <td className="py-3 px-3 text-center capitalize text-slate-500 font-bold text-xs">{q.moduleId.replaceAll("_", " ")}</td>
                         <td className="py-3 px-3 text-center font-black text-slate-700">{q.totalAttempts}</td>
                         <td className="py-3 px-3 text-center"><span className={`font-black ${getSuccessRateColor(rate)}`}>{rate}%</span></td>
-                        <td className="py-3 px-3 text-center font-bold text-slate-400">{formatTime(q.avgTimeMs)}</td>
-                        <td className="py-3 px-3 text-center text-slate-400 font-bold">
+                        <td className="py-3 px-3 text-center font-bold text-slate-500">{formatTime(q.avgTimeMs)}</td>
+                        <td className="py-3 px-3 text-center text-slate-500 font-bold">
                           {q.hintUsageCount > 0 ? (
                             <span className="flex items-center justify-center gap-1"><Lightbulb className="w-4 h-4 text-amber-500" />{q.hintUsageCount}</span>
                           ) : "-"}
@@ -359,11 +370,11 @@ export default async function PracticeQuestionAnalyticsPage() {
                 </tbody>
               </table>
               {sortedStats.length > 20 && (
-                <p className="text-center text-xs font-black text-slate-400 mt-3">Showing top 20 of {sortedStats.length} questions</p>
+                <p className="text-center text-xs font-black text-slate-500 mt-3">Showing top 20 of {sortedStats.length} questions</p>
               )}
             </div>
           )}
-        </div>
+        </BentoCard>
       </div>
     </div>
   );

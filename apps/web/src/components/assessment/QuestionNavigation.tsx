@@ -1,5 +1,6 @@
 "use client";
 
+import { SkipForward } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -158,10 +159,11 @@ export function QuestionNavigation({
             variant="ghost"
             onClick={onSkip}
             disabled={isSubmitting || isReviewingHistory}
-            className="text-warning hover:text-warning-dark hover:bg-warning-light"
+            className="text-warning hover:text-warning-dark hover:bg-warning-light gap-1.5"
             aria-label="Skip this question"
           >
-            ⏭️ Skip
+            <SkipForward size={16} strokeWidth={2.5} aria-hidden="true" />
+            Skip
           </Button>
 
           {hasSelectedAnswer && (

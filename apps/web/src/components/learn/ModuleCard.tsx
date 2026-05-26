@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Lock, Mountain } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage, getLocalizedField } from "@/lib/i18n";
 
@@ -89,10 +90,10 @@ export function ModuleCard({
               {progress.is_complete && (
                 <span className="text-success text-sm">✓</span>
               )}
-              {!isUnlocked && <span className="text-sm">🔒</span>}
+              {!isUnlocked && <Lock size={14} strokeWidth={2.5} className="text-slate-500" aria-label="Locked" />}
             </h3>
             {secondaryName && (
-              <p className="text-xs text-slate-400">{secondaryName}</p>
+              <p className="text-xs text-slate-500">{secondaryName}</p>
             )}
           </div>
         </div>
@@ -100,7 +101,7 @@ export function ModuleCard({
           <div className="text-sm font-bold text-slate-700">
             {progress.topics_completed}/{module.topics}
           </div>
-          <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t("learn.topics")}</div>
+          <div className="text-xs font-bold text-slate-500 uppercase tracking-widest">{t("learn.topics")}</div>
         </div>
       </div>
 
@@ -110,14 +111,15 @@ export function ModuleCard({
       </p>
 
       {culturalNote && (
-        <p className="text-xs text-warning-dark mb-3 flex items-center gap-1">
-          <span>🏔️</span> {culturalNote}
+        <p className="text-xs text-warning-dark mb-3 flex items-start gap-1.5">
+          <Mountain size={12} strokeWidth={2.5} aria-hidden="true" className="shrink-0 mt-0.5" />
+          <span>{culturalNote}</span>
         </p>
       )}
 
       {/* Progress Bar */}
       <div className="mb-4">
-        <div className="flex justify-between text-xs text-slate-400 mb-1.5">
+        <div className="flex justify-between text-xs text-slate-500 mb-1.5">
           <span className="font-semibold">{progressPercent}% {t("learn.complete")}</span>
           <span>{t("learn.avg")} {progress.average_mastery}%</span>
         </div>
@@ -146,7 +148,7 @@ export function ModuleCard({
       )}
 
       {!isUnlocked && (
-        <div className="text-center text-sm text-slate-400">
+        <div className="text-center text-sm text-slate-500">
           {t("learn.completeToUnlock", { n: String(index) })}
         </div>
       )}

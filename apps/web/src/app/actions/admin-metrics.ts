@@ -99,19 +99,23 @@ async function fetchDashboardMetricsFromDB(): Promise<DashboardMetrics> {
       .from("student_profiles")
       .select("*", { count: "exact", head: true }),
 
-    // Query 6: Get admin count from auth users (async operation)
+    // Query 6: Get admin count via list_admin_users RPC (Supabase auth
+    // admin REST endpoint is unreliable on this project — see migration 175).
+    // Falls back to fetchAllAuthUsers if the RPC isn't available.
     (async () => {
       try {
+        const { data, error } = await supabase.rpc("list_admin_users");
+        if (!error && Array.isArray(data)) {
+          return {
+            adminCount: data.length,
+            authUsers: null,
+            error: null,
+          };
+        }
         const authUsers = await fetchAllAuthUsers(supabase);
-        return {
-          authUsers,
-          error: null,
-        };
+        return { adminCount: null, authUsers, error: null };
       } catch (error) {
-        return {
-          authUsers: null,
-          error: error,
-        };
+        return { adminCount: null, authUsers: null, error };
       }
     })(),
   ]);
@@ -186,19 +190,18 @@ async function fetchDashboardMetricsFromDB(): Promise<DashboardMetrics> {
     );
   }
 
-  // Count admins from auth users
-  let adminCount = 0;
+  // Count admins: prefer RPC result; fall back to authUsers if available.
+  let adminCount = authUsersResult.adminCount ?? 0;
   let authTeacherCount = 0;
   const authUsers = authUsersResult.authUsers;
-  // TypeScript fix: Use explicit null check instead of non-null assertion
   if (authUsers && authUsers.length > 0) {
-    // Count admins (admin or super_admin role)
-    adminCount = authUsers.filter(
-      (u: SupabaseAuthUser) =>
-        u.app_metadata?.role === "admin" ||
-        u.app_metadata?.role === "super_admin",
-    ).length;
-    // Count teachers from auth users
+    if (authUsersResult.adminCount === null) {
+      adminCount = authUsers.filter(
+        (u: SupabaseAuthUser) =>
+          u.app_metadata?.role === "admin" ||
+          u.app_metadata?.role === "super_admin",
+      ).length;
+    }
     authTeacherCount = authUsers.filter(
       (u: SupabaseAuthUser) => u.app_metadata?.role === "teacher",
     ).length;
@@ -207,7 +210,7 @@ async function fetchDashboardMetricsFromDB(): Promise<DashboardMetrics> {
   // Use the higher count between profiles and auth users
   const finalTeacherCount = Math.max(teacherCount, authTeacherCount);
 
-  return {
+  const result: DashboardMetrics = {
     totalSchools: schoolCount || 0,
     totalTeachers: finalTeacherCount,
     totalStudents: studentCount,
@@ -215,6 +218,25 @@ async function fetchDashboardMetricsFromDB(): Promise<DashboardMetrics> {
     inactivePins: inactivePins,
     totalAdmins: adminCount,
   };
+
+  // CACHE GUARD (PR-61): in the dev session leading up to MVP launch a
+  // race between hot-reload restarts and the in-process queryCache wrote
+  // a `{ teachers: 0, students: 0, schools: 394 }` snapshot to the
+  // 5-minute cache, then served it for 5 minutes to every admin even
+  // though the underlying queries returned correct numbers seconds
+  // later. The cause was a transient null from PostgREST count headers
+  // during the restart window — Supabase JS treats that as `count: null`
+  // which JS-coerces to 0 via the `|| 0` fallback below, hiding the
+  // failure. Detection here: if school count is non-zero (table has
+  // rows) and BOTH teacher + student counts are zero, the row reads
+  // are obviously inconsistent — surface as a thrown error so the
+  // caller falls into the cache miss path next time instead of pinning
+  // bad data for 5 minutes.
+  if ((result.totalSchools ?? 0) > 0 && result.totalTeachers === 0 && result.totalStudents === 0) {
+    throw new Error("DASHBOARD_METRICS_INCONSISTENT_ZEROS");
+  }
+
+  return result;
 }
 
 /**

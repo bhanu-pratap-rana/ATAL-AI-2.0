@@ -251,7 +251,7 @@ Generate 5-6 chunks covering:
         model: getAIModel(),
         system: systemPrompt,
         prompt: userPrompt,
-        maxTokens: 4000,
+        maxOutputTokens: 4000,
         temperature: 0.7,
       });
 

@@ -15,6 +15,8 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useParams, useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
+import { messageText } from "@/lib/ai/ui-message";
 import { ConversationalVoiceChat } from "@/components/voice/ConversationalVoiceChat";
 import type { Language } from "@/hooks/useConversationalVoice";
 import { createClient } from "@/lib/supabase-browser";
@@ -22,16 +24,19 @@ import { clientLogger } from "@/lib/client-logger";
 import { useLanguage, LanguageSelector } from "@/components/learn/LanguageSelector";
 import { LessonPlayer, LessonPlayerSkeleton, LessonCompletionModal } from "@/components/microlearning";
 import { useDynamicLesson } from "@/hooks/useDynamicLesson";
+import { useAdaptiveContext } from "@/hooks/useAdaptiveContext";
 import { useOfflineLesson } from "@/hooks/useOfflineLesson";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import type { SupportedLanguage } from "@/types/common";
-import { WifiOff, X } from "lucide-react";
+import { AlertCircle, Bot, WifiOff, X } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 import { awardLessonCompletionPoints } from "@/app/actions/gamification";
 import { completeLessonAndUpdateProgress } from "@/app/actions/lesson-completion";
 import { stopTTS } from "@/lib/utils/client-tts";
-import { MAX_SCORE_WITHOUT_QUIZ } from "@/lib/constants/thresholds";
+import { MAX_SCORE_WITHOUT_QUIZ, getStatusFromScore } from "@/lib/constants/thresholds";
 
+import { BentoCard } from "@/components/ui/bento-card";
 // Lesson content interface
 interface LessonContent {
   title_en: string;
@@ -75,19 +80,37 @@ const DEFAULT_LESSON: LessonContent = {
 };
 
 /**
+ * F33: Defensive sanitizer for any title that flows into a plain-text
+ * UI string (tutor greeting, breadcrumbs, share text). The greeting is
+ * rendered as plain text so raw markdown emphasis would surface as
+ * literal asterisks. Also applied at the title-extraction site in
+ * buildLessonFromData, but kept here as a render-time guard for any
+ * other code path that produces a title containing markdown.
+ */
+function sanitizeTitleForPlainText(title: string): string {
+  return title
+    .replaceAll("**", "")
+    .replaceAll(/(^\*|\*$)/g, "")
+    .replace(/\s*:\s*$/, "")
+    .trim();
+}
+
+/**
  * Helper: Generate AI welcome message based on language and lesson
  */
 function getAIWelcomeMessage(
   language: SupportedLanguage,
   lesson: LessonContent,
 ): string {
+  const titleAs = sanitizeTitleForPlainText(lesson.title_as);
+  const titleEn = sanitizeTitleForPlainText(lesson.title_en);
   if (language === "as") {
-    return `নমস্কাৰ! মই আপোনাৰ AI শিক্ষক। "${lesson.title_as}" বিষয়ে কিবা প্ৰশ্ন আছে নেকি?`;
+    return `নমস্কাৰ! মই আপোনাৰ AI শিক্ষক। "${titleAs}" বিষয়ে কিবা প্ৰশ্ন আছে নেকি?`;
   }
   if (language === "hi") {
-    return `नमस्ते! मैं आपका AI शिक्षक हूँ। "${lesson.title_en}" के बारे में कोई सवाल है?`;
+    return `नमस्ते! मैं आपका AI शिक्षक हूँ। "${titleEn}" के बारे में कोई सवाल है?`;
   }
-  return `Hello! I'm your AI Tutor. Do you have any questions about "${lesson.title_en}"?`;
+  return `Hello! I'm your AI Tutor. Do you have any questions about "${titleEn}"?`;
 }
 
 /**
@@ -159,7 +182,18 @@ function buildLessonFromData(
 
   const firstContent = contentData[0].content || "";
   const firstLine = firstContent.split("\n")[0].trim();
-  const extractedTitle = firstLine.replace(/^#*\s*/, "");
+  // F33: AI-generated content often begins with markdown like
+  // `**Learning Outcome:** ...`. When that line becomes a title (no
+  // metadata.title_en) the asterisks leak into UI strings such as the
+  // tutor greeting (`"${lesson.title_en}"`). Strip markdown emphasis
+  // markers, leading hashes, and any trailing colon so the title is
+  // safe to render as plain text.
+  const extractedTitle = firstLine
+    .replace(/^#+\s*/, "")
+    .replaceAll("**", "")
+    .replaceAll(/(^\*|\*$)/g, "")
+    .replace(/\s*:\s*$/, "")
+    .trim();
 
   return {
     title_en:
@@ -232,6 +266,11 @@ export default function LessonPage() {
   const [offlineLesson, setOfflineLesson] = useState<ReturnType<typeof useDynamicLesson>["lesson"]>(null);
   const [offlineError, setOfflineError] = useState<string | null>(null);
   const [offlineLoading, setOfflineLoading] = useState(false);
+
+  // Pull the student's preferred learning style + current topic mastery
+  // so the lesson generator can adapt presentation and difficulty.
+  const adaptive = useAdaptiveContext(topicId);
+
   const {
     lesson: dynamicLesson,
     loading: dynamicLoading,
@@ -240,7 +279,9 @@ export default function LessonPage() {
     moduleId,
     topicId,
     language,
-    enabled: useDynamicMode && isOnline, // Only fetch when online
+    learningStyle: adaptive.learningStyle,
+    masteryLevel: adaptive.masteryLevel,
+    enabled: useDynamicMode && isOnline && !adaptive.loading,
   });
 
   // Offline content loading effect
@@ -346,24 +387,45 @@ export default function LessonPage() {
     fetchLessonContent();
   }, [moduleId, topicId, language, languageKey]); // Force refetch when language changes
 
-  // AI Chat integration
-  const { messages, input, handleInputChange, handleSubmit, append, status: chatStatus, error: chatError } =
+  // AI Chat integration — SDK 6 removed input/handleInputChange/handleSubmit/append
+  // from useChat. We track the input box locally and use sendMessage()
+  // for both form-submit and voice transcripts.
+  //
+  // PR-64 fixes vs PR-63:
+  //   * The wire-level config goes through DefaultChatTransport. The
+  //     `body` callback is also re-evaluated on every send, but useChat
+  //     in @ai-sdk/react v3 latches its transport on first mount and
+  //     ignores subsequent prop changes — so we pass a stable `key` to
+  //     force the hook to reinitialize whenever language/inputMode flip.
+  //   * The `messages:` seed used to re-fire on every language/lesson
+  //     change, which wiped in-flight conversation history. We removed
+  //     the seed and instead render the welcome message inline in the
+  //     empty state, so live history is preserved across language flips.
+  const [input, setInput] = useState("");
+  const chatKey = `${language}|${moduleId}|${topicId}|${inputMode}`;
+  const chatTransport = useMemo(
+    () =>
+      new DefaultChatTransport({
+        api: "/api/tutor/chat",
+        body: () => ({ language, topicId, moduleId, inputMode }),
+      }),
+    [language, topicId, moduleId, inputMode],
+  );
+  const { messages, sendMessage, status: chatStatus, error: chatError } =
     useChat({
-      api: "/api/tutor/chat",
-      body: {
-        language,
-        topicId,
-        moduleId,
-        inputMode,
-      },
-      initialMessages: [
-        {
-          id: "welcome",
-          role: "assistant",
-          content: getAIWelcomeMessage(language, lesson),
-        },
-      ],
+      id: chatKey,
+      transport: chatTransport,
     });
+  const handleSubmit = useCallback(
+    (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      const trimmed = input.trim();
+      if (!trimmed) return;
+      sendMessage({ text: trimmed });
+      setInput("");
+    },
+    [input, sendMessage],
+  );
 
   // Derive loading state from status (replaces deprecated isLoading)
   const isLoading = chatStatus === "submitted" || chatStatus === "streaming";
@@ -413,38 +475,44 @@ export default function LessonPage() {
 
     const lastMessage = messages.at(-1);
     // Set pending AI response for ConversationalVoiceChat to speak
+    if (!lastMessage) return;
+    const lastText = messageText(lastMessage);
     if (
-      lastMessage?.role === "assistant" &&
+      lastMessage.role === "assistant" &&
       lastMessage.id !== "welcome" &&
       lastMessage.id !== lastSpokenIdRef.current &&
-      lastMessage.content
+      lastText
     ) {
       lastSpokenIdRef.current = lastMessage.id;
-      queueMicrotask(() => setPendingAIResponse(lastMessage.content));
+      queueMicrotask(() => setPendingAIResponse(lastText));
     }
   }, [messages, inputMode, chatStatus]);
 
-  // Handle voice transcript - use append() to directly send message
-  // FIX: Previously tried to submit a form element that doesn't exist in voice mode,
-  // causing silent failure. Using append() bypasses the need for a form element entirely.
+  // Handle voice transcript - use sendMessage() to directly send.
+  // Original v4 path used append() to skip the form element that
+  // doesn't exist in voice mode; v6 sendMessage covers the same case.
   const handleVoiceTranscript = useCallback(
     (text: string) => {
-      if (!text.trim()) return;
-      append({
-        role: "user",
-        content: text,
-      });
+      const trimmed = text.trim();
+      if (!trimmed) return;
+      sendMessage({ text: trimmed });
     },
-    [append],
+    [sendMessage],
   );
 
   // Calculate practice score
   // ROOT CAUSE FIX: Check dynamic mode FIRST before practice questions
   // Bug: Static lesson.practice_questions was being checked even in dynamic mode,
-  // causing score=0 because practiceAnswers is empty when using LessonPlayer
+  // causing score=0 because practiceAnswers is empty when using LessonPlayer.
+  //
+  // PR-64: previously fell back to `?? totalChunksCount`, which awarded
+  // 100% whenever the caller forgot the args (e.g. unmount cleanup, double
+  // fire). Now require a numeric `completed` — if missing, return 0 so
+  // accidental fires don't grant full mastery.
   const calculateScore = (completedChunksCount?: number, totalChunksCount?: number): number => {
     if (!totalChunksCount || totalChunksCount === 0) return 0;
-    const safeCompleted = completedChunksCount ?? totalChunksCount;
+    if (typeof completedChunksCount !== "number" || completedChunksCount < 0) return 0;
+    const safeCompleted = Math.min(completedChunksCount, totalChunksCount);
     return Math.round((safeCompleted / totalChunksCount) * MAX_SCORE_WITHOUT_QUIZ);
   };
 
@@ -473,10 +541,14 @@ export default function LessonPage() {
         });
 
         // Award points for lesson completion
+        // PR-66: use ?? not || so a legitimate masteryScore of 0
+        // (post-PR-64 calculateScore is now strict and CAN return 0)
+        // doesn't fall through to the locally-calculated score.
+        const finalScore = result.masteryScore ?? score;
         const pointsResult = await awardLessonCompletionPoints(
           moduleId,
           topicId,
-          result.masteryScore || score,
+          finalScore,
         );
 
         if (pointsResult.success) {
@@ -488,20 +560,22 @@ export default function LessonPage() {
 
         // Show personalized completion modal instead of navigating immediately
         setCompletionData({
-          score: result.masteryScore || score,
+          score: finalScore,
           status: result.status === "mastered" ? "mastered" : "in_progress",
-          attempts: result.attempts || 1,
-          pointsAwarded: pointsResult?.pointsAwarded || 0,
-          newBadges: pointsResult?.newBadges || [],
+          attempts: result.attempts ?? 1,
+          pointsAwarded: pointsResult?.pointsAwarded ?? 0,
+          newBadges: pointsResult?.newBadges ?? [],
         });
       } else {
         clientLogger.error("[LessonPage] Failed to update progress", {
           error: result.error,
         });
-        // Still show completion modal with the calculated score on failure
+        // PR-66: source the threshold from MASTERY_THRESHOLDS instead of
+        // hardcoding 70 — keeps the failure-path status in lockstep with
+        // the SQL function and getStatusFromScore() helper.
         setCompletionData({
           score,
-          status: score >= 70 ? "mastered" : "in_progress",
+          status: getStatusFromScore(score),
           attempts: 1,
           pointsAwarded: 0,
           newBadges: [],
@@ -520,19 +594,19 @@ export default function LessonPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+      <div className="min-h-screen [background:var(--bento-bg)] p-4 md:p-6 pb-28">
         <div className="max-w-3xl mx-auto space-y-6">
           <div className="animate-pulse space-y-4">
             <div className="h-4 w-32 bg-slate-100 rounded" />
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+            <BentoCard padding="lg">
               <div className="h-8 w-64 bg-slate-100 rounded" />
               <div className="h-4 w-48 bg-slate-100 rounded mt-2" />
-            </div>
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-4">
+            </BentoCard>
+            <BentoCard padding="lg" className="space-y-4">
               <div className="h-4 w-full bg-slate-100 rounded" />
               <div className="h-4 w-full bg-slate-100 rounded" />
               <div className="h-4 w-3/4 bg-slate-100 rounded" />
-            </div>
+            </BentoCard>
           </div>
         </div>
       </div>
@@ -540,7 +614,7 @@ export default function LessonPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen [background:var(--bento-bg)] pb-28">
       <div className="flex">
         {/* Main Content Area */}
         <main
@@ -566,7 +640,7 @@ export default function LessonPage() {
             </div>
 
             {/* Lesson Header */}
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+            <BentoCard padding="lg">
               <div className="flex items-center justify-between">
                 <div>
                   <h1 className="text-xl sm:text-2xl font-black text-slate-800 flex items-center gap-2">
@@ -584,16 +658,19 @@ export default function LessonPage() {
                 </div>
                 <div className="flex gap-2">
                   {/* AI Tutor Toggle */}
-                  <button
-                type="button"
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={() => setShowAITutor(!showAITutor)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-2xl font-black text-sm text-slate-700 border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
+                    className="text-slate-700 font-black gap-2"
                   >
-                    🤖 {showAITutor ? "Hide" : "Show"} AI Tutor
-                  </button>
+                    <Bot size={16} strokeWidth={2.5} aria-hidden="true" />
+                    {showAITutor ? "Hide" : "Show"} AI Tutor
+                  </Button>
                 </div>
               </div>
-            </div>
+            </BentoCard>
 
             {/* Dynamic AI Lesson Mode (always active) */}
             <div className="space-y-4">
@@ -633,73 +710,96 @@ export default function LessonPage() {
             {/* Header */}
             <div className="p-4 border-b bg-linear-to-r from-primary/10 to-cyan/10">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">🤖</span>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-2xl bg-(--bento-tint-orange) border-2 border-white shadow-sm flex items-center justify-center text-(--bento-orange-d) shrink-0">
+                    <Bot className="w-5 h-5" strokeWidth={2.25} aria-hidden="true" />
+                  </div>
                   <div>
                     <h3 className="font-black">AI Tutor</h3>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-slate-500 font-bold">
                       Ask me anything!
                     </p>
                   </div>
                 </div>
-                <button
-                type="button"
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setShowAITutor(false)}
-                  className="text-slate-500 hover:text-primary p-2 hover:bg-slate-200 rounded-lg transition-colors"
+                  className="text-slate-500 hover:text-primary"
                   aria-label="Close AI Tutor"
                 >
                   <X className="w-5 h-5" />
-                </button>
+                </Button>
               </div>
 
-              {/* Input Mode Selection */}
-              <div className="flex gap-2 mt-3">
+              {/* Input Mode Selection — paired with the desktop chat panel
+                  below via aria-controls. */}
+              <div role="tablist" aria-label="Input mode" className="flex gap-2 mt-3">
                 <LanguageSelector compact />
-                <button
-                type="button"
+                <Button
+                  type="button"
+                  role="tab"
+                  id="tab-lesson-input-text-desktop"
+                  aria-controls="panel-lesson-chat-desktop"
+                  aria-selected={inputMode === "text"}
+                  size="sm"
+                  variant={inputMode === "text" ? "secondary" : "ghost"}
                   onClick={() => setInputMode("text")}
-                  className={`px-3 py-1.5 rounded-xl font-black text-xs transition-colors ${inputMode === "text" ? "bg-white text-slate-800 shadow-sm" : "text-white/70 hover:text-white"}`}
+                  className="font-black text-xs"
                 >
                   Text
-                </button>
-                <button
-                type="button"
+                </Button>
+                <Button
+                  type="button"
+                  role="tab"
+                  id="tab-lesson-input-voice-desktop"
+                  aria-controls="panel-lesson-chat-desktop"
+                  aria-selected={inputMode === "voice"}
+                  size="sm"
+                  variant={inputMode === "voice" ? "secondary" : "ghost"}
                   onClick={() => setInputMode("voice")}
-                  className={`px-3 py-1.5 rounded-xl font-black text-xs transition-colors ${inputMode === "voice" ? "bg-white text-slate-800 shadow-sm" : "text-white/70 hover:text-white"}`}
+                  className="font-black text-xs"
                 >
                   Voice
-                </button>
+                </Button>
               </div>
             </div>
 
             {/* Error Display */}
             {chatError && (
               <div className="mx-4 mt-3 p-3 bg-red-50 border border-red-200 rounded-2xl">
-                <p className="text-xs text-red-600">
-                  ⚠️ {chatError.message || "An error occurred. Please try again."}
+                <p className="text-xs text-red-700 font-bold flex items-center gap-2">
+                  <AlertCircle size={14} strokeWidth={2.5} aria-hidden="true" className="shrink-0" />
+                  {chatError.message || "An error occurred. Please try again."}
                 </p>
               </div>
             )}
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.length <= 1 ? (
+              {messages.length === 0 ? (
                 <div className="text-center py-6">
-                  <p className="text-slate-500 text-sm mb-3">
+                  <p className="text-slate-700 text-sm mb-3 font-medium">
+                    {getAIWelcomeMessage(language, lesson)}
+                  </p>
+                  <p className="text-slate-500 text-xs mb-3">
                     {inputMode === "voice"
                       ? "Tap the microphone to start!"
                       : "Ask me anything about this lesson!"}
                   </p>
                   <div className="flex flex-wrap justify-center gap-2">
                     {suggestedQuestions.map((q) => (
-                      <button
-                type="button"
+                      <Button
+                        type="button"
                         key={q}
-                        onClick={() => append({ role: "user", content: q })}
-                        className="px-3 py-2 bg-primary/10 text-primary rounded-2xl text-xs hover:bg-primary/20 transition-colors"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => sendMessage({ text: q })}
+                        className="bg-primary/10 text-primary hover:bg-primary/20 rounded-2xl text-xs"
                       >
                         {q}
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 </div>
@@ -707,13 +807,15 @@ export default function LessonPage() {
                 <>
                   {hasHiddenMessages && (
                     <div className="text-center mb-2">
-                      <button
-                type="button"
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
                         onClick={() => setShowAllMessages(true)}
-                        className="px-3 py-1 text-xs bg-slate-100 text-slate-500 rounded-full hover:bg-slate-200/80 transition-colors"
+                        className="text-xs bg-slate-100 text-slate-500 hover:bg-slate-200/80 rounded-full"
                       >
                         ↑ Show {hiddenMessageCount} earlier messages
-                      </button>
+                      </Button>
                     </div>
                   )}
                   {visibleMessages.map((msg) => (
@@ -728,7 +830,7 @@ export default function LessonPage() {
                             : "bg-slate-100"
                         }`}
                       >
-                        <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                        <p className="text-sm whitespace-pre-wrap">{messageText(msg)}</p>
                       </div>
                     </div>
                   ))}
@@ -747,24 +849,39 @@ export default function LessonPage() {
               )}
             </div>
 
-            {/* Input */}
-            <div className="p-4 border-t">
+            {/* Input — desktop tab panel (PR-67 a11y) */}
+            <div
+              role="tabpanel"
+              id="panel-lesson-chat-desktop"
+              aria-labelledby={
+                inputMode === "voice"
+                  ? "tab-lesson-input-voice-desktop"
+                  : "tab-lesson-input-text-desktop"
+              }
+              className="p-4 border-t"
+            >
               {inputMode === "text" ? (
                 <form
-                  id="chat-form"
+                  id="chat-form-desktop"
                   onSubmit={handleSubmit}
                   className="flex gap-2"
                 >
                   <input
                     type="text"
                     value={input}
-                    onChange={handleInputChange}
+                    onChange={(e) => setInput(e.target.value)}
                     placeholder={getInputPlaceholder(language)}
+                    aria-label={getInputPlaceholder(language)}
                     className="flex-1 rounded-md border bg-background px-3 py-2 text-sm min-h-[44px]"
                   />
-                  <button type="submit" disabled={!input.trim() || isLoading} className="px-4 py-2 rounded-xl font-black text-sm text-white disabled:opacity-50 transition-all" style={{ background: "var(--gradient-primary)" }}>
+                  <Button
+                    type="submit"
+                    size="sm"
+                    disabled={!input.trim() || isLoading}
+                    className="font-black"
+                  >
                     Send
-                  </button>
+                  </Button>
                 </form>
               ) : (
                 <div className="space-y-2">
@@ -790,64 +907,84 @@ export default function LessonPage() {
           <SheetContent side="right" className="w-full sm:w-96 lg:hidden p-0 flex flex-col">
             {/* Header */}
             <div className="p-4 border-b bg-linear-to-r from-primary/10 to-cyan/10">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-2xl">🤖</span>
+              <div className="flex items-center gap-2.5 mb-3">
+                <div className="w-10 h-10 rounded-2xl bg-(--bento-tint-orange) border-2 border-white shadow-sm flex items-center justify-center text-(--bento-orange-d) shrink-0">
+                  <Bot className="w-5 h-5" strokeWidth={2.25} aria-hidden="true" />
+                </div>
                 <div>
                   <SheetTitle className="text-base font-black">AI Tutor</SheetTitle>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-500 font-bold">
                     Ask me anything!
                   </p>
                 </div>
               </div>
 
-              {/* Input Mode Selection */}
-              <div className="flex gap-2">
+              {/* Input Mode Selection — mobile Sheet tab pattern */}
+              <div role="tablist" aria-label="Input mode" className="flex gap-2">
                 <LanguageSelector compact />
-                <button
-                type="button"
+                <Button
+                  type="button"
+                  role="tab"
+                  id="tab-lesson-input-text-mobile"
+                  aria-controls="panel-lesson-chat-mobile"
+                  aria-selected={inputMode === "text"}
+                  size="sm"
+                  variant={inputMode === "text" ? "secondary" : "ghost"}
                   onClick={() => setInputMode("text")}
-                  className={`px-3 py-1.5 rounded-xl font-black text-xs transition-colors ${inputMode === "text" ? "bg-slate-100 text-slate-800" : "text-slate-500 hover:bg-slate-50"}`}
+                  className="font-black text-xs"
                 >
                   Text
-                </button>
-                <button
-                type="button"
+                </Button>
+                <Button
+                  type="button"
+                  role="tab"
+                  id="tab-lesson-input-voice-mobile"
+                  aria-controls="panel-lesson-chat-mobile"
+                  aria-selected={inputMode === "voice"}
+                  size="sm"
+                  variant={inputMode === "voice" ? "secondary" : "ghost"}
                   onClick={() => setInputMode("voice")}
-                  className={`px-3 py-1.5 rounded-xl font-black text-xs transition-colors ${inputMode === "voice" ? "bg-slate-100 text-slate-800" : "text-slate-500 hover:bg-slate-50"}`}
+                  className="font-black text-xs"
                 >
                   Voice
-                </button>
+                </Button>
               </div>
             </div>
 
             {/* Error Display */}
             {chatError && (
               <div className="mx-4 mt-3 p-3 bg-red-50 border border-red-200 rounded-2xl">
-                <p className="text-xs text-red-600">
-                  ⚠️ {chatError.message || "An error occurred. Please try again."}
+                <p className="text-xs text-red-700 font-bold flex items-center gap-2">
+                  <AlertCircle size={14} strokeWidth={2.5} aria-hidden="true" className="shrink-0" />
+                  {chatError.message || "An error occurred. Please try again."}
                 </p>
               </div>
             )}
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.length <= 1 ? (
+              {messages.length === 0 ? (
                 <div className="text-center py-6">
-                  <p className="text-slate-500 text-sm mb-3">
+                  <p className="text-slate-700 text-sm mb-3 font-medium">
+                    {getAIWelcomeMessage(language, lesson)}
+                  </p>
+                  <p className="text-slate-500 text-xs mb-3">
                     {inputMode === "voice"
                       ? "Tap the microphone to start!"
                       : "Ask me anything about this lesson!"}
                   </p>
                   <div className="flex flex-wrap justify-center gap-2">
                     {suggestedQuestions.map((q) => (
-                      <button
-                type="button"
+                      <Button
+                        type="button"
                         key={q}
-                        onClick={() => append({ role: "user", content: q })}
-                        className="px-3 py-2 bg-primary/10 text-primary rounded-2xl text-xs hover:bg-primary/20 transition-colors"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => sendMessage({ text: q })}
+                        className="bg-primary/10 text-primary hover:bg-primary/20 rounded-2xl text-xs"
                       >
                         {q}
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 </div>
@@ -855,13 +992,15 @@ export default function LessonPage() {
                 <>
                   {hasHiddenMessages && (
                     <div className="text-center mb-2">
-                      <button
-                type="button"
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
                         onClick={() => setShowAllMessages(true)}
-                        className="px-3 py-1 text-xs bg-slate-100 text-slate-500 rounded-full hover:bg-slate-200/80 transition-colors"
+                        className="text-xs bg-slate-100 text-slate-500 hover:bg-slate-200/80 rounded-full"
                       >
                         ↑ Show {hiddenMessageCount} earlier messages
-                      </button>
+                      </Button>
                     </div>
                   )}
                   {visibleMessages.map((msg) => (
@@ -876,7 +1015,7 @@ export default function LessonPage() {
                             : "bg-slate-100"
                         }`}
                       >
-                        <p className="text-sm whitespace-pre-wrap wrap-break-word">{msg.content}</p>
+                        <p className="text-sm whitespace-pre-wrap wrap-break-word">{messageText(msg)}</p>
                       </div>
                     </div>
                   ))}
@@ -895,24 +1034,39 @@ export default function LessonPage() {
               )}
             </div>
 
-            {/* Input */}
-            <div className="p-4 border-t safe-bottom">
+            {/* Input — mobile tab panel (PR-67 a11y) */}
+            <div
+              role="tabpanel"
+              id="panel-lesson-chat-mobile"
+              aria-labelledby={
+                inputMode === "voice"
+                  ? "tab-lesson-input-voice-mobile"
+                  : "tab-lesson-input-text-mobile"
+              }
+              className="p-4 border-t safe-bottom"
+            >
               {inputMode === "text" ? (
                 <form
-                  id="chat-form"
+                  id="chat-form-mobile"
                   onSubmit={handleSubmit}
                   className="flex gap-2"
                 >
                   <input
                     type="text"
                     value={input}
-                    onChange={handleInputChange}
+                    onChange={(e) => setInput(e.target.value)}
                     placeholder={getInputPlaceholder(language)}
+                    aria-label={getInputPlaceholder(language)}
                     className="flex-1 rounded-md border bg-background px-3 py-2 text-sm min-h-[44px]"
                   />
-                  <button type="submit" disabled={!input.trim() || isLoading} className="px-4 py-2 rounded-xl font-black text-sm text-white disabled:opacity-50 transition-all" style={{ background: "var(--gradient-primary)" }}>
+                  <Button
+                    type="submit"
+                    size="sm"
+                    disabled={!input.trim() || isLoading}
+                    className="font-black"
+                  >
                     Send
-                  </button>
+                  </Button>
                 </form>
               ) : (
                 <div className="space-y-2">

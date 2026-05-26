@@ -19,10 +19,12 @@ test("student start page — loads with correct title", async ({ page }) => {
 
 test("student start page — sign-in / create-account options are visible", async ({ page }) => {
   await page.goto("/student/start");
-  // Either a Sign In button or a tab/heading with those words should be visible
-  const signInElement = page.getByRole("button", { name: /sign.?in|log.?in/i }).or(
-    page.getByText(/sign.?in|log.?in/i).first(),
-  );
+  // The Playful-Bento Sign In button nests a label + sub-label inside the
+  // accessible button — use `.first()` to avoid strict-mode multi-match on
+  // the inner spans that also satisfy the regex.
+  const signInElement = page
+    .getByRole("button", { name: /sign.?in|log.?in/i })
+    .first();
   await expect(signInElement).toBeVisible();
 });
 

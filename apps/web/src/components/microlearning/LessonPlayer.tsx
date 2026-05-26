@@ -206,8 +206,9 @@ function ChunkImage({
             {getTranslation("lessonPlayer.visualAid", language)}
           </span>
         </div>
-        <p className="text-sm text-slate-500 italic">
-          📊 {visualDescription}
+        <p className="text-sm text-slate-500 italic flex items-start gap-2">
+          <ImageIcon className="h-4 w-4 shrink-0 mt-0.5" aria-hidden="true" />
+          <span>{visualDescription}</span>
         </p>
       </div>
     );
@@ -292,6 +293,12 @@ function CheckpointQuiz({
           const isSelected = selected === index;
           const isCorrect = index === question.correctIndex;
           const showResult = submitted;
+          // F42: AI-generated practice questions sometimes return the
+          // option text already prefixed (e.g. `"A. Input"`). The
+          // component always prepends its own `"A."` letter, so the
+          // unstripped text rendered as `A.A. Input`. Strip any leading
+          // letter+separator (A./B)/C-) before display.
+          const cleanOption = option.replace(/^[A-D][.)-]\s*/i, "").trim();
 
           let buttonClass = "w-full text-left px-4 py-3 sm:px-5 sm:py-4 min-h-[56px] rounded-xl border-2 transition-all ";
           if (showResult) {
@@ -309,17 +316,18 @@ function CheckpointQuiz({
           }
 
           return (
-            <button
-                type="button"
+            <Button
+              type="button"
+              variant="ghost"
               key={option}
               onClick={() => !submitted && setSelected(index)}
               disabled={submitted}
-              className={buttonClass}
+              className={`${buttonClass} h-auto whitespace-normal justify-start text-left`}
             >
               <span className="font-medium mr-2 text-sm sm:text-base">{String.fromCodePoint(65 + index)}.</span>
-              <span className="text-sm sm:text-base">{option}</span>
+              <span className="text-sm sm:text-base">{cleanOption}</span>
               {showResult && isCorrect && <CheckCircle className="inline ml-2 h-4 w-4" />}
-            </button>
+            </Button>
           );
         })}
       </div>
@@ -473,12 +481,14 @@ export function LessonPlayer({
               if (index === safeChunk) indicatorColor = "bg-primary";
               else if (completedChunks.has(index)) indicatorColor = "bg-success";
               return (
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
                   key={chunk.heading}
                   onClick={() => setCurrentChunk(index)}
-                  className={`flex-1 h-2 rounded-full transition-all ${indicatorColor}`}
+                  className={`flex-1 h-2 min-h-2 p-0 rounded-full hover:bg-current ${indicatorColor}`}
                   title={chunk.heading}
+                  aria-label={`Go to chunk ${index + 1}: ${chunk.heading}`}
                 />
               );
             })}

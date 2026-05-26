@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
-import { ASSESSMENT_TIMING } from "@/lib/constants/ui-timings";
+import { Button } from "@/components/ui/button";
 import { QuestionNavigation } from "./QuestionNavigation";
 import {
   QuestionPagination,
@@ -14,7 +14,19 @@ import {
 import { CompactTimer } from "./AssessmentTimer";
 import { clientLogger } from "@/lib/client-logger";
 import { submitAssessment } from "@/app/actions/assessment/assessment-submission";
-import { updateTheta, type IRTItem } from "@/app/actions/assessment/irt-models";
+import type {
+  Question,
+  ResponseData,
+  QuestionHistoryItem,
+} from "./runner-types";
+import {
+  shuffleArray,
+  getLanguageFontClass,
+  checkAnswerCorrectness,
+  handleRapidTapWarning,
+} from "./runner-utils";
+import { useIrtState } from "./use-irt-state";
+import { AssessmentOption } from "./AssessmentOption";
 
 /**
  * ATAL AI Assessment Runner - IRT-Enhanced Adaptive Testing
@@ -36,190 +48,10 @@ import { updateTheta, type IRTItem } from "@/app/actions/assessment/irt-models";
  * - a-Stratified Maximum Fisher Information item selection
  */
 
-interface Question {
-  id: string;
-  itemCode: string;
-  category: string;
-  questionNumber: number;
-  questionText: string;
-  options: { id: string; text: string }[];
-  _correctIndex: number;
-  _difficulty: number;
-  _discrimination: number;
-  _guessing: number;
-}
-
-// Fisher-Yates shuffle for option randomization
-// Uses crypto.getRandomValues() for secure randomness
-function shuffleArray<T>(array: T[]): T[] {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const randomArray = new Uint32Array(1);
-    crypto.getRandomValues(randomArray);
-    const j = randomArray[0] % (i + 1);
-    const temp = shuffled[i];
-    if (shuffled?.[j] !== undefined) {
-      shuffled[i] = shuffled[j];
-      shuffled[j] = temp;
-    }
-  }
-  return shuffled;
-}
-
 interface AssessmentRunnerProps {
   readonly sessionId: string;
   readonly questions: Question[];
   readonly language: "en" | "hi" | "as";
-}
-
-interface ResponseData {
-  itemId: string;
-  module: string;
-  isCorrect: boolean;
-  rtMs: number;
-  focusBlurCount: number;
-  chosenOption: string;
-}
-
-interface QuestionHistoryItem {
-  question: Question;
-  shuffledOptions: { id: string; text: string }[];
-  shuffleMap: number[];
-  selectedAnswer: number | null;
-  isCorrect: boolean | null;
-  hasBeenAnswered: boolean;
-  skipped: boolean;
-  rtMs: number;
-  thetaBefore?: number;
-  thetaAfter?: number;
-}
-
-// IRT State for real-time ability tracking
-interface IRTState {
-  theta: number; // Current ability estimate
-  se: number; // Standard error
-  answeredCount: number; // Number of answered questions
-  correctCount: number; // Number of correct answers
-}
-
-/**
- * Helper: Get language-specific font class
- */
-function getLanguageFontClass(language: "en" | "hi" | "as"): string {
-  switch (language) {
-    case "hi":
-      return "font-devanagari";
-    case "as":
-      return "font-bengali";
-    default:
-      return "";
-  }
-}
-
-/** Option label selection states — S2301: use status keys, not boolean params */
-const OPTION_CLASSES = {
-  selected: "border-primary bg-primary-light shadow-primary-sm",
-  unselected: "border-slate-200 bg-white hover:border-primary/30 hover:bg-primary-lighter active:bg-primary-lighter/80 active:border-primary/50 active:scale-[0.99]",
-} as const;
-
-const RADIO_CLASSES = {
-  selected: "border-primary bg-primary",
-  unselected: "border-slate-200 bg-white",
-} as const;
-
-function getOptionButtonClasses(status: "selected" | "unselected"): string {
-  return OPTION_CLASSES[status];
-}
-
-function getRadioButtonClasses(status: "selected" | "unselected"): string {
-  return RADIO_CLASSES[status];
-}
-
-/**
- * Helper: Check if answer is correct based on shuffle map
- * S3776: Extracted to reduce cognitive complexity
- *
- * BUG-012 FIX: Explicit documentation and validation for index handling
- * The database stores _correctIndex as 1-based (1, 2, 3, 4 for options A, B, C, D)
- * The shuffleMap uses 0-based indices (0, 1, 2, 3)
- * We convert correctIndex from 1-based to 0-based before comparison
- *
- * @param selectedOption - 0-based index of user's selected option in shuffled order
- * @param shuffleMap - Maps shuffled position to original position (0-based)
- * @param correctIndex - 1-based index from database (_correctIndex field)
- * @returns true if the selected option maps to the correct answer
- */
-function checkAnswerCorrectness(
-  selectedOption: number,
-  shuffleMap: number[],
-  correctIndex: number,
-): boolean {
-  // BUG-012 FIX: Add validation for invalid correctIndex values
-  if (correctIndex < 1 || correctIndex > shuffleMap.length) {
-    // Log warning but don't crash - treat as incorrect
-    clientLogger.warn(
-      `[AssessmentRunner] Invalid correctIndex: ${correctIndex}, expected 1-${shuffleMap.length}`,
-    );
-    return false;
-  }
-
-  // Validate selectedOption bounds
-  if (selectedOption < 0 || selectedOption >= shuffleMap.length) {
-    clientLogger.warn(
-      `[AssessmentRunner] Invalid selectedOption: ${selectedOption}, expected 0-${shuffleMap.length - 1}`,
-    );
-    return false;
-  }
-
-  const originalOptionIndex = shuffleMap[selectedOption];
-  // Convert 1-based correctIndex to 0-based for comparison
-  const correctIndex0Based = correctIndex - 1;
-  return originalOptionIndex === correctIndex0Based;
-}
-
-/**
- * Helper: Build IRT response object from question data
- * S3776: Extracted to reduce cognitive complexity
- */
-function buildIrtResponse(
-  response: ResponseData,
-  questions: Question[],
-): { item: IRTItem; correct: boolean } {
-  const q = questions.find((question) => question.id === response.itemId);
-  return {
-    item: {
-      id: response.itemId,
-      item_code: q?.itemCode || "",
-      category: q?.category || "",
-      question_text: q?.questionText || "",
-      options: q?.options || [],
-      correct_answer: q?._correctIndex || 0,
-      difficulty: q?._difficulty || 0,
-      discrimination: q?._discrimination || 1,
-      guessing: q?._guessing || 0.2,
-    },
-    correct: response.isCorrect,
-  };
-}
-
-/**
- * Helper: Show rapid tap warning if response is too fast
- * S3776: Extracted to reduce cognitive complexity
- * BP-2 FIX: Returns timeout ID for cleanup to prevent memory leaks
- */
-function handleRapidTapWarning(
-  rtMs: number,
-  hasSelection: boolean,
-  setShowWarning: (show: boolean) => void,
-): ReturnType<typeof setTimeout> | null {
-  if (rtMs < ASSESSMENT_TIMING.rapidResponseThreshold && hasSelection) {
-    setShowWarning(true);
-    return setTimeout(
-      () => setShowWarning(false),
-      ASSESSMENT_TIMING.rapidWarningDuration,
-    );
-  }
-  return null;
 }
 
 export function AssessmentRunner({
@@ -247,18 +79,17 @@ export function AssessmentRunner({
   // NOSONAR S6754: Only setter needed - value tracked internally but not used in render
   const [, setTotalElapsedSeconds] = useState(0); // NOSONAR
 
-  // IRT State for real-time adaptive tracking
-  const [irtState, setIrtState] = useState<IRTState>({
-    theta: 0, // Initial ability at average
-    se: 1, // High initial uncertainty
-    answeredCount: 0,
-    correctCount: 0,
-  });
+  // IRT state for real-time adaptive tracking (encapsulated)
+  // state is consumed by the hook itself; the runner only needs the action
+  const { recordResponse: recordIrtResponse } = useIrtState();
 
   // Refs
   const questionRef = useRef<HTMLHeadingElement>(null);
-  // Store question start time for duration tracking
-  const questionStartTimeRef = useRef<number>(Date.now());
+  // Store question start time for duration tracking.
+  // Initialized to 0; the question-change effect below resets it to
+  // Date.now() on mount and on every question transition, keeping
+  // useRef's initializer pure (react-hooks/purity).
+  const questionStartTimeRef = useRef<number>(0);
   // BP-2 FIX: Store rapid warning timer for cleanup
   const warningTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -324,9 +155,15 @@ export function AssessmentRunner({
     }
   }, [currentIndex, currentHistoryIndex]);
 
-  // Load selected answer when reviewing history
+  // Load selected answer when reviewing history.
+  // This intentionally syncs local state from props-shaped data (history
+  // changes from outside this effect's control flow) — the React 19
+  // "set-state-in-effect" rule's standard alternative (derive during
+  // render) would force a deeper refactor of every selectedOption
+  // mutation site, which is out of scope for SP8 T8.3.
   useEffect(() => {
     if (isReviewingHistory && questionHistory?.[currentHistoryIndex]) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedOption(questionHistory[currentHistoryIndex].selectedAnswer);
     }
   }, [isReviewingHistory, currentHistoryIndex, questionHistory]);
@@ -443,6 +280,41 @@ export function AssessmentRunner({
     questions.length,
   ]);
 
+  // UX-A8: Handle "I don't understand" — same flow as Skip, but tagged for analytics
+  const handleConfused = useCallback(() => {
+    if (isReviewingHistory) return;
+
+    const rtMs = Date.now() - questionStartTimeRef.current;
+
+    const historyItem: QuestionHistoryItem = {
+      question: currentQuestion,
+      shuffledOptions,
+      shuffleMap,
+      selectedAnswer: null,
+      isCorrect: null,
+      hasBeenAnswered: false,
+      skipped: true,
+      confused: true,
+      rtMs,
+    };
+
+    setQuestionHistory([...questionHistory, historyItem]);
+    setSelectedOption(null);
+    setFocusBlurCount(0);
+
+    if (currentIndex < questions.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    }
+  }, [
+    isReviewingHistory,
+    currentQuestion,
+    shuffledOptions,
+    shuffleMap,
+    questionHistory,
+    currentIndex,
+    questions.length,
+  ]);
+
   // Handle history navigation - S3776: Extracted to reduce cognitive complexity
   const handleHistoryNavigation = useCallback(() => {
     // Update the history item if answer changed
@@ -545,22 +417,7 @@ export function AssessmentRunner({
 
     // Update IRT ability estimate (theta) after each answer
     const updatedResponses = [...responses, response];
-    // Use extracted helper for IRT response building
-    const irtResponses = updatedResponses.map((r) =>
-      buildIrtResponse(r, questions),
-    );
-
-    // Update theta estimate
-    const { theta: newTheta, se: newSe } = updateTheta(
-      irtState.theta,
-      irtResponses,
-    );
-    setIrtState({
-      theta: newTheta,
-      se: newSe,
-      answeredCount: updatedResponses.length,
-      correctCount: updatedResponses.filter((r) => r.isCorrect).length,
-    });
+    recordIrtResponse(updatedResponses, questions);
 
     setSelectedOption(null);
     setResponses(updatedResponses);
@@ -575,9 +432,6 @@ export function AssessmentRunner({
       submitAssessmentData(allResponses);
     }
   },
-  // irtState.theta omitted intentionally - including it would cause frequent callback recreation
-  // This is safe because the callback always uses the latest irtState via closure
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   [
     isReviewingHistory,
     handleHistoryNavigation,
@@ -591,6 +445,7 @@ export function AssessmentRunner({
     currentIndex,
     questions,
     submitAssessmentData,
+    recordIrtResponse,
   ],
 );
 
@@ -654,7 +509,7 @@ export function AssessmentRunner({
       <div className="flex items-center justify-center min-h-screen bg-slate-50">
         <div className="text-center">
           <div className="w-12 h-12 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-slate-400">Loading assessment...</p>
+          <p className="text-slate-500">Loading assessment...</p>
         </div>
       </div>
     );
@@ -739,45 +594,17 @@ export function AssessmentRunner({
               aria-labelledby="question-text"
               className="space-y-3 border-0 p-0 m-0"
             >
-              {shuffledOptions.map(
-                (option: { id: string; text: string }, index: number) => {
-                  // Fixed positional labels: A, B, C, D always in order
-                  // Option content shuffles but labels stay sequential
-                  const label = String.fromCodePoint(65 + index); // A=65
-                  return (
-                    <label
-                      key={option.id}
-                      className={`w-full text-left p-4 rounded-2xl border-2 transition-all duration-200 cursor-pointer focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 ${getOptionButtonClasses(selectedOption === index ? "selected" : "unselected")} ${isSubmitting ? "pointer-events-none opacity-50" : ""}`}
-                    >
-                      <input
-                        type="radio"
-                        name="assessment-option"
-                        checked={selectedOption === index}
-                        onChange={() => handleOptionSelect(index)}
-                        disabled={isSubmitting}
-                        className="sr-only"
-                        aria-label={`Option ${label}: ${option.text}`}
-                      />
-                      <div className="flex items-start gap-3">
-                        <div
-                          aria-hidden="true"
-                          className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${getRadioButtonClasses(selectedOption === index ? "selected" : "unselected")}`}
-                        >
-                          {selectedOption === index && (
-                            <div className="w-3 h-3 bg-white rounded-full" />
-                          )}
-                        </div>
-                        <span
-                          className={`text-base text-slate-800 wrap-break-word ${fontClass}`}
-                        >
-                          <span className="font-semibold mr-2">{label}.</span>
-                          {option.text}
-                        </span>
-                      </div>
-                    </label>
-                  );
-                },
-              )}
+              {shuffledOptions.map((option, index) => (
+                <AssessmentOption
+                  key={option.id}
+                  option={option}
+                  index={index}
+                  selected={selectedOption === index}
+                  disabled={isSubmitting}
+                  fontClass={fontClass}
+                  onSelect={handleOptionSelect}
+                />
+              ))}
             </fieldset>
 
             {/* Navigation */}
@@ -793,6 +620,21 @@ export function AssessmentRunner({
               onClear={handleClear}
               onNext={handleNext}
             />
+
+            {/* UX-A8: "I don't understand" — flags confusion for teacher analytics */}
+            {!isReviewingHistory && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleConfused}
+                disabled={isSubmitting}
+                className="mt-3 w-full bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-800 font-normal"
+                aria-label="I don't understand this question — flag it and move on"
+              >
+                <span className="mr-2" aria-hidden="true">🤔</span>
+                <span>I don&apos;t understand this question</span>
+              </Button>
+            )}
         </div>
 
         {/* Helper Text */}
@@ -800,7 +642,7 @@ export function AssessmentRunner({
           <p className="text-sm text-slate-500 text-center">
             Take your time to read each question carefully
           </p>
-          <p className="text-xs text-slate-400 text-center">
+          <p className="text-xs text-slate-500 text-center">
             Use arrow keys to navigate options, Enter/Space to submit, or 1-4
             for quick selection
           </p>

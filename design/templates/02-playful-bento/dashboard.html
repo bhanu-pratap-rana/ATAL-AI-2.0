@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Aarav · Dashboard — ATAL AI</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --p-orange:#FF8A3D; --p-orange-d:#E66A1A;
+    --p-yellow:#FFD66B; --p-purple:#A78BFA; --p-sky:#6DC5E8;
+    --p-pink:#FF8FB8; --p-mint:#7EE0C2; --p-bg:#FFFBF5;
+  }
+  body{font-family:'Nunito',system-ui,sans-serif;background:var(--p-bg);color:#231C2E;}
+  .chunk{ box-shadow: 0 6px 0 rgba(0,0,0,.06), 0 14px 28px -10px rgba(0,0,0,.12); }
+  .btn-bounce{ box-shadow: 0 5px 0 var(--p-orange-d); transition:.15s; }
+  .btn-bounce:active{ transform: translateY(3px); box-shadow:0 2px 0 var(--p-orange-d);}
+  @keyframes wiggle{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+  .wiggle{animation:wiggle 2s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+  .bob{animation:bob 2.6s ease-in-out infinite}
+  .ring-rainbow{ background:conic-gradient(from 0deg,#FF8A3D,#FFD66B,#7EE0C2,#6DC5E8,#A78BFA,#FF8FB8,#FF8A3D); padding:3px; border-radius:9999px;}
+  .blob{filter:blur(50px);opacity:.3;}
+</style>
+</head>
+<body class="min-h-screen pb-24 overflow-x-hidden">
+
+<div class="fixed -top-20 right-0 w-96 h-96 rounded-full blob" style="background:var(--p-yellow)"></div>
+<div class="fixed top-1/2 -left-20 w-80 h-80 rounded-full blob" style="background:var(--p-purple)"></div>
+
+<div class="relative">
+
+<!-- Top bar -->
+<header class="pt-4 px-4 sm:px-6 mb-6">
+  <div class="max-w-5xl mx-auto">
+    <div class="bg-white rounded-full chunk px-3 py-2 border-4 border-white flex items-center justify-between">
+      <a href="landing.html" class="flex items-center gap-2.5">
+        <div class="ring-rainbow"><img src="../shared/logo.png" class="h-10 w-10 rounded-full bg-white"/></div>
+        <div>
+          <div class="font-black text-sm leading-tight">Aarav D.</div>
+          <div class="text-[10px] font-black uppercase tracking-wider" style="color:var(--p-orange-d)">Class 10 · Lvl 7</div>
+        </div>
+      </a>
+      <div class="flex items-center gap-2">
+        <div class="hidden sm:flex items-center gap-1 bg-yellow-100 rounded-full px-3 py-1.5">
+          <span class="text-lg">🔥</span><span class="font-black text-sm">7</span>
+        </div>
+        <div class="flex items-center gap-1 rounded-full px-3 py-1.5" style="background:#FFE2A0">
+          <span class="text-lg">⭐</span><span class="font-black text-sm">245</span>
+        </div>
+        <div class="hidden sm:flex items-center gap-1 rounded-full px-3 py-1.5" style="background:#E1D5FF">
+          <span class="text-lg">💎</span><span class="font-black text-sm">12</span>
+        </div>
+        <button class="w-10 h-10 rounded-full hover:bg-yellow-50 flex items-center justify-center text-xl">🔔</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-4 sm:px-6 space-y-6">
+
+  <!-- Hero greeting -->
+  <section class="bg-white rounded-[36px] chunk p-6 sm:p-8 border-4 border-white relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-40 h-40 rounded-full opacity-30" style="background:var(--p-yellow);transform:translate(30%,-40%);"></div>
+    <div class="relative flex items-start gap-4">
+      <div class="ring-rainbow flex-shrink-0 bob"><img src="../shared/logo.png" class="w-20 h-20 rounded-full bg-white"/></div>
+      <div class="flex-1">
+        <div class="text-xs font-black uppercase tracking-wider" style="color:var(--p-orange-d)">Hey Aarav! 👋</div>
+        <h1 class="text-3xl sm:text-4xl font-black leading-tight mb-2">Let's crush <span class="inline-block px-2 rounded-xl -rotate-1" style="background:var(--p-yellow)">Math</span> today! 🚀</h1>
+        <p class="font-bold text-slate-600 text-sm">You're 23 days away from your <strong>Muga Silk badge</strong>. Don't break the streak! 🔥</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bento grid -->
+  <section class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+
+    <!-- Big today card spanning -->
+    <a href="#" class="col-span-2 sm:col-span-3 rounded-[32px] chunk p-6 sm:p-7 border-4 border-white text-white relative overflow-hidden group" style="background:linear-gradient(135deg,var(--p-orange) 0%,#FF5C8A 100%)">
+      <div class="absolute -bottom-8 -right-6 text-9xl opacity-20 select-none group-hover:scale-110 transition">🎯</div>
+      <div class="relative">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/25 backdrop-blur text-xs font-black mb-3">⚡ Today's quest</div>
+        <h2 class="text-3xl sm:text-4xl font-black mb-2 leading-tight">Master Quadratics</h2>
+        <p class="font-bold opacity-95 mb-5 text-sm sm:text-base">3 of 5 levels done · 12 min · +50 XP</p>
+        <div class="h-4 rounded-full bg-white/30 overflow-hidden mb-4 max-w-md border-2 border-white/40">
+          <div class="h-full w-3/5 bg-white rounded-full"></div>
+        </div>
+        <span class="inline-flex items-center gap-2 bg-white text-orange-600 px-5 py-3 rounded-2xl font-black btn-bounce" style="box-shadow:0 5px 0 #BB4D14">PLAY NOW →</span>
+      </div>
+    </a>
+
+    <!-- Streak card -->
+    <div class="rounded-[28px] chunk p-5 border-4 border-white text-center relative overflow-hidden" style="background:#FFE2A0">
+      <div class="absolute -top-2 right-2 text-4xl wiggle">🔥</div>
+      <div class="text-5xl font-black mb-1 mt-2">7</div>
+      <div class="text-[10px] font-black uppercase tracking-wider mb-3" style="color:#A66800">day streak</div>
+      <div class="grid grid-cols-7 gap-1">
+        <div class="aspect-square rounded-md" style="background:var(--p-orange)" title="Mon"></div>
+        <div class="aspect-square rounded-md" style="background:var(--p-orange)"></div>
+        <div class="aspect-square rounded-md" style="background:var(--p-orange)"></div>
+        <div class="aspect-square rounded-md" style="background:var(--p-orange)"></div>
+        <div class="aspect-square rounded-md" style="background:var(--p-orange)"></div>
+        <div class="aspect-square rounded-md" style="background:var(--p-orange)"></div>
+        <div class="aspect-square rounded-md ring-2 ring-orange-500" style="background:#FFCB80"></div>
+      </div>
+    </div>
+
+    <!-- Hearts/Lives -->
+    <div class="rounded-[28px] chunk p-5 border-4 border-white" style="background:#FFEAF2">
+      <div class="text-[10px] font-black uppercase tracking-wider mb-2" style="color:#C44A7A">Hearts</div>
+      <div class="flex justify-center gap-1 mb-2">
+        <span class="text-2xl">❤️</span><span class="text-2xl">❤️</span><span class="text-2xl">❤️</span>
+        <span class="text-2xl">🤍</span><span class="text-2xl">🤍</span>
+      </div>
+      <div class="text-center text-xs font-black text-slate-600">Refills in 23 min</div>
+    </div>
+
+    <!-- Gems -->
+    <div class="rounded-[28px] chunk p-5 border-4 border-white text-center" style="background:#E1D5FF">
+      <div class="text-5xl mb-1">💎</div>
+      <div class="text-3xl font-black">12</div>
+      <div class="text-[10px] font-black uppercase tracking-wider" style="color:#5B3FD9">gems</div>
+    </div>
+
+    <!-- Friend leaderboard tease -->
+    <a href="#" class="col-span-2 rounded-[28px] chunk p-5 border-4 border-white" style="background:#E3F8EF">
+      <div class="flex items-center justify-between mb-3">
+        <div class="text-[10px] font-black uppercase tracking-wider" style="color:#1F8862">Friends this week</div>
+        <span class="text-xs font-black bg-white px-2 py-0.5 rounded-full">▲ +2</span>
+      </div>
+      <div class="flex items-end gap-1 h-16">
+        <div class="flex-1 rounded-t-md" style="background:var(--p-mint);height:60%"></div>
+        <div class="flex-1 rounded-t-md" style="background:var(--p-mint);height:75%"></div>
+        <div class="flex-1 rounded-t-md ring-2 ring-emerald-700" style="background:var(--p-mint);height:90%"></div>
+        <div class="flex-1 rounded-t-md" style="background:var(--p-mint);height:55%"></div>
+        <div class="flex-1 rounded-t-md" style="background:var(--p-mint);height:40%"></div>
+      </div>
+      <div class="mt-3 text-sm font-black">You're #2 of 5 — push for #1! 💪</div>
+    </a>
+  </section>
+
+  <!-- Subject quests -->
+  <section>
+    <div class="flex items-baseline justify-between mb-4 px-1">
+      <h2 class="text-2xl sm:text-3xl font-black">Subject quests 🎮</h2>
+      <a href="#" class="text-sm font-black hover:underline" style="color:var(--p-orange-d)">See all</a>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+      <a href="#" class="rounded-[28px] chunk p-5 border-4 border-white relative overflow-hidden group" style="background:#FFEFE2">
+        <div class="text-5xl mb-2">🧮</div>
+        <div class="text-xs font-black uppercase tracking-wider mb-1" style="color:var(--p-orange-d)">68% mastered</div>
+        <div class="font-black text-lg">Math</div>
+        <div class="h-2 rounded-full bg-white mt-3 overflow-hidden">
+          <div class="h-full w-2/3" style="background:var(--p-orange)"></div>
+        </div>
+      </a>
+      <a href="#" class="rounded-[28px] chunk p-5 border-4 border-white relative" style="background:#E5F4FB">
+        <div class="text-5xl mb-2">🔬</div>
+        <div class="text-xs font-black uppercase tracking-wider mb-1" style="color:#1E76A8">45% mastered</div>
+        <div class="font-black text-lg">Science</div>
+        <div class="h-2 rounded-full bg-white mt-3 overflow-hidden">
+          <div class="h-full w-[45%]" style="background:var(--p-sky)"></div>
+        </div>
+      </a>
+      <a href="#" class="rounded-[28px] chunk p-5 border-4 border-white relative" style="background:#EFEAFF">
+        <div class="text-5xl mb-2">✍️</div>
+        <div class="text-xs font-black uppercase tracking-wider mb-1" style="color:#5B3FD9">71% mastered</div>
+        <div class="font-black text-lg">English</div>
+        <div class="h-2 rounded-full bg-white mt-3 overflow-hidden">
+          <div class="h-full w-[71%]" style="background:var(--p-purple)"></div>
+        </div>
+      </a>
+      <a href="#" class="rounded-[28px] chunk p-5 border-4 border-white" style="background:#FFEAF2">
+        <div class="text-5xl mb-2">📜</div>
+        <div class="text-xs font-black uppercase tracking-wider mb-1" style="color:#C44A7A">30% mastered</div>
+        <div class="font-black text-lg">History</div>
+        <div class="h-2 rounded-full bg-white mt-3 overflow-hidden">
+          <div class="h-full w-[30%]" style="background:var(--p-pink)"></div>
+        </div>
+      </a>
+      <a href="#" class="rounded-[28px] chunk p-5 border-4 border-white" style="background:#E3F8EF">
+        <div class="text-5xl mb-2">🌍</div>
+        <div class="text-xs font-black uppercase tracking-wider mb-1" style="color:#1F8862">52% mastered</div>
+        <div class="font-black text-lg">Geography</div>
+        <div class="h-2 rounded-full bg-white mt-3 overflow-hidden">
+          <div class="h-full w-1/2" style="background:var(--p-mint)"></div>
+        </div>
+      </a>
+      <a href="#" class="rounded-[28px] chunk p-5 border-4 border-white" style="background:#FFF6D6">
+        <div class="text-5xl mb-2 font-black">অ</div>
+        <div class="text-xs font-black uppercase tracking-wider mb-1" style="color:#A66800">82% mastered</div>
+        <div class="font-black text-lg">Assamese</div>
+        <div class="h-2 rounded-full bg-white mt-3 overflow-hidden">
+          <div class="h-full w-[82%]" style="background:var(--p-yellow)"></div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- Recent achievements -->
+  <section>
+    <h2 class="text-2xl sm:text-3xl font-black mb-4 px-1">Recent wins 🏆</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div class="rounded-2xl chunk p-4 border-4 border-white text-center" style="background:#FFE2A0">
+        <div class="text-4xl mb-2">🥇</div>
+        <div class="font-black text-sm">Quick Learner</div>
+        <div class="text-[10px] font-bold text-slate-600">Today</div>
+      </div>
+      <div class="rounded-2xl chunk p-4 border-4 border-white text-center" style="background:#E5F4FB">
+        <div class="text-4xl mb-2">🎯</div>
+        <div class="font-black text-sm">Perfect Score</div>
+        <div class="text-[10px] font-bold text-slate-600">2 days ago</div>
+      </div>
+      <div class="rounded-2xl chunk p-4 border-4 border-white text-center" style="background:#EFEAFF">
+        <div class="text-4xl mb-2">⚡</div>
+        <div class="font-black text-sm">Speed Demon</div>
+        <div class="text-[10px] font-bold text-slate-600">3 days ago</div>
+      </div>
+      <div class="rounded-2xl chunk p-4 border-4 border-white text-center opacity-50">
+        <div class="text-4xl mb-2 grayscale">🧵</div>
+        <div class="font-black text-sm">Muga Silk</div>
+        <div class="text-[10px] font-bold text-slate-600">Locked · 23d</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Bottom nav -->
+<nav class="fixed bottom-3 inset-x-3 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 z-30">
+  <div class="bg-white rounded-full chunk border-4 border-white px-3 py-2 flex items-center gap-1 max-w-md mx-auto">
+    <a href="#" class="flex-1 flex flex-col items-center py-2 px-3 rounded-full text-white" style="background:var(--p-orange)">
+      <span class="text-xl">🏠</span><span class="text-[10px] font-black">Home</span>
+    </a>
+    <a href="#" class="flex-1 flex flex-col items-center py-2 px-3 rounded-full text-slate-500 hover:bg-orange-50">
+      <span class="text-xl">📚</span><span class="text-[10px] font-black">Learn</span>
+    </a>
+    <a href="#" class="flex-1 flex flex-col items-center py-2 px-3 rounded-full text-slate-500 hover:bg-orange-50">
+      <span class="text-xl">🏆</span><span class="text-[10px] font-black">Awards</span>
+    </a>
+    <a href="#" class="flex-1 flex flex-col items-center py-2 px-3 rounded-full text-slate-500 hover:bg-orange-50">
+      <span class="text-xl">👤</span><span class="text-[10px] font-black">Me</span>
+    </a>
+  </div>
+</nav>
+
+<div class="text-center py-4 mt-4"><a href="../index.html" class="text-xs font-black text-slate-500 hover:text-orange-600">← Back to gallery</a></div>
+
+</div>
+</body>
+</html>

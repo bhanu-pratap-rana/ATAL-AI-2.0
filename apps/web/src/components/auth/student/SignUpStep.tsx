@@ -7,6 +7,7 @@
 "use client";
 
 import { useCallback } from "react";
+import { Mail, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase-browser";
 import {
@@ -15,8 +16,8 @@ import {
 } from "@/app/actions/auth";
 import { useOTPInput } from "@/hooks/useOTPInput";
 import { usePhoneInput } from "@/hooks/usePhoneInput";
+import { validateEmail } from "@/lib/email-validation";
 import {
-  validateEmail,
   validatePassword,
   validatePasswordMatch,
   validatePhone,
@@ -409,49 +410,57 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
   return (
     <AuthCard title="Create Account" description="Choose your sign-up method">
       <div className="space-y-4">
-        {/* Tab Navigation */}
-        <div className="flex gap-2">
-          <button
-                type="button"
+        {/* Tab Navigation — WAI-ARIA tab pattern (see SignInStep for matching panels). */}
+        <div role="tablist" className="flex gap-2" aria-label="Sign up method">
+          <Button
+            type="button"
+            role="tab"
+            id="signup-tab-email"
+            aria-selected={state.signupTab === "email"}
+            aria-controls="signup-panel-email"
+            variant={state.signupTab === "email" ? "default" : "secondary"}
+            size="sm"
             onClick={() => actions.setSignupTab("email")}
-            className={`flex-1 py-2 px-3 rounded-lg font-medium transition-colors text-sm ${
-              state.signupTab === "email"
-                ? "bg-primary text-white"
-                : "bg-slate-50 text-slate-500 hover:bg-slate-100"
-            }`}
+            className="flex-1 gap-1.5"
             disabled={isLoading}
           >
-            📧 Email
-          </button>
-          <button
-                type="button"
+            <Mail size={14} strokeWidth={2.5} aria-hidden="true" />
+            Email
+          </Button>
+          <Button
+            type="button"
+            role="tab"
+            id="signup-tab-phone"
+            aria-selected={state.signupTab === "phone"}
+            aria-controls="signup-panel-phone"
+            variant={state.signupTab === "phone" ? "default" : "secondary"}
+            size="sm"
             onClick={() => actions.setSignupTab("phone")}
-            className={`flex-1 py-2 px-3 rounded-lg font-medium transition-colors text-sm ${
-              state.signupTab === "phone"
-                ? "bg-primary text-white"
-                : "bg-slate-50 text-slate-500 hover:bg-slate-100"
-            }`}
+            className="flex-1 gap-1.5"
             disabled={isLoading}
           >
-            📱 Phone
-          </button>
-          <button
-                type="button"
+            <Smartphone size={14} strokeWidth={2.5} aria-hidden="true" />
+            Phone
+          </Button>
+          <Button
+            type="button"
+            role="tab"
+            id="signup-tab-guest"
+            aria-selected={state.signupTab === "guest"}
+            aria-controls="signup-panel-guest"
+            variant={state.signupTab === "guest" ? "default" : "secondary"}
+            size="sm"
             onClick={() => actions.setSignupTab("guest")}
-            className={`flex-1 py-2 px-3 rounded-lg font-medium transition-colors text-sm ${
-              state.signupTab === "guest"
-                ? "bg-primary text-white"
-                : "bg-slate-50 text-slate-500 hover:bg-slate-100"
-            }`}
+            className="flex-1"
             disabled={isLoading}
           >
-            ⚡ Quick Start
-          </button>
+            <span aria-hidden="true">⚡</span> Quick Start
+          </Button>
         </div>
 
         {/* Email Sign Up Form */}
         {state.signupTab === "email" && (
-          <>
+          <div id="signup-panel-email" role="tabpanel" aria-labelledby="signup-tab-email">
             {state.signupEmailOtpSent ? (
               <form
                 onSubmit={handleSignUpEmailVerifyAndCreate}
@@ -462,6 +471,8 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
                   <Input
                     id="signup-email-otp"
                     type="text"
+                    autoComplete="one-time-code"
+                    inputMode="numeric"
                     placeholder="123456"
                     value={signupEmailOtpInput.value}
                     onChange={(e) =>
@@ -526,12 +537,12 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
                 </div>
 
                 {state.signupEmailError && (
-                  <p className="text-sm text-error">{state.signupEmailError}</p>
+                  <p role="alert" className="text-sm text-error">{state.signupEmailError}</p>
                 )}
 
                 <Button
                   type="submit"
-                  className="w-full text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5"
+                  className="w-full text-[17px] shadow-primary hover:shadow-(--shadow-primary-hover) hover:-translate-y-0.5"
                   disabled={
                     isLoading ||
                     !signupEmailOtpInput.value ||
@@ -549,6 +560,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
                   <Input
                     id="signup-email"
                     type="email"
+                    autoComplete="email"
                     placeholder="your.email@example.com"
                     value={state.signupEmailAddress}
                     onChange={(e) =>
@@ -560,12 +572,12 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
                 </div>
 
                 {state.signupEmailError && (
-                  <p className="text-sm text-error">{state.signupEmailError}</p>
+                  <p role="alert" className="text-sm text-error">{state.signupEmailError}</p>
                 )}
 
                 <Button
                   type="submit"
-                  className="w-full text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5"
+                  className="w-full text-[17px] shadow-primary hover:shadow-(--shadow-primary-hover) hover:-translate-y-0.5"
                   disabled={isLoading || !state.signupEmailAddress}
                 >
                   {isLoading ? "Sending code..." : "Send Verification Code"}
@@ -573,23 +585,24 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
 
                 <p className="text-center text-sm text-slate-500">
                   Already have an account?{" "}
-                  <button
+                  <Button
                     type="button"
+                    variant="link"
                     onClick={() => actions.setMainStep("signin")}
-                    className="text-primary hover:underline font-medium"
+                    className="inline h-auto p-0 align-baseline font-medium"
                     disabled={isLoading}
                   >
                     Sign in
-                  </button>
+                  </Button>
                 </p>
               </form>
             )}
-          </>
+          </div>
         )}
 
         {/* Phone Sign Up Form */}
         {state.signupTab === "phone" && (
-          <>
+          <div id="signup-panel-phone" role="tabpanel" aria-labelledby="signup-tab-phone">
             {state.signupPhoneOtpStep === "verify" ? (
               <form
                 onSubmit={handleSignUpPhoneVerifyOtp}
@@ -600,6 +613,8 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
                   <Input
                     id="signup-phone-otp"
                     type="text"
+                    autoComplete="one-time-code"
+                    inputMode="numeric"
                     placeholder="123456"
                     value={signupPhoneOtpInput.value}
                     onChange={(e) =>
@@ -616,12 +631,12 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
                 </div>
 
                 {state.signupPhoneError && (
-                  <p className="text-sm text-error">{state.signupPhoneError}</p>
+                  <p role="alert" className="text-sm text-error">{state.signupPhoneError}</p>
                 )}
 
                 <Button
                   type="submit"
-                  className="w-full text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5"
+                  className="w-full text-[17px] shadow-primary hover:shadow-(--shadow-primary-hover) hover:-translate-y-0.5"
                   disabled={isLoading || !signupPhoneOtpInput.value}
                 >
                   {isLoading ? "Verifying..." : "Verify & Continue"}
@@ -634,6 +649,7 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
                   <Input
                     id="signup-phone"
                     type="tel"
+                    autoComplete="tel"
                     placeholder="+1 (555) 123-4567"
                     value={signupPhoneInput.displayValue}
                     onChange={(e) => signupPhoneInput.onChange(e.target.value)}
@@ -643,12 +659,12 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
                 </div>
 
                 {state.signupPhoneError && (
-                  <p className="text-sm text-error">{state.signupPhoneError}</p>
+                  <p role="alert" className="text-sm text-error">{state.signupPhoneError}</p>
                 )}
 
                 <Button
                   type="submit"
-                  className="w-full text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5"
+                  className="w-full text-[17px] shadow-primary hover:shadow-(--shadow-primary-hover) hover:-translate-y-0.5"
                   disabled={isLoading || !signupPhoneInput.fullValue}
                 >
                   {isLoading ? "Sending code..." : "Send Verification Code"}
@@ -656,28 +672,36 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
 
                 <p className="text-center text-sm text-slate-500">
                   Already have an account?{" "}
-                  <button
+                  <Button
                     type="button"
+                    variant="link"
                     onClick={() => actions.setMainStep("signin")}
-                    className="text-primary hover:underline font-medium"
+                    className="inline h-auto p-0 align-baseline font-medium"
                     disabled={isLoading}
                   >
                     Sign in
-                  </button>
+                  </Button>
                 </p>
               </form>
             )}
-          </>
+          </div>
         )}
 
         {/* Quick Start (Username) Form */}
         {state.signupTab === "guest" && (
-          <form onSubmit={handleUsernameSignup} className="space-y-4">
+          <form
+            id="signup-panel-guest"
+            role="tabpanel"
+            aria-labelledby="signup-tab-guest"
+            onSubmit={handleUsernameSignup}
+            className="space-y-4"
+          >
             <div className="space-y-2">
               <Label htmlFor="signup-username">Username</Label>
               <Input
                 id="signup-username"
                 type="text"
+                autoComplete="username"
                 placeholder="Choose a username"
                 value={state.signupUsername}
                 onChange={(e) => actions.setSignupUsername(e.target.value)}
@@ -733,12 +757,12 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
             </div>
 
             {state.signupUsernameError && (
-              <p className="text-sm text-error">{state.signupUsernameError}</p>
+              <p role="alert" className="text-sm text-error">{state.signupUsernameError}</p>
             )}
 
             <Button
               type="submit"
-              className="w-full text-[17px] shadow-[var(--shadow-primary)] hover:shadow-[var(--shadow-primary-hover)] hover:-translate-y-0.5"
+              className="w-full text-[17px] shadow-primary hover:shadow-(--shadow-primary-hover) hover:-translate-y-0.5"
               disabled={
                 isLoading || !state.signupUsername || !state.signupUsernamePassword || !state.signupUsernamePasswordConfirm
               }
@@ -748,14 +772,15 @@ export function SignUpStep({ state, actions, isLoading }: SignUpStepProps) {
 
             <p className="text-center text-sm text-slate-500">
               Already have an account?{" "}
-              <button
+              <Button
                 type="button"
+                variant="link"
                 onClick={() => actions.setMainStep("signin")}
-                className="text-primary hover:underline font-medium"
+                className="inline h-auto p-0 align-baseline font-medium"
                 disabled={isLoading}
               >
                 Sign in
-              </button>
+              </Button>
             </p>
           </form>
         )}

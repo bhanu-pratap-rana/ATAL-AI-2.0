@@ -326,7 +326,9 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Note: Phone excluded for privacy - minors' PII should not be exposed
+    // search_students_for_teacher was rescoped to the calling teacher's
+    // own enrolled students (migration: fix_search_students_scope_to_teacher_roster).
+    // Return shape: user_id, name, roll_number, class_name — phone removed.
     const students: Student[] = (studentProfiles || []).map(
       (profile: {
         user_id: string;

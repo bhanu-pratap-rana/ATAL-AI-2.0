@@ -7,7 +7,7 @@ import { AuthCard } from "@/components/auth/AuthCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ShieldAlert, ArrowRight, LogOut } from "lucide-react";
+import { ArrowRight, Lock, LogOut, ShieldAlert, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { clientLogger } from "@/lib/client-logger";
 
@@ -43,7 +43,7 @@ export default function AdminLoginPage() {
         if (role === "admin" || role === "super_admin") {
           setHasSession(true);
           if (role === "super_admin") {
-            router.push("/admin/dashboard");
+            router.push("/app/admin/dashboard");
           } else {
             router.push("/admin/pins");
           }
@@ -112,7 +112,7 @@ export default function AdminLoginPage() {
 
       toast.success("Admin login successful!");
       if (role === "super_admin") {
-        router.push("/admin/dashboard");
+        router.push("/app/admin/dashboard");
       } else {
         router.push("/admin/pins");
       }
@@ -131,7 +131,7 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+    <div className="min-h-screen [background:var(--bento-bg)] flex items-center justify-center p-4">
       {/* Back Button */}
       <div className="absolute top-4 left-4">
         <Button onClick={() => router.push("/")} variant="outline" size="sm">
@@ -144,10 +144,10 @@ export default function AdminLoginPage() {
         description="Enter your admin credentials to access the administrative panel"
       >
         <form onSubmit={handleAdminLogin} className="space-y-6">
-          {/* Admin Icon - Primary Light Background */}
+          {/* Admin Icon — navy chip aligning with the post-login admin theme */}
           <div className="flex justify-center">
-            <div className="bg-primary-light p-4 rounded-xl border-2 border-primary/20">
-              <ShieldAlert className="w-8 h-8 text-primary" />
+            <div className="bg-[#1E3A5F]/10 p-4 rounded-xl border-2 border-[#1E3A5F]/20">
+              <ShieldAlert className="w-8 h-8 text-[#1E3A5F]" strokeWidth={2.25} aria-hidden="true" />
             </div>
           </div>
 
@@ -175,7 +175,11 @@ export default function AdminLoginPage() {
 
           {/* Error Message - Error Semantic Color */}
           {error && (
-            <div className="bg-error-light border border-error rounded-xl p-4">
+            <div
+              role="alert"
+              aria-live="polite"
+              className="bg-error-light border border-error rounded-xl p-4"
+            >
               <span className="text-error-dark text-sm">{error}</span>
             </div>
           )}
@@ -191,6 +195,7 @@ export default function AdminLoginPage() {
             <Input
               id="admin-email"
               type="email"
+              autoComplete="username"
               placeholder="admin@school.edu"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -198,7 +203,7 @@ export default function AdminLoginPage() {
               required
             />
             <p className="text-xs text-slate-400">
-              Example: atal.app.ai@gmail.com
+              Your registered admin email
             </p>
           </div>
 
@@ -213,6 +218,7 @@ export default function AdminLoginPage() {
             <Input
               id="admin-password"
               type="password"
+              autoComplete="current-password"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -224,23 +230,24 @@ export default function AdminLoginPage() {
             </p>
           </div>
 
-          {/* Login Button - Primary Gradient */}
+          {/* Login Button — navy CTA matching the post-login admin theme */}
           <Button
             type="submit"
             disabled={isLoading || !email || !password}
             loading={isLoading}
-            className="w-full"
+            variant="ghost"
+            className="w-full bg-[#1E3A5F] hover:bg-[#152a44] text-white border-2 border-[#1E3A5F]/40 shadow-md"
           >
             {isLoading ? "Logging in..." : "Login as Admin"}
-            <ArrowRight className="w-4 h-4 ml-2" />
+            <ArrowRight className="w-4 h-4 ml-2" strokeWidth={2.5} aria-hidden="true" />
           </Button>
 
-          {/* Security Notice - Warning Style with Primary */}
-          <div className="bg-primary-light border-l-4 border-primary p-4 rounded-xl">
-            <p className="text-sm text-primary-dark">
-              <strong>🔒 Security Notice</strong>
+          {/* Security Notice — navy informational card matching admin theme */}
+          <div className="bg-[#1E3A5F]/5 border-l-4 border-[#1E3A5F] p-4 rounded-xl">
+            <p className="text-sm text-[#1E3A5F]">
+              <strong className="inline-flex items-center gap-1.5"><Lock size={14} strokeWidth={2.5} aria-hidden="true" />Security Notice</strong>
               <br />
-              <span className="text-xs">
+              <span className="text-xs text-slate-600">
                 Admin access is restricted. Only accounts with admin role can
                 login here.
               </span>
@@ -250,13 +257,10 @@ export default function AdminLoginPage() {
           {/* Info Box - Info Semantic Color */}
           <div className="bg-info-light border border-info rounded-xl p-4">
             <p className="text-sm text-info-dark">
-              <strong>👤 Default Admin:</strong>
-              <br />
-              <span className="text-xs font-mono">atal.app.ai@gmail.com</span>
+              <strong className="inline-flex items-center gap-1.5"><UserRound size={14} strokeWidth={2.5} aria-hidden="true" />Need admin access?</strong>
               <br />
               <span className="text-xs">
-                Contact system administrator if you don&apos;t have admin
-                credentials
+                Contact your system administrator to request admin credentials.
               </span>
             </p>
           </div>

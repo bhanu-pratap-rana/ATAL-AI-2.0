@@ -1,18 +1,10 @@
 /**
- * Centralized Validation Utilities - Main Export & Utilities
+ * Centralized Validation Utilities — re-export barrel.
  *
- * This file re-exports validation functions from specialized modules
- * for backward compatibility and provides general utility functions.
+ * Re-exports from the specialized modules under apps/web/src/lib/:
+ *   email-validation.ts · password-utils.ts · phone-validation.ts · code-validation.ts
  *
- * Validation modules (for large file refactoring per rule.md):
- * - email-validation.ts - Email format, domain, typo detection (155 lines)
- * - password-utils.ts - NIST 2025 compliant password validation (268 lines)
- * - phone-validation.ts - Phone number format (87 lines)
- * - code-validation.ts - Class codes, PINs, OTPs (130 lines)
- * - name-validation.ts - Names, roll numbers (55 lines)
- *
- * Main file: validation-utils.ts (re-exports + utilities, ~67 lines)
- * Total: ~617 lines properly split across modules ✓
+ * Plus a few thin backward-compat wrappers used by legacy callers.
  */
 
 // Re-export from specialized modules for backward compatibility
@@ -20,15 +12,14 @@ export {
   VALID_TLDS,
   detectDomainTypo,
   isValidEmailDomain,
-  validateEmail,
   normalizeEmail,
   maskEmail,
+  validateEmail,
 } from "./email-validation";
 
 // Password validation - NIST 2025 Compliant
 import {
   getPasswordValidationError,
-  estimatePasswordStrengthNist2025,
   getPasswordStrengthLabelNist2025,
 } from "./password-utils";
 
@@ -54,23 +45,8 @@ export function validatePassword(password: string): {
   };
 }
 
-export function calculatePasswordStrength(password: string): number {
-  return estimatePasswordStrengthNist2025(password);
-}
-
 export function getPasswordStrengthLabel(score: number): string {
   return getPasswordStrengthLabelNist2025(score);
-}
-
-export function validatePasswordSimple(password: string): {
-  valid: boolean;
-  error?: string;
-} {
-  const error = getPasswordValidationError(password);
-  return {
-    valid: !error,
-    error: error ?? undefined,
-  };
 }
 
 export function validatePasswordMatch(

@@ -84,15 +84,16 @@ export const DownloadModal = memo(function DownloadModal({
             <label className="text-sm font-medium">{t("learn.selectLanguage")}</label>
             <div className="grid grid-cols-3 gap-2">
               {LANGUAGE_OPTIONS.map((option) => (
-                <button
+                <Button
                   key={option.value}
                   type="button"
+                  variant="ghost"
                   onClick={() => setSelectedLanguage(option.value)}
                   aria-pressed={selectedLanguage === option.value}
                   className={cn(
-                    "flex flex-col items-center gap-1 p-3 rounded-lg border-2 transition-all",
+                    "flex-col h-auto gap-1 p-3 rounded-lg border-2 whitespace-normal",
                     selectedLanguage === option.value
-                      ? "border-primary bg-primary/5"
+                      ? "border-primary bg-primary/5 hover:bg-primary/10"
                       : "border-slate-200 hover:border-primary/50"
                   )}
                 >
@@ -101,7 +102,7 @@ export const DownloadModal = memo(function DownloadModal({
                   {selectedLanguage === option.value && (
                     <span className="text-xs text-primary">✓ {t("learn.selected")}</span>
                   )}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -111,15 +112,16 @@ export const DownloadModal = memo(function DownloadModal({
             <label className="text-sm font-medium">
               {t("learn.includeVoiceAudio")}
             </label>
-            <button
+            <Button
               type="button"
               role="checkbox"
               aria-checked={includeTTS}
+              variant="ghost"
               onClick={() => setIncludeTTS(!includeTTS)}
               className={cn(
-                "w-full flex items-center gap-3 p-3 rounded-lg border-2 transition-all",
+                "w-full h-auto p-3 gap-3 rounded-lg border-2 whitespace-normal justify-start",
                 includeTTS
-                  ? "border-primary bg-primary/5"
+                  ? "border-primary bg-primary/5 hover:bg-primary/10"
                   : "border-slate-200 hover:border-primary/50"
               )}
             >
@@ -140,7 +142,7 @@ export const DownloadModal = memo(function DownloadModal({
                   {t("learn.mbExtra", { size: ESTIMATED_TTS_SIZE_MB })}
                 </div>
               </div>
-            </button>
+            </Button>
           </div>
 
           {/* Estimated Size */}

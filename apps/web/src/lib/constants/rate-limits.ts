@@ -120,6 +120,13 @@ export const RATE_LIMITS = {
     refillInterval: 1000,
   } as RateLimitConfig,
 
+  /** Speech-to-Text - 60 requests per hour (a 30s clip per request is plenty for tutor dialogue) */
+  stt: {
+    maxTokens: 60,
+    refillRate: 60 / SECONDS_PER_HOUR,
+    refillInterval: 1000,
+  } as RateLimitConfig,
+
   /** TTS Health Check - 30 per minute (less strict than synthesis) */
   ttsHealth: {
     maxTokens: 30,
@@ -212,5 +219,19 @@ export const RATE_LIMITS = {
     refillRate: 3 / SECONDS_PER_HOUR,
     refillInterval: 1000,
     failMode: "closed",
+  } as RateLimitConfig,
+
+  /**
+   * Adaptive-question fetch — 6 per hour per student. The handler pulls up
+   * to 500 IRT items including correct_answer + question_text via service
+   * role; without a cap a logged-in student could mass-extract the item
+   * bank by calling the action repeatedly. A real assessment session
+   * fetches this once at start, so 6/hour gives generous headroom for
+   * legitimate retries across languages.
+   */
+  adaptiveAssessmentFetch: {
+    maxTokens: 6,
+    refillRate: 6 / SECONDS_PER_HOUR,
+    refillInterval: 1000,
   } as RateLimitConfig,
 } as const;

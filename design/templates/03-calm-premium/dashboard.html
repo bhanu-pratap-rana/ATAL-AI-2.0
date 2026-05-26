@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Aarav · Today — ATAL AI</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --ink:#1A1A1A; --ink-2:#4B4B4B; --ink-3:#8A8A8A;
+    --paper:#FAFAF7; --line:#E8E5DE; --accent:#F98819; --accent-d:#8B4A0B;
+  }
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--paper);color:var(--ink);}
+  .display{font-family:'Fraunces',Georgia,serif;font-optical-sizing:auto;font-weight:600;letter-spacing:-.02em;}
+  .serif{font-family:'Fraunces',Georgia,serif;}
+  .small-caps{font-variant-caps:all-small-caps;letter-spacing:.18em;font-weight:700;}
+  .rule{height:1px;background:var(--line);}
+  .accent-bar{height:3px;width:32px;background:var(--accent);border-radius:2px;}
+  .btn-ink{background:var(--ink);color:#fff;}
+  .btn-ink:hover{background:#000;}
+  .btn-accent{background:var(--accent);color:#fff;}
+  .btn-accent:hover{background:var(--accent-d);}
+  .dot{width:8px;height:8px;border-radius:9999px;display:inline-block;}
+</style>
+</head>
+<body class="min-h-screen pb-24">
+
+<!-- Top bar -->
+<header class="border-b border-stone-200 bg-white sticky top-0 z-30">
+  <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+    <a href="landing.html" class="flex items-center gap-3">
+      <img src="../shared/logo.png" class="h-9 w-9 rounded-full"/>
+      <div class="display text-lg">ATAL AI</div>
+    </a>
+    <nav class="hidden sm:flex items-center gap-1 text-sm font-semibold text-stone-700">
+      <a class="px-3 py-2 rounded text-stone-900 bg-stone-100" href="#">Today</a>
+      <a class="px-3 py-2 rounded hover:bg-stone-100" href="#">Subjects</a>
+      <a class="px-3 py-2 rounded hover:bg-stone-100" href="#">Practice</a>
+      <a class="px-3 py-2 rounded hover:bg-stone-100" href="#">Progress</a>
+    </nav>
+    <div class="flex items-center gap-2">
+      <button class="w-9 h-9 rounded hover:bg-stone-100 flex items-center justify-center text-stone-600">🔍</button>
+      <div class="w-9 h-9 rounded-full bg-stone-900 text-white text-xs font-bold flex items-center justify-center">AD</div>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-6 pt-10">
+
+  <!-- Greeting -->
+  <section class="mb-12 grid lg:grid-cols-12 gap-10 items-end">
+    <div class="lg:col-span-7">
+      <div class="accent-bar mb-5"></div>
+      <div class="small-caps text-stone-500 mb-3">Tuesday · 13 May · Class 10</div>
+      <h1 class="display text-4xl sm:text-5xl leading-tight mb-3">Good afternoon, Aarav.</h1>
+      <p class="text-lg text-stone-600 max-w-md">You're on track for the weekly target. <strong class="text-stone-900">Two lessons left</strong> for today.</p>
+    </div>
+    <div class="lg:col-span-5 grid grid-cols-3 gap-px bg-stone-200 border border-stone-200 rounded-md overflow-hidden">
+      <div class="bg-white p-4">
+        <div class="small-caps text-stone-500 text-[10px] mb-1">Streak</div>
+        <div class="display text-3xl">7 <span class="text-base text-stone-400 font-normal">days</span></div>
+      </div>
+      <div class="bg-white p-4">
+        <div class="small-caps text-stone-500 text-[10px] mb-1">This week</div>
+        <div class="display text-3xl">245 <span class="text-base text-stone-400 font-normal">xp</span></div>
+      </div>
+      <div class="bg-white p-4">
+        <div class="small-caps text-stone-500 text-[10px] mb-1">Badges</div>
+        <div class="display text-3xl">12</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="rule mb-10"></div>
+
+  <!-- Today's focus -->
+  <section class="mb-14 grid lg:grid-cols-12 gap-10">
+    <div class="lg:col-span-7">
+      <div class="small-caps text-stone-500 mb-4">Today's focus</div>
+      <article class="bg-white border border-stone-200 rounded-lg p-7 mb-5">
+        <div class="flex items-center justify-between mb-4">
+          <span class="px-2.5 py-1 rounded text-[10px] small-caps bg-stone-100 text-stone-700">Mathematics</span>
+          <span class="text-xs text-stone-500 font-semibold">12 minutes</span>
+        </div>
+        <h2 class="display text-3xl mb-2">Quadratic Equations</h2>
+        <p class="text-stone-600 mb-6 leading-relaxed">Solve quadratic equations using factorisation, the quadratic formula, and completing the square. Includes 3 worked examples and 5 practice problems.</p>
+        <div class="grid grid-cols-5 gap-2 mb-6">
+          <div class="h-1.5 rounded bg-stone-900"></div>
+          <div class="h-1.5 rounded bg-stone-900"></div>
+          <div class="h-1.5 rounded bg-stone-900"></div>
+          <div class="h-1.5 rounded bg-stone-200"></div>
+          <div class="h-1.5 rounded bg-stone-200"></div>
+        </div>
+        <div class="flex items-center justify-between text-xs text-stone-500 mb-5">
+          <span>3 of 5 sub-topics complete</span>
+          <span class="font-semibold text-stone-900">60%</span>
+        </div>
+        <div class="flex gap-3">
+          <button class="btn-ink px-5 py-2.5 rounded-md font-semibold text-sm">Continue lesson</button>
+          <button class="px-5 py-2.5 rounded-md font-semibold text-sm border border-stone-300 text-stone-700 hover:border-stone-500">Skip to practice</button>
+        </div>
+      </article>
+
+      <article class="bg-white border border-stone-200 rounded-lg p-7">
+        <div class="flex items-center justify-between mb-4">
+          <span class="px-2.5 py-1 rounded text-[10px] small-caps bg-stone-100 text-stone-700">Science</span>
+          <span class="text-xs text-stone-500 font-semibold">18 minutes</span>
+        </div>
+        <h2 class="display text-3xl mb-2">Reflection of Light</h2>
+        <p class="text-stone-600 mb-6 leading-relaxed">Concave and convex mirrors. Image formation, sign conventions, and real-world examples — including the rear-view mirror.</p>
+        <div class="grid grid-cols-5 gap-2 mb-6">
+          <div class="h-1.5 rounded bg-stone-900"></div>
+          <div class="h-1.5 rounded bg-stone-200"></div>
+          <div class="h-1.5 rounded bg-stone-200"></div>
+          <div class="h-1.5 rounded bg-stone-200"></div>
+          <div class="h-1.5 rounded bg-stone-200"></div>
+        </div>
+        <div class="flex items-center justify-between text-xs text-stone-500 mb-5">
+          <span>1 of 5 sub-topics complete</span>
+          <span class="font-semibold text-stone-900">25%</span>
+        </div>
+        <button class="px-5 py-2.5 rounded-md font-semibold text-sm border border-stone-300 text-stone-700 hover:border-stone-500">Begin lesson</button>
+      </article>
+    </div>
+
+    <aside class="lg:col-span-5 space-y-8">
+      <!-- This week -->
+      <div>
+        <div class="small-caps text-stone-500 mb-4">This week</div>
+        <div class="bg-white border border-stone-200 rounded-lg p-6">
+          <div class="grid grid-cols-7 gap-2 mb-4 text-center">
+            <div><div class="small-caps text-stone-400 text-[10px] mb-1">Mon</div><div class="aspect-square rounded bg-stone-900"></div></div>
+            <div><div class="small-caps text-stone-400 text-[10px] mb-1">Tue</div><div class="aspect-square rounded bg-stone-900"></div></div>
+            <div><div class="small-caps text-stone-400 text-[10px] mb-1">Wed</div><div class="aspect-square rounded bg-stone-900"></div></div>
+            <div><div class="small-caps text-stone-400 text-[10px] mb-1">Thu</div><div class="aspect-square rounded bg-stone-900"></div></div>
+            <div><div class="small-caps text-stone-400 text-[10px] mb-1">Fri</div><div class="aspect-square rounded bg-stone-900"></div></div>
+            <div><div class="small-caps text-stone-400 text-[10px] mb-1">Sat</div><div class="aspect-square rounded bg-stone-900"></div></div>
+            <div><div class="small-caps text-stone-400 text-[10px] mb-1">Sun</div><div class="aspect-square rounded ring-2 ring-orange-500"></div></div>
+          </div>
+          <div class="rule mb-4"></div>
+          <div class="flex justify-between items-baseline">
+            <div>
+              <div class="display text-xl">5.2 hours</div>
+              <div class="small-caps text-stone-400 text-[10px]">studied this week</div>
+            </div>
+            <div class="text-xs font-semibold text-green-700">▲ +18% vs last week</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mastery snapshot -->
+      <div>
+        <div class="small-caps text-stone-500 mb-4">Mastery snapshot</div>
+        <div class="bg-white border border-stone-200 rounded-lg p-6 space-y-3">
+          <div class="flex items-center justify-between text-sm"><span class="font-semibold">Mathematics</span><div class="flex items-center gap-3"><div class="h-1.5 w-28 bg-stone-100 rounded-full overflow-hidden"><div class="h-full bg-stone-900" style="width:68%"></div></div><span class="text-xs font-semibold w-8 text-right">68%</span></div></div>
+          <div class="flex items-center justify-between text-sm"><span class="font-semibold">Science</span><div class="flex items-center gap-3"><div class="h-1.5 w-28 bg-stone-100 rounded-full overflow-hidden"><div class="h-full bg-stone-900" style="width:45%"></div></div><span class="text-xs font-semibold w-8 text-right">45%</span></div></div>
+          <div class="flex items-center justify-between text-sm"><span class="font-semibold">English</span><div class="flex items-center gap-3"><div class="h-1.5 w-28 bg-stone-100 rounded-full overflow-hidden"><div class="h-full bg-stone-900" style="width:71%"></div></div><span class="text-xs font-semibold w-8 text-right">71%</span></div></div>
+          <div class="flex items-center justify-between text-sm"><span class="font-semibold">Assamese</span><div class="flex items-center gap-3"><div class="h-1.5 w-28 bg-stone-100 rounded-full overflow-hidden"><div class="h-full bg-stone-900" style="width:82%"></div></div><span class="text-xs font-semibold w-8 text-right">82%</span></div></div>
+          <div class="flex items-center justify-between text-sm"><span class="font-semibold">History</span><div class="flex items-center gap-3"><div class="h-1.5 w-28 bg-stone-100 rounded-full overflow-hidden"><div class="h-full bg-orange-500" style="width:30%"></div></div><span class="text-xs font-semibold w-8 text-right">30%</span></div></div>
+          <div class="flex items-center justify-between text-sm"><span class="font-semibold">Geography</span><div class="flex items-center gap-3"><div class="h-1.5 w-28 bg-stone-100 rounded-full overflow-hidden"><div class="h-full bg-stone-900" style="width:52%"></div></div><span class="text-xs font-semibold w-8 text-right">52%</span></div></div>
+        </div>
+      </div>
+
+      <!-- Next badge -->
+      <div>
+        <div class="small-caps text-stone-500 mb-4">Next milestone</div>
+        <div class="bg-white border border-stone-200 rounded-lg p-6 flex items-center gap-4">
+          <img src="../shared/logo.png" class="w-12 h-12 rounded-full opacity-80"/>
+          <div class="flex-1">
+            <div class="display text-lg">Muga Silk badge</div>
+            <div class="text-xs text-stone-500 mb-3">23 days of unbroken streak away</div>
+            <div class="h-1 bg-stone-100 rounded-full overflow-hidden"><div class="h-full" style="width:23%;background:var(--accent)"></div></div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </section>
+
+  <div class="rule mb-10"></div>
+
+  <!-- Continue / library -->
+  <section class="mb-14">
+    <div class="flex items-baseline justify-between mb-6">
+      <div>
+        <div class="small-caps text-stone-500 mb-1">Library</div>
+        <h2 class="display text-3xl">Continue where you left off</h2>
+      </div>
+      <a href="#" class="text-sm font-semibold text-stone-700 hover:text-stone-900">View all chapters →</a>
+    </div>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <a href="#" class="group bg-white border border-stone-200 rounded-lg p-6 hover:border-stone-400 transition">
+        <div class="flex items-center justify-between mb-4"><span class="small-caps text-stone-400 text-[10px]">Math · Ch 4</span><span class="dot bg-orange-500"></span></div>
+        <h3 class="display text-xl mb-2">Quadratic Equations</h3>
+        <p class="text-sm text-stone-600 mb-4 leading-relaxed">Factorisation, formula, and completing the square.</p>
+        <div class="text-xs font-semibold text-orange-700 group-hover:translate-x-1 inline-block transition-transform">Resume · 60% →</div>
+      </a>
+      <a href="#" class="group bg-white border border-stone-200 rounded-lg p-6 hover:border-stone-400 transition">
+        <div class="flex items-center justify-between mb-4"><span class="small-caps text-stone-400 text-[10px]">Science · Ch 10</span><span class="dot bg-stone-400"></span></div>
+        <h3 class="display text-xl mb-2">Reflection of Light</h3>
+        <p class="text-sm text-stone-600 mb-4 leading-relaxed">Concave and convex mirrors, image formation.</p>
+        <div class="text-xs font-semibold text-stone-700 group-hover:translate-x-1 inline-block transition-transform">Begin · 25% →</div>
+      </a>
+      <a href="#" class="group bg-white border border-stone-200 rounded-lg p-6 hover:border-stone-400 transition">
+        <div class="flex items-center justify-between mb-4"><span class="small-caps text-stone-400 text-[10px]">English · Ch 7</span><span class="dot bg-stone-400"></span></div>
+        <h3 class="display text-xl mb-2">A Letter to God</h3>
+        <p class="text-sm text-stone-600 mb-4 leading-relaxed">Comprehension and theme analysis.</p>
+        <div class="text-xs font-semibold text-stone-700 group-hover:translate-x-1 inline-block transition-transform">Read · 0% →</div>
+      </a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="border-t border-stone-200 py-8">
+  <div class="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <img src="../shared/logo.png" class="h-7 w-7 rounded-full"/>
+      <div class="text-sm font-semibold">ATAL AI · Aarav D. · Class 10</div>
+    </div>
+    <a href="../index.html" class="text-xs small-caps text-stone-500 hover:text-stone-900">← Back to gallery</a>
+  </div>
+</footer>
+
+</body>
+</html>
