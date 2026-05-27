@@ -47,6 +47,27 @@ function getNextButtonText(
   return "Next";
 }
 
+/**
+ * F-PROD-AS03: keep the screen-reader announcement aligned with what's
+ * shown. Previously the aria-label always said "Go to next question"
+ * even when the button text was "Complete Assessment", confusing
+ * screen-reader users.
+ */
+function getNextButtonAriaLabel(
+  isLastQuestion: boolean,
+  isReviewingHistory: boolean,
+  hasSelectedAnswer: boolean,
+): string {
+  if (isLastQuestion && !isReviewingHistory) {
+    return hasSelectedAnswer
+      ? "Submit answer and complete assessment"
+      : "Complete assessment";
+  }
+  return hasSelectedAnswer
+    ? "Submit answer and go to next question"
+    : "Go to next question";
+}
+
 export function QuestionNavigation({
   currentIndex,
   totalQuestions,
@@ -96,11 +117,11 @@ export function QuestionNavigation({
             disabled={isSubmitting}
             loading={isSubmitting}
             className="flex-1 min-h-[2.75rem]"
-            aria-label={
-              hasSelectedAnswer
-                ? "Submit answer and go to next question"
-                : "Go to next question"
-            }
+            aria-label={getNextButtonAriaLabel(
+              isLastQuestion,
+              isReviewingHistory,
+              hasSelectedAnswer,
+            )}
           >
             {nextButtonText}
             {!isLastQuestion && <span className="ml-1">→</span>}
@@ -188,11 +209,11 @@ export function QuestionNavigation({
           loading={isSubmitting}
           size="lg"
           className="min-w-[160px]"
-          aria-label={
-            hasSelectedAnswer
-              ? "Submit answer and go to next question"
-              : "Go to next question"
-          }
+          aria-label={getNextButtonAriaLabel(
+            isLastQuestion,
+            isReviewingHistory,
+            hasSelectedAnswer,
+          )}
         >
           {nextButtonText}
           {!isLastQuestion && <span className="ml-2">→</span>}

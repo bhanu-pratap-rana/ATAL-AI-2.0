@@ -74,22 +74,28 @@ function AssessmentStartContent() {
     setError(null);
 
     try {
-      // Start session and fetch adaptive questions in parallel
-      const [sessionResult, questionsResult] = await Promise.all([
-        startAssessment(classId || undefined, sessionType),
-        getAdaptiveQuestions(selectedLanguage),
-      ]);
+      // F-DATA-02: fetch questions first so we can pass the count
+      // to startAssessment; the session row needs total_questions set
+      // at insert time for the summary page's denominator to be
+      // mathematically correct.
+      const questionsResult = await getAdaptiveQuestions(selectedLanguage);
 
-      if (!sessionResult.success || !sessionResult.sessionId) {
-        const errorMsg = sessionResult.error || "Failed to start assessment";
+      if (!questionsResult.success || questionsResult.questions.length === 0) {
+        const errorMsg = questionsResult.error || "Failed to load questions";
         setError(errorMsg);
         toast.error(errorMsg);
         setLoading(false);
         return;
       }
 
-      if (!questionsResult.success || questionsResult.questions.length === 0) {
-        const errorMsg = questionsResult.error || "Failed to load questions";
+      const sessionResult = await startAssessment(
+        classId || undefined,
+        sessionType,
+        questionsResult.questions.length,
+      );
+
+      if (!sessionResult.success || !sessionResult.sessionId) {
+        const errorMsg = sessionResult.error || "Failed to start assessment";
         setError(errorMsg);
         toast.error(errorMsg);
         setLoading(false);

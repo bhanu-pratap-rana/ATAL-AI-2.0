@@ -68,6 +68,7 @@ interface AssessmentSummaryProps {
   readonly score: number;
   readonly totalQuestions: number;
   readonly correctAnswers: number;
+  readonly skippedCount?: number;
   readonly moduleBreakdown: Record<string, { total: number; correct: number }>;
   readonly avgResponseTime: number;
   readonly sessionType?: "pre" | "adaptive" | "post";
@@ -149,6 +150,7 @@ export function AssessmentSummary({
   score,
   totalQuestions,
   correctAnswers,
+  skippedCount = 0,
   moduleBreakdown,
   avgResponseTime,
   sessionType = "adaptive",
@@ -281,6 +283,11 @@ export function AssessmentSummary({
                   <div className="text-sm text-slate-400">
                     Correct Answers
                   </div>
+                  {skippedCount > 0 && (
+                    <div className="mt-1 text-xs text-slate-400">
+                      {skippedCount} skipped
+                    </div>
+                  )}
                 </div>
 
                 {/* Level Badge */}

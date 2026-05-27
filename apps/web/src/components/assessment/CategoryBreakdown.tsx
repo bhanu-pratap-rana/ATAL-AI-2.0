@@ -161,20 +161,46 @@ export function CategoryStrengths({
   categories: Record<string, { total: number; correct: number }>;
   type?: "strengths" | "weaknesses";
 }>) {
-  const categoryList = Object.entries(categories)
+  const ranked = Object.entries(categories)
     .map(([key, value]) => ({
       name: key,
       percentage: value.total > 0 ? (value.correct / value.total) * 100 : 0,
     }))
-    .sort((a, b) =>
-      type === "strengths"
-        ? b.percentage - a.percentage
-        : a.percentage - b.percentage,
-    )
-    .slice(0, 2); // Top 2 categories
+    .sort((a, b) => b.percentage - a.percentage);
+
+  // F-PROD-AS06: when fewer than 2 categories have data, don't show
+  // the same category in both "Strengths" and "Areas to Improve".
+  // - Strengths: top 2 with percentage >= 60 (must be genuinely strong)
+  // - Weaknesses: bottom 2 with percentage < 60 (must be genuinely weak)
+  // - If categories overlap or none qualify, hide the section.
+  const STRENGTH_FLOOR = 60;
+  const WEAKNESS_CEILING = 60;
+  const categoryList =
+    type === "strengths"
+      ? ranked.filter((c) => c.percentage >= STRENGTH_FLOOR).slice(0, 2)
+      : ranked
+          .filter((c) => c.percentage < WEAKNESS_CEILING)
+          .slice(-2)
+          .reverse();
 
   const title = type === "strengths" ? "Your Strengths" : "Areas to Improve";
   const TitleIcon = type === "strengths" ? Dumbbell : Book;
+
+  if (categoryList.length === 0) {
+    const emptyMessage =
+      type === "strengths"
+        ? "Keep practicing to build your strengths."
+        : "No weak areas yet — well done!";
+    return (
+      <div className="space-y-2">
+        <h4 className="text-sm font-black text-slate-800 flex items-center gap-2">
+          <TitleIcon size={16} strokeWidth={2.25} aria-hidden="true" />
+          {title}
+        </h4>
+        <p className="text-xs text-slate-400">{emptyMessage}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-2">

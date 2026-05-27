@@ -167,7 +167,11 @@ export async function calculateIRTScore(
  * @param classId - Optional class context
  * @param sessionType - 'pre' | 'adaptive' | 'post' (default: 'adaptive')
  */
-export async function startAssessment(classId?: string, sessionType: "pre" | "adaptive" | "post" = "adaptive") {
+export async function startAssessment(
+  classId?: string,
+  sessionType: "pre" | "adaptive" | "post" = "adaptive",
+  totalQuestions?: number,
+) {
   try {
     const auth = await verifyStudentAuth("startAssessment");
     if (!auth.authorized) {
@@ -210,6 +214,9 @@ export async function startAssessment(classId?: string, sessionType: "pre" | "ad
       }
     }
 
+    // F-DATA-02: write `total_questions` at start time so the
+    // summary page can compute an honest denominator (correct ÷ total),
+    // not correct ÷ answered.
     const { data, error } = await supabase
       .from("assessment_sessions")
       .insert({
@@ -217,6 +224,7 @@ export async function startAssessment(classId?: string, sessionType: "pre" | "ad
         class_id: classId || null,
         session_type: sessionType,
         started_at: new Date().toISOString(),
+        total_questions: totalQuestions ?? null,
       })
       .select()
       .maybeSingle();

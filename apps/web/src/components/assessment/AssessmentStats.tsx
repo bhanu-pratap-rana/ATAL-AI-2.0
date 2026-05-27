@@ -58,8 +58,12 @@ export function AssessmentStats({
         </div>
       </div>
 
-      {/* IRT-Enhanced Stats */}
-      {irtData && (
+      {/* IRT-Enhanced Stats — F-DATA-03: only show when the estimate is
+          informative. A standard error above 1.0 means the IRT model has
+          essentially no signal (e.g. student answered only 1 of 30 items);
+          showing "Advanced" with ±22.53 SE is misleading. We surface a
+          prompt to answer more items instead. */}
+      {irtData && irtData.standardError <= 1 && (
         <div className="mt-4 pt-4 border-t border-slate-200">
           <h4 className="text-sm font-black text-slate-500 mb-3">
             Ability Estimate (IRT)
@@ -87,6 +91,13 @@ export function AssessmentStats({
             <span className="font-semibold">
               {irtData.proficiencyLevel}
             </span>
+          </p>
+        </div>
+      )}
+      {irtData && irtData.standardError > 1 && (
+        <div className="mt-4 pt-4 border-t border-slate-200">
+          <p className="text-xs text-slate-400 text-center">
+            Answer a few more questions to estimate your skill level.
           </p>
         </div>
       )}

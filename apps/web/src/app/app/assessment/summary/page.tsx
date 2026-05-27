@@ -27,12 +27,12 @@ export default async function AssessmentSummaryPage({
   const [sessionResult, responsesResult] = await Promise.all([
     supabase
       .from("assessment_sessions")
-      .select("id, user_id, started_at, submitted_at, session_type")
+      .select("id, user_id, started_at, submitted_at, session_type, total_questions")
       .eq("id", sessionId)
       .maybeSingle(),
     supabase
       .from("assessment_responses")
-      .select("id, item_id, module, chosen_option, is_correct, rt_ms, created_at")
+      .select("id, item_id, module, chosen_option, is_correct, is_skipped, rt_ms, created_at")
       .eq("session_id", sessionId)
       .order("created_at", { ascending: true }),
   ]);
@@ -88,20 +88,18 @@ export default async function AssessmentSummaryPage({
     irtScore = await calculateIRTScore(irtResponses);
   }
 
-  // Calculate statistics
-  const totalQuestions = responses.length;
+  // F-DATA-02 fix: denominator is the session's planned question
+  // count, not the number answered. Falls back to responses.length for
+  // legacy sessions where the column wasn't populated at start time.
+  const answeredCount = responses.length;
+  const totalQuestions = session.total_questions ?? answeredCount;
   const correctAnswers = responses.filter((r) => r.is_correct).length;
+  const skippedCount = totalQuestions - answeredCount;
 
-  // F41: the user-facing "Overall Score" is now the raw correctness
-  // percentage (`correctAnswers / totalQuestions`) instead of the IRT
-  // mastery estimate. The IRT estimate is mathematically defensible
-  // but it floors at 0% for low-ability latent estimates, which
-  // contradicts the "8/30 Correct Answers" displayed in the very next
-  // card — users see "0% Overall Score" right next to "8/30" and
-  // assume the score widget is broken. The IRT-derived θ and mastery
-  // badge are unchanged; only the headline percentage swaps to the
-  // intuitive measure, matching the team's earlier standardisation
-  // for the dashboard "Avg Score" widget.
+  // F41/F-DATA-02: Overall Score is raw correctness over the FULL
+  // assessment (skipped questions count as wrong). IRT mastery estimate
+  // is preserved on the badge below; only the headline percentage swaps
+  // to the intuitive measure.
   const score =
     totalQuestions > 0
       ? Math.round((correctAnswers / totalQuestions) * 100)
@@ -149,6 +147,7 @@ export default async function AssessmentSummaryPage({
       score={score}
       totalQuestions={totalQuestions}
       correctAnswers={correctAnswers}
+      skippedCount={skippedCount}
       moduleBreakdown={moduleBreakdown}
       avgResponseTime={avgResponseTime}
       sessionType={sessionType}
