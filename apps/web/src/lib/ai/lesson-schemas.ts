@@ -55,7 +55,21 @@ export const LessonChunkSchema = z.object({
   duration: z.string(),
   heading: z.string(),
   content: z.string(),
+  /**
+   * Full LLM prompt used to *generate* the image. Internal only —
+   * NEVER rendered to the student. See F-LESS-02.
+   */
   visualDescription: z.string().optional(),
+  /**
+   * Student-facing caption rendered under the image. Short sentence
+   * about the lesson concept, not a description of the picture.
+   */
+  imageCaption: z.string().max(120).optional(),
+  /**
+   * Screen-reader alt text. ≤80 chars, literal description of the
+   * image (e.g. "Desktop computer with labeled parts").
+   */
+  imageAlt: z.string().max(80).optional(),
   checkpointQuestion: CheckpointQuestionSchema,
 });
 

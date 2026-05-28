@@ -29,7 +29,8 @@ import type { SupportedLanguage } from "@/types/common";
 // Increment this when the AI model, prompts, or generation logic changes
 // to ensure stale cached content is refreshed
 // Bump when AI model, prompts, parser, or token budget changes
-const LESSON_CACHE_VERSION = "1.2";
+// 1.3 = added imageCaption + imageAlt fields, instructions to never embed text in diagrams
+const LESSON_CACHE_VERSION = "1.3";
 
 export interface LessonChunk {
   type: "concept" | "example" | "practice" | "checkpoint";
@@ -37,6 +38,8 @@ export interface LessonChunk {
   heading: string;
   content: string;
   visualDescription?: string;
+  imageCaption?: string;
+  imageAlt?: string;
   checkpointQuestion?: {
     question: string;
     options: string[];
@@ -146,7 +149,9 @@ OUTPUT FORMAT (JSON):
       "duration": "2 min",
       "heading": "Section title",
       "content": "Main explanation (2-3 paragraphs max)",
-      "visualDescription": "MUST be in English — detailed description of diagram/image for AI image generation (e.g. 'Labeled diagram of desktop computer parts: monitor, keyboard, mouse, CPU tower')",
+      "visualDescription": "INTERNAL ONLY (English, never shown). Detailed image-gen prompt, e.g. 'Labeled diagram of desktop computer parts'",
+      "imageCaption": "STUDENT-FACING (in lesson language, ≤120 chars). Short caption explaining the lesson concept — NOT a description of the picture. E.g. 'A computer has four main parts that work together.'",
+      "imageAlt": "Screen-reader alt text (English, ≤80 chars). Literal short description, e.g. 'Computer parts with labels'",
       "checkpointQuestion": {
         "question": "Quiz question",
         "options": ["A", "B", "C", "D"],
@@ -166,6 +171,9 @@ RULES:
 6. Include at least 2 checkpoint questions per lesson
 7. CRITICAL: "visualDescription" MUST ALWAYS be written in English regardless of the lesson language, because it is used as a prompt for AI image generation which only understands English. Example: "Simple diagram showing four main computer parts: monitor, keyboard, mouse, and CPU tower with labels and arrows"
 8. Visual descriptions should be detailed enough for AI image generation
+9. CRITICAL: "imageCaption" is shown TO THE STUDENT below the image. It must be a short, lesson-relevant sentence in the lesson language (≤120 chars). It must NOT describe what the picture looks like — describe the CONCEPT instead. Good: "Each part of a computer has a job, just like each part of a bicycle." Bad: "A diagram showing a monitor, keyboard, mouse with labels and arrows."
+10. CRITICAL: "imageAlt" is for screen readers. English, ≤80 chars, literal short description of what the image depicts. Example: "Labeled desktop computer setup". Never echo the LLM prompt.
+11. NEVER put diagram labels inside the image (CPU, Monitor, etc.) — AI image generators garble text. Describe the image conceptually in visualDescription and leave labels to "imageAlt" / overlay text in code.
 
 IMPORTANT: Return ONLY valid JSON, no markdown code blocks or extra text.`;
 }

@@ -66,7 +66,9 @@ export function AssessmentOption({
           {selected && <div className="w-4 h-4 bg-white rounded-full" />}
         </div>
         <span className={`text-base text-slate-800 wrap-break-word ${fontClass}`}>
-          <span className="font-semibold mr-2">{label}.</span>
+          {/* F-LESS-07: mr-1 reads as single space; mr-2 looked like
+              "A.  The Monitor" on production assessments. */}
+          <span className="font-semibold mr-1">{label}.</span>
           {option.text}
         </span>
       </div>

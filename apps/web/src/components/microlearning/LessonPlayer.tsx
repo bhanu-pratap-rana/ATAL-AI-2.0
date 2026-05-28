@@ -42,7 +42,24 @@ export interface LessonChunk {
   duration: string;
   heading: string;
   content: string;
+  /**
+   * Internal: full LLM prompt used to generate the image. Never shown
+   * to the student — kept on the chunk so the image worker has the
+   * original prompt for re-generation. See F-LESS-02.
+   */
   visualDescription?: string;
+  /**
+   * Student-facing caption rendered under the image. Should be a
+   * short sentence about the lesson concept, NOT a description of
+   * what's in the picture. ≤120 chars. See F-LESS-02.
+   */
+  imageCaption?: string;
+  /**
+   * Screen-reader alt text. ≤80 chars. Describes what's in the image
+   * literally (e.g. "Desktop computer with labeled parts"), distinct
+   * from `imageCaption` which is the lesson-side caption.
+   */
+  imageAlt?: string;
   imageUrl?: string; // Pre-generated image URL
   imageType?: "diagram" | "concept" | "example" | "cultural" | "icon";
   checkpointQuestion?: {
@@ -85,8 +102,8 @@ interface LessonPlayerProps {
  * Get icon for chunk type
  */
 
-function getChunkIcon(type: LessonChunk["type"]) {
-  const iconProps = { className: "h-5 w-5" };
+function getChunkIcon(type: LessonChunk["type"], size: "sm" | "md" = "md") {
+  const iconProps = { className: size === "sm" ? "h-3.5 w-3.5" : "h-5 w-5" };
   switch (type) {
     case "concept":
       return <BookOpen {...iconProps} />;
@@ -108,12 +125,16 @@ function getChunkIcon(type: LessonChunk["type"]) {
 function ChunkImage({
   imageUrl,
   visualDescription,
+  imageCaption,
+  imageAlt,
   topicId,
   imageType = "concept",
   language,
 }: {
   readonly imageUrl?: string;
   readonly visualDescription?: string;
+  readonly imageCaption?: string;
+  readonly imageAlt?: string;
   readonly topicId: string;
   readonly imageType?: LessonChunk["imageType"];
   readonly language: SupportedLanguage;
@@ -197,6 +218,12 @@ function ChunkImage({
   }
 
   // Error state with fallback to description
+  // F-LESS-02: short, generic alt text. Never the LLM prompt
+  // (`visualDescription`), which was up to 300 chars of "Two separate,
+  // clear images. On the left a full computer keyboard..." — useless
+  // for screen readers and embarrassing as a visible caption.
+  const safeAlt = imageAlt || `Diagram for lesson on ${topicId}`;
+
   if (imageState.error || !imageState.url) {
     return (
       <div className="bg-slate-50/50 rounded-2xl p-4 border border-dashed">
@@ -208,31 +235,34 @@ function ChunkImage({
         </div>
         <p className="text-sm text-slate-500 italic flex items-start gap-2">
           <ImageIcon className="h-4 w-4 shrink-0 mt-0.5" aria-hidden="true" />
-          <span>{visualDescription}</span>
+          <span>{imageCaption || safeAlt}</span>
         </p>
       </div>
     );
   }
 
+  // F-LESS-03: bumped image height (200/250 → 280/420) so the
+  // illustration carries the visual weight it should for a
+  // concept-teaching surface.
   // Image loaded successfully
   return (
-    <div className="rounded-2xl overflow-hidden border">
-      <div className="relative w-full h-[200px] md:h-[250px] bg-white">
+    <figure className="rounded-2xl overflow-hidden border">
+      <div className="relative w-full h-[280px] md:h-[420px] bg-white">
         <Image
           src={imageState.url}
-          alt={visualDescription || "Lesson visual"}
+          alt={safeAlt}
           fill
           className="object-contain"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 75vw, 720px"
           unoptimized={imageState.url.startsWith("data:")} // Skip optimization for base64
         />
       </div>
-      {visualDescription && (
-        <p className="text-xs text-slate-500 p-2 bg-slate-50/50 text-center">
-          {visualDescription}
-        </p>
+      {imageCaption && (
+        <figcaption className="text-sm text-slate-600 p-3 bg-slate-50/50 text-center">
+          {imageCaption}
+        </figcaption>
       )}
-    </div>
+    </figure>
   );
 }
 
@@ -324,7 +354,11 @@ function CheckpointQuiz({
               disabled={submitted}
               className={`${buttonClass} h-auto whitespace-normal justify-start text-left`}
             >
-              <span className="font-medium mr-2 text-sm sm:text-base">{String.fromCodePoint(65 + index)}.</span>
+              {/* F-LESS-07: previously rendered as "A.  The Monitor"
+                  because `mr-2` (8px) + inter-span whitespace looked
+                  like a double space. mr-1 + explicit single-space
+                  reads as "A. The Monitor" cleanly. */}
+              <span className="font-medium mr-1 text-sm sm:text-base">{String.fromCodePoint(65 + index)}.</span>
               <span className="text-sm sm:text-base">{cleanOption}</span>
               {showResult && isCorrect && <CheckCircle className="inline ml-2 h-4 w-4" />}
             </Button>
@@ -474,22 +508,30 @@ export function LessonPlayer({
             <Progress value={progress} className="h-2" />
           </div>
 
-          {/* Chunk indicators */}
-          <div className="flex gap-1 mt-3">
+          {/* Chunk indicators
+              F-LESS-06: each dot now carries a chunk-type icon
+              (concept / example / practice / quiz) so colour isn't the
+              sole meaning carrier. Tooltip includes chunk number,
+              type, and heading. Height bumped (h-2 → h-7) to fit the
+              icon and improve touch target on mobile. */}
+          <div className="flex gap-1.5 mt-3">
             {lesson.chunks.map((chunk, index) => {
-              let indicatorColor = "bg-slate-50";
-              if (index === safeChunk) indicatorColor = "bg-primary";
-              else if (completedChunks.has(index)) indicatorColor = "bg-success";
+              let dotClass = "bg-slate-100 text-slate-400";
+              if (index === safeChunk) dotClass = "bg-primary text-white";
+              else if (completedChunks.has(index)) dotClass = "bg-success text-white";
+              const typeLabel = getTypeLabel(chunk.type, language);
               return (
                 <Button
                   type="button"
                   variant="ghost"
                   key={chunk.heading}
                   onClick={() => setCurrentChunk(index)}
-                  className={`flex-1 h-2 min-h-2 p-0 rounded-full hover:bg-current ${indicatorColor}`}
-                  title={chunk.heading}
-                  aria-label={`Go to chunk ${index + 1}: ${chunk.heading}`}
-                />
+                  className={`flex-1 min-w-0 h-7 min-h-7 px-1 rounded-full hover:opacity-90 flex items-center justify-center ${dotClass}`}
+                  title={`${index + 1} of ${totalChunks} — ${typeLabel}: ${chunk.heading}`}
+                  aria-label={`Go to chunk ${index + 1} of ${totalChunks}: ${typeLabel} — ${chunk.heading}`}
+                >
+                  <span aria-hidden="true">{getChunkIcon(chunk.type, "sm")}</span>
+                </Button>
               );
             })}
           </div>
@@ -539,6 +581,8 @@ export function LessonPlayer({
             <ChunkImage
               imageUrl={currentChunkData.imageUrl}
               visualDescription={currentChunkData.visualDescription}
+              imageCaption={currentChunkData.imageCaption}
+              imageAlt={currentChunkData.imageAlt}
               topicId={lesson.topicId}
               imageType={currentChunkData.imageType}
               language={language}
