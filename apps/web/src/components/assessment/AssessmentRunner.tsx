@@ -27,6 +27,7 @@ import {
 } from "./runner-utils";
 import { useIrtState } from "./use-irt-state";
 import { AssessmentOption } from "./AssessmentOption";
+import { ExplainDrawer } from "./ExplainDrawer";
 
 /**
  * ATAL AI Assessment Runner - IRT-Enhanced Adaptive Testing
@@ -76,6 +77,10 @@ export function AssessmentRunner({
   const [focusBlurCount, setFocusBlurCount] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showRapidWarning, setShowRapidWarning] = useState(false);
+  // F-PROD-AS01: drawer that actually explains the question instead of
+  // silently skipping. Open state is local; the drawer fires onSkip
+  // only when the student explicitly chooses "Skip anyway".
+  const [explainOpen, setExplainOpen] = useState(false);
   // NOSONAR S6754: Only setter needed - value tracked internally but not used in render
   const [, setTotalElapsedSeconds] = useState(0); // NOSONAR
 
@@ -621,20 +626,35 @@ export function AssessmentRunner({
               onNext={handleNext}
             />
 
-            {/* UX-A8: "I don't understand" — flags confusion for teacher analytics */}
+            {/* F-PROD-AS01: replaces silent-skip behaviour. Opens the
+                ExplainDrawer which asks the LLM to rephrase the
+                question in the student's language. The drawer offers
+                an explicit "Skip anyway" path — handleConfused still
+                exists for that purpose, but is now opt-in instead of
+                accidental. */}
             {!isReviewingHistory && (
               <Button
                 type="button"
                 variant="outline"
-                onClick={handleConfused}
+                onClick={() => setExplainOpen(true)}
                 disabled={isSubmitting}
                 className="mt-3 w-full bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-800 font-normal"
-                aria-label="I don't understand this question — flag it and move on"
+                aria-label="Get help understanding this question"
               >
                 <span className="mr-2" aria-hidden="true">🤔</span>
                 <span>I don&apos;t understand this question</span>
               </Button>
             )}
+
+            <ExplainDrawer
+              open={explainOpen}
+              question={currentQuestion?.questionText || ""}
+              options={shuffledOptions.map((o) => o.text)}
+              language={language}
+              module={currentQuestion?.category}
+              onClose={() => setExplainOpen(false)}
+              onSkip={handleConfused}
+            />
         </div>
 
         {/* Helper Text */}
