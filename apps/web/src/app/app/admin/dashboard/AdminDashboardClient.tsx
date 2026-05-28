@@ -127,7 +127,7 @@ export function AdminDashboardClient({ isSuperAdmin = false }: AdminDashboardCli
             { href: "/app/admin/schools", Icon: School, label: "Manage Schools", tint: "sky" },
             { href: "/app/admin/performance", Icon: BarChart3, label: "Analytics", tint: "purple" },
             { href: "/app/settings", Icon: UserRound, label: "My Profile", tint: "yellow" },
-            { href: "/admin/pins", Icon: ShieldCheck, label: "PIN Management", tint: "red" },
+            { href: "/app/admin/pins", Icon: ShieldCheck, label: "PIN Management", tint: "red" },
             ...(isSuperAdmin
               ? [{ href: "/admin/admins", Icon: UserCog, label: "Manage Admins", tint: "green" }]
               : []),

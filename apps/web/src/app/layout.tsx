@@ -67,7 +67,11 @@ const notoSansBengali = Noto_Sans_Bengali({
   display: "swap",
 });
 
+const SITE_URL = "https://www.atalai.co.in";
+const OG_IMAGE = `${SITE_URL}/icon-512.png`; // Falls back to PWA icon until a 1200x630 og-cover is added.
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "ATAL AI - Digital Empowerment Platform",
   description:
     "Empowering education through AI & technology - Jyoti (ज्योति) brings light to learning",
@@ -98,6 +102,28 @@ export const metadata: Metadata = {
     "Jyoti",
   ],
   authors: [{ name: "ATAL AI Team" }],
+  // F-PROD-004, F-PROD-005: Open Graph + Twitter Card meta so shared
+  // links render a real card preview on WhatsApp / LinkedIn / Twitter.
+  // Replace /icon-512.png with /og-cover.png (1200×630) once a brand
+  // asset is created — Next will resolve relative URLs against
+  // metadataBase automatically.
+  openGraph: {
+    title: "ATAL AI — Digital Empowerment Platform",
+    description:
+      "Empowering education through AI & technology. Jyoti brings light to learning across Assam.",
+    url: SITE_URL,
+    siteName: "ATAL AI",
+    images: [{ url: OG_IMAGE, width: 512, height: 512, alt: "ATAL AI — Jyoti mascot" }],
+    locale: "en_IN",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ATAL AI — Digital Empowerment Platform",
+    description:
+      "Empowering education through AI & technology. Jyoti brings light to learning.",
+    images: [OG_IMAGE],
+  },
 };
 
 // Viewport configuration for PWA

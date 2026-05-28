@@ -30,6 +30,19 @@ const nextConfig: NextConfig = {
   // so ioredis is never imported transitively by client components.
   serverExternalPackages: ['ioredis'],
 
+  // F-PROD-AD01: /admin/pins moved under /app/admin/pins so it shares
+  // the bento-chromed admin shell. Old bookmarks + the admin login
+  // success redirect still work via this permanent 308 redirect.
+  async redirects() {
+    return [
+      {
+        source: '/admin/pins',
+        destination: '/app/admin/pins',
+        permanent: true,
+      },
+    ];
+  },
+
   // Optimize package imports for faster builds and smaller bundles
   // Per Vercel React Best Practices: https://vercel.com/blog/introducing-react-best-practices
   experimental: {

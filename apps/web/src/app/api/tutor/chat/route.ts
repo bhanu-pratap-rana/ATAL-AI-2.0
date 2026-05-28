@@ -234,7 +234,18 @@ export async function POST(request: Request): Promise<Response> {
         // SECURITY: Errors in logging should not break the response
         // SDK 6 renamed `usage` (per-step) to `totalUsage` (rolled up) on
         // streamText's onFinish payload — same numeric shape.
+        //
+        // F-PROD-AI01: previously the client rendered responses
+        // starting with "antastic question..." (missing the leading
+        // "F"). Capture the first 24 chars of the server-side text
+        // here so we can compare to client renders and isolate
+        // whether the strip happens in streamText (server), the
+        // SSE protocol, or the client UIMessage parser.
         try {
+          authLogger.debug("[TutorChat] response first chars", {
+            firstChars: text.slice(0, 24),
+            totalChars: text.length,
+          });
           await logInteraction({
             studentId: authenticatedUser.id,
             sessionId: logSessionId,
