@@ -172,10 +172,17 @@ export default async function SettingsPage() {
               <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Member Since</span>
               <p className="font-bold text-slate-800 text-sm">{formatDate(user.created_at)}</p>
             </div>
-            <div className="py-2">
-              <span className="text-xs font-black text-slate-500 uppercase tracking-widest">User ID</span>
+            {/* F-PROD-SET01: collapsed inside <details> so the UUID
+                is available for support tickets but not on screen by
+                default — leaking internal IDs to students serves no
+                purpose and slightly enlarges the attack surface. */}
+            <details className="py-2 group">
+              <summary className="cursor-pointer text-xs font-black text-slate-500 uppercase tracking-widest list-none">
+                User ID
+                <span className="ml-2 text-[10px] font-normal lowercase tracking-normal text-slate-400 group-open:hidden">(show for support)</span>
+              </summary>
               <p className="font-mono text-xs text-slate-500 break-all mt-1">{user.id}</p>
-            </div>
+            </details>
           </div>
         </BentoCard>
 

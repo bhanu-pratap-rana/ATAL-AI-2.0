@@ -210,21 +210,37 @@ export function AdaptiveRecommendations({
           }
         }
 
-        // 4. If no recommendations yet, suggest starting a new module
+        // 4. If no recommendations yet, suggest starting a new module —
+        // but only the next sequential module after one the student has
+        // FULLY MASTERED. F-PROD-008: previously the rec was the first
+        // module without progress, which routed students to locked
+        // modules (e.g. "Start M2" when M1 wasn't done).
         if (recs.length === 0) {
-          const modulesWithProgress = new Set(
-            knowledgeState.map((k) => k.module_id),
+          const sortedModules = [...modulesData].toSorted((a, b) =>
+            a.id.localeCompare(b.id),
           );
-          const nextModule = modulesData.find(
-            (m) => !modulesWithProgress.has(m.id),
-          );
+          // Find the first module the student has NOT fully mastered.
+          // A module counts as "fully mastered" only when every topic
+          // in it has a knowledge_state row at or above the passing
+          // threshold. That matches the same gating logic used to
+          // unlock modules on the learn page.
+          const nextUnlockedModule = sortedModules.find((m) => {
+            const topics = getAllTopicsForModuleLocal(m.id);
+            if (topics.length === 0) return false;
+            const masteredCount = knowledgeState.filter(
+              (k) =>
+                k.module_id === m.id &&
+                k.mastery_score >= MASTERY_THRESHOLDS.PASSING,
+            ).length;
+            return masteredCount < topics.length;
+          });
 
-          if (nextModule) {
-            const firstTopic = getAllTopicsForModuleLocal(nextModule.id)[0];
+          if (nextUnlockedModule) {
+            const firstTopic = getAllTopicsForModuleLocal(nextUnlockedModule.id)[0];
             if (firstTopic) {
               recs.push({
-                moduleId: nextModule.id,
-                moduleName: getModuleNameLocal(nextModule.id),
+                moduleId: nextUnlockedModule.id,
+                moduleName: getModuleNameLocal(nextUnlockedModule.id),
                 topicId: firstTopic,
                 topicName: getTopicNameLocal(firstTopic),
                 reasonKey: "learn.startNewModule",

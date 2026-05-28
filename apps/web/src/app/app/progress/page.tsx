@@ -17,6 +17,32 @@ import {
 import { getScoreBgColor as getScoreColor } from "@/lib/utils/score-helpers";
 
 import { BentoCard } from "@/components/ui/bento-card";
+
+/**
+ * F-PROD-PROG01: module-breakdown rows previously rendered raw DB
+ * slugs like `internet_web_awareness`. Map to human labels with the
+ * same dictionary CategoryBreakdown uses, falling back to title-case
+ * for unknown keys.
+ */
+const MODULE_DISPLAY_NAMES: Record<string, string> = {
+  contextual_application: "Contextual Application",
+  digital_content_creation: "Digital Content Creation",
+  digital_device_familiarity: "Device Familiarity",
+  internet_web_awareness: "Internet & Web",
+  problem_solving_aptitude: "Problem Solving",
+};
+
+function humanizeModule(slug: string): string {
+  const lower = slug.toLowerCase();
+  if (MODULE_DISPLAY_NAMES[lower]) return MODULE_DISPLAY_NAMES[lower];
+  return lower
+    .split("_")
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
+
 export default async function ProgressPage() {
   const supabase = await createClient();
   const {
@@ -84,7 +110,7 @@ export default async function ProgressPage() {
               {stats?.moduleBreakdown?.map((module) => (
                 <div key={module.module}>
                   <div className="flex justify-between items-center gap-2 mb-1">
-                    <span className="text-sm font-black text-slate-700 truncate min-w-0">{module.module}</span>
+                    <span className="text-sm font-black text-slate-700 truncate min-w-0">{humanizeModule(module.module)}</span>
                     <span className="text-xs font-bold text-slate-500 shrink-0">
                       {module.correctAnswers}/{module.questionsAttempted} ({module.averageScore}%)
                     </span>
