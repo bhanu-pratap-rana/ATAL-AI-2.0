@@ -311,13 +311,22 @@ export async function getClassAssessmentResults(classId: string): Promise<{
     const studentIds = (enrollments || []).map((e) => e.student_id);
 
     // BUG-019 FIX: Guard against empty array in .in() query (BUG-018 pattern)
-    // Get all assessment sessions for all students in this class in one query
+    // Get all assessment sessions for all students in this class.
+    //
+    // F-PROD-TCH03 (round 2): we previously also filtered
+    // `.eq("class_id", validatedClassId)`, which silently dropped
+    // dashboard-initiated sessions (class_id = NULL). Those sessions
+    // are still attributable to this class because the student is
+    // enrolled here; the RLS policy already scopes visibility by
+    // enrollment. We now match by (class_id = this class OR class_id
+    // IS NULL) so the teacher sees every assessment their enrolled
+    // student has submitted, regardless of where it was started.
     const { data: allSessions } = studentIds.length > 0
       ? await supabase
           .from("assessment_sessions")
-          .select("id, user_id, submitted_at")
+          .select("id, user_id, submitted_at, class_id")
           .in("user_id", studentIds)
-          .eq("class_id", validatedClassId)
+          .or(`class_id.eq.${validatedClassId},class_id.is.null`)
           .not("submitted_at", "is", null)
       : { data: null };
 
@@ -581,17 +590,53 @@ async function fetchTeacherAssessmentOverviewFromDB(
     };
   }
 
-  // Fetch all data in parallel
-  const [enrollmentsResult, sessionsResult] = await Promise.all([
-    supabase.from("enrollments").select("class_id").in("class_id", classIds),
-    supabase
-      .from("assessment_sessions")
-      .select("id, class_id")
-      .in("class_id", classIds)
-      .not("submitted_at", "is", null),
-  ]);
+  // Fetch enrolled students first so we can also pick up sessions
+  // started from the student dashboard (class_id NULL) and attribute
+  // them to the student's class. Without this, F-PROD-TCH03 would
+  // still hide dashboard-initiated assessments from the teacher
+  // overview, even though RLS allows the read.
+  const { data: enrollmentsData } = await supabase
+    .from("enrollments")
+    .select("class_id, student_id")
+    .in("class_id", classIds);
 
-  const sessionIds = sessionsResult.data?.map((s) => s.id) || [];
+  const studentIds = Array.from(
+    new Set((enrollmentsData || []).map((e) => e.student_id)),
+  );
+  // Map student → class so NULL-class sessions can be bucketed back
+  // to the right class for per-class counts. If a student is in
+  // multiple of this teacher's classes, the session is attributed to
+  // the first one (deterministic, by enrollments insertion order).
+  const studentToClass = new Map<string, string>();
+  (enrollmentsData || []).forEach((e) => {
+    if (!studentToClass.has(e.student_id)) {
+      studentToClass.set(e.student_id, e.class_id);
+    }
+  });
+
+  // PostgREST .or() syntax: `class_id.in.(uuid,uuid),and(class_id.is.null,user_id.in.(uuid,uuid))`.
+  // The inner AND is needed because we want NULL-class sessions
+  // ONLY for students enrolled in this teacher's classes — not from
+  // any other student in the system.
+  const orFilter = studentIds.length > 0
+    ? `class_id.in.(${classIds.join(",")}),and(class_id.is.null,user_id.in.(${studentIds.join(",")}))`
+    : `class_id.in.(${classIds.join(",")})`;
+
+  const sessionsResult = await supabase
+    .from("assessment_sessions")
+    .select("id, class_id, user_id")
+    .or(orFilter)
+    .not("submitted_at", "is", null);
+
+  // Bucket NULL-class sessions into their student's enrolled class.
+  const rawSessions = sessionsResult.data || [];
+  const sessions = rawSessions.map((s) => ({
+    ...s,
+    class_id: s.class_id ?? studentToClass.get(s.user_id) ?? null,
+  }));
+
+  const enrollmentsResult = { data: enrollmentsData };
+  const sessionIds = sessions.map((s) => s.id);
 
   // BUG-018 FIX: Skip responses query if no sessions exist
   if (sessionIds.length === 0) {
@@ -609,7 +654,15 @@ async function fetchTeacherAssessmentOverviewFromDB(
 
   // Build lookup maps using helper functions
   const enrollmentCountByClass = buildEnrollmentCountMap(enrollmentsResult.data);
-  const sessionsByClass = buildSessionsByClassMap(sessionsResult.data);
+  // Use the re-bucketed sessions so NULL-class sessions land in their
+  // student's class bucket, not into a missing class. We drop any
+  // sessions whose class_id still couldn't be resolved (shouldn't
+  // happen, but type-safe).
+  const sessionsByClass = buildSessionsByClassMap(
+    sessions
+      .filter((s) => s.class_id !== null)
+      .map((s) => ({ id: s.id, class_id: s.class_id as string })),
+  );
   const responseCountBySession = buildResponseCountMap(allResponses);
 
   // Process class results

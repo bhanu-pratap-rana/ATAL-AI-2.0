@@ -96,9 +96,12 @@ export function AppTopHeader({ initialRole }: AppTopHeaderProps = {}) {
   }
 
   return (
-    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-slate-100 px-4 py-3">
-      <div className="max-w-4xl mx-auto flex items-center justify-between">
-        <div className="flex items-center gap-3">
+    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-slate-100 px-3 sm:px-4 py-3">
+      <div className="max-w-4xl mx-auto flex items-center justify-between gap-2">
+        {/* Identity block. min-w-0 + flex-1 lets it shrink before the
+            action cluster, so the title truncates instead of pushing
+            controls off-screen on small viewports (<400px). */}
+        <div className="flex items-center gap-3 min-w-0 flex-1">
           <div
             className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0"
             style={config.style}
@@ -109,20 +112,25 @@ export function AppTopHeader({ initialRole }: AppTopHeaderProps = {}) {
             <p className="font-black text-slate-800 text-sm leading-none truncate">
               {config.label}
             </p>
-            <p className="hidden min-[375px]:block text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+            {/* The subtitle is decorative; hide below 420px to give the
+                title and action cluster real breathing room on phones. */}
+            <p className="hidden min-[420px]:block text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-0.5 truncate">
               ATAL AI SYSTEM
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <LanguageSelector variant="compact" />
+        {/* Action cluster. gap tightens on mobile, language selector
+            gets a max-width so the long native script options don't
+            blow it out wider than the title. */}
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+          <LanguageSelector variant="compact" className="max-w-[110px] sm:max-w-none" />
           <SyncStatusIndicator compact />
           {pathname !== "/app/settings" && (
             <Link
               href="/app/settings"
               aria-label="Settings"
               title="Settings"
-              className="inline-flex items-center justify-center w-11 h-11 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100"
+              className="inline-flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100"
             >
               <Settings size={18} strokeWidth={2.25} aria-hidden="true" />
             </Link>

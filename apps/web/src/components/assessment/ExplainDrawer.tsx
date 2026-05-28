@@ -37,6 +37,14 @@ export function ExplainDrawer({
   const [explanation, setExplanation] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Stable serialised key so a fresh `options` array reference on
+  // every parent render doesn't refire the fetch. Original bug:
+  // ExplainDrawer was opened once and useEffect with `options` in the
+  // dep array re-ran on every parent re-render, hammering the
+  // /api/assessment/explain endpoint until the rate-limiter (429)
+  // started rejecting and the abort/refire loop spiked CPU.
+  const optionsKey = options ? options.join("|") : "";
+
   useEffect(() => {
     if (!open) return;
     setExplanation(null);
@@ -67,7 +75,10 @@ export function ExplainDrawer({
       });
 
     return () => controller.abort();
-  }, [open, question, options, language, module]);
+    // `options` is intentionally NOT in deps — we depend on the joined
+    // string key so identical option lists don't trigger refires.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, question, optionsKey, language, module]);
 
   const titleByLanguage: Record<"en" | "hi" | "as", string> = {
     en: "Let me help you understand",

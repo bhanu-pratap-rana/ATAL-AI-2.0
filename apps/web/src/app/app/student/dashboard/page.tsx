@@ -288,7 +288,11 @@ export default async function StudentDashboardPage() {
               <Mascot size="sm" animate="bob" priority />
             </RainbowRing>
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl sm:text-3xl font-black mb-1 truncate leading-tight">
+              {/* Mobile-overlap fix: `truncate` was clipping long
+                  names ("Hi, Demo Student!…"). Allow wrapping with
+                  break-words; the parent flex-row gives the headline
+                  enough room since the mascot is sized to shrink. */}
+              <h1 className="text-2xl sm:text-3xl font-black mb-1 leading-tight wrap-break-word">
                 Hi, {displayName}! <span className="inline-block animate-bento-wiggle">👋</span>
               </h1>
               {(profile.class_name ?? profile.roll_number) && (
