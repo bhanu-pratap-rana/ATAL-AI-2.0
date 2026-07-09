@@ -16,7 +16,7 @@ import { generateText } from "ai";
 // ERR-2: Set max duration for AI generation (prevents Vercel timeout)
 export const maxDuration = 60;
 import { getAIModel } from "@/lib/ai/providers/gemini";
-import { createClient } from "@/lib/supabase-server";
+import { createAdminClient, createClient } from "@/lib/supabase-server";
 import { retrieveTopicContent, getTopicTitle, getTopicDescriptionSync } from "@/lib/rag/content-retrieval";
 import { authLogger } from "@/lib/auth-logger";
 import { RATE_LIMITS } from "@/lib/constants/rate-limits";
@@ -277,8 +277,11 @@ Generate 5-6 chunks covering:
 
       // Cache the generated lesson
       // BUG-015 FIX: Use RPC to support partial unique index (WHERE student_id IS NULL)
+      // SEC: shared cache — server-only write via service role (migration 204
+      // revokes EXECUTE from authenticated/anon).
       try {
-        await supabase.rpc("upsert_generated_lesson", {
+        const adminClient = await createAdminClient();
+        await adminClient.rpc("upsert_generated_lesson", {
           p_module_id: moduleId,
           p_topic_id: topicId,
           p_language: language,

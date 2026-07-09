@@ -17,7 +17,7 @@ export const maxDuration = 60;
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { generateTextWithFallback } from "@/lib/ai/with-fallback";
-import { createClient, getCurrentUser } from "@/lib/supabase-server";
+import { createAdminClient, createClient, getCurrentUser } from "@/lib/supabase-server";
 import { retrieveTopicContent, getTopicTitle, getTopicDescriptionSync } from "@/lib/rag/content-retrieval";
 import { authLogger } from "@/lib/auth-logger";
 import { checkRateLimit } from "@/lib/rate-limiter-distributed";
@@ -446,8 +446,12 @@ Transform this into 5-6 microlearning chunks with checkpoints. Make it engaging 
     // BUG-015 FIX: Use RPC to support partial unique index (WHERE student_id IS NULL)
     // The partial index doesn't work with Supabase JS .upsert() onConflict option,
     // so we use a SECURITY DEFINER RPC that uses native PostgreSQL ON CONFLICT ... WHERE
+    // SEC: the cache is shared across all students, so the write must be
+    // server-only — migration 204 revokes EXECUTE from authenticated/anon,
+    // meaning this RPC only works through the service-role client.
     try {
-      const { error: cacheError } = await supabase.rpc("upsert_generated_lesson", {
+      const adminClient = await createAdminClient();
+      const { error: cacheError } = await adminClient.rpc("upsert_generated_lesson", {
         p_module_id: moduleId,
         p_topic_id: topicId,
         p_language: language,
