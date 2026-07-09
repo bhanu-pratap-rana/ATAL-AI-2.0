@@ -10,6 +10,7 @@ import { AnalyticsTiles } from "@/components/teacher/AnalyticsTiles";
 import { StudentProgressGrid } from "@/components/teacher/StudentProgressGrid";
 import { AIInteractionsLog } from "@/components/teacher/AIInteractionsLog";
 import { CommunicationSection } from "@/components/teacher/communication";
+import { ExportButton } from "@/components/teacher/ExportButton";
 import { BentoCard } from "@/components/ui/bento-card";
 import {
   getClassAnalytics,
@@ -250,10 +251,15 @@ export default async function ClassDetailPage({
         {/* Real-time Student Progress Grid */}
         {enrollments.length > 0 && (
           <BentoCard padding="lg">
-            <h2 className="font-black text-slate-800 text-lg mb-1 flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-(--bento-sky-d)" strokeWidth={2.25} aria-hidden="true" /> Real-time Student Progress
-            </h2>
-            <p className="text-xs font-bold text-slate-500 mb-4">Live view of student learning progress and at-risk indicators</p>
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <div>
+                <h2 className="font-black text-slate-800 text-lg mb-1 flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-(--bento-sky-d)" strokeWidth={2.25} aria-hidden="true" /> Real-time Student Progress
+                </h2>
+                <p className="text-xs font-bold text-slate-500">Live view of student learning progress and at-risk indicators</p>
+              </div>
+              <ExportButton classId={id} type="progress" className="shrink-0" />
+            </div>
             <StudentProgressGrid classId={id} />
           </BentoCard>
         )}
@@ -261,10 +267,15 @@ export default async function ClassDetailPage({
         {/* AI Tutor Interactions Log */}
         {enrollments.length > 0 && (
           <BentoCard padding="lg">
-            <h2 className="font-black text-slate-800 text-lg mb-1 flex items-center gap-2">
-              <Bot className="w-5 h-5 text-(--bento-purple-d)" strokeWidth={2.25} aria-hidden="true" /> AI Tutor Activity
-            </h2>
-            <p className="text-xs font-bold text-slate-500 mb-4">Recent AI tutor conversations from your students</p>
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <div>
+                <h2 className="font-black text-slate-800 text-lg mb-1 flex items-center gap-2">
+                  <Bot className="w-5 h-5 text-(--bento-purple-d)" strokeWidth={2.25} aria-hidden="true" /> AI Tutor Activity
+                </h2>
+                <p className="text-xs font-bold text-slate-500">Recent AI tutor conversations from your students</p>
+              </div>
+              <ExportButton classId={id} type="ai" className="shrink-0" />
+            </div>
             <AIInteractionsLog classId={id} limit={15} />
           </BentoCard>
         )}

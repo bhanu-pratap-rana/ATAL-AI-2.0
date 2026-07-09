@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import {
+  createAdminClient,
   createClient,
   verifyClassOwnership,
   verifyTeacherAuth,
@@ -282,10 +283,13 @@ export async function exportStudentProgress(classId: string) {
       return { success: false, error: "Unauthorized" };
     }
 
-    // Get enrolled students with profile info
+    // Get enrolled student IDs. We deliberately do NOT embed student_profiles
+    // here: teacher access to student_profiles is blocked by RLS (that is why
+    // the roster uses a SECURITY DEFINER RPC), and a `!inner` embed turns that
+    // block into a hard "Failed to fetch student data" error.
     const { data: enrollmentData, error: enrollmentError } = await supabase
       .from("enrollments")
-      .select("student_id, student_profiles!inner(name, roll_number)")
+      .select("student_id")
       .eq("class_id", classId);
 
     if (enrollmentError) {
@@ -296,6 +300,19 @@ export async function exportStudentProgress(classId: string) {
 
     if (studentIds.length === 0) {
       return { success: true, data: [] };
+    }
+
+    // Names/roll numbers via the admin client (service_role). Class ownership
+    // is already verified above, so reading only the public-facing profile
+    // fields for this class's students is safe and scoped.
+    const adminClient = await createAdminClient();
+    const { data: profilesData, error: profilesError } = await adminClient
+      .from("student_profiles")
+      .select("user_id, name, roll_number")
+      .in("user_id", studentIds);
+
+    if (profilesError) {
+      authLogger.error("[exportStudentProgress] Failed to fetch profiles", profilesError);
     }
 
     // Get aggregated progress from existing RPC
@@ -312,12 +329,11 @@ export async function exportStudentProgress(classId: string) {
     const progressMap = new Map<string, ProgressItem>(
       (progressData || []).map((p: ProgressItem) => [p.student_id, p]),
     );
-    const profileMap = new Map(
-      (enrollmentData || []).map((e) => {
-        const rawProfile = e.student_profiles as unknown;
-        const profile = (Array.isArray(rawProfile) ? rawProfile[0] : rawProfile) as { name: string; roll_number?: string } | null;
-        return [e.student_id, profile];
-      }),
+    const profileMap = new Map<string, { name: string; roll_number?: string } | null>(
+      (profilesData || []).map((p) => [
+        p.user_id,
+        { name: p.name, roll_number: p.roll_number ?? undefined },
+      ]),
     );
 
     // Format for export
@@ -431,7 +447,12 @@ export async function exportAIInteractions(
       return { success: true, data: [] };
     }
 
-    // Get AI interactions and student names in parallel
+    // Get AI interactions (user client) and student names (admin client) in
+    // parallel. Names come from the admin client because teacher reads of
+    // student_profiles are RLS-blocked — with the user client the name map was
+    // silently empty, so every exported row showed "Unknown". Class ownership
+    // is verified above, so this scoped name lookup is safe.
+    const adminClient = await createAdminClient();
     const [interactionsResult, profilesResult] = await Promise.all([
       supabase
         .from("ai_tutor_interactions")
@@ -439,7 +460,7 @@ export async function exportAIInteractions(
         .in("student_id", studentIds)
         .order("created_at", { ascending: false })
         .limit(limit),
-      supabase
+      adminClient
         .from("student_profiles")
         .select("user_id, name")
         .in("user_id", studentIds),
