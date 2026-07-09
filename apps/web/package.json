@@ -47,7 +47,7 @@
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-tooltip": "^1.2.8",
-    "@sentry/nextjs": "^10.30.0",
+    "@sentry/nextjs": "^10.62.0",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.80.0",
     "@types/qrcode": "^1.5.6",
@@ -78,12 +78,26 @@
     "zod": "^3.24.0"
   },
   "overrides": {
-    "jsondiffpatch": ">=0.7.2"
+    "jsondiffpatch": ">=0.7.2",
+    "ws": ">=8.21.0",
+    "handlebars": ">=4.7.9",
+    "flatted": ">=3.4.2",
+    "rollup": ">=4.59.0",
+    "postcss": ">=8.5.10",
+    "terser-webpack-plugin": ">=5.3.17",
+    "serialize-javascript": ">=7.0.6",
+    "fast-uri": ">=3.1.2 <4",
+    "@babel/core": ">=7.29.6 <8",
+    "@sentry/nextjs": {
+      "picomatch": ">=4.0.4 <5"
+    },
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": ">=9.0.7 <10"
+    }
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.2",
     "@playwright/test": "^1.56.1",
-    "@snaplet/copycat": "^6.0.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
