@@ -18,16 +18,27 @@ export default defineConfig({
   reporter: [["html", { open: "never" }], ["list"]],
 
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3000",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
   },
 
   projects: [
+    // Logs in the demo accounts through the real UI and saves storage
+    // states; every role-scoped project depends on it.
+    {
+      name: "setup",
+      testMatch: /auth\.setup\.ts/,
+      use: { ...devices["Desktop Chrome"] },
+    },
+
     // Desktop browsers
     {
       name: "chromium",
+      // Regenerates tests/.auth/*.json before every run — the sign-out
+      // spec revokes the demo sessions, so states go stale between runs.
+      dependencies: ["setup"],
       use: { ...devices["Desktop Chrome"] },
     },
     {
@@ -52,6 +63,7 @@ export default defineConfig({
     // Role-specific projects for flow tests
     {
       name: "chromium-teacher",
+      dependencies: ["setup"],
       use: {
         ...devices["Desktop Chrome"],
         storageState: "./tests/.auth/teacher.json",
@@ -59,6 +71,7 @@ export default defineConfig({
     },
     {
       name: "chromium-student",
+      dependencies: ["setup"],
       use: {
         ...devices["Desktop Chrome"],
         storageState: "./tests/.auth/student.json",
@@ -66,6 +79,7 @@ export default defineConfig({
     },
     {
       name: "chromium-admin",
+      dependencies: ["setup"],
       use: {
         ...devices["Desktop Chrome"],
         storageState: "./tests/.auth/admin.json",
@@ -75,7 +89,7 @@ export default defineConfig({
 
   webServer: {
     command: "npm run dev",
-    url: "http://localhost:3000",
+    url: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
   },

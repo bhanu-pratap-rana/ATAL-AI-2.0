@@ -51,6 +51,7 @@ test-results.json
 
 # auth files - contain session tokens
 playwright/.auth/*.json
+tests/.auth/
 
 # vercel
 .vercel
