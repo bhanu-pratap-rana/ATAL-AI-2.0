@@ -552,6 +552,44 @@
 }
 
 /* ==========================================
+   ROLE-SCOPED BRAND COLOR
+   The teacher portal is blue and the admin portal navy, but many inner
+   components (InvitePanel QR + class code/PIN, announcements, buttons)
+   use the global brand `primary` (orange). Because the theme is wired via
+   `@theme inline` (utilities resolve `var(--color-primary)` at runtime),
+   overriding the primary scale on a role-scoped wrapper re-themes every
+   `primary` utility at once. `data-portal` is set in app/app/layout.tsx;
+   students have no matching rule and keep the default orange brand.
+   ========================================== */
+[data-portal="teacher"] {
+  --color-primary: var(--color-role-teacher); /* blue-600 #2563eb */
+  --color-primary-dark: #1D4ED8;              /* blue-700 */
+  --color-primary-darker: #1E40AF;            /* blue-800 */
+  --color-primary-darkest: #1E3A8A;           /* blue-900 */
+  --color-primary-light: #93C5FD;             /* blue-300 */
+  --color-primary-lighter: #DBEAFE;           /* blue-100 */
+  --color-primary-lightest: #EFF6FF;          /* blue-50 */
+  --gradient-primary: var(--gradient-teacher);
+  --gradient-primary-hover: linear-gradient(135deg, #1D4ED8 0%, #4F46E5 100%);
+  --shadow-primary: 0 8px 24px rgba(37, 99, 235, 0.3);
+  --shadow-primary-sm: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+[data-portal="admin"] {
+  --color-primary: var(--color-role-admin);   /* navy #1E3A5F */
+  --color-primary-dark: #17304D;
+  --color-primary-darker: #12283F;
+  --color-primary-darkest: #0D1F31;
+  --color-primary-light: #94A3B8;             /* slate-400 */
+  --color-primary-lighter: #CBD5E1;           /* slate-300 */
+  --color-primary-lightest: #F1F5F9;          /* slate-100 */
+  --gradient-primary: var(--gradient-admin);
+  --gradient-primary-hover: linear-gradient(135deg, #17304D 0%, #1D4ED8 100%);
+  --shadow-primary: 0 8px 24px rgba(30, 58, 95, 0.3);
+  --shadow-primary-sm: 0 4px 12px rgba(30, 58, 95, 0.2);
+}
+
+/* ==========================================
    BASE STYLES
    ========================================== */
 body {

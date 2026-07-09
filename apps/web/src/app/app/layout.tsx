@@ -26,8 +26,11 @@ export default async function AppLayout({
       <AppTopHeader initialRole={initialRole} />
       {/* pb-32: base clearance for the fixed bottom nav.
           The extra 4 rem (vs pb-28) absorbs the iOS home-indicator safe area
-          (up to ~34 px) so content is never obscured on notched iPhones. */}
-      <div className="pb-32">{children}</div>
+          (up to ~34 px) so content is never obscured on notched iPhones.
+          data-portal scopes the brand-primary color to the viewer's role so
+          the teacher portal renders blue and admin navy (see globals.css);
+          students have no matching rule and keep the default orange. */}
+      <div className="pb-32" data-portal={initialRole}>{children}</div>
       <BottomNav initialRole={initialRole} />
     </>
   );
