@@ -39,11 +39,27 @@ export async function proxy(request: NextRequest) {
   // refreshed session cookies.
   let supabaseResponse = NextResponse.next({ request });
 
-  // Env vars are validated at module load in supabase-server.ts; ?? "" is
-  // a safe fallback that satisfies TypeScript without non-null assertions.
+  // The middleware runs in the edge runtime, which does NOT execute the
+  // module-load validation in supabase-server.ts. If the Supabase env is
+  // missing or malformed, constructing the client with "" throws
+  // "Invalid supabaseUrl" — and because this middleware runs on every
+  // non-static path, that turns a config error into a site-wide 500,
+  // including the offline fallback and static pages. Guard it: skip the
+  // session refresh and let the request through. Page-level auth guards
+  // still enforce access control on their own.
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!isValidHttpUrl(supabaseUrl) || !supabaseAnonKey) {
+    console.error(
+      "[proxy] Supabase env missing/invalid — skipping session refresh. " +
+        "Set NEXT_PUBLIC_SUPABASE_URL (http/https) and NEXT_PUBLIC_SUPABASE_ANON_KEY.",
+    );
+    return supabaseResponse;
+  }
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         getAll() {
@@ -75,6 +91,23 @@ export async function proxy(request: NextRequest) {
 }
 
 export default proxy;
+
+/**
+ * True only when `value` is a non-empty, parseable http(s) URL. Used to
+ * detect a missing/malformed Supabase URL before it reaches
+ * createServerClient (which throws "Invalid supabaseUrl" on bad input).
+ */
+function isValidHttpUrl(value: string | undefined): value is string {
+  if (!value) {
+    return false;
+  }
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
 
 export const config = {
   matcher: [
