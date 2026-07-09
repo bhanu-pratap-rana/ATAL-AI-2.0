@@ -30,8 +30,7 @@ interface ResultCircleProps {
 }
 
 /**
- * Shared helper: Get color class based on percentage
- * Extracted to avoid S4144 duplication between ResultCircle and CompactResultCircle
+ * Get color class based on percentage
  */
 function getColorClass(pct: number): string {
   if (pct >= 80) return "text-success";
@@ -147,56 +146,3 @@ export function ResultCircle({
   );
 }
 
-/**
- * Compact version for use in cards/lists
- */
-export function CompactResultCircle({
-  percentage,
-  size = 64,
-  strokeWidth = 6,
-}: Readonly<Pick<ResultCircleProps, "percentage" | "size" | "strokeWidth">>) {
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (percentage / 100) * circumference;
-
-  return (
-    <div className="relative" style={{ width: size, height: size }}>
-      {/* NOSONAR S6819: SVG with role="img" is the correct accessibility pattern */}
-      <svg // NOSONAR
-        width={size}
-        height={size}
-        viewBox={`0 0 ${size} ${size}`}
-        className="transform -rotate-90"
-        role="img"
-        aria-label={`Score: ${percentage}%`}
-      >
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={strokeWidth}
-          className="text-border"
-        />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          strokeDashoffset={strokeDashoffset}
-          className={getColorClass(percentage)}
-        />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className={`text-sm font-bold ${getColorClass(percentage)}`}>
-          {percentage}%
-        </span>
-      </div>
-    </div>
-  );
-}

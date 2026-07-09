@@ -126,33 +126,8 @@ export interface RPCErrorResponse {
 }
 
 /**
- * Type guard to check if RPC response is an error
- */
-export function isRPCError(response: unknown): response is RPCErrorResponse {
-  return (
-    typeof response === "object" &&
-    response !== null &&
-    "error" in response &&
-    typeof (response as RPCErrorResponse).error === "string"
-  );
-}
-
-/**
  * Type for RPC call result (success or error)
  */
 export type RPCResult<T> =
   | { success: true; data: T }
   | { success: false; error: string };
-
-/**
- * Helper to wrap RPC responses in result type
- */
-export function wrapRPCResult<T>(
-  data: T | null,
-  error: string | null,
-): RPCResult<T> {
-  if (error || !data) {
-    return { success: false, error: error || "Unknown RPC error" };
-  }
-  return { success: true, data };
-}

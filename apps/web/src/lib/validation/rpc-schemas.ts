@@ -87,18 +87,6 @@ export function validateSupabaseAuthUsers(users: unknown): SupabaseAuthUser[] {
 }
 
 /**
- * Validate and parse Assessment Response Payload
- *
- * @param payload - Raw payload object
- * @returns Validated payload or throws ZodError
- */
-export function validateAssessmentResponsePayload(
-  payload: unknown,
-): AssessmentResponsePayload {
-  return AssessmentResponsePayloadSchema.parse(payload);
-}
-
-/**
  * Validate and parse Mutation Queue Payload
  *
  * @param payload - Raw payload object
@@ -108,16 +96,4 @@ export function validateMutationQueuePayload(
   payload: unknown,
 ): MutationQueuePayload {
   return MutationQueuePayloadSchema.parse(payload);
-}
-
-/**
- * Validate and parse Cursor Pagination Item
- *
- * @param item - Raw item object
- * @returns Validated item or throws ZodError
- */
-export function validateCursorPaginationItem(
-  item: unknown,
-): CursorPaginationItem {
-  return CursorPaginationItemSchema.parse(item);
 }

@@ -5,7 +5,6 @@ import {
   createAdminClient,
   verifySuperAdminAuth,
   verifyAdminAuth,
-  getCurrentUser,
 } from "@/lib/supabase-server";
 import { authLogger } from "@/lib/auth-logger";
 import { RATE_LIMITS } from "@/lib/constants/rate-limits";
@@ -58,58 +57,6 @@ export interface AdminActionResult {
   message?: string;
   error?: string;
   data?: unknown;
-}
-
-/**
- * Check if current user is super admin
- * SECURITY: Uses getCurrentUser() to get authenticated user from session
- *
- * @internal Reserved for future UI conditional rendering
- * @returns true if current user has super_admin role
- */
-export async function isCurrentUserSuperAdmin(): Promise<boolean> {
-  try {
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return false;
-    }
-
-    const role = currentUser.app_metadata?.role;
-    return isSuperAdmin(role);
-  } catch (error) {
-    authLogger.error(
-      "[isCurrentUserSuperAdmin] Error checking super admin status",
-      error,
-    );
-    return false;
-  }
-}
-
-/**
- * Get current user's admin role
- * SECURITY: Uses getCurrentUser() to get authenticated user from session
- *
- * @internal Reserved for future role-based UI rendering
- * @returns 'super_admin', 'admin', or null if not an admin
- */
-export async function getCurrentAdminRole(): Promise<
-  "super_admin" | "admin" | null
-> {
-  try {
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      return null;
-    }
-
-    const role = currentUser.app_metadata?.role;
-    if (isAdmin(role)) {
-      return role as "admin" | "super_admin";
-    }
-    return null;
-  } catch (error) {
-    authLogger.error("[getCurrentAdminRole] Error getting admin role", error);
-    return null;
-  }
 }
 
 /**
@@ -668,92 +615,6 @@ export async function resetAdminPassword(
     };
   } catch (error) {
     authLogger.error("[resetAdminPassword] Unexpected error", error);
-    return {
-      success: false,
-      error: "An unexpected error occurred",
-    };
-  }
-}
-
-/**
- * Check if email is super admin
- */
-export async function isSuperAdminEmail(email: string): Promise<boolean> {
-  try {
-    // Validate email input
-    const emailValidation = validateAdminInput(AdminEmailSchema, email);
-    if (!emailValidation.valid) {
-      return false;
-    }
-    const normalizedEmail = emailValidation.data;
-
-    const adminClient = await createAdminClient();
-    // PERFORMANCE: Use helper function for email lookup
-    const user = await findAuthUserByEmail(adminClient, normalizedEmail);
-
-    if (!user) {
-      return false;
-    }
-
-    const role = user.app_metadata?.role as string | null | undefined;
-    return isSuperAdmin(role);
-  } catch (error) {
-    authLogger.error(
-      "[isSuperAdminEmail] Error checking super admin email",
-      error,
-    );
-    return false;
-  }
-}
-
-/**
- * Get admin details by ID
- * SECURITY: Requires super_admin role
- */
-export async function getAdminById(
-  adminId: string,
-): Promise<AdminActionResult> {
-  try {
-    // Validate input
-    const idValidation = validateAdminInput(UserIdSchema, adminId);
-    if (!idValidation.valid) {
-      return idValidation.error;
-    }
-    const validatedId = idValidation.data;
-
-    // SECURITY: Verify caller is authenticated and authorized as super_admin
-    const auth = await verifySuperAdminAuth("getAdminById");
-    if (!auth.authorized) {
-      return auth.error;
-    }
-
-    const adminClient = await createAdminClient();
-    // PERFORMANCE: Use direct ID lookup - O(1) instead of O(n) pagination
-    const user = await findAuthUserById(adminClient, validatedId);
-
-    if (!user) {
-      return {
-        success: false,
-        error: "Admin not found",
-      };
-    }
-
-    const admin: AdminUser = {
-      id: user.id,
-      email: user.email || "",
-      role: ((user.app_metadata?.role) || "admin") as
-        | "admin"
-        | "super_admin",
-      created_at: user.created_at,
-      last_sign_in_at: user.last_sign_in_at,
-    };
-
-    return {
-      success: true,
-      data: admin,
-    };
-  } catch (error) {
-    authLogger.error("[getAdminById] Unexpected error", error);
     return {
       success: false,
       error: "An unexpected error occurred",

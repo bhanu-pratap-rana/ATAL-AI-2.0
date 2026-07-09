@@ -69,20 +69,6 @@ const getLevelFromScore = (score: number): SkillLevel => {
 };
 
 /**
- * Get progress bar color based on skill level
- */
-function getProgressBarColor(level: SkillLevel): string {
-  switch (level) {
-    case "beginner":
-      return "var(--color-primary)";
-    case "intermediate":
-      return "var(--color-success)";
-    case "advanced":
-      return "var(--color-cyan)";
-  }
-}
-
-/**
  * Determine skill level from score or explicit level prop
  */
 function getSkillLevel(
@@ -92,23 +78,6 @@ function getSkillLevel(
   if (level) return level;
   if (score !== undefined) return getLevelFromScore(score);
   return "beginner";
-}
-
-/**
- * Get badge classes for level progression display
- */
-function getLevelBadgeClasses(
-  isActive: boolean,
-  isCurrent: boolean,
-  bgClass: string,
-): string {
-  if (isCurrent) {
-    return `${bgClass} ring-2 ring-offset-2 ring-current`;
-  }
-  if (isActive) {
-    return bgClass;
-  }
-  return "bg-border";
 }
 
 export function LevelBadge({
@@ -178,69 +147,6 @@ export function LevelCard({
         {config.label}
       </h3>
       <p className="text-sm text-slate-500 mt-1">{config.description}</p>
-    </div>
-  );
-}
-
-/**
- * Level progress indicator showing all three levels
- */
-export function LevelProgress({
-  score,
-  className = "",
-}: Readonly<{
-  score: number;
-  className?: string;
-}>) {
-  const currentLevel = getLevelFromScore(score);
-
-  const levels: SkillLevel[] = ["beginner", "intermediate", "advanced"];
-  const currentIndex = levels.indexOf(currentLevel);
-
-  return (
-    <div className={`space-y-2 ${className}`}>
-      <div className="flex items-center justify-between">
-        {levels.map((level, index) => {
-          const config = LEVEL_CONFIG[level];
-          const isActive = index <= currentIndex;
-          const isCurrent = index === currentIndex;
-
-          return (
-            <div
-              key={level}
-              className={`
-                flex flex-col items-center gap-1
-                ${isActive ? config.colorClass : "text-slate-400"}
-              `}
-            >
-              <div
-                className={`
-                  w-10 h-10 rounded-full flex items-center justify-center text-xl
-                  transition-all duration-300
-                  ${getLevelBadgeClasses(isActive, isCurrent, config.bgClass)}
-                `}
-              >
-                {config.icon}
-              </div>
-              <span className="text-xs font-medium">{config.label}</span>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Progress line */}
-      <div className="relative h-2 bg-border rounded-full overflow-hidden">
-        <div
-          className={`
-            h-full rounded-full transition-all duration-500 ease-out
-            ${LEVEL_CONFIG[currentLevel].bgClass.replaceAll("-light", "")}
-          `}
-          style={{
-            width: `${Math.min(100, Math.max(0, (currentIndex + 1) * 33.33))}%`,
-            backgroundColor: getProgressBarColor(currentLevel),
-          }}
-        />
-      </div>
     </div>
   );
 }

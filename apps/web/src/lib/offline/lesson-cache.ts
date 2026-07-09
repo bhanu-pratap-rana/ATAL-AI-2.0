@@ -132,15 +132,6 @@ export async function getTopicsForModule(moduleId: string): Promise<TopicInfo[]>
 }
 
 /**
- * Sync version for immediate use (uses cached data if available)
- * Falls back to empty array if no cache exists
- */
-export function getTopicsForModuleSync(moduleId: string): TopicInfo[] {
-  const cached = topicsCache.get(moduleId);
-  return cached?.topics || [];
-}
-
-/**
  * Check if Cache API is available
  */
 export function isCacheApiAvailable(): boolean {

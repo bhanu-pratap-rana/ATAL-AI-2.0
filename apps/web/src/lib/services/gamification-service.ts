@@ -9,7 +9,6 @@
 
 import { createClient } from "@/lib/supabase-server";
 import { authLogger } from "@/lib/auth-logger";
-import { MASTERY_THRESHOLDS, MIN_TOPICS_FOR_MODULE_MASTERY } from "@/lib/constants/thresholds";
 
 /**
  * Badge definition

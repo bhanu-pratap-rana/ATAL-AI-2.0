@@ -166,15 +166,3 @@ export const VALIDATION_ERRORS = {
   INVALID_NAME: "Invalid name format",
   INVALID_CODE: "Invalid code format",
 } as const;
-
-/**
- * Generic helper to get error message
- */
-export function getErrorMessage(
-  error: unknown,
-  fallback = OPERATIONAL_ERRORS.OPERATION_FAILED,
-): string {
-  if (typeof error === "string") return error;
-  if (error instanceof Error) return error.message;
-  return fallback;
-}

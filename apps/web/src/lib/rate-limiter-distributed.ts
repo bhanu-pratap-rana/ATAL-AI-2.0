@@ -710,20 +710,6 @@ export async function checkRateLimit(
   return result.allowed;
 }
 
-export async function getRateLimitStatus(
-  key: string,
-  config: RateLimitConfig,
-): Promise<RateLimitResult> {
-  return defaultRateLimitManager.checkLimit("default", key, config);
-}
-
-export async function resetRateLimit(
-  key: string,
-  config: RateLimitConfig,
-): Promise<void> {
-  return defaultRateLimitManager.reset("default", key, config);
-}
-
 // ============================================================================
 // CONVENIENCE FUNCTIONS FOR OTP & PASSWORD RESET RATE LIMITING
 // These use centralized configurations from constants/rate-limits.ts
@@ -734,7 +720,6 @@ import { RATE_LIMITS } from "./constants/rate-limits";
 // Create dedicated limiter instances for auth operations
 const otpLimiter = createRateLimiter(RATE_LIMITS.otpRequest);
 const passwordResetLimiter = createRateLimiter(RATE_LIMITS.passwordReset);
-const ipLimiter = createRateLimiter(RATE_LIMITS.ipBased);
 const enumerationLimiter = createRateLimiter(RATE_LIMITS.emailEnumeration);
 
 /**
@@ -773,60 +758,6 @@ export async function checkEnumerationRateLimit(key: string): Promise<boolean> {
 }
 
 /**
- * Check if a general auth request is allowed from an IP
- * Uses centralized RATE_LIMITS.ipBased configuration
- * @param ip - IP address
- * @returns Promise<boolean> - true if allowed, false if rate limited
- */
-export async function checkIpRateLimit(ip: string): Promise<boolean> {
-  const key = `ip:${sanitizeRateLimitKey(ip)}`;
-  return ipLimiter.isAllowed(key);
-}
-
-/**
- * Get remaining OTP requests for an identifier
- * @param identifier - Email or phone number
- * @returns Promise<number> - Number of remaining requests
- */
-export async function getOtpRateLimitRemaining(
-  identifier: string,
-): Promise<number> {
-  const key = `otp:${sanitizeRateLimitKey(identifier)}`;
-  return otpLimiter.getRemaining(key);
-}
-
-/**
- * Reset OTP rate limit for an identifier (admin operation)
- * SEC-012 FIX: Use consistent sanitization across all rate limit functions
- * @param identifier - Email or phone number
- */
-export async function resetOtpRateLimit(identifier: string): Promise<void> {
-  const key = `otp:${sanitizeRateLimitKey(identifier)}`;
-  return otpLimiter.reset(key);
-}
-
-/**
- * Reset password reset rate limit for an email (admin operation)
- * SEC-012 FIX: Use consistent sanitization across all rate limit functions
- * @param email - Email address
- */
-export async function resetPasswordResetRateLimit(
-  email: string,
-): Promise<void> {
-  const key = `reset:${sanitizeRateLimitKey(email)}`;
-  return passwordResetLimiter.reset(key);
-}
-
-/**
- * Reset IP rate limit (admin operation)
- * @param ip - IP address
- */
-export async function resetIpRateLimit(ip: string): Promise<void> {
-  const key = `ip:${sanitizeRateLimitKey(ip)}`;
-  return ipLimiter.reset(key);
-}
-
-/**
  * ===== TEACHER OPERATIONS RATE LIMITING =====
  */
 const teacherOpLimiter = createRateLimiter(RATE_LIMITS.adminOperations);
@@ -858,23 +789,6 @@ export async function checkStudentMutationRateLimit(
 ): Promise<boolean> {
   const key = `student:mutation:${userId}`;
   return studentOpLimiter.isAllowed(key);
-}
-
-/**
- * ===== ADMIN OPERATIONS RATE LIMITING =====
- */
-const adminOpLimiter = createRateLimiter(RATE_LIMITS.adminOperations);
-
-/**
- * Check if admin operation is allowed (setRole, deleteUser, etc)
- * @param userId - Admin user ID
- * @returns Promise<boolean> - true if allowed, false if rate limited
- */
-export async function checkAdminOperationRateLimit(
-  userId: string,
-): Promise<boolean> {
-  const key = `admin:operation:${userId}`;
-  return adminOpLimiter.isAllowed(key);
 }
 
 /**
@@ -930,43 +844,4 @@ export async function checkOtpVerifyRateLimit(
 ): Promise<boolean> {
   const key = `otp:verify:${identifier.toLowerCase()}`;
   return otpVerifyLimiter.isAllowed(key);
-}
-
-/**
- * Get monitoring stats for rate limiters
- */
-export async function getRateLimiterStats(): Promise<{
-  otp: { entries: number; config: string };
-  passwordReset: { entries: number; config: string };
-  ip: { entries: number; config: string };
-  teacherOps: { entries: number; config: string };
-  studentOps: { entries: number; config: string };
-  adminOps: { entries: number; config: string };
-}> {
-  return {
-    otp: {
-      entries: await otpLimiter.getSize(),
-      config: `Max ${RATE_LIMITS.otpRequest.maxTokens} requests per hour per email/phone`,
-    },
-    passwordReset: {
-      entries: await passwordResetLimiter.getSize(),
-      config: `Max ${RATE_LIMITS.passwordReset.maxTokens} requests per hour per email`,
-    },
-    ip: {
-      entries: await ipLimiter.getSize(),
-      config: `Max ${RATE_LIMITS.ipBased.maxTokens} requests per minute per IP`,
-    },
-    teacherOps: {
-      entries: await teacherOpLimiter.getSize(),
-      config: `Max ${RATE_LIMITS.adminOperations.maxTokens} operations per minute per teacher`,
-    },
-    studentOps: {
-      entries: await studentOpLimiter.getSize(),
-      config: `Max ${RATE_LIMITS.dashboardStats.maxTokens} operations per hour per student`,
-    },
-    adminOps: {
-      entries: await adminOpLimiter.getSize(),
-      config: `Max ${RATE_LIMITS.adminOperations.maxTokens} operations per minute per admin`,
-    },
-  };
 }

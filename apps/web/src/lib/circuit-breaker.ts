@@ -177,7 +177,7 @@ export class CircuitBreaker {
  * Factory for creating named circuit breakers
  * Useful for managing multiple circuit breakers for different services
  */
-export class CircuitBreakerFactory {
+class CircuitBreakerFactory {
   private readonly breakers = new Map<string, CircuitBreaker>();
 
   /**

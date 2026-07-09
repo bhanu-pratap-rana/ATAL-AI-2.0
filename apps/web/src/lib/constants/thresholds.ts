@@ -94,13 +94,6 @@ export function isPassingScore(score: number): boolean {
   return score >= MASTERY_THRESHOLDS.PASSING;
 }
 
-/**
- * Check if score qualifies for high-score bonus
- */
-export function qualifiesForBonus(score: number): boolean {
-  return score >= MASTERY_THRESHOLDS.HIGH_SCORE_BONUS;
-}
-
 // Type for mastery threshold keys
 export type MasteryThresholdKey = keyof typeof MASTERY_THRESHOLDS;
 

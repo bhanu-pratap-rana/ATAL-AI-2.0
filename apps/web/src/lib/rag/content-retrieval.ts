@@ -137,17 +137,6 @@ export async function getTopicTitle(topicId: string, language: SupportedLanguage
 }
 
 /**
- * Get topic title synchronously from cache (use after cache is initialized)
- */
-export function getTopicTitleSync(topicId: string, language: SupportedLanguage): string {
-  const meta = topicMetadataCache.get(topicId);
-  if (meta) {
-    return meta.title[language] || meta.title.en;
-  }
-  return `Topic ${topicId}`;
-}
-
-/**
  * Get topic description (async, fetches from DB)
  */
 export async function getTopicDescription(topicId: string): Promise<string> {
@@ -245,48 +234,4 @@ export async function retrieveTopicContent(options: RetrievalOptions): Promise<R
     exercises,
     definitions,
   };
-}
-
-/**
- * Retrieve content using vector similarity search (for AI enhancement)
- */
-export async function retrieveRelatedContent(
-  query: string,
-  language: SupportedLanguage,
-  limit: number = 5,
-): Promise<string[]> {
-  const supabase = createClient();
-
-  // Prefer RPC when available (migration 152). Fallback to keyword search if RPC errors.
-  try {
-    const { data, error } = await supabase.rpc("match_curriculum_content_simple", {
-      query_text: query,
-      match_count: limit,
-      filter_language: language,
-    });
-
-    if (error) {
-      clientLogger.warn("[retrieveRelatedContent] RPC error:", { error: error.message });
-    }
-
-    if (data && data.length > 0) {
-      return data.map((item: { content: string }) => item.content);
-    }
-  } catch {
-    // RPC not in DB, fall back to keyword search
-  }
-
-  // Fallback: simple text search
-  const { data, error } = await supabase
-    .from("curriculum_content")
-    .select("content")
-    .eq("language", language)
-    .textSearch("content", query.split(" ").slice(0, 3).join(" & "))
-    .limit(limit);
-
-  if (error) {
-    clientLogger.warn("[retrieveRelatedContent] Text search error:", { error: error.message });
-  }
-
-  return (data || []).map((item) => item.content);
 }

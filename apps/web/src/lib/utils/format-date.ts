@@ -92,30 +92,3 @@ export function formatRelativeTime(date: Date | string): string {
   }
   return diffYears === 1 ? "1 year ago" : `${diffYears} years ago`;
 }
-
-/**
- * Format a date as a short date string (e.g., "Jan 15, 2024")
- */
-export function formatShortDate(date: Date | string): string {
-  const targetDate = typeof date === "string" ? new Date(date) : date;
-  return targetDate.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-/**
- * Format a date as a full date and time string (e.g., "January 15, 2024 at 3:30 PM")
- */
-export function formatFullDateTime(date: Date | string): string {
-  const targetDate = typeof date === "string" ? new Date(date) : date;
-  return targetDate.toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
-}

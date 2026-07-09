@@ -32,20 +32,3 @@ export function getScoreTextColor(score: number): string {
   if (score >= WARNING) return "text-amber-600";
   return "text-error";
 }
-
-/**
- * Badge-style classes — soft tinted background + dark text — for "23%"
- * pill chips next to a row. Returns a class string with both bg and text.
- */
-export function getScoreBadgeClasses(score: number): string {
-  if (score >= SUCCESS) return "bg-emerald-50 text-emerald-700";
-  if (score >= WARNING) return "bg-amber-50 text-amber-700";
-  return "bg-rose-50 text-rose-700";
-}
-
-/** Short label for a score bucket — used in badges/lists. */
-export function getScoreLabel(score: number): "Mastered" | "On track" | "Needs work" {
-  if (score >= SUCCESS) return "Mastered";
-  if (score >= WARNING) return "On track";
-  return "Needs work";
-}

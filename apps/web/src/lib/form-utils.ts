@@ -10,20 +10,6 @@
  */
 
 /**
- * Get the aria-describedby ID for form inputs based on error/helper text priority
- * Error messages take priority over helper text
- */
-export function getInputDescriptionId(
-  fieldId: string,
-  error?: string,
-  helperText?: string,
-): string | undefined {
-  if (error) return `${fieldId}-error`;
-  if (helperText) return `${fieldId}-helper`;
-  return undefined;
-}
-
-/**
  * Get language label for AI service prompts
  * Maps language codes to display names
  */

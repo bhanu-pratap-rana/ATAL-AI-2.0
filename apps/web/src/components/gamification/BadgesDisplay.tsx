@@ -448,35 +448,3 @@ export const BadgesDisplay = memo(function BadgesDisplay({
   );
 });
 
-/**
- * Compact Badge Display for Dashboard
- */
-export function BadgesCompact({
-  badges,
-  maxDisplay = 5,
-}: {
-  readonly badges: Array<{ readonly id: string; readonly icon: string; readonly name: string }>;
-  readonly maxDisplay?: number;
-}) {
-  const displayBadges = badges.slice(0, maxDisplay);
-  const remaining = badges.length - maxDisplay;
-
-  return (
-    <div className="flex items-center gap-1">
-      {displayBadges.map((badge) => (
-        <div
-          key={badge.id}
-          className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-lg"
-          title={badge.name}
-        >
-          {badge.icon}
-        </div>
-      ))}
-      {remaining > 0 && (
-        <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-xs font-medium">
-          +{remaining}
-        </div>
-      )}
-    </div>
-  );
-}

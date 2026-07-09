@@ -228,24 +228,3 @@ export function useNetworkStatus(): NetworkStatus {
   return status;
 }
 
-/**
- * Type guard to check if NetworkInformation API is available
- */
-export function hasNetworkInformation(): boolean {
-  if (typeof navigator === "undefined") return false;
-
-  const nav = navigator as Navigator & {
-    connection?: NetworkInformation;
-    mozConnection?: NetworkInformation;
-    webkitConnection?: NetworkInformation;
-  };
-
-  return (
-    ("connection" in nav ||
-      "mozConnection" in nav ||
-      "webkitConnection" in nav) &&
-    (nav.connection !== undefined ||
-      nav.mozConnection !== undefined ||
-      nav.webkitConnection !== undefined)
-  );
-}

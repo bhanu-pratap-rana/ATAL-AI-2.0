@@ -258,52 +258,6 @@ export async function getStorageUsage(): Promise<{
 }
 
 /**
- * Check if there's sufficient storage space available
- * @param requiredMB - Minimum required space in megabytes (default: 5MB)
- * @returns true if sufficient space is available, false otherwise
- */
-export async function hasStorageSpace(requiredMB: number = 5): Promise<boolean> {
-  if (typeof navigator === "undefined" || !navigator.storage?.estimate) {
-    // If we can't check, assume space is available
-    return true;
-  }
-
-  try {
-    const estimate = await navigator.storage.estimate();
-    const quota = estimate.quota || 0;
-    const usage = estimate.usage || 0;
-    const availableBytes = quota - usage;
-    const requiredBytes = requiredMB * 1024 * 1024;
-
-    return availableBytes >= requiredBytes;
-  } catch {
-    // If check fails, assume space is available
-    return true;
-  }
-}
-
-/**
- * Get estimated remaining storage space in MB
- * @returns Available space in megabytes
- */
-export async function getAvailableStorageMB(): Promise<number> {
-  if (typeof navigator === "undefined" || !navigator.storage?.estimate) {
-    return 0;
-  }
-
-  try {
-    const estimate = await navigator.storage.estimate();
-    const quota = estimate.quota || 0;
-    const usage = estimate.usage || 0;
-    const availableBytes = quota - usage;
-
-    return Math.floor(availableBytes / (1024 * 1024));
-  } catch {
-    return 0;
-  }
-}
-
-/**
  * Generate composite key for downloaded lessons
  */
 export function getDownloadedLessonKey(
@@ -312,26 +266,6 @@ export function getDownloadedLessonKey(
   language: SupportedLanguage,
 ): string {
   return `${moduleId}:${topicId}:${language}`;
-}
-
-/**
- * Generate composite key for offline progress
- */
-export function getOfflineProgressKey(topicId: string, studentId: string): string {
-  return `${topicId}:${studentId}`;
-}
-
-/**
- * Check if a lesson is downloaded for offline use
- */
-export async function isLessonDownloaded(
-  moduleId: string,
-  topicId: string,
-  language: SupportedLanguage,
-): Promise<boolean> {
-  const key = getDownloadedLessonKey(moduleId, topicId, language);
-  const lesson = await offlineDB.downloadedLessons.get(key);
-  return !!lesson && lesson.expiresAt > Date.now();
 }
 
 /**
@@ -371,19 +305,6 @@ export async function deleteDownloadedLesson(
 ): Promise<void> {
   const key = getDownloadedLessonKey(moduleId, topicId, language);
   await offlineDB.downloadedLessons.delete(key);
-}
-
-/**
- * Get all downloaded lessons for a module
- */
-export async function getDownloadedLessonsForModule(
-  moduleId: string,
-): Promise<DownloadedLesson[]> {
-  return offlineDB.downloadedLessons
-    .where("moduleId")
-    .equals(moduleId)
-    .and((lesson) => lesson.expiresAt > Date.now())
-    .toArray();
 }
 
 /**
