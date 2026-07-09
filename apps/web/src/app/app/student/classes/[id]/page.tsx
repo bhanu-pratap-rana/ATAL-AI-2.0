@@ -1,12 +1,17 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, BookOpen, BookOpenCheck, Bot, FolderClosed, Megaphone } from "lucide-react";
-import { createClient, getCurrentUser } from "@/lib/supabase-server";
+import {
+  createAdminClient,
+  createClient,
+  getCurrentUser,
+} from "@/lib/supabase-server";
 import { authLogger } from "@/lib/auth-logger";
 import {
   StudentAnnouncementsCard,
   StudentMaterialsCard,
 } from "@/components/student/communication";
+import { LeaveClassButton } from "@/components/student/LeaveClassButton";
 import {
   getStudentClassAnnouncements,
   getStudentClassMaterials,
@@ -73,16 +78,26 @@ async function getStudentClassDetails(
 
     const classData = Array.isArray(rawClass) ? rawClass[0] : rawClass;
 
-    // Fetch teacher info
+    // Fetch teacher info.
+    // teacher_profiles has a teacher_self_read RLS policy — a student cannot
+    // see their teacher's row through the user-scoped client, which left the
+    // banner showing "Not available". Use the admin client (service_role) to
+    // fetch only the public-facing name, mirroring the classes list page.
     let teacher: TeacherInfo | null = null;
     if (classData?.teacher_id) {
-      const { data: teacherProfile } = await supabase
+      const adminClient = await createAdminClient();
+      const { data: teacherProfile, error: teacherError } = await adminClient
         .from("teacher_profiles")
         .select("user_id, name")
         .eq("user_id", classData.teacher_id)
         .maybeSingle();
 
-      if (teacherProfile) {
+      if (teacherError) {
+        authLogger.error(
+          "[getStudentClassDetails] Failed to fetch teacher name",
+          teacherError
+        );
+      } else if (teacherProfile) {
         teacher = teacherProfile;
       }
     }
@@ -202,6 +217,12 @@ export default async function StudentClassDetailPage({
               <Bot size={16} strokeWidth={2.5} aria-hidden="true" />
               AI Tutor
             </Link>
+          </div>
+          <div className="mt-4 pt-4 border-t border-slate-100 flex justify-end">
+            <LeaveClassButton
+              classId={classDetails.class.id}
+              className={classDetails.class.name}
+            />
           </div>
         </div>
       </div>

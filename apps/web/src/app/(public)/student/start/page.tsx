@@ -31,7 +31,13 @@ export default function StudentStartPage() {
         data: { session },
       } = await supabase.auth.getSession();
       if (session) {
-        router.push("/app/student/dashboard");
+        // Route through the canonical role-router shim (/app/dashboard) rather
+        // than hardcoding the student dashboard. A logged-in teacher/admin who
+        // lands here would otherwise be pushed to /app/student/dashboard and
+        // then server-redirected onward — a double navigation that flashed a
+        // half-mounted student view. The shim sends each role to its own home
+        // in one hop.
+        router.push("/app/dashboard");
       }
     }
     checkAuth();
