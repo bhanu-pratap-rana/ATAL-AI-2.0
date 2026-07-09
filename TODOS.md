@@ -20,8 +20,8 @@ wired in `BackgroundSyncInitializer.tsx`. Verify end-to-end with:
 - Vertex AI / Imagen in production: Requires GCP service account + Vercel secrets.
 - Comprehensive E2E flows: Teacher/student authenticated tests need real Supabase creds in CI.
 - sw.js cache quota: Add `navigator.storage.estimate()` before caching to prevent storage exhaustion on low-end Android.
-- Security audit unblocked: `npm audit --audit-level=high` has `continue-on-error: true`. Change to blocking once known vulnerabilities are patched.
-- CI on feature branches: Currently only runs on pushes to `main`. Add `push: branches: ['feature/**']` to catch regressions earlier.
+- ~~Security audit unblocked: `npm audit --audit-level=high` has `continue-on-error: true`.~~ **Done:** CI now blocks on `npm audit --omit=dev --audit-level=high` (zero high/critical in production deps); full-tree audit kept as advisory. Production runtime vulns eliminated (`ws`→8.21, `@sentry/nextjs`→10.62, plus same-major/scoped overrides for `fast-uri`, `picomatch`, `minimatch`, `handlebars`, `rollup`, `postcss`, `terser-webpack-plugin`, `serialize-javascript`, `flatted`, `@babel/core`). Remaining advisories are dev/build tooling only (eslint/jest/babel) on transitive majors with no in-major fix.
+- ~~CI on feature branches: Currently only runs on pushes to `main`.~~ **Done:** CI now triggers on `push` to `main`, `feature/**`, and `fix/**`.
 - Redis rate limiting for other server actions: Only OTP functions use Redis-backed rate limiting. Teacher/student/admin mutations could also benefit.
 
 ## Open Items from v0.1.0.0 Production Readiness Manifest
