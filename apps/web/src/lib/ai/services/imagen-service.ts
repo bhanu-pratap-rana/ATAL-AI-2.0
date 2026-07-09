@@ -194,146 +194,20 @@ export async function generateImage(
       promptLength: enhancedPrompt.length,
     });
 
-    const MAX_RETRIES = 2;
-    let response: Response | null = null;
-
-    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-      response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          instances: [
-            {
-              prompt: enhancedPrompt,
-            },
-          ],
-          parameters: {
-            sampleCount: 1,
-            aspectRatio: params.size === "256x256" ? "1:1" : "16:9",
-            safetyFilterLevel: "block_some",
-            personGeneration: "dont_allow",
-          },
-        }),
-      });
-
-      // Retry on 429 (rate limit) with exponential backoff
-      if (response.status === 429 && attempt < MAX_RETRIES) {
-        const backoffMs = 1000 * Math.pow(2, attempt); // 1s, 2s
-        authLogger.warn("[Imagen] Rate limited (429), retrying", {
-          attempt: attempt + 1,
-          backoffMs,
-        });
-        await new Promise((resolve) => setTimeout(resolve, backoffMs));
-        continue;
-      }
-
-      break;
-    }
-
-    // PR-64: replace `response!.` non-null asserts. The retry loop above
-    // CAN exit with `response` still undefined if every attempt is a 429
-    // and the last `continue` runs before assignment — better to fail
-    // loudly with a clear message than NPE on `response!.ok`.
-    if (!response) {
-      throw new Error("Vertex AI Imagen: no response after retries (all attempts rate-limited)");
-    }
+    const response = await callVertexWithRetry(endpoint, accessToken, enhancedPrompt, params);
 
     if (!response.ok) {
-      const errorBody = await response.text();
-      let errorMessage: string;
-
-      try {
-        const errorJson = JSON.parse(errorBody);
-        errorMessage = errorJson.error?.message || errorBody;
-      } catch {
-        errorMessage = errorBody;
-      }
-
-      authLogger.error("[Imagen] Vertex AI error", {
-        status: response.status,
-        statusText: response.statusText,
-        error: errorMessage,
-      });
-
-      throw new Error(`Vertex AI Imagen error (${response.status}): ${errorMessage}`);
+      throw await buildVertexError(response);
     }
 
     const result = await response.json();
-
-    // Vertex AI response format: predictions[0].bytesBase64Encoded
-    const imageData = result.predictions?.[0]?.bytesBase64Encoded;
-
-    if (!imageData) {
-      // Distinguish safety filter (empty/null predictions) from unexpected errors
-      const isPredictionsEmpty = Array.isArray(result.predictions) && result.predictions.length === 0;
-      const isPredictionsNull = result.predictions === null || result.predictions === undefined;
-      const filteredReason = result.filteredReason || result.blockReason;
-
-      if (filteredReason || isPredictionsEmpty || isPredictionsNull) {
-        authLogger.warn("[Imagen] Image blocked by safety filter", {
-          reason: filteredReason || "empty_predictions",
-          responseKeys: Object.keys(result),
-        });
-        throw new Error(`Image blocked by safety filter: ${filteredReason || "content policy"}`);
-      }
-
-      authLogger.error("[Imagen] Unexpected response structure", {
-        hasResult: !!result,
-        hasPredictions: !!result.predictions,
-        predictionKeys: result.predictions?.[0] ? Object.keys(result.predictions[0]) : [],
-        responseKeys: Object.keys(result),
-      });
-      throw new Error("No image data in Vertex AI response");
-    }
+    const imageData = extractImageData(result);
 
     // Create base64 data URL as fallback
     const base64Url = `data:image/png;base64,${imageData}`;
     const cacheKey = getCacheKey(params);
 
-    // Try to save to Supabase Storage (optional - may fail if bucket doesn't exist)
-    let publicUrl: string | null = null;
-    try {
-      const supabase = await createClient();
-      const imageBuffer = Buffer.from(imageData, "base64");
-
-      // SEC-13 FIX: Reject images over 10MB to prevent storage abuse
-      const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
-      if (imageBuffer.length > MAX_IMAGE_SIZE) {
-        authLogger.warn("[Imagen] Image exceeds size limit", {
-          size: imageBuffer.length,
-          maxSize: MAX_IMAGE_SIZE,
-        });
-        throw new Error("Generated image exceeds maximum allowed size");
-      }
-
-      const { error: uploadError } = await supabase.storage
-        .from("lesson-assets")
-        .upload(cacheKey, imageBuffer, {
-          contentType: "image/png",
-          cacheControl: "31536000", // 1 year cache
-          upsert: true,
-        });
-
-      if (uploadError) {
-        authLogger.warn("[Imagen] Upload failed (using base64 fallback)", {
-          error: uploadError.message,
-        });
-      } else {
-        // Bucket is public — use public URL (never expires)
-        const { data: urlData } = supabase.storage
-          .from("lesson-assets")
-          .getPublicUrl(cacheKey);
-        publicUrl = urlData?.publicUrl || null;
-      }
-    } catch (storageError) {
-      // Storage completely unavailable - use base64 fallback
-      authLogger.warn("[Imagen] Storage unavailable, using base64 data URL", {
-        error: storageError instanceof Error ? storageError.message : String(storageError),
-      });
-    }
+    const publicUrl = await uploadImageToStorage(imageData, cacheKey);
 
     authLogger.success("[Imagen] Image generated successfully", {
       cacheKey,
@@ -352,6 +226,177 @@ export async function generateImage(
       error instanceof Error ? error : { error: String(error) }
     );
     throw error;
+  }
+}
+
+/**
+ * POST to the Vertex AI Imagen endpoint, retrying 429s with exponential
+ * backoff (1s, 2s). Throws if every attempt was rate-limited.
+ */
+async function callVertexWithRetry(
+  endpoint: string,
+  accessToken: string,
+  enhancedPrompt: string,
+  params: ImagenParams,
+): Promise<Response> {
+  const MAX_RETRIES = 2;
+  let response: Response | null = null;
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        instances: [
+          {
+            prompt: enhancedPrompt,
+          },
+        ],
+        parameters: {
+          sampleCount: 1,
+          aspectRatio: params.size === "256x256" ? "1:1" : "16:9",
+          safetyFilterLevel: "block_some",
+          personGeneration: "dont_allow",
+        },
+      }),
+    });
+
+    // Retry on 429 (rate limit) with exponential backoff
+    if (response.status === 429 && attempt < MAX_RETRIES) {
+      const backoffMs = 1000 * Math.pow(2, attempt); // 1s, 2s
+      authLogger.warn("[Imagen] Rate limited (429), retrying", {
+        attempt: attempt + 1,
+        backoffMs,
+      });
+      await new Promise((resolve) => setTimeout(resolve, backoffMs));
+      continue;
+    }
+
+    break;
+  }
+
+  // PR-64: replace `response!.` non-null asserts. The retry loop above
+  // CAN exit with `response` still undefined if every attempt is a 429
+  // and the last `continue` runs before assignment — better to fail
+  // loudly with a clear message than NPE on `response!.ok`.
+  if (!response) {
+    throw new Error("Vertex AI Imagen: no response after retries (all attempts rate-limited)");
+  }
+
+  return response;
+}
+
+/**
+ * Parse a non-OK Vertex response body into a descriptive Error.
+ */
+async function buildVertexError(response: Response): Promise<Error> {
+  const errorBody = await response.text();
+  let errorMessage: string;
+
+  try {
+    const errorJson = JSON.parse(errorBody);
+    errorMessage = errorJson.error?.message || errorBody;
+  } catch {
+    errorMessage = errorBody;
+  }
+
+  authLogger.error("[Imagen] Vertex AI error", {
+    status: response.status,
+    statusText: response.statusText,
+    error: errorMessage,
+  });
+
+  return new Error(`Vertex AI Imagen error (${response.status}): ${errorMessage}`);
+}
+
+/**
+ * Pull the base64 image bytes out of a Vertex prediction response,
+ * distinguishing safety-filter blocks from unexpected response shapes.
+ */
+function extractImageData(result: {
+  predictions?: Array<{ bytesBase64Encoded?: string }> | null;
+  filteredReason?: string;
+  blockReason?: string;
+}): string {
+  // Vertex AI response format: predictions[0].bytesBase64Encoded
+  const imageData = result.predictions?.[0]?.bytesBase64Encoded;
+  if (imageData) {
+    return imageData;
+  }
+
+  // Distinguish safety filter (empty/null predictions) from unexpected errors
+  const isPredictionsEmpty = Array.isArray(result.predictions) && result.predictions.length === 0;
+  const isPredictionsNull = result.predictions === null || result.predictions === undefined;
+  const filteredReason = result.filteredReason || result.blockReason;
+
+  if (filteredReason || isPredictionsEmpty || isPredictionsNull) {
+    authLogger.warn("[Imagen] Image blocked by safety filter", {
+      reason: filteredReason || "empty_predictions",
+      responseKeys: Object.keys(result),
+    });
+    throw new Error(`Image blocked by safety filter: ${filteredReason || "content policy"}`);
+  }
+
+  authLogger.error("[Imagen] Unexpected response structure", {
+    hasResult: !!result,
+    hasPredictions: !!result.predictions,
+    predictionKeys: result.predictions?.[0] ? Object.keys(result.predictions[0]) : [],
+    responseKeys: Object.keys(result),
+  });
+  throw new Error("No image data in Vertex AI response");
+}
+
+/**
+ * Try to persist the image to Supabase Storage and return its public URL.
+ * Returns null on any failure — the caller falls back to a base64 data URL.
+ */
+async function uploadImageToStorage(
+  imageData: string,
+  cacheKey: string,
+): Promise<string | null> {
+  try {
+    const supabase = await createClient();
+    const imageBuffer = Buffer.from(imageData, "base64");
+
+    // SEC-13 FIX: Reject images over 10MB to prevent storage abuse
+    const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
+    if (imageBuffer.length > MAX_IMAGE_SIZE) {
+      authLogger.warn("[Imagen] Image exceeds size limit", {
+        size: imageBuffer.length,
+        maxSize: MAX_IMAGE_SIZE,
+      });
+      throw new Error("Generated image exceeds maximum allowed size");
+    }
+
+    const { error: uploadError } = await supabase.storage
+      .from("lesson-assets")
+      .upload(cacheKey, imageBuffer, {
+        contentType: "image/png",
+        cacheControl: "31536000", // 1 year cache
+        upsert: true,
+      });
+
+    if (uploadError) {
+      authLogger.warn("[Imagen] Upload failed (using base64 fallback)", {
+        error: uploadError.message,
+      });
+      return null;
+    }
+
+    // Bucket is public — use public URL (never expires)
+    const { data: urlData } = supabase.storage
+      .from("lesson-assets")
+      .getPublicUrl(cacheKey);
+    return urlData?.publicUrl || null;
+  } catch (storageError) {
+    // Storage completely unavailable - use base64 fallback
+    authLogger.warn("[Imagen] Storage unavailable, using base64 data URL", {
+      error: storageError instanceof Error ? storageError.message : String(storageError),
+    });
+    return null;
   }
 }
 
@@ -519,26 +564,6 @@ export const TOPIC_IMAGE_PROMPTS: Record<string, ImagenParams> = {
   },
 };
 
-/**
- * Get or generate image for a topic
- */
-export async function getTopicImage(
-  topicId: string,
-  language: SupportedLanguage = "en"
-): Promise<ImagenResult | null> {
-  const basePrompt = TOPIC_IMAGE_PROMPTS[topicId];
-  if (!basePrompt) {
-    return null;
-  }
-
-  const params: ImagenParams = {
-    ...basePrompt,
-    language,
-  };
-
-  return generateImageWithFallback(params);
-}
-
 // ===========================================================================
 // FALLBACK CHAIN — runtime auto-switch when Vertex AI Imagen 3 errors out.
 //
@@ -676,7 +701,7 @@ async function generateImageWithPollinations(
  * the free providers on error. Always returns an ImagenResult unless
  * every layer (including Pollinations) fails, in which case throws.
  *
- * Called by the /api/imagen/generate route and by getTopicImage.
+ * Called by the /api/imagen/generate route.
  */
 export async function generateImageWithFallback(
   params: ImagenParams,
