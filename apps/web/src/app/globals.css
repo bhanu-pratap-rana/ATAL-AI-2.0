@@ -1200,7 +1200,9 @@ body {
   justify-content: center;
   gap: 0.5rem;
   background: var(--bento-orange);
-  color: #ffffff;
+  /* Dark text on the bright accents — white fails WCAG AA (2.3:1 on
+     orange). Same pattern as the mint/yellow variants below. */
+  color: #4a1d05;
   font-weight: 900;
   padding: 0.875rem 1.25rem;
   border-radius: 1rem;
@@ -1223,11 +1225,11 @@ body {
   box-shadow: 0 5px 0 var(--bento-btn-shadow);
 }
 
-.btn-bento-purple { background: var(--bento-purple); --bento-btn-shadow: var(--bento-purple-d); }
-.btn-bento-sky    { background: var(--bento-sky);    --bento-btn-shadow: var(--bento-sky-d); }
-.btn-bento-pink   { background: var(--bento-pink);   --bento-btn-shadow: var(--bento-pink-d); }
+.btn-bento-purple { background: var(--bento-purple); --bento-btn-shadow: var(--bento-purple-d); color: #2e1065; }
+.btn-bento-sky    { background: var(--bento-sky);    --bento-btn-shadow: var(--bento-sky-d); color: #0c3a52; }
+.btn-bento-pink   { background: var(--bento-pink);   --bento-btn-shadow: var(--bento-pink-d); color: #63123b; }
 .btn-bento-mint   { background: var(--bento-mint);   --bento-btn-shadow: var(--bento-mint-d); color: #0F4F32; }
-.btn-bento-green  { background: var(--bento-green);  --bento-btn-shadow: var(--bento-green-d); }
+.btn-bento-green  { background: var(--bento-green);  --bento-btn-shadow: var(--bento-green-d); color: #0a3d1f; }
 .btn-bento-yellow { background: var(--bento-yellow); --bento-btn-shadow: var(--bento-yellow-d); color: #5A4400; }
 .btn-bento-grey {
   background: #ffffff;

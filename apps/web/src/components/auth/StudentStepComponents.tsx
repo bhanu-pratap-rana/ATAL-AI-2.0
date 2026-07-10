@@ -42,7 +42,7 @@ export function ChoiceStep({ actions, loading: _loading, state: _state }: StepCo
             </RainbowRing>
           </div>
           <h1 className="text-4xl sm:text-5xl font-black tracking-tight mb-2 text-slate-900">
-            ATAL <span className="text-(--bento-orange)">AI</span>
+            ATAL <span className="text-(--bento-orange-d)">AI</span>
           </h1>
           <p className="text-slate-600 font-bold mb-8 text-sm sm:text-base">
             Assam&apos;s Premier Digital Learning Platform
@@ -60,7 +60,7 @@ export function ChoiceStep({ actions, loading: _loading, state: _state }: StepCo
 <GraduationCap className="w-7 h-7 shrink-0" strokeWidth={2.25} aria-hidden="true" />
               <span className="text-left">
                 <span className="block text-base leading-none">Sign In</span>
-                <span className="block text-xs font-bold text-white/80 mt-1">
+                <span className="block text-xs font-bold opacity-90 mt-1">
                   Login to your account
                 </span>
               </span>

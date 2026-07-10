@@ -72,7 +72,7 @@ export function ClassCreationSuccess({
         <Button
           onClick={onDone}
           variant="ghost"
-          className="w-full btn-bento btn-bento-sky text-white! hover:text-white!"
+          className="w-full btn-bento btn-bento-sky"
         >
           Done
         </Button>

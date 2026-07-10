@@ -74,7 +74,7 @@ export function CreateClassDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" className="btn-bento btn-bento-sky text-white! hover:text-white!">
+        <Button variant="ghost" className="btn-bento btn-bento-sky">
           <span className="mr-2">+</span>
           <span>Create Class</span>
         </Button>
@@ -133,7 +133,7 @@ export function CreateClassDialog() {
                 type="submit"
                 variant="ghost"
                 disabled={loading || !name}
-                className="btn-bento btn-bento-sky text-white! hover:text-white!"
+                className="btn-bento btn-bento-sky"
               >
                 {loading ? "Creating..." : "Create Class"}
               </Button>

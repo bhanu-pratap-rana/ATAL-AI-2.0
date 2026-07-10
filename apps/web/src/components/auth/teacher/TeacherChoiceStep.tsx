@@ -59,7 +59,7 @@ export function TeacherChoiceStep({ actions }: TeacherChoiceStepProps) {
               <GraduationCap className="w-6 h-6 shrink-0" strokeWidth={2.25} aria-hidden="true" />
               <span className="text-left">
                 <span className="block text-base leading-none">Create New Account</span>
-                <span className="block text-xs font-bold text-white/80 mt-1">New teacher registration</span>
+                <span className="block text-xs font-bold opacity-90 mt-1">New teacher registration</span>
               </span>
             </BentoButton>
 

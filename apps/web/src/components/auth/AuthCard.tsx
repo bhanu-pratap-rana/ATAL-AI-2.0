@@ -44,7 +44,7 @@ export function AuthCard({ children, title, description }: AuthCardProps) {
           </RainbowRing>
         </div>
         <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight mb-1">
-          ATAL <span className="text-(--bento-orange)">AI</span>
+          ATAL <span className="text-(--bento-orange-d)">AI</span>
         </h1>
         <p className="text-sm text-slate-500 font-bold">
           Assam&apos;s Digital Learning Platform
