@@ -1,7 +1,6 @@
 "use server";
 
-import { createClient, createAdminClient } from "@/lib/supabase-server";
-import { revalidatePath } from "next/cache";
+import { createAdminClient } from "@/lib/supabase-server";
 import { authLogger } from "@/lib/auth-logger";
 import { findAuthUserByEmail } from "@/lib/admin-utils";
 import { AuthEmailSchema } from "@/lib/validation-schemas";
@@ -105,75 +104,3 @@ export async function checkEmailExistsInAuth(email: string): Promise<{
   }
 }
 
-/**
- * Check if current user is a teacher
- * Returns isTeacher status and user ID
- */
-export async function checkUserIsTeacher(): Promise<{
-  isTeacher: boolean;
-  userId?: string;
-  error?: string;
-}> {
-  try {
-    const { getCurrentUser } = await import("@/lib/supabase-server");
-    const user = await getCurrentUser();
-
-    if (!user) {
-      return { isTeacher: false, error: "Not authenticated" };
-    }
-
-    const supabase = await createClient();
-
-    // Check if user has a teacher profile
-    const { data: teacherProfile, error } = await supabase
-      .from("teacher_profiles")
-      .select("user_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (error) {
-      authLogger.error(
-        "[checkUserIsTeacher] Error checking teacher profile",
-        error,
-      );
-      return {
-        isTeacher: false,
-        userId: user.id,
-        error: "Failed to check teacher status",
-      };
-    }
-
-    return {
-      isTeacher: teacherProfile !== null,
-      userId: user.id,
-    };
-  } catch (error) {
-    authLogger.error("[checkUserIsTeacher] Unexpected error", error);
-    return { isTeacher: false, error: "An unexpected error occurred" };
-  }
-}
-
-/**
- * Sign out the current user
- * Used when user tries to login via wrong role page
- */
-export async function signOutUser(): Promise<{
-  success: boolean;
-  error?: string;
-}> {
-  try {
-    const supabase = await createClient();
-    const { error } = await supabase.auth.signOut();
-
-    if (error) {
-      authLogger.error("[signOutUser] Sign out failed", error);
-      return { success: false, error: "Sign out failed. Please try again." };
-    }
-
-    revalidatePath("/", "layout");
-    return { success: true };
-  } catch (error) {
-    authLogger.error("[signOutUser] Unexpected error", error);
-    return { success: false, error: "Failed to sign out" };
-  }
-}

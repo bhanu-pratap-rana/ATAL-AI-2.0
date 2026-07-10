@@ -10,7 +10,6 @@ import {
 import { checkTeacherMutationRateLimit } from "@/lib/rate-limiter-distributed";
 import {
   CreateAnnouncementSchema,
-  UpdateAnnouncementSchema,
   AnnouncementIdSchema,
   UploadMaterialSchema,
   MaterialIdSchema,
@@ -145,91 +144,6 @@ export async function createAnnouncement(input: {
     return { success: true, data };
   } catch (error) {
     authLogger.error("[createAnnouncement] Unexpected error", error);
-    return {
-      success: false,
-      error: "An unexpected error occurred",
-    };
-  }
-}
-
-/**
- * Update an existing announcement
- */
-export async function updateAnnouncement(input: {
-  announcementId: string;
-  title?: string;
-  body?: string;
-  priority?: "low" | "normal" | "high" | "urgent";
-  isPinned?: boolean;
-}) {
-  try {
-    // Validate input
-    let validatedInput;
-    try {
-      validatedInput = UpdateAnnouncementSchema.parse(input);
-    } catch (error) {
-      return handleZodError(error);
-    }
-
-    // First, get the announcement to verify ownership
-    const supabase = await createClient();
-
-    const { data: announcement, error: fetchError } = await supabase
-      .from("class_announcements")
-      .select("class_id, teacher_id")
-      .eq("id", validatedInput.announcementId)
-      .maybeSingle();
-
-    if (fetchError || !announcement) {
-      return { success: false, error: "Announcement not found" };
-    }
-
-    // SECURITY: Verify caller owns the class
-    const auth = await verifyClassOwnership(
-      "updateAnnouncement",
-      announcement.class_id,
-    );
-    if (!auth.authorized) {
-      return auth.error;
-    }
-
-    // Rate limit
-    const rateLimitAllowed = await checkTeacherMutationRateLimit(auth.user.id);
-    if (!rateLimitAllowed) {
-      return {
-        success: false,
-        error: RATE_LIMIT_ERRORS.TOO_MANY_REQUESTS,
-      };
-    }
-
-    // Build update object
-    const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() };
-    if (validatedInput.title !== undefined) updateData.title = validatedInput.title;
-    if (validatedInput.body !== undefined) updateData.body = validatedInput.body;
-    if (validatedInput.priority !== undefined) updateData.priority = validatedInput.priority;
-    if (validatedInput.isPinned !== undefined) updateData.is_pinned = validatedInput.isPinned;
-
-    const { data, error } = await supabase
-      .from("class_announcements")
-      .update(updateData)
-      .eq("id", validatedInput.announcementId)
-      .select()
-      .maybeSingle();
-
-    if (error) {
-      authLogger.error("[updateAnnouncement] Database error", error);
-      return { success: false, error: "Failed to update announcement" };
-    }
-
-    if (!data) {
-      return { success: false, error: "Announcement not found" };
-    }
-
-    revalidatePath(`/app/teacher/classes/${announcement.class_id}`);
-    revalidatePath("/app/student/classes");
-    return { success: true, data };
-  } catch (error) {
-    authLogger.error("[updateAnnouncement] Unexpected error", error);
     return {
       success: false,
       error: "An unexpected error occurred",
@@ -804,42 +718,6 @@ export async function markAnnouncementRead(announcementId: string) {
     return { success: true };
   } catch (error) {
     authLogger.error("[markAnnouncementRead] Unexpected error", error);
-    return {
-      success: false,
-      error: "An unexpected error occurred",
-    };
-  }
-}
-
-/**
- * Get unread announcements for the current student
- */
-export async function getStudentUnreadAnnouncements() {
-  try {
-    const supabase = await createClient();
-
-    // Get current user
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return { success: false, error: "Not authenticated" };
-    }
-
-    // Use the RPC function to get unread announcements
-    const { data, error } = await supabase.rpc("get_unread_announcements", {
-      p_student_id: user.id,
-    });
-
-    if (error) {
-      authLogger.error("[getStudentUnreadAnnouncements] RPC error", error);
-      return { success: false, error: "Failed to load announcements" };
-    }
-
-    return { success: true, data: data || [] };
-  } catch (error) {
-    authLogger.error("[getStudentUnreadAnnouncements] Unexpected error", error);
     return {
       success: false,
       error: "An unexpected error occurred",

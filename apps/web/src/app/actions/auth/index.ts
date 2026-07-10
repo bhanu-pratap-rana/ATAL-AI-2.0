@@ -12,15 +12,7 @@ export {
 } from "./auth-otp";
 
 // Username-based authentication
-export {
-  checkUsernameAvailable,
-  registerWithUsername,
-  signInWithUsername,
-} from "./auth-username";
+export { registerWithUsername, signInWithUsername } from "./auth-username";
 
 // Verification and role management
-export {
-  checkEmailExistsInAuth,
-  checkUserIsTeacher,
-  signOutUser,
-} from "./auth-verification";
+export { checkEmailExistsInAuth } from "./auth-verification";

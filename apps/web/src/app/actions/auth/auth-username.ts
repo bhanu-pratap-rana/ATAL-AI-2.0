@@ -3,10 +3,7 @@
 import { randomBytes } from "node:crypto";
 import { createClient, createAdminClient } from "@/lib/supabase-server";
 import { revalidatePath } from "next/cache";
-import {
-  checkOtpRateLimit,
-  checkEnumerationRateLimit,
-} from "@/lib/rate-limiter-distributed";
+import { checkOtpRateLimit } from "@/lib/rate-limiter-distributed";
 import { UsernameSchema, AuthPasswordSchema } from "@/lib/validation-schemas";
 import { authLogger } from "@/lib/auth-logger";
 import { validateWithSchema } from "./auth-common";
@@ -15,66 +12,6 @@ import { validateWithSchema } from "./auth-common";
  * Username-based authentication
  * Handles username/password signup and signin for students
  */
-
-/**
- * Check if username is available
- */
-export async function checkUsernameAvailable(username: string): Promise<{
-  available: boolean;
-  error?: string;
-}> {
-  try {
-    // SECURITY FIX: Add rate limiting to prevent username enumeration attacks
-    // Limit repeated checks of different usernames to prevent brute-force enumeration
-    const enumerationAllowed = await checkEnumerationRateLimit(
-      `username:check:${username.toLowerCase()}`,
-    );
-    if (!enumerationAllowed) {
-      authLogger.warn(
-        "[checkUsernameAvailable] Username enumeration rate limit exceeded",
-        {
-          username: username.slice(0, 3) + "*", // Log partial username for privacy
-        },
-      );
-      return {
-        available: false,
-        error: "Too many username checks. Please try again later.",
-      };
-    }
-
-    // Validate username format using Zod schema
-    const usernameResult = validateWithSchema(username, UsernameSchema);
-    if (!usernameResult.success) {
-      return { available: false, error: usernameResult.error };
-    }
-    const validatedUsername = usernameResult.data;
-
-    const adminClient = await createAdminClient();
-
-    // Check if username exists in usernames table
-    const { data, error } = await adminClient
-      .from("usernames")
-      .select("username")
-      .ilike("username", validatedUsername)
-      .maybeSingle();
-
-    if (error) {
-      authLogger.error(
-        "[checkUsernameAvailable] Error checking username",
-        error,
-      );
-      return {
-        available: false,
-        error: "Failed to check username availability",
-      };
-    }
-
-    return { available: !data };
-  } catch (error) {
-    authLogger.error("[checkUsernameAvailable] Unexpected error", error);
-    return { available: false, error: "An unexpected error occurred" };
-  }
-}
 
 /**
  * Register a new student with username and password

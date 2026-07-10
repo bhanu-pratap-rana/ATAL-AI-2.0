@@ -4,7 +4,7 @@
  */
 
 // Class management
-export { createClass, updateClass, deleteClass } from "./teacher-class";
+export { createClass } from "./teacher-class";
 
 // Student enrollment
 export { enrollStudent, removeStudent } from "./teacher-enrollment";
@@ -27,7 +27,6 @@ export {
 // Teacher Communication (announcements & materials)
 export {
   createAnnouncement,
-  updateAnnouncement,
   deleteAnnouncement,
   getClassAnnouncements,
   uploadMaterial,
@@ -36,7 +35,6 @@ export {
   getClassMaterials,
   incrementMaterialDownload,
   markAnnouncementRead,
-  getStudentUnreadAnnouncements,
   getStudentClassAnnouncements,
   getStudentClassMaterials,
   type Announcement,

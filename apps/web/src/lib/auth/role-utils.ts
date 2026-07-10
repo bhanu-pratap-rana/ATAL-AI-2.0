@@ -55,13 +55,3 @@ export function isAdmin(role: string | undefined | null): boolean {
 export function isSuperAdmin(role: string | undefined | null): boolean {
   return role === "super_admin";
 }
-
-/**
- * Check if a role is a student
- *
- * @param role - The user's role
- * @returns true if user is a student
- */
-export function isStudent(role: string | undefined | null): boolean {
-  return role === "student";
-}

@@ -4,12 +4,7 @@
  */
 
 // Core dashboard functions
-export {
-  getDashboardStats,
-  getProgressStats,
-  type DashboardStats,
-  type ProgressStats,
-} from "./dashboard-core";
+export { getProgressStats, type ProgressStats } from "./dashboard-core";
 
 // Progress analytics and calculations
 export {
@@ -21,6 +16,3 @@ export {
   type ModuleProgress,
   type AssessmentResult,
 } from "./progress-analytics";
-
-// Activity tracking
-export { getRecentActivity, type RecentActivity } from "./activity-tracking";

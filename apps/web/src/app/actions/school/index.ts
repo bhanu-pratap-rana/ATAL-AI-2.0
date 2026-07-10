@@ -7,13 +7,11 @@
 export { verifyTeacher } from "./teacher-verification";
 
 // School search
-export { searchSchools, getSchoolByCode } from "./school-search";
+export { searchSchools } from "./school-search";
 
 // Staff PIN management
 export { rotateStaffPin } from "./staff-pin-management";
 
-// Admin authorization
-export { checkAdminAuth } from "./admin-auth";
 
 // Shared utilities and types
 export {

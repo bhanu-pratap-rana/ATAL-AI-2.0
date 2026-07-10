@@ -206,27 +206,6 @@ export const UserIdSchema = z.string().uuid("Invalid user ID");
 export const StudentIdSchema = z.string().uuid("Invalid student ID");
 
 /**
- * Schema for updating a class
- */
-export const UpdateClassSchema = z.object({
-  classId: z.string().uuid("Invalid class ID"),
-  name: z
-    .string()
-    .min(1, "Class name is required")
-    .max(
-      SCHOOL_LIMITS.classNameMaxLength,
-      `Class name must be ${SCHOOL_LIMITS.classNameMaxLength} characters or less`,
-    ),
-  subject: z
-    .string()
-    .max(
-      SCHOOL_LIMITS.subjectMaxLength,
-      `Subject must be ${SCHOOL_LIMITS.subjectMaxLength} characters or less`,
-    )
-    .optional(),
-});
-
-/**
  * Schema for enrollment operations (enroll/remove student)
  */
 export const EnrollmentSchema = z.object({
@@ -325,17 +304,6 @@ export const CreateAnnouncementSchema = z.object({
     .max(5000, "Body must be 5000 characters or less"),
   priority: AnnouncementPrioritySchema.optional().default("normal"),
   isPinned: z.boolean().optional().default(false),
-});
-
-/**
- * Schema for updating an announcement
- */
-export const UpdateAnnouncementSchema = z.object({
-  announcementId: z.string().uuid("Invalid announcement ID"),
-  title: z.string().min(1, "Title is required").max(200).optional(),
-  body: z.string().min(1, "Body is required").max(5000).optional(),
-  priority: AnnouncementPrioritySchema.optional(),
-  isPinned: z.boolean().optional(),
 });
 
 /**
