@@ -29,10 +29,13 @@ test("learn page lists modules and opens a module", async ({ page }) => {
 });
 
 test("lesson player loads content and navigates chunks", async ({ page }) => {
+  test.setTimeout(120000);
   await page.goto("/app/learn/M1/T1.1");
-  // Lesson may be served from cache (fast) or generated (slow).
+  // Lesson may be served from cache (fast) or generated (slow). Do NOT
+  // wait for networkidle here — the lesson illustration generates lazily
+  // via a long-lived /api/imagen/generate request that keeps the network
+  // busy well past any idle window. Wait on the UI condition instead.
   await expect(page.locator("h1").first()).not.toBeEmpty({ timeout: 90000 });
-  await page.waitForLoadState("networkidle");
 
   // Advance through the chunked player if a Next/Continue control exists.
   const next = page.getByRole("button", { name: /next|continue/i }).first();

@@ -12,7 +12,9 @@
 
 import { test, expect } from "@playwright/test";
 
-const BASE = "http://localhost:3000";
+// Relative paths resolve against the configured baseURL (respects
+// PLAYWRIGHT_BASE_URL) — never hardcode a port here.
+const BASE = "";
 
 test.describe("Cache-Control headers", () => {
   test.describe("public / health endpoints", () => {

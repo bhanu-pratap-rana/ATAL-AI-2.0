@@ -20,11 +20,16 @@ test.describe("PWA install", () => {
   });
 
   test("service worker registers on home", async ({ page }) => {
+    // Registration is timing-sensitive right after the setup project's
+    // three logins; default 30s test timeout clips the 45s wait below.
+    test.setTimeout(60_000);
     await page.goto("/");
+    // 45s: this is often the first page hit of the run — in dev the
+    // cold compile of "/" can delay SW registration well past 15s.
     await page.waitForFunction(
       () => "serviceWorker" in navigator && navigator.serviceWorker.getRegistrations().then((r) => r.length > 0),
       null,
-      { timeout: 15_000 },
+      { timeout: 45_000 },
     );
 
     const registrations = await page.evaluate(() =>
