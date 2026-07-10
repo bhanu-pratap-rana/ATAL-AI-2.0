@@ -32,38 +32,6 @@ export type SupabaseAuthUser = z.infer<typeof SupabaseAuthUserSchema>;
 export const SupabaseAuthUserArraySchema = z.array(SupabaseAuthUserSchema);
 
 /**
- * Assessment Response Payload Schema
- * Validates payload for assessment submission mutations
- */
-export const AssessmentResponsePayloadSchema = z
-  .object({
-    session_id: z.string().uuid(),
-    item_id: z.string().uuid(),
-    response: z.union([
-      z.string(),
-      z.number(),
-      z.array(z.string()),
-      z.array(z.number()),
-    ]),
-    is_correct: z.boolean(),
-    time_spent_ms: z.number().int().nonnegative().optional(),
-    metadata: z.record(z.unknown()).optional(),
-  })
-  .passthrough();
-
-export type AssessmentResponsePayload = z.infer<
-  typeof AssessmentResponsePayloadSchema
->;
-
-/**
- * Mutation Queue Payload Schema
- * Generic schema for mutation queue payloads
- */
-export const MutationQueuePayloadSchema = z.record(z.unknown());
-
-export type MutationQueuePayload = z.infer<typeof MutationQueuePayloadSchema>;
-
-/**
  * Validate and parse Supabase Auth Users
  *
  * @param users - Raw users array from Supabase
@@ -71,16 +39,4 @@ export type MutationQueuePayload = z.infer<typeof MutationQueuePayloadSchema>;
  */
 export function validateSupabaseAuthUsers(users: unknown): SupabaseAuthUser[] {
   return SupabaseAuthUserArraySchema.parse(users);
-}
-
-/**
- * Validate and parse Mutation Queue Payload
- *
- * @param payload - Raw payload object
- * @returns Validated payload or throws ZodError
- */
-export function validateMutationQueuePayload(
-  payload: unknown,
-): MutationQueuePayload {
-  return MutationQueuePayloadSchema.parse(payload);
 }

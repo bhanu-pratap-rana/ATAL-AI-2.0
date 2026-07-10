@@ -308,52 +308,6 @@ export async function deleteDownloadedLesson(
 }
 
 /**
- * Clear expired cache entries
- */
-export async function clearExpiredCache(): Promise<number> {
-  const now = Date.now();
-  let cleared = 0;
-
-  // Clear expired legacy lessons
-  cleared += await offlineDB.lessons.where("expires_at").below(now).delete();
-
-  // Clear expired downloaded lessons
-  cleared += await offlineDB.downloadedLessons.where("expiresAt").below(now).delete();
-
-  // Clear old conversations (older than 7 days)
-  const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
-  cleared += await offlineDB.conversations.where("last_updated").below(weekAgo).delete();
-
-  return cleared;
-}
-
-/**
- * Clear all offline data
- */
-export async function clearAllOfflineData(): Promise<void> {
-  // Use transaction for all-or-nothing clearing (prevents partial state on crash)
-  await offlineDB.transaction(
-    "rw",
-    [
-      offlineDB.syncQueue,
-      offlineDB.lessons,
-      offlineDB.downloadedLessons,
-      offlineDB.progress,
-      offlineDB.offlineProgress,
-      offlineDB.conversations,
-    ],
-    async () => {
-      await offlineDB.syncQueue.clear();
-      await offlineDB.lessons.clear();
-      await offlineDB.downloadedLessons.clear();
-      await offlineDB.progress.clear();
-      await offlineDB.offlineProgress.clear();
-      await offlineDB.conversations.clear();
-    },
-  );
-}
-
-/**
  * Get statistics about offline storage
  */
 export async function getOfflineStats(): Promise<{

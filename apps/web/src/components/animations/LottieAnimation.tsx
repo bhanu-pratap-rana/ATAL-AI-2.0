@@ -304,14 +304,3 @@ export function CelebrationAnimation({
     />
   );
 }
-
-export function ThinkingAnimation({ size = 60 }: Readonly<{ size?: number }>) {
-  return (
-    <LottieAnimation
-      animation="thinking"
-      width={size}
-      height={size}
-      loop={true}
-    />
-  );
-}

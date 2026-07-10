@@ -71,8 +71,6 @@ export {
 export {
   getLocalizedField,
   getModuleName,
-  getModuleDescription,
-  getModuleCulturalNote,
   getTopicName,
   getTopicDescription,
   getBadgeName,

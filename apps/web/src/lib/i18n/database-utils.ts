@@ -67,26 +67,6 @@ export function getModuleName(
 }
 
 /**
- * Get localized module description
- */
-export function getModuleDescription(
-  module: object,
-  language: SupportedLanguage
-): string {
-  return getLocalizedField(module, "description", language);
-}
-
-/**
- * Get localized module cultural note
- */
-export function getModuleCulturalNote(
-  module: object,
-  language: SupportedLanguage
-): string {
-  return getLocalizedField(module, "cultural_note", language);
-}
-
-/**
  * Get localized topic name
  */
 export function getTopicName(

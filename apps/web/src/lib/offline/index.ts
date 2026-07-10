@@ -9,8 +9,6 @@ export {
   offlineDB,
   isOfflineStorageAvailable,
   getStorageUsage,
-  clearExpiredCache,
-  clearAllOfflineData,
   type QueuedMutation,
   type CachedLesson,
   type CachedProgress,
@@ -25,22 +23,6 @@ export {
   type SyncResult,
 } from "./sync-queue";
 
-// Lesson Cache
-export {
-  preCacheLessons,
-  preCacheLesson,
-  isLessonCached,
-  getCachedLesson,
-  getCachedLessonsForModule,
-  getCacheStats,
-  clearModuleCache,
-  clearAllLessonCache,
-  clearExpiredLessons,
-  getTopicsForModule,
-  isCacheApiAvailable,
-  type Language,
-} from "./lesson-cache";
-
 // Background Sync
 export {
   SYNC_TAGS,
@@ -49,27 +31,10 @@ export {
   isPeriodicSyncSupported,
   registerSync,
   registerPeriodicSync,
-  unregisterPeriodicSync,
-  getPeriodicSyncTags,
-  sendMessageToSW,
-  requestImmediateSync,
-  getSyncStatus,
   initializeBackgroundSync,
   type SyncTag,
   type PeriodicSyncTag,
 } from "./background-sync";
 
 // Mutation Queue Helpers
-export {
-  enqueueAssessmentResponse,
-  enqueueChatMessage,
-  enqueuePointsAward,
-  enqueueProgressUpdate,
-  getMutationQueueStatus,
-  triggerMutationSync,
-  subscribeMutationQueue,
-  type AssessmentResponsePayload,
-  type ChatMessagePayload,
-  type PointsAwardPayload,
-  type ProgressUpdatePayload,
-} from "./mutation-queue";
+export { triggerMutationSync } from "./mutation-queue";

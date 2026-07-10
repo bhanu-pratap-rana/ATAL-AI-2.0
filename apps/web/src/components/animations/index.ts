@@ -9,5 +9,4 @@ export {
   SuccessAnimation,
   LoadingAnimation,
   CelebrationAnimation,
-  ThinkingAnimation,
 } from "./LottieAnimation";
