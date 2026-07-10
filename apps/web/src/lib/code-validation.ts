@@ -77,11 +77,6 @@ export function validatePIN(pin: string): { valid: boolean; error?: string } {
 }
 
 /**
- * Alias for validatePIN (lowercase for backward compatibility with tests)
- */
-export const validatePin = validatePIN;
-
-/**
  * Sanitizes PIN input
  */
 export function sanitizePIN(input: string): string {

@@ -15,8 +15,6 @@ import { z } from "zod";
 import type {
   SubmitAssessmentRPCResponse,
   UpdateKnowledgeStateRPCResponse,
-  UpsertStudentProfileRPCResponse,
-  GetAdaptiveQuestionsRPCResponse,
 } from "@/types/auth";
 
 // ============================================================================
@@ -52,37 +50,6 @@ export const UpdateKnowledgeStateResponseSchema = z.object({
     .optional(),
   time_spent_seconds: z.number().int().nonnegative().optional(),
 }) satisfies z.ZodType<UpdateKnowledgeStateRPCResponse>;
-
-/**
- * Validator for upsert_student_profile RPC response
- * Ensures atomic profile upsert operation completed successfully
- */
-export const UpsertStudentProfileResponseSchema = z.object({
-  success: z.boolean(),
-  error: z.string().optional(),
-  code: z.string().optional(),
-}) satisfies z.ZodType<UpsertStudentProfileRPCResponse>;
-
-/**
- * Validator for get_adaptive_questions RPC response
- * Ensures adaptive algorithm questions are properly structured
- */
-export const GetAdaptiveQuestionsResponseSchema = z.object({
-  success: z.boolean(),
-  error: z.string().optional(),
-  questions: z
-    .array(
-      z.object({
-        id: z.string(),
-        itemId: z.string(),
-        module: z.string(),
-        difficulty: z.number(),
-        type: z.string(),
-        text: z.string(),
-      }),
-    )
-    .optional(),
-}) satisfies z.ZodType<GetAdaptiveQuestionsRPCResponse>;
 
 // ============================================================================
 // Validation Functions

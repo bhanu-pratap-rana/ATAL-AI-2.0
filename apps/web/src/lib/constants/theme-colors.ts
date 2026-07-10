@@ -57,6 +57,3 @@ export const QR_CODE_COLORS = {
   dark: THEME_COLORS.primary, // QR code foreground
   light: THEME_COLORS.white, // QR code background
 } as const;
-
-export type ThemeColorKey = keyof typeof THEME_COLORS;
-export type QRColorKey = keyof typeof QR_CODE_COLORS;

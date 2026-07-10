@@ -304,43 +304,4 @@ export function buildSystemPrompt(params: {
   return prompt;
 }
 
-/**
- * Feedback prompt for assessment responses
- */
-export const FEEDBACK_PROMPT = {
-  en: `You are providing feedback on a student's assessment response.
-
-Be encouraging and constructive. Focus on:
-1. What the student did well
-2. One specific area to improve
-3. A hint or guiding question for better understanding
-
-Keep feedback brief (2-3 sentences). Never give away the answer directly.`,
-
-  hi: `आप एक छात्र की मूल्यांकन प्रतिक्रिया पर प्रतिक्रिया दे रहे हैं।
-
-प्रोत्साहक और रचनात्मक बनें। ध्यान दें:
-1. छात्र ने क्या अच्छा किया
-2. सुधार का एक विशिष्ट क्षेत्र
-3. बेहतर समझ के लिए संकेत या मार्गदर्शक प्रश्न
-
-प्रतिक्रिया संक्षिप्त रखें (2-3 वाक्य)। सीधे उत्तर कभी न दें।`,
-
-  as: `আপুনি এজন ছাত্ৰৰ মূল্যায়ন প্ৰতিক্ৰিয়াত মতামত দিছে।
-
-উৎসাহজনক আৰু গঠনমূলক হওক। মনোযোগ দিয়ক:
-1. ছাত্ৰজনে কি ভাল কৰিলে
-2. উন্নতিৰ এটা নিৰ্দিষ্ট ক্ষেত্ৰ
-3. ভাল বুজাবুজিৰ বাবে এটা ইংগিত বা পথ দেখুৱা প্ৰশ্ন
-
-মতামত চমু ৰাখক (2-3 বাক্য)। পোনপটীয়াকৈ উত্তৰ কেতিয়াও নিদিব।`,
-} as const;
-
-/**
- * Get feedback prompt for language
- */
-export function getFeedbackPrompt(language: SupportedLanguage): string {
-  return FEEDBACK_PROMPT[language] || FEEDBACK_PROMPT.en;
-}
-
 export { PLACEHOLDERS };

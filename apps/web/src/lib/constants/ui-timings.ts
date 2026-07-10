@@ -11,18 +11,6 @@
  */
 
 /**
- * Toast and notification display durations
- */
-export const TOAST_DURATIONS = {
-  /** Short messages (success confirmations) */
-  short: 2000,
-  /** Standard messages */
-  default: 3000,
-  /** Important messages requiring attention */
-  long: 5000,
-} as const;
-
-/**
  * Clipboard copy feedback timing
  */
 export const CLIPBOARD_TIMING = {
@@ -51,14 +39,6 @@ export const ASSESSMENT_TIMING = {
 } as const;
 
 /**
- * Navigation timing
- */
-export const NAVIGATION_TIMING = {
-  /** Delay before redirecting after success */
-  redirectDelay: 1500,
-} as const;
-
-/**
  * Profile editor timing
  */
 export const PROFILE_TIMING = {
@@ -66,7 +46,3 @@ export const PROFILE_TIMING = {
   successMessage: 3000,
 } as const;
 
-/**
- * Type exports for TypeScript
- */
-export type ToastDuration = keyof typeof TOAST_DURATIONS;

@@ -8,7 +8,6 @@
 import { createClient as createBrowserClient } from "@/lib/supabase-browser";
 import { clientLogger } from "@/lib/client-logger";
 
-
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -41,10 +40,6 @@ export interface Topic {
   description_as: string | null;
   duration_minutes: number;
   display_order: number;
-}
-
-export interface ModuleWithTopics extends Module {
-  topics: Topic[];
 }
 
 // ============================================================================
@@ -87,28 +82,6 @@ export async function getModules(): Promise<Module[]> {
 }
 
 /**
- * Fetch a single module by ID
- * PERF-009 FIX: Select only needed columns instead of SELECT *
- */
-export async function getModule(moduleId: string): Promise<Module | null> {
-  const supabase = createBrowserClient();
-
-  const { data, error } = await supabase
-    .from("modules")
-    .select("id, name_en, name_hi, name_as, description_en, description_hi, description_as, icon, color_gradient, cultural_note_en, cultural_note_hi, cultural_note_as, display_order")
-    .eq("id", moduleId)
-    .eq("is_active", true)
-    .maybeSingle();
-
-  if (error || !data) {
-    clientLogger.error("[getModule] Error fetching module:", { error: error?.message });
-    return null;
-  }
-
-  return data as Module;
-}
-
-/**
  * Fetch topics for a module
  */
 export async function getModuleTopics(moduleId: string): Promise<Topic[]> {
@@ -138,36 +111,5 @@ export async function getModuleTopics(moduleId: string): Promise<Topic[]> {
   }
 
   return data as Topic[];
-}
-
-/**
- * Fetch a single topic by ID
- */
-export async function getTopic(topicId: string): Promise<Topic | null> {
-  const supabase = createBrowserClient();
-
-  // Try RPC function first
-  const { data: rpcData, error: rpcError } = await supabase.rpc("get_topic", {
-    p_topic_id: topicId,
-  });
-
-  if (!rpcError && rpcData && rpcData.length > 0) {
-    return rpcData[0] as Topic;
-  }
-
-  // Fallback to direct query
-  // PERF-009 FIX: Select only needed columns instead of SELECT *
-  const { data, error } = await supabase
-    .from("topics")
-    .select("id, module_id, name_en, name_hi, name_as, description_en, description_hi, description_as, duration_minutes, display_order")
-    .eq("id", topicId)
-    .maybeSingle();
-
-  if (error || !data) {
-    clientLogger.error("[getTopic] Error fetching topic:", { error: error?.message });
-    return null;
-  }
-
-  return data as Topic;
 }
 

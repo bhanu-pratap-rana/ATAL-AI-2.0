@@ -6,30 +6,6 @@
 import { User } from "@supabase/supabase-js";
 
 /**
- * OTP (One-Time Password) response data
- * Returned when OTP is successfully sent
- */
-export interface OTPData {
-  message: string;
-  requestId: string;
-}
-
-/**
- * Result type for OTP request operations
- * Either successful (OTP sent) or failed with error
- */
-export type RequestOtpResult =
-  | {
-      success: true;
-      data: OTPData;
-    }
-  | {
-      success: false;
-      error: string;
-      exists?: boolean;
-    };
-
-/**
  * Result type for sign-in operations
  * Includes user data if successful, error message if failed
  */
@@ -45,34 +21,6 @@ export type SignInResult =
     };
 
 /**
- * Result type for password reset operations
- */
-export type PasswordResetResult =
-  | {
-      success: true;
-      message: string;
-    }
-  | {
-      success: false;
-      error: string;
-    };
-
-/**
- * Result type for teacher onboarding operations
- */
-export type TeacherOnboardResult =
-  | {
-      success: true;
-      userId?: string;
-      profileId?: string;
-      message?: string;
-    }
-  | {
-      success: false;
-      error: string;
-    };
-
-/**
  * Enhanced User type with app metadata
  * Extends Supabase User with custom application metadata
  */
@@ -82,15 +30,6 @@ export interface AuthenticatedUser extends User {
     onboarded?: boolean;
     [key: string]: unknown;
   };
-}
-
-/**
- * Email check result from auth system
- */
-export interface EmailCheckResult {
-  exists: boolean;
-  role?: "student" | "teacher";
-  userId?: string;
 }
 
 /**
@@ -114,17 +53,6 @@ export interface StudentProfile {
   classId: string;
   name: string;
   email: string;
-}
-
-/**
- * Generic API response wrapper
- * Used consistently across all API operations
- */
-export interface ApiResponse<T = unknown> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  message?: string;
 }
 
 /**
@@ -164,24 +92,6 @@ export type VerifyTeacherResult =
     };
 
 /**
- * Generic operation result for class operations
- */
-export interface OperationResult<T = unknown> {
-  success: boolean;
-  data?: T;
-  error?: string;
-}
-
-/**
- * Analytics data for a class
- */
-export interface ClassAnalytics {
-  activeThisWeek: number;
-  avgMinutesPerDay: number;
-  atRiskCount: number;
-}
-
-/**
  * School details
  */
 export interface School {
@@ -190,13 +100,6 @@ export interface School {
   schoolName: string;
   district?: string;
 }
-
-/**
- * Admin Role Type
- * Defines role types for admin authentication.
- * Used by RoleGuard component for access control.
- */
-export type AdminRole = "super_admin" | "admin" | "teacher" | "student";
 
 // ============================================================================
 // RPC FUNCTION RESPONSE TYPES
@@ -260,27 +163,3 @@ export interface UpsertStudentProfileRPCResponse {
   code?: string;
 }
 
-/**
- * Response type for get_adaptive_questions RPC function
- * Returns questions selected by adaptive algorithm
- */
-export interface GetAdaptiveQuestionsRPCResponse {
-  success: boolean;
-  error?: string;
-  questions?: Array<{
-    id: string;
-    itemId: string;
-    module: string;
-    difficulty: number;
-    type: string;
-    text: string;
-  }>;
-}
-
-/**
- * Discriminated union type for RPC errors
- * Use with type guards to safely handle RPC responses
- */
-export type RPCResult<T> =
-  | { success: true; data: T }
-  | { success: false; error: string };

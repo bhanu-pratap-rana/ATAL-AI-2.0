@@ -64,19 +64,6 @@ export const MutationQueuePayloadSchema = z.record(z.unknown());
 export type MutationQueuePayload = z.infer<typeof MutationQueuePayloadSchema>;
 
 /**
- * Cursor Pagination Item Schema
- * Validates items used for cursor-based pagination
- */
-export const CursorPaginationItemSchema = z
-  .object({
-    id: z.string().uuid(),
-    created_at: z.string().datetime().optional(),
-  })
-  .passthrough(); // Allow additional fields
-
-export type CursorPaginationItem = z.infer<typeof CursorPaginationItemSchema>;
-
-/**
  * Validate and parse Supabase Auth Users
  *
  * @param users - Raw users array from Supabase

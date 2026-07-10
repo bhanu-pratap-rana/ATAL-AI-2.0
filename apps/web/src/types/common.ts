@@ -12,16 +12,6 @@
 export type SupportedLanguage = "en" | "hi" | "as";
 
 /**
- * Difficulty level for questions and assessments
- */
-export type DifficultyLevel = "easy" | "medium" | "hard";
-
-/**
- * Common proficiency level across the application
- */
-export type ProficiencyLevel = "beginner" | "intermediate" | "advanced";
-
-/**
  * Filter type for language filtering (with null option)
  */
 export type LanguageFilter = SupportedLanguage | null;

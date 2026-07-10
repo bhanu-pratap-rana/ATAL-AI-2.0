@@ -10,16 +10,6 @@
  */
 
 /**
- * Get language label for AI service prompts
- * Maps language codes to display names
- */
-export function getLanguageLabelForAI(language: string): string {
-  if (language === "hi") return "Hindi";
-  if (language === "as") return "Assamese";
-  return "English";
-}
-
-/**
  * Get masked context for error logging
  * Handles type checking and conditional data masking
  */

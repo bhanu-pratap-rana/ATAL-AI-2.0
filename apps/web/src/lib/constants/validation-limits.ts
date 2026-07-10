@@ -83,19 +83,6 @@ export const ASSESSMENT_LIMITS = {
 } as const;
 
 /**
- * Database Query Limits
- * Used for search results, pagination, etc.
- */
-export const QUERY_LIMITS = {
-  /** Default search results limit */
-  searchResultsDefault: 20,
-  /** Maximum search results per page */
-  searchResultsMax: 100,
-  /** Default pagination page size */
-  paginationDefault: 25,
-} as const;
-
-/**
  * PIN Generation Limits
  * Used for staff PIN generation and validation
  */
@@ -108,12 +95,3 @@ export const PIN_LIMITS = {
   length: 4,
 } as const;
 
-/**
- * Type exports for TypeScript
- */
-export type AIContentLimitKey = keyof typeof AI_CONTENT_LIMITS;
-export type ProfileLimitKey = keyof typeof PROFILE_LIMITS;
-export type SchoolLimitKey = keyof typeof SCHOOL_LIMITS;
-export type AssessmentLimitKey = keyof typeof ASSESSMENT_LIMITS;
-export type QueryLimitKey = keyof typeof QUERY_LIMITS;
-export type PINLimitKey = keyof typeof PIN_LIMITS;

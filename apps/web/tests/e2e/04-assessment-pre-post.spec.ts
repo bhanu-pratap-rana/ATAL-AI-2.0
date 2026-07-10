@@ -25,13 +25,19 @@ test.describe("Assessment pre/post flow", () => {
 
   test.use({ storageState: path.join(AUTH_DIR, "student.json") });
 
+  // NOTE: no networkidle waits — the dashboard holds realtime subscriptions
+  // so the network may never go idle. Wait on rendered content instead, and
+  // give goto extra headroom (heaviest page in the app).
+
   test("student dashboard shows avg score card without crashing", async ({
     page,
   }) => {
-    await page.goto("/app/student/dashboard");
-    await page.waitForLoadState("networkidle");
-    // AverageScore is an async RSC wrapped in Suspense — wait for it to resolve
-    await page.waitForTimeout(3000);
+    test.setTimeout(60000);
+    await page.goto("/app/student/dashboard", { timeout: 45000 });
+    // AverageScore is an async RSC wrapped in Suspense — wait for real content
+    await expect(page.getByText(/points|score|learn/i).first()).toBeVisible({
+      timeout: 25000,
+    });
     await expect(page.locator("body")).not.toContainText("Something went wrong");
     await expect(page.locator("body")).not.toContainText("Error loading");
   });
@@ -39,11 +45,13 @@ test.describe("Assessment pre/post flow", () => {
   test("has_assessment_type RPC reflected in dashboard state", async ({
     page,
   }) => {
+    test.setTimeout(60000);
     // Navigating to dashboard exercises has_assessment_type to decide
     // whether to show pre-assessment CTA
-    await page.goto("/app/student/dashboard");
-    await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(2000);
+    await page.goto("/app/student/dashboard", { timeout: 45000 });
+    await expect(page.getByText(/points|score|learn/i).first()).toBeVisible({
+      timeout: 25000,
+    });
     // Page should not show a JS error boundary
     await expect(page.locator("body")).not.toContainText("Something went wrong");
   });

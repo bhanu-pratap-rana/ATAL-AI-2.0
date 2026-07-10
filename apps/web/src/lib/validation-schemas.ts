@@ -201,11 +201,6 @@ export const ClassIdSchema = z.string().uuid("Invalid class ID");
 export const UserIdSchema = z.string().uuid("Invalid user ID");
 
 /**
- * Schema for student ID (UUID alias for clarity)
- */
-export const StudentIdSchema = z.string().uuid("Invalid student ID");
-
-/**
  * Schema for enrollment operations (enroll/remove student)
  */
 export const EnrollmentSchema = z.object({

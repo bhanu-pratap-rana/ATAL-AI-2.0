@@ -62,12 +62,6 @@ export const MASTERY_THRESHOLDS = {
 export const MAX_SCORE_WITHOUT_QUIZ = 85;
 
 /**
- * Minimum number of topics a module must have before it can be considered "mastered".
- * Used in: gamification service (module mastery badge checks)
- */
-export const MIN_TOPICS_FOR_MODULE_MASTERY = 10;
-
-/**
  * Confidence level determination based on score
  */
 export function getConfidenceLevel(score: number): "low" | "medium" | "high" {
@@ -93,9 +87,6 @@ export function getStatusFromScore(score: number): "in_progress" | "mastered" {
 export function isPassingScore(score: number): boolean {
   return score >= MASTERY_THRESHOLDS.PASSING;
 }
-
-// Type for mastery threshold keys
-export type MasteryThresholdKey = keyof typeof MASTERY_THRESHOLDS;
 
 /**
  * Calculate mastery score based on lesson completion.

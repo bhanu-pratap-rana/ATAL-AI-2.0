@@ -75,11 +75,6 @@ const cerebras = createOpenAICompatible({
 
 export const cerebrasProvider = cerebras("llama-3.3-70b");
 
-export const cerebrasModels = {
-  llama33: cerebras("llama-3.3-70b"),
-  llama31_8b: cerebras("llama3.1-8b"),
-} as const;
-
 /**
  * Provider type for configuration
  */
