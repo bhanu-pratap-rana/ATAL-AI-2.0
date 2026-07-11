@@ -72,8 +72,10 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
+      # chromium-public has no dependency on the auth "setup" project —
+      # CI has no real Supabase credentials, so demo logins cannot run here.
       - name: Run smoke tests
-        run: npm run test:e2e:smoke -- --project=chromium
+        run: npm run test:e2e:smoke -- --project=chromium-public
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key' }}

@@ -41,6 +41,14 @@ export default defineConfig({
       dependencies: ["setup"],
       use: { ...devices["Desktop Chrome"] },
     },
+    // Auth-free Chromium for public-page smoke tests. CI runs against a
+    // placeholder Supabase env where the setup logins cannot succeed, so
+    // this project must NOT depend on "setup".
+    {
+      name: "chromium-public",
+      testMatch: /(smoke|comprehensive)\.spec\.ts/,
+      use: { ...devices["Desktop Chrome"] },
+    },
     {
       name: "firefox",
       use: { ...devices["Desktop Firefox"] },
