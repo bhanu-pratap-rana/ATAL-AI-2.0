@@ -9,33 +9,37 @@ import { TEACHER_STATE } from "./helpers/credentials";
 
 test.use({ storageState: TEACHER_STATE });
 
-/** Class-detail links live on the teacher dashboard ("Open class →"). */
+/**
+ * Class-detail links live on the teacher dashboard ("Open class →").
+ * NOTE: no networkidle waits anywhere in this file — the teacher pages hold
+ * realtime subscriptions, so the network may never go idle. Wait on content.
+ */
 async function openFirstClassDetail(page: Page) {
-  await page.goto("/app/teacher/dashboard");
-  await page.waitForLoadState("networkidle");
+  await page.goto("/app/teacher/dashboard", { timeout: 45000 });
   const classLink = page.locator('a[href^="/app/teacher/classes/"]').first();
-  await expect(classLink).toBeVisible({ timeout: 20000 });
+  await expect(classLink).toBeVisible({ timeout: 25000 });
   const href = await classLink.getAttribute("href");
-  await page.goto(href!);
-  await page.waitForLoadState("networkidle");
+  await page.goto(href!, { timeout: 45000 });
+  await expect(page.getByText(/student|progress|class/i).first()).toBeVisible({ timeout: 25000 });
 }
 
 test("teacher dashboard shows profile, stats and realtime grid", async ({ page }) => {
-  await page.goto("/app/teacher/dashboard");
-  await page.waitForLoadState("networkidle");
-  await expect(page.getByText("Demo Teacher").first()).toBeVisible({ timeout: 20000 });
+  test.setTimeout(60000);
+  await page.goto("/app/teacher/dashboard", { timeout: 45000 });
+  await expect(page.getByText("Demo Teacher").first()).toBeVisible({ timeout: 25000 });
   await expect(page.getByText(/Total Students/i).first()).toBeVisible();
   await expect(page.getByText(/Real-time/i).first()).toBeVisible();
 });
 
 test("students list page shows enrolled students", async ({ page }) => {
-  await page.goto("/app/teacher/classes");
-  await page.waitForLoadState("networkidle");
-  await expect(page.getByText(/My Students/i).first()).toBeVisible({ timeout: 20000 });
+  test.setTimeout(60000);
+  await page.goto("/app/teacher/classes", { timeout: 45000 });
+  await expect(page.getByText(/My Students/i).first()).toBeVisible({ timeout: 25000 });
   await expect(page.getByText(/Demo Student/).first()).toBeVisible();
 });
 
 test("class detail shows progress and AI activity", async ({ page }) => {
+  test.setTimeout(90000);
   await openFirstClassDetail(page);
   await expect(page.getByText(/progress/i).first()).toBeVisible({ timeout: 20000 });
   await expect(page.getByText(/AI Tutor Activity/i).first()).toBeVisible();
@@ -66,13 +70,12 @@ test("CSV exports download with BOM and headers", async ({ page }) => {
 });
 
 test("assessments overview and question analytics render", async ({ page }) => {
-  await page.goto("/app/teacher/assessments");
-  await page.waitForLoadState("networkidle");
-  await expect(page.getByText(/assessment/i).first()).toBeVisible();
+  test.setTimeout(60000);
+  await page.goto("/app/teacher/assessments", { timeout: 45000 });
+  await expect(page.getByText(/assessment/i).first()).toBeVisible({ timeout: 25000 });
   await expect(page.getByText(/something went wrong/i)).toHaveCount(0);
 
-  await page.goto("/app/teacher/analytics/questions");
-  await page.waitForLoadState("networkidle");
-  await expect(page.getByText(/question/i).first()).toBeVisible();
+  await page.goto("/app/teacher/analytics/questions", { timeout: 45000 });
+  await expect(page.getByText(/question/i).first()).toBeVisible({ timeout: 25000 });
   await expect(page.getByText(/something went wrong/i)).toHaveCount(0);
 });
