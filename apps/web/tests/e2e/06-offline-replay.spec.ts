@@ -90,9 +90,15 @@ test.describe("Offline sync replay (C3)", () => {
     // C3: auto-replay fires on online event
     await page.waitForTimeout(2500);
 
-    // No unhandled JS errors during replay
+    // No unhandled JS errors during replay.
+    // "negative time stamp" is React 19 dev-mode RSC performance
+    // instrumentation (performance.measure by component name) hitting
+    // dev-server clock skew — absent from production builds (verified).
     const serious = errors.filter(
-      (e) => !e.includes("fetch") && !e.includes("NetworkError"),
+      (e) =>
+        !e.includes("fetch") &&
+        !e.includes("NetworkError") &&
+        !e.includes("negative time stamp"),
     );
     expect(serious).toHaveLength(0);
 
