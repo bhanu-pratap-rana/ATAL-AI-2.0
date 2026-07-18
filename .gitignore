@@ -300,3 +300,7 @@ _verify_*.png
 /.playwright-mcp/
 /tests/.screenshots/
 /design/templates/_verify_*.png
+
+# local QA screenshots
+/prod-*.png
+/.playwright-mcp/
