@@ -16,6 +16,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/supabase-server";
 import { isAdmin, isTeacherOrHigher } from "@/lib/auth/role-utils";
+import { RoleRedirect } from "./RoleRedirect";
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
@@ -24,11 +25,12 @@ export default async function DashboardPage() {
   }
 
   const role = user.app_metadata?.role;
+  let dest = "/app/student/dashboard";
   if (isAdmin(role)) {
-    redirect("/app/admin/dashboard");
+    dest = "/app/admin/dashboard";
+  } else if (isTeacherOrHigher(role)) {
+    dest = "/app/teacher/dashboard";
   }
-  if (isTeacherOrHigher(role)) {
-    redirect("/app/teacher/dashboard");
-  }
-  redirect("/app/student/dashboard");
+  // Client-side hop instead of a server redirect() — see RoleRedirect.
+  return <RoleRedirect to={dest} />;
 }

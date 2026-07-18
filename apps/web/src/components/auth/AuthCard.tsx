@@ -47,7 +47,7 @@ export function AuthCard({ children, title, description }: AuthCardProps) {
           ATAL <span className="text-(--bento-orange-d)">AI</span>
         </h1>
         <p className="text-sm text-slate-500 font-bold">
-          Assam&apos;s Digital Learning Platform
+          Assam&apos;s Premier Digital Learning Platform
         </p>
       </div>
 

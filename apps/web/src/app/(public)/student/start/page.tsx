@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase-browser";
+import { isAdmin, isTeacherOrHigher } from "@/lib/auth/role-utils";
 import { useAuthState } from "@/hooks/useAuthState";
 import { ChoiceStep } from "@/components/auth/StudentStepComponents";
 import { SignInStep } from "@/components/auth/student/SignInStep";
@@ -31,13 +32,18 @@ export default function StudentStartPage() {
         data: { session },
       } = await supabase.auth.getSession();
       if (session) {
-        // Route through the canonical role-router shim (/app/dashboard) rather
-        // than hardcoding the student dashboard. A logged-in teacher/admin who
-        // lands here would otherwise be pushed to /app/student/dashboard and
-        // then server-redirected onward — a double navigation that flashed a
-        // half-mounted student view. The shim sends each role to its own home
-        // in one hop.
-        router.push("/app/dashboard");
+        // Route each role straight to its own dashboard in one hop. The
+        // session already carries the role, so we don't need the
+        // /app/dashboard shim — soft-navigating through it left the shim's
+        // server redirect() unfired and the user on a blank page.
+        const role = session.user.app_metadata?.role;
+        if (isAdmin(role)) {
+          router.replace("/app/admin/dashboard");
+        } else if (isTeacherOrHigher(role)) {
+          router.replace("/app/teacher/dashboard");
+        } else {
+          router.replace("/app/student/dashboard");
+        }
       }
     }
     checkAuth();
